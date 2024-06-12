@@ -1,31 +1,16 @@
-/**CFile***********************************************************************
+/**
+  @file
 
-  FileName    [cuddZddLin.c]
+  @ingroup cudd
 
-  PackageName [cudd]
+  @brief Procedures for dynamic variable ordering of ZDDs.
 
-  Synopsis    [Procedures for dynamic variable ordering of ZDDs.]
+  @see cuddLinear.c cuddZddReord.c
 
-  Description [Internal procedures included in this module:
-		    <ul>
-		    <li> cuddZddLinearSifting()
-		    </ul>
-	       Static procedures included in this module:
-		    <ul>
-		    <li> cuddZddLinearInPlace()
-		    <li> cuddZddLinerAux()
-		    <li> cuddZddLinearUp()
-		    <li> cuddZddLinearDown()
-		    <li> cuddZddLinearBackward()
-		    <li> cuddZddUndoMoves()
-		    </ul>
-	      ]
+  @author Fabio Somenzi
 
-  SeeAlso     [cuddLinear.c cuddZddReord.c]
-
-  Author      [Fabio Somenzi]
-
-  Copyright   [Copyright (c) 1995-2012, Regents of the University of Colorado
+  @copyright@parblock
+  Copyright (c) 1995-2015, Regents of the University of Colorado
 
   All rights reserved.
 
@@ -55,9 +40,10 @@
   CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
   LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
   ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-  POSSIBILITY OF SUCH DAMAGE.]
+  POSSIBILITY OF SUCH DAMAGE.
+  @endparblock
 
-******************************************************************************/
+*/
 
 #include "util.h"
 #include "cuddInt.h"
@@ -84,22 +70,12 @@
 /* Variable declarations                                                     */
 /*---------------------------------------------------------------------------*/
 
-#ifndef lint
-static char rcsid[] DD_UNUSED = "$Id: cuddZddLin.c,v 1.16 2012/02/05 01:07:19 fabio Exp $";
-#endif
-
-extern  int	*zdd_entry;
-extern	int	zddTotalNumberSwapping;
-static	int	zddTotalNumberLinearTr;
-static  DdNode	*empty;
-
 
 /*---------------------------------------------------------------------------*/
 /* Macro declarations                                                        */
 /*---------------------------------------------------------------------------*/
 
-
-/**AutomaticStart*************************************************************/
+/** \cond */
 
 /*---------------------------------------------------------------------------*/
 /* Static function prototypes                                                */
@@ -112,7 +88,7 @@ static Move * cuddZddLinearDown (DdManager *table, int x, int xHigh, Move *prevM
 static int cuddZddLinearBackward (DdManager *table, int size, Move *moves);
 static Move* cuddZddUndoMoves (DdManager *table, Move *moves);
 
-/**AutomaticEnd***************************************************************/
+/** \endcond */
 
 
 /*---------------------------------------------------------------------------*/
@@ -127,27 +103,24 @@ static Move* cuddZddUndoMoves (DdManager *table, Move *moves);
 
 
 
-/**Function********************************************************************
+/**
+  @brief Implementation of the linear sifting algorithm for ZDDs.
 
-  Synopsis    [Implementation of the linear sifting algorithm for ZDDs.]
-
-  Description [Implementation of the linear sifting algorithm for ZDDs.
-  Assumes that no dead nodes are present.
+  @details Assumes that no dead nodes are present.
     <ol>
     <li> Order all the variables according to the number of entries
     in each unique table.
     <li> Sift the variable up and down and applies the XOR transformation,
-    remembering each time the total size of the DD heap.
+    remembering each time the total size of the %DD heap.
     <li> Select the best permutation.
     <li> Repeat 3 and 4 for all variables.
     </ol>
-  Returns 1 if successful; 0 otherwise.]
 
-  SideEffects [None]
+  @return 1 if successful; 0 otherwise.
 
-  SeeAlso     []
+  @sideeffect None
 
-******************************************************************************/
+*/
 int
 cuddZddLinearSifting(
   DdManager * table,
@@ -155,7 +128,7 @@ cuddZddLinearSifting(
   int  upper)
 {
     int	i;
-    int	*var;
+    IndexKey *var;
     int	size;
     int	x;
     int	result;
@@ -164,16 +137,9 @@ cuddZddLinearSifting(
 #endif
 
     size = table->sizeZ;
-    empty = table->zero;
 
     /* Find order in which to sift variables. */
-    var = NULL;
-    zdd_entry = ALLOC(int, size);
-    if (zdd_entry == NULL) {
-	table->errorCode = CUDD_MEMORY_OUT;
-	goto cuddZddSiftingOutOfMem;
-    }
-    var = ALLOC(int, size);
+    var = ALLOC(IndexKey, size);
     if (var == NULL) {
 	table->errorCode = CUDD_MEMORY_OUT;
 	goto cuddZddSiftingOutOfMem;
@@ -181,21 +147,26 @@ cuddZddLinearSifting(
 
     for (i = 0; i < size; i++) {
 	x = table->permZ[i];
-	zdd_entry[i] = table->subtableZ[x].keys;
-	var[i] = i;
+	var[i].index = i;
+	var[i].keys = table->subtableZ[x].keys;
     }
 
-    qsort((void *)var, size, sizeof(int), (DD_QSFP)cuddZddUniqueCompare);
+    util_qsort(var, size, sizeof(IndexKey), cuddZddUniqueCompare);
 
     /* Now sift. */
     for (i = 0; i < ddMin(table->siftMaxVar, size); i++) {
-	if (zddTotalNumberSwapping >= table->siftMaxSwap)
+	if (table->zddTotalNumberSwapping >= table->siftMaxSwap)
 	    break;
         if (util_cpu_time() - table->startTime > table->timeLimit) {
             table->autoDynZ = 0; /* prevent further reordering */
             break;
         }
-	x = table->permZ[var[i]];
+        if (table->terminationCallback != NULL &&
+            table->terminationCallback(table->tcbArg)) {
+            table->autoDynZ = 0; /* prevent further reordering */
+            break;
+        }
+	x = table->permZ[var[i].index];
 	if (x < lower || x > upper) continue;
 #ifdef DD_STATS
 	previousSize = table->keysZ;
@@ -208,7 +179,7 @@ cuddZddLinearSifting(
 	    (void) fprintf(table->out,"-");
 	} else if (table->keysZ > (unsigned) previousSize) {
 	    (void) fprintf(table->out,"+");	/* should never happen */
-	    (void) fprintf(table->out,"\nSize increased from %d to %d while sifting variable %d\n", previousSize, table->keysZ , var[i]);
+	    (void) fprintf(table->out,"\nSize increased from %d to %d while sifting variable %d\n", previousSize, table->keysZ , var[i].index);
 	} else {
 	    (void) fprintf(table->out,"=");
 	}
@@ -217,13 +188,11 @@ cuddZddLinearSifting(
     }
 
     FREE(var);
-    FREE(zdd_entry);
 
     return(1);
 
 cuddZddSiftingOutOfMem:
 
-    if (zdd_entry != NULL) FREE(zdd_entry);
     if (var != NULL) FREE(var);
 
     return(0);
@@ -236,21 +205,21 @@ cuddZddSiftingOutOfMem:
 /*---------------------------------------------------------------------------*/
 
 
-/**Function********************************************************************
+/**
+  @brief Linearly combines two adjacent variables.
 
-  Synopsis    [Linearly combines two adjacent variables.]
+  @details It assumes that no dead nodes are present on entry to this
+  procedure.  The procedure then guarantees that no dead nodes will be
+  present when it terminates.  cuddZddLinearInPlace assumes that x
+  &lt; y.
 
-  Description [Linearly combines two adjacent variables. It assumes
-  that no dead nodes are present on entry to this procedure.  The
-  procedure then guarantees that no dead nodes will be present when it
-  terminates.  cuddZddLinearInPlace assumes that x &lt; y.  Returns the
-  number of keys in the table if successful; 0 otherwise.]
+  @return the number of keys in the table if successful; 0 otherwise.
 
-  SideEffects [None]
+  @sideeffect None
 
-  SeeAlso     [cuddZddSwapInPlace cuddLinearInPlace]
+  @see cuddZddSwapInPlace cuddLinearInPlace
 
-******************************************************************************/
+*/
 static int
 cuddZddLinearInPlace(
   DdManager * table,
@@ -268,6 +237,7 @@ cuddZddLinearInPlace(
     DdNode	*f, *f1, *f0, *f11, *f10, *f01, *f00;
     DdNode	*newf1, *newf0, *g, *next, *previous;
     DdNode	*special;
+    DdNode	*empty = table->zero;
 
 #ifdef DD_DEBUG
     assert(x < y);
@@ -277,8 +247,6 @@ cuddZddLinearInPlace(
     assert(table->subtableZ[x].dead == 0);
     assert(table->subtableZ[y].dead == 0);
 #endif
-
-    zddTotalNumberLinearTr++;
 
     /* Get parameters of x subtable. */
     xindex   = table->invpermZ[x];
@@ -559,20 +527,17 @@ zddSwapOutOfMem:
 } /* end of cuddZddLinearInPlace */
 
 
-/**Function********************************************************************
+/**
+  @brief Given xLow <= x <= xHigh moves x up and down between the
+  boundaries.
 
-  Synopsis    [Given xLow <= x <= xHigh moves x up and down between the
-  boundaries.]
+  @details Finds the best position and does the required changes.
 
-  Description [Given xLow <= x <= xHigh moves x up and down between the
-  boundaries. Finds the best position and does the required changes.
-  Returns 1 if successful; 0 otherwise.]
+  @return 1 if successful; 0 otherwise.
 
-  SideEffects [None]
+  @sideeffect None
 
-  SeeAlso     []
-
-******************************************************************************/
+*/
 static int
 cuddZddLinearAux(
   DdManager * table,
@@ -686,20 +651,17 @@ cuddZddLinearAuxOutOfMem:
 } /* end of cuddZddLinearAux */
 
 
-/**Function********************************************************************
+/**
+  @brief Sifts a variable up applying the XOR transformation.
 
-  Synopsis    [Sifts a variable up applying the XOR transformation.]
+  @details Moves y up until either it reaches the bound (xLow) or the
+  size of the %ZDD heap increases too much.
 
-  Description [Sifts a variable up applying the XOR
-  transformation. Moves y up until either it reaches the bound (xLow)
-  or the size of the ZDD heap increases too much.  Returns the set of
-  moves in case of success; NULL if memory is full.]
+  @return the set of moves in case of success; NULL if memory is full.
 
-  SideEffects [None]
+  @sideeffect None
 
-  SeeAlso     []
-
-******************************************************************************/
+*/
 static Move *
 cuddZddLinearUp(
   DdManager * table,
@@ -771,20 +733,18 @@ cuddZddLinearUpOutOfMem:
 } /* end of cuddZddLinearUp */
 
 
-/**Function********************************************************************
+/**
+  @brief Sifts a variable down and applies the XOR transformation.
 
-  Synopsis    [Sifts a variable down and applies the XOR transformation.]
+  @details Sifts a variable down. Moves x down until either it
+  reaches the bound (xHigh) or the size of the %ZDD heap increases too
+  much.
 
-  Description [Sifts a variable down. Moves x down until either it
-  reaches the bound (xHigh) or the size of the ZDD heap increases too
-  much. Returns the set of moves in case of success; NULL if memory is
-  full.]
+  @return the set of moves in case of success; NULL if memory is full.
 
-  SideEffects [None]
+  @sideeffect None
 
-  SeeAlso     []
-
-******************************************************************************/
+*/
 static Move *
 cuddZddLinearDown(
   DdManager * table,
@@ -854,21 +814,18 @@ cuddZddLinearDownOutOfMem:
 } /* end of cuddZddLinearDown */
 
 
-/**Function********************************************************************
+/**
+  @brief Given a set of moves, returns the %ZDD heap to the position
+  giving the minimum size.
 
-  Synopsis    [Given a set of moves, returns the ZDD heap to the position
-  giving the minimum size.]
+  @details In case of ties, returns to the closest position giving the
+  minimum size.
 
-  Description [Given a set of moves, returns the ZDD heap to the
-  position giving the minimum size. In case of ties, returns to the
-  closest position giving the minimum size. Returns 1 in case of
-  success; 0 otherwise.]
+  @return 1 in case of success; 0 otherwise.
 
-  SideEffects [None]
+  @sideeffect None
 
-  SeeAlso     []
-
-******************************************************************************/
+*/
 static int
 cuddZddLinearBackward(
   DdManager * table,
@@ -905,18 +862,15 @@ cuddZddLinearBackward(
 } /* end of cuddZddLinearBackward */
 
 
-/**Function********************************************************************
+/**
+  @brief Given a set of moves, returns the %ZDD heap to the order
+  in effect before the moves.
 
-  Synopsis    [Given a set of moves, returns the ZDD heap to the order
-  in effect before the moves.]
+  @return 1 in case of success; 0 otherwise.
 
-  Description [Given a set of moves, returns the ZDD heap to the
-  order in effect before the moves.  Returns 1 in case of success;
-  0 otherwise.]
+  @sideeffect None
 
-  SideEffects [None]
-
-******************************************************************************/
+*/
 static Move*
 cuddZddUndoMoves(
   DdManager * table,

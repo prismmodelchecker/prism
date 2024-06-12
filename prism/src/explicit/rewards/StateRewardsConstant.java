@@ -32,14 +32,14 @@ import explicit.Product;
 /**
  * Explicit-state storage of constant state rewards.
  */
-public class StateRewardsConstant extends StateRewards
+public class StateRewardsConstant<Value> extends StateRewards<Value>
 {
-	protected double stateReward = 0.0;
+	protected Value stateReward = getEvaluator().zero();
 
 	/**
 	 * Constructor: all rewards equal to {@code r}
 	 */
-	public StateRewardsConstant(double r)
+	public StateRewardsConstant(Value r)
 	{
 		stateReward = r;
 	}
@@ -47,7 +47,7 @@ public class StateRewardsConstant extends StateRewards
 	// Accessors
 
 	@Override
-	public double getStateReward(int s)
+	public Value getStateReward(int s)
 	{
 		return stateReward;
 	}
@@ -55,7 +55,7 @@ public class StateRewardsConstant extends StateRewards
 	// Converters
 	
 	@Override
-	public StateRewards liftFromModel(Product<? extends Model> product)
+	public StateRewards<Value> liftFromModel(Product<?> product)
 	{
 		return deepCopy();
 	}
@@ -63,8 +63,10 @@ public class StateRewardsConstant extends StateRewards
 	// Other
 
 	@Override
-	public StateRewardsConstant deepCopy()
+	public StateRewardsConstant<Value> deepCopy()
 	{
-		return new StateRewardsConstant(stateReward);
+		StateRewardsConstant rews = new StateRewardsConstant<>(stateReward);
+		rews.setEvaluator(getEvaluator());
+		return rews;
 	}
 }

@@ -28,6 +28,7 @@ package parser.ast;
 
 import parser.EvaluateContext;
 import parser.visitor.ASTVisitor;
+import parser.visitor.DeepCopy;
 import prism.PrismLangException;
 
 public class ExpressionIdent extends Expression
@@ -99,12 +100,15 @@ public class ExpressionIdent extends Expression
 	}
 	
 	@Override
-	public Expression deepCopy()
+	public ExpressionIdent deepCopy(DeepCopy copier)
 	{
-		ExpressionIdent expr = new ExpressionIdent(name);
-		expr.setType(type);
-		expr.setPosition(this);
-		return expr;
+		return this;
+	}
+
+	@Override
+	public ExpressionIdent clone()
+	{
+		return (ExpressionIdent) super.clone();
 	}
 
 	// Standard methods

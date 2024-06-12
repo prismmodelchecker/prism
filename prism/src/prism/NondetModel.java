@@ -423,12 +423,12 @@ public class NondetModel extends ProbModel
 	}
 
 	@Override
-	public void exportTransRewardsToFile(int r, int exportType, boolean ordered, File file, int precision) throws FileNotFoundException, PrismException
+	public void exportTransRewardsToFile(int r, int exportType, boolean ordered, File file, int precision, boolean noexportheaders) throws FileNotFoundException, PrismException
 	{
 		if (!ordered) {
 			// can only do explicit (sparse matrix based) export for mdps
 		} else {
-			PrismSparse.ExportSubMDP(trans, transRewards[r], "C" + (r + 1), allDDRowVars, allDDColVars, allDDNondetVars, odd, exportType, (file == null) ? null : file.getPath(), precision);
+			PrismSparse.ExportSubMDP(trans, transRewards[r], "C" + (r + 1), allDDRowVars, allDDColVars, allDDNondetVars, odd, exportType, (file == null) ? null : file.getPath(), precision, rewardStructNames[r], noexportheaders);
 		}
 	}
 
@@ -451,7 +451,7 @@ public class NondetModel extends ProbModel
 			if (!explicit) {
 				// can only do explicit (sparse matrix based) export for mdps
 			} else {
-				PrismSparse.ExportSubMDP(trans, transRewards[i], "C" + (i + 1), allDDRowVars, allDDColVars, allDDNondetVars, odd, exportType, filename, precision);
+				PrismSparse.ExportSubMDP(trans, transRewards[i], "C" + (i + 1), allDDRowVars, allDDColVars, allDDNondetVars, odd, exportType, filename, precision, rewardStructNames[i], false);
 			}
 		}
 		return (allFilenames.length() > 0) ? allFilenames : null;
@@ -502,13 +502,13 @@ public class NondetModel extends ProbModel
 
 		// Create a (new, unique) name for the variable that will represent extra states
 		extraStateVar = transformation.getExtraStateVariableName();
-		while (varList.getIndex(extraStateVar) != -1) {
+		while (varList.exists(extraStateVar)) {
 			extraStateVar = "_" + extraStateVar;
 		}
 
 		// Create a (new, unique) name for the variable that will represent extra actions
 		extraActionVar = transformation.getExtraActionVariableName();
-		while (varList.getIndex(extraActionVar) != -1) {
+		while (varList.exists(extraActionVar)) {
 			extraActionVar = "_" + extraActionVar;
 		}
 
@@ -580,7 +580,11 @@ public class NondetModel extends ProbModel
 			}
 			newVarList = (VarList) varList.clone();
 			Declaration decl = new Declaration(extraStateVar, new DeclarationInt(Expression.Int(0), Expression.Int((1 << nStateVars) - 1)));
-			newVarList.addVar(before ? 0 : varList.getNumVars(), decl, 1, this.getConstantValues());
+			if (before) {
+				newVarList.addVarAtStart(decl, 1);
+			} else {
+				newVarList.addVar(decl, 1);
+			}
 		}
 
 		// Build transition matrix for transformed model

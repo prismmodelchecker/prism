@@ -1,27 +1,14 @@
-/**CFile***********************************************************************
+/**
+  @file
 
-  FileName    [cuddSolve.c]
+  @ingroup cudd
 
-  PackageName [cudd]
+  @brief Boolean equation solver and related functions.
 
-  Synopsis    [Boolean equation solver and related functions.]
+  @author Balakrishna Kumthekar
 
-  Description [External functions included in this modoule:
-		<ul>
-		<li> Cudd_SolveEqn()
-		<li> Cudd_VerifySol()
-		</ul>
-	Internal functions included in this module:
-		<ul>
-		<li> cuddSolveEqnRecur()
-		<li> cuddVerifySol()
-		</ul> ]
-
-  SeeAlso     []
-
-  Author      [Balakrishna Kumthekar]
-
-  Copyright   [Copyright (c) 1995-2012, Regents of the University of Colorado
+  @copyright@parblock
+  Copyright (c) 1995-2015, Regents of the University of Colorado
 
   All rights reserved.
 
@@ -51,9 +38,10 @@
   CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
   LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
   ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-  POSSIBILITY OF SUCH DAMAGE.]
+  POSSIBILITY OF SUCH DAMAGE.
+  @endparblock
 
-******************************************************************************/
+*/
 
 #include "util.h"
 #include "cuddInt.h"
@@ -77,23 +65,18 @@
 /* Variable declarations                                                     */
 /*---------------------------------------------------------------------------*/
 
-#ifndef lint
-static char rcsid[] DD_UNUSED = "$Id: cuddSolve.c,v 1.13 2012/02/05 01:07:19 fabio Exp $";
-#endif
 
 /*---------------------------------------------------------------------------*/
 /* Macro declarations                                                        */
 /*---------------------------------------------------------------------------*/
 
-
-/**AutomaticStart*************************************************************/
+/** \cond */
 
 /*---------------------------------------------------------------------------*/
 /* Static function prototypes                                                */
 /*---------------------------------------------------------------------------*/
 
-
-/**AutomaticEnd***************************************************************/
+/** \endcond */
 
 
 /*---------------------------------------------------------------------------*/
@@ -101,31 +84,30 @@ static char rcsid[] DD_UNUSED = "$Id: cuddSolve.c,v 1.13 2012/02/05 01:07:19 fab
 /*---------------------------------------------------------------------------*/
 
 
-/**Function********************************************************************
+/**
+  @brief Implements the solution of F(x,y) = 0.
 
-  Synopsis    [Implements the solution of F(x,y) = 0.]
+  @details The return value is the consistency condition. The y
+  variables are the unknowns and the remaining variables are the
+  parameters.  Cudd_SolveEqn allocates an array and fills it with the
+  indices of the unknowns. This array is used by Cudd_VerifySol.
 
-  Description [Implements the solution for F(x,y) = 0. The return
-  value is the consistency condition. The y variables are the unknowns
-  and the remaining variables are the parameters.  Returns the
-  consistency condition if successful; NULL otherwise. Cudd_SolveEqn
-  allocates an array and fills it with the indices of the
-  unknowns. This array is used by Cudd_VerifySol.]
+  @return the consistency condition if successful; NULL otherwise.
 
-  SideEffects [The solution is returned in G; the indices of the y
-  variables are returned in yIndex.]
+  @sideeffect The solution is returned in G; the indices of the y
+  variables are returned in yIndex.
 
-  SeeAlso     [Cudd_VerifySol]
+  @see Cudd_VerifySol
 
-******************************************************************************/
+*/
 DdNode *
 Cudd_SolveEqn(
-  DdManager *  bdd,
-  DdNode * F /* the left-hand side of the equation */,
-  DdNode * Y /* the cube of the y variables */,
-  DdNode ** G /* the array of solutions (return parameter) */,
-  int ** yIndex /* index of y variables */,
-  int  n /* numbers of unknowns */)
+  DdManager *  bdd /**< CUDD manager */,
+  DdNode * F /**< the left-hand side of the equation */,
+  DdNode * Y /**< the cube of the y variables */,
+  DdNode ** G /**< the array of solutions (return parameter) */,
+  int ** yIndex /**< index of y variables */,
+  int  n /**< numbers of unknowns */)
 {
     DdNode *res;
     int *temp;
@@ -142,32 +124,33 @@ Cudd_SolveEqn(
 	bdd->reordered = 0;
 	res = cuddSolveEqnRecur(bdd, F, Y, G, n, temp, 0);
     } while (bdd->reordered == 1);
+    if (bdd->errorCode == CUDD_TIMEOUT_EXPIRED && bdd->timeoutHandler) {
+        bdd->timeoutHandler(bdd, bdd->tohArg);
+    }
 
     return(res);
 
 } /* end of Cudd_SolveEqn */
 
 
-/**Function********************************************************************
+/**
+  @brief Checks the solution of F(x,y) = 0.
 
-  Synopsis    [Checks the solution of F(x,y) = 0.]
+  @details This procedure substitutes the solution components for the
+  unknowns of F and returns the resulting %BDD for F.
 
-  Description [Checks the solution of F(x,y) = 0. This procedure 
-  substitutes the solution components for the unknowns of F and returns 
-  the resulting BDD for F.] 
+  @sideeffect Frees the memory pointed by yIndex.
 
-  SideEffects [Frees the memory pointed by yIndex.]
+  @see Cudd_SolveEqn
 
-  SeeAlso     [Cudd_SolveEqn]
-
-******************************************************************************/
+*/
 DdNode *
 Cudd_VerifySol(
-  DdManager *  bdd,
-  DdNode * F /* the left-hand side of the equation */,
-  DdNode ** G /* the array of solutions */,
-  int * yIndex /* index of y variables */,
-  int  n /* numbers of unknowns */)
+  DdManager *  bdd /**< CUDD manager */,
+  DdNode * F /**< the left-hand side of the equation */,
+  DdNode ** G /**< the array of solutions */,
+  int * yIndex /**< index of y variables */,
+  int  n /**< numbers of unknowns */)
 {
     DdNode *res;
 
@@ -177,6 +160,9 @@ Cudd_VerifySol(
     } while (bdd->reordered == 1);
 
     FREE(yIndex);
+    if (bdd->errorCode == CUDD_TIMEOUT_EXPIRED && bdd->timeoutHandler) {
+        bdd->timeoutHandler(bdd, bdd->tohArg);
+    }
 
     return(res);
 
@@ -188,29 +174,26 @@ Cudd_VerifySol(
 /*---------------------------------------------------------------------------*/
 
 
-/**Function********************************************************************
+/**
+  @brief Implements the recursive step of Cudd_SolveEqn.
 
-  Synopsis    [Implements the recursive step of Cudd_SolveEqn.]
+  @return NULL if the intermediate solution blows up or reordering
+  occurs.
 
-  Description [Implements the recursive step of Cudd_SolveEqn. 
-  Returns NULL if the intermediate solution blows up
-  or reordering occurs. The parametric solutions are
-  stored in the array G.]
+  @sideeffect The parametric solutions are stored in the array G.
 
-  SideEffects [none]
+  @see Cudd_SolveEqn, Cudd_VerifySol
 
-  SeeAlso     [Cudd_SolveEqn, Cudd_VerifySol]
-
-******************************************************************************/
+*/
 DdNode *
 cuddSolveEqnRecur(
-  DdManager * bdd,
-  DdNode * F /* the left-hand side of the equation */,
-  DdNode * Y /* the cube of remaining y variables */,
-  DdNode ** G /* the array of solutions */,
-  int  n /* number of unknowns */,
-  int * yIndex /* array holding the y variable indices */,
-  int  i /* level of recursion */)
+  DdManager * bdd /**< CUDD manager */,
+  DdNode * F /**< the left-hand side of the equation */,
+  DdNode * Y /**< the cube of remaining y variables */,
+  DdNode ** G /**< the array of solutions */,
+  int  n /**< number of unknowns */,
+  int * yIndex /**< array holding the y variable indices */,
+  int  i /**< level of recursion */)
 {
     DdNode *Fn, *Fm1, *Fv, *Fvbar, *T, *w, *nextY, *one;
     DdNodePtr *variables;
@@ -317,24 +300,21 @@ cuddSolveEqnRecur(
 } /* end of cuddSolveEqnRecur */
 
 
-/**Function********************************************************************
+/**
+  @brief Implements the recursive step of Cudd_VerifySol. 
 
-  Synopsis    [Implements the recursive step of Cudd_VerifySol. ]
+  @sideeffect none
 
-  Description []
+  @see Cudd_VerifySol
 
-  SideEffects [none]
-
-  SeeAlso     [Cudd_VerifySol]
-
-******************************************************************************/
+*/
 DdNode *
 cuddVerifySol(
-  DdManager * bdd,
-  DdNode * F /* the left-hand side of the equation */,
-  DdNode ** G /* the array of solutions */,
-  int * yIndex /* array holding the y variable indices */,
-  int  n /* number of unknowns */)
+  DdManager * bdd /**< CUDD manager */,
+  DdNode * F /**< the left-hand side of the equation */,
+  DdNode ** G /**< the array of solutions */,
+  int * yIndex /**< array holding the y variable indices */,
+  int  n /**< number of unknowns */)
 {
     DdNode *w, *R;
 

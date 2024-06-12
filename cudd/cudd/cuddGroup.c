@@ -1,49 +1,14 @@
-/**CFile***********************************************************************
+/**
+  @file
 
-  FileName    [cuddGroup.c]
+  @ingroup cudd
 
-  PackageName [cudd]
+  @brief Functions for group sifting.
 
-  Synopsis    [Functions for group sifting.]
+  @author Shipra Panda, Fabio Somenzi
 
-  Description [External procedures included in this file:
-		<ul>
-		<li> Cudd_MakeTreeNode()
-		</ul>
-	Internal procedures included in this file:
-		<ul>
-		<li> cuddTreeSifting()
-		</ul>
-	Static procedures included in this module:
-		<ul>
-		<li> ddTreeSiftingAux()
-		<li> ddCountInternalMtrNodes()
-		<li> ddReorderChildren()
-		<li> ddFindNodeHiLo()
-		<li> ddUniqueCompareGroup()
-		<li> ddGroupSifting()
-		<li> ddCreateGroup()
-		<li> ddGroupSiftingAux()
-		<li> ddGroupSiftingUp()
-		<li> ddGroupSiftingDown()
-		<li> ddGroupMove()
-		<li> ddGroupMoveBackward()
-		<li> ddGroupSiftingBackward()
-		<li> ddMergeGroups()
-		<li> ddDissolveGroup()
-		<li> ddNoCheck()
-		<li> ddSecDiffCheck()
-		<li> ddExtSymmCheck()
-		<li> ddVarGroupCheck()
-		<li> ddSetVarHandled()
-		<li> ddResetVarHandled()
-		<li> ddIsVarHandled()
-                <li> ddFixTree()
-		</ul>]
-
-  Author      [Shipra Panda, Fabio Somenzi]
-
-  Copyright   [Copyright (c) 1995-2012, Regents of the University of Colorado
+  @copyright@parblock
+  Copyright (c) 1995-2015, Regents of the University of Colorado
 
   All rights reserved.
 
@@ -73,11 +38,13 @@
   CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
   LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
   ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-  POSSIBILITY OF SUCH DAMAGE.]
+  POSSIBILITY OF SUCH DAMAGE.
+  @endparblock
 
-******************************************************************************/
+*/
 
 #include "util.h"
+#include "mtrInt.h"
 #include "cuddInt.h"
 
 /*---------------------------------------------------------------------------*/
@@ -100,47 +67,17 @@
 /* Type declarations                                                         */
 /*---------------------------------------------------------------------------*/
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-    typedef int (*DD_CHKFP)(DdManager *, int, int);
-#ifdef __cplusplus
-}
-#endif
+typedef int (*DD_CHKFP)(DdManager *, int, int);
 
 /*---------------------------------------------------------------------------*/
 /* Variable declarations                                                     */
 /*---------------------------------------------------------------------------*/
 
-#ifndef lint
-static char rcsid[] DD_UNUSED = "$Id: cuddGroup.c,v 1.49 2012/02/05 01:07:18 fabio Exp $";
-#endif
-
-static	int	*entry;
-extern	int	ddTotalNumberSwapping;
-#ifdef DD_STATS
-extern	int	ddTotalNISwaps;
-static  int     extsymmcalls;
-static  int     extsymm;
-static  int     secdiffcalls;
-static  int     secdiff;
-static  int     secdiffmisfire;
-#endif
-#ifdef DD_DEBUG
-static	int	pr = 0;	/* flag to enable printing while debugging */
-			/* by depositing a 1 into it */
-#endif
-static unsigned int originalSize;
-
 /*---------------------------------------------------------------------------*/
 /* Macro declarations                                                        */
 /*---------------------------------------------------------------------------*/
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-/**AutomaticStart*************************************************************/
+/** \cond */
 
 /*---------------------------------------------------------------------------*/
 /* Static function prototypes                                                */
@@ -152,7 +89,7 @@ static int ddCountInternalMtrNodes (DdManager *table, MtrNode *treenode);
 #endif
 static int ddReorderChildren (DdManager *table, MtrNode *treenode, Cudd_ReorderingType method);
 static void ddFindNodeHiLo (DdManager *table, MtrNode *treenode, int *lower, int *upper);
-static int ddUniqueCompareGroup (int *ptrX, int *ptrY);
+static int ddUniqueCompareGroup (void const *ptrX, void const *ptrY);
 static int ddGroupSifting (DdManager *table, int lower, int upper, DD_CHKFP checkFunction, int lazyFlag);
 static void ddCreateGroup (DdManager *table, int x, int y);
 static int ddGroupSiftingAux (DdManager *table, int x, int xLow, int xHigh, DD_CHKFP checkFunction, int lazyFlag);
@@ -171,40 +108,36 @@ static int ddSetVarHandled (DdManager *dd, int index);
 static int ddResetVarHandled (DdManager *dd, int index);
 static int ddIsVarHandled (DdManager *dd, int index);
 
-/**AutomaticEnd***************************************************************/
-
-#ifdef __cplusplus
-}
-#endif
+/** \endcond */
 
 /*---------------------------------------------------------------------------*/
 /* Definition of exported functions                                          */
 /*---------------------------------------------------------------------------*/
 
 
-/**Function********************************************************************
+/**
+  @brief Creates a new variable group.
 
-  Synopsis    [Creates a new variable group.]
+  @details The group starts at variable low and contains size
+  variables. The parameter low is the index of the first variable. If
+  the variable already exists, its current position in the order is
+  known to the manager. If the variable does not exist yet, the
+  position is assumed to be the same as the index.  The group tree is
+  created if it does not exist yet.
 
-  Description [Creates a new variable group. The group starts at
-  variable low and contains size variables. The parameter low is the index
-  of the first variable. If the variable already exists, its current
-  position in the order is known to the manager. If the variable does
-  not exist yet, the position is assumed to be the same as the index.
-  The group tree is created if it does not exist yet.
-  Returns a pointer to the group if successful; NULL otherwise.]
+  @return a pointer to the group if successful; NULL otherwise.
 
-  SideEffects [The variable tree is changed.]
+  @sideeffect The variable tree is changed.
 
-  SeeAlso     [Cudd_MakeZddTreeNode]
+  @see Cudd_MakeZddTreeNode
 
-******************************************************************************/
+*/
 MtrNode *
 Cudd_MakeTreeNode(
-  DdManager * dd /* manager */,
-  unsigned int  low /* index of the first group variable */,
-  unsigned int  size /* number of variables in the group */,
-  unsigned int  type /* MTR_DEFAULT or MTR_FIXED */)
+  DdManager * dd /**< manager */,
+  unsigned int  low /**< index of the first group variable */,
+  unsigned int  size /**< number of variables in the group */,
+  unsigned int  type /**< MTR_DEFAULT or MTR_FIXED */)
 {
     MtrNode *group;
     MtrNode *tree;
@@ -215,7 +148,7 @@ Cudd_MakeTreeNode(
     ** Cudd_bddNewVarAtLevel or Cudd_addNewVarAtLevel to create new
     ** variables have to create the variables before they group them.
     */
-    level = (low < (unsigned int) dd->size) ? dd->perm[low] : low;
+    level = (low < (unsigned int) dd->size) ? (unsigned int) dd->perm[low] : low;
 
     if (level + size - 1> (int) MTR_MAXHIGH)
 	return(NULL);
@@ -255,22 +188,23 @@ Cudd_MakeTreeNode(
 /*---------------------------------------------------------------------------*/
 
 
-/**Function********************************************************************
+/**
+  @brief Tree sifting algorithm.
 
-  Synopsis    [Tree sifting algorithm.]
+  @details Assumes that a tree representing a group hierarchy is
+  passed as a parameter.  It then reorders each group in postorder
+  fashion by calling ddTreeSiftingAux.  Assumes that no dead nodes are
+  present.
 
-  Description [Tree sifting algorithm. Assumes that a tree representing
-  a group hierarchy is passed as a parameter. It then reorders each
-  group in postorder fashion by calling ddTreeSiftingAux.  Assumes that
-  no dead nodes are present.  Returns 1 if successful; 0 otherwise.]
+  @return 1 if successful; 0 otherwise.
 
-  SideEffects [None]
+  @sideeffect None
 
-******************************************************************************/
+*/
 int
 cuddTreeSifting(
-  DdManager * table /* DD table */,
-  Cudd_ReorderingType method /* reordering method for the groups of leaves */)
+  DdManager * table /**< %DD table */,
+  Cudd_ReorderingType method /**< reordering method for the groups of leaves */)
 {
     int i;
     int nvars;
@@ -289,16 +223,17 @@ cuddTreeSifting(
     nvars = table->size;
 
 #ifdef DD_DEBUG
-    if (pr > 0 && !tempTree) (void) fprintf(table->out,"cuddTreeSifting:");
-    Mtr_PrintGroups(table->tree,pr <= 0);
+    if (table->enableExtraDebug > 0 && !tempTree)
+        (void) fprintf(table->out,"cuddTreeSifting:");
+    Mtr_PrintGroups(table->tree,table->enableExtraDebug <= 0);
 #endif
 
 #ifdef DD_STATS
-    extsymmcalls = 0;
-    extsymm = 0;
-    secdiffcalls = 0;
-    secdiff = 0;
-    secdiffmisfire = 0;
+    table->extsymmcalls = 0;
+    table->extsymm = 0;
+    table->secdiffcalls = 0;
+    table->secdiff = 0;
+    table->secdiffmisfire = 0;
 
     (void) fprintf(table->out,"\n");
     if (!tempTree)
@@ -321,14 +256,14 @@ cuddTreeSifting(
     if (!tempTree && method == CUDD_REORDER_GROUP_SIFT &&
 	(table->groupcheck == CUDD_GROUP_CHECK7 ||
 	 table->groupcheck == CUDD_GROUP_CHECK5)) {
-	(void) fprintf(table->out,"\nextsymmcalls = %d\n",extsymmcalls);
-	(void) fprintf(table->out,"extsymm = %d",extsymm);
+	(void) fprintf(table->out,"\nextsymmcalls = %d\n",table->extsymmcalls);
+	(void) fprintf(table->out,"extsymm = %d",table->extsymm);
     }
     if (!tempTree && method == CUDD_REORDER_GROUP_SIFT &&
 	table->groupcheck == CUDD_GROUP_CHECK7) {
-	(void) fprintf(table->out,"\nsecdiffcalls = %d\n",secdiffcalls);
-	(void) fprintf(table->out,"secdiff = %d\n",secdiff);
-	(void) fprintf(table->out,"secdiffmisfire = %d",secdiffmisfire);
+	(void) fprintf(table->out,"\nsecdiffcalls = %d\n",table->secdiffcalls);
+	(void) fprintf(table->out,"secdiff = %d\n",table->secdiff);
+	(void) fprintf(table->out,"secdiffmisfire = %d",table->secdiffmisfire);
     }
 #endif
 
@@ -347,16 +282,17 @@ cuddTreeSifting(
 /*---------------------------------------------------------------------------*/
 
 
-/**Function********************************************************************
+/**
+  @brief Visits the group tree and reorders each group.
 
-  Synopsis    [Visits the group tree and reorders each group.]
+  @details Recursively visits the group tree and reorders each
+  group in postorder fashion.
 
-  Description [Recursively visits the group tree and reorders each
-  group in postorder fashion.  Returns 1 if successful; 0 otherwise.]
+  @return 1 if successful; 0 otherwise.
 
-  SideEffects [None]
+  @sideeffect None
 
-******************************************************************************/
+*/
 static int
 ddTreeSiftingAux(
   DdManager * table,
@@ -399,16 +335,14 @@ ddTreeSiftingAux(
 
 
 #ifdef DD_STATS
-/**Function********************************************************************
+/**
+  @brief Counts the number of internal nodes of the group tree.
 
-  Synopsis    [Counts the number of internal nodes of the group tree.]
+  @return the count.
 
-  Description [Counts the number of internal nodes of the group tree.
-  Returns the count.]
+  @sideeffect None
 
-  SideEffects [None]
-
-******************************************************************************/
+*/
 static int
 ddCountInternalMtrNodes(
   DdManager * table,
@@ -435,20 +369,20 @@ ddCountInternalMtrNodes(
 #endif
 
 
-/**Function********************************************************************
+/**
+  @brief Reorders the children of a group tree node according to
+  the options.
 
-  Synopsis    [Reorders the children of a group tree node according to
-  the options.]
-
-  Description [Reorders the children of a group tree node according to
-  the options. After reordering puts all the variables in the group
-  and/or its descendents in a single group. This allows hierarchical
+  @details After reordering puts all the variables in the group and/or
+  its descendents in a single group. This allows hierarchical
   reordering.  If the variables in the group do not exist yet, simply
-  does nothing. Returns 1 if successful; 0 otherwise.]
+  does nothing.
 
-  SideEffects [None]
+  @return 1 if successful; 0 otherwise.
 
-******************************************************************************/
+  @sideeffect None
+
+*/
 static int
 ddReorderChildren(
   DdManager * table,
@@ -456,7 +390,7 @@ ddReorderChildren(
   Cudd_ReorderingType method)
 {
     int lower;
-    int upper;
+    int upper = 0;
     int result;
     unsigned int initialSize;
 
@@ -517,18 +451,17 @@ ddReorderChildren(
 	    do {
 		initialSize = table->keys - table->isolated;
 		if (table->groupcheck == CUDD_NO_CHECK) {
-		    result = ddGroupSifting(table,lower,upper,ddNoCheck,
-					    DD_NORMAL_SIFT);
+		    (void) ddGroupSifting(table,lower,upper,ddNoCheck,
+                                          DD_NORMAL_SIFT);
 		} else if (table->groupcheck == CUDD_GROUP_CHECK5) {
-		    result = ddGroupSifting(table,lower,upper,ddExtSymmCheck,
-					    DD_NORMAL_SIFT);
+		    (void) ddGroupSifting(table,lower,upper,ddExtSymmCheck,
+                                          DD_NORMAL_SIFT);
 		} else if (table->groupcheck == CUDD_GROUP_CHECK7) {
-		    result = ddGroupSifting(table,lower,upper,ddExtSymmCheck,
-					    DD_NORMAL_SIFT);
+		    (void) ddGroupSifting(table,lower,upper,ddExtSymmCheck,
+                                          DD_NORMAL_SIFT);
 		} else {
 		    (void) fprintf(table->err,
 				   "Unknown group ckecking method\n");
-		    result = 0;
 		}
 #ifdef DD_STATS
 		(void) fprintf(table->out,"\n");
@@ -591,7 +524,8 @@ ddReorderChildren(
     ddMergeGroups(table,treenode,lower,upper);
 
 #ifdef DD_DEBUG
-    if (pr > 0) (void) fprintf(table->out,"ddReorderChildren:");
+    if (table->enableExtraDebug > 0)
+        (void) fprintf(table->out,"ddReorderChildren:");
 #endif
 
     return(result);
@@ -599,20 +533,16 @@ ddReorderChildren(
 } /* end of ddReorderChildren */
 
 
-/**Function********************************************************************
+/**
+  @brief Finds the lower and upper bounds of the group represented
+  by treenode.
 
-  Synopsis    [Finds the lower and upper bounds of the group represented
-  by treenode.]
+  @details From the index and size fields we need to derive the
+  current positions, and find maximum and minimum.
 
-  Description [Finds the lower and upper bounds of the group
-  represented by treenode.  From the index and size fields we need to
-  derive the current positions, and find maximum and minimum.]
+  @sideeffect The bounds are returned as side effects.
 
-  SideEffects [The bounds are returned as side effects.]
-
-  SeeAlso     []
-
-******************************************************************************/
+*/
 static void
 ddFindNodeHiLo(
   DdManager * table,
@@ -668,7 +598,7 @@ ddFindNodeHiLo(
 
 #ifdef DD_DEBUG
     /* Make sure that all variables in group are contiguous. */
-    assert(treenode->size >= *upper - *lower + 1);
+    assert(treenode->size >= (MtrHalfWord) (*upper - *lower + 1));
 #endif
 
     return;
@@ -676,46 +606,48 @@ ddFindNodeHiLo(
 } /* end of ddFindNodeHiLo */
 
 
-/**Function********************************************************************
+/**
+  @brief Comparison function used by qsort.
 
-  Synopsis    [Comparison function used by qsort.]
+  @details Comparison function used by qsort to order the variables
+  according to the number of keys in the subtables.
 
-  Description [Comparison function used by qsort to order the variables
-  according to the number of keys in the subtables.  Returns the
-  difference in number of keys between the two variables being
-  compared.]
+  @return the difference in number of keys between the two variables
+  being compared.
 
-  SideEffects [None]
+  @sideeffect None
 
-******************************************************************************/
+*/
 static int
 ddUniqueCompareGroup(
-  int * ptrX,
-  int * ptrY)
+  void const * ptrX,
+  void const * ptrY)
 {
+    IndexKey const * pX = (IndexKey const *) ptrX;
+    IndexKey const * pY = (IndexKey const *) ptrY;
 #if 0
-    if (entry[*ptrY] == entry[*ptrX]) {
-	return((*ptrX) - (*ptrY));
+    if (pY->keys == pX->keys) {
+	return(pX->index - pY->index);
     }
 #endif
-    return(entry[*ptrY] - entry[*ptrX]);
+    return(pY->keys - pX->keys);
 
 } /* end of ddUniqueCompareGroup */
 
 
-/**Function********************************************************************
+/**
+  @brief Sifts from treenode->low to treenode->high.
 
-  Synopsis    [Sifts from treenode->low to treenode->high.]
+  @details If croupcheck == CUDD_GROUP_CHECK7, it checks for group
+  creation at the end of the initial sifting. If a group is created,
+  it is then sifted again. After sifting one variable, the group that
+  contains it is dissolved.
 
-  Description [Sifts from treenode->low to treenode->high. If
-  croupcheck == CUDD_GROUP_CHECK7, it checks for group creation at the
-  end of the initial sifting. If a group is created, it is then sifted
-  again. After sifting one variable, the group that contains it is
-  dissolved.  Returns 1 in case of success; 0 otherwise.]
+  @return 1 in case of success; 0 otherwise.
 
-  SideEffects [None]
+  @sideeffect None
 
-******************************************************************************/
+*/
 static int
 ddGroupSifting(
   DdManager * table,
@@ -724,7 +656,7 @@ ddGroupSifting(
   DD_CHKFP checkFunction,
   int lazyFlag)
 {
-    int		*var;
+    IndexKey	*var;
     int		i,j,x,xInit;
     int		nvars;
     int		classes;
@@ -740,15 +672,9 @@ ddGroupSifting(
     nvars = table->size;
 
     /* Order variables to sift. */
-    entry = NULL;
     sifted = NULL;
-    var = ALLOC(int,nvars);
+    var = ALLOC(IndexKey,nvars);
     if (var == NULL) {
-	table->errorCode = CUDD_MEMORY_OUT;
-	goto ddGroupSiftingOutOfMem;
-    }
-    entry = ALLOC(int,nvars);
-    if (entry == NULL) {
 	table->errorCode = CUDD_MEMORY_OUT;
 	goto ddGroupSiftingOutOfMem;
     }
@@ -763,14 +689,13 @@ ddGroupSifting(
 	sifted[i] = 0;
 	x = table->perm[i];
 	if ((unsigned) x >= table->subtables[x].next) {
-	    entry[i] = table->subtables[x].keys;
-	    var[classes] = i;
+	    var[classes].index = i;
+	    var[classes].keys = table->subtables[x].keys;
 	    classes++;
 	}
     }
 
-    qsort((void *)var,classes,sizeof(int),
-	  (DD_QSFP) ddUniqueCompareGroup);
+    util_qsort(var, classes, sizeof(IndexKey), ddUniqueCompareGroup);
 
     if (lazyFlag) {
 	for (i = 0; i < nvars; i ++) {
@@ -780,14 +705,19 @@ ddGroupSifting(
 
     /* Now sift. */
     for (i = 0; i < ddMin(table->siftMaxVar,classes); i++) {
-	if (ddTotalNumberSwapping >= table->siftMaxSwap)
+	if (table->ddTotalNumberSwapping >= table->siftMaxSwap)
 	    break;
         if (util_cpu_time() - table->startTime + table->reordTime
             > table->timeLimit) {
             table->autoDyn = 0; /* prevent further reordering */
             break;
         }
-	xindex = var[i];
+        if (table->terminationCallback != NULL &&
+            table->terminationCallback(table->tcbArg)) {
+            table->autoDyn = 0; /* prevent further reordering */
+            break;
+        }
+	xindex = var[i].index;
 	if (sifted[xindex] == 1) /* variable already sifted as part of group */
 	    continue;
 	x = table->perm[xindex]; /* find current level of this variable */
@@ -882,20 +812,19 @@ ddGroupSifting(
 	}
 
 #ifdef DD_DEBUG
-	if (pr > 0) (void) fprintf(table->out,"ddGroupSifting:");
+	if (table->enableExtraDebug > 0)
+            (void) fprintf(table->out,"ddGroupSifting:");
 #endif
 
-      if (lazyFlag) ddSetVarHandled(table, xindex);
+        if (lazyFlag) ddSetVarHandled(table, xindex);
     } /* for */
 
     FREE(sifted);
     FREE(var);
-    FREE(entry);
 
     return(1);
 
 ddGroupSiftingOutOfMem:
-    if (entry != NULL)	FREE(entry);
     if (var != NULL)	FREE(var);
     if (sifted != NULL)	FREE(sifted);
 
@@ -904,18 +833,15 @@ ddGroupSiftingOutOfMem:
 } /* end of ddGroupSifting */
 
 
-/**Function********************************************************************
+/**
+  @brief Creates a group encompassing variables from x to y in the
+  %DD table.
 
-  Synopsis    [Creates a group encompassing variables from x to y in the
-  DD table.]
+  @details In the current implementation it must be y == x+1.
 
-  Description [Creates a group encompassing variables from x to y in the
-  DD table. In the current implementation it must be y == x+1.
-  Returns 1 in case of success; 0 otherwise.]
+  @sideeffect None
 
-  SideEffects [None]
-
-******************************************************************************/
+*/
 static void
 ddCreateGroup(
   DdManager * table,
@@ -942,21 +868,20 @@ ddCreateGroup(
 } /* ddCreateGroup */
 
 
-/**Function********************************************************************
+/**
+  @brief Sifts one variable up and down until it has taken all
+  positions. Checks for aggregation.
 
-  Synopsis    [Sifts one variable up and down until it has taken all
-  positions. Checks for aggregation.]
+  @details There may be at most two sweeps, even if the group grows.
+  Assumes that x is either an isolated variable, or it is the bottom
+  of a group. All groups may not have been found. The variable being
+  moved is returned to the best position seen during sifting.
 
-  Description [Sifts one variable up and down until it has taken all
-  positions. Checks for aggregation. There may be at most two sweeps,
-  even if the group grows.  Assumes that x is either an isolated
-  variable, or it is the bottom of a group. All groups may not have
-  been found. The variable being moved is returned to the best position
-  seen during sifting.  Returns 1 in case of success; 0 otherwise.]
+  @return 1 in case of success; 0 otherwise.
 
-  SideEffects [None]
+  @sideeffect None
 
-******************************************************************************/
+*/
 static int
 ddGroupSiftingAux(
   DdManager * table,
@@ -974,15 +899,15 @@ ddGroupSiftingAux(
     int  topbot;
 
 #ifdef DD_DEBUG
-    if (pr > 0) (void) fprintf(table->out,
-			       "ddGroupSiftingAux from %d to %d\n",xLow,xHigh);
+    if (table->enableExtraDebug > 0)
+        (void) fprintf(table->out,
+                       "ddGroupSiftingAux from %d to %d\n",xLow,xHigh);
     assert((unsigned) x >= table->subtables[x].next); /* x is bottom of group */
 #endif
 
-    initialSize = table->keys - table->isolated;
+    table->originalSize = (table->keys - table->isolated);
+    initialSize = (int) table->originalSize;
     moves = NULL;
-
-    originalSize = initialSize;		/* for lazy sifting */
 
     /* If we have a singleton, we check for aggregation in both
     ** directions before we sift.
@@ -1140,21 +1065,20 @@ ddGroupSiftingAuxOutOfMem:
 } /* end of ddGroupSiftingAux */
 
 
-/**Function********************************************************************
+/**
+  @brief Sifts up a variable until either it reaches position xLow
+  or the size of the %DD heap increases too much.
 
-  Synopsis    [Sifts up a variable until either it reaches position xLow
-  or the size of the DD heap increases too much.]
+  @details Assumes that y is the top of a group (or a singleton).
+  Checks y for aggregation to the adjacent variables. Records all the
+  moves that are appended to the list of moves received as input and
+  returned as a side effect.
 
-  Description [Sifts up a variable until either it reaches position
-  xLow or the size of the DD heap increases too much. Assumes that y is
-  the top of a group (or a singleton).  Checks y for aggregation to the
-  adjacent variables. Records all the moves that are appended to the
-  list of moves received as input and returned as a side effect.
-  Returns 1 in case of success; 0 otherwise.]
+  @return 1 in case of success; 0 otherwise.
 
-  SideEffects [None]
+  @sideeffect None
 
-******************************************************************************/
+*/
 static int
 ddGroupSiftingUp(
   DdManager * table,
@@ -1172,7 +1096,7 @@ ddGroupSiftingUp(
     int  xindex, yindex;
     int  zindex;
     int  z;
-    int  isolated;
+    unsigned int isolated;
     int  L;	/* lower bound on DD size */
 #ifdef DD_DEBUG
     int  checkL;
@@ -1189,7 +1113,7 @@ ddGroupSiftingUp(
     ** What we use here is not really a lower bound, because we ignore
     ** the interactions with all variables except y.
     */
-    limitSize = L = table->keys - table->isolated;
+    limitSize = L = (int) (table->keys - table->isolated);
     gybot = y;
     while ((unsigned) gybot < table->subtables[gybot].next)
 	gybot = table->subtables[gybot].next;
@@ -1215,7 +1139,7 @@ ddGroupSiftingUp(
 		checkL -= table->subtables[z].keys - isolated;
 	    }
 	}
-	if (pr > 0 && L != checkL) {
+	if (table->enableExtraDebug > 0 && L != checkL) {
 	    (void) fprintf(table->out,
 			   "Inaccurate lower bound: L = %d checkL = %d\n",
 			   L, checkL);
@@ -1234,7 +1158,7 @@ ddGroupSiftingUp(
 	    move->x = x;
 	    move->y = y;
 	    move->flags = MTR_NEWNODE;
-	    move->size = table->keys - table->isolated;
+	    move->size = (int) (table->keys - table->isolated);
 	    move->next = *moves;
 	    *moves = move;
 	} else if (table->subtables[x].next == (unsigned) x &&
@@ -1262,8 +1186,9 @@ ddGroupSiftingUp(
 	    *moves = move;
 
 #ifdef DD_DEBUG
-	    if (pr > 0) (void) fprintf(table->out,
-				       "ddGroupSiftingUp (2 single groups):\n");
+	    if (table->enableExtraDebug > 0)
+                (void) fprintf(table->out,
+                               "ddGroupSiftingUp (2 single groups):\n");
 #endif
 	    if ((double) size > (double) limitSize * table->maxGrowth)
 		return(1);
@@ -1302,17 +1227,17 @@ ddGroupSiftingUpOutOfMem:
 } /* end of ddGroupSiftingUp */
 
 
-/**Function********************************************************************
+/**
+  @brief Sifts down a variable until it reaches position xHigh.
 
-  Synopsis    [Sifts down a variable until it reaches position xHigh.]
+  @details Assumes that x is the bottom of a group (or a singleton).
+  Records all the moves.
 
-  Description [Sifts down a variable until it reaches position xHigh.
-  Assumes that x is the bottom of a group (or a singleton).  Records
-  all the moves.  Returns 1 in case of success; 0 otherwise.]
+  @return 1 in case of success; 0 otherwise.
 
-  SideEffects [None]
+  @sideeffect None
 
-******************************************************************************/
+*/
 static int
 ddGroupSiftingDown(
   DdManager * table,
@@ -1328,7 +1253,8 @@ ddGroupSiftingDown(
     int  gxtop,gybot;
     int  R;	/* upper bound on node decrease */
     int  xindex, yindex;
-    int  isolated, allVars;
+    unsigned isolated;
+    int  allVars;
     int  z;
     int  zindex;
 #ifdef DD_DEBUG
@@ -1355,7 +1281,7 @@ ddGroupSiftingDown(
     /* Initialize R. */
     xindex = table->invperm[x];
     gxtop = table->subtables[x].next;
-    limitSize = size = table->keys - table->isolated;
+    limitSize = size = (int) (table->keys - table->isolated);
     R = 0;
     for (z = xHigh; z > gxtop; z--) {
 	zindex = table->invperm[z];
@@ -1394,7 +1320,7 @@ ddGroupSiftingDown(
 	    move->x = x;
 	    move->y = y;
 	    move->flags = MTR_NEWNODE;
-	    move->size = table->keys - table->isolated;
+	    move->size = (int) (table->keys - table->isolated);
 	    move->next = *moves;
 	    *moves = move;
 	} else if (table->subtables[x].next == (unsigned) x &&
@@ -1424,15 +1350,14 @@ ddGroupSiftingDown(
 	    *moves = move;
 
 #ifdef DD_DEBUG
-	    if (pr > 0) (void) fprintf(table->out,
-				       "ddGroupSiftingDown (2 single groups):\n");
+	    if (table->enableExtraDebug > 0)
+                (void) fprintf(table->out,
+                               "ddGroupSiftingDown (2 single groups):\n");
 #endif
 	    if ((double) size > (double) limitSize * table->maxGrowth)
 		return(1);
 	    if (size < limitSize) limitSize = size;
 
-	    x = y;
-	    y = cuddNextHigh(table,x);
 	} else { /* Group move */
 	    /* Update upper bound on node decrease: first phase. */
 	    gxtop = table->subtables[x].next;
@@ -1479,16 +1404,15 @@ ddGroupSiftingDownOutOfMem:
 } /* end of ddGroupSiftingDown */
 
 
-/**Function********************************************************************
+/**
+  @brief Swaps two groups and records the move.
 
-  Synopsis    [Swaps two groups and records the move.]
+  @return the number of keys in the %DD table in case of success; 0
+  otherwise.
 
-  Description [Swaps two groups and records the move. Returns the
-  number of keys in the DD table in case of success; 0 otherwise.]
+  @sideeffect None
 
-  SideEffects [None]
-
-******************************************************************************/
+*/
 static int
 ddGroupMove(
   DdManager * table,
@@ -1499,7 +1423,7 @@ ddGroupMove(
     Move *move;
     int  size;
     int  i,j,xtop,xbot,xsize,ytop,ybot,ysize,newxtop;
-    int  swapx,swapy;
+    int  swapx = 0, swapy = 0;
 #if defined(DD_DEBUG) && defined(DD_VERBOSE)
     int  initialSize,bestSize;
 #endif
@@ -1559,7 +1483,8 @@ ddGroupMove(
     table->subtables[x].next = newxtop; /* x is bottom of its group, join */
 				    /* it to top of its group */
 #ifdef DD_DEBUG
-    if (pr > 0) (void) fprintf(table->out,"ddGroupMove:\n");
+    if (table->enableExtraDebug > 0)
+        (void) fprintf(table->out,"ddGroupMove:\n");
 #endif
 
     /* Store group move */
@@ -1568,11 +1493,11 @@ ddGroupMove(
     move->x = swapx;
     move->y = swapy;
     move->flags = MTR_DEFAULT;
-    move->size = table->keys - table->isolated;
+    move->size = (int) (table->keys - table->isolated);
     move->next = *moves;
     *moves = move;
 
-    return(table->keys - table->isolated);
+    return((int)(table->keys - table->isolated));
 
 ddGroupMoveOutOfMem:
     while (*moves != NULL) {
@@ -1585,16 +1510,14 @@ ddGroupMoveOutOfMem:
 } /* end of ddGroupMove */
 
 
-/**Function********************************************************************
+/**
+  @brief Undoes the swap two groups.
 
-  Synopsis    [Undoes the swap two groups.]
+  @return 1 in case of success; 0 otherwise.
 
-  Description [Undoes the swap two groups.  Returns 1 in case of
-  success; 0 otherwise.]
+  @sideeffect None
 
-  SideEffects [None]
-
-******************************************************************************/
+*/
 static int
 ddGroupMoveBackward(
   DdManager * table,
@@ -1650,7 +1573,8 @@ ddGroupMoveBackward(
     table->subtables[x].next = newxtop; /* x is bottom of its group, join */
 				    /* to its top */
 #ifdef DD_DEBUG
-    if (pr > 0) (void) fprintf(table->out,"ddGroupMoveBackward:\n");
+    if (table->enableExtraDebug > 0)
+        (void) fprintf(table->out,"ddGroupMoveBackward:\n");
 #endif
 
     return(1);
@@ -1658,17 +1582,15 @@ ddGroupMoveBackward(
 } /* end of ddGroupMoveBackward */
 
 
-/**Function********************************************************************
+/**
+  @brief Determines the best position for a variables and returns
+  it there.
 
-  Synopsis    [Determines the best position for a variables and returns
-  it there.]
+  @return 1 in case of success; 0 otherwise.
 
-  Description [Determines the best position for a variables and returns
-  it there.  Returns 1 in case of success; 0 otherwise.]
+  @sideeffect None
 
-  SideEffects [None]
-
-******************************************************************************/
+*/
 static int
 ddGroupSiftingBackward(
   DdManager * table,
@@ -1679,7 +1601,7 @@ ddGroupSiftingBackward(
 {
     Move *move;
     int  res;
-    Move *end_move;
+    Move *end_move = NULL;
     int diff, tmp_diff;
     int index;
     unsigned int pairlev;
@@ -1746,7 +1668,8 @@ ddGroupSiftingBackward(
 	    res = cuddSwapInPlace(table,(int)move->x,(int)move->y);
 	    if (!res) return(0);
 #ifdef DD_DEBUG
-	    if (pr > 0) (void) fprintf(table->out,"ddGroupSiftingBackward:\n");
+	    if (table->enableExtraDebug > 0)
+                (void) fprintf(table->out,"ddGroupSiftingBackward:\n");
 	    assert(table->subtables[move->x].next == move->x);
 	    assert(table->subtables[move->y].next == move->y);
 #endif
@@ -1766,16 +1689,15 @@ ddGroupSiftingBackward(
 } /* end of ddGroupSiftingBackward */
 
 
-/**Function********************************************************************
+/**
+  @brief Merges groups in the %DD table.
 
-  Synopsis    [Merges groups in the DD table.]
+  @details Creates a single group from low to high and adjusts the
+  index field of the tree node.
 
-  Description [Creates a single group from low to high and adjusts the
-  index field of the tree node.]
+  @sideeffect None
 
-  SideEffects [None]
-
-******************************************************************************/
+*/
 static void
 ddMergeGroups(
   DdManager * table,
@@ -1814,16 +1736,15 @@ ddMergeGroups(
 } /* end of ddMergeGroups */
 
 
-/**Function********************************************************************
+/**
+  @brief Dissolves a group in the %DD table.
 
-  Synopsis    [Dissolves a group in the DD table.]
+  @details x and y are variables in a group to be cut in two. The cut
+  is to pass between x and y.
 
-  Description [x and y are variables in a group to be cut in two. The cut
-  is to pass between x and y.]
+  @sideeffect None
 
-  SideEffects [None]
-
-******************************************************************************/
+*/
 static void
 ddDissolveGroup(
   DdManager * table,
@@ -1848,40 +1769,41 @@ ddDissolveGroup(
 } /* end of ddDissolveGroup */
 
 
-/**Function********************************************************************
+/**
+  @brief Pretends to check two variables for aggregation.
 
-  Synopsis    [Pretends to check two variables for aggregation.]
+  @return always 0.
 
-  Description [Pretends to check two variables for aggregation. Always
-  returns 0.]
+  @sideeffect None
 
-  SideEffects [None]
-
-******************************************************************************/
+*/
 static int
 ddNoCheck(
   DdManager * table,
   int  x,
   int  y)
 {
+    (void) table; /* avoid warning */
+    (void) x;     /* avoid warning */
+    (void) y;     /* avoid warning */
     return(0);
 
 } /* end of ddNoCheck */
 
 
-/**Function********************************************************************
+/**
+  @brief Checks two variables for aggregation.
 
-  Synopsis    [Checks two variables for aggregation.]
+  @details The check is based on the second difference of the number
+  of nodes as a function of the layer. If the second difference is
+  lower than a given threshold (typically negative) then the two
+  variables should be aggregated.
 
-  Description [Checks two variables for aggregation. The check is based
-  on the second difference of the number of nodes as a function of the
-  layer. If the second difference is lower than a given threshold
-  (typically negative) then the two variables should be aggregated.
-  Returns 1 if the two variables pass the test; 0 otherwise.]
+  @return 1 if the two variables pass the test; 0 otherwise.
 
-  SideEffects [None]
+  @sideeffect None
 
-******************************************************************************/
+*/
 static int
 ddSecDiffCheck(
   DdManager * table,
@@ -1896,7 +1818,7 @@ ddSecDiffCheck(
     if (x==0) return(0);
 
 #ifdef DD_STATS
-    secdiffcalls++;
+    table->secdiffcalls++;
 #endif
     Nx = (double) table->subtables[x].keys;
     Nx_1 = (double) table->subtables[x-1].keys;
@@ -1913,12 +1835,12 @@ ddSecDiffCheck(
 			   table->invperm[x],Sx,x);
 #endif
 #ifdef DD_STATS
-	    secdiff++;
+	    table->secdiff++;
 #endif
 	    return(1);
 	} else {
 #ifdef DD_STATS
-	    secdiffmisfire++;
+	    table->secdiffmisfire++;
 #endif
 	    return(0);
 	}
@@ -1929,16 +1851,14 @@ ddSecDiffCheck(
 } /* end of ddSecDiffCheck */
 
 
-/**Function********************************************************************
+/**
+  @brief Checks for extended symmetry of x and y.
 
-  Synopsis    [Checks for extended symmetry of x and y.]
+  @return 1 in case of extended symmetry; 0 otherwise.
 
-  Description [Checks for extended symmetry of x and y. Returns 1 in
-  case of extended symmetry; 0 otherwise.]
+  @sideeffect None
 
-  SideEffects [None]
-
-******************************************************************************/
+*/
 static int
 ddExtSymmCheck(
   DdManager * table,
@@ -1947,7 +1867,7 @@ ddExtSymmCheck(
 {
     DdNode *f,*f0,*f1,*f01,*f00,*f11,*f10;
     DdNode *one;
-    unsigned comple;	/* f0 is complemented */
+    int comple;		/* f0 is complemented */
     int notproj;	/* f is not a projection function */
     int arccount;	/* number of arcs from layer x to layer y */
     int TotalRefCount;	/* total reference count of layer y minus 1 */
@@ -1985,7 +1905,7 @@ ddExtSymmCheck(
 #endif
 
 #ifdef DD_STATS
-    extsymmcalls++;
+    table->extsymmcalls++;
 #endif
 
     arccount = 0;
@@ -2072,23 +1992,23 @@ ddExtSymmCheck(
 
 #ifdef DD_STATS
     if (res)
-	extsymm++;
+	table->extsymm++;
 #endif
     return(res);
 
 } /* end ddExtSymmCheck */
 
 
-/**Function********************************************************************
+/**
+  @brief Checks for grouping of x and y.
 
-  Synopsis    [Checks for grouping of x and y.]
+  @details This function is used for lazy sifting.
 
-  Description [Checks for grouping of x and y. Returns 1 in
-  case of grouping; 0 otherwise. This function is used for lazy sifting.]
+  @return 1 in case of grouping; 0 otherwise.
 
-  SideEffects [None]
+  @sideeffect None
 
-******************************************************************************/
+*/
 static int
 ddVarGroupCheck(
   DdManager * table,
@@ -2105,7 +2025,7 @@ ddVarGroupCheck(
 	    ddIsVarHandled(table, yindex)) {
 	    if (Cudd_bddIsVarToBeGrouped(table, xindex) ||
 		Cudd_bddIsVarToBeGrouped(table, yindex) ) {
-		if (table->keys - table->isolated <= originalSize) {
+		if (table->keys - table->isolated <= table->originalSize) {
 		    return(1);
 		}
 	    }
@@ -2117,18 +2037,14 @@ ddVarGroupCheck(
 } /* end of ddVarGroupCheck */
 
 
-/**Function********************************************************************
+/**
+  @brief Sets a variable to already handled.
 
-  Synopsis    [Sets a variable to already handled.]
+  @details This function is used for lazy sifting.
 
-  Description [Sets a variable to already handled. This function is used
-  for lazy sifting.]
+  @sideeffect none
 
-  SideEffects [none]
-
-  SeeAlso     []
-
-******************************************************************************/
+*/
 static int
 ddSetVarHandled(
   DdManager *dd,
@@ -2141,18 +2057,14 @@ ddSetVarHandled(
 } /* end of ddSetVarHandled */
 
 
-/**Function********************************************************************
+/**
+  @brief Resets a variable to be processed.
 
-  Synopsis    [Resets a variable to be processed.]
+  @details This function is used for lazy sifting.
 
-  Description [Resets a variable to be processed. This function is used
-  for lazy sifting.]
+  @sideeffect none
 
-  SideEffects [none]
-
-  SeeAlso     []
-
-******************************************************************************/
+*/
 static int
 ddResetVarHandled(
   DdManager *dd,
@@ -2165,18 +2077,14 @@ ddResetVarHandled(
 } /* end of ddResetVarHandled */
 
 
-/**Function********************************************************************
+/**
+  @brief Checks whether a variables is already handled.
 
-  Synopsis    [Checks whether a variables is already handled.]
+  @details This function is used for lazy sifting.
 
-  Description [Checks whether a variables is already handled. This
-  function is used for lazy sifting.]
+  @sideeffect none
 
-  SideEffects [none]
-
-  SeeAlso     []
-
-******************************************************************************/
+*/
 static int
 ddIsVarHandled(
   DdManager *dd,

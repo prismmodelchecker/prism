@@ -26,19 +26,19 @@
 
 package parser.visitor;
 
-import java.util.Vector;
-
-import parser.ast.*;
+import parser.ast.ExpressionLabel;
 import prism.PrismLangException;
+
+import java.util.List;
 
 /**
  * Get all variables (i.e. ExpressionVar objects), store names in set.
  */
 public class GetAllLabels extends ASTTraverse
 {
-	private Vector<String> v;
+	private List<String> v;
 	
-	public GetAllLabels(Vector<String> v)
+	public GetAllLabels(List<String> v)
 	{
 		this.v = v;
 	}
@@ -46,7 +46,7 @@ public class GetAllLabels extends ASTTraverse
 	public void visitPost(ExpressionLabel e) throws PrismLangException
 	{
 		if (!v.contains(e.getName())) {
-			v.addElement(e.getName());
+			v.add(e.getName());
 		}
 	}
 }

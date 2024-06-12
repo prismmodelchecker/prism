@@ -31,8 +31,8 @@ checks:
 	fi;
 
 class_files:
-	@echo ${JAVA_FILES} > java_files.txt
-	$(JAVAC) $(JFLAGS) -sourcepath $(PRISM_DIR_REL)/$(PRISM_SRC_DIR)$(CLASSPATHSEP)$(PRISM_DIR_REL)/unit-tests\
+	@echo "$(JAVA_FILES)" > java_files.txt
+	$(JAVAC) $(JFLAGS) -sourcepath "$(PRISM_DIR_REL)/$(PRISM_SRC_DIR)$(CLASSPATHSEP)$(PRISM_DIR_REL)/unit-tests"\
 	                   -classpath $(PRISM_CLASSPATH)\
 	                   -d $(PRISM_DIR_REL)/$(PRISM_CLASSES_DIR)\
 	                   @java_files.txt

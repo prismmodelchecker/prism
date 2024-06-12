@@ -26,9 +26,11 @@
 
 package parser.ast;
 
-import java.util.Vector;
+import java.util.ArrayList;
+import java.util.List;
 
-import parser.visitor.*;
+import parser.visitor.ASTVisitor;
+import parser.visitor.DeepCopy;
 import prism.PrismLangException;
 import prism.PrismUtils;
 
@@ -37,28 +39,28 @@ import prism.PrismUtils;
 public class FormulaList extends ASTElement
 {
 	// Name/expression pairs to define formulas
-	private Vector<String> names;
-	private Vector<Expression> formulas;
+	private ArrayList<String> names;
+	private ArrayList<Expression> formulas;
 	// We also store an ExpressionIdent to match each name.
 	// This is to just to provide positional info.
-	private Vector<ExpressionIdent> nameIdents;
+	private ArrayList<ExpressionIdent> nameIdents;
 
 	// Constructor
 
 	public FormulaList()
 	{
-		names = new Vector<String>();
-		formulas = new Vector<Expression>();
-		nameIdents = new Vector<ExpressionIdent>();
+		names = new ArrayList<>();
+		formulas = new ArrayList<>();
+		nameIdents = new ArrayList<>();
 	}
 
 	// Set methods
 
 	public void addFormula(ExpressionIdent n, Expression f)
 	{
-		names.addElement(n.getName());
-		formulas.addElement(f);
-		nameIdents.addElement(n);
+		names.add(n.getName());
+		formulas.add(f);
+		nameIdents.add(n);
 	}
 
 	public void setFormulaName(int i, ExpressionIdent n)
@@ -81,17 +83,17 @@ public class FormulaList extends ASTElement
 
 	public String getFormulaName(int i)
 	{
-		return names.elementAt(i);
+		return names.get(i);
 	}
 
 	public Expression getFormula(int i)
 	{
-		return formulas.elementAt(i);
+		return formulas.get(i);
 	}
 
 	public ExpressionIdent getFormulaNameIdent(int i)
 	{
-		return nameIdents.elementAt(i);
+		return nameIdents.get(i);
 	}
 
 	/**
@@ -112,9 +114,9 @@ public class FormulaList extends ASTElement
 		int n = size();
 		boolean matrix[][] = new boolean[n][n];
 		for (int i = 0; i < n; i++) {
-			Vector<String> v = getFormula(i).getAllFormulas();
+			List<String> v = getFormula(i).getAllFormulas();
 			for (int j = 0; j < v.size(); j++) {
-				int k = getFormulaIndex((String) v.elementAt(j));
+				int k = getFormulaIndex(v.get(j));
 				if (k != -1) {
 					matrix[i][k] = true;
 				}
@@ -155,19 +157,26 @@ public class FormulaList extends ASTElement
 		return s;
 	}
 
-	/**
-	 * Perform a deep copy.
-	 */
-	public ASTElement deepCopy()
+	@Override
+	public FormulaList deepCopy(DeepCopy copier) throws PrismLangException
 	{
-		int i, n;
-		FormulaList ret = new FormulaList();
-		n = size();
-		for (i = 0; i < n; i++) {
-			ret.addFormula((ExpressionIdent)getFormulaNameIdent(i).deepCopy(), getFormula(i).deepCopy());
-		}
-		ret.setPosition(this);
-		return ret;
+		copier.copyAll(formulas);
+		copier.copyAll(nameIdents);
+
+		return this;
+	}
+
+	@SuppressWarnings("unchecked")
+	@Override
+	public FormulaList clone()
+	{
+		FormulaList clone = (FormulaList) super.clone();
+
+		clone.names      = (ArrayList<String>)          names.clone();
+		clone.formulas   = (ArrayList<Expression>)      formulas.clone();
+		clone.nameIdents = (ArrayList<ExpressionIdent>) nameIdents.clone();
+
+		return clone;
 	}
 }
 

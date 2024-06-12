@@ -31,19 +31,20 @@ import java.awt.Dimension;
 import java.awt.Rectangle;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
-import java.util.ArrayList;
 
 import javax.swing.DefaultListSelectionModel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.table.AbstractTableModel;
 
+import parser.State;
 import parser.Values;
-import parser.ast.Declaration;
-import parser.ast.Module;
-import parser.ast.ModulesFile;
-import parser.type.TypeBool;
-import parser.type.TypeInt;
+import parser.ast.Expression;
+import prism.ModelGenerator;
+import prism.Prism;
+import prism.PrismException;
+import prism.PrismLangException;
+import simulator.SimulatorEngine;
 import userinterface.GUIPrism;
 
 @SuppressWarnings("serial")
@@ -60,11 +61,11 @@ public class GUIInitialStatePicker extends javax.swing.JDialog implements KeyLis
 	private JTable initValuesTable;
 	private DefineValuesTable initValuesModel;
 
-	Values initialState;
-
 	private GUIPrism gui;
-
-	private ModulesFile mf;
+	private ModelGenerator<Double> modelGen;
+	private int numVars;
+	
+	private State initialState;
 
 	// Variables declaration - do not modify//GEN-BEGIN:variables
 	private javax.swing.JPanel allPanel;
@@ -79,36 +80,31 @@ public class GUIInitialStatePicker extends javax.swing.JDialog implements KeyLis
 	// End of variables declaration//GEN-END:variables
 
 	/** Creates new form GUIConstantsPicker */
-	public GUIInitialStatePicker(GUIPrism parent, Values defaultInitial, ModulesFile mf)
+	public GUIInitialStatePicker(GUIPrism parent, SimulatorEngine engine, Values initialStateValues)
 	{
 		super(parent, "Initial State for Simulation", true);
 
 		this.gui = parent;
-		this.mf = mf;
+		this.modelGen = engine.getModel();
+		this.numVars = modelGen.getNumVars();
 
 		//setup tables
 		initValuesModel = new DefineValuesTable();
 		initValuesTable = new JTable();
-
 		initValuesTable.setModel(initValuesModel);
 		initValuesTable.setSelectionMode(DefaultListSelectionModel.SINGLE_INTERVAL_SELECTION);
 		initValuesTable.setCellSelectionEnabled(true);
 		initValuesTable.setRowHeight(getFontMetrics(initValuesTable.getFont()).getHeight() + 4);
 
-		this.initialState = defaultInitial;
-
 		//initialise
 		initComponents();
 		this.getRootPane().setDefaultButton(okayButton);
 		initTable();
-		initValues();
+		initValues(initialStateValues);
 
 		super.setBounds(new Rectangle(550, 300));
 		setResizable(true);
 		setLocationRelativeTo(getParent()); // centre
-
-		//this.askOption = gui.getPrism().getSettings().getBoolean(PrismSettings.SIMULATOR_NEW_PATH_ASK_INITIAL);
-		//optionCheckBox.setSelected(this.askOption);
 	}
 
 	/** This method is called from within the constructor to
@@ -202,55 +198,51 @@ public class GUIInitialStatePicker extends javax.swing.JDialog implements KeyLis
 	// TODO add your handling code here:
 	}//GEN-LAST:event_optionCheckBoxActionPerformed
 
-	public static double log(double base, double x)
-	{
-		return Math.log(x) / Math.log(base);
-	}
-
 	private void initTable()
 	{
 		JScrollPane sp = new JScrollPane();
-
 		sp.setViewportView(initValuesTable);
 		innerPanel.add(sp);
-
 		innerPanel.setPreferredSize(new Dimension(300, 300));
 	}
 
-	private void initValues()
+	private void initValues(Values initialStateValues)
 	{
-
-		Value v;
-		if (initialState == null) {
-
-			int n, i, j, n2;
-			Declaration decl;
-			Module module;
-
-			// first add all globals
-			n = mf.getNumGlobals();
-			for (i = 0; i < n; i++) {
-				decl = mf.getGlobal(i);
-				v = new Value(decl.getName(), decl.getType(), "");
-				initValuesModel.addValue(v);
-			}
-			// then add all module variables
-			n = mf.getNumModules();
-			for (i = 0; i < n; i++) {
-				module = mf.getModule(i);
-				n2 = module.getNumDeclarations();
-				for (j = 0; j < n2; j++) {
-					decl = module.getDeclaration(j);
-					v = new Value(decl.getName(), decl.getType(), "");
-					initValuesModel.addValue(v);
+		try {
+			boolean match = false;
+			// If values have been passed in, see if they match the model
+			// And if so, store them in the table
+			if (initialStateValues != null) {
+				match = true;
+				if (initialStateValues.getNumValues() != numVars) {
+					match = false;
+				} else {
+					for (int i = 0; i < numVars; i++) {
+						String varName = modelGen.getVarName(i);
+						if (!initialStateValues.contains(varName)) {
+							match = false;
+							break;
+						} else {
+							try {
+								Object value = initialStateValues.getValueOf(varName);
+								value = modelGen.getVarType(i).castValueTo(value);
+								initValuesModel.setValue(i, value);
+							} catch (PrismLangException e) {
+								match = false;
+							}
+						}
+					}
 				}
 			}
-
-		} else {
-			for (int i = 0; i < initialState.getNumValues(); i++) {
-				v = new Value(initialState.getName(i), initialState.getType(i), initialState.getValue(i));
-				initValuesModel.addValue(v);
+			// Otherwise get default initial state for model and store in the table
+			if (!match) {
+				State defaultInitialState = modelGen.getInitialState();
+				for (int i = 0; i < numVars; i++) {
+					initValuesModel.setValue(i, defaultInitialState.varValues[i]);
+				}
 			}
+		} catch (PrismException e) {
+			gui.errorDialog("Error choosing initial state: " + e.getMessage());
 		}
 	}
 
@@ -258,12 +250,12 @@ public class GUIInitialStatePicker extends javax.swing.JDialog implements KeyLis
 	 *  initialState.  If you don't want any default values, then pass in null for
 	 *  initDefaults
 	 */
-	public static Values defineInitalValuesWithDialog(GUIPrism parent, Values initDefaults, ModulesFile mf)
+	public static State defineInitalValuesWithDialog(GUIPrism parent, SimulatorEngine engine, Values initDefaults)
 	{
-		return new GUIInitialStatePicker(parent, initDefaults, mf).defineValues();
+		return new GUIInitialStatePicker(parent, engine, initDefaults).defineValues();
 	}
 
-	public Values defineValues()
+	public State defineValues()
 	{
 		setVisible(true);
 		if (cancelled)
@@ -274,33 +266,34 @@ public class GUIInitialStatePicker extends javax.swing.JDialog implements KeyLis
 
 	private void okayButtonActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_okayButtonActionPerformed
 	{//GEN-HEADEREND:event_okayButtonActionPerformed
-		if (initValuesTable.getCellEditor() != null)
+		if (initValuesTable.getCellEditor() != null) {
 			initValuesTable.getCellEditor().stopCellEditing();
+		}
 
-		String parameter = "";
+		String varName = "";
+		String valueString = "";
 		try {
-			Values newInitState = new Values();
+			State newInitialState = new State(numVars);
 			// check each variable value
-			for (int i = 0; i < initValuesModel.getNumValues(); i++) {
-				parameter = initValuesModel.getValue(i).name;
-				Object parameterValue = null;
-				if (initValuesModel.getValue(i).type instanceof TypeBool) {
-					String bool = initValuesModel.getValue(i).value.toString();
-					if (!(bool.equals("true") || bool.equals("false")))
-						throw new NumberFormatException();
-					parameterValue = Boolean.valueOf(bool);
-				} else if (initValuesModel.getValue(i).type instanceof TypeInt) {
-					parameterValue = Integer.valueOf(initValuesModel.getValue(i).value.toString());
-				} else {
-					throw new NumberFormatException();
+			for (int i = 0; i < numVars; i++) {
+				varName = modelGen.getVarName(i);
+				valueString = initValuesModel.getValue(i).toString();
+				Expression valueExpr = Prism.parseSingleExpressionString(valueString);
+				if (!valueExpr.isConstant()) {
+					throw new PrismException("Not constant");
 				}
-				newInitState.addValue(parameter, parameterValue);
+				Object valueObj = valueExpr.evaluate();
+				if (!modelGen.getVarType(i).canCastTypeTo(valueExpr.getType())) {
+					throw new PrismException("Type mismatch");
+				}
+				valueObj = modelGen.getVarType(i).castValueTo(valueObj);
+				newInitialState.varValues[i] = valueObj;
 			}
-			initialState = newInitState;
+			initialState = newInitialState;
 			cancelled = false;
 			dispose();
-		} catch (NumberFormatException e) {
-			gui.errorDialog("Invalid number value entered for " + parameter + " parameter");
+		} catch (PrismException e) {
+			gui.errorDialog("Invalid value \"" + valueString + "\" for variable " + varName + ": " + e.getMessage());
 		}
 	}//GEN-LAST:event_okayButtonActionPerformed
 
@@ -332,27 +325,22 @@ public class GUIInitialStatePicker extends javax.swing.JDialog implements KeyLis
 
 	class DefineValuesTable extends AbstractTableModel
 	{
-		ArrayList<Value> values;
+		Object[] values;
 
 		public DefineValuesTable()
 		{
-			values = new ArrayList<Value>();
+			values = new Object[numVars];
 		}
 
-		public void addValue(Value v)
+		public void setValue(int i, Object value)
 		{
-			values.add(v);
-			fireTableRowsInserted(values.size() - 1, values.size() - 1);
+			values[i] = value;
+			fireTableRowsInserted(i, i);
 		}
 
-		public int getNumValues()
+		public Object getValue(int i)
 		{
-			return values.size();
-		}
-
-		public Value getValue(int i)
-		{
-			return values.get(i);
+			return values[i];
 		}
 
 		public int getColumnCount()
@@ -362,21 +350,23 @@ public class GUIInitialStatePicker extends javax.swing.JDialog implements KeyLis
 
 		public int getRowCount()
 		{
-			return values.size();
+			return numVars;
 		}
 
 		public Object getValueAt(int rowIndex, int columnIndex)
 		{
-
-			Value v = values.get(rowIndex);
-			switch (columnIndex) {
-			case 0:
-				return v.name;
-			case 1:
-				return v.type.getTypeString();
-			case 2:
-				return v.value.toString();
-			default:
+			try {
+				switch (columnIndex) {
+				case 0:
+					return modelGen.getVarName(rowIndex);
+				case 1:
+					return modelGen.getVarType(rowIndex);
+				case 2:
+					return values[rowIndex].toString();
+				default:
+					return "";
+				}
+			} catch (PrismException e) {
 				return "";
 			}
 		}
@@ -406,9 +396,7 @@ public class GUIInitialStatePicker extends javax.swing.JDialog implements KeyLis
 		public void setValueAt(Object aValue, int rowIndex, int columnIndex)
 		{
 			if (columnIndex == 2) {
-				Value v = values.get(rowIndex);
-				String s = (String) aValue;
-				v.value = s;
+				values[rowIndex] = aValue;
 				fireTableCellUpdated(rowIndex, columnIndex);
 			}
 		}
@@ -416,33 +404,13 @@ public class GUIInitialStatePicker extends javax.swing.JDialog implements KeyLis
 		public String toString()
 		{
 			String str = "";
-			for (int i = 0; i < values.size(); i++) {
-				Value c = values.get(i);
-				str += c.toString();
-				if (i != values.size() - 1)
+			for (int i = 0; i < numVars; i++) {
+				str += modelGen.getVarName(i) + "=" + values[i].toString();
+				if (i < numVars - 1) {
 					str += ",";
+				}
 			}
 			return str;
-		}
-
-	}
-
-	class Value
-	{
-		String name;
-		parser.type.Type type;
-		Object value;
-
-		public Value(String name, parser.type.Type type, Object value)
-		{
-			this.name = name;
-			this.type = type;
-			this.value = value;
-		}
-
-		public String toString()
-		{
-			return name + "=" + value.toString();
 		}
 	}
 }

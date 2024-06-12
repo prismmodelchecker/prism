@@ -42,117 +42,117 @@ public class Simplify extends ASTTraverseModify
 		e.setOperand2((Expression) (e.getOperand2().accept(this)));
 		// If all operands are literals, replace with literal
 		if (e.getOperand1() instanceof ExpressionLiteral && e.getOperand2() instanceof ExpressionLiteral) {
-			return new ExpressionLiteral(e.getType(), e.evaluate());
+			return replace(e, new ExpressionLiteral(e.getType(), e.evaluate()));
 		}
 		// Other special cases
 		switch (e.getOperator()) {
 		case ExpressionBinaryOp.IMPLIES:
 			if (Expression.isFalse(e.getOperand1()) || Expression.isTrue(e.getOperand2()))
-				return Expression.True();
+				return replace(e, Expression.True());
 			if (Expression.isFalse(e.getOperand2()))
-				return Expression.Not(e.getOperand1());
+				return replace(e, Expression.Not(e.getOperand1()));
 			if (Expression.isTrue(e.getOperand1()))
-				return e.getOperand2();
+				return replace(e, e.getOperand2());
 			break;
 		case ExpressionBinaryOp.IFF:
 			if (Expression.isFalse(e.getOperand1())) {
 				if (Expression.isFalse(e.getOperand2())) {
-					return Expression.True();
+					return replace(e, Expression.True());
 				} else if (Expression.isTrue(e.getOperand2())) {
-					return Expression.False();
+					return replace(e, Expression.False());
 				}
 			}
 			if (Expression.isTrue(e.getOperand1())) {
 				if (Expression.isFalse(e.getOperand2())) {
-					return Expression.False();
+					return replace(e, Expression.False());
 				} else if (Expression.isTrue(e.getOperand2())) {
-					return Expression.True();
+					return replace(e, Expression.True());
 				}
 			}
 			break;
 		case ExpressionBinaryOp.OR:
 			if (Expression.isTrue(e.getOperand1()) || Expression.isTrue(e.getOperand2()))
-				return Expression.True();
+				return replace(e, Expression.True());
 			if (Expression.isFalse(e.getOperand2()))
-				return e.getOperand1();
+				return replace(e, e.getOperand1());
 			if (Expression.isFalse(e.getOperand1()))
-				return e.getOperand2();
+				return replace(e, e.getOperand2());
 			break;
 		case ExpressionBinaryOp.AND:
 			if (Expression.isFalse(e.getOperand1()) || Expression.isFalse(e.getOperand2()))
-				return Expression.False();
+				return replace(e, Expression.False());
 			if (Expression.isTrue(e.getOperand2()))
-				return e.getOperand1();
+				return replace(e, e.getOperand1());
 			if (Expression.isTrue(e.getOperand1()))
-				return e.getOperand2();
+				return replace(e, e.getOperand2());
 			break;
 		case ExpressionBinaryOp.PLUS:
 			if (Expression.isInt(e.getOperand2()) && e.getOperand2().evaluateInt() == 0)
-				return e.getOperand1();
+				return replace(e, e.getOperand1());
 			if (Expression.isInt(e.getOperand1()) && e.getOperand1().evaluateInt() == 0)
-				return e.getOperand2();
+				return replace(e, e.getOperand2());
 			if (Expression.isDouble(e.getOperand2()) && e.getOperand2().evaluateDouble() == 0.0) {
 				// Need to be careful that type is preserved
 				e.getOperand1().setType(e.getType());
-				return e.getOperand1();
+				return replace(e, e.getOperand1());
 			}
 			if (Expression.isDouble(e.getOperand1()) && e.getOperand1().evaluateDouble() == 0.0) {
 				// Need to be careful that type is preserved
 				e.getOperand2().setType(e.getType());
-				return e.getOperand2();
+				return replace(e, e.getOperand2());
 			}
 			break;
 		case ExpressionBinaryOp.MINUS:
 			if (Expression.isInt(e.getOperand2()) && e.getOperand2().evaluateInt() == 0)
-				return e.getOperand1();
+				return replace(e, e.getOperand1());
 			if (Expression.isInt(e.getOperand1()) && e.getOperand1().evaluateInt() == 0) {
 				ExpressionUnaryOp simplified = new ExpressionUnaryOp(ExpressionUnaryOp.MINUS, e.getOperand2());
 				// preserve type
 				simplified.setType(e.getType());
-				return simplified;
+				return replace(e, simplified);
 			}
 			if (Expression.isDouble(e.getOperand2()) && e.getOperand2().evaluateDouble() == 0.0) {
 				// Need to be careful that type is preserved
 				e.getOperand1().setType(e.getType());
-				return e.getOperand1();
+				return replace(e, e.getOperand1());
 			}
 			if (Expression.isDouble(e.getOperand1()) && e.getOperand1().evaluateDouble() == 0.0) {
 				ExpressionUnaryOp simplified = new ExpressionUnaryOp(ExpressionUnaryOp.MINUS, e.getOperand2());
 				// preserve type
 				simplified.setType(e.getType());
-				return simplified;
+				return replace(e, simplified);
 			}
 			break;
 		case ExpressionBinaryOp.TIMES:
 			if (Expression.isInt(e.getOperand2()) && e.getOperand2().evaluateInt() == 1)
-				return e.getOperand1();
+				return replace(e, e.getOperand1());
 			if (Expression.isInt(e.getOperand1()) && e.getOperand1().evaluateInt() == 1)
-				return e.getOperand2();
+				return replace(e, e.getOperand2());
 			if (Expression.isDouble(e.getOperand2()) && e.getOperand2().evaluateDouble() == 1.0) {
 				// Need to be careful that type is preserved
 				e.getOperand1().setType(e.getType());
-				return e.getOperand1();
+				return replace(e, e.getOperand1());
 			}
 			if (Expression.isDouble(e.getOperand1()) && e.getOperand1().evaluateDouble() == 1.0) {
 				// Need to be careful that type is preserved
 				e.getOperand2().setType(e.getType());
-				return e.getOperand2();
+				return replace(e, e.getOperand2());
 			}
 			if (Expression.isInt(e.getOperand2()) && e.getOperand2().evaluateInt() == 0) {
 				// Need to be careful that type is preserved
-				return (e.getType() instanceof TypeDouble) ? Expression.Double(0.0) : Expression.Int(0);
+				return replace(e, (e.getType() instanceof TypeDouble) ? Expression.Double(0.0) : Expression.Int(0));
 			}
 			if (Expression.isInt(e.getOperand1()) && e.getOperand1().evaluateInt() == 0) {
 				// Need to be careful that type is preserved
-				return (e.getType() instanceof TypeDouble) ? Expression.Double(0.0) : Expression.Int(0);
+				return replace(e, (e.getType() instanceof TypeDouble) ? Expression.Double(0.0) : Expression.Int(0));
 			}
 			if (Expression.isDouble(e.getOperand2()) && e.getOperand2().evaluateDouble() == 0.0) {
 				// Need to be careful that type is preserved
-				return (e.getType() instanceof TypeDouble) ? Expression.Double(0.0) : Expression.Int(0);
+				return replace(e, (e.getType() instanceof TypeDouble) ? Expression.Double(0.0) : Expression.Int(0));
 			}
 			if (Expression.isDouble(e.getOperand1()) && e.getOperand1().evaluateDouble() == 0.0) {
 				// Need to be careful that type is preserved
-				return (e.getType() instanceof TypeDouble) ? Expression.Double(0.0) : Expression.Int(0);
+				return replace(e, (e.getType() instanceof TypeDouble) ? Expression.Double(0.0) : Expression.Int(0));
 			}
 			break;
 		}
@@ -165,11 +165,11 @@ public class Simplify extends ASTTraverseModify
 		e.setOperand((Expression) (e.getOperand().accept(this)));
 		// If operand is a literal, replace with literal
 		if (e.getOperand() instanceof ExpressionLiteral) {
-			return new ExpressionLiteral(e.getType(), e.evaluate());
+			return replace(e, new ExpressionLiteral(e.getType(), e.evaluate()));
 		}
 		// Even if not a literal, remove any parentheses
 		if (e.getOperator() == ExpressionUnaryOp.PARENTH) {
-			return e.getOperand();
+			return replace(e, e.getOperand());
 		}
 		return e;
 	}
@@ -183,12 +183,12 @@ public class Simplify extends ASTTraverseModify
 
 		// If 'if' operand is true, replace with 'then' part
 		if (Expression.isTrue(e.getOperand1())) {
-			return e.getOperand2();
+			return replace(e, e.getOperand2());
 		}
 
 		// If 'if' operand is false, replace with 'else' part
 		if (Expression.isFalse(e.getOperand1())) {
-			return e.getOperand3();
+			return replace(e, e.getOperand3());
 		}
 
 		return e;
@@ -213,7 +213,7 @@ public class Simplify extends ASTTraverseModify
 			}
 		}
 		if (literal) {
-			return new ExpressionLiteral(e.getType(), e.evaluate());
+			return replace(e, new ExpressionLiteral(e.getType(), e.evaluate()));
 		}
 		return e;
 	}
@@ -221,6 +221,12 @@ public class Simplify extends ASTTraverseModify
 	public Object visit(ExpressionFormula e) throws PrismLangException
 	{
 		// If formula has an attached definition, just replace it with that
-		return e.getDefinition() != null ? e.getDefinition() : e;
+		return replace(e, e.getDefinition() != null ? e.getDefinition() : e);
+	}
+	
+	private Expression replace(Expression eOld, Expression eNew)
+	{
+		eNew.setPosition(eOld);
+		return eNew;
 	}
 }

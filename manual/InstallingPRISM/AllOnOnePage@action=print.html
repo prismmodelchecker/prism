@@ -1,0 +1,388 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html>
+<head>
+
+<title>PRISM Manual | InstallingPRISM / AllOnOnePage </title>
+
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1"/>
+
+<!--HeaderText--><style type='text/css'><!--
+  ul, ol, pre, dl, p { margin-top:0px; margin-bottom:0px; }
+  code.escaped { white-space: pre; }
+  .vspace { margin-top:1.33em; }
+  .indent { margin-left:40px; }
+  .outdent { margin-left:40px; text-indent:-40px; }
+  a.createlinktext { text-decoration:none; border-bottom:1px dotted gray; }
+  a.createlink { text-decoration:none; position:relative; top:-0.5em;
+    font-weight:bold; font-size:smaller; border-bottom:none; }
+  img { border:0px; }
+  .editconflict { color:green; 
+  font-style:italic; margin-top:1.33em; margin-bottom:1.33em; }
+
+  table.markup { border:2px dotted #ccf; width:90%; }
+  td.markup1, td.markup2 { padding-left:10px; padding-right:10px; }
+  table.vert td.markup1 { border-bottom:1px solid #ccf; }
+  table.horiz td.markup1 { width:23em; border-right:1px solid #ccf; }
+  table.markup caption { text-align:left; }
+  div.faq p, div.faq pre { margin-left:2em; }
+  div.faq p.question { margin:1em 0 0.75em 0; font-weight:bold; }
+  div.faqtoc div.faq * { display:none; }
+  div.faqtoc div.faq p.question 
+    { display:block; font-weight:normal; margin:0.5em 0 0.5em 20px; line-height:normal; }
+  div.faqtoc div.faq p.question * { display:inline; }
+  td.markup1 pre { white-space: pre-wrap; }
+  .noPmTOC, .PmTOCdiv:empty {display:none;}
+.PmTOCdiv { display: inline-block; font-size: 13px; overflow: auto; max-height: 500px;}
+.PmTOCdiv a { text-decoration: none; display: block; line-height: 1;}
+.PmTOCdiv a.pmtoc-indent1 { margin-left: 1em; }
+.PmTOCdiv a.pmtoc-indent2 { margin-left: 2em; }
+.PmTOCdiv a.pmtoc-indent3 { margin-left: 3em; }
+.PmTOCdiv a.pmtoc-indent4 { margin-left: 4em; }
+.PmTOCdiv a.pmtoc-indent5 { margin-left: 5em; }
+.PmTOCdiv a.pmtoc-indent6 { margin-left: 6em; }
+.back-arrow {font-size: .8rem; text-decoration: none; vertical-align: text-top;}
+#PmTOCchk + label {cursor: pointer;}
+#PmTOCchk {display: none;}
+#PmTOCchk:not(:checked) + label > .pmtoc-show {display: none;}
+#PmTOCchk:checked + label > .pmtoc-hide {display: none;}
+#PmTOCchk:checked + label + div {display: none;}table.sortable th { cursor: pointer; }
+table.sortable th::after { color: transparent; content: "\00A0\025B8"; }
+table.sortable th:hover::after { color: inherit; content: "\00A0\025B8"; }
+table.sortable th.dir-u::after { color: inherit; content: "\00A0\025BE"; }
+table.sortable th.dir-d::after { color: inherit; content: "\00A0\025B4"; } 
+    .frame 
+      { border:1px solid #cccccc; padding:4px; background-color:#f9f9f9; }
+    .lfloat { float:left; margin-right:0.5em; }
+    .rfloat { float:right; margin-left:0.5em; }
+a.varlink { text-decoration:none;}
+
+.sourceblocklink {
+  text-align: right;
+  font-size: smaller;
+}
+.sourceblocktext {
+  padding: 0.5em;
+  border: 1px solid #808080;
+  color: #000000;
+  background-color: #f1f0ed;
+}
+.sourceblocktext div {
+  font-family: monospace;
+  font-size: small;
+  line-height: 1;
+  height: 1%;
+}
+.sourceblocktext div.head,
+.sourceblocktext div.foot {
+  font: italic medium serif;
+  padding: 0.5em;
+}
+
+--></style>  <meta name='robots' content='noindex,nofollow' />
+
+
+<link type="text/css" rel="stylesheet" href="http://www.prismmodelchecker.org/css/base.css"/>
+<link type="text/css" rel="stylesheet" href="http://www.prismmodelchecker.org/css/prism.css"/>
+<link type="text/css" rel="stylesheet" href="http://www.prismmodelchecker.org/css/print.css" media="print"/>
+<link type="text/css" rel="stylesheet" href="http://www.prismmodelchecker.org/css/bib.css"/>
+
+<link type="text/css" rel="stylesheet" href="http://www.prismmodelchecker.org/manual/pub/skins/prismprint/css/prismmanual.css"/>
+<link type="text/css" rel="stylesheet" href="http://www.prismmodelchecker.org/manual/pub/skins/prismprint/css/prismprint.css"/>
+</head>
+
+<body text="#000000" bgcolor="#ffffcc">
+
+<!--PageTitleFmt--><!--PageText-->
+<div id='wikitext'>
+<div class='vspace'></div><h1><span class='big'>Installing PRISM</span></h1>
+<hr />
+<h1>Instructions</h1>
+<h3>Prerequisites</h3>
+<p>PRISM is known to run on Linux, Windows and macOS, both 64-bit and 32-bit versions.
+</p>
+<p class='vspace'>You will need <strong>Java</strong>, version 9 or above
+(get it, for example from <a class='urllink' href='https://jdk.java.net/'>Oracle</a>
+or <a class='urllink' href='https://adoptopenjdk.net/'>AdoptOpenJDK</a>).
+To run binary versions of PRISM, you only need the Java Runtime Environment (JRE), not the full Java Development Kit (JDK).
+</p>
+<p class='vspace'>To compile PRISM from source, you need the Java Development Kit (JDK), GNU make and a C/C++ compiler (e.g. gcc/g++). For compilation under Windows, you will need Cygwin. See below for more information:
+</p>
+<div class='vspace'></div><ul><li><a href='AllOnOnePage@action=print.html#windows'>Installation on Windows</a>
+</li><li><a href='AllOnOnePage@action=print.html#binaries'>Installation of Linux/Mac binary versions</a>
+</li><li><a href='AllOnOnePage@action=print.html#source'>Building PRISM from source (non-Windows)</a>
+</li><li><a href='AllOnOnePage@action=print.html#cygwin'>Building PRISM from source on Windows using Cygwin</a>
+</li><li><a href='AllOnOnePage@action=print.html#msys'>Building PRISM from source on Windows using MSYS2</a>
+</li></ul><p class='vspace'>If you are installing on a completely fresh operating system installation (e.g. in a virtual machine), you may find the following scripts useful,
+which install the required dependencies and PRISM itself. They can be found in the <code>prism/etc/scripts</code> directory:
+</p>
+<div class='vspace'></div><ul><li>Script to build on a clean install of Ubuntu: <a class='urllink' href='https://raw.githubusercontent.com/prismmodelchecker/prism/master/prism/etc/scripts/prism-install-ubuntu'>prism-install-ubuntu</a>
+</li><li>Script to build on a clean install of Fedora-based Linux (e.g. Amazon Linux): <a class='urllink' href='https://raw.githubusercontent.com/prismmodelchecker/prism/master/prism/etc/scripts/prism-install-fedora'>prism-install-fedora</a>
+</li><li>Scripts to build on a clean install of Windows: <a class='urllink' href='https://raw.githubusercontent.com/prismmodelchecker/prism/master/prism/etc/scripts/prism-install-windows.bat'>prism-install-windows.bat</a> and <a class='urllink' href='https://raw.githubusercontent.com/prismmodelchecker/prism/master/prism/etc/scripts/prism-install-cygwin'>prism-install-cygwin</a>
+</li></ul><div class='vspace'></div><hr />
+<p class='vspace'><a name='windows' id='windows'></a>
+<a name='windows64' id='windows64'></a>
+</p><h3>Installation on Windows</h3>
+<p>To install PRISM on Windows, just run the self-extracting installer which you <a class='urllink' href='http://www.prismmodelchecker.org/download.php'>downloaded</a>. You do <strong>not</strong> need administrator privileges for this, just write-access to the directory chosen for installation.
+</p>
+<p class='vspace'>If requested, the installer will place shortcuts to run PRISM on the desktop and/or start menu. If not, you can run by PRISM double-clicking the file <code>xprism.bat</code> (which may just appear as <code>xprism</code>) in the <code>bin</code> folder of your PRISM folder. If nothing happens, the most likely explanation is that Java is not installed or not in your path. To check, open a command prompt window, navigate to the PRISM directory, type <code>cd bin</code>, then <code>xprism.bat</code> and examine the resulting error. If you want to create shortcuts to <code>xprism.bat</code> manually, you will find some PRISM icons in the <code>etc</code> folder.
+</p>
+<p class='vspace'>If you wish to use the command-line version of PRISM on Windows, open a command prompt window and type for example:
+</p>
+<div class='vspace'></div>
+<div class='sourceblock ' id='sourceblock1'>
+  <div class='sourceblocktext'><div class="shell"><span style="font-weight:bold;">cd "c:\Program Files\prism-4.8-win\bin"</span><br/>
+<span style="font-weight:bold;">prism ..\prism-examples\simple\dice\dice.pm</span><br/>
+</div></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/InstallingPRISM/AllOnOnePage?action=sourceblock&amp;num=1' type='text/plain'>[&#036;[Get Code]]</a></div>
+</div>
+    
+<p class='vspace'>You can also edit the file <code>bin\prism.bat</code> to allow it to be run from any location. See the instructions within the file for further details.
+</p>
+<p class='vspace'><strong>Problems?</strong> See the section "<a class='wikilink' href='CommonProblemsAndQuestions.html'>Common Problems And Questions</a>''.
+</p>
+<div class='vspace'></div><hr />
+<p class='vspace'><a name='binaries' id='binaries'></a>
+</p><h3>Installation of Linux/Mac binary versions</h3>
+<p>We provide pre-compiled <a class='urllink' href='http://www.prismmodelchecker.org/download.php'>binary distributions</a> for Linux and macOS
+(if you have any problems running these, try compiling PRISM from source instead - see below for instructions).
+To install a binary distribution, unpack the tarred/zipped PRISM distribution into a suitable location, enter the directory and run the <code>install.sh</code> script, e.g.:
+</p>
+<div class='vspace'></div>
+<div class='sourceblock ' id='sourceblock2'>
+  <div class='sourceblocktext'><div class="shell"><span style="font-weight:bold;">tar xfz prism-4.8-linux64-x86.tar.gz</span><br/>
+<span style="font-weight:bold;">cd prism-4.8-linux64-x86</span><br/>
+<span style="font-weight:bold;">./install.sh</span><br/>
+</div></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/InstallingPRISM/AllOnOnePage?action=sourceblock&amp;num=2' type='text/plain'>[&#036;[Get Code]]</a></div>
+</div>
+
+<p class='vspace'>You do not need to be root to install PRISM. The install script simply makes some small customisations to the scripts used to launch PRISM. The PRISM distribution is self-contained and can be freely moved/renamed, however if you do so you will need to re-run <code>./install.sh</code> afterwards.
+</p>
+<p class='vspace'>To run PRISM, execute either the <code>xprism</code> or <code>prism</code> script (for the graphical user interface or command-line version, respectively). These can be found in the <code>bin</code> directory. These scripts are designed to be run from anywhere and you can easily create symbolic links or aliases to them. If you want icons to create desktop shortcuts to PRISM, you can find some in the <code>etc</code> directory.
+</p>
+<p class='vspace'><strong>Problems?</strong> See the section "<a class='wikilink' href='CommonProblemsAndQuestions.html'>Common Problems And Questions</a>''.
+</p>
+<div class='vspace'></div><hr />
+<p class='vspace'><a name='source' id='source'></a>
+</p><h3>Building PRISM from source (non-Windows)</h3>
+<p>To compile PRISM form source code, you will need:
+</p>
+<div class='vspace'></div><ul><li>GNU make (sometimes called gmake)
+</li><li>a C/C++ compiler (e.g. gcc/g++)
+</li><li>a Java Development Kit, version 9 or above
+</li></ul><p class='vspace'>To check that you have the development kit, type <code>javac</code>. If you get an error message that <code>javac</code> cannot be found, you probably do not have the JDK installed (or your path is not set up correctly). To check what version you have, type <code>javac -version</code>. 
+</p>
+<p class='vspace'>Hopefully, you can build PRISM simply by entering the PRISM directory and running <code>make</code>, e.g.:
+</p>
+<div class='vspace'></div>
+<div class='sourceblock ' id='sourceblock3'>
+  <div class='sourceblocktext'><div class="shell"><span style="font-weight:bold;">tar xfz prism-4.8-src.tar.gz</span><br/>
+<span style="font-weight:bold;">cd prism-4.8-src/prism</span><br/>
+<span style="font-weight:bold;">make</span><br/>
+</div></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/InstallingPRISM/AllOnOnePage?action=sourceblock&amp;num=3' type='text/plain'>[&#036;[Get Code]]</a></div>
+</div>
+
+<p class='vspace'>For this process to complete correctly, PRISM needs to be able to determine your operating system (<code>OSTYPE</code>), machine architecture (<code>ARCH</code>) and the location of your Java distribution (<code>JAVA_DIR</code>). If there is a problem with either of these, you will see an error message and will need to specify one or more of these manually, such as in these examples:
+</p>
+<div class='vspace'></div>
+<div class='sourceblock ' id='sourceblock4'>
+  <div class='sourceblocktext'><div class="shell"><span style="font-weight:bold;">  </span><br/>
+<span style="font-weight:bold;">make OSTYPE=linux</span><br/>
+<span style="font-weight:bold;">make OSTYPE=linux ARCH=aarch64</span><br/>
+<span style="font-weight:bold;">make JAVA_DIR=/usr/java/jdk1.8.0</span><br/>
+<span style="font-weight:bold;">make OSTYPE=cygwin JAVA_DIR="/cygdrive/c/Program Files/Java/jdk1.8.0"</span><br/>
+</div></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/InstallingPRISM/AllOnOnePage?action=sourceblock&amp;num=4' type='text/plain'>[&#036;[Get Code]]</a></div>
+</div>
+
+<p class='vspace'>Note the use of double quotes for the case where the directory contains a space. If you don't know the location of your Java installation, try typing <code>which javac</code>. If the result is e.g. <code>/usr/java/jdk1.8.0/bin/javac</code> then your Java directory is <code>/usr/java/jdk1.8.0</code>. Sometimes <code>javac</code> will be a symbolic link, in which case use "<code>ls -l</code>" to determine the actual location.
+</p>
+<p class='vspace'>It is also possible to to set the environment variables directly or edit their values in the Makefile directly. Note that even when you specify <code>JAVA_DIR</code> explicitly (in either way), PRISM still uses the version of <code>javac</code> that is in your path. To override this, you can also specify a specific version by setting <code>JAVAC</code>.
+</p>
+<p class='vspace'><strong>Problems?</strong> See the section "<a class='wikilink' href='CommonProblemsAndQuestions.html'>Common Problems And Questions</a>''.
+</p>
+<div class='vspace'></div><hr />
+<p class='vspace'><a name='cygwin' id='cygwin'></a>
+</p><h3>Building PRISM from source on Windows using Cygwin</h3>
+<p>The compilation of PRISM currently relies on a Unix-like environment. On Windows, this can be achieved using the <a class='urllink' href='http://www.cygwin.com/'>Cygwin</a> development environment, with the packages below installed.
+You can run the script <a class='urllink' href='https://raw.githubusercontent.com/prismmodelchecker/prism/master/prism/etc/scripts/prism-install-windows.bat'>prism-install-windows.bat</a> in a Command Prompt to automate this.
+</p><ul><li><code>make</code>
+</li><li><code>mingw64-x86_64-gcc-g++</code> (for 64-bit Windows) or <code>mingw64-i686-gcc-g++</code> (for 32-bit Windows)
+</li><li><code>binutils</code>
+</li><li><code>dos2unix</code>
+</li><li><code>git</code> (if you will pull source code from GitHub)
+</li><li><code>wget</code> (if you will pull source code from the web)
+</li></ul><p>Then proceed as described in the previous section. Note that the PRISM compilation process uses the <a class='urllink' href='http://www.mingw.org/'>MinGW</a> libraries so that the final result is independent of Cygwin at run-time.
+</p>
+<p class='vspace'>One thing to note: make sure you unzip the PRISM distribution from within Cygwin (e.g. using <code>tar xfz prism-XXX-src.tar.gz</code>). Don't use a Windows program (Winzip, etc.) since this can cause problems.
+</p>
+<p class='vspace'>If you use git to checkout the PRISM repository, we recommend that you use the version of git provided by Cygwin.
+If you use a native Windows version of git, you may want to disable the Unix-to-Windows line-ending conversion, e.g., via
+</p>
+<div class='vspace'></div><ul><li><code>git config --global core.autocrlf false</code>
+</li></ul><p class='vspace'><strong>Problems?</strong> See the section "<a class='wikilink' href='CommonProblemsAndQuestions.html'>Common Problems And Questions</a>''.
+</p>
+<div class='vspace'></div><hr />
+<p class='vspace'><a name='msys' id='msys'></a>
+</p><h3>Building PRISM from source on Windows using MSYS2</h3>
+<p>An alternative to Cygwin on Windows is <a class='urllink' href='https://www.msys2.org/'>MSYS2</a>.
+You can install the required MSYS2 packages like this:
+</p>
+<div class='vspace'></div>
+<div class='sourceblock ' id='sourceblock5'>
+  <div class='sourceblocktext'><div class="shell"><span style="font-weight:bold;">pacman -S make mingw-w64-x86_64-gcc binutils dos2unix git wget unzip python nano</span><br/>
+</div></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/InstallingPRISM/AllOnOnePage?action=sourceblock&amp;num=5' type='text/plain'>[&#036;[Get Code]]</a></div>
+</div>
+
+<p class='vspace'>The environment is currently not directly supported in the Makefile,
+which can be fixed as follows:
+</p>
+<div class='vspace'></div>
+<div class='sourceblock ' id='sourceblock6'>
+  <div class='sourceblocktext'><div class="shell"><span style="font-weight:bold;">make OSTYPE=cygwin CC=/mingw64/bin/gcc CXX=/mingw64/bin/g++</span><br/>
+</div></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/InstallingPRISM/AllOnOnePage?action=sourceblock&amp;num=6' type='text/plain'>[&#036;[Get Code]]</a></div>
+</div>
+
+<p class='vspace'>Additionally, MSYS2 does not handle symlinks in the same way as Cygwin does.
+At some point <code>make</code> will fail, saying that it cannot find the CUDD library.
+You can solve this as follows:
+</p>
+<div class='vspace'></div>
+<div class='sourceblock ' id='sourceblock7'>
+  <div class='sourceblocktext'><div class="shell"><span style="font-weight:bold;">cd ../cudd/</span><br/>
+<span style="font-weight:bold;">rmdir lib/ </span><br/>
+<span style="font-weight:bold;">./setup.sh</span><br/>
+<span style="font-weight:bold;">cd ../prism</span><br/>
+<span style="font-weight:bold;">make OSTYPE=cygwin CC=/mingw64/bin/gcc CXX=/mingw64/bin/g++</span><br/>
+<span style="font-weight:bold;">./install.sh</span><br/>
+</div></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/InstallingPRISM/AllOnOnePage?action=sourceblock&amp;num=7' type='text/plain'>[&#036;[Get Code]]</a></div>
+</div>
+
+<p class='vspace'><strong>Problems?</strong> See the section "<a class='wikilink' href='CommonProblemsAndQuestions.html'>Common Problems And Questions</a>''.
+</p><hr />
+<h1>Common Problems And Questions</h1>
+<p>This section describes some of the most common problems and questions related to the installation and running of PRISM. These are grouped into the following categories:
+</p>
+<div class='vspace'></div><ul><li>Running PRISM on Windows
+</li><li>Running PRISM on non-Windows platforms
+</li><li>Compiling PRISM
+</li><li>Other issues
+</li></ul><div class='vspace'></div><hr />
+<div class='vspace'></div><h2>Running PRISM on Windows</h2>
+<p><strong>When I try to run PRISM on Windows, I double-click the PRISM shortcut but nothing happens.</strong>
+</p>
+<div class='vspace'></div><div class='answer' > 
+<p>The most common cause of this is that you either do not have Java installed or the <code>java</code> executable is not in your path. In any case, to determine the exact problem, launch a command shell and navigate to the <code>bin</code> directory inside the directory where you installed PRISM (you can use the "PRISM (console)" shortcut installed in the start menu to do this). Then, type <code>xprism.bat</code> and see what error message is displayed.
+</p></div>
+<div class='vspace'></div><hr />
+<div class='vspace'></div><h2>Running PRISM on non-Windows platforms</h2>
+<p><strong>When I try to run PRISM, I get one of these errors:</strong><br />
+</p><ul><li><strong><code>Exception in thread "main" java.lang.NoClassDefFoundError: ...</code></strong>
+</li><li><strong><code>java.lang.UnsatisfiedLinkError: no prism in java.library.path</code></strong>
+</li><li><strong><code>java.lang.UnsatisfiedLinkError: ...<br />Library not loaded: ../../lib/libdd.dylib</code></strong>
+</li></ul><div class='vspace'></div><div class='answer' > 
+<p>Things to check:
+</p>
+<p class='vspace'>(1) Did you run <code>install.sh</code> from the PRISM directory? (non-Windows platforms)
+</p>
+<p class='vspace'>(2) If you compiled PRISM from source code, are you sure no errors occurred during the process? To check, go into the PRISM directory, type <code>make clean_all</code> and then <code>make</code>, checking the output (especially at the end) carefully for any error messages.
+</p>
+<p class='vspace'>(3) Are you running on Mac OS (notably El Capitan)? This had some issues with PRISM calling <code>java</code>.
+A workaround is to specify the exact path to the <code>java</code> when running PRISM, e.g.:
+</p>
+<p class='vspace'><code>PRISM_JAVA=/Library/Java/JavaVirtualMachines/jdk1.9.jdk/Contents/Home/bin/java prism</code>
+</p>
+<p class='vspace'>or by replacing the value of PRISM_JAVA directly in the prism script
+directly.
+</p></div>
+<p class='vspace'><strong>When I try to run PRISM, I get an error of the form:<br /><code>Exception in thread "main" java.lang.UnsupportedClassVersionError: Bad version number in .class file</code></strong>
+</p>
+<div class='vspace'></div><div class='answer' > 
+<p>Your version of Java is too old. Update or install a newer version of Java, and then try again.
+</p></div>
+<div class='vspace'></div><hr />
+<div class='vspace'></div><h2>Compiling PRISM</h2>
+<p><strong>When I try to compile PRISM, <code>make</code> seems to get stuck in an infinite loop</strong>
+</p>
+<div class='vspace'></div><div class='answer' > 
+<p>This is probably due to the detection of Java failing. Specify the location of your Java directory by hand, e.g. <code>make JAVA_DIR=/usr/java/jdk1.9.0</code>. See the <a class='wikilink' href='Main.html'>Instructions</a> page for more on this.
+</p></div>
+<p class='vspace'><strong>When I try to compile PRISM, I get errors of the form:<br /><code>/usr/bin/libtool: for architecture: cputype (16777234) cpusubtype (0) file: -lSystem is not an object file (not allowed in a library)</code></strong>
+</p>
+<div class='vspace'></div><div class='answer' > 
+<p>Are you compiling PRISM on Max OS X? If so, the likely explanation is that you have upgraded to a new version of Mac OS X but have not upgraded the developer tools (eg. XCode). Upgrade and try again.
+</p></div>
+<p class='vspace'><strong>When I try to compile PRISM, nothing seems to happen</strong>
+</p>
+<div class='vspace'></div><div class='answer' > 
+<p>Perhaps you are not using the GNU version of <code>make</code>. Try typing <code>make -v</code> to find out. On some systems, GNU make is called <code>gmake</code>.
+</p></div>
+<p class='vspace'><strong>When I try to compile PRISM, I get errors of the form:<br /><code>Unexpected end of line seen...</code><br />or:<br /><code>make: Fatal error in reader: Makefile, line 58: Unexpected end of line seen...</code></strong>
+</p>
+<div class='vspace'></div><div class='answer' > 
+<p>Perhaps you are not using the GNU version of <code>make</code>. Try typing <code>make -v</code> to find out. On some systems, GNU make is called <code>gmake</code>.
+</p></div>
+<p class='vspace'><strong>When I try to compile PRISM, I get an error of the form:<br /><code>./setup.sh: line 33: syntax error: unexpected end of file</code></strong>
+</p>
+<div class='vspace'></div><div class='answer' > 
+<p>Are you building on Cygwin? And did you unpack PRISM using WinZip? If so, unpack from Cygwin, using <code>tar xfz</code> (or similar) instead.
+</p></div>
+<p class='vspace'><strong>When I try to compile PRISM, I get an error of the form:<br /><code>Assembler messages:  Fatal error: can't create ../../obj/dd/dd_abstr.o: No such file or directory</code></strong>
+</p>
+<div class='vspace'></div><div class='answer' > 
+<p>Did you unpack PRISM using a graphical tool or file manager? If so, unpack using <code>tar xfz</code> (or similar) instead.
+</p></div>
+<p class='vspace'><strong>Do I have to use GNU <code>make</code> to build PRISM?</strong>
+</p>
+<div class='vspace'></div><div class='answer' > 
+<p>Strictly speaking, no, but you will have to modify the various PRISM Makefiles manually to overcome this.
+</p></div>
+<p class='vspace'><strong>Can I build PRISM on operating systems other than those currently supported?</strong>
+</p>
+<div class='vspace'></div><div class='answer' > 
+<p>PRISM should be suitable for any Unix/Linux variant.
+</p>
+<p class='vspace'>The first thing you will need to do is compile CUDD (the BDD library used by and included in PRISM) on that platform.
+Fortunately, CUDD has already been successfully built on a large number of
+operating systems. Have a look at the sample Makefiles we provide (i.e. the
+files <code>cudd/Makefile.*</code>) which are slight variants of the original Makefile
+provided with CUDD (found here: <code>cudd/modified/orig/Makefile</code>). They contain
+instructions on how to modify it for various platforms. You can then call
+your new modified makefile something appropriate (<code>cudd/Makefile.$OSTYPE</code>) and
+proceed to build PRISM as usual. To just build CUDD, not PRISM, type
+<code>make cuddpackage</code> instead of <code>make</code>.
+</p>
+<p class='vspace'>Next, look at the main PRISM Makefile, in particular, each place where the
+variable <code>$OSTYPE</code> is referred to. Most lines include comments and further
+instructions. Once you have done this, proceed as usual.
+</p>
+<p class='vspace'>If you do successfully build PRISM on other platforms, please let us know
+so we can include this information in future releases. Thanks.
+</p></div>
+<div class='vspace'></div><hr />
+<div class='vspace'></div><h2>Other issues</h2>
+<p><strong>How do I uninstall PRISM?</strong>
+</p>
+<div class='vspace'></div><div class='answer' > 
+<p>If you installed PRISM on Windows using the self-extracting installer, you can uninstall it using the option on the start menu. If you didn't add these shortcuts, just run <code>uninstall.exe</code> from the directory where you installed PRISM.
+</p>
+<p class='vspace'>For older versions of PRISM on Windows or on any other platform, simply delete the directory containing it.
+</p>
+<p class='vspace'>The only thing that is not removed via either of these methods is the <code>.prism</code> file containing your PRISM settings which is in your home directory (see the section "<a class='wikilink' href='../ConfiguringPRISM/Main.html'>Configuring PRISM</a>"). You may wish to retain this when upgrading.
+</p></div>
+<p class='vspace'><strong>I still have a problem installing/running PRISM. What can I do?</strong>
+</p>
+<div class='vspace'></div><div class='answer' > 
+<p>Please post a message in the discussion group (see the <a class='urllink' href='http://www.prismmodelchecker.org/support.php'>support</a> section of the PRISM website).
+</p></div>
+</div>
+
+
+</body>
+</html>

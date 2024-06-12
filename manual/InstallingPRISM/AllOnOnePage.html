@@ -1,22 +1,25 @@
+
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
 "http://www.w3.org/TR/html4/loose.dtd">
+
 
 <html>
 <head>
 
 <title>
-PRISM Manual | InstallingPRISM / AllOnOnePage 
+PRISM Manual | Installing PRISM / All On One Page 
 </title>
 
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <meta name="keywords" content="prism, probabilistic, symbolic, model, checker, verification, birmingham, oxford, parker, norman, kwiatkowska">
 
-<link rel="icon" href="../pub/skins/offline/images/p16.ico" type="image/x-icon">
-<link rel="shortcut icon" href="../pub/skins/offline/images/p16.ico" type="image/x-icon">
+<link rel="icon" href="http://www.prismmodelchecker.org/images/prism.ico" type="image/x-icon">
+<link rel="shortcut icon" href="http://www.prismmodelchecker.org/images/prism.ico" type="image/x-icon">
 
+<!--The following line is needed by PmWiki (for the manual) - don't delete-->
 <!--HTMLHeader--><style type='text/css'><!--
   ul, ol, pre, dl, p { margin-top:0px; margin-bottom:0px; }
-  code.escaped { white-space: nowrap; }
+  code.escaped { white-space: pre; }
   .vspace { margin-top:1.33em; }
   .indent { margin-left:40px; }
   .outdent { margin-left:40px; text-indent:-40px; }
@@ -38,12 +41,31 @@ PRISM Manual | InstallingPRISM / AllOnOnePage
   div.faqtoc div.faq p.question 
     { display:block; font-weight:normal; margin:0.5em 0 0.5em 20px; line-height:normal; }
   div.faqtoc div.faq p.question * { display:inline; }
-   
+  td.markup1 pre { white-space: pre-wrap; }
+  .noPmTOC, .PmTOCdiv:empty {display:none;}
+.PmTOCdiv { display: inline-block; font-size: 13px; overflow: auto; max-height: 500px;}
+.PmTOCdiv a { text-decoration: none; display: block; line-height: 1;}
+.PmTOCdiv a.pmtoc-indent1 { margin-left: 1em; }
+.PmTOCdiv a.pmtoc-indent2 { margin-left: 2em; }
+.PmTOCdiv a.pmtoc-indent3 { margin-left: 3em; }
+.PmTOCdiv a.pmtoc-indent4 { margin-left: 4em; }
+.PmTOCdiv a.pmtoc-indent5 { margin-left: 5em; }
+.PmTOCdiv a.pmtoc-indent6 { margin-left: 6em; }
+.back-arrow {font-size: .8rem; text-decoration: none; vertical-align: text-top;}
+#PmTOCchk + label {cursor: pointer;}
+#PmTOCchk {display: none;}
+#PmTOCchk:not(:checked) + label > .pmtoc-show {display: none;}
+#PmTOCchk:checked + label > .pmtoc-hide {display: none;}
+#PmTOCchk:checked + label + div {display: none;}table.sortable th { cursor: pointer; }
+table.sortable th::after { color: transparent; content: "\00A0\025B8"; }
+table.sortable th:hover::after { color: inherit; content: "\00A0\025B8"; }
+table.sortable th.dir-u::after { color: inherit; content: "\00A0\025BE"; }
+table.sortable th.dir-d::after { color: inherit; content: "\00A0\025B4"; } 
     .frame 
       { border:1px solid #cccccc; padding:4px; background-color:#f9f9f9; }
     .lfloat { float:left; margin-right:0.5em; }
     .rfloat { float:right; margin-left:0.5em; }
-a.varlink { text-decoration:none; }
+a.varlink { text-decoration:none;}
 
 .sourceblocklink {
   text-align: right;
@@ -70,22 +92,134 @@ a.varlink { text-decoration:none; }
 --></style>  <meta name='robots' content='index,follow' />
 
 
-<link type="text/css" rel="stylesheet" href="../pub/skins/offline/css/base.css">
-<link type="text/css" rel="stylesheet" href="../pub/skins/offline/css/prism.css">
-<link type="text/css" rel="stylesheet" href="../pub/skins/offline/css/prismmanual.css">
+<link type="text/css" rel="stylesheet" href="http://www.prismmodelchecker.org/css/base.css">
+<link type="text/css" rel="stylesheet" href="http://www.prismmodelchecker.org/css/prism.css">
+<link type="text/css" rel="stylesheet" href="http://www.prismmodelchecker.org/css/print.css" media="print">
+<link type="text/css" rel="stylesheet" href="http://www.prismmodelchecker.org/css/bib.css">
+
+<link type="text/css" rel="stylesheet" href="../pub/skins/prism/css/prismmanual.css">
+
+
+<script type="text/javascript" src="http://www.prismmodelchecker.org/includes/prism.js"></script>
+
+
+<script type="text/javascript">
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+  ga('create', 'UA-42079741-1', 'prismmodelchecker.org');
+  ga('send', 'pageview');
+</script>
 
 </head>
 
-<body text="#000000" bgcolor="#ffffff">
+<body text="#000000" bgcolor="#ffffff" onload="initialise()">
+
+<div id="prism-banner">
+	<div id="prism-bannerlefthalf"></div>
+	<div id="prism-bannerrighthalf"></div>
+	<div id="prism-bannerurl"><a href="http://www.prismmodelchecker.org/"><img src="http://www.prismmodelchecker.org/images/url_thin.png" alt="www.prismmodelchecker.org"></a></div>
+	<div id="prism-bannerlogo"><a href="http://www.prismmodelchecker.org/"><img src="http://www.prismmodelchecker.org/images/p_blue.png" alt="P"></a></div>
+	<form id="prism-searchbox" title="Search the PRISM site with Google" method="get" action="https://www.google.com/search">
+	<input type="hidden" name="domains" value="www.prismmodelchecker.org">
+	<input type="hidden" name="sitesearch" value="www.prismmodelchecker.org">
+	<input class="input1" id="q" name="q" type="text" size="30">
+	<input class="input2" id="submit" type="submit" value="Search">
+	</form>
+</div>
+
+<div id="prism-navbar">
+<div id="prism-navbarinner">
+
+<ul id="prism-navbarmenu">
+<li class="prism-navitem"><a href="http://www.prismmodelchecker.org/" title="">Home</a>
+
+<li> &nbsp;&#8226;&nbsp;
+<li class="prism-navitem"><a href="http://www.prismmodelchecker.org/about.php" title="">About</a>
+	<ul class="prism-navbarsubmenu">
+	<li class="prism-navsubitem">&#187; <a href="http://www.prismmodelchecker.org/about.php">About PRISM</a>
+	<li class="prism-navsubitem">&#187; <a href="http://www.prismmodelchecker.org/people.php">People</a>
+	<li class="prism-navsubitem">&#187; <a href="http://www.prismmodelchecker.org/sponsors.php">Sponsors</a>
+	<li class="prism-navsubitem">&#187; <a href="http://www.prismmodelchecker.org/contact.php">Contact</a>
+	<li class="prism-navsubitem">&#187; <a href="http://www.prismmodelchecker.org/news.php">News</a>
+	<li class="prism-navsubitem">&#187; <a href="http://www.prismmodelchecker.org/screenshots.php">Screenshots</a>
+	<li class="prism-navsubitem">&#187; <a href="http://www.prismmodelchecker.org/other-tools.php">Other tools</a>
+	<li class="prism-navsubitem">&#187; <a href="http://www.prismmodelchecker.org/links.php">Links</a>
+	</ul>
+<li> &nbsp;&#8226;&nbsp;
+<li class="prism-navitem"><a href="http://www.prismmodelchecker.org/download.php" title="">Downloads</a>
+	<ul class="prism-navbarsubmenu">
+	<li class="prism-navsubitem">&#187; <a href="http://www.prismmodelchecker.org/download.php">PRISM</a>
+	<li class="prism-navsubitem">&#187; <a href="http://www.prismmodelchecker.org/dev/">Development versions</a>
+	<li class="prism-navsubitem">&#187; <a href="http://www.prismmodelchecker.org/benchmarks/">Benchmarks</a>
+	<li class="prism-navsubitem">&#187; <a href="http://www.prismmodelchecker.org/games/download.php">PRISM-games</a>
+	<li class="prism-navsubitem">&#187; <a href="http://www.prismmodelchecker.org/other-downloads.php">Other downloads</a>
+	</ul>
+<li> &nbsp;&#8226;&nbsp;
+<li class="prism-navitem"><a href="http://www.prismmodelchecker.org/doc/" title="">Documentation</a>
+	<ul class="prism-navbarsubmenu">
+	<li class="prism-navsubitem">&#187; <a href="../InstallingPRISM.html">Installation</a>
+	<li class="prism-navsubitem">&#187; <a href="../index.html">Manual</a>
+	<li class="prism-navsubitem">&#187; <a href="../FrequentlyAskedQuestions.html">FAQ</a>
+	<li class="prism-navsubitem">&#187; <a href="http://www.prismmodelchecker.org/tutorial/">Tutorial</a>
+	<li class="prism-navsubitem">&#187; <a href="http://www.prismmodelchecker.org/lectures/">Lectures</a>
+	</ul>
+<li> &nbsp;&#8226;&nbsp;
+<li class="prism-navitemsel"><a href="../index.html" title="">Manual</a>
+
+<li> &nbsp;&#8226;&nbsp;
+<li class="prism-navitem"><a href="http://www.prismmodelchecker.org/publ-lists.php" title="">Publications</a>
+	<ul class="prism-navbarsubmenu">
+	<li class="prism-navsubitem">&#187; <a href="http://www.prismmodelchecker.org/publ-selected.php">Selected publications</a>
+	<li class="prism-navsubitem">&#187; <a href="http://www.prismmodelchecker.org/publications.php">PRISM publications</a>
+	<li class="prism-navsubitem">&#187; <a href="http://www.prismmodelchecker.org/bib.php">PRISM bibliography</a>
+	<li class="prism-navsubitem">&#187; <a href="http://www.prismmodelchecker.org/bib-ext.php">External publications</a>
+	<li class="prism-navsubitem">&#187; <a href="http://www.prismmodelchecker.org/publ-search.php">Search</a>
+	</ul>
+<li> &nbsp;&#8226;&nbsp;
+<li class="prism-navitem"><a href="http://www.prismmodelchecker.org/casestudies/index.php" title="">Case Studies</a>
+
+<li> &nbsp;&#8226;&nbsp;
+<li class="prism-navitem"><a href="http://www.prismmodelchecker.org/support.php" title="">Support</a>
+	<ul class="prism-navbarsubmenu">
+	<li class="prism-navsubitem">&#187; <a href="CommonProblemsAndQuestions.html">Installation FAQ</a>
+	<li class="prism-navsubitem">&#187; <a href="../FrequentlyAskedQuestions/index.html">PRISM FAQ</a>
+	<li class="prism-navsubitem">&#187; <a href="http://groups.google.com/group/prismmodelchecker">Forum (Google)</a>
+	</ul>
+<li> &nbsp;&#8226;&nbsp;
+<li class="prism-navitem"><a href="https://github.com/prismmodelchecker/prism/wiki" title="">Developers</a>
+	<ul class="prism-navbarsubmenu">
+	<li class="prism-navsubitem">&#187; <a href="https://github.com/prismmodelchecker/prism/wiki">Developer resources</a>
+	<li class="prism-navsubitem">&#187; <a href="http://groups.google.com/group/prismmodelchecker-dev">Developer forum</a>
+	</ul>
+<li> &nbsp;&#8226;&nbsp;
+<li class="prism-navitem"><a href="http://www.prismmodelchecker.org/games/" title="">PRISM-games</a>
+	<ul class="prism-navbarsubmenu">
+	<li class="prism-navsubitem">&#187; <a href="http://www.prismmodelchecker.org/games/download.php">Download</a>
+	<li class="prism-navsubitem">&#187; <a href="http://www.prismmodelchecker.org/games/publ.php">Publications</a>
+	</ul>
+</ul>
+<div style="clear:both;"></div>
+
+</div> <!-- id="prism-navbarinner" -->
+</div> <!-- id="prism-navbar" -->
 
 <div id="layout-maincontainer">
 <div id="layout-main">
 
 <div id="prism-mainbox">
 
+<!--<a href="http://www.ox.ac.uk/"><img id="prism-unilogo" src="/images/oxford_logo_pale.png" alt="University of Oxford"></a>-->
+
 <!-- ============================================================================= -->
 
 <!--PageHeaderFmt-->
+  <div id="prism-man-commands1">
+    <p><span class='prism-man-commands'><a class='selflink' href='AllOnOnePage.html'>View</a> - </span><a rel='nofollow'  class='wikilink' href='AllOnOnePage@action=edit.html'>Edit</a> - <a class='wikilink' href='AllOnOnePage@action=print.html'>Print</a> - <a class='wikilink' href='../Main/Search.html'>Search</a>
+</p>
+
+  </div>
 <!--/PageHeaderFmt-->
 
 <!--PageTitleFmt--><!--PageText-->
@@ -94,7 +228,7 @@ a.varlink { text-decoration:none; }
 <hr />
 <h1>Instructions</h1>
 <h3>Prerequisites</h3>
-<p>PRISM is known to run on Linux, Windows and Mac OS X, both 64-bit and 32-bit versions.
+<p>PRISM is known to run on Linux, Windows and macOS, both 64-bit and 32-bit versions.
 </p>
 <p class='vspace'>You will need <strong>Java</strong>, version 9 or above
 (get it, for example from <a class='urllink' href='https://jdk.java.net/'>Oracle</a>
@@ -107,12 +241,13 @@ To run binary versions of PRISM, you only need the Java Runtime Environment (JRE
 </li><li><a href='AllOnOnePage.html#binaries'>Installation of Linux/Mac binary versions</a>
 </li><li><a href='AllOnOnePage.html#source'>Building PRISM from source (non-Windows)</a>
 </li><li><a href='AllOnOnePage.html#cygwin'>Building PRISM from source on Windows using Cygwin</a>
-</li><li><a href='AllOnOnePage.html#msys'>Building PRISM from source on Windows using MSYS</a>
+</li><li><a href='AllOnOnePage.html#msys'>Building PRISM from source on Windows using MSYS2</a>
 </li></ul><p class='vspace'>If you are installing on a completely fresh operating system installation (e.g. in a virtual machine), you may find the following scripts useful,
 which install the required dependencies and PRISM itself. They can be found in the <code>prism/etc/scripts</code> directory:
 </p>
-<div class='vspace'></div><ul><li><a class='urllink' href='https://raw.githubusercontent.com/prismmodelchecker/prism/master/prism/etc/scripts/prism-install-ubuntu'>script to build on a clean install of Ubuntu</a>
-</li><li><a class='urllink' href='https://raw.githubusercontent.com/prismmodelchecker/prism/master/prism/etc/scripts/prism-install-rhel'>script to build on clean install of RHEL/CentOS/etc Linux</a>
+<div class='vspace'></div><ul><li>Script to build on a clean install of Ubuntu: <a class='urllink' href='https://raw.githubusercontent.com/prismmodelchecker/prism/master/prism/etc/scripts/prism-install-ubuntu'>prism-install-ubuntu</a>
+</li><li>Script to build on a clean install of Fedora-based Linux (e.g. Amazon Linux): <a class='urllink' href='https://raw.githubusercontent.com/prismmodelchecker/prism/master/prism/etc/scripts/prism-install-fedora'>prism-install-fedora</a>
+</li><li>Scripts to build on a clean install of Windows: <a class='urllink' href='https://raw.githubusercontent.com/prismmodelchecker/prism/master/prism/etc/scripts/prism-install-windows.bat'>prism-install-windows.bat</a> and <a class='urllink' href='https://raw.githubusercontent.com/prismmodelchecker/prism/master/prism/etc/scripts/prism-install-cygwin'>prism-install-cygwin</a>
 </li></ul><div class='vspace'></div><hr />
 <p class='vspace'><a name='windows' id='windows'></a>
 <a name='windows64' id='windows64'></a>
@@ -125,7 +260,7 @@ which install the required dependencies and PRISM itself. They can be found in t
 </p>
 <div class='vspace'></div>
 <div class='sourceblock ' id='sourceblock1'>
-  <div class='sourceblocktext'><div class="shell"><span style="font-weight:bold;">cd "c:\Program Files\prism-4.5-win\bin"</span><br/>
+  <div class='sourceblocktext'><div class="shell"><span style="font-weight:bold;">cd "c:\Program Files\prism-4.8-win\bin"</span><br/>
 <span style="font-weight:bold;">prism ..\prism-examples\simple\dice\dice.pm</span><br/>
 </div></div>
   <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/InstallingPRISM/AllOnOnePage?action=sourceblock&amp;num=1' type='text/plain'>[&#036;[Get Code]]</a></div>
@@ -138,15 +273,14 @@ which install the required dependencies and PRISM itself. They can be found in t
 <div class='vspace'></div><hr />
 <p class='vspace'><a name='binaries' id='binaries'></a>
 </p><h3>Installation of Linux/Mac binary versions</h3>
-<p>To ensure compatibility, we recommend that you compile PRISM from source on non-Windows platforms. See below for instructions. However, we do <a class='urllink' href='http://www.prismmodelchecker.org/download.php'>provide</a> pre-compiled binary distributions for Linux and Mac OS X.
-</p>
-<p class='vspace'>To install a binary distribution, unpack the tarred/zipped PRISM distribution into a suitable location, enter the directory and run the <code>install.sh</code> script, e.g.:
+<p>We provide pre-compiled <a class='urllink' href='http://www.prismmodelchecker.org/download.php'>binary distributions</a> for Linux and macOS
+(if you have any problems running these, try compiling PRISM from source instead - see below for instructions).
+To install a binary distribution, unpack the tarred/zipped PRISM distribution into a suitable location, enter the directory and run the <code>install.sh</code> script, e.g.:
 </p>
 <div class='vspace'></div>
 <div class='sourceblock ' id='sourceblock2'>
-  <div class='sourceblocktext'><div class="shell"><span style="font-weight:bold;">gunzip prism-4.5-linux64.tar.gz</span><br/>
-<span style="font-weight:bold;">tar xf prism-4.5-linux64.tar</span><br/>
-<span style="font-weight:bold;">cd prism-4.5-linux64</span><br/>
+  <div class='sourceblocktext'><div class="shell"><span style="font-weight:bold;">tar xfz prism-4.8-linux64-x86.tar.gz</span><br/>
+<span style="font-weight:bold;">cd prism-4.8-linux64-x86</span><br/>
 <span style="font-weight:bold;">./install.sh</span><br/>
 </div></div>
   <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/InstallingPRISM/AllOnOnePage?action=sourceblock&amp;num=2' type='text/plain'>[&#036;[Get Code]]</a></div>
@@ -165,27 +299,27 @@ which install the required dependencies and PRISM itself. They can be found in t
 </p>
 <div class='vspace'></div><ul><li>GNU make (sometimes called gmake)
 </li><li>a C/C++ compiler (e.g. gcc/g++)
-</li><li>a Java Development Kit, version 8 or above
+</li><li>a Java Development Kit, version 9 or above
 </li></ul><p class='vspace'>To check that you have the development kit, type <code>javac</code>. If you get an error message that <code>javac</code> cannot be found, you probably do not have the JDK installed (or your path is not set up correctly). To check what version you have, type <code>javac -version</code>. 
 </p>
 <p class='vspace'>Hopefully, you can build PRISM simply by entering the PRISM directory and running <code>make</code>, e.g.:
 </p>
 <div class='vspace'></div>
 <div class='sourceblock ' id='sourceblock3'>
-  <div class='sourceblocktext'><div class="shell"><span style="font-weight:bold;">gunzip prism-4.5-src.tar.gz</span><br/>
-<span style="font-weight:bold;">tar xf prism-4.5-src.tar</span><br/>
-<span style="font-weight:bold;">cd prism-4.5-src/prism</span><br/>
+  <div class='sourceblocktext'><div class="shell"><span style="font-weight:bold;">tar xfz prism-4.8-src.tar.gz</span><br/>
+<span style="font-weight:bold;">cd prism-4.8-src/prism</span><br/>
 <span style="font-weight:bold;">make</span><br/>
 </div></div>
   <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/InstallingPRISM/AllOnOnePage?action=sourceblock&amp;num=3' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
-<p class='vspace'>For this process to complete correctly, PRISM needs to be able to determine both the operating system you are using and the location of your Java distribution. If there is a problem with either of these, you will see an error message and will need to specify one or both of these manually, such as in these examples:
+<p class='vspace'>For this process to complete correctly, PRISM needs to be able to determine your operating system (<code>OSTYPE</code>), machine architecture (<code>ARCH</code>) and the location of your Java distribution (<code>JAVA_DIR</code>). If there is a problem with either of these, you will see an error message and will need to specify one or more of these manually, such as in these examples:
 </p>
 <div class='vspace'></div>
 <div class='sourceblock ' id='sourceblock4'>
   <div class='sourceblocktext'><div class="shell"><span style="font-weight:bold;">  </span><br/>
 <span style="font-weight:bold;">make OSTYPE=linux</span><br/>
+<span style="font-weight:bold;">make OSTYPE=linux ARCH=aarch64</span><br/>
 <span style="font-weight:bold;">make JAVA_DIR=/usr/java/jdk1.8.0</span><br/>
 <span style="font-weight:bold;">make OSTYPE=cygwin JAVA_DIR="/cygdrive/c/Program Files/Java/jdk1.8.0"</span><br/>
 </div></div>
@@ -194,43 +328,21 @@ which install the required dependencies and PRISM itself. They can be found in t
 
 <p class='vspace'>Note the use of double quotes for the case where the directory contains a space. If you don't know the location of your Java installation, try typing <code>which javac</code>. If the result is e.g. <code>/usr/java/jdk1.8.0/bin/javac</code> then your Java directory is <code>/usr/java/jdk1.8.0</code>. Sometimes <code>javac</code> will be a symbolic link, in which case use "<code>ls -l</code>" to determine the actual location.
 </p>
-<p class='vspace'>It is also possible to to set the environment variables <code>OSTYPE</code> and <code>JAVA_DIR</code> directly or edit their values in the Makefile directly. Note that even when you specify <code>JAVA_DIR</code> explicitly (in either way), PRISM still uses the versions of <code>javac</code> (and <code>javah</code>) that are in your path so make sure this is set up correctly.
+<p class='vspace'>It is also possible to to set the environment variables directly or edit their values in the Makefile directly. Note that even when you specify <code>JAVA_DIR</code> explicitly (in either way), PRISM still uses the version of <code>javac</code> that is in your path. To override this, you can also specify a specific version by setting <code>JAVAC</code>.
 </p>
-<p class='vspace'><strong>64-bit OSs</strong>
-</p>
-<p class='vspace'>PRISM should also detect when it is running on a 64-bit architecture, and building will work as above. If this does not work for some reason, you can override detection by setting <code>ARCH</code> to either <code>amd64</code> (for AMD/Intel 64) or <code>ia64</code> (for Itanium). For example:
-</p>
-<div class='vspace'></div>
-<div class='sourceblock ' id='sourceblock5'>
-  <div class='sourceblocktext'><div class="shell"><span style="font-weight:bold;">  </span><br/>
-<span style="font-weight:bold;">make ARCH=amd64</span><br/>
-</div></div>
-  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/InstallingPRISM/AllOnOnePage?action=sourceblock&amp;num=5' type='text/plain'>[&#036;[Get Code]]</a></div>
-</div>
-
-<p class='vspace'>If you have problems building a 64-bit version of PRISM, one option is to instead compile and run a 32-bit version of PRISM. To do this, you need to:
-</p>
-<div class='vspace'></div><ol><li>Make sure you are using a 32-bit version of Java
-<div class='vspace'></div></li><li>Override detection of the 64-bit architecture when building:
-</li></ol><div class='vspace'></div>
-<div class='sourceblock ' id='sourceblock6'>
-  <div class='sourceblocktext'><div class="shell"><span style="font-weight:bold;">  </span><br/>
-<span style="font-weight:bold;">make clean_all</span><br/>
-<span style="font-weight:bold;">make ARCH=</span><br/>
-</div></div>
-  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/InstallingPRISM/AllOnOnePage?action=sourceblock&amp;num=6' type='text/plain'>[&#036;[Get Code]]</a></div>
-</div>
-
 <p class='vspace'><strong>Problems?</strong> See the section "<a class='wikilink' href='CommonProblemsAndQuestions.html'>Common Problems And Questions</a>''.
 </p>
 <div class='vspace'></div><hr />
 <p class='vspace'><a name='cygwin' id='cygwin'></a>
 </p><h3>Building PRISM from source on Windows using Cygwin</h3>
-<p>The compilation of PRISM currently relies on a Unix-like environment. On Windows, this can be achieved using the <a class='urllink' href='http://www.cygwin.com/'>Cygwin</a> development environment (or alternatively using <a class='urllink' href='http://www.mingw.org/'>MSYS</a> - see below). Once Cygwin is installed, first ensure you have the following installed:
+<p>The compilation of PRISM currently relies on a Unix-like environment. On Windows, this can be achieved using the <a class='urllink' href='http://www.cygwin.com/'>Cygwin</a> development environment, with the packages below installed.
+You can run the script <a class='urllink' href='https://raw.githubusercontent.com/prismmodelchecker/prism/master/prism/etc/scripts/prism-install-windows.bat'>prism-install-windows.bat</a> in a Command Prompt to automate this.
 </p><ul><li><code>make</code>
-</li><li><code>mingw64-i686-gcc-g++</code> (or <code>mingw64-x86_64-gcc-g++</code> for 64-bit Windows)
+</li><li><code>mingw64-x86_64-gcc-g++</code> (for 64-bit Windows) or <code>mingw64-i686-gcc-g++</code> (for 32-bit Windows)
 </li><li><code>binutils</code>
 </li><li><code>dos2unix</code>
+</li><li><code>git</code> (if you will pull source code from GitHub)
+</li><li><code>wget</code> (if you will pull source code from the web)
 </li></ul><p>Then proceed as described in the previous section. Note that the PRISM compilation process uses the <a class='urllink' href='http://www.mingw.org/'>MinGW</a> libraries so that the final result is independent of Cygwin at run-time.
 </p>
 <p class='vspace'>One thing to note: make sure you unzip the PRISM distribution from within Cygwin (e.g. using <code>tar xfz prism-XXX-src.tar.gz</code>). Don't use a Windows program (Winzip, etc.) since this can cause problems.
@@ -243,30 +355,41 @@ If you use a native Windows version of git, you may want to disable the Unix-to-
 </p>
 <div class='vspace'></div><hr />
 <p class='vspace'><a name='msys' id='msys'></a>
-</p><h3>Building PRISM from source on Windows using MSYS</h3>
-<p>Compiling from source in <a class='urllink' href='http://www.mingw.org/'>MSYS</a> is less obvious as this environment is currently not directly supported in the makefile. Additionally, MSYS does not handle symlinks in the same way as cygwin does. The first problem is fixed by providing a OSTYPE variable to the makefile, whereas the second problem currently has to be solved manually.
+</p><h3>Building PRISM from source on Windows using MSYS2</h3>
+<p>An alternative to Cygwin on Windows is <a class='urllink' href='https://www.msys2.org/'>MSYS2</a>.
+You can install the required MSYS2 packages like this:
+</p>
+<div class='vspace'></div>
+<div class='sourceblock ' id='sourceblock5'>
+  <div class='sourceblocktext'><div class="shell"><span style="font-weight:bold;">pacman -S make mingw-w64-x86_64-gcc binutils dos2unix git wget unzip python nano</span><br/>
+</div></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/InstallingPRISM/AllOnOnePage?action=sourceblock&amp;num=5' type='text/plain'>[&#036;[Get Code]]</a></div>
+</div>
+
+<p class='vspace'>The environment is currently not directly supported in the Makefile,
+which can be fixed as follows:
+</p>
+<div class='vspace'></div>
+<div class='sourceblock ' id='sourceblock6'>
+  <div class='sourceblocktext'><div class="shell"><span style="font-weight:bold;">make OSTYPE=cygwin CC=/mingw64/bin/gcc CXX=/mingw64/bin/g++</span><br/>
+</div></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/InstallingPRISM/AllOnOnePage?action=sourceblock&amp;num=6' type='text/plain'>[&#036;[Get Code]]</a></div>
+</div>
+
+<p class='vspace'>Additionally, MSYS2 does not handle symlinks in the same way as Cygwin does.
+At some point <code>make</code> will fail, saying that it cannot find the CUDD library.
+You can solve this as follows:
 </p>
 <div class='vspace'></div>
 <div class='sourceblock ' id='sourceblock7'>
-  <div class='sourceblocktext'><div class="shell"><span style="font-weight:bold;">  </span><br/>
-<span style="font-weight:bold;">make OSTYPE=cygwin </span><br/>
-</div></div>
-  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/InstallingPRISM/AllOnOnePage?action=sourceblock&amp;num=7' type='text/plain'>[&#036;[Get Code]]</a></div>
-</div>
-
-<p class='vspace'>At some point it will fail, saying that it cannot find the CUDD library, this is due to the failing symlinks. You can solve this as follows: 
-</p>
-<div class='vspace'></div>
-<div class='sourceblock ' id='sourceblock8'>
-  <div class='sourceblocktext'><div class="shell"><span style="font-weight:bold;">  </span><br/>
-<span style="font-weight:bold;">cd cudd/</span><br/>
+  <div class='sourceblocktext'><div class="shell"><span style="font-weight:bold;">cd ../cudd/</span><br/>
 <span style="font-weight:bold;">rmdir lib/ </span><br/>
 <span style="font-weight:bold;">./setup.sh</span><br/>
-<span style="font-weight:bold;">cd ..</span><br/>
-<span style="font-weight:bold;">make OSTYPE=cygwin </span><br/>
+<span style="font-weight:bold;">cd ../prism</span><br/>
+<span style="font-weight:bold;">make OSTYPE=cygwin CC=/mingw64/bin/gcc CXX=/mingw64/bin/g++</span><br/>
 <span style="font-weight:bold;">./install.sh</span><br/>
 </div></div>
-  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/InstallingPRISM/AllOnOnePage?action=sourceblock&amp;num=8' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/InstallingPRISM/AllOnOnePage?action=sourceblock&amp;num=7' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 <p class='vspace'><strong>Problems?</strong> See the section "<a class='wikilink' href='CommonProblemsAndQuestions.html'>Common Problems And Questions</a>''.
@@ -285,42 +408,23 @@ If you use a native Windows version of git, you may want to disable the Unix-to-
 <div class='vspace'></div><div class='answer' > 
 <p>The most common cause of this is that you either do not have Java installed or the <code>java</code> executable is not in your path. In any case, to determine the exact problem, launch a command shell and navigate to the <code>bin</code> directory inside the directory where you installed PRISM (you can use the "PRISM (console)" shortcut installed in the start menu to do this). Then, type <code>xprism.bat</code> and see what error message is displayed.
 </p></div>
-<p class='vspace'><strong>When I try to run PRISM on Windows, I get an error of the form:<br /><code>Can't load IA 32-bit .dll on a AMD 64-bit platform</code></strong>
-</p>
-<div class='vspace'></div><div class='answer' > 
-<p>You are probably running a 32-bit Windows binary using a 64-bit version of Java. The version of PRISM (32- or 64-bit) needs to match Java. Either download the 64-bit binary for PRISM, or use a 32-bit version of Java. For the latter case, either make sure the right version of Java is first in your path or update the <code>bin\xprism.bat</code> (or <code>bin\prism.bat</code>) script, giving the full path to <code>javaw</code> at the end of the file.
-</p></div>
 <div class='vspace'></div><hr />
 <div class='vspace'></div><h2>Running PRISM on non-Windows platforms</h2>
-<p><strong>When I try to run PRISM, I get an error of the form:<br /><code>Exception in thread "main" java.lang.NoClassDefFoundError: ...</code></strong>
+<p><strong>When I try to run PRISM, I get one of these errors:</strong><br />
+</p><ul><li><strong><code>Exception in thread "main" java.lang.NoClassDefFoundError: ...</code></strong>
+</li><li><strong><code>java.lang.UnsatisfiedLinkError: no prism in java.library.path</code></strong>
+</li><li><strong><code>java.lang.UnsatisfiedLinkError: ...<br />Library not loaded: ../../lib/libdd.dylib</code></strong>
+</li></ul><div class='vspace'></div><div class='answer' > 
+<p>Things to check:
 </p>
-<div class='vspace'></div><div class='answer' > 
-<p>Check:
-</p><ul><li>Did you run <code>install.sh</code> from the PRISM directory? (non-Windows platforms)
-</li><li>If you compiled PRISM from source code, are you sure no errors occurred during the process? To check, go into the PRISM directory, type <code>make clean_all</code> and then re-compile, checking the output (especially at the end) carefully for any error messages.
-</li></ul></div>
-<p class='vspace'><strong>When I try to run PRISM, I get an error of the form:<br /><code>java.lang.UnsatisfiedLinkError: no prism in java.library.path</code></strong>
+<p class='vspace'>(1) Did you run <code>install.sh</code> from the PRISM directory? (non-Windows platforms)
 </p>
-<div class='vspace'></div><div class='answer' > 
-<p>Check:
-</p><ul><li>Did you run <code>install.sh</code> from the PRISM directory? (non-Windows platforms)
-</li><li>If you compiled PRISM from source code, are you sure no errors occurred during the process? To check, go into the PRISM directory, type <code>make clean_all</code> and then re-compile, checking the output (especially at the end) carefully for any error messages.
-</li></ul><p class='vspace'>Are you on a 64-bit machine? If so, make sure that you are running 64-bit versions of <code>java</code> and <code>javac</code>. (Look for "<code>64-Bit Server VM</code>" in the output of <code>java -version</code>).
-</p></div>
-<p class='vspace'><strong>When I try to run PRISM, I get an error of the form:<br /><code>java.lang.UnsatisfiedLinkError: ...<br />Library not loaded: ../../lib/libdd.dylib</code></strong>
+<p class='vspace'>(2) If you compiled PRISM from source code, are you sure no errors occurred during the process? To check, go into the PRISM directory, type <code>make clean_all</code> and then <code>make</code>, checking the output (especially at the end) carefully for any error messages.
 </p>
-<div class='vspace'></div><div class='answer' > 
-<p>Are you running a new version of Mac OS X (notably El Capitan)?
-This seems to have some problems.
-A workaround is to change the path to the 'java' executable that runs PRISM.
-You should find an installation of Java somewhere like this:
+<p class='vspace'>(3) Are you running on Mac OS (notably El Capitan)? This had some issues with PRISM calling <code>java</code>.
+A workaround is to specify the exact path to the <code>java</code> when running PRISM, e.g.:
 </p>
-<p class='vspace'><code>/Library/Java/JavaVirtualMachines/jdk1.8.0_60.jdk</code>
-</p>
-<p class='vspace'>(obviously the precise name will depend on the version you have)
-Try running PRISM with the java executable to be found there, e.g. by running:
-</p>
-<p class='vspace'><code>PRISM_JAVA=/Library/Java/JavaVirtualMachines/jdk1.8.0_60.jdk/Contents/Home/bin/java prism</code>
+<p class='vspace'><code>PRISM_JAVA=/Library/Java/JavaVirtualMachines/jdk1.9.jdk/Contents/Home/bin/java prism</code>
 </p>
 <p class='vspace'>or by replacing the value of PRISM_JAVA directly in the prism script
 directly.
@@ -328,38 +432,14 @@ directly.
 <p class='vspace'><strong>When I try to run PRISM, I get an error of the form:<br /><code>Exception in thread "main" java.lang.UnsupportedClassVersionError: Bad version number in .class file</code></strong>
 </p>
 <div class='vspace'></div><div class='answer' > 
-<p>Your version of Java is too old. Update or install a newer version of <a class='urllink' href='http://www.oracle.com/technetwork/java/javase/downloads/index.html'>Oracle</a>  Java and then try again.
-</p></div>
-<p class='vspace'><strong>When I try to run a (Linux) binary version of PRISM, I get an error saying that <code>libstdc++.so.5 cannot be found</code> or <code>libstdc++.so.6 cannot be found</code>.</strong>
-</p>
-<div class='vspace'></div><div class='answer' > 
-<p>This is usually due to a discrepancy between the version of Linux that was used to build the binary distribution and the version that you are using to run it.
-</p>
-<p class='vspace'>If the error message is about <code>libstdc++.so.5</code>, you will just need to install an old version of the <code>libstdc++</code> library. This should be quite easy to find for most Linux distributions. On Fedora Core, for example, just type: <code>yum install compat-libstdc++-33</code> as root.
-</p>
-<p class='vspace'>If the error message is about <code>libstdc++.so.6</code>, you are running an older version of Linux than the binary release was compiled for. The easiest solution is to compile PRISM yourself from the source code version instead.
-</p></div>
-<p class='vspace'><strong>When I try to run PRISM, I get an error of the form:<br /><code>Exception in thread "main" java.lang.ExceptionInInitializerError<br />   at java.lang.Class.initializeClass(libgcj.so.7)<br />   at prism.PrismSettings.&lt;init&gt;(PrismSettings.java:297)</code></strong>
-</p>
-<div class='vspace'></div><div class='answer' > 
-<p>You are not running the <a class='urllink' href='http://www.oracle.com/technetwork/java/javase/downloads/index.html'>Oracle</a> version of Java. You will need to install it.
-</p></div>
-<p class='vspace'><strong>When I try to run PRISM, I get an error of the form:<br /><code>java.lang.UnsatisfiedLinkError: libprism: ... cannot restore segment prot after reloc: Permission denied</code></strong>
-</p>
-<div class='vspace'></div><div class='answer' > 
-<p>This is likely to be caused by the default settings of <a class='urllink' href='http://www.nsa.gov/selinux/'>SELinux</a> on newer versions of Linux. Open up the "Security Level Configuration" (on Fedora, for example, this is found under "Administration | Security Level and Firewall" under the main menu or by running <code>system-config-securitylevel</code>). Look in the "Compatibility" section of the SELinux Policy settings and make sure "Allow the use of shared libraries with Text Relocation" is ticked. You may need to reboot for changes to take effect.
-</p></div>
-<p class='vspace'><strong>Do I have to use <a class='urllink' href='http://www.oracle.com/technetwork/java/javase/downloads/index.html'>Oracle</a>'s version of Java to build/run PRISM?</strong>
-</p>
-<div class='vspace'></div><div class='answer' > 
-<p>Currently, this seems to be the case. We will aim to address this in the future.
+<p>Your version of Java is too old. Update or install a newer version of Java, and then try again.
 </p></div>
 <div class='vspace'></div><hr />
 <div class='vspace'></div><h2>Compiling PRISM</h2>
 <p><strong>When I try to compile PRISM, <code>make</code> seems to get stuck in an infinite loop</strong>
 </p>
 <div class='vspace'></div><div class='answer' > 
-<p>This is probably due to the detection of Java failing. Specify the location of your Java directory by hand, e.g. <code>make JAVA_DIR=/usr/java/jdk1.6.0</code>. See the <a class='wikilink' href='Main.html'>Instructions</a> page for more on this.
+<p>This is probably due to the detection of Java failing. Specify the location of your Java directory by hand, e.g. <code>make JAVA_DIR=/usr/java/jdk1.9.0</code>. See the <a class='wikilink' href='Main.html'>Instructions</a> page for more on this.
 </p></div>
 <p class='vspace'><strong>When I try to compile PRISM, I get errors of the form:<br /><code>/usr/bin/libtool: for architecture: cputype (16777234) cpusubtype (0) file: -lSystem is not an object file (not allowed in a library)</code></strong>
 </p>
@@ -385,16 +465,6 @@ directly.
 </p>
 <div class='vspace'></div><div class='answer' > 
 <p>Did you unpack PRISM using a graphical tool or file manager? If so, unpack using <code>tar xfz</code> (or similar) instead.
-</p></div>
-<p class='vspace'><strong>When I try to compile PRISM, I get errors of the form:<br /><code>dirname: extra operand `Files/Java/jdk1.6.0_09/bin/javac' Try `dirname --help' for more information.</code></strong>
-</p>
-<div class='vspace'></div><div class='answer' > 
-<p>This error occurs if the path to your Java distribution contains a space (a common example is when it is somewhere in "<code>Program Files</code>" on Windows). Hopefully, this will be fixed soon. A workaround is to move the java installation to e.g. <code>C:\java</code>.
-</p></div>
-<p class='vspace'><strong>When I try to compile PRISM, I get an error of the form:<br /><code>/bin/sh: line 43: [: :/cygdrive/c/Program: binary operator expected</code>...</strong>
-</p>
-<div class='vspace'></div><div class='answer' > 
-<p>See answer to previous question.
 </p></div>
 <p class='vspace'><strong>Do I have to use GNU <code>make</code> to build PRISM?</strong>
 </p>
@@ -444,6 +514,12 @@ so we can include this information in future releases. Thanks.
 
 <!--PageFooterFmt-->
   <div id='prism-man-footer'>
+    <div id='prism-man-commands2'>
+      <p><a class='selflink' href='AllOnOnePage.html'>View</a> - <a rel='nofollow'  class='wikilink' href='AllOnOnePage@action=edit.html'>Edit</a> - <a class='wikilink' href='AllOnOnePage@action=print.html'>Print</a> - <a class='wikilink' href='../Main/Search.html'>Search</a> - <a rel='nofollow'  class='wikilink' href='AllOnOnePage@action=login.html'>Login</a>
+</p>
+
+    </div>
+    <div id='prism-man-lastmod'>Page last modified on April 11, 2007, at 03:29 PM</div>
   </div>
 <!--/PageFooterFmt-->
 
@@ -451,6 +527,13 @@ so we can include this information in future releases. Thanks.
 <!-- ============================================================================= -->
 
 </div> <!-- id="prism-mainbox" -->
+
+<div id="prism-footer">
+<a href="http://validator.w3.org/check/referer"><img border="0" src="http://www.prismmodelchecker.org/images/valid_html.png" alt="Valid HTML 4.1"/></a>
+<a href="http://www.php.net/"><img border="0" src="http://www.prismmodelchecker.org/images/php_powered.png" alt="Powered by PHP"/></a>
+<a href="http://jigsaw.w3.org/css-validator/check/referer"><img border="0" src="http://www.prismmodelchecker.org/images/valid_css.png" alt="Valid CSS"/></a>
+<span style="color:#888888; font-size:85%; margin-left:20px;">Site hosted at the Department of Computer Science, University of Oxford</span>
+</div> <!-- id="prism-footer" -->
 
 </div> <!-- id="layout-main" -->
 </div> <!-- id="layout-maincontainer" -->
@@ -468,6 +551,9 @@ so we can include this information in future releases. Thanks.
 
 </div>  <!-- id="prism-navbar2" -->
 </div> <!-- id="layout-leftcol" -->
+
+<div id="layout-footer">
+</div> <!-- id="layout-footer" -->
 
 </body>
 </html>

@@ -1,181 +1,14 @@
-/**CFile***********************************************************************
+/**
+  @file
 
-  FileName    [cuddAPI.c]
+  @ingroup cudd
 
-  PackageName [cudd]
+  @brief Application interface functions.
 
-  Synopsis    [Application interface functions.]
+  @author Fabio Somenzi
 
-  Description [External procedures included in this module:
-		<ul>
-		<li> Cudd_addNewVar()
-		<li> Cudd_addNewVarAtLevel()
-		<li> Cudd_bddNewVar()
-		<li> Cudd_bddNewVarAtLevel()
-		<li> Cudd_addIthVar()
-		<li> Cudd_bddIthVar()
-		<li> Cudd_zddIthVar()
-		<li> Cudd_zddVarsFromBddVars()
-		<li> Cudd_addConst()
-		<li> Cudd_IsNonConstant()
-		<li> Cudd_ReadStartTime()
-                <li> Cudd_ReadElapsedTime()
-		<li> Cudd_SetStartTime()
-                <li> Cudd_ResetStartTime()
-		<li> Cudd_ReadTimeLimit()
-		<li> Cudd_SetTimeLimit()
-                <li> Cudd_UpdateTimeLimit()
-                <li> Cudd_IncreaseTimeLimit()
-                <li> Cudd_UnsetTimeLimit()
-                <li> Cudd_TimeLimited()
-		<li> Cudd_AutodynEnable()
-		<li> Cudd_AutodynDisable()
-		<li> Cudd_ReorderingStatus()
-		<li> Cudd_AutodynEnableZdd()
-		<li> Cudd_AutodynDisableZdd()
-		<li> Cudd_ReorderingStatusZdd()
-		<li> Cudd_zddRealignmentEnabled()
-		<li> Cudd_zddRealignEnable()
-		<li> Cudd_zddRealignDisable()
-		<li> Cudd_bddRealignmentEnabled()
-		<li> Cudd_bddRealignEnable()
-		<li> Cudd_bddRealignDisable()
-		<li> Cudd_ReadOne()
-		<li> Cudd_ReadZddOne()
-		<li> Cudd_ReadZero()
-		<li> Cudd_ReadLogicZero()
-		<li> Cudd_ReadPlusInfinity()
-		<li> Cudd_ReadMinusInfinity()
-		<li> Cudd_ReadBackground()
-		<li> Cudd_SetBackground()
-		<li> Cudd_ReadCacheSlots()
-		<li> Cudd_ReadCacheUsedSlots()
-		<li> Cudd_ReadCacheLookUps()
-		<li> Cudd_ReadCacheHits()
-		<li> Cudd_ReadMinHit()
-		<li> Cudd_SetMinHit()
-		<li> Cudd_ReadLooseUpTo()
-		<li> Cudd_SetLooseUpTo()
-		<li> Cudd_ReadMaxCache()
-		<li> Cudd_ReadMaxCacheHard()
-		<li> Cudd_SetMaxCacheHard()
-		<li> Cudd_ReadSize()
-		<li> Cudd_ReadSlots()
-		<li> Cudd_ReadUsedSlots()
-		<li> Cudd_ExpectedUsedSlots()
-		<li> Cudd_ReadKeys()
-		<li> Cudd_ReadDead()
-		<li> Cudd_ReadMinDead()
-		<li> Cudd_ReadReorderings()
-		<li> Cudd_ReadMaxReorderings()
-		<li> Cudd_SetMaxReorderings()
-		<li> Cudd_ReadReorderingTime()
-		<li> Cudd_ReadGarbageCollections()
-		<li> Cudd_ReadGarbageCollectionTime()
-		<li> Cudd_ReadNodesFreed()
-		<li> Cudd_ReadNodesDropped()
-		<li> Cudd_ReadUniqueLookUps()
-		<li> Cudd_ReadUniqueLinks()
-		<li> Cudd_ReadSiftMaxVar()
-		<li> Cudd_SetSiftMaxVar()
-		<li> Cudd_ReadMaxGrowth()
-		<li> Cudd_SetMaxGrowth()
-		<li> Cudd_ReadMaxGrowthAlternate()
-		<li> Cudd_SetMaxGrowthAlternate()
-		<li> Cudd_ReadReorderingCycle()
-		<li> Cudd_SetReorderingCycle()
-		<li> Cudd_ReadTree()
-		<li> Cudd_SetTree()
-		<li> Cudd_FreeTree()
-		<li> Cudd_ReadZddTree()
-		<li> Cudd_SetZddTree()
-		<li> Cudd_FreeZddTree()
-		<li> Cudd_NodeReadIndex()
-		<li> Cudd_ReadPerm()
-		<li> Cudd_ReadInvPerm()
-		<li> Cudd_ReadVars()
-		<li> Cudd_ReadEpsilon()
-		<li> Cudd_SetEpsilon()
-		<li> Cudd_ReadGroupCheck()
-		<li> Cudd_SetGroupcheck()
-		<li> Cudd_GarbageCollectionEnabled()
-		<li> Cudd_EnableGarbageCollection()
-		<li> Cudd_DisableGarbageCollection()
-		<li> Cudd_DeadAreCounted()
-		<li> Cudd_TurnOnCountDead()
-		<li> Cudd_TurnOffCountDead()
-		<li> Cudd_ReadRecomb()
-		<li> Cudd_SetRecomb()
-		<li> Cudd_ReadSymmviolation()
-		<li> Cudd_SetSymmviolation()
-		<li> Cudd_ReadArcviolation()
-		<li> Cudd_SetArcviolation()
-		<li> Cudd_ReadPopulationSize()
-		<li> Cudd_SetPopulationSize()
-		<li> Cudd_ReadNumberXovers()
-		<li> Cudd_SetNumberXovers()
-                <li> Cudd_ReadOrderRandomization()
-                <li> Cudd_SetOrderRandomization()
-		<li> Cudd_ReadMemoryInUse()
-		<li> Cudd_PrintInfo()
-		<li> Cudd_ReadPeakNodeCount()
-		<li> Cudd_ReadPeakLiveNodeCount()
-		<li> Cudd_ReadNodeCount()
-		<li> Cudd_zddReadNodeCount()
-		<li> Cudd_AddHook()
-		<li> Cudd_RemoveHook()
-		<li> Cudd_IsInHook()
-		<li> Cudd_StdPreReordHook()
-		<li> Cudd_StdPostReordHook()
-		<li> Cudd_EnableReorderingReporting()
-		<li> Cudd_DisableReorderingReporting()
-		<li> Cudd_ReorderingReporting()
-                <li> Cudd_PrintGroupedOrder()
-                <li> Cudd_EnableOrderingMonitoring()
-                <li> Cudd_DisableOrderingMonitoring()
-                <li> Cudd_OrderingMonitoring()
-		<li> Cudd_ReadErrorCode()
-		<li> Cudd_ClearErrorCode()
-		<li> Cudd_ReadStdout()
-		<li> Cudd_SetStdout()
-		<li> Cudd_ReadStderr()
-		<li> Cudd_SetStderr()
-		<li> Cudd_ReadNextReordering()
-		<li> Cudd_SetNextReordering()
-		<li> Cudd_ReadSwapSteps()
-		<li> Cudd_ReadMaxLive()
-		<li> Cudd_SetMaxLive()
-		<li> Cudd_ReadMaxMemory()
-		<li> Cudd_SetMaxMemory()
-		<li> Cudd_bddBindVar()
-		<li> Cudd_bddUnbindVar()
-		<li> Cudd_bddVarIsBound()
-		<li> Cudd_bddSetPiVar()
-		<li> Cudd_bddSetPsVar()
-		<li> Cudd_bddSetNsVar()
-		<li> Cudd_bddIsPiVar()
-		<li> Cudd_bddIsPsVar()
-		<li> Cudd_bddIsNsVar()
-		<li> Cudd_bddSetPairIndex()
-		<li> Cudd_bddReadPairIndex()
-		<li> Cudd_bddSetVarToBeGrouped()
-		<li> Cudd_bddSetVarHardGroup()
-		<li> Cudd_bddResetVarToBeGrouped()
-		<li> Cudd_bddIsVarToBeGrouped()
-		<li> Cudd_bddSetVarToBeUngrouped()
-		<li> Cudd_bddIsVarToBeUngrouped()
-		<li> Cudd_bddIsVarHardGroup()
-		</ul>
-	      Static procedures included in this module:
-		<ul>
-		<li> fixVarTree()
-		</ul>]
-
-  SeeAlso     []
-
-  Author      [Fabio Somenzi]
-
-  Copyright   [Copyright (c) 1995-2012, Regents of the University of Colorado
+  @copyright@parblock
+  Copyright (c) 1995-2015, Regents of the University of Colorado
 
   All rights reserved.
 
@@ -205,11 +38,13 @@
   CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
   LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
   ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-  POSSIBILITY OF SUCH DAMAGE.]
+  POSSIBILITY OF SUCH DAMAGE.
+  @endparblock
 
-******************************************************************************/
+*/
 
 #include "util.h"
+#include "mtrInt.h"
 #include "cuddInt.h"
 
 /*---------------------------------------------------------------------------*/
@@ -228,15 +63,11 @@
 /* Variable declarations                                                     */
 /*---------------------------------------------------------------------------*/
 
-#ifndef lint
-static char rcsid[] DD_UNUSED = "$Id: cuddAPI.c,v 1.64 2012/02/05 01:07:18 fabio Exp $";
-#endif
-
 /*---------------------------------------------------------------------------*/
 /* Macro declarations                                                        */
 /*---------------------------------------------------------------------------*/
 
-/**AutomaticStart*************************************************************/
+/** \cond */
 
 /*---------------------------------------------------------------------------*/
 /* Static function prototypes                                                */
@@ -245,7 +76,8 @@ static char rcsid[] DD_UNUSED = "$Id: cuddAPI.c,v 1.64 2012/02/05 01:07:18 fabio
 static void fixVarTree (MtrNode *treenode, int *perm, int size);
 static int addMultiplicityGroups (DdManager *dd, MtrNode *treenode, int multiplicity, char *vmask, char *lmask);
 
-/**AutomaticEnd***************************************************************/
+/** \endcond */
+
 
 
 /*---------------------------------------------------------------------------*/
@@ -253,53 +85,58 @@ static int addMultiplicityGroups (DdManager *dd, MtrNode *treenode, int multipli
 /*---------------------------------------------------------------------------*/
 
 
-/**Function********************************************************************
+/**
+  @brief Returns a new %ADD variable.
 
-  Synopsis    [Returns a new ADD variable.]
+  @details The new variable has an index equal to the largest previous
+  index plus 1.  An %ADD variable differs from a %BDD variable because
+  it points to the arithmetic zero, instead of having a complement
+  pointer to 1.
 
-  Description [Creates a new ADD variable.  The new variable has an
-  index equal to the largest previous index plus 1.  Returns a
-  pointer to the new variable if successful; NULL otherwise.
-  An ADD variable differs from a BDD variable because it points to the
-  arithmetic zero, instead of having a complement pointer to 1. ]
+  @return a pointer to the new variable if successful; NULL otherwise.
 
-  SideEffects [None]
+  @sideeffect None
 
-  SeeAlso     [Cudd_bddNewVar Cudd_addIthVar Cudd_addConst
-  Cudd_addNewVarAtLevel]
+  @see Cudd_bddNewVar Cudd_addIthVar Cudd_addConst
+  Cudd_addNewVarAtLevel
 
-******************************************************************************/
+*/
 DdNode *
 Cudd_addNewVar(
   DdManager * dd)
 {
     DdNode *res;
 
-    if ((unsigned int) dd->size >= CUDD_MAXINDEX - 1) return(NULL);
+    if ((unsigned int) dd->size >= CUDD_MAXINDEX - 1) {
+        dd->errorCode = CUDD_INVALID_ARG;
+        return(NULL);
+    }
     do {
 	dd->reordered = 0;
 	res = cuddUniqueInter(dd,dd->size,DD_ONE(dd),DD_ZERO(dd));
     } while (dd->reordered == 1);
+    if (dd->errorCode == CUDD_TIMEOUT_EXPIRED && dd->timeoutHandler) {
+        dd->timeoutHandler(dd, dd->tohArg);
+    }
 
     return(res);
 
 } /* end of Cudd_addNewVar */
 
 
-/**Function********************************************************************
+/**
+  @brief Returns a new %ADD variable at a specified level.
 
-  Synopsis    [Returns a new ADD variable at a specified level.]
+  @details The new variable has an index equal to the largest previous
+  index plus 1 and is positioned at the specified level in the order.
 
-  Description [Creates a new ADD variable.  The new variable has an
-  index equal to the largest previous index plus 1 and is positioned at
-  the specified level in the order.  Returns a pointer to the new
-  variable if successful; NULL otherwise.]
+  @return a pointer to the new variable if successful; NULL otherwise.
 
-  SideEffects [None]
+  @sideeffect None
 
-  SeeAlso     [Cudd_addNewVar Cudd_addIthVar Cudd_bddNewVarAtLevel]
+  @see Cudd_addNewVar Cudd_addIthVar Cudd_bddNewVarAtLevel
 
-******************************************************************************/
+*/
 DdNode *
 Cudd_addNewVarAtLevel(
   DdManager * dd,
@@ -307,39 +144,48 @@ Cudd_addNewVarAtLevel(
 {
     DdNode *res;
 
-    if ((unsigned int) dd->size >= CUDD_MAXINDEX - 1) return(NULL);
+    if ((unsigned int) dd->size >= CUDD_MAXINDEX - 1) {
+        dd->errorCode = CUDD_INVALID_ARG;
+        return(NULL);
+    }
     if (level >= dd->size) return(Cudd_addIthVar(dd,level));
     if (!cuddInsertSubtables(dd,1,level)) return(NULL);
     do {
 	dd->reordered = 0;
 	res = cuddUniqueInter(dd,dd->size - 1,DD_ONE(dd),DD_ZERO(dd));
     } while (dd->reordered == 1);
+    if (dd->errorCode == CUDD_TIMEOUT_EXPIRED && dd->timeoutHandler) {
+        dd->timeoutHandler(dd, dd->tohArg);
+    }
 
     return(res);
 
 } /* end of Cudd_addNewVarAtLevel */
 
 
-/**Function********************************************************************
+/**
+  @brief Returns a new %BDD variable.
 
-  Synopsis    [Returns a new BDD variable.]
+  @details The new variable has an index equal to the largest previous
+  index plus 1.
 
-  Description [Creates a new BDD variable.  The new variable has an
-  index equal to the largest previous index plus 1.  Returns a
-  pointer to the new variable if successful; NULL otherwise.]
+  @return a pointer to the new variable if successful; NULL otherwise.
 
-  SideEffects [None]
+  @sideeffect None
 
-  SeeAlso     [Cudd_addNewVar Cudd_bddIthVar Cudd_bddNewVarAtLevel]
+  @see Cudd_addNewVar Cudd_bddIthVar Cudd_bddNewVarAtLevel
 
-******************************************************************************/
+*/
 DdNode *
 Cudd_bddNewVar(
   DdManager * dd)
 {
     DdNode *res;
 
-    if ((unsigned int) dd->size >= CUDD_MAXINDEX - 1) return(NULL);
+    if ((unsigned int) dd->size >= CUDD_MAXINDEX - 1) {
+        dd->errorCode = CUDD_INVALID_ARG;
+        return(NULL);
+    }
     res = cuddUniqueInter(dd,dd->size,dd->one,Cudd_Not(dd->one));
 
     return(res);
@@ -347,20 +193,19 @@ Cudd_bddNewVar(
 } /* end of Cudd_bddNewVar */
 
 
-/**Function********************************************************************
+/**
+  @brief Returns a new %BDD variable at a specified level.
 
-  Synopsis    [Returns a new BDD variable at a specified level.]
+  @details The new variable has an index equal to the largest previous
+  index plus 1 and is positioned at the specified level in the order.
 
-  Description [Creates a new BDD variable.  The new variable has an
-  index equal to the largest previous index plus 1 and is positioned at
-  the specified level in the order.  Returns a pointer to the new
-  variable if successful; NULL otherwise.]
+  @return a pointer to the new variable if successful; NULL otherwise.
 
-  SideEffects [None]
+  @sideeffect None
 
-  SeeAlso     [Cudd_bddNewVar Cudd_bddIthVar Cudd_addNewVarAtLevel]
+  @see Cudd_bddNewVar Cudd_bddIthVar Cudd_addNewVarAtLevel
 
-******************************************************************************/
+*/
 DdNode *
 Cudd_bddNewVarAtLevel(
   DdManager * dd,
@@ -368,7 +213,10 @@ Cudd_bddNewVarAtLevel(
 {
     DdNode *res;
 
-    if ((unsigned int) dd->size >= CUDD_MAXINDEX - 1) return(NULL);
+    if ((unsigned int) dd->size >= CUDD_MAXINDEX - 1) {
+        dd->errorCode = CUDD_INVALID_ARG;
+        return(NULL);
+    }
     if (level >= dd->size) return(Cudd_bddIthVar(dd,level));
     if (!cuddInsertSubtables(dd,1,level)) return(NULL);
     res = dd->vars[dd->size - 1];
@@ -378,22 +226,39 @@ Cudd_bddNewVarAtLevel(
 } /* end of Cudd_bddNewVarAtLevel */
 
 
-/**Function********************************************************************
+/**
+  @brief Returns 1 if the given node is a %BDD variable; 0 otherwise.
 
-  Synopsis    [Returns the ADD variable with index i.]
+  @sideeffect None
 
-  Description [Retrieves the ADD variable with index i if it already
-  exists, or creates a new ADD variable.  Returns a pointer to the
-  variable if successful; NULL otherwise.  An ADD variable differs from
-  a BDD variable because it points to the arithmetic zero, instead of
-  having a complement pointer to 1. ]
+*/
+int
+Cudd_bddIsVar(
+  DdManager * dd,
+  DdNode * f)
+{
+    DdNode *one = DD_ONE(dd);
+    return(f != 0 && cuddT(f) == one && cuddE(f) == Cudd_Not(one));
 
-  SideEffects [None]
+} /* end of Cudd_bddIsVar */
 
-  SeeAlso     [Cudd_addNewVar Cudd_bddIthVar Cudd_addConst
-  Cudd_addNewVarAtLevel]
 
-******************************************************************************/
+/**
+  @brief Returns the %ADD variable with index i.
+
+  @details Retrieves the %ADD variable with index i if it already
+  exists, or creates a new %ADD variable.  An %ADD variable differs from
+  a %BDD variable because it points to the arithmetic zero, instead of
+  having a complement pointer to 1.
+
+  @return a pointer to the variable if successful; NULL otherwise.
+
+  @sideeffect None
+
+  @see Cudd_addNewVar Cudd_bddIthVar Cudd_addConst
+  Cudd_addNewVarAtLevel
+
+*/
 DdNode *
 Cudd_addIthVar(
   DdManager * dd,
@@ -401,31 +266,37 @@ Cudd_addIthVar(
 {
     DdNode *res;
 
-    if ((unsigned int) i >= CUDD_MAXINDEX - 1) return(NULL);
+    if ((unsigned int) i >= CUDD_MAXINDEX - 1) {
+        dd->errorCode = CUDD_INVALID_ARG;
+        return(NULL);
+    }
     do {
 	dd->reordered = 0;
 	res = cuddUniqueInter(dd,i,DD_ONE(dd),DD_ZERO(dd));
     } while (dd->reordered == 1);
+    if (dd->errorCode == CUDD_TIMEOUT_EXPIRED && dd->timeoutHandler) {
+        dd->timeoutHandler(dd, dd->tohArg);
+    }
 
     return(res);
 
 } /* end of Cudd_addIthVar */
 
 
-/**Function********************************************************************
+/**
+  @brief Returns the %BDD variable with index i.
 
-  Synopsis    [Returns the BDD variable with index i.]
+  @details Retrieves the %BDD variable with index i if it already
+  exists, or creates a new %BDD variable.
 
-  Description [Retrieves the BDD variable with index i if it already
-  exists, or creates a new BDD variable.  Returns a pointer to the
-  variable if successful; NULL otherwise.]
+  @return a pointer to the variable if successful; NULL otherwise.
 
-  SideEffects [None]
+  @sideeffect None
 
-  SeeAlso     [Cudd_bddNewVar Cudd_addIthVar Cudd_bddNewVarAtLevel
-  Cudd_ReadVars]
+  @see Cudd_bddNewVar Cudd_addIthVar Cudd_bddNewVarAtLevel
+  Cudd_ReadVars
 
-******************************************************************************/
+*/
 DdNode *
 Cudd_bddIthVar(
   DdManager * dd,
@@ -433,7 +304,10 @@ Cudd_bddIthVar(
 {
     DdNode *res;
 
-    if ((unsigned int) i >= CUDD_MAXINDEX - 1) return(NULL);
+    if ((unsigned int) i >= CUDD_MAXINDEX - 1) {
+        dd->errorCode = CUDD_INVALID_ARG;
+        return(NULL);
+    }
     if (i < dd->size) {
 	res = dd->vars[i];
     } else {
@@ -445,19 +319,19 @@ Cudd_bddIthVar(
 } /* end of Cudd_bddIthVar */
 
 
-/**Function********************************************************************
+/**
+  @brief Returns the %ZDD variable with index i.
 
-  Synopsis    [Returns the ZDD variable with index i.]
+  @details Retrieves the %ZDD variable with index i if it already
+  exists, or creates a new %ZDD variable.
 
-  Description [Retrieves the ZDD variable with index i if it already
-  exists, or creates a new ZDD variable.  Returns a pointer to the
-  variable if successful; NULL otherwise.]
+  @return a pointer to the variable if successful; NULL otherwise.
 
-  SideEffects [None]
+  @sideeffect None
 
-  SeeAlso     [Cudd_bddIthVar Cudd_addIthVar]
+  @see Cudd_bddIthVar Cudd_addIthVar
 
-******************************************************************************/
+*/
 DdNode *
 Cudd_zddIthVar(
   DdManager * dd,
@@ -468,8 +342,10 @@ Cudd_zddIthVar(
     DdNode *lower;
     int j;
 
-    if ((unsigned int) i >= CUDD_MAXINDEX - 1) return(NULL);
-
+    if ((unsigned int) i >= CUDD_MAXINDEX - 1) {
+        dd->errorCode = CUDD_INVALID_ARG;
+        return(NULL);
+    }
     /* The i-th variable function has the following structure:
     ** at the level corresponding to index i there is a node whose "then"
     ** child points to the universe, and whose "else" child points to zero.
@@ -482,6 +358,9 @@ Cudd_zddIthVar(
 	dd->reordered = 0;
 	zvar = cuddUniqueInterZdd(dd, i, lower, DD_ZERO(dd));
     } while (dd->reordered == 1);
+    if (dd->errorCode == CUDD_TIMEOUT_EXPIRED && dd->timeoutHandler) {
+        dd->timeoutHandler(dd, dd->tohArg);
+    }
 
     if (zvar == NULL)
 	return(NULL);
@@ -495,6 +374,9 @@ Cudd_zddIthVar(
 	} while (dd->reordered == 1);
 	if (res == NULL) {
 	    Cudd_RecursiveDerefZdd(dd,zvar);
+            if (dd->errorCode == CUDD_TIMEOUT_EXPIRED && dd->timeoutHandler) {
+                dd->timeoutHandler(dd, dd->tohArg);
+            }
 	    return(NULL);
 	}
 	cuddRef(res);
@@ -507,39 +389,42 @@ Cudd_zddIthVar(
 } /* end of Cudd_zddIthVar */
 
 
-/**Function********************************************************************
+/**
+  @brief Creates one or more %ZDD variables for each %BDD variable.
 
-  Synopsis    [Creates one or more ZDD variables for each BDD variable.]
-
-  Description [Creates one or more ZDD variables for each BDD
-  variable.  If some ZDD variables already exist, only the missing
+  @details If some %ZDD variables already exist, only the missing
   variables are created.  Parameter multiplicity allows the caller to
-  control how many variables are created for each BDD variable in
+  control how many variables are created for each %BDD variable in
   existence. For instance, if ZDDs are used to represent covers, two
-  ZDD variables are required for each BDD variable.  The order of the
-  BDD variables is transferred to the ZDD variables. If a variable
-  group tree exists for the BDD variables, a corresponding ZDD
-  variable group tree is created by expanding the BDD variable
-  tree. In any case, the ZDD variables derived from the same BDD
-  variable are merged in a ZDD variable group. If a ZDD variable group
-  tree exists, it is freed. Returns 1 if successful; 0 otherwise.]
+  %ZDD variables are required for each %BDD variable.  The order of the
+  %BDD variables is transferred to the %ZDD variables. If a variable
+  group tree exists for the %BDD variables, a corresponding %ZDD
+  variable group tree is created by expanding the %BDD variable
+  tree. In any case, the %ZDD variables derived from the same %BDD
+  variable are merged in a %ZDD variable group. If a %ZDD variable group
+  tree exists, it is freed.
 
-  SideEffects [None]
+  @return 1 if successful; 0 otherwise.
 
-  SeeAlso     [Cudd_bddNewVar Cudd_bddIthVar Cudd_bddNewVarAtLevel]
+  @sideeffect None
 
-******************************************************************************/
+  @see Cudd_bddNewVar Cudd_bddIthVar Cudd_bddNewVarAtLevel
+
+*/
 int
 Cudd_zddVarsFromBddVars(
-  DdManager * dd /* DD manager */,
-  int multiplicity /* how many ZDD variables are created for each BDD variable */)
+  DdManager * dd /**< %DD manager */,
+  int multiplicity /**< how many %ZDD variables are created for each %BDD variable */)
 {
     int res;
     int i, j;
     int allnew;
     int *permutation;
 
-    if (multiplicity < 1) return(0);
+    if (multiplicity < 1) {
+        dd->errorCode = CUDD_INVALID_ARG;
+        return(0);
+    }
     allnew = dd->sizeZ == 0;
     if (dd->size * multiplicity > dd->sizeZ) {
 	res = cuddResizeTableZdd(dd,dd->size * multiplicity - 1);
@@ -617,19 +502,32 @@ Cudd_zddVarsFromBddVars(
 } /* end of Cudd_zddVarsFromBddVars */
 
 
-/**Function********************************************************************
+/**
+  @brief Returns the maximum possible index for a variable.
 
-  Synopsis    [Returns the ADD for constant c.]
+  @sideeffect None
+*/
+unsigned int
+Cudd_ReadMaxIndex(void)
+{
+    return(CUDD_MAXINDEX);
 
-  Description [Retrieves the ADD for constant c if it already
-  exists, or creates a new ADD.  Returns a pointer to the
-  ADD if successful; NULL otherwise.]
+} /* end of Cudd_ReadMaxIndex */
 
-  SideEffects [None]
 
-  SeeAlso     [Cudd_addNewVar Cudd_addIthVar]
+/**
+  @brief Returns the %ADD for constant c.
 
-******************************************************************************/
+  @details Retrieves the %ADD for constant c if it already
+  exists, or creates a new %ADD.
+
+  @return a pointer to the %ADD if successful; NULL otherwise.
+
+  @sideeffect None
+
+  @see Cudd_addNewVar Cudd_addIthVar
+
+*/
 DdNode *
 Cudd_addConst(
   DdManager * dd,
@@ -640,43 +538,113 @@ Cudd_addConst(
 } /* end of Cudd_addConst */
 
 
-/**Function********************************************************************
+/**
+  @brief Returns 1 if the node is a constant node.
 
-  Synopsis    [Returns 1 if a DD node is not constant.]
+  @details A constant node is not an internal node.  The pointer
+  passed to Cudd_IsConstant may be either regular or complemented.
 
-  Description [Returns 1 if a DD node is not constant. This function is
-  useful to test the results of Cudd_bddIteConstant, Cudd_addIteConstant,
-  Cudd_addEvalConst. These results may be a special value signifying
-  non-constant. In the other cases the macro Cudd_IsConstant can be used.]
+  @sideeffect none
 
-  SideEffects [None]
+*/
+int Cudd_IsConstant(DdNode *node)
+{
+    return Cudd_Regular(node)->index == CUDD_CONST_INDEX;
 
-  SeeAlso     [Cudd_IsConstant Cudd_bddIteConstant Cudd_addIteConstant
-  Cudd_addEvalConst]
+} /* end of Cudd_IsConstant */
 
-******************************************************************************/
+
+/**
+  @brief Returns 1 if a %DD node is not constant.
+
+  @details This function is useful to test the results of
+  Cudd_bddIteConstant, Cudd_addIteConstant, Cudd_addEvalConst. These
+  results may be a special value signifying non-constant. In the other
+  cases Cudd_IsConstant can be used.
+
+  @sideeffect None
+
+  @see Cudd_IsConstant Cudd_bddIteConstant Cudd_addIteConstant
+  Cudd_addEvalConst
+
+*/
 int
 Cudd_IsNonConstant(
   DdNode *f)
 {
-    return(f == DD_NON_CONSTANT || !Cudd_IsConstant(f));
+    return(f == DD_NON_CONSTANT || !Cudd_IsConstantInt(f));
 
 } /* end of Cudd_IsNonConstant */
 
 
-/**Function********************************************************************
+/**
+  @brief Returns the then child of an internal node.
 
-  Synopsis    [Returns the start time of the manager.]
+  @details If <code>node</code> is a constant node, the result is
+  unpredictable.
 
-  Description [Returns the start time of the manager.  This is initially set
-  to the number of milliseconds since the program started, but may be reset by
-  the application.]
+  @sideeffect none
 
-  SideEffects [None]
+  @see Cudd_E Cudd_V
 
-  SeeAlso     [Cudd_SetStartTime Cudd_ResetStartTime Cudd_ReadTimeLimit]
+*/
+DdNode *
+Cudd_T(DdNode *node)
+{
+    return Cudd_Regular(node)->type.kids.T;
 
-******************************************************************************/
+} /* end of Cudd_T */
+
+
+/**
+  @brief Returns the else child of an internal node.
+
+  @details If <code>node</code> is a constant node, the result is
+  unpredictable.
+
+  @sideeffect none
+
+  @see Cudd_T Cudd_V
+
+*/
+DdNode *
+Cudd_E(DdNode *node)
+{
+    return Cudd_Regular(node)->type.kids.E;
+
+} /* end of Cudd_E */
+
+
+/**
+  @brief Returns the value of a constant node.
+
+  @details If <code>node</code> is an internal node, the result is
+  unpredictable.
+
+  @sideeffect none
+
+  @see Cudd_T Cudd_E
+
+*/
+CUDD_VALUE_TYPE
+Cudd_V(DdNode *node)
+{
+    return Cudd_Regular(node)->type.value;
+
+} /* end of Cudd_V */
+
+
+/**
+  @brief Returns the start time of the manager.
+
+  @details This is initially set to the number of milliseconds since
+  the program started, but may be reset by the application.
+
+  @sideeffect None
+
+  @see Cudd_SetStartTime Cudd_ResetStartTime Cudd_ReadTimeLimit
+
+*/
 unsigned long
 Cudd_ReadStartTime(
   DdManager * unique)
@@ -686,17 +654,16 @@ Cudd_ReadStartTime(
 } /* end of Cudd_ReadStartTime */
 
 
-/**Function********************************************************************
+/**
+  @brief Returns the time elapsed since the start time of the manager.
 
-  Synopsis    [Returns the time elapsed since the start time of the manager.]
+  @details The time is expressed in milliseconds.
 
-  Description [Returns the time elapsed since the start time of the manager.]
+  @sideeffect None
 
-  SideEffects [None]
+  @see Cudd_ReadStartTime Cudd_SetStartTime
 
-  SeeAlso     [Cudd_ReadStartTime Cudd_SetStartTime]
-
-******************************************************************************/
+*/
 unsigned long
 Cudd_ReadElapsedTime(
   DdManager * unique)
@@ -706,18 +673,17 @@ Cudd_ReadElapsedTime(
 } /* end of Cudd_ReadElapsedTime */
 
 
-/**Function********************************************************************
+/**
+  @brief Sets the start time of the manager.
 
-  Synopsis    [Sets the start time of the manager.]
+  @details The time must be expressed in milliseconds.
 
-  Description [Sets the start time of the manager.]
+  @sideeffect None
 
-  SideEffects [None]
+  @see Cudd_ReadStartTime Cudd_ResetStartTime Cudd_ReadElapsedTime
+  Cudd_SetTimeLimit
 
-  SeeAlso     [Cudd_ReadStartTime Cudd_ResetStartTime Cudd_ReadElapsedTime
-  Cudd_SetTimeLimit]
-
-******************************************************************************/
+*/
 void
 Cudd_SetStartTime(
   DdManager * unique,
@@ -728,17 +694,14 @@ Cudd_SetStartTime(
 } /* end of Cudd_SetStartTime */
 
 
-/**Function********************************************************************
+/**
+  @brief Resets the start time of the manager.
 
-  Synopsis    [Resets the start time of the manager.]
+  @sideeffect None
 
-  Description [Resets the start time of the manager.]
+  @see Cudd_ReadStartTime Cudd_SetStartTime Cudd_SetTimeLimit
 
-  SideEffects [None]
-
-  SeeAlso     [Cudd_ReadStartTime Cudd_SetStartTime Cudd_SetTimeLimit]
-
-******************************************************************************/
+*/
 void
 Cudd_ResetStartTime(
   DdManager * unique)
@@ -748,19 +711,18 @@ Cudd_ResetStartTime(
 } /* end of Cudd_ResetStartTime */
 
 
-/**Function********************************************************************
+/**
+  @brief Returns the time limit for the manager.
 
-  Synopsis    [Returns the time limit for the manager.]
+  @details This is initially set to a very large number, but may be
+  reset by the application.  The time is expressed in milliseconds.
 
-  Description [Returns the time limit for the manager.  This is initially set
-  to a very large number, but may be reset by the application.]
+  @sideeffect None
 
-  SideEffects [None]
+  @see Cudd_SetTimeLimit Cudd_UpdateTimeLimit Cudd_UnsetTimeLimit
+  Cudd_IncreaseTimeLimit Cudd_TimeLimited Cudd_ReadStartTime
 
-  SeeAlso     [Cudd_SetTimeLimit Cudd_UpdateTimeLimit Cudd_UnsetTimeLimit
-  Cudd_IncreaseTimeLimit Cudd_TimeLimited Cudd_ReadStartTime]
-
-******************************************************************************/
+*/
 unsigned long
 Cudd_ReadTimeLimit(
   DdManager * unique)
@@ -770,41 +732,43 @@ Cudd_ReadTimeLimit(
 } /* end of Cudd_ReadTimeLimit */
 
 
-/**Function********************************************************************
+/**
+  @brief Sets the time limit for the manager.
 
-  Synopsis    [Sets the time limit for the manager.]
+  @details The time must be expressed in milliseconds.
 
-  Description [Sets the time limit for the manager.]
+  @return the old time limit.
 
-  SideEffects [None]
+  @sideeffect None
 
-  SeeAlso     [Cudd_ReadTimeLimit Cudd_UnsetTimeLimit Cudd_UpdateTimeLimit
-  Cudd_IncreaseTimeLimit Cudd_TimeLimited Cudd_SetStartTime]
+  @see Cudd_ReadTimeLimit Cudd_UnsetTimeLimit Cudd_UpdateTimeLimit
+  Cudd_IncreaseTimeLimit Cudd_TimeLimited Cudd_SetStartTime
 
-******************************************************************************/
-void
+*/
+unsigned long
 Cudd_SetTimeLimit(
   DdManager * unique,
   unsigned long tl)
 {
+    unsigned long ret = unique->timeLimit;
     unique->timeLimit = tl;
+    return(ret);
 
 } /* end of Cudd_SetTimeLimit */
 
 
-/**Function********************************************************************
+/**
+  @brief Updates the time limit for the manager.
 
-  Synopsis    [Updates the time limit for the manager.]
+  @details Updates the time limit for the manager by subtracting the
+  elapsed time from it.
 
-  Description [Updates the time limit for the manager by subtracting the
-  elapsed time from it.]
+  @sideeffect None
 
-  SideEffects [None]
+  @see Cudd_ReadTimeLimit Cudd_SetTimeLimit Cudd_UnsetTimeLimit
+  Cudd_IncreaseTimeLimit Cudd_TimeLimited Cudd_SetStartTime
 
-  SeeAlso     [Cudd_ReadTimeLimit Cudd_SetTimeLimit Cudd_UnsetTimeLimit
-  Cudd_IncreaseTimeLimit Cudd_TimeLimited Cudd_SetStartTime]
-
-******************************************************************************/
+*/
 void
 Cudd_UpdateTimeLimit(
   DdManager * unique)
@@ -822,18 +786,17 @@ Cudd_UpdateTimeLimit(
 } /* end of Cudd_UpdateTimeLimit */
 
 
-/**Function********************************************************************
+/**
+  @brief Increases the time limit for the manager.
 
-  Synopsis    [Increases the time limit for the manager.]
+  @details The time increase must be expressed in milliseconds.
 
-  Description [Increases the time limit for the manager.]
+  @sideeffect None
 
-  SideEffects [None]
+  @see Cudd_ReadTimeLimit Cudd_SetTimeLimit Cudd_UnsetTimeLimit
+  Cudd_UpdateTimeLimit Cudd_TimeLimited Cudd_SetStartTime
 
-  SeeAlso     [Cudd_ReadTimeLimit Cudd_SetTimeLimit Cudd_UnsetTimeLimit
-  Cudd_UpdateTimeLimit Cudd_TimeLimited Cudd_SetStartTime]
-
-******************************************************************************/
+*/
 void
 Cudd_IncreaseTimeLimit(
   DdManager * unique,
@@ -847,19 +810,17 @@ Cudd_IncreaseTimeLimit(
 } /* end of Cudd_IncreaseTimeLimit */
 
 
-/**Function********************************************************************
+/**
+  @brief Unsets the time limit for the manager.
 
-  Synopsis    [Unsets the time limit for the manager.]
+  @details Actually, sets it to a very large value.
 
-  Description [Unsets the time limit for the manager.  Actually, sets it to
-  a very large value.]
+  @sideeffect None
 
-  SideEffects [None]
+  @see Cudd_ReadTimeLimit Cudd_SetTimeLimit Cudd_UpdateTimeLimit
+  Cudd_IncreaseTimeLimit Cudd_TimeLimited Cudd_SetStartTime
 
-  SeeAlso     [Cudd_ReadTimeLimit Cudd_SetTimeLimit Cudd_UpdateTimeLimit
-  Cudd_IncreaseTimeLimit Cudd_TimeLimited Cudd_SetStartTime]
-
-******************************************************************************/
+*/
 void
 Cudd_UnsetTimeLimit(
   DdManager * unique)
@@ -869,18 +830,15 @@ Cudd_UnsetTimeLimit(
 } /* end of Cudd_UnsetTimeLimit */
 
 
-/**Function********************************************************************
+/**
+  @brief Returns true if the time limit for the manager is set.
 
-  Synopsis    [Returns true if the time limit for the manager is set.]
+  @sideeffect None
 
-  Description [Returns true if the time limit for the manager is set.]
+  @see Cudd_ReadTimeLimit Cudd_SetTimeLimit Cudd_UpdateTimeLimit
+  Cudd_UnsetTimeLimit Cudd_IncreaseTimeLimit
 
-  SideEffects [None]
-
-  SeeAlso     [Cudd_ReadTimeLimit Cudd_SetTimeLimit Cudd_UpdateTimeLimit
-  Cudd_UnsetTimeLimit Cudd_IncreaseTimeLimit]
-
-******************************************************************************/
+*/
 int
 Cudd_TimeLimited(
   DdManager * unique)
@@ -890,21 +848,142 @@ Cudd_TimeLimited(
 } /* end of Cudd_TimeLimited */
 
 
-/**Function********************************************************************
+/**
+  @brief Installs a termination callback.
 
-  Synopsis    [Enables automatic dynamic reordering of BDDs and ADDs.]
+  @details Registers a callback function that is called from time
+  to time to decide whether computation should be abandoned.
 
-  Description [Enables automatic dynamic reordering of BDDs and
-  ADDs. Parameter method is used to determine the method used for
-  reordering. If CUDD_REORDER_SAME is passed, the method is
-  unchanged.]
+  @sideeffect None
 
-  SideEffects [None]
+  @see Cudd_UnregisterTerminationCallback
 
-  SeeAlso     [Cudd_AutodynDisable Cudd_ReorderingStatus
-  Cudd_AutodynEnableZdd]
+*/
+void
+Cudd_RegisterTerminationCallback(
+  DdManager *unique,
+  DD_THFP callback,
+  void * callback_arg)
+{
+    unique->terminationCallback = callback;
+    unique->tcbArg = callback_arg;
 
-******************************************************************************/
+} /* end of Cudd_RegisterTerminationCallback */
+
+
+/**
+  @brief Unregisters a termination callback.
+
+  @sideeffect None
+
+  @see Cudd_RegisterTerminationCallback
+
+*/
+void
+Cudd_UnregisterTerminationCallback(
+  DdManager *unique)
+{
+    unique->terminationCallback = NULL;
+    unique->tcbArg = NULL;
+
+}  /* end of Cudd_UnregisterTerminationCallback */
+
+
+/**
+  @brief Installs an out-of-memory callback.
+
+  @details Registers a callback function that is called when
+  a discretionary memory allocation fails.
+
+  @return the old callback function.
+
+  @sideeffect None
+
+  @see Cudd_UnregisterOutOfMemoryCallback Cudd_OutOfMem Cudd_OutOfMemSilent
+
+*/
+DD_OOMFP
+Cudd_RegisterOutOfMemoryCallback(
+  DdManager *unique,
+  DD_OOMFP callback)
+{
+  DD_OOMFP ret = unique->outOfMemCallback;
+  unique->outOfMemCallback = callback;
+  return(ret);
+
+} /* end of Cudd_RegisterOutOfMemoryCallback */
+
+
+/**
+  @brief Unregister an out-of-memory callback.
+
+  @sideeffect None
+
+  @see Cudd_RegisterOutOfMemoryCallback Cudd_OutOfMem Cudd_OutOfMemSilent
+
+*/
+void
+Cudd_UnregisterOutOfMemoryCallback(
+  DdManager *unique)
+{
+  unique->outOfMemCallback = Cudd_OutOfMemSilent;
+
+} /* end of Cudd_UnregisterOutOfMemoryCallback */
+
+
+/**
+  @brief Register a timeout handler function.
+
+  @details To unregister a handler, register a NULL pointer.
+
+  @sideeffect None
+
+  @see Cudd_ReadTimeoutHandler
+*/
+void
+Cudd_RegisterTimeoutHandler(
+  DdManager *unique,
+  DD_TOHFP handler,
+  void *arg)
+{
+    unique->timeoutHandler = handler;
+    unique->tohArg = arg;
+
+} /* end of Cudd_RegisterTimeoutHandler */
+
+
+/**
+  @brief Read the current timeout handler function.
+
+  @sideeffect If argp is non-null, the second argument to
+  the handler is written to the location it points to.
+
+  @see Cudd_RegisterTimeoutHandler
+*/
+DD_TOHFP
+Cudd_ReadTimeoutHandler(
+  DdManager *unique,
+  void **argp)
+{
+    if (argp != NULL)
+        *argp = unique->tohArg;
+    return unique->timeoutHandler;
+
+} /* end of Cudd_ReadTimeoutHandler */
+
+
+/**
+  @brief Enables automatic dynamic reordering of BDDs and ADDs.
+
+  @details Parameter method is used to determine the method used for
+  reordering. If CUDD_REORDER_SAME is passed, the method is unchanged.
+
+  @sideeffect None
+
+  @see Cudd_AutodynDisable Cudd_ReorderingStatus
+  Cudd_AutodynEnableZdd
+
+*/
 void
 Cudd_AutodynEnable(
   DdManager * unique,
@@ -932,18 +1011,15 @@ Cudd_AutodynEnable(
 } /* end of Cudd_AutodynEnable */
 
 
-/**Function********************************************************************
+/**
+  @brief Disables automatic dynamic reordering.
 
-  Synopsis    [Disables automatic dynamic reordering.]
+  @sideeffect None
 
-  Description []
+  @see Cudd_AutodynEnable Cudd_ReorderingStatus
+  Cudd_AutodynDisableZdd
 
-  SideEffects [None]
-
-  SeeAlso     [Cudd_AutodynEnable Cudd_ReorderingStatus
-  Cudd_AutodynDisableZdd]
-
-******************************************************************************/
+*/
 void
 Cudd_AutodynDisable(
   DdManager * unique)
@@ -954,48 +1030,47 @@ Cudd_AutodynDisable(
 } /* end of Cudd_AutodynDisable */
 
 
-/**Function********************************************************************
+/**
+  @brief Reports the status of automatic dynamic reordering of BDDs
+  and ADDs.
 
-  Synopsis    [Reports the status of automatic dynamic reordering of BDDs
-  and ADDs.]
+  @details The location pointed by parameter method is set to
+  the reordering method currently selected if method is non-null.
 
-  Description [Reports the status of automatic dynamic reordering of
-  BDDs and ADDs. Parameter method is set to the reordering method
-  currently selected. Returns 1 if automatic reordering is enabled; 0
-  otherwise.]
+  @return 1 if automatic reordering is enabled; 0 otherwise.
 
-  SideEffects [Parameter method is set to the reordering method currently
-  selected.]
+  @sideeffect The location pointed by parameter method is set to the
+  reordering method currently selected if method is non-null.
 
-  SeeAlso     [Cudd_AutodynEnable Cudd_AutodynDisable
-  Cudd_ReorderingStatusZdd]
+  @see Cudd_AutodynEnable Cudd_AutodynDisable
+  Cudd_ReorderingStatusZdd
 
-******************************************************************************/
+*/
 int
 Cudd_ReorderingStatus(
   DdManager * unique,
   Cudd_ReorderingType * method)
 {
-    *method = unique->autoMethod;
+    if (method)
+	*method = unique->autoMethod;
     return(unique->autoDyn);
 
 } /* end of Cudd_ReorderingStatus */
 
 
-/**Function********************************************************************
+/**
+  @brief Enables automatic dynamic reordering of ZDDs.
 
-  Synopsis    [Enables automatic dynamic reordering of ZDDs.]
+  @details Parameter method is used to determine the method used for
+  reordering ZDDs.  If CUDD_REORDER_SAME is passed, the method is
+  unchanged.
 
-  Description [Enables automatic dynamic reordering of ZDDs. Parameter
-  method is used to determine the method used for reordering ZDDs. If
-  CUDD_REORDER_SAME is passed, the method is unchanged.]
+  @sideeffect None
 
-  SideEffects [None]
+  @see Cudd_AutodynDisableZdd Cudd_ReorderingStatusZdd
+  Cudd_AutodynEnable
 
-  SeeAlso     [Cudd_AutodynDisableZdd Cudd_ReorderingStatusZdd
-  Cudd_AutodynEnable]
-
-******************************************************************************/
+*/
 void
 Cudd_AutodynEnableZdd(
   DdManager * unique,
@@ -1010,18 +1085,15 @@ Cudd_AutodynEnableZdd(
 } /* end of Cudd_AutodynEnableZdd */
 
 
-/**Function********************************************************************
+/**
+  @brief Disables automatic dynamic reordering of ZDDs.
 
-  Synopsis    [Disables automatic dynamic reordering of ZDDs.]
+  @sideeffect None
 
-  Description []
+  @see Cudd_AutodynEnableZdd Cudd_ReorderingStatusZdd
+  Cudd_AutodynDisable
 
-  SideEffects [None]
-
-  SeeAlso     [Cudd_AutodynEnableZdd Cudd_ReorderingStatusZdd
-  Cudd_AutodynDisable]
-
-******************************************************************************/
+*/
 void
 Cudd_AutodynDisableZdd(
   DdManager * unique)
@@ -1032,22 +1104,21 @@ Cudd_AutodynDisableZdd(
 } /* end of Cudd_AutodynDisableZdd */
 
 
-/**Function********************************************************************
+/**
+  @brief Reports the status of automatic dynamic reordering of ZDDs.
 
-  Synopsis    [Reports the status of automatic dynamic reordering of ZDDs.]
+  @details Parameter method is set to the %ZDD reordering method currently
+  selected.
 
-  Description [Reports the status of automatic dynamic reordering of
-  ZDDs. Parameter method is set to the ZDD reordering method currently
-  selected. Returns 1 if automatic reordering is enabled; 0
-  otherwise.]
+  @return 1 if automatic reordering is enabled; 0 otherwise.
 
-  SideEffects [Parameter method is set to the ZDD reordering method currently
-  selected.]
+  @sideeffect Parameter method is set to the %ZDD reordering method currently
+  selected.
 
-  SeeAlso     [Cudd_AutodynEnableZdd Cudd_AutodynDisableZdd
-  Cudd_ReorderingStatus]
+  @see Cudd_AutodynEnableZdd Cudd_AutodynDisableZdd
+  Cudd_ReorderingStatus
 
-******************************************************************************/
+*/
 int
 Cudd_ReorderingStatusZdd(
   DdManager * unique,
@@ -1059,20 +1130,19 @@ Cudd_ReorderingStatusZdd(
 } /* end of Cudd_ReorderingStatusZdd */
 
 
-/**Function********************************************************************
+/**
+  @brief Tells whether the realignment of %ZDD order to %BDD order is
+  enabled.
 
-  Synopsis    [Tells whether the realignment of ZDD order to BDD order is
-  enabled.]
+  @return 1 if the realignment of %ZDD order to %BDD order is enabled; 0
+  otherwise.
 
-  Description [Returns 1 if the realignment of ZDD order to BDD order is
-  enabled; 0 otherwise.]
+  @sideeffect None
 
-  SideEffects [None]
+  @see Cudd_zddRealignEnable Cudd_zddRealignDisable
+  Cudd_bddRealignEnable Cudd_bddRealignDisable
 
-  SeeAlso     [Cudd_zddRealignEnable Cudd_zddRealignDisable
-  Cudd_bddRealignEnable Cudd_bddRealignDisable]
-
-******************************************************************************/
+*/
 int
 Cudd_zddRealignmentEnabled(
   DdManager * unique)
@@ -1082,27 +1152,26 @@ Cudd_zddRealignmentEnabled(
 } /* end of Cudd_zddRealignmentEnabled */
 
 
-/**Function********************************************************************
+/**
+  @brief Enables realignment of %ZDD order to %BDD order.
 
-  Synopsis    [Enables realignment of ZDD order to BDD order.]
-
-  Description [Enables realignment of the ZDD variable order to the
-  BDD variable order after the BDDs and ADDs have been reordered.  The
-  number of ZDD variables must be a multiple of the number of BDD
+  @details Enables realignment of the %ZDD variable order to the
+  %BDD variable order after the BDDs and ADDs have been reordered.  The
+  number of %ZDD variables must be a multiple of the number of %BDD
   variables for realignment to make sense. If this condition is not met,
   Cudd_ReduceHeap will return 0. Let <code>M</code> be the
-  ratio of the two numbers. For the purpose of realignment, the ZDD
+  ratio of the two numbers. For the purpose of realignment, the %ZDD
   variables from <code>M*i</code> to <code>(M+1)*i-1</code> are
-  reagarded as corresponding to BDD variable <code>i</code>. Realignment
-  is initially disabled.]
+  reagarded as corresponding to %BDD variable <code>i</code>. Realignment
+  is initially disabled.
 
-  SideEffects [None]
+  @sideeffect None
 
-  SeeAlso     [Cudd_ReduceHeap Cudd_zddRealignDisable
+  @see Cudd_ReduceHeap Cudd_zddRealignDisable
   Cudd_zddRealignmentEnabled Cudd_bddRealignDisable
-  Cudd_bddRealignmentEnabled]
+  Cudd_bddRealignmentEnabled
 
-******************************************************************************/
+*/
 void
 Cudd_zddRealignEnable(
   DdManager * unique)
@@ -1113,18 +1182,15 @@ Cudd_zddRealignEnable(
 } /* end of Cudd_zddRealignEnable */
 
 
-/**Function********************************************************************
+/**
+  @brief Disables realignment of %ZDD order to %BDD order.
 
-  Synopsis    [Disables realignment of ZDD order to BDD order.]
+  @sideeffect None
 
-  Description []
+  @see Cudd_zddRealignEnable Cudd_zddRealignmentEnabled
+  Cudd_bddRealignEnable Cudd_bddRealignmentEnabled
 
-  SideEffects [None]
-
-  SeeAlso     [Cudd_zddRealignEnable Cudd_zddRealignmentEnabled
-  Cudd_bddRealignEnable Cudd_bddRealignmentEnabled]
-
-******************************************************************************/
+*/
 void
 Cudd_zddRealignDisable(
   DdManager * unique)
@@ -1135,20 +1201,19 @@ Cudd_zddRealignDisable(
 } /* end of Cudd_zddRealignDisable */
 
 
-/**Function********************************************************************
+/**
+  @brief Tells whether the realignment of %BDD order to %ZDD order is
+  enabled.
 
-  Synopsis    [Tells whether the realignment of BDD order to ZDD order is
-  enabled.]
+  @return 1 if the realignment of %BDD order to %ZDD order is enabled; 0
+  otherwise.
 
-  Description [Returns 1 if the realignment of BDD order to ZDD order is
-  enabled; 0 otherwise.]
+  @sideeffect None
 
-  SideEffects [None]
+  @see Cudd_bddRealignEnable Cudd_bddRealignDisable
+  Cudd_zddRealignEnable Cudd_zddRealignDisable
 
-  SeeAlso     [Cudd_bddRealignEnable Cudd_bddRealignDisable
-  Cudd_zddRealignEnable Cudd_zddRealignDisable]
-
-******************************************************************************/
+*/
 int
 Cudd_bddRealignmentEnabled(
   DdManager * unique)
@@ -1158,27 +1223,26 @@ Cudd_bddRealignmentEnabled(
 } /* end of Cudd_bddRealignmentEnabled */
 
 
-/**Function********************************************************************
+/**
+  @brief Enables realignment of %BDD order to %ZDD order.
 
-  Synopsis    [Enables realignment of BDD order to ZDD order.]
-
-  Description [Enables realignment of the BDD variable order to the
-  ZDD variable order after the ZDDs have been reordered.  The
-  number of ZDD variables must be a multiple of the number of BDD
+  @details Enables realignment of the %BDD variable order to the
+  %ZDD variable order after the ZDDs have been reordered.  The
+  number of %ZDD variables must be a multiple of the number of %BDD
   variables for realignment to make sense. If this condition is not met,
   Cudd_zddReduceHeap will return 0. Let <code>M</code> be the
-  ratio of the two numbers. For the purpose of realignment, the ZDD
+  ratio of the two numbers. For the purpose of realignment, the %ZDD
   variables from <code>M*i</code> to <code>(M+1)*i-1</code> are
-  reagarded as corresponding to BDD variable <code>i</code>. Realignment
-  is initially disabled.]
+  reagarded as corresponding to %BDD variable <code>i</code>. Realignment
+  is initially disabled.
 
-  SideEffects [None]
+  @sideeffect None
 
-  SeeAlso     [Cudd_zddReduceHeap Cudd_bddRealignDisable
+  @see Cudd_zddReduceHeap Cudd_bddRealignDisable
   Cudd_bddRealignmentEnabled Cudd_zddRealignDisable
-  Cudd_zddRealignmentEnabled]
+  Cudd_zddRealignmentEnabled
 
-******************************************************************************/
+*/
 void
 Cudd_bddRealignEnable(
   DdManager * unique)
@@ -1189,18 +1253,15 @@ Cudd_bddRealignEnable(
 } /* end of Cudd_bddRealignEnable */
 
 
-/**Function********************************************************************
+/**
+  @brief Disables realignment of %ZDD order to %BDD order.
 
-  Synopsis    [Disables realignment of ZDD order to BDD order.]
+  @sideeffect None
 
-  Description []
+  @see Cudd_bddRealignEnable Cudd_bddRealignmentEnabled
+  Cudd_zddRealignEnable Cudd_zddRealignmentEnabled
 
-  SideEffects [None]
-
-  SeeAlso     [Cudd_bddRealignEnable Cudd_bddRealignmentEnabled
-  Cudd_zddRealignEnable Cudd_zddRealignmentEnabled]
-
-******************************************************************************/
+*/
 void
 Cudd_bddRealignDisable(
   DdManager * unique)
@@ -1211,18 +1272,16 @@ Cudd_bddRealignDisable(
 } /* end of Cudd_bddRealignDisable */
 
 
-/**Function********************************************************************
+/**
+  @brief Returns the one constant of the manager.
 
-  Synopsis    [Returns the one constant of the manager.]
+  @details The one constant is common to ADDs and BDDs.
 
-  Description [Returns the one constant of the manager. The one
-  constant is common to ADDs and BDDs.]
+  @sideeffect None
 
-  SideEffects [None]
+  @see Cudd_ReadZero Cudd_ReadLogicZero Cudd_ReadZddOne
 
-  SeeAlso [Cudd_ReadZero Cudd_ReadLogicZero Cudd_ReadZddOne]
-
-******************************************************************************/
+*/
 DdNode *
 Cudd_ReadOne(
   DdManager * dd)
@@ -1232,20 +1291,19 @@ Cudd_ReadOne(
 } /* end of Cudd_ReadOne */
 
 
-/**Function********************************************************************
+/**
+  @brief Returns the %ZDD for the constant 1 function.
 
-  Synopsis    [Returns the ZDD for the constant 1 function.]
+  @details The representation of the constant 1 function as a %ZDD
+  depends on how many variables it (nominally) depends on. The index
+  of the topmost variable in the support is given as argument
+  <code>i</code>.
 
-  Description [Returns the ZDD for the constant 1 function.
-  The representation of the constant 1 function as a ZDD depends on
-  how many variables it (nominally) depends on. The index of the
-  topmost variable in the support is given as argument <code>i</code>.]
+  @sideeffect None
 
-  SideEffects [None]
+  @see Cudd_ReadOne
 
-  SeeAlso [Cudd_ReadOne]
-
-******************************************************************************/
+*/
 DdNode *
 Cudd_ReadZddOne(
   DdManager * dd,
@@ -1259,19 +1317,17 @@ Cudd_ReadZddOne(
 
 
 
-/**Function********************************************************************
+/**
+  @brief Returns the zero constant of the manager.
 
-  Synopsis    [Returns the zero constant of the manager.]
+  @details The zero constant is the arithmetic zero, rather than the
+  logic zero. The latter is the complement of the one constant.
 
-  Description [Returns the zero constant of the manager. The zero
-  constant is the arithmetic zero, rather than the logic zero. The
-  latter is the complement of the one constant.]
+  @sideeffect None
 
-  SideEffects [None]
+  @see Cudd_ReadOne Cudd_ReadLogicZero
 
-  SeeAlso [Cudd_ReadOne Cudd_ReadLogicZero]
-
-******************************************************************************/
+*/
 DdNode *
 Cudd_ReadZero(
   DdManager * dd)
@@ -1281,19 +1337,17 @@ Cudd_ReadZero(
 } /* end of Cudd_ReadZero */
 
 
-/**Function********************************************************************
+/**
+  @brief Returns the logic zero constant of the manager.
 
-  Synopsis    [Returns the logic zero constant of the manager.]
+  @details The logic zero constant is the complement of the one
+  constant, and is distinct from the arithmetic zero.
 
-  Description [Returns the zero constant of the manager. The logic zero
-  constant is the complement of the one constant, and is distinct from
-  the arithmetic zero.]
+  @sideeffect None
 
-  SideEffects [None]
+  @see Cudd_ReadOne Cudd_ReadZero
 
-  SeeAlso [Cudd_ReadOne Cudd_ReadZero]
-
-******************************************************************************/
+*/
 DdNode *
 Cudd_ReadLogicZero(
   DdManager * dd)
@@ -1303,15 +1357,12 @@ Cudd_ReadLogicZero(
 } /* end of Cudd_ReadLogicZero */
 
 
-/**Function********************************************************************
+/**
+  @brief Reads the plus-infinity constant from the manager.
 
-  Synopsis    [Reads the plus-infinity constant from the manager.]
+  @sideeffect None
 
-  Description []
-
-  SideEffects [None]
-
-******************************************************************************/
+*/
 DdNode *
 Cudd_ReadPlusInfinity(
   DdManager * dd)
@@ -1321,15 +1372,12 @@ Cudd_ReadPlusInfinity(
 } /* end of Cudd_ReadPlusInfinity */
 
 
-/**Function********************************************************************
+/**
+  @brief Reads the minus-infinity constant from the manager.
 
-  Synopsis    [Reads the minus-infinity constant from the manager.]
+  @sideeffect None
 
-  Description []
-
-  SideEffects [None]
-
-******************************************************************************/
+*/
 DdNode *
 Cudd_ReadMinusInfinity(
   DdManager * dd)
@@ -1339,15 +1387,12 @@ Cudd_ReadMinusInfinity(
 } /* end of Cudd_ReadMinusInfinity */
 
 
-/**Function********************************************************************
+/**
+  @brief Reads the background constant of the manager.
 
-  Synopsis    [Reads the background constant of the manager.]
+  @sideeffect None
 
-  Description []
-
-  SideEffects [None]
-
-******************************************************************************/
+*/
 DdNode *
 Cudd_ReadBackground(
   DdManager * dd)
@@ -1357,16 +1402,15 @@ Cudd_ReadBackground(
 } /* end of Cudd_ReadBackground */
 
 
-/**Function********************************************************************
+/**
+  @brief Sets the background constant of the manager.
 
-  Synopsis    [Sets the background constant of the manager.]
+  @details It assumes that the DdNode pointer bck is already
+  referenced.
 
-  Description [Sets the background constant of the manager. It assumes
-  that the DdNode pointer bck is already referenced.]
+  @sideeffect None
 
-  SideEffects [None]
-
-******************************************************************************/
+*/
 void
 Cudd_SetBackground(
   DdManager * dd,
@@ -1377,17 +1421,14 @@ Cudd_SetBackground(
 } /* end of Cudd_SetBackground */
 
 
-/**Function********************************************************************
+/**
+  @brief Reads the number of slots in the cache.
 
-  Synopsis    [Reads the number of slots in the cache.]
+  @sideeffect None
 
-  Description []
+  @see Cudd_ReadCacheUsedSlots
 
-  SideEffects [None]
-
-  SeeAlso     [Cudd_ReadCacheUsedSlots]
-
-******************************************************************************/
+*/
 unsigned int
 Cudd_ReadCacheSlots(
   DdManager * dd)
@@ -1397,20 +1438,18 @@ Cudd_ReadCacheSlots(
 } /* end of Cudd_ReadCacheSlots */
 
 
-/**Function********************************************************************
+/**
+  @brief Reads the fraction of used slots in the cache.
 
-  Synopsis    [Reads the fraction of used slots in the cache.]
+  @details The unused slots are those in which no valid data is
+  stored. Garbage collection, variable reordering, and cache resizing
+  may cause used slots to become unused.
 
-  Description [Reads the fraction of used slots in the cache. The unused
-  slots are those in which no valid data is stored. Garbage collection,
-  variable reordering, and cache resizing may cause used slots to become
-  unused.]
+  @sideeffect None
 
-  SideEffects [None]
+  @see Cudd_ReadCacheSlots
 
-  SeeAlso     [Cudd_ReadCacheSlots]
-
-******************************************************************************/
+*/
 double
 Cudd_ReadCacheUsedSlots(
   DdManager * dd)
@@ -1429,17 +1468,14 @@ Cudd_ReadCacheUsedSlots(
 } /* end of Cudd_ReadCacheUsedSlots */
 
 
-/**Function********************************************************************
+/**
+  @brief Returns the number of cache look-ups.
 
-  Synopsis    [Returns the number of cache look-ups.]
+  @sideeffect None
 
-  Description [Returns the number of cache look-ups.]
+  @see Cudd_ReadCacheHits
 
-  SideEffects [None]
-
-  SeeAlso     [Cudd_ReadCacheHits]
-
-******************************************************************************/
+*/
 double
 Cudd_ReadCacheLookUps(
   DdManager * dd)
@@ -1450,17 +1486,14 @@ Cudd_ReadCacheLookUps(
 } /* end of Cudd_ReadCacheLookUps */
 
 
-/**Function********************************************************************
+/**
+  @brief Returns the number of cache hits.
 
-  Synopsis    [Returns the number of cache hits.]
+  @sideeffect None
 
-  Description []
+  @see Cudd_ReadCacheLookUps
 
-  SideEffects [None]
-
-  SeeAlso     [Cudd_ReadCacheLookUps]
-
-******************************************************************************/
+*/
 double
 Cudd_ReadCacheHits(
   DdManager * dd)
@@ -1470,18 +1503,15 @@ Cudd_ReadCacheHits(
 } /* end of Cudd_ReadCacheHits */
 
 
-/**Function********************************************************************
+/**
+  @brief Returns the number of recursive calls.
 
-  Synopsis    [Returns the number of recursive calls.]
+  @details Returns the number of recursive calls if the package is
+  compiled with DD_COUNT defined.
 
-  Description [Returns the number of recursive calls if the package is
-  compiled with DD_COUNT defined.]
+  @sideeffect None
 
-  SideEffects [None]
-
-  SeeAlso     []
-
-******************************************************************************/
+*/
 double
 Cudd_ReadRecursiveCalls(
   DdManager * dd)
@@ -1489,6 +1519,7 @@ Cudd_ReadRecursiveCalls(
 #ifdef DD_COUNT
     return(dd->recursiveCalls);
 #else
+    (void) dd; /* avoid warning */
     return(-1.0);
 #endif
 
@@ -1496,18 +1527,15 @@ Cudd_ReadRecursiveCalls(
 
 
 
-/**Function********************************************************************
+/**
+  @brief Reads the hit rate that causes resizinig of the computed
+  table.
 
-  Synopsis    [Reads the hit rate that causes resizinig of the computed
-  table.]
+  @sideeffect None
 
-  Description []
+  @see Cudd_SetMinHit
 
-  SideEffects [None]
-
-  SeeAlso     [Cudd_SetMinHit]
-
-******************************************************************************/
+*/
 unsigned int
 Cudd_ReadMinHit(
   DdManager * dd)
@@ -1519,21 +1547,20 @@ Cudd_ReadMinHit(
 } /* end of Cudd_ReadMinHit */
 
 
-/**Function********************************************************************
+/**
+  @brief Sets the hit rate that causes resizinig of the computed
+  table.
 
-  Synopsis    [Sets the hit rate that causes resizinig of the computed
-  table.]
-
-  Description [Sets the minHit parameter of the manager. This
+  @details Sets the minHit parameter of the manager. This
   parameter controls the resizing of the computed table. If the hit
   rate is larger than the specified value, and the cache is not
-  already too large, then its size is doubled.]
+  already too large, then its size is doubled.
 
-  SideEffects [None]
+  @sideeffect None
 
-  SeeAlso     [Cudd_ReadMinHit]
+  @see Cudd_ReadMinHit
 
-******************************************************************************/
+*/
 void
 Cudd_SetMinHit(
   DdManager * dd,
@@ -1546,17 +1573,14 @@ Cudd_SetMinHit(
 } /* end of Cudd_SetMinHit */
 
 
-/**Function********************************************************************
+/**
+  @brief Reads the looseUpTo parameter of the manager.
 
-  Synopsis    [Reads the looseUpTo parameter of the manager.]
+  @sideeffect None
 
-  Description []
+  @see Cudd_SetLooseUpTo Cudd_ReadMinHit Cudd_ReadMinDead
 
-  SideEffects [None]
-
-  SeeAlso     [Cudd_SetLooseUpTo Cudd_ReadMinHit Cudd_ReadMinDead]
-
-******************************************************************************/
+*/
 unsigned int
 Cudd_ReadLooseUpTo(
   DdManager * dd)
@@ -1566,21 +1590,20 @@ Cudd_ReadLooseUpTo(
 } /* end of Cudd_ReadLooseUpTo */
 
 
-/**Function********************************************************************
+/**
+  @brief Sets the looseUpTo parameter of the manager.
 
-  Synopsis    [Sets the looseUpTo parameter of the manager.]
+  @details This parameter of the manager controls the threshold beyond
+  which no fast growth of the unique table is allowed. The threshold
+  is given as a number of slots. If the value passed to this function
+  is 0, the function determines a suitable value based on the
+  available memory.
 
-  Description [Sets the looseUpTo parameter of the manager. This
-  parameter of the manager controls the threshold beyond which no fast
-  growth of the unique table is allowed. The threshold is given as a
-  number of slots. If the value passed to this function is 0, the
-  function determines a suitable value based on the available memory.]
+  @sideeffect None
 
-  SideEffects [None]
+  @see Cudd_ReadLooseUpTo Cudd_SetMinHit
 
-  SeeAlso     [Cudd_ReadLooseUpTo Cudd_SetMinHit]
-
-******************************************************************************/
+*/
 void
 Cudd_SetLooseUpTo(
   DdManager * dd,
@@ -1596,17 +1619,14 @@ Cudd_SetLooseUpTo(
 } /* end of Cudd_SetLooseUpTo */
 
 
-/**Function********************************************************************
+/**
+  @brief Returns the soft limit for the cache size.
 
-  Synopsis    [Returns the soft limit for the cache size.]
+  @sideeffect None
 
-  Description [Returns the soft limit for the cache size.]
+  @see Cudd_ReadMaxCacheHard
 
-  SideEffects [None]
-
-  SeeAlso     [Cudd_ReadMaxCacheHard]
-
-******************************************************************************/
+*/
 unsigned int
 Cudd_ReadMaxCache(
   DdManager * dd)
@@ -1616,17 +1636,14 @@ Cudd_ReadMaxCache(
 } /* end of Cudd_ReadMaxCache */
 
 
-/**Function********************************************************************
+/**
+  @brief Reads the maxCacheHard parameter of the manager.
 
-  Synopsis    [Reads the maxCacheHard parameter of the manager.]
+  @sideeffect None
 
-  Description []
+  @see Cudd_SetMaxCacheHard Cudd_ReadMaxCache
 
-  SideEffects [None]
-
-  SeeAlso     [Cudd_SetMaxCacheHard Cudd_ReadMaxCache]
-
-******************************************************************************/
+*/
 unsigned int
 Cudd_ReadMaxCacheHard(
   DdManager * dd)
@@ -1636,21 +1653,20 @@ Cudd_ReadMaxCacheHard(
 } /* end of Cudd_ReadMaxCache */
 
 
-/**Function********************************************************************
+/**
+  @brief Sets the maxCacheHard parameter of the manager.
 
-  Synopsis    [Sets the maxCacheHard parameter of the manager.]
+  @details The cache cannot grow larger than maxCacheHard
+  entries. This parameter allows an application to control the
+  trade-off of memory versus speed. If the value passed to this
+  function is 0, the function determines a suitable maximum cache size
+  based on the available memory.
 
-  Description [Sets the maxCacheHard parameter of the manager. The
-  cache cannot grow larger than maxCacheHard entries. This parameter
-  allows an application to control the trade-off of memory versus
-  speed. If the value passed to this function is 0, the function
-  determines a suitable maximum cache size based on the available memory.]
+  @sideeffect None
 
-  SideEffects [None]
+  @see Cudd_ReadMaxCacheHard Cudd_SetMaxCache
 
-  SeeAlso     [Cudd_ReadMaxCacheHard Cudd_SetMaxCache]
-
-******************************************************************************/
+*/
 void
 Cudd_SetMaxCacheHard(
   DdManager * dd,
@@ -1666,17 +1682,14 @@ Cudd_SetMaxCacheHard(
 } /* end of Cudd_SetMaxCacheHard */
 
 
-/**Function********************************************************************
+/**
+  @brief Returns the number of %BDD variables in existance.
 
-  Synopsis    [Returns the number of BDD variables in existance.]
+  @sideeffect None
 
-  Description []
+  @see Cudd_ReadZddSize
 
-  SideEffects [None]
-
-  SeeAlso     [Cudd_ReadZddSize]
-
-******************************************************************************/
+*/
 int
 Cudd_ReadSize(
   DdManager * dd)
@@ -1686,17 +1699,14 @@ Cudd_ReadSize(
 } /* end of Cudd_ReadSize */
 
 
-/**Function********************************************************************
+/**
+  @brief Returns the number of %ZDD variables in existance.
 
-  Synopsis    [Returns the number of ZDD variables in existance.]
+  @sideeffect None
 
-  Description []
+  @see Cudd_ReadSize
 
-  SideEffects [None]
-
-  SeeAlso     [Cudd_ReadSize]
-
-******************************************************************************/
+*/
 int
 Cudd_ReadZddSize(
   DdManager * dd)
@@ -1706,16 +1716,14 @@ Cudd_ReadZddSize(
 } /* end of Cudd_ReadZddSize */
 
 
-/**Function********************************************************************
+/**
+  @brief Returns the total number of slots of the unique table.
 
-  Synopsis    [Returns the total number of slots of the unique table.]
+  @details This number is mainly for diagnostic purposes.
 
-  Description [Returns the total number of slots of the unique table.
-  This number ismainly for diagnostic purposes.]
+  @sideeffect None
 
-  SideEffects [None]
-
-******************************************************************************/
+*/
 unsigned int
 Cudd_ReadSlots(
   DdManager * dd)
@@ -1725,20 +1733,18 @@ Cudd_ReadSlots(
 } /* end of Cudd_ReadSlots */
 
 
-/**Function********************************************************************
+/**
+  @brief Reads the fraction of used slots in the unique table.
 
-  Synopsis    [Reads the fraction of used slots in the unique table.]
-
-  Description [Reads the fraction of used slots in the unique
-  table. The unused slots are those in which no valid data is
+  @details The unused slots are those in which no valid data is
   stored. Garbage collection, variable reordering, and subtable
-  resizing may cause used slots to become unused.]
+  resizing may cause used slots to become unused.
 
-  SideEffects [None]
+  @sideeffect None
 
-  SeeAlso     [Cudd_ReadSlots]
+  @see Cudd_ReadSlots
 
-******************************************************************************/
+*/
 double
 Cudd_ReadUsedSlots(
   DdManager * dd)
@@ -1792,22 +1798,20 @@ Cudd_ReadUsedSlots(
 } /* end of Cudd_ReadUsedSlots */
 
 
-/**Function********************************************************************
+/**
+  @brief Computes the expected fraction of used slots in the unique
+  table.
 
-  Synopsis    [Computes the expected fraction of used slots in the unique
-  table.]
+  @details This expected value is based on the assumption that the
+  hash function distributes the keys randomly; it can be compared with
+  the result of Cudd_ReadUsedSlots to monitor the performance of the
+  unique table hash function.
 
-  Description [Computes the fraction of slots in the unique table that
-  should be in use. This expected value is based on the assumption
-  that the hash function distributes the keys randomly; it can be
-  compared with the result of Cudd_ReadUsedSlots to monitor the
-  performance of the unique table hash function.]
+  @sideeffect None
 
-  SideEffects [None]
+  @see Cudd_ReadSlots Cudd_ReadUsedSlots
 
-  SeeAlso     [Cudd_ReadSlots Cudd_ReadUsedSlots]
-
-******************************************************************************/
+*/
 double
 Cudd_ExpectedUsedSlots(
   DdManager * dd)
@@ -1850,18 +1854,17 @@ Cudd_ExpectedUsedSlots(
 } /* end of Cudd_ExpectedUsedSlots */
 
 
-/**Function********************************************************************
+/**
+  @brief Returns the number of nodes in the unique table.
 
-  Synopsis    [Returns the number of nodes in the unique table.]
+  @details Returns the total number of nodes currently in the unique
+  table, including the dead nodes.
 
-  Description [Returns the total number of nodes currently in the unique
-  table, including the dead nodes.]
+  @sideeffect None
 
-  SideEffects [None]
+  @see Cudd_ReadDead
 
-  SeeAlso     [Cudd_ReadDead]
-
-******************************************************************************/
+*/
 unsigned int
 Cudd_ReadKeys(
   DdManager * dd)
@@ -1871,17 +1874,14 @@ Cudd_ReadKeys(
 } /* end of Cudd_ReadKeys */
 
 
-/**Function********************************************************************
+/**
+  @brief Returns the number of dead nodes in the unique table.
 
-  Synopsis    [Returns the number of dead nodes in the unique table.]
+  @sideeffect None
 
-  Description []
+  @see Cudd_ReadKeys
 
-  SideEffects [None]
-
-  SeeAlso     [Cudd_ReadKeys]
-
-******************************************************************************/
+*/
 unsigned int
 Cudd_ReadDead(
   DdManager * dd)
@@ -1891,21 +1891,19 @@ Cudd_ReadDead(
 } /* end of Cudd_ReadDead */
 
 
-/**Function********************************************************************
+/**
+  @brief Reads the minDead parameter of the manager.
 
-  Synopsis    [Reads the minDead parameter of the manager.]
+  @details The minDead parameter is used by the package to decide
+  whether to collect garbage or resize a subtable of the unique table
+  when the subtable becomes too full. The application can indirectly
+  control the value of minDead by setting the looseUpTo parameter.
 
-  Description [Reads the minDead parameter of the manager. The minDead
-  parameter is used by the package to decide whether to collect garbage
-  or resize a subtable of the unique table when the subtable becomes
-  too full. The application can indirectly control the value of minDead
-  by setting the looseUpTo parameter.]
+  @sideeffect None
 
-  SideEffects [None]
+  @see Cudd_ReadDead Cudd_ReadLooseUpTo Cudd_SetLooseUpTo
 
-  SeeAlso     [Cudd_ReadDead Cudd_ReadLooseUpTo Cudd_SetLooseUpTo]
-
-******************************************************************************/
+*/
 unsigned int
 Cudd_ReadMinDead(
   DdManager * dd)
@@ -1915,23 +1913,21 @@ Cudd_ReadMinDead(
 } /* end of Cudd_ReadMinDead */
 
 
-/**Function********************************************************************
+/**
+  @brief Returns the number of times reordering has occurred.
 
-  Synopsis    [Returns the number of times reordering has occurred.]
-
-  Description [Returns the number of times reordering has occurred in the
-  manager. The number includes both the calls to Cudd_ReduceHeap from
+  @details The number includes both the calls to Cudd_ReduceHeap from
   the application program and those automatically performed by the
   package. However, calls that do not even initiate reordering are not
   counted. A call may not initiate reordering if there are fewer than
   minsize live nodes in the manager, or if CUDD_REORDER_NONE is specified
-  as reordering method. The calls to Cudd_ShuffleHeap are not counted.]
+  as reordering method. The calls to Cudd_ShuffleHeap are not counted.
 
-  SideEffects [None]
+  @sideeffect None
 
-  SeeAlso [Cudd_ReduceHeap Cudd_ReadReorderingTime]
+  @see Cudd_ReduceHeap Cudd_ReadReorderingTime
 
-******************************************************************************/
+*/
 unsigned int
 Cudd_ReadReorderings(
   DdManager * dd)
@@ -1941,18 +1937,14 @@ Cudd_ReadReorderings(
 } /* end of Cudd_ReadReorderings */
 
 
-/**Function********************************************************************
+/**
+  @brief Returns the maximum number of times reordering may be invoked.
 
-  Synopsis    [Returns the maximum number of times reordering may be invoked.]
+  @sideeffect None
 
-  Description [Returns the maximum number of times reordering may be invoked in
-  this manager.]
+  @see Cudd_ReadReorderings Cudd_SetMaxReorderings Cudd_ReduceHeap
 
-  SideEffects [None]
-
-  SeeAlso [Cudd_ReadReorderings Cudd_SetMaxReorderings Cudd_ReduceHeap]
-
-******************************************************************************/
+*/
 unsigned int
 Cudd_ReadMaxReorderings(
   DdManager * dd)
@@ -1962,18 +1954,16 @@ Cudd_ReadMaxReorderings(
 } /* end of Cudd_ReadMaxReorderings */
 
 
-/**Function********************************************************************
+/**
+  @brief Sets the maximum number of times reordering may be invoked.
 
-  Synopsis    [Sets the maximum number of times reordering may be invoked.]
+  @details The default value is (practically) infinite.
 
-  Description [Sets the maximum number of times reordering may be invoked in
-  this manager.  The default value is (practically) infinite.]
+  @sideeffect None
 
-  SideEffects [None]
+  @see Cudd_ReadReorderings Cudd_ReadMaxReorderings Cudd_ReduceHeap
 
-  SeeAlso [Cudd_ReadReorderings Cudd_ReadMaxReorderings Cudd_ReduceHeap]
-
-******************************************************************************/
+*/
 void
 Cudd_SetMaxReorderings(
   DdManager * dd, unsigned int mr)
@@ -1983,19 +1973,18 @@ Cudd_SetMaxReorderings(
 } /* end of Cudd_SetMaxReorderings */
 
 
-/**Function********************************************************************
+/**
+  @brief Returns the time spent in reordering.
 
-  Synopsis    [Returns the time spent in reordering.]
-
-  Description [Returns the number of milliseconds spent reordering
+  @details Returns the number of milliseconds spent reordering
   variables since the manager was initialized. The time spent in collecting
-  garbage before reordering is included.]
+  garbage before reordering is included.
 
-  SideEffects [None]
+  @sideeffect None
 
-  SeeAlso     [Cudd_ReadReorderings]
+  @see Cudd_ReadReorderings
 
-******************************************************************************/
+*/
 long
 Cudd_ReadReorderingTime(
   DdManager * dd)
@@ -2005,20 +1994,17 @@ Cudd_ReadReorderingTime(
 } /* end of Cudd_ReadReorderingTime */
 
 
-/**Function********************************************************************
+/**
+  @brief Returns the number of times garbage collection has occurred.
 
-  Synopsis    [Returns the number of times garbage collection has occurred.]
+  @details The number includes both the calls from reordering
+  procedures and those caused by requests to create new nodes.
 
-  Description [Returns the number of times garbage collection has
-  occurred in the manager. The number includes both the calls from
-  reordering procedures and those caused by requests to create new
-  nodes.]
+  @sideeffect None
 
-  SideEffects [None]
+  @see Cudd_ReadGarbageCollectionTime
 
-  SeeAlso     [Cudd_ReadGarbageCollectionTime]
-
-******************************************************************************/
+*/
 int
 Cudd_ReadGarbageCollections(
   DdManager * dd)
@@ -2028,18 +2014,17 @@ Cudd_ReadGarbageCollections(
 } /* end of Cudd_ReadGarbageCollections */
 
 
-/**Function********************************************************************
+/**
+  @brief Returns the time spent in garbage collection.
 
-  Synopsis    [Returns the time spent in garbage collection.]
+  @details Returns the number of milliseconds spent doing garbage
+  collection since the manager was initialized.
 
-  Description [Returns the number of milliseconds spent doing garbage
-  collection since the manager was initialized.]
+  @sideeffect None
 
-  SideEffects [None]
+  @see Cudd_ReadGarbageCollections
 
-  SeeAlso     [Cudd_ReadGarbageCollections]
-
-******************************************************************************/
+*/
 long
 Cudd_ReadGarbageCollectionTime(
   DdManager * dd)
@@ -2049,19 +2034,18 @@ Cudd_ReadGarbageCollectionTime(
 } /* end of Cudd_ReadGarbageCollectionTime */
 
 
-/**Function********************************************************************
+/**
+  @brief Returns the number of nodes freed.
 
-  Synopsis    [Returns the number of nodes freed.]
-
-  Description [Returns the number of nodes returned to the free list if the
+  @details Returns the number of nodes returned to the free list if the
   keeping of this statistic is enabled; -1 otherwise. This statistic is
-  enabled only if the package is compiled with DD_STATS defined.]
+  enabled only if the package is compiled with DD_STATS defined.
 
-  SideEffects [None]
+  @sideeffect None
 
-  SeeAlso     [Cudd_ReadNodesDropped]
+  @see Cudd_ReadNodesDropped
 
-******************************************************************************/
+*/
 double
 Cudd_ReadNodesFreed(
   DdManager * dd)
@@ -2069,25 +2053,25 @@ Cudd_ReadNodesFreed(
 #ifdef DD_STATS
     return(dd->nodesFreed);
 #else
+    (void) dd; /* avoid warning */
     return(-1.0);
 #endif
 
 } /* end of Cudd_ReadNodesFreed */
 
 
-/**Function********************************************************************
+/**
+  @brief Returns the number of nodes dropped.
 
-  Synopsis    [Returns the number of nodes dropped.]
-
-  Description [Returns the number of nodes killed by dereferencing if the
+  @details Returns the number of nodes killed by dereferencing if the
   keeping of this statistic is enabled; -1 otherwise. This statistic is
-  enabled only if the package is compiled with DD_STATS defined.]
+  enabled only if the package is compiled with DD_STATS defined.
 
-  SideEffects [None]
+  @sideeffect None
 
-  SeeAlso     [Cudd_ReadNodesFreed]
+  @see Cudd_ReadNodesFreed
 
-******************************************************************************/
+*/
 double
 Cudd_ReadNodesDropped(
   DdManager * dd)
@@ -2095,25 +2079,25 @@ Cudd_ReadNodesDropped(
 #ifdef DD_STATS
     return(dd->nodesDropped);
 #else
+    (void) dd; /* avoid warning */
     return(-1.0);
 #endif
 
 } /* end of Cudd_ReadNodesDropped */
 
 
-/**Function********************************************************************
+/**
+  @brief Returns the number of look-ups in the unique table.
 
-  Synopsis    [Returns the number of look-ups in the unique table.]
-
-  Description [Returns the number of look-ups in the unique table if the
+  @details Returns the number of look-ups in the unique table if the
   keeping of this statistic is enabled; -1 otherwise. This statistic is
-  enabled only if the package is compiled with DD_UNIQUE_PROFILE defined.]
+  enabled only if the package is compiled with DD_UNIQUE_PROFILE defined.
 
-  SideEffects [None]
+  @sideeffect None
 
-  SeeAlso     [Cudd_ReadUniqueLinks]
+  @see Cudd_ReadUniqueLinks
 
-******************************************************************************/
+*/
 double
 Cudd_ReadUniqueLookUps(
   DdManager * dd)
@@ -2121,28 +2105,28 @@ Cudd_ReadUniqueLookUps(
 #ifdef DD_UNIQUE_PROFILE
     return(dd->uniqueLookUps);
 #else
+    (void) dd; /* avoid warning */
     return(-1.0);
 #endif
 
 } /* end of Cudd_ReadUniqueLookUps */
 
 
-/**Function********************************************************************
+/**
+  @brief Returns the number of links followed in the unique table.
 
-  Synopsis    [Returns the number of links followed in the unique table.]
-
-  Description [Returns the number of links followed during look-ups in the
+  @details Returns the number of links followed during look-ups in the
   unique table if the keeping of this statistic is enabled; -1 otherwise.
   If an item is found in the first position of its collision list, the
   number of links followed is taken to be 0. If it is in second position,
   the number of links is 1, and so on. This statistic is enabled only if
-  the package is compiled with DD_UNIQUE_PROFILE defined.]
+  the package is compiled with DD_UNIQUE_PROFILE defined.
 
-  SideEffects [None]
+  @sideeffect None
 
-  SeeAlso     [Cudd_ReadUniqueLookUps]
+  @see Cudd_ReadUniqueLookUps
 
-******************************************************************************/
+*/
 double
 Cudd_ReadUniqueLinks(
   DdManager * dd)
@@ -2150,25 +2134,24 @@ Cudd_ReadUniqueLinks(
 #ifdef DD_UNIQUE_PROFILE
     return(dd->uniqueLinks);
 #else
+    (void) dd; /* avoid warning */
     return(-1.0);
 #endif
 
 } /* end of Cudd_ReadUniqueLinks */
 
 
-/**Function********************************************************************
+/**
+  @brief Reads the siftMaxVar parameter of the manager.
 
-  Synopsis    [Reads the siftMaxVar parameter of the manager.]
+  @details This parameter gives the maximum number of variables that
+  will be sifted for each invocation of sifting.
 
-  Description [Reads the siftMaxVar parameter of the manager. This
-  parameter gives the maximum number of variables that will be sifted
-  for each invocation of sifting.]
+  @sideeffect None
 
-  SideEffects [None]
+  @see Cudd_ReadSiftMaxSwap Cudd_SetSiftMaxVar
 
-  SeeAlso     [Cudd_ReadSiftMaxSwap Cudd_SetSiftMaxVar]
-
-******************************************************************************/
+*/
 int
 Cudd_ReadSiftMaxVar(
   DdManager * dd)
@@ -2178,19 +2161,17 @@ Cudd_ReadSiftMaxVar(
 } /* end of Cudd_ReadSiftMaxVar */
 
 
-/**Function********************************************************************
+/**
+  @brief Sets the siftMaxVar parameter of the manager.
 
-  Synopsis    [Sets the siftMaxVar parameter of the manager.]
+  @details This parameter gives the maximum number of variables that
+  will be sifted for each invocation of sifting.
 
-  Description [Sets the siftMaxVar parameter of the manager. This
-  parameter gives the maximum number of variables that will be sifted
-  for each invocation of sifting.]
+  @sideeffect None
 
-  SideEffects [None]
+  @see Cudd_SetSiftMaxSwap Cudd_ReadSiftMaxVar
 
-  SeeAlso     [Cudd_SetSiftMaxSwap Cudd_ReadSiftMaxVar]
-
-******************************************************************************/
+*/
 void
 Cudd_SetSiftMaxVar(
   DdManager * dd,
@@ -2201,21 +2182,20 @@ Cudd_SetSiftMaxVar(
 } /* end of Cudd_SetSiftMaxVar */
 
 
-/**Function********************************************************************
+/**
+  @brief Reads the siftMaxSwap parameter of the manager.
 
-  Synopsis    [Reads the siftMaxSwap parameter of the manager.]
+  @details This parameter gives the maximum number of swaps that will
+  be attempted for each invocation of sifting. The real number of
+  swaps may exceed the set limit because the package will always
+  complete the sifting of the variable that causes the limit to be
+  reached.
 
-  Description [Reads the siftMaxSwap parameter of the manager. This
-  parameter gives the maximum number of swaps that will be attempted
-  for each invocation of sifting. The real number of swaps may exceed
-  the set limit because the package will always complete the sifting
-  of the variable that causes the limit to be reached.]
+  @sideeffect None
 
-  SideEffects [None]
+  @see Cudd_ReadSiftMaxVar Cudd_SetSiftMaxSwap
 
-  SeeAlso     [Cudd_ReadSiftMaxVar Cudd_SetSiftMaxSwap]
-
-******************************************************************************/
+*/
 int
 Cudd_ReadSiftMaxSwap(
   DdManager * dd)
@@ -2225,21 +2205,20 @@ Cudd_ReadSiftMaxSwap(
 } /* end of Cudd_ReadSiftMaxSwap */
 
 
-/**Function********************************************************************
+/**
+  @brief Sets the siftMaxSwap parameter of the manager.
 
-  Synopsis    [Sets the siftMaxSwap parameter of the manager.]
+  @details This parameter gives the maximum number of swaps that will
+  be attempted for each invocation of sifting. The real number of
+  swaps may exceed the set limit because the package will always
+  complete the sifting of the variable that causes the limit to be
+  reached.
 
-  Description [Sets the siftMaxSwap parameter of the manager. This
-  parameter gives the maximum number of swaps that will be attempted
-  for each invocation of sifting. The real number of swaps may exceed
-  the set limit because the package will always complete the sifting
-  of the variable that causes the limit to be reached.]
+  @sideeffect None
 
-  SideEffects [None]
+  @see Cudd_SetSiftMaxVar Cudd_ReadSiftMaxSwap
 
-  SeeAlso     [Cudd_SetSiftMaxVar Cudd_ReadSiftMaxSwap]
-
-******************************************************************************/
+*/
 void
 Cudd_SetSiftMaxSwap(
   DdManager * dd,
@@ -2250,22 +2229,20 @@ Cudd_SetSiftMaxSwap(
 } /* end of Cudd_SetSiftMaxSwap */
 
 
-/**Function********************************************************************
+/**
+  @brief Reads the maxGrowth parameter of the manager.
 
-  Synopsis    [Reads the maxGrowth parameter of the manager.]
+  @details This parameter determines how much the number of nodes can
+  grow during sifting of a variable.  Overall, sifting never increases
+  the size of the decision diagrams.  This parameter only refers to
+  intermediate results.  A lower value will speed up sifting, possibly
+  at the expense of quality.
 
-  Description [Reads the maxGrowth parameter of the manager.  This
-  parameter determines how much the number of nodes can grow during
-  sifting of a variable.  Overall, sifting never increases the size of
-  the decision diagrams.  This parameter only refers to intermediate
-  results.  A lower value will speed up sifting, possibly at the
-  expense of quality.]
+  @sideeffect None
 
-  SideEffects [None]
+  @see Cudd_SetMaxGrowth Cudd_ReadMaxGrowthAlternate
 
-  SeeAlso     [Cudd_SetMaxGrowth Cudd_ReadMaxGrowthAlternate]
-
-******************************************************************************/
+*/
 double
 Cudd_ReadMaxGrowth(
   DdManager * dd)
@@ -2275,22 +2252,20 @@ Cudd_ReadMaxGrowth(
 } /* end of Cudd_ReadMaxGrowth */
 
 
-/**Function********************************************************************
+/**
+  @brief Sets the maxGrowth parameter of the manager.
 
-  Synopsis    [Sets the maxGrowth parameter of the manager.]
+  @details This parameter determines how much the number of nodes can
+  grow during sifting of a variable.  Overall, sifting never increases
+  the size of the decision diagrams.  This parameter only refers to
+  intermediate results.  A lower value will speed up sifting, possibly
+  at the expense of quality.
 
-  Description [Sets the maxGrowth parameter of the manager.  This
-  parameter determines how much the number of nodes can grow during
-  sifting of a variable.  Overall, sifting never increases the size of
-  the decision diagrams.  This parameter only refers to intermediate
-  results.  A lower value will speed up sifting, possibly at the
-  expense of quality.]
+  @sideeffect None
 
-  SideEffects [None]
+  @see Cudd_ReadMaxGrowth Cudd_SetMaxGrowthAlternate
 
-  SeeAlso     [Cudd_ReadMaxGrowth Cudd_SetMaxGrowthAlternate]
-
-******************************************************************************/
+*/
 void
 Cudd_SetMaxGrowth(
   DdManager * dd,
@@ -2301,22 +2276,20 @@ Cudd_SetMaxGrowth(
 } /* end of Cudd_SetMaxGrowth */
 
 
-/**Function********************************************************************
+/**
+  @brief Reads the maxGrowthAlt parameter of the manager.
 
-  Synopsis    [Reads the maxGrowthAlt parameter of the manager.]
+  @details This parameter is analogous to the maxGrowth paramter, and
+  is used every given number of reorderings instead of maxGrowth.  The
+  number of reorderings is set with Cudd_SetReorderingCycle.  If the
+  number of reorderings is 0 (default) maxGrowthAlt is never used.
 
-  Description [Reads the maxGrowthAlt parameter of the manager.  This
-  parameter is analogous to the maxGrowth paramter, and is used every
-  given number of reorderings instead of maxGrowth.  The number of
-  reorderings is set with Cudd_SetReorderingCycle.  If the number of
-  reorderings is 0 (default) maxGrowthAlt is never used.]
+  @sideeffect None
 
-  SideEffects [None]
+  @see Cudd_ReadMaxGrowth Cudd_SetMaxGrowthAlternate
+  Cudd_SetReorderingCycle Cudd_ReadReorderingCycle
 
-  SeeAlso     [Cudd_ReadMaxGrowth Cudd_SetMaxGrowthAlternate
-  Cudd_SetReorderingCycle Cudd_ReadReorderingCycle]
-
-******************************************************************************/
+*/
 double
 Cudd_ReadMaxGrowthAlternate(
   DdManager * dd)
@@ -2326,22 +2299,20 @@ Cudd_ReadMaxGrowthAlternate(
 } /* end of Cudd_ReadMaxGrowthAlternate */
 
 
-/**Function********************************************************************
+/**
+  @brief Sets the maxGrowthAlt parameter of the manager.
 
-  Synopsis    [Sets the maxGrowthAlt parameter of the manager.]
+  @details This parameter is analogous to the maxGrowth paramter, and
+  is used every given number of reorderings instead of maxGrowth.  The
+  number of reorderings is set with Cudd_SetReorderingCycle.  If the
+  number of reorderings is 0 (default) maxGrowthAlt is never used.
 
-  Description [Sets the maxGrowthAlt parameter of the manager.  This
-  parameter is analogous to the maxGrowth paramter, and is used every
-  given number of reorderings instead of maxGrowth.  The number of
-  reorderings is set with Cudd_SetReorderingCycle.  If the number of
-  reorderings is 0 (default) maxGrowthAlt is never used.]
+  @sideeffect None
 
-  SideEffects [None]
+  @see Cudd_ReadMaxGrowthAlternate Cudd_SetMaxGrowth
+  Cudd_SetReorderingCycle Cudd_ReadReorderingCycle
 
-  SeeAlso     [Cudd_ReadMaxGrowthAlternate Cudd_SetMaxGrowth
-  Cudd_SetReorderingCycle Cudd_ReadReorderingCycle]
-
-******************************************************************************/
+*/
 void
 Cudd_SetMaxGrowthAlternate(
   DdManager * dd,
@@ -2352,20 +2323,18 @@ Cudd_SetMaxGrowthAlternate(
 } /* end of Cudd_SetMaxGrowthAlternate */
 
 
-/**Function********************************************************************
+/**
+  @brief Reads the reordCycle parameter of the manager.
 
-  Synopsis    [Reads the reordCycle parameter of the manager.]
+  @details This parameter determines how often the alternate threshold
+  on maximum growth is used in reordering.
 
-  Description [Reads the reordCycle parameter of the manager.  This
-  parameter determines how often the alternate threshold on maximum
-  growth is used in reordering.]
+  @sideeffect None
 
-  SideEffects [None]
+  @see Cudd_ReadMaxGrowthAlternate Cudd_SetMaxGrowthAlternate
+  Cudd_SetReorderingCycle
 
-  SeeAlso     [Cudd_ReadMaxGrowthAlternate Cudd_SetMaxGrowthAlternate
-  Cudd_SetReorderingCycle]
-
-******************************************************************************/
+*/
 int
 Cudd_ReadReorderingCycle(
   DdManager * dd)
@@ -2375,20 +2344,18 @@ Cudd_ReadReorderingCycle(
 } /* end of Cudd_ReadReorderingCycle */
 
 
-/**Function********************************************************************
+/**
+  @brief Sets the reordCycle parameter of the manager.
 
-  Synopsis    [Sets the reordCycle parameter of the manager.]
+  @details This parameter determines how often the alternate threshold
+  on maximum growth is used in reordering.
 
-  Description [Sets the reordCycle parameter of the manager.  This
-  parameter determines how often the alternate threshold on maximum
-  growth is used in reordering.]
+  @sideeffect None
 
-  SideEffects [None]
+  @see Cudd_ReadMaxGrowthAlternate Cudd_SetMaxGrowthAlternate
+  Cudd_ReadReorderingCycle
 
-  SeeAlso     [Cudd_ReadMaxGrowthAlternate Cudd_SetMaxGrowthAlternate
-  Cudd_ReadReorderingCycle]
-
-******************************************************************************/
+*/
 void
 Cudd_SetReorderingCycle(
   DdManager * dd,
@@ -2399,17 +2366,14 @@ Cudd_SetReorderingCycle(
 } /* end of Cudd_SetReorderingCycle */
 
 
-/**Function********************************************************************
+/**
+  @brief Returns the variable group tree of the manager.
 
-  Synopsis    [Returns the variable group tree of the manager.]
+  @sideeffect None
 
-  Description []
+  @see Cudd_SetTree Cudd_FreeTree Cudd_ReadZddTree
 
-  SideEffects [None]
-
-  SeeAlso     [Cudd_SetTree Cudd_FreeTree Cudd_ReadZddTree]
-
-******************************************************************************/
+*/
 MtrNode *
 Cudd_ReadTree(
   DdManager * dd)
@@ -2419,17 +2383,14 @@ Cudd_ReadTree(
 } /* end of Cudd_ReadTree */
 
 
-/**Function********************************************************************
+/**
+  @brief Sets the variable group tree of the manager.
 
-  Synopsis    [Sets the variable group tree of the manager.]
+  @sideeffect None
 
-  Description []
+  @see Cudd_FreeTree Cudd_ReadTree Cudd_SetZddTree
 
-  SideEffects [None]
-
-  SeeAlso     [Cudd_FreeTree Cudd_ReadTree Cudd_SetZddTree]
-
-******************************************************************************/
+*/
 void
 Cudd_SetTree(
   DdManager * dd,
@@ -2447,17 +2408,14 @@ Cudd_SetTree(
 } /* end of Cudd_SetTree */
 
 
-/**Function********************************************************************
+/**
+  @brief Frees the variable group tree of the manager.
 
-  Synopsis    [Frees the variable group tree of the manager.]
+  @sideeffect None
 
-  Description []
+  @see Cudd_SetTree Cudd_ReadTree Cudd_FreeZddTree
 
-  SideEffects [None]
-
-  SeeAlso     [Cudd_SetTree Cudd_ReadTree Cudd_FreeZddTree]
-
-******************************************************************************/
+*/
 void
 Cudd_FreeTree(
   DdManager * dd)
@@ -2471,17 +2429,14 @@ Cudd_FreeTree(
 } /* end of Cudd_FreeTree */
 
 
-/**Function********************************************************************
+/**
+  @brief Returns the variable group tree of the manager.
 
-  Synopsis    [Returns the variable group tree of the manager.]
+  @sideeffect None
 
-  Description []
+  @see Cudd_SetZddTree Cudd_FreeZddTree Cudd_ReadTree
 
-  SideEffects [None]
-
-  SeeAlso     [Cudd_SetZddTree Cudd_FreeZddTree Cudd_ReadTree]
-
-******************************************************************************/
+*/
 MtrNode *
 Cudd_ReadZddTree(
   DdManager * dd)
@@ -2491,17 +2446,14 @@ Cudd_ReadZddTree(
 } /* end of Cudd_ReadZddTree */
 
 
-/**Function********************************************************************
+/**
+  @brief Sets the %ZDD variable group tree of the manager.
 
-  Synopsis    [Sets the ZDD variable group tree of the manager.]
+  @sideeffect None
 
-  Description []
+  @see Cudd_FreeZddTree Cudd_ReadZddTree Cudd_SetTree
 
-  SideEffects [None]
-
-  SeeAlso     [Cudd_FreeZddTree Cudd_ReadZddTree Cudd_SetTree]
-
-******************************************************************************/
+*/
 void
 Cudd_SetZddTree(
   DdManager * dd,
@@ -2519,17 +2471,14 @@ Cudd_SetZddTree(
 } /* end of Cudd_SetZddTree */
 
 
-/**Function********************************************************************
+/**
+  @brief Frees the variable group tree of the manager.
 
-  Synopsis    [Frees the variable group tree of the manager.]
+  @sideeffect None
 
-  Description []
+  @see Cudd_SetZddTree Cudd_ReadZddTree Cudd_FreeTree
 
-  SideEffects [None]
-
-  SeeAlso     [Cudd_SetZddTree Cudd_ReadZddTree Cudd_FreeTree]
-
-******************************************************************************/
+*/
 void
 Cudd_FreeZddTree(
   DdManager * dd)
@@ -2543,18 +2492,16 @@ Cudd_FreeZddTree(
 } /* end of Cudd_FreeZddTree */
 
 
-/**Function********************************************************************
+/**
+  @brief Returns the index of the node.
 
-  Synopsis    [Returns the index of the node.]
+  @details The node pointer can be either regular or complemented.
 
-  Description [Returns the index of the node. The node pointer can be
-  either regular or complemented.]
+  @sideeffect None
 
-  SideEffects [None]
+  @see Cudd_ReadIndex
 
-  SeeAlso [Cudd_ReadIndex]
-
-******************************************************************************/
+*/
 unsigned int
 Cudd_NodeReadIndex(
   DdNode * node)
@@ -2564,21 +2511,18 @@ Cudd_NodeReadIndex(
 } /* end of Cudd_NodeReadIndex */
 
 
-/**Function********************************************************************
+/**
+  @brief Returns the current position of the i-th variable in the
+  order.
 
-  Synopsis    [Returns the current position of the i-th variable in the
-  order.]
+  @details If the index is CUDD_CONST_INDEX, returns CUDD_CONST_INDEX;
+  otherwise, if the index is out of bounds returns -1.
 
-  Description [Returns the current position of the i-th variable in
-  the order. If the index is CUDD_CONST_INDEX, returns
-  CUDD_CONST_INDEX; otherwise, if the index is out of bounds returns
-  -1.]
+  @sideeffect None
 
-  SideEffects [None]
+  @see Cudd_ReadInvPerm Cudd_ReadPermZdd
 
-  SeeAlso     [Cudd_ReadInvPerm Cudd_ReadPermZdd]
-
-******************************************************************************/
+*/
 int
 Cudd_ReadPerm(
   DdManager * dd,
@@ -2591,21 +2535,18 @@ Cudd_ReadPerm(
 } /* end of Cudd_ReadPerm */
 
 
-/**Function********************************************************************
+/**
+  @brief Returns the current position of the i-th %ZDD variable in the
+  order.
 
-  Synopsis    [Returns the current position of the i-th ZDD variable in the
-  order.]
+  @details If the index is CUDD_CONST_INDEX, returns CUDD_CONST_INDEX;
+  otherwise, if the index is out of bounds returns -1.
 
-  Description [Returns the current position of the i-th ZDD variable
-  in the order. If the index is CUDD_CONST_INDEX, returns
-  CUDD_CONST_INDEX; otherwise, if the index is out of bounds returns
-  -1.]
+  @sideeffect None
 
-  SideEffects [None]
+  @see Cudd_ReadInvPermZdd Cudd_ReadPerm
 
-  SeeAlso     [Cudd_ReadInvPermZdd Cudd_ReadPerm]
-
-******************************************************************************/
+*/
 int
 Cudd_ReadPermZdd(
   DdManager * dd,
@@ -2618,20 +2559,18 @@ Cudd_ReadPermZdd(
 } /* end of Cudd_ReadPermZdd */
 
 
-/**Function********************************************************************
+/**
+  @brief Returns the index of the variable currently in the i-th
+  position of the order.
 
-  Synopsis    [Returns the index of the variable currently in the i-th
-  position of the order.]
+  @details If the index is CUDD_CONST_INDEX, returns CUDD_CONST_INDEX;
+  otherwise, if the index is out of bounds returns -1.
 
-  Description [Returns the index of the variable currently in the i-th
-  position of the order. If the index is CUDD_CONST_INDEX, returns
-  CUDD_CONST_INDEX; otherwise, if the index is out of bounds returns -1.]
+  @sideeffect None
 
-  SideEffects [None]
+  @see Cudd_ReadPerm Cudd_ReadInvPermZdd
 
-  SeeAlso     [Cudd_ReadPerm Cudd_ReadInvPermZdd]
-
-******************************************************************************/
+*/
 int
 Cudd_ReadInvPerm(
   DdManager * dd,
@@ -2644,20 +2583,18 @@ Cudd_ReadInvPerm(
 } /* end of Cudd_ReadInvPerm */
 
 
-/**Function********************************************************************
+/**
+  @brief Returns the index of the %ZDD variable currently in the i-th
+  position of the order.
 
-  Synopsis    [Returns the index of the ZDD variable currently in the i-th
-  position of the order.]
+  @details If the index is CUDD_CONST_INDEX, returns CUDD_CONST_INDEX;
+  otherwise, if the index is out of bounds returns -1.
 
-  Description [Returns the index of the ZDD variable currently in the
-  i-th position of the order. If the index is CUDD_CONST_INDEX, returns
-  CUDD_CONST_INDEX; otherwise, if the index is out of bounds returns -1.]
+  @sideeffect None
 
-  SideEffects [None]
+  @see Cudd_ReadPerm Cudd_ReadInvPermZdd
 
-  SeeAlso     [Cudd_ReadPerm Cudd_ReadInvPermZdd]
-
-******************************************************************************/
+*/
 int
 Cudd_ReadInvPermZdd(
   DdManager * dd,
@@ -2670,21 +2607,20 @@ Cudd_ReadInvPermZdd(
 } /* end of Cudd_ReadInvPermZdd */
 
 
-/**Function********************************************************************
+/**
+  @brief Returns the i-th element of the vars array.
 
-  Synopsis    [Returns the i-th element of the vars array.]
-
-  Description [Returns the i-th element of the vars array if it falls
+  @details Returns the i-th element of the vars array if it falls
   within the array bounds; NULL otherwise. If i is the index of an
   existing variable, this function produces the same result as
   Cudd_bddIthVar. However, if the i-th var does not exist yet,
-  Cudd_bddIthVar will create it, whereas Cudd_ReadVars will not.]
+  Cudd_bddIthVar will create it, whereas Cudd_ReadVars will not.
 
-  SideEffects [None]
+  @sideeffect None
 
-  SeeAlso     [Cudd_bddIthVar]
+  @see Cudd_bddIthVar
 
-******************************************************************************/
+*/
 DdNode *
 Cudd_ReadVars(
   DdManager * dd,
@@ -2696,18 +2632,17 @@ Cudd_ReadVars(
 } /* end of Cudd_ReadVars */
 
 
-/**Function********************************************************************
+/**
+  @brief Reads the epsilon parameter of the manager.
 
-  Synopsis    [Reads the epsilon parameter of the manager.]
+  @details The epsilon parameter control the comparison between
+  floating point numbers.
 
-  Description [Reads the epsilon parameter of the manager. The epsilon
-  parameter control the comparison between floating point numbers.]
+  @sideeffect None
 
-  SideEffects [None]
+  @see Cudd_SetEpsilon
 
-  SeeAlso     [Cudd_SetEpsilon]
-
-******************************************************************************/
+*/
 CUDD_VALUE_TYPE
 Cudd_ReadEpsilon(
   DdManager * dd)
@@ -2717,18 +2652,17 @@ Cudd_ReadEpsilon(
 } /* end of Cudd_ReadEpsilon */
 
 
-/**Function********************************************************************
+/**
+  @brief Sets the epsilon parameter of the manager to ep.
 
-  Synopsis    [Sets the epsilon parameter of the manager to ep.]
+  @details The epsilon parameter control the comparison between
+  floating point numbers.
 
-  Description [Sets the epsilon parameter of the manager to ep. The epsilon
-  parameter control the comparison between floating point numbers.]
+  @sideeffect None
 
-  SideEffects [None]
+  @see Cudd_ReadEpsilon
 
-  SeeAlso     [Cudd_ReadEpsilon]
-
-******************************************************************************/
+*/
 void
 Cudd_SetEpsilon(
   DdManager * dd,
@@ -2739,19 +2673,17 @@ Cudd_SetEpsilon(
 } /* end of Cudd_SetEpsilon */
 
 
-/**Function********************************************************************
+/**
+  @brief Reads the groupcheck parameter of the manager.
 
-  Synopsis    [Reads the groupcheck parameter of the manager.]
+  @details The groupcheck parameter determines the aggregation
+  criterion in group sifting.
 
-  Description [Reads the groupcheck parameter of the manager. The
-  groupcheck parameter determines the aggregation criterion in group
-  sifting.]
+  @sideeffect None
 
-  SideEffects [None]
+  @see Cudd_SetGroupcheck
 
-  SeeAlso     [Cudd_SetGroupcheck]
-
-******************************************************************************/
+*/
 Cudd_AggregationType
 Cudd_ReadGroupcheck(
   DdManager * dd)
@@ -2761,19 +2693,17 @@ Cudd_ReadGroupcheck(
 } /* end of Cudd_ReadGroupCheck */
 
 
-/**Function********************************************************************
+/**
+  @brief Sets the parameter groupcheck of the manager to gc.
 
-  Synopsis    [Sets the parameter groupcheck of the manager to gc.]
+  @details The groupcheck parameter determines the aggregation
+  criterion in group sifting.
 
-  Description [Sets the parameter groupcheck of the manager to gc. The
-  groupcheck parameter determines the aggregation criterion in group
-  sifting.]
+  @sideeffect None
 
-  SideEffects [None]
+  @see Cudd_ReadGroupCheck
 
-  SeeAlso     [Cudd_ReadGroupCheck]
-
-******************************************************************************/
+*/
 void
 Cudd_SetGroupcheck(
   DdManager * dd,
@@ -2784,17 +2714,16 @@ Cudd_SetGroupcheck(
 } /* end of Cudd_SetGroupcheck */
 
 
-/**Function********************************************************************
+/**
+  @brief Tells whether garbage collection is enabled.
 
-  Synopsis    [Tells whether garbage collection is enabled.]
+  @return 1 if garbage collection is enabled; 0 otherwise.
 
-  Description [Returns 1 if garbage collection is enabled; 0 otherwise.]
+  @sideeffect None
 
-  SideEffects [None]
+  @see Cudd_EnableGarbageCollection Cudd_DisableGarbageCollection
 
-  SeeAlso     [Cudd_EnableGarbageCollection Cudd_DisableGarbageCollection]
-
-******************************************************************************/
+*/
 int
 Cudd_GarbageCollectionEnabled(
   DdManager * dd)
@@ -2804,19 +2733,18 @@ Cudd_GarbageCollectionEnabled(
 } /* end of Cudd_GarbageCollectionEnabled */
 
 
-/**Function********************************************************************
+/**
+  @brief Enables garbage collection.
 
-  Synopsis    [Enables garbage collection.]
+  @details Garbage collection is initially enabled. Therefore it is
+  necessary to call this function only if garbage collection has been
+  explicitly disabled.
 
-  Description [Enables garbage collection. Garbage collection is
-  initially enabled. Therefore it is necessary to call this function
-  only if garbage collection has been explicitly disabled.]
+  @sideeffect None
 
-  SideEffects [None]
+  @see Cudd_DisableGarbageCollection Cudd_GarbageCollectionEnabled
 
-  SeeAlso     [Cudd_DisableGarbageCollection Cudd_GarbageCollectionEnabled]
-
-******************************************************************************/
+*/
 void
 Cudd_EnableGarbageCollection(
   DdManager * dd)
@@ -2826,21 +2754,20 @@ Cudd_EnableGarbageCollection(
 } /* end of Cudd_EnableGarbageCollection */
 
 
-/**Function********************************************************************
+/**
+  @brief Disables garbage collection.
 
-  Synopsis    [Disables garbage collection.]
+  @details Garbage collection is initially enabled. This function may
+  be called to disable it.  However, garbage collection will still
+  occur when a new node must be created and no memory is left, or when
+  garbage collection is required for correctness. (E.g., before
+  reordering.)
 
-  Description [Disables garbage collection. Garbage collection is
-  initially enabled. This function may be called to disable it.
-  However, garbage collection will still occur when a new node must be
-  created and no memory is left, or when garbage collection is required
-  for correctness. (E.g., before reordering.)]
+  @sideeffect None
 
-  SideEffects [None]
+  @see Cudd_EnableGarbageCollection Cudd_GarbageCollectionEnabled
 
-  SeeAlso     [Cudd_EnableGarbageCollection Cudd_GarbageCollectionEnabled]
-
-******************************************************************************/
+*/
 void
 Cudd_DisableGarbageCollection(
   DdManager * dd)
@@ -2850,19 +2777,17 @@ Cudd_DisableGarbageCollection(
 } /* end of Cudd_DisableGarbageCollection */
 
 
-/**Function********************************************************************
+/**
+  @brief Tells whether dead nodes are counted towards triggering
+  reordering.
 
-  Synopsis    [Tells whether dead nodes are counted towards triggering
-  reordering.]
+  @return 1 if dead nodes are counted; 0 otherwise.
 
-  Description [Tells whether dead nodes are counted towards triggering
-  reordering. Returns 1 if dead nodes are counted; 0 otherwise.]
+  @sideeffect None
 
-  SideEffects [None]
+  @see Cudd_TurnOnCountDead Cudd_TurnOffCountDead
 
-  SeeAlso     [Cudd_TurnOnCountDead Cudd_TurnOffCountDead]
-
-******************************************************************************/
+*/
 int
 Cudd_DeadAreCounted(
   DdManager * dd)
@@ -2872,20 +2797,18 @@ Cudd_DeadAreCounted(
 } /* end of Cudd_DeadAreCounted */
 
 
-/**Function********************************************************************
+/**
+  @brief Causes the dead nodes to be counted towards triggering
+  reordering.
 
-  Synopsis    [Causes the dead nodes to be counted towards triggering
-  reordering.]
+  @details This causes more frequent reorderings. By default dead
+  nodes are not counted.
 
-  Description [Causes the dead nodes to be counted towards triggering
-  reordering. This causes more frequent reorderings. By default dead
-  nodes are not counted.]
+  @sideeffect Changes the manager.
 
-  SideEffects [Changes the manager.]
+  @see Cudd_TurnOffCountDead Cudd_DeadAreCounted
 
-  SeeAlso     [Cudd_TurnOffCountDead Cudd_DeadAreCounted]
-
-******************************************************************************/
+*/
 void
 Cudd_TurnOnCountDead(
   DdManager * dd)
@@ -2895,22 +2818,19 @@ Cudd_TurnOnCountDead(
 } /* end of Cudd_TurnOnCountDead */
 
 
-/**Function********************************************************************
+/**
+  @brief Causes the dead nodes not to be counted towards triggering
+  reordering.
 
-  Synopsis    [Causes the dead nodes not to be counted towards triggering
-  reordering.]
+  @details This causes less frequent reorderings. By default dead
+  nodes are not counted. Therefore there is no need to call this
+  function unless Cudd_TurnOnCountDead has been previously called.
 
-  Description [Causes the dead nodes not to be counted towards
-  triggering reordering. This causes less frequent reorderings. By
-  default dead nodes are not counted. Therefore there is no need to
-  call this function unless Cudd_TurnOnCountDead has been previously
-  called.]
+  @sideeffect Changes the manager.
 
-  SideEffects [Changes the manager.]
+  @see Cudd_TurnOnCountDead Cudd_DeadAreCounted
 
-  SeeAlso     [Cudd_TurnOnCountDead Cudd_DeadAreCounted]
-
-******************************************************************************/
+*/
 void
 Cudd_TurnOffCountDead(
   DdManager * dd)
@@ -2920,21 +2840,19 @@ Cudd_TurnOffCountDead(
 } /* end of Cudd_TurnOffCountDead */
 
 
-/**Function********************************************************************
+/**
+  @brief Returns the current value of the recombination parameter used
+  in group sifting.
 
-  Synopsis    [Returns the current value of the recombination parameter used
-  in group sifting.]
+  @details A larger (positive) value makes the aggregation of
+  variables due to the second difference criterion more likely. A
+  smaller (negative) value makes aggregation less likely.
 
-  Description [Returns the current value of the recombination
-  parameter used in group sifting. A larger (positive) value makes the
-  aggregation of variables due to the second difference criterion more
-  likely. A smaller (negative) value makes aggregation less likely.]
+  @sideeffect None
 
-  SideEffects [None]
+  @see Cudd_SetRecomb
 
-  SeeAlso     [Cudd_SetRecomb]
-
-******************************************************************************/
+*/
 int
 Cudd_ReadRecomb(
   DdManager * dd)
@@ -2944,22 +2862,20 @@ Cudd_ReadRecomb(
 } /* end of Cudd_ReadRecomb */
 
 
-/**Function********************************************************************
+/**
+  @brief Sets the value of the recombination parameter used in group
+  sifting.
 
-  Synopsis    [Sets the value of the recombination parameter used in group
-  sifting.]
-
-  Description [Sets the value of the recombination parameter used in
-  group sifting. A larger (positive) value makes the aggregation of
+  @details A larger (positive) value makes the aggregation of
   variables due to the second difference criterion more likely. A
   smaller (negative) value makes aggregation less likely. The default
-  value is 0.]
+  value is 0.
 
-  SideEffects [Changes the manager.]
+  @sideeffect Changes the manager.
 
-  SeeAlso     [Cudd_ReadRecomb]
+  @see Cudd_ReadRecomb
 
-******************************************************************************/
+*/
 void
 Cudd_SetRecomb(
   DdManager * dd,
@@ -2970,24 +2886,22 @@ Cudd_SetRecomb(
 } /* end of Cudd_SetRecomb */
 
 
-/**Function********************************************************************
+/**
+  @brief Returns the current value of the symmviolation parameter used
+  in group sifting.
 
-  Synopsis    [Returns the current value of the symmviolation parameter used
-  in group sifting.]
-
-  Description [Returns the current value of the symmviolation
-  parameter. This parameter is used in group sifting to decide how
-  many violations to the symmetry conditions <code>f10 = f01</code> or
+  @details This parameter is used in group sifting to decide how many
+  violations to the symmetry conditions <code>f10 = f01</code> or
   <code>f11 = f00</code> are tolerable when checking for aggregation
   due to extended symmetry. The value should be between 0 and 100. A
   small value causes fewer variables to be aggregated. The default
-  value is 0.]
+  value is 0.
 
-  SideEffects [None]
+  @sideeffect None
 
-  SeeAlso     [Cudd_SetSymmviolation]
+  @see Cudd_SetSymmviolation
 
-******************************************************************************/
+*/
 int
 Cudd_ReadSymmviolation(
   DdManager * dd)
@@ -2997,24 +2911,22 @@ Cudd_ReadSymmviolation(
 } /* end of Cudd_ReadSymmviolation */
 
 
-/**Function********************************************************************
+/**
+  @brief Sets the value of the symmviolation parameter used
+  in group sifting.
 
-  Synopsis    [Sets the value of the symmviolation parameter used
-  in group sifting.]
-
-  Description [Sets the value of the symmviolation
-  parameter. This parameter is used in group sifting to decide how
-  many violations to the symmetry conditions <code>f10 = f01</code> or
+  @details This parameter is used in group sifting to decide how many
+  violations to the symmetry conditions <code>f10 = f01</code> or
   <code>f11 = f00</code> are tolerable when checking for aggregation
   due to extended symmetry. The value should be between 0 and 100. A
   small value causes fewer variables to be aggregated. The default
-  value is 0.]
+  value is 0.
 
-  SideEffects [Changes the manager.]
+  @sideeffect Changes the manager.
 
-  SeeAlso     [Cudd_ReadSymmviolation]
+  @see Cudd_ReadSymmviolation
 
-******************************************************************************/
+*/
 void
 Cudd_SetSymmviolation(
   DdManager * dd,
@@ -3025,23 +2937,21 @@ Cudd_SetSymmviolation(
 } /* end of Cudd_SetSymmviolation */
 
 
-/**Function********************************************************************
+/**
+  @brief Returns the current value of the arcviolation parameter used
+  in group sifting.
 
-  Synopsis    [Returns the current value of the arcviolation parameter used
-  in group sifting.]
+  @details This parameter is used to decide how many arcs into
+  <code>y</code> not coming from <code>x</code> are tolerable when
+  checking for aggregation due to extended symmetry. The value should
+  be between 0 and 100. A small value causes fewer variables to be
+  aggregated. The default value is 0.
 
-  Description [Returns the current value of the arcviolation
-  parameter. This parameter is used in group sifting to decide how
-  many arcs into <code>y</code> not coming from <code>x</code> are
-  tolerable when checking for aggregation due to extended
-  symmetry. The value should be between 0 and 100. A small value
-  causes fewer variables to be aggregated. The default value is 0.]
+  @sideeffect None
 
-  SideEffects [None]
+  @see Cudd_SetArcviolation
 
-  SeeAlso     [Cudd_SetArcviolation]
-
-******************************************************************************/
+*/
 int
 Cudd_ReadArcviolation(
   DdManager * dd)
@@ -3051,23 +2961,21 @@ Cudd_ReadArcviolation(
 } /* end of Cudd_ReadArcviolation */
 
 
-/**Function********************************************************************
+/**
+  @brief Sets the value of the arcviolation parameter used
+  in group sifting.
 
-  Synopsis    [Sets the value of the arcviolation parameter used
-  in group sifting.]
+  @details This parameter is used to decide how many arcs into
+  <code>y</code> not coming from <code>x</code> are tolerable when
+  checking for aggregation due to extended symmetry. The value should
+  be between 0 and 100. A small value causes fewer variables to be
+  aggregated. The default value is 0.
 
-  Description [Sets the value of the arcviolation
-  parameter. This parameter is used in group sifting to decide how
-  many arcs into <code>y</code> not coming from <code>x</code> are
-  tolerable when checking for aggregation due to extended
-  symmetry. The value should be between 0 and 100. A small value
-  causes fewer variables to be aggregated. The default value is 0.]
+  @sideeffect None
 
-  SideEffects [None]
+  @see Cudd_ReadArcviolation
 
-  SeeAlso     [Cudd_ReadArcviolation]
-
-******************************************************************************/
+*/
 void
 Cudd_SetArcviolation(
   DdManager * dd,
@@ -3078,23 +2986,20 @@ Cudd_SetArcviolation(
 } /* end of Cudd_SetArcviolation */
 
 
-/**Function********************************************************************
+/**
+  @brief Reads the current size of the population used by the
+  genetic algorithm for variable reordering.
 
-  Synopsis    [Reads the current size of the population used by the
-  genetic algorithm for reordering.]
+  @details A larger population size will cause the genetic algorithm
+  to take more time, but will generally produce better results. The
+  default value is 0, in which case the package uses three times the
+  number of variables as population size, with a maximum of 120.
 
-  Description [Reads the current size of the population used by the
-  genetic algorithm for variable reordering. A larger population size will
-  cause the genetic algorithm to take more time, but will generally
-  produce better results. The default value is 0, in which case the
-  package uses three times the number of variables as population size,
-  with a maximum of 120.]
+  @sideeffect None
 
-  SideEffects [None]
+  @see Cudd_SetPopulationSize
 
-  SeeAlso     [Cudd_SetPopulationSize]
-
-******************************************************************************/
+*/
 int
 Cudd_ReadPopulationSize(
   DdManager * dd)
@@ -3104,23 +3009,20 @@ Cudd_ReadPopulationSize(
 } /* end of Cudd_ReadPopulationSize */
 
 
-/**Function********************************************************************
+/**
+  @brief Sets the size of the population used by the
+  genetic algorithm for variable reordering.
 
-  Synopsis    [Sets the size of the population used by the
-  genetic algorithm for reordering.]
+  @details A larger population size will cause the genetic algorithm
+  to take more time, but will generally produce better results. The
+  default value is 0, in which case the package uses three times the
+  number of variables as population size, with a maximum of 120.
 
-  Description [Sets the size of the population used by the
-  genetic algorithm for variable reordering. A larger population size will
-  cause the genetic algorithm to take more time, but will generally
-  produce better results. The default value is 0, in which case the
-  package uses three times the number of variables as population size,
-  with a maximum of 120.]
+  @sideeffect Changes the manager.
 
-  SideEffects [Changes the manager.]
+  @see Cudd_ReadPopulationSize
 
-  SeeAlso     [Cudd_ReadPopulationSize]
-
-******************************************************************************/
+*/
 void
 Cudd_SetPopulationSize(
   DdManager * dd,
@@ -3131,23 +3033,21 @@ Cudd_SetPopulationSize(
 } /* end of Cudd_SetPopulationSize */
 
 
-/**Function********************************************************************
+/**
+  @brief Reads the current number of crossovers used by the
+  genetic algorithm for variable reordering.
 
-  Synopsis    [Reads the current number of crossovers used by the
-  genetic algorithm for reordering.]
+  @details A larger number of crossovers will cause the genetic
+  algorithm to take more time, but will generally produce better
+  results. The default value is 0, in which case the package uses
+  three times the number of variables as number of crossovers, with a
+  maximum of 60.
 
-  Description [Reads the current number of crossovers used by the
-  genetic algorithm for variable reordering. A larger number of crossovers will
-  cause the genetic algorithm to take more time, but will generally
-  produce better results. The default value is 0, in which case the
-  package uses three times the number of variables as number of crossovers,
-  with a maximum of 60.]
+  @sideeffect None
 
-  SideEffects [None]
+  @see Cudd_SetNumberXovers
 
-  SeeAlso     [Cudd_SetNumberXovers]
-
-******************************************************************************/
+*/
 int
 Cudd_ReadNumberXovers(
   DdManager * dd)
@@ -3157,23 +3057,21 @@ Cudd_ReadNumberXovers(
 } /* end of Cudd_ReadNumberXovers */
 
 
-/**Function********************************************************************
+/**
+  @brief Sets the number of crossovers used by the
+  genetic algorithm for variable reordering.
 
-  Synopsis    [Sets the number of crossovers used by the
-  genetic algorithm for reordering.]
+  @details A larger number of crossovers will cause the genetic
+  algorithm to take more time, but will generally produce better
+  results. The default value is 0, in which case the package uses
+  three times the number of variables as number of crossovers, with a
+  maximum of 60.
 
-  Description [Sets the number of crossovers used by the genetic
-  algorithm for variable reordering. A larger number of crossovers
-  will cause the genetic algorithm to take more time, but will
-  generally produce better results. The default value is 0, in which
-  case the package uses three times the number of variables as number
-  of crossovers, with a maximum of 60.]
+  @sideeffect None
 
-  SideEffects [None]
+  @see Cudd_ReadNumberXovers
 
-  SeeAlso     [Cudd_ReadNumberXovers]
-
-******************************************************************************/
+*/
 void
 Cudd_SetNumberXovers(
   DdManager * dd,
@@ -3184,19 +3082,18 @@ Cudd_SetNumberXovers(
 } /* end of Cudd_SetNumberXovers */
 
 
-/**Function********************************************************************
+/**
+  @brief Returns the order randomization factor.
 
-  Synopsis    [Returns the order randomization factor.]
+  @details If non-zero this factor is used to determine a perturbation
+  of the next reordering threshold.  Larger factors cause larger
+  perturbations.
 
-  Description [Returns the order randomization factor.  If non-zero this
-  factor is used to determine a perturbation of the next reordering threshold.
-  Larger factors cause larger perturbations.]
+  @sideeffect None
 
-  SideEffects [None]
+  @see Cudd_SetOrderRandomization
 
-  SeeAlso     [Cudd_SetOrderRandomization]
-
-******************************************************************************/
+*/
 unsigned int
 Cudd_ReadOrderRandomization(
   DdManager * dd)
@@ -3206,17 +3103,14 @@ Cudd_ReadOrderRandomization(
 } /* end of Cudd_ReadOrderRandomization */
 
 
-/**Function********************************************************************
+/**
+  @brief Sets the order randomization factor.
 
-  Synopsis    [Sets the order randomization factor.]
+  @sideeffect None
 
-  Description []
+  @see Cudd_ReadOrderRandomization
 
-  SideEffects [None]
-
-  SeeAlso     [Cudd_ReadOrderRandomization]
-
-******************************************************************************/
+*/
 void
 Cudd_SetOrderRandomization(
   DdManager * dd,
@@ -3227,17 +3121,12 @@ Cudd_SetOrderRandomization(
 } /* end of Cudd_SetOrderRandomization */
 
 
-/**Function********************************************************************
+/**
+  @brief Returns the memory in use by the manager measured in bytes.
 
-  Synopsis    [Returns the memory in use by the manager measured in bytes.]
+  @sideeffect None
 
-  Description []
-
-  SideEffects [None]
-
-  SeeAlso     []
-
-******************************************************************************/
+*/
 size_t
 Cudd_ReadMemoryInUse(
   DdManager * dd)
@@ -3247,18 +3136,14 @@ Cudd_ReadMemoryInUse(
 } /* end of Cudd_ReadMemoryInUse */
 
 
-/**Function********************************************************************
+/**
+  @brief Prints out statistics and settings for a CUDD manager.
 
-  Synopsis    [Prints out statistics and settings for a CUDD manager.]
+  @return 1 if successful; 0 otherwise.
 
-  Description [Prints out statistics and settings for a CUDD manager.
-  Returns 1 if successful; 0 otherwise.]
+  @sideeffect None
 
-  SideEffects [None]
-
-  SeeAlso     []
-
-******************************************************************************/
+*/
 int
 Cudd_PrintInfo(
   DdManager * dd,
@@ -3314,8 +3199,8 @@ Cudd_PrintInfo(
     retval = fprintf(fp,"Dead nodes counted in triggering reordering: %s\n",
 		     Cudd_DeadAreCounted(dd) ? "yes" : "no");
     if (retval == EOF) return(0);
-    retval = fprintf(fp,"Group checking criterion: %d\n",
-		     (int) Cudd_ReadGroupcheck(dd));
+    retval = fprintf(fp,"Group checking criterion: %u\n",
+		     (unsigned int) Cudd_ReadGroupcheck(dd));
     if (retval == EOF) return(0);
     retval = fprintf(fp,"Recombination threshold: %d\n", Cudd_ReadRecomb(dd));
     if (retval == EOF) return(0);
@@ -3433,19 +3318,18 @@ Cudd_PrintInfo(
 } /* end of Cudd_PrintInfo */
 
 
-/**Function********************************************************************
+/**
+  @brief Reports the peak number of nodes.
 
-  Synopsis    [Reports the peak number of nodes.]
+  @details This number includes node on the free list. At the peak,
+  the number of nodes on the free list is guaranteed to be less than
+  DD_MEM_CHUNK.
 
-  Description [Reports the peak number of nodes. This number includes
-  node on the free list. At the peak, the number of nodes on the free
-  list is guaranteed to be less than DD_MEM_CHUNK.]
+  @sideeffect None
 
-  SideEffects [None]
+  @see Cudd_ReadNodeCount Cudd_PrintInfo
 
-  SeeAlso     [Cudd_ReadNodeCount Cudd_PrintInfo]
-
-******************************************************************************/
+*/
 long
 Cudd_ReadPeakNodeCount(
   DdManager * dd)
@@ -3462,17 +3346,14 @@ Cudd_ReadPeakNodeCount(
 } /* end of Cudd_ReadPeakNodeCount */
 
 
-/**Function********************************************************************
+/**
+  @brief Reports the peak number of live nodes.
 
-  Synopsis    [Reports the peak number of live nodes.]
+  @sideeffect None
 
-  Description [Reports the peak number of live nodes.]
+  @see Cudd_ReadNodeCount Cudd_PrintInfo Cudd_ReadPeakNodeCount
 
-  SideEffects [None]
-
-  SeeAlso     [Cudd_ReadNodeCount Cudd_PrintInfo Cudd_ReadPeakNodeCount]
-
-******************************************************************************/
+*/
 int
 Cudd_ReadPeakLiveNodeCount(
   DdManager * dd)
@@ -3487,20 +3368,18 @@ Cudd_ReadPeakLiveNodeCount(
 } /* end of Cudd_ReadPeakLiveNodeCount */
 
 
-/**Function********************************************************************
+/**
+  @brief Reports the number of nodes in BDDs and ADDs.
 
-  Synopsis    [Reports the number of nodes in BDDs and ADDs.]
+  @details This number does not include the isolated projection
+  functions and the unused constants. These nodes that are not counted
+  are not part of the DDs manipulated by the application.
 
-  Description [Reports the number of live nodes in BDDs and ADDs. This
-  number does not include the isolated projection functions and the
-  unused constants. These nodes that are not counted are not part of
-  the DDs manipulated by the application.]
+  @sideeffect None
 
-  SideEffects [None]
+  @see Cudd_ReadPeakNodeCount Cudd_zddReadNodeCount
 
-  SeeAlso     [Cudd_ReadPeakNodeCount Cudd_zddReadNodeCount]
-
-******************************************************************************/
+*/
 long
 Cudd_ReadNodeCount(
   DdManager * dd)
@@ -3531,18 +3410,16 @@ Cudd_ReadNodeCount(
 
 
 
-/**Function********************************************************************
+/**
+  @brief Reports the number of nodes in ZDDs.
 
-  Synopsis    [Reports the number of nodes in ZDDs.]
+  @details This number always includes the two constants 1 and 0.
 
-  Description [Reports the number of nodes in ZDDs. This
-  number always includes the two constants 1 and 0.]
+  @sideeffect None
 
-  SideEffects [None]
+  @see Cudd_ReadPeakNodeCount Cudd_ReadNodeCount
 
-  SeeAlso     [Cudd_ReadPeakNodeCount Cudd_ReadNodeCount]
-
-******************************************************************************/
+*/
 long
 Cudd_zddReadNodeCount(
   DdManager * dd)
@@ -3552,20 +3429,21 @@ Cudd_zddReadNodeCount(
 } /* end of Cudd_zddReadNodeCount */
 
 
-/**Function********************************************************************
+/**
+  @brief Adds a function to a hook.
 
-  Synopsis    [Adds a function to a hook.]
-
-  Description [Adds a function to a hook. A hook is a list of
+  @details A hook is a list of
   application-provided functions called on certain occasions by the
-  package. Returns 1 if the function is successfully added; 2 if the
-  function was already in the list; 0 otherwise.]
+  package.
 
-  SideEffects [None]
+  @return 1 if the function is successfully added; 2 if the function
+  was already in the list; 0 otherwise.
 
-  SeeAlso     [Cudd_RemoveHook]
+  @sideeffect None
 
-******************************************************************************/
+  @see Cudd_RemoveHook
+
+*/
 int
 Cudd_AddHook(
   DdManager * dd,
@@ -3588,7 +3466,7 @@ Cudd_AddHook(
 	hook = &(dd->postReorderingHook);
 	break;
     default:
-	return(0);
+        return(0);
     }
     /* Scan the list and find whether the function is already there.
     ** If so, just return. */
@@ -3615,19 +3493,19 @@ Cudd_AddHook(
 } /* end of Cudd_AddHook */
 
 
-/**Function********************************************************************
+/**
+  @brief Removes a function from a hook.
 
-  Synopsis    [Removes a function from a hook.]
+  @details A hook is a list of application-provided functions called
+  on certain occasions by the package.
 
-  Description [Removes a function from a hook. A hook is a list of
-  application-provided functions called on certain occasions by the
-  package. Returns 1 if successful; 0 the function was not in the list.]
+  @return 1 if successful; 0 the function was not in the list.
 
-  SideEffects [None]
+  @sideeffect None
 
-  SeeAlso     [Cudd_AddHook]
+  @see Cudd_AddHook
 
-******************************************************************************/
+*/
 int
 Cudd_RemoveHook(
   DdManager * dd,
@@ -3650,7 +3528,7 @@ Cudd_RemoveHook(
 	hook = &(dd->postReorderingHook);
 	break;
     default:
-	return(0);
+        return(0);
     }
     nextHook = *hook;
     while (nextHook != NULL) {
@@ -3668,19 +3546,19 @@ Cudd_RemoveHook(
 } /* end of Cudd_RemoveHook */
 
 
-/**Function********************************************************************
+/**
+  @brief Checks whether a function is in a hook.
 
-  Synopsis    [Checks whether a function is in a hook.]
+  @details A hook is a list of application-provided functions called
+  on certain occasions by the package.
 
-  Description [Checks whether a function is in a hook. A hook is a list of
-  application-provided functions called on certain occasions by the
-  package. Returns 1 if the function is found; 0 otherwise.]
+  @return 1 if the function is found; 0 otherwise.
 
-  SideEffects [None]
+  @sideeffect None
 
-  SeeAlso     [Cudd_AddHook Cudd_RemoveHook]
+  @see Cudd_AddHook Cudd_RemoveHook
 
-******************************************************************************/
+*/
 int
 Cudd_IsInHook(
   DdManager * dd,
@@ -3703,7 +3581,7 @@ Cudd_IsInHook(
 	hook = dd->postReorderingHook;
 	break;
     default:
-	return(0);
+        return(0);
     }
     /* Scan the list and find whether the function is already there. */
     while (hook != NULL) {
@@ -3717,19 +3595,18 @@ Cudd_IsInHook(
 } /* end of Cudd_IsInHook */
 
 
-/**Function********************************************************************
+/**
+  @brief Sample hook function to call before reordering.
 
-  Synopsis    [Sample hook function to call before reordering.]
+  @details Prints on the manager's stdout reordering method and initial size.
+  
+  @return 1 if successful; 0 otherwise.
 
-  Description [Sample hook function to call before reordering.
-  Prints on the manager's stdout reordering method and initial size.
-  Returns 1 if successful; 0 otherwise.]
+  @sideeffect None
 
-  SideEffects [None]
+  @see Cudd_StdPostReordHook
 
-  SeeAlso     [Cudd_StdPostReordHook]
-
-******************************************************************************/
+*/
 int
 Cudd_StdPreReordHook(
   DdManager *dd,
@@ -3810,19 +3687,18 @@ Cudd_StdPreReordHook(
 } /* end of Cudd_StdPreReordHook */
 
 
-/**Function********************************************************************
+/**
+  @brief Sample hook function to call after reordering.
 
-  Synopsis    [Sample hook function to call after reordering.]
+  @details Prints on the manager's stdout final size and reordering time.
+  
+  @return 1 if successful; 0 otherwise.
 
-  Description [Sample hook function to call after reordering.
-  Prints on the manager's stdout final size and reordering time.
-  Returns 1 if successful; 0 otherwise.]
+  @sideeffect None
 
-  SideEffects [None]
+  @see Cudd_StdPreReordHook
 
-  SeeAlso     [Cudd_StdPreReordHook]
-
-******************************************************************************/
+*/
 int
 Cudd_StdPostReordHook(
   DdManager *dd,
@@ -3845,19 +3721,17 @@ Cudd_StdPostReordHook(
 } /* end of Cudd_StdPostReordHook */
 
 
-/**Function********************************************************************
+/**
+  @brief Enables reporting of reordering stats.
 
-  Synopsis    [Enables reporting of reordering stats.]
+  @return 1 if successful; 0 otherwise.
 
-  Description [Enables reporting of reordering stats.
-  Returns 1 if successful; 0 otherwise.]
+  @sideeffect Installs functions in the pre-reordering and post-reordering
+  hooks.
 
-  SideEffects [Installs functions in the pre-reordering and post-reordering
-  hooks.]
+  @see Cudd_DisableReorderingReporting Cudd_ReorderingReporting
 
-  SeeAlso     [Cudd_DisableReorderingReporting Cudd_ReorderingReporting]
-
-******************************************************************************/
+*/
 int
 Cudd_EnableReorderingReporting(
   DdManager *dd)
@@ -3873,19 +3747,17 @@ Cudd_EnableReorderingReporting(
 } /* end of Cudd_EnableReorderingReporting */
 
 
-/**Function********************************************************************
+/**
+  @brief Disables reporting of reordering stats.
 
-  Synopsis    [Disables reporting of reordering stats.]
+  @return 1 if successful; 0 otherwise.
 
-  Description [Disables reporting of reordering stats.
-  Returns 1 if successful; 0 otherwise.]
+  @sideeffect Removes functions from the pre-reordering and post-reordering
+  hooks.
 
-  SideEffects [Removes functions from the pre-reordering and post-reordering
-  hooks.]
+  @see Cudd_EnableReorderingReporting Cudd_ReorderingReporting
 
-  SeeAlso     [Cudd_EnableReorderingReporting Cudd_ReorderingReporting]
-
-******************************************************************************/
+*/
 int
 Cudd_DisableReorderingReporting(
   DdManager *dd)
@@ -3901,18 +3773,15 @@ Cudd_DisableReorderingReporting(
 } /* end of Cudd_DisableReorderingReporting */
 
 
-/**Function********************************************************************
+/**
+  @brief Returns 1 if reporting of reordering stats is enabled; 0
+  otherwise.
 
-  Synopsis    [Returns 1 if reporting of reordering stats is enabled.]
+  @sideeffect none
 
-  Description [Returns 1 if reporting of reordering stats is enabled;
-  0 otherwise.]
+  @see Cudd_EnableReorderingReporting Cudd_DisableReorderingReporting
 
-  SideEffects [none]
-
-  SeeAlso     [Cudd_EnableReorderingReporting Cudd_DisableReorderingReporting]
-
-******************************************************************************/
+*/
 int
 Cudd_ReorderingReporting(
   DdManager *dd)
@@ -3922,26 +3791,27 @@ Cudd_ReorderingReporting(
 } /* end of Cudd_ReorderingReporting */
 
 
-/**Function********************************************************************
+/**
+  @brief Hook function to print the current variable order.
 
-  Synopsis    [Hook function to print the current variable order.]
+  @details It may be called before or after reordering. Prints on the
+  manager's stdout a parenthesized list that describes the variable
+  groups.
 
-  Description [Hook function to print the current variable order.  It may be
-  called before or after reordering. Prints on the manager's stdout a
-  parenthesized list that describes the variable groups.
-  Returns 1 if successful; 0 otherwise.]
+  @return 1 if successful; 0 otherwise.
 
-  SideEffects [None]
+  @sideeffect None
 
-  SeeAlso     [Cudd_StdPreReordHook]
+  @see Cudd_StdPreReordHook
 
-******************************************************************************/
+*/
 int
 Cudd_PrintGroupedOrder(
   DdManager * dd,
   const char *str,
   void *data)
 {
+    (void) data; /* avoid warning */
     int isBdd = strcmp(str, "ZDD");
     MtrNode *tree = isBdd ? dd->tree : dd->treeZ;
     int *invperm = isBdd ? dd->invperm : dd->invpermZ;
@@ -3961,19 +3831,17 @@ Cudd_PrintGroupedOrder(
 } /* end of Cudd_PrintGroupedOrder */
 
 
-/**Function********************************************************************
+/**
+  @brief Enables monitoring of ordering.
 
-  Synopsis    [Enables monitoring of ordering.]
+  @return 1 if successful; 0 otherwise.
 
-  Description [Enables monitoring of ordering.
-  Returns 1 if successful; 0 otherwise.]
+  @sideeffect Installs functions in the pre-reordering and post-reordering
+  hooks.
 
-  SideEffects [Installs functions in the pre-reordering and post-reordering
-  hooks.]
+  @see Cudd_EnableReorderingReporting
 
-  SeeAlso     [Cudd_EnableReorderingReporting]
-
-******************************************************************************/
+*/
 int
 Cudd_EnableOrderingMonitoring(
   DdManager *dd)
@@ -3995,19 +3863,17 @@ Cudd_EnableOrderingMonitoring(
 } /* end of Cudd_EnableOrderingMonitoring */
 
 
-/**Function********************************************************************
+/**
+  @brief Disables monitoring of ordering.
 
-  Synopsis    [Disables monitoring of ordering.]
+  @return 1 if successful; 0 otherwise.
 
-  Description [Disables monitoring of ordering.
-  Returns 1 if successful; 0 otherwise.]
+  @sideeffect Removes functions from the pre-reordering and post-reordering
+  hooks.
 
-  SideEffects [Removes functions from the pre-reordering and post-reordering
-  hooks.]
+  @see Cudd_EnableOrderingMonitoring
 
-  SeeAlso     [Cudd_EnableOrderingMonitoring]
-
-******************************************************************************/
+*/
 int
 Cudd_DisableOrderingMonitoring(
   DdManager *dd)
@@ -4029,18 +3895,14 @@ Cudd_DisableOrderingMonitoring(
 } /* end of Cudd_DisableOrderingMonitoring */
 
 
-/**Function********************************************************************
+/**
+  @brief Returns 1 if monitoring of ordering is enabled; 0 otherwise.
 
-  Synopsis    [Returns 1 if monitoring of ordering is enabled.]
+  @sideeffect none
 
-  Description [Returns 1 if monitoring of ordering is enabled;
-  0 otherwise.]
+  @see Cudd_EnableOrderingMonitoring Cudd_DisableOrderingMonitoring
 
-  SideEffects [none]
-
-  SeeAlso     [Cudd_EnableOrderingMonitoring Cudd_DisableOrderingMonitoring]
-
-******************************************************************************/
+*/
 int
 Cudd_OrderingMonitoring(
   DdManager *dd)
@@ -4050,18 +3912,51 @@ Cudd_OrderingMonitoring(
 } /* end of Cudd_OrderingMonitoring */
 
 
-/**Function********************************************************************
+/**
+  @brief Sets the application hook.
 
-  Synopsis    [Returns the code of the last error.]
+  @sideeffect None
 
-  Description [Returns the code of the last error. The error codes are
-  defined in cudd.h.]
+  @see Cudd_ReadApplicationHook
 
-  SideEffects [None]
+*/
+void
+Cudd_SetApplicationHook(
+  DdManager *dd,
+  void * value)
+{
+    dd->hooks = value;  
 
-  SeeAlso     [Cudd_ClearErrorCode]
+} /* end of Cudd_SetApplicationHook */
 
-******************************************************************************/
+
+/**
+  @brief Reads the application hook.
+
+  @sideeffect None
+
+  @see Cudd_SetApplicationHook
+
+*/
+void *
+Cudd_ReadApplicationHook(
+  DdManager *dd)
+{
+    return(dd->hooks);  
+
+} /* end of Cudd_ReadApplicationHook */
+
+
+/**
+  @brief Returns the code of the last error.
+
+  @details The error codes are defined in cudd.h.
+
+  @sideeffect None
+
+  @see Cudd_ClearErrorCode
+
+*/
 Cudd_ErrorType
 Cudd_ReadErrorCode(
   DdManager *dd)
@@ -4071,17 +3966,14 @@ Cudd_ReadErrorCode(
 } /* end of Cudd_ReadErrorCode */
 
 
-/**Function********************************************************************
+/**
+  @brief Clear the error code of a manager.
 
-  Synopsis    [Clear the error code of a manager.]
+  @sideeffect None
 
-  Description []
+  @see Cudd_ReadErrorCode
 
-  SideEffects [None]
-
-  SeeAlso     [Cudd_ReadErrorCode]
-
-******************************************************************************/
+*/
 void
 Cudd_ClearErrorCode(
   DdManager *dd)
@@ -4091,19 +3983,37 @@ Cudd_ClearErrorCode(
 } /* end of Cudd_ClearErrorCode */
 
 
-/**Function********************************************************************
+/**
+  @brief Installs a handler for failed memory allocations.
 
-  Synopsis    [Reads the stdout of a manager.]
+  @details Changing the handler only has an effect if the wrappers
+  in safe_mem.c are in use.
 
-  Description [Reads the stdout of a manager. This is the file pointer to
-  which messages normally going to stdout are written. It is initialized
-  to stdout. Cudd_SetStdout allows the application to redirect it.]
+  @return the current handler.
+*/
+DD_OOMFP
+Cudd_InstallOutOfMemoryHandler(
+  DD_OOMFP newHandler)
+{
+    DD_OOMFP oldHandler = MMoutOfMemory;
+    MMoutOfMemory = newHandler;
+    return oldHandler;
 
-  SideEffects [None]
+} /* end of Cudd_InstallOutOfMemoryHandler */
 
-  SeeAlso     [Cudd_SetStdout Cudd_ReadStderr]
 
-******************************************************************************/
+/**
+  @brief Reads the stdout of a manager.
+
+  @details This is the file pointer to which messages normally going
+  to stdout are written. It is initialized to stdout. Cudd_SetStdout
+  allows the application to redirect it.
+
+  @sideeffect None
+
+  @see Cudd_SetStdout Cudd_ReadStderr
+
+*/
 FILE *
 Cudd_ReadStdout(
   DdManager *dd)
@@ -4113,17 +4023,14 @@ Cudd_ReadStdout(
 } /* end of Cudd_ReadStdout */
 
 
-/**Function********************************************************************
+/**
+  @brief Sets the stdout of a manager.
 
-  Synopsis    [Sets the stdout of a manager.]
+  @sideeffect None
 
-  Description []
+  @see Cudd_ReadStdout Cudd_SetStderr
 
-  SideEffects [None]
-
-  SeeAlso     [Cudd_ReadStdout Cudd_SetStderr]
-
-******************************************************************************/
+*/
 void
 Cudd_SetStdout(
   DdManager *dd,
@@ -4134,19 +4041,18 @@ Cudd_SetStdout(
 } /* end of Cudd_SetStdout */
 
 
-/**Function********************************************************************
+/**
+  @brief Reads the stderr of a manager.
 
-  Synopsis    [Reads the stderr of a manager.]
+  @details This is the file pointer to which messages normally going
+  to stderr are written. It is initialized to stderr. Cudd_SetStderr
+  allows the application to redirect it.
 
-  Description [Reads the stderr of a manager. This is the file pointer to
-  which messages normally going to stderr are written. It is initialized
-  to stderr. Cudd_SetStderr allows the application to redirect it.]
+  @sideeffect None
 
-  SideEffects [None]
+  @see Cudd_SetStderr Cudd_ReadStdout
 
-  SeeAlso     [Cudd_SetStderr Cudd_ReadStdout]
-
-******************************************************************************/
+*/
 FILE *
 Cudd_ReadStderr(
   DdManager *dd)
@@ -4156,17 +4062,14 @@ Cudd_ReadStderr(
 } /* end of Cudd_ReadStderr */
 
 
-/**Function********************************************************************
+/**
+  @brief Sets the stderr of a manager.
 
-  Synopsis    [Sets the stderr of a manager.]
+  @sideeffect None
 
-  Description []
+  @see Cudd_ReadStderr Cudd_SetStdout
 
-  SideEffects [None]
-
-  SeeAlso     [Cudd_ReadStderr Cudd_SetStdout]
-
-******************************************************************************/
+*/
 void
 Cudd_SetStderr(
   DdManager *dd,
@@ -4177,21 +4080,19 @@ Cudd_SetStderr(
 } /* end of Cudd_SetStderr */
 
 
-/**Function********************************************************************
+/**
+  @brief Returns the threshold for the next dynamic reordering.
 
-  Synopsis    [Returns the threshold for the next dynamic reordering.]
+  @details The threshold is in terms of number of nodes and is in
+  effect only if reordering is enabled. The count does not include the
+  dead nodes, unless the countDead parameter of the manager has been
+  changed from its default setting.
 
-  Description [Returns the threshold for the next dynamic reordering.
-  The threshold is in terms of number of nodes and is in effect only
-  if reordering is enabled. The count does not include the dead nodes,
-  unless the countDead parameter of the manager has been changed from
-  its default setting.]
+  @sideeffect None
 
-  SideEffects [None]
+  @see Cudd_SetNextReordering
 
-  SeeAlso     [Cudd_SetNextReordering]
-
-******************************************************************************/
+*/
 unsigned int
 Cudd_ReadNextReordering(
   DdManager *dd)
@@ -4201,21 +4102,19 @@ Cudd_ReadNextReordering(
 } /* end of Cudd_ReadNextReordering */
 
 
-/**Function********************************************************************
+/**
+  @brief Sets the threshold for the next dynamic reordering.
 
-  Synopsis    [Sets the threshold for the next dynamic reordering.]
+  @details The threshold is in terms of number of nodes and is in
+  effect only if reordering is enabled. The count does not include the
+  dead nodes, unless the countDead parameter of the manager has been
+  changed from its default setting.
 
-  Description [Sets the threshold for the next dynamic reordering.
-  The threshold is in terms of number of nodes and is in effect only
-  if reordering is enabled. The count does not include the dead nodes,
-  unless the countDead parameter of the manager has been changed from
-  its default setting.]
+  @sideeffect None
 
-  SideEffects [None]
+  @see Cudd_ReadNextReordering
 
-  SeeAlso     [Cudd_ReadNextReordering]
-
-******************************************************************************/
+*/
 void
 Cudd_SetNextReordering(
   DdManager *dd,
@@ -4226,17 +4125,12 @@ Cudd_SetNextReordering(
 } /* end of Cudd_SetNextReordering */
 
 
-/**Function********************************************************************
+/**
+  @brief Reads the number of elementary reordering steps.
 
-  Synopsis    [Reads the number of elementary reordering steps.]
+  @sideeffect none
 
-  Description []
-
-  SideEffects [none]
-
-  SeeAlso     []
-
-******************************************************************************/
+*/
 double
 Cudd_ReadSwapSteps(
   DdManager *dd)
@@ -4244,24 +4138,23 @@ Cudd_ReadSwapSteps(
 #ifdef DD_COUNT
     return(dd->swapSteps);
 #else
+    (void) dd; /* avoid warning */
     return(-1);
 #endif
 
 } /* end of Cudd_ReadSwapSteps */
 
 
-/**Function********************************************************************
+/**
+  @brief Reads the maximum allowed number of live nodes.
 
-  Synopsis    [Reads the maximum allowed number of live nodes.]
+  @details When this number is exceeded, the package returns NULL.
 
-  Description [Reads the maximum allowed number of live nodes. When this
-  number is exceeded, the package returns NULL.]
+  @sideeffect none
 
-  SideEffects [none]
+  @see Cudd_SetMaxLive
 
-  SeeAlso     [Cudd_SetMaxLive]
-
-******************************************************************************/
+*/
 unsigned int
 Cudd_ReadMaxLive(
   DdManager *dd)
@@ -4271,18 +4164,16 @@ Cudd_ReadMaxLive(
 } /* end of Cudd_ReadMaxLive */
 
 
-/**Function********************************************************************
+/**
+  @brief Sets the maximum allowed number of live nodes.
 
-  Synopsis    [Sets the maximum allowed number of live nodes.]
+  @details When this number is exceeded, the package returns NULL.
 
-  Description [Sets the maximum allowed number of live nodes. When this
-  number is exceeded, the package returns NULL.]
+  @sideeffect none
 
-  SideEffects [none]
+  @see Cudd_ReadMaxLive
 
-  SeeAlso     [Cudd_ReadMaxLive]
-
-******************************************************************************/
+*/
 void
 Cudd_SetMaxLive(
   DdManager *dd,
@@ -4293,19 +4184,17 @@ Cudd_SetMaxLive(
 } /* end of Cudd_SetMaxLive */
 
 
-/**Function********************************************************************
+/**
+  @brief Reads the maximum allowed memory.
 
-  Synopsis    [Reads the maximum allowed memory.]
+  @details When this number is exceeded, the package returns NULL.
 
-  Description [Reads the maximum allowed memory. When this
-  number is exceeded, the package returns NULL.]
+  @sideeffect none
 
-  SideEffects [none]
+  @see Cudd_SetMaxMemory
 
-  SeeAlso     [Cudd_SetMaxMemory]
-
-******************************************************************************/
-unsigned long
+*/
+size_t
 Cudd_ReadMaxMemory(
   DdManager *dd)
 {
@@ -4314,45 +4203,47 @@ Cudd_ReadMaxMemory(
 } /* end of Cudd_ReadMaxMemory */
 
 
-/**Function********************************************************************
+/**
+  @brief Sets the maximum allowed memory.
 
-  Synopsis    [Sets the maximum allowed memory.]
+  @details When this number is exceeded, the package returns NULL.
 
-  Description [Sets the maximum allowed memory. When this
-  number is exceeded, the package returns NULL.]
+  @return the previous limit.
 
-  SideEffects [none]
+  @sideeffect none
 
-  SeeAlso     [Cudd_ReadMaxMemory]
+  @see Cudd_ReadMaxMemory
 
-******************************************************************************/
-void
+*/
+size_t
 Cudd_SetMaxMemory(
   DdManager *dd,
-  unsigned long maxMemory)
+  size_t maxMemory)
 {
+    size_t oldLimit = dd->maxmemhard;
     dd->maxmemhard = maxMemory;
+    return oldLimit;
 
 } /* end of Cudd_SetMaxMemory */
 
 
-/**Function********************************************************************
+/**
+  @brief Prevents sifting of a variable.
 
-  Synopsis    [Prevents sifting of a variable.]
+  @details This function sets a flag to prevent sifting of a
+  variable.
 
-  Description [This function sets a flag to prevent sifting of a
-  variable.  Returns 1 if successful; 0 otherwise (i.e., invalid
-  variable index).]
+  @return 1 if successful; 0 otherwise (i.e., invalid variable index).
 
-  SideEffects [Changes the "bindVar" flag in DdSubtable.]
+  @sideeffect Changes the "bindVar" flag in DdSubtable.
 
-  SeeAlso     [Cudd_bddUnbindVar]
+  @see Cudd_bddUnbindVar
 
-******************************************************************************/
+*/
 int
 Cudd_bddBindVar(
-  DdManager *dd /* manager */,
-  int index /* variable index */)
+  DdManager *dd /**< manager */,
+  int index /**< variable index */)
 {
     if (index >= dd->size || index < 0) return(0);
     dd->subtables[dd->perm[index]].bindVar = 1;
@@ -4361,26 +4252,26 @@ Cudd_bddBindVar(
 } /* end of Cudd_bddBindVar */
 
 
-/**Function********************************************************************
+/**
+  @brief Allows the sifting of a variable.
 
-  Synopsis    [Allows the sifting of a variable.]
-
-  Description [This function resets the flag that prevents the sifting
+  @details This function resets the flag that prevents the sifting
   of a variable. In successive variable reorderings, the variable will
   NOT be skipped, that is, sifted.  Initially all variables can be
   sifted. It is necessary to call this function only to re-enable
-  sifting after a call to Cudd_bddBindVar. Returns 1 if successful; 0
-  otherwise (i.e., invalid variable index).]
+  sifting after a call to Cudd_bddBindVar.
 
-  SideEffects [Changes the "bindVar" flag in DdSubtable.]
+  @return 1 if successful; 0 otherwise (i.e., invalid variable index).
 
-  SeeAlso     [Cudd_bddBindVar]
+  @sideeffect Changes the "bindVar" flag in DdSubtable.
 
-******************************************************************************/
+  @see Cudd_bddBindVar
+
+*/
 int
 Cudd_bddUnbindVar(
-  DdManager *dd /* manager */,
-  int index /* variable index */)
+  DdManager *dd /**< manager */,
+  int index /**< variable index */)
 {
     if (index >= dd->size || index < 0) return(0);
     dd->subtables[dd->perm[index]].bindVar = 0;
@@ -4389,25 +4280,25 @@ Cudd_bddUnbindVar(
 } /* end of Cudd_bddUnbindVar */
 
 
-/**Function********************************************************************
+/**
+  @brief Tells whether a variable can be sifted.
 
-  Synopsis    [Tells whether a variable can be sifted.]
+  @details This function returns 1 if a variable is enabled for
+  sifting.  Initially all variables can be sifted. This function
+  returns 0 if there has been a previous call to Cudd_bddBindVar for
+  that variable not followed by a call to Cudd_bddUnbindVar. The
+  function returns 0 also in the case in which the index of the
+  variable is out of bounds.
 
-  Description [This function returns 1 if a variable is enabled for
-  sifting.  Initially all variables can be sifted. This function returns
-  0 only if there has been a previous call to Cudd_bddBindVar for that
-  variable not followed by a call to Cudd_bddUnbindVar. The function returns
-  0 also in the case in which the index of the variable is out of bounds.]
+  @sideeffect none
 
-  SideEffects [none]
+  @see Cudd_bddBindVar Cudd_bddUnbindVar
 
-  SeeAlso     [Cudd_bddBindVar Cudd_bddUnbindVar]
-
-******************************************************************************/
+*/
 int
 Cudd_bddVarIsBound(
-  DdManager *dd /* manager */,
-  int index /* variable index */)
+  DdManager *dd /**< manager */,
+  int index /**< variable index */)
 {
     if (index >= dd->size || index < 0) return(0);
     return(dd->subtables[dd->perm[index]].bindVar);
@@ -4415,22 +4306,22 @@ Cudd_bddVarIsBound(
 } /* end of Cudd_bddVarIsBound */
 
 
-/**Function********************************************************************
+/**
+  @brief Sets a variable type to primary input.
 
-  Synopsis    [Sets a variable type to primary input.]
+  @details The variable type is used by lazy sifting.
 
-  Description [Sets a variable type to primary input.  The variable type is
-  used by lazy sifting.  Returns 1 if successful; 0 otherwise.]
+  @return 1 if successful; 0 otherwise.
 
-  SideEffects [modifies the manager]
+  @sideeffect modifies the manager
 
-  SeeAlso     [Cudd_bddSetPsVar Cudd_bddSetNsVar Cudd_bddIsPiVar]
+  @see Cudd_bddSetPsVar Cudd_bddSetNsVar Cudd_bddIsPiVar
 
-******************************************************************************/
+*/
 int
 Cudd_bddSetPiVar(
-  DdManager *dd /* manager */,
-  int index /* variable index */)
+  DdManager *dd /**< manager */,
+  int index /**< variable index */)
 {
     if (index >= dd->size || index < 0) return (0);
     dd->subtables[dd->perm[index]].varType = CUDD_VAR_PRIMARY_INPUT;
@@ -4439,22 +4330,22 @@ Cudd_bddSetPiVar(
 } /* end of Cudd_bddSetPiVar */
 
 
-/**Function********************************************************************
+/**
+  @brief Sets a variable type to present state.
 
-  Synopsis    [Sets a variable type to present state.]
+  @details The variable type is used by lazy sifting.
 
-  Description [Sets a variable type to present state.  The variable type is
-  used by lazy sifting.  Returns 1 if successful; 0 otherwise.]
+  @return 1 if successful; 0 otherwise.
 
-  SideEffects [modifies the manager]
+  @sideeffect modifies the manager
 
-  SeeAlso     [Cudd_bddSetPiVar Cudd_bddSetNsVar Cudd_bddIsPsVar]
+  @see Cudd_bddSetPiVar Cudd_bddSetNsVar Cudd_bddIsPsVar
 
-******************************************************************************/
+*/
 int
 Cudd_bddSetPsVar(
-  DdManager *dd /* manager */,
-  int index /* variable index */)
+  DdManager *dd /**< manager */,
+  int index /**< variable index */)
 {
     if (index >= dd->size || index < 0) return (0);
     dd->subtables[dd->perm[index]].varType = CUDD_VAR_PRESENT_STATE;
@@ -4463,22 +4354,22 @@ Cudd_bddSetPsVar(
 } /* end of Cudd_bddSetPsVar */
 
 
-/**Function********************************************************************
+/**
+  @brief Sets a variable type to next state.
 
-  Synopsis    [Sets a variable type to next state.]
+  @details The variable type is used by lazy sifting.
 
-  Description [Sets a variable type to next state.  The variable type is
-  used by lazy sifting.  Returns 1 if successful; 0 otherwise.]
+  @return 1 if successful; 0 otherwise.
 
-  SideEffects [modifies the manager]
+  @sideeffect modifies the manager
 
-  SeeAlso     [Cudd_bddSetPiVar Cudd_bddSetPsVar Cudd_bddIsNsVar]
+  @see Cudd_bddSetPiVar Cudd_bddSetPsVar Cudd_bddIsNsVar
 
-******************************************************************************/
+*/
 int
 Cudd_bddSetNsVar(
-  DdManager *dd /* manager */,
-  int index /* variable index */)
+  DdManager *dd /**< manager */,
+  int index /**< variable index */)
 {
     if (index >= dd->size || index < 0) return (0);
     dd->subtables[dd->perm[index]].varType = CUDD_VAR_NEXT_STATE;
@@ -4487,23 +4378,22 @@ Cudd_bddSetNsVar(
 } /* end of Cudd_bddSetNsVar */
 
 
-/**Function********************************************************************
+/**
+  @brief Checks whether a variable is primary input.
 
-  Synopsis    [Checks whether a variable is primary input.]
+  @return 1 if the variable's type is primary input; 0 if the variable
+  exists but is not a primary input; -1 if the variable does not
+  exist.
 
-  Description [Checks whether a variable is primary input.  Returns 1 if
-  the variable's type is primary input; 0 if the variable exists but is
-  not a primary input; -1 if the variable does not exist.]
+  @sideeffect none
 
-  SideEffects [none]
+  @see Cudd_bddSetPiVar Cudd_bddIsPsVar Cudd_bddIsNsVar
 
-  SeeAlso     [Cudd_bddSetPiVar Cudd_bddIsPsVar Cudd_bddIsNsVar]
-
-******************************************************************************/
+*/
 int
 Cudd_bddIsPiVar(
-  DdManager *dd /* manager */,
-  int index /* variable index */)
+  DdManager *dd /**< manager */,
+  int index /**< variable index */)
 {
     if (index >= dd->size || index < 0) return -1;
     return (dd->subtables[dd->perm[index]].varType == CUDD_VAR_PRIMARY_INPUT);
@@ -4511,19 +4401,18 @@ Cudd_bddIsPiVar(
 } /* end of Cudd_bddIsPiVar */
 
 
-/**Function********************************************************************
+/**
+  @brief Checks whether a variable is present state.
 
-  Synopsis    [Checks whether a variable is present state.]
+  @return 1 if the variable's type is present state; 0 if the variable
+  exists but is not a present state; -1 if the variable does not
+  exist.
 
-  Description [Checks whether a variable is present state.  Returns 1 if
-  the variable's type is present state; 0 if the variable exists but is
-  not a present state; -1 if the variable does not exist.]
+  @sideeffect none
 
-  SideEffects [none]
+  @see Cudd_bddSetPsVar Cudd_bddIsPiVar Cudd_bddIsNsVar
 
-  SeeAlso     [Cudd_bddSetPsVar Cudd_bddIsPiVar Cudd_bddIsNsVar]
-
-******************************************************************************/
+*/
 int
 Cudd_bddIsPsVar(
   DdManager *dd,
@@ -4535,19 +4424,18 @@ Cudd_bddIsPsVar(
 } /* end of Cudd_bddIsPsVar */
 
 
-/**Function********************************************************************
+/**
+  @brief Checks whether a variable is next state.
 
-  Synopsis    [Checks whether a variable is next state.]
+  @return 1 if the variable's type is present state; 0 if the variable
+  exists but is not a present state; -1 if the variable does not
+  exist.
 
-  Description [Checks whether a variable is next state.  Returns 1 if
-  the variable's type is present state; 0 if the variable exists but is
-  not a present state; -1 if the variable does not exist.]
+  @sideeffect none
 
-  SideEffects [none]
+  @see Cudd_bddSetNsVar Cudd_bddIsPiVar Cudd_bddIsPsVar
 
-  SeeAlso     [Cudd_bddSetNsVar Cudd_bddIsPiVar Cudd_bddIsPsVar]
-
-******************************************************************************/
+*/
 int
 Cudd_bddIsNsVar(
   DdManager *dd,
@@ -4559,24 +4447,23 @@ Cudd_bddIsNsVar(
 } /* end of Cudd_bddIsNsVar */
 
 
-/**Function********************************************************************
+/**
+  @brief Sets a corresponding pair index for a given index.
 
-  Synopsis    [Sets a corresponding pair index for a given index.]
+  @details These pair indices are present and next state variable.
 
-  Description [Sets a corresponding pair index for a given index.
-  These pair indices are present and next state variable.  Returns 1 if
-  successful; 0 otherwise.]
+  @return 1 if successful; 0 otherwise.
 
-  SideEffects [modifies the manager]
+  @sideeffect modifies the manager
 
-  SeeAlso     [Cudd_bddReadPairIndex]
+  @see Cudd_bddReadPairIndex
 
-******************************************************************************/
+*/
 int
 Cudd_bddSetPairIndex(
-  DdManager *dd /* manager */,
-  int index /* variable index */,
-  int pairIndex /* corresponding variable index */)
+  DdManager *dd /**< manager */,
+  int index /**< variable index */,
+  int pairIndex /**< corresponding variable index */)
 {
     if (index >= dd->size || index < 0) return(0);
     dd->subtables[dd->perm[index]].pairIndex = pairIndex;
@@ -4585,19 +4472,19 @@ Cudd_bddSetPairIndex(
 } /* end of Cudd_bddSetPairIndex */
 
 
-/**Function********************************************************************
+/**
+  @brief Reads a corresponding pair index for a given index.
 
-  Synopsis    [Reads a corresponding pair index for a given index.]
+  @details These pair indices are present and next state variable.
 
-  Description [Reads a corresponding pair index for a given index.
-  These pair indices are present and next state variable.  Returns the
-  corresponding variable index if the variable exists; -1 otherwise.]
+  @return the corresponding variable index if the variable exists; -1
+  otherwise.
 
-  SideEffects [modifies the manager]
+  @sideeffect modifies the manager
 
-  SeeAlso     [Cudd_bddSetPairIndex]
+  @see Cudd_bddSetPairIndex
 
-******************************************************************************/
+*/
 int
 Cudd_bddReadPairIndex(
   DdManager *dd,
@@ -4609,18 +4496,18 @@ Cudd_bddReadPairIndex(
 } /* end of Cudd_bddReadPairIndex */
 
 
-/**Function********************************************************************
+/**
+  @brief Sets a variable to be grouped.
 
-  Synopsis    [Sets a variable to be grouped.]
+  @details This function is used for lazy sifting.
 
-  Description [Sets a variable to be grouped. This function is used for
-  lazy sifting.  Returns 1 if successful; 0 otherwise.]
+  @return 1 if successful; 0 otherwise.
 
-  SideEffects [modifies the manager]
+  @sideeffect modifies the manager
 
-  SeeAlso     [Cudd_bddSetVarHardGroup Cudd_bddResetVarToBeGrouped]
+  @see Cudd_bddSetVarHardGroup Cudd_bddResetVarToBeGrouped
 
-******************************************************************************/
+*/
 int
 Cudd_bddSetVarToBeGrouped(
   DdManager *dd,
@@ -4635,19 +4522,19 @@ Cudd_bddSetVarToBeGrouped(
 } /* end of Cudd_bddSetVarToBeGrouped */
 
 
-/**Function********************************************************************
+/**
+  @brief Sets a variable to be a hard group.
 
-  Synopsis    [Sets a variable to be a hard group.]
+  @details This function is used for lazy sifting.
 
-  Description [Sets a variable to be a hard group.  This function is used
-  for lazy sifting.  Returns 1 if successful; 0 otherwise.]
+  @return 1 if successful; 0 otherwise.
 
-  SideEffects [modifies the manager]
+  @sideeffect modifies the manager
 
-  SeeAlso     [Cudd_bddSetVarToBeGrouped Cudd_bddResetVarToBeGrouped
-  Cudd_bddIsVarHardGroup]
+  @see Cudd_bddSetVarToBeGrouped Cudd_bddResetVarToBeGrouped
+  Cudd_bddIsVarHardGroup
 
-******************************************************************************/
+*/
 int
 Cudd_bddSetVarHardGroup(
   DdManager *dd,
@@ -4660,18 +4547,18 @@ Cudd_bddSetVarHardGroup(
 } /* end of Cudd_bddSetVarHardGrouped */
 
 
-/**Function********************************************************************
+/**
+  @brief Resets a variable not to be grouped.
 
-  Synopsis    [Resets a variable not to be grouped.]
+  @details This function is used for lazy sifting.
 
-  Description [Resets a variable not to be grouped.  This function is
-  used for lazy sifting.  Returns 1 if successful; 0 otherwise.]
+  @return 1 if successful; 0 otherwise.
 
-  SideEffects [modifies the manager]
+  @sideeffect modifies the manager
 
-  SeeAlso     [Cudd_bddSetVarToBeGrouped Cudd_bddSetVarHardGroup]
+  @see Cudd_bddSetVarToBeGrouped Cudd_bddSetVarHardGroup
 
-******************************************************************************/
+*/
 int
 Cudd_bddResetVarToBeGrouped(
   DdManager *dd,
@@ -4687,18 +4574,14 @@ Cudd_bddResetVarToBeGrouped(
 } /* end of Cudd_bddResetVarToBeGrouped */
 
 
-/**Function********************************************************************
+/**
+  @brief Checks whether a variable is set to be grouped.
 
-  Synopsis    [Checks whether a variable is set to be grouped.]
+  @details This function is used for lazy sifting.
 
-  Description [Checks whether a variable is set to be grouped. This
-  function is used for lazy sifting.]
+  @sideeffect none
 
-  SideEffects [none]
-
-  SeeAlso     []
-
-******************************************************************************/
+*/
 int
 Cudd_bddIsVarToBeGrouped(
   DdManager *dd,
@@ -4713,18 +4596,18 @@ Cudd_bddIsVarToBeGrouped(
 } /* end of Cudd_bddIsVarToBeGrouped */
 
 
-/**Function********************************************************************
+/**
+  @brief Sets a variable to be ungrouped.
 
-  Synopsis    [Sets a variable to be ungrouped.]
+  @details This function is used for lazy sifting.
 
-  Description [Sets a variable to be ungrouped. This function is used
-  for lazy sifting.  Returns 1 if successful; 0 otherwise.]
+  @return 1 if successful; 0 otherwise.
 
-  SideEffects [modifies the manager]
+  @sideeffect modifies the manager
 
-  SeeAlso     [Cudd_bddIsVarToBeUngrouped]
+  @see Cudd_bddIsVarToBeUngrouped
 
-******************************************************************************/
+*/
 int
 Cudd_bddSetVarToBeUngrouped(
   DdManager *dd,
@@ -4737,20 +4620,20 @@ Cudd_bddSetVarToBeUngrouped(
 } /* end of Cudd_bddSetVarToBeGrouped */
 
 
-/**Function********************************************************************
+/**
+  @brief Checks whether a variable is set to be ungrouped.
 
-  Synopsis    [Checks whether a variable is set to be ungrouped.]
+  @details This function is used for lazy sifting.
 
-  Description [Checks whether a variable is set to be ungrouped. This
-  function is used for lazy sifting.  Returns 1 if the variable is marked
-  to be ungrouped; 0 if the variable exists, but it is not marked to be
-  ungrouped; -1 if the variable does not exist.]
+  @return 1 if the variable is marked to be ungrouped; 0 if the
+  variable exists, but it is not marked to be ungrouped; -1 if the
+  variable does not exist.
 
-  SideEffects [none]
+  @sideeffect none
 
-  SeeAlso     [Cudd_bddSetVarToBeUngrouped]
+  @see Cudd_bddSetVarToBeUngrouped
 
-******************************************************************************/
+*/
 int
 Cudd_bddIsVarToBeUngrouped(
   DdManager *dd,
@@ -4762,20 +4645,20 @@ Cudd_bddIsVarToBeUngrouped(
 } /* end of Cudd_bddIsVarToBeGrouped */
 
 
-/**Function********************************************************************
+/**
+  @brief Checks whether a variable is set to be in a hard group.
 
-  Synopsis    [Checks whether a variable is set to be in a hard group.]
+  @details This function is used for lazy sifting.
 
-  Description [Checks whether a variable is set to be in a hard group.  This
-  function is used for lazy sifting.  Returns 1 if the variable is marked
-  to be in a hard group; 0 if the variable exists, but it is not marked to be
-  in a hard group; -1 if the variable does not exist.]
+  @return 1 if the variable is marked to be in a hard group; 0 if the
+  variable exists, but it is not marked to be in a hard group; -1 if
+  the variable does not exist.
 
-  SideEffects [none]
+  @sideeffect none
 
-  SeeAlso     [Cudd_bddSetVarHardGroup]
+  @see Cudd_bddSetVarHardGroup
 
-******************************************************************************/
+*/
 int
 Cudd_bddIsVarHardGroup(
   DdManager *dd,
@@ -4798,17 +4681,12 @@ Cudd_bddIsVarHardGroup(
 /*---------------------------------------------------------------------------*/
 
 
-/**Function********************************************************************
+/**
+  @brief Fixes a variable group tree.
 
-  Synopsis    [Fixes a variable group tree.]
+  @sideeffect Changes the variable group tree.
 
-  Description []
-
-  SideEffects [Changes the variable group tree.]
-
-  SeeAlso     []
-
-******************************************************************************/
+*/
 static void
 fixVarTree(
   MtrNode * treenode,
@@ -4827,38 +4705,39 @@ fixVarTree(
 } /* end of fixVarTree */
 
 
-/**Function********************************************************************
+/**
+  @brief Adds multiplicity groups to a %ZDD variable group tree.
 
-  Synopsis    [Adds multiplicity groups to a ZDD variable group tree.]
+  @details This function creates the groups for set of %ZDD variables
+  (whose cardinality is given by parameter multiplicity) that are
+  created for each %BDD variable in Cudd_zddVarsFromBddVars. The crux
+  of the matter is to determine the index each new group. (The index
+  of the first variable in the group.)  We first build all the groups
+  for the children of a node, and then deal with the %ZDD variables
+  that are directly attached to the node. The problem for these is
+  that the tree itself does not provide information on their position
+  inside the group. While we deal with the children of the node,
+  therefore, we keep track of all the positions they occupy. The
+  remaining positions in the tree can be freely used. Also, we keep
+  track of all the variables placed in the children. All the remaining
+  variables are directly attached to the group. We can then place any
+  pair of variables not yet grouped in any pair of available positions
+  in the node.
 
-  Description [Adds multiplicity groups to a ZDD variable group tree.
-  Returns 1 if successful; 0 otherwise. This function creates the groups
-  for set of ZDD variables (whose cardinality is given by parameter
-  multiplicity) that are created for each BDD variable in
-  Cudd_zddVarsFromBddVars. The crux of the matter is to determine the index
-  each new group. (The index of the first variable in the group.)
-  We first build all the groups for the children of a node, and then deal
-  with the ZDD variables that are directly attached to the node. The problem
-  for these is that the tree itself does not provide information on their
-  position inside the group. While we deal with the children of the node,
-  therefore, we keep track of all the positions they occupy. The remaining
-  positions in the tree can be freely used. Also, we keep track of all the
-  variables placed in the children. All the remaining variables are directly
-  attached to the group. We can then place any pair of variables not yet
-  grouped in any pair of available positions in the node.]
+  @return 1 if successful; 0 otherwise.
 
-  SideEffects [Changes the variable group tree.]
+  @sideeffect Changes the variable group tree.
 
-  SeeAlso     [Cudd_zddVarsFromBddVars]
+  @see Cudd_zddVarsFromBddVars
 
-******************************************************************************/
+*/
 static int
 addMultiplicityGroups(
-  DdManager *dd /* manager */,
-  MtrNode *treenode /* current tree node */,
-  int multiplicity /* how many ZDD vars per BDD var */,
-  char *vmask /* variable pairs for which a group has been already built */,
-  char *lmask /* levels for which a group has already been built*/)
+  DdManager *dd /**< manager */,
+  MtrNode *treenode /**< current tree node */,
+  int multiplicity /**< how many %ZDD vars per %BDD var */,
+  char *vmask /**< variable pairs for which a group has been already built */,
+  char *lmask /**< levels for which a group has already been built*/)
 {
     int startV, stopV, startL;
     int i, j;

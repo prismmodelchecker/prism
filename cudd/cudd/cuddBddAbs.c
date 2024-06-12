@@ -1,35 +1,14 @@
-/**CFile***********************************************************************
+/**
+  @file
 
-  FileName    [cuddBddAbs.c]
+  @ingroup cudd
 
-  PackageName [cudd]
+  @brief Quantification functions for BDDs.
 
-  Synopsis    [Quantification functions for BDDs.]
+  @author Fabio Somenzi
 
-  Description [External procedures included in this module:
-		<ul>
-		<li> Cudd_bddExistAbstract()
-                <li> Cudd_bddExistAbstractLimit()
-		<li> Cudd_bddXorExistAbstract()
-		<li> Cudd_bddUnivAbstract()
-		<li> Cudd_bddBooleanDiff()
-		<li> Cudd_bddVarIsDependent()
-		</ul>
-	Internal procedures included in this module:
-		<ul>
-		<li> cuddBddExistAbstractRecur()
-		<li> cuddBddXorExistAbstractRecur()
-		<li> cuddBddBooleanDiffRecur()
-		</ul>
-	Static procedures included in this module:
-		<ul>
-		<li> bddCheckPositiveCube()
-		</ul>
-		]
-
-  Author      [Fabio Somenzi]
-
-  Copyright   [Copyright (c) 1995-2012, Regents of the University of Colorado
+  @copyright@parblock
+  Copyright (c) 1995-2015, Regents of the University of Colorado
 
   All rights reserved.
 
@@ -59,9 +38,10 @@
   CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
   LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
   ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-  POSSIBILITY OF SUCH DAMAGE.]
+  POSSIBILITY OF SUCH DAMAGE.
+  @endparblock
 
-******************************************************************************/
+*/
 
 #include "util.h"
 #include "cuddInt.h"
@@ -86,16 +66,12 @@
 /* Variable declarations                                                     */
 /*---------------------------------------------------------------------------*/
 
-#ifndef lint
-static char rcsid[] DD_UNUSED = "$Id: cuddBddAbs.c,v 1.28 2012/02/05 01:07:18 fabio Exp $";
-#endif
 
 /*---------------------------------------------------------------------------*/
 /* Macro declarations                                                        */
 /*---------------------------------------------------------------------------*/
 
-
-/**AutomaticStart*************************************************************/
+/** \cond */
 
 /*---------------------------------------------------------------------------*/
 /* Static function prototypes                                                */
@@ -103,7 +79,7 @@ static char rcsid[] DD_UNUSED = "$Id: cuddBddAbs.c,v 1.28 2012/02/05 01:07:18 fa
 
 static int bddCheckPositiveCube (DdManager *manager, DdNode *cube);
 
-/**AutomaticEnd***************************************************************/
+/** \endcond */
 
 
 /*---------------------------------------------------------------------------*/
@@ -111,18 +87,16 @@ static int bddCheckPositiveCube (DdManager *manager, DdNode *cube);
 /*---------------------------------------------------------------------------*/
 
 
-/**Function********************************************************************
+/**
+  @brief Existentially abstracts all the variables in cube from f.
 
-  Synopsis [Existentially abstracts all the variables in cube from f.]
+  @return the abstracted %BDD if successful; NULL otherwise.
 
-  Description [Existentially abstracts all the variables in cube from f.
-  Returns the abstracted BDD if successful; NULL otherwise.]
+  @sideeffect None
 
-  SideEffects [None]
+  @see Cudd_bddUnivAbstract Cudd_addExistAbstract
 
-  SeeAlso     [Cudd_bddUnivAbstract Cudd_addExistAbstract]
-
-******************************************************************************/
+*/
 DdNode *
 Cudd_bddExistAbstract(
   DdManager * manager,
@@ -142,26 +116,27 @@ Cudd_bddExistAbstract(
 	manager->reordered = 0;
 	res = cuddBddExistAbstractRecur(manager, f, cube);
     } while (manager->reordered == 1);
+    if (manager->errorCode == CUDD_TIMEOUT_EXPIRED && manager->timeoutHandler) {
+        manager->timeoutHandler(manager, manager->tohArg);
+    }
 
     return(res);
 
 } /* end of Cudd_bddExistAbstract */
 
 
-/**Function********************************************************************
+/**
+  @brief Existentially abstracts all the variables in cube from f.
 
-  Synopsis [Existentially abstracts all the variables in cube from f.]
-
-  Description [Existentially abstracts all the variables in cube from f.
-  Returns the abstracted BDD if successful; NULL if the intermediate
+  @return the abstracted %BDD if successful; NULL if the intermediate
   result blows up or more new nodes than <code>limit</code> are
-  required.]
+  required.
 
-  SideEffects [None]
+  @sideeffect None
 
-  SeeAlso     [Cudd_bddExistAbstract]
+  @see Cudd_bddExistAbstract
 
-******************************************************************************/
+*/
 DdNode *
 Cudd_bddExistAbstractLimit(
   DdManager * manager,
@@ -186,26 +161,28 @@ Cudd_bddExistAbstractLimit(
 	res = cuddBddExistAbstractRecur(manager, f, cube);
     } while (manager->reordered == 1);
     manager->maxLive = saveLimit;
+    if (manager->errorCode == CUDD_TIMEOUT_EXPIRED && manager->timeoutHandler) {
+        manager->timeoutHandler(manager, manager->tohArg);
+    }
 
     return(res);
 
 } /* end of Cudd_bddExistAbstractLimit */
 
 
-/**Function********************************************************************
+/**
+  @brief Takes the exclusive OR of two BDDs and simultaneously abstracts the
+  variables in cube.
 
-  Synopsis [Takes the exclusive OR of two BDDs and simultaneously abstracts the
-  variables in cube.]
+  @details The variables are existentially abstracted.
 
-  Description [Takes the exclusive OR of two BDDs and simultaneously abstracts
-  the variables in cube. The variables are existentially abstracted.  Returns a
-  pointer to the result is successful; NULL otherwise.]
+  @return a pointer to the result is successful; NULL otherwise.
 
-  SideEffects [None]
+  @sideeffect None
 
-  SeeAlso     [Cudd_bddUnivAbstract Cudd_bddExistAbstract Cudd_bddAndAbstract]
+  @see Cudd_bddUnivAbstract Cudd_bddExistAbstract Cudd_bddAndAbstract
 
-******************************************************************************/
+*/
 DdNode *
 Cudd_bddXorExistAbstract(
   DdManager * manager,
@@ -226,24 +203,25 @@ Cudd_bddXorExistAbstract(
 	manager->reordered = 0;
 	res = cuddBddXorExistAbstractRecur(manager, f, g, cube);
     } while (manager->reordered == 1);
+    if (manager->errorCode == CUDD_TIMEOUT_EXPIRED && manager->timeoutHandler) {
+        manager->timeoutHandler(manager, manager->tohArg);
+    }
 
     return(res);
 
 } /* end of Cudd_bddXorExistAbstract */
 
 
-/**Function********************************************************************
+/**
+  @brief Universally abstracts all the variables in cube from f.
 
-  Synopsis    [Universally abstracts all the variables in cube from f.]
+  @return the abstracted %BDD if successful; NULL otherwise.
 
-  Description [Universally abstracts all the variables in cube from f.
-  Returns the abstracted BDD if successful; NULL otherwise.]
+  @sideeffect None
 
-  SideEffects [None]
+  @see Cudd_bddExistAbstract Cudd_addUnivAbstract
 
-  SeeAlso     [Cudd_bddExistAbstract Cudd_addUnivAbstract]
-
-******************************************************************************/
+*/
 DdNode *
 Cudd_bddUnivAbstract(
   DdManager * manager,
@@ -264,25 +242,27 @@ Cudd_bddUnivAbstract(
 	res = cuddBddExistAbstractRecur(manager, Cudd_Not(f), cube);
     } while (manager->reordered == 1);
     if (res != NULL) res = Cudd_Not(res);
+    if (manager->errorCode == CUDD_TIMEOUT_EXPIRED && manager->timeoutHandler) {
+        manager->timeoutHandler(manager, manager->tohArg);
+    }
 
     return(res);
 
 } /* end of Cudd_bddUnivAbstract */
 
 
-/**Function********************************************************************
+/**
+  @brief Computes the boolean difference of f with respect to x.
 
-  Synopsis    [Computes the boolean difference of f with respect to x.]
+  @details Computes the boolean difference of f with respect to the
+  variable with index x.
 
-  Description [Computes the boolean difference of f with respect to the
-  variable with index x.  Returns the BDD of the boolean difference if
-  successful; NULL otherwise.]
+  @return the %BDD of the boolean difference if successful; NULL
+  otherwise.
 
-  SideEffects [None]
+  @sideeffect None
 
-  SeeAlso     []
-
-******************************************************************************/
+*/
 DdNode *
 Cudd_bddBooleanDiff(
   DdManager * manager,
@@ -301,31 +281,31 @@ Cudd_bddBooleanDiff(
 	manager->reordered = 0;
 	res = cuddBddBooleanDiffRecur(manager, Cudd_Regular(f), var);
     } while (manager->reordered == 1);
+    if (manager->errorCode == CUDD_TIMEOUT_EXPIRED && manager->timeoutHandler) {
+        manager->timeoutHandler(manager, manager->tohArg);
+    }
 
     return(res);
 
 } /* end of Cudd_bddBooleanDiff */
 
 
-/**Function********************************************************************
+/**
+  @brief Checks whether a variable is dependent on others in a
+  function.
 
-  Synopsis    [Checks whether a variable is dependent on others in a
-  function.]
+  @details No new nodes are created.
 
-  Description [Checks whether a variable is dependent on others in a
-  function.  Returns 1 if the variable is dependent; 0 otherwise. No
-  new nodes are created.]
+  @return 1 if the variable is dependent; 0 otherwise.
 
-  SideEffects [None]
+  @sideeffect None
 
-  SeeAlso     []
-
-******************************************************************************/
+*/
 int
 Cudd_bddVarIsDependent(
-  DdManager *dd,		/* manager */
-  DdNode *f,			/* function */
-  DdNode *var			/* variable */)
+  DdManager *dd,		/**< manager */
+  DdNode *f,			/**< function */
+  DdNode *var			/**< variable */)
 {
     DdNode *F, *res, *zero, *ft, *fe;
     unsigned topf, level;
@@ -333,10 +313,10 @@ Cudd_bddVarIsDependent(
     int retval;
 
     zero = Cudd_Not(DD_ONE(dd));
-    if (Cudd_IsConstant(f)) return(f == zero);
+    F = Cudd_Regular(f);
+    if (cuddIsConstant(F)) return(f == zero);
 
     /* From now on f is not constant. */
-    F = Cudd_Regular(f);
     topf = (unsigned) dd->perm[F->index];
     level = (unsigned) dd->perm[var->index];
 
@@ -375,20 +355,19 @@ Cudd_bddVarIsDependent(
 /*---------------------------------------------------------------------------*/
 
 
-/**Function********************************************************************
+/**
+  @brief Performs the recursive steps of Cudd_bddExistAbstract.
 
-  Synopsis    [Performs the recursive steps of Cudd_bddExistAbstract.]
+  @details It is also used by Cudd_bddUnivAbstract.
 
-  Description [Performs the recursive steps of Cudd_bddExistAbstract.
-  Returns the BDD obtained by abstracting the variables
-  of cube from f if successful; NULL otherwise. It is also used by
-  Cudd_bddUnivAbstract.]
+  @return the %BDD obtained by abstracting the variables of cube from f
+  if successful; NULL otherwise.
 
-  SideEffects [None]
+  @sideeffect None
 
-  SeeAlso     [Cudd_bddExistAbstract Cudd_bddUnivAbstract]
+  @see Cudd_bddExistAbstract Cudd_bddUnivAbstract
 
-******************************************************************************/
+*/
 DdNode *
 cuddBddExistAbstractRecur(
   DdManager * manager,
@@ -417,6 +396,8 @@ cuddBddExistAbstractRecur(
     if (F->ref != 1 && (res = cuddCacheLookup2(manager, Cudd_bddExistAbstract, f, cube)) != NULL) {
 	return(res);
     }
+
+    checkWhetherToGiveUp(manager);
 
     /* Compute the cofactors of f. */
     T = cuddT(F); E = cuddE(F);
@@ -485,20 +466,19 @@ cuddBddExistAbstractRecur(
 } /* end of cuddBddExistAbstractRecur */
 
 
-/**Function********************************************************************
+/**
+  @brief Takes the exclusive OR of two BDDs and simultaneously abstracts the
+  variables in cube.
 
-  Synopsis [Takes the exclusive OR of two BDDs and simultaneously abstracts the
-  variables in cube.]
+  @details The variables are existentially abstracted.
 
-  Description [Takes the exclusive OR of two BDDs and simultaneously abstracts
-  the variables in cube. The variables are existentially abstracted.  Returns a
-  pointer to the result is successful; NULL otherwise.]
+  @return a pointer to the result is successful; NULL otherwise.
 
-  SideEffects [None]
+  @sideeffect None
 
-  SeeAlso     [Cudd_bddAndAbstract]
+  @see Cudd_bddAndAbstract
 
-******************************************************************************/
+*/
 DdNode *
 cuddBddXorExistAbstractRecur(
   DdManager * manager,
@@ -508,7 +488,8 @@ cuddBddXorExistAbstractRecur(
 {
     DdNode *F, *fv, *fnv, *G, *gv, *gnv;
     DdNode *one, *zero, *r, *t, *e, *Cube;
-    unsigned int topf, topg, topcube, top, index;
+    int topf, topg, topcube, top;
+    unsigned int index;
 
     statLine(manager);
     one = DD_ONE(manager);
@@ -550,6 +531,8 @@ cuddBddXorExistAbstractRecur(
     if (r != NULL) {
 	return(r);
     }
+
+    checkWhetherToGiveUp(manager);
 
     /* Here we can skip the use of cuddI, because the operands are known
     ** to be non-constant.
@@ -657,20 +640,17 @@ cuddBddXorExistAbstractRecur(
 } /* end of cuddBddXorExistAbstractRecur */
 
 
-/**Function********************************************************************
+/**
+  @brief Performs the recursive steps of Cudd_bddBoleanDiff.
 
-  Synopsis    [Performs the recursive steps of Cudd_bddBoleanDiff.]
+  @details Exploits the fact that dF/dx = dF'/dx.
 
-  Description [Performs the recursive steps of Cudd_bddBoleanDiff.
-  Returns the BDD obtained by XORing the cofactors of f with respect to
-  var if successful; NULL otherwise. Exploits the fact that dF/dx =
-  dF'/dx.]
+  @return the %BDD obtained by XORing the cofactors of f with respect
+  to var if successful; NULL otherwise.
 
-  SideEffects [None]
+  @sideeffect None
 
-  SeeAlso     []
-
-******************************************************************************/
+*/
 DdNode *
 cuddBddBooleanDiffRecur(
   DdManager * manager,
@@ -733,16 +713,15 @@ cuddBddBooleanDiffRecur(
 /* Definition of static functions                                            */
 /*---------------------------------------------------------------------------*/
 
-/**Function********************************************************************
+/**
+  @brief Checks whether cube is a %BDD representing the product of
+  positive literals.
 
-  Synopsis [Checks whether cube is an BDD representing the product of
-  positive literals.]
+  @return 1 in case of success; 0 otherwise.
 
-  Description [Returns 1 in case of success; 0 otherwise.]
+  @sideeffect None
 
-  SideEffects [None]
-
-******************************************************************************/
+*/
 static int
 bddCheckPositiveCube(
   DdManager * manager,

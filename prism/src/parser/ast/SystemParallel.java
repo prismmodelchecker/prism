@@ -26,9 +26,11 @@
 
 package parser.ast;
 
-import java.util.Vector;
+import java.util.ArrayList;
+import java.util.List;
 
-import parser.visitor.*;
+import parser.visitor.ASTVisitor;
+import parser.visitor.DeepCopy;
 import prism.PrismLangException;
 
 public class SystemParallel extends SystemDefn
@@ -36,21 +38,21 @@ public class SystemParallel extends SystemDefn
 	// Pair of operands
 	private SystemDefn operand1;
 	private SystemDefn operand2;
-	// Vector of synchronising actions
-	private Vector<String> actions;
+	// List of synchronising actions
+	private ArrayList<String> actions;
 	
 	// Constructors
 	
 	public SystemParallel()
 	{
-		actions = new Vector<String>();
+		actions = new ArrayList<>();
 	}
 	
 	public SystemParallel(SystemDefn s1, SystemDefn s2)
 	{
+		this();
 		operand1 = s1;
 		operand2 = s2;
-		actions = new Vector<String>();
 	}
 	
 	// Set methods
@@ -67,12 +69,12 @@ public class SystemParallel extends SystemDefn
 	
 	public void addAction(String s)
 	{
-		actions.addElement(s);
+		actions.add(s);
 	}
 		
 	public void setAction(int i, String s)
 	{
-		actions.setElementAt(s, i);
+		actions.set(i, s);
 	}
 			
 	// Get methods
@@ -94,7 +96,7 @@ public class SystemParallel extends SystemDefn
 	
 	public String getAction(int i)
 	{
-		return actions.elementAt(i);
+		return actions.get(i);
 	}
 		
 	public boolean containsAction(String s)
@@ -106,14 +108,14 @@ public class SystemParallel extends SystemDefn
 	
 	@Override
 	@SuppressWarnings("deprecation")
-	public void getModules(Vector<String> v)
+	public void getModules(List<String> v)
 	{
 		operand1.getModules(v);
 		operand2.getModules(v);
 	}
 
 	@Override
-	public void getModules(Vector<String> v, ModulesFile modulesFile)
+	public void getModules(List<String> v, ModulesFile modulesFile)
 	{
 		operand1.getModules(v, modulesFile);
 		operand2.getModules(v, modulesFile);
@@ -121,21 +123,21 @@ public class SystemParallel extends SystemDefn
 
 	@Override
 	@SuppressWarnings("deprecation")
-	public void getSynchs(Vector<String> v)
+	public void getSynchs(List<String> v)
 	{
 		operand1.getSynchs(v);
 		operand2.getSynchs(v);
 	}
 	
 	@Override
-	public void getSynchs(Vector<String> v, ModulesFile modulesFile)
+	public void getSynchs(List<String> v, ModulesFile modulesFile)
 	{
 		operand1.getSynchs(v, modulesFile);
 		operand2.getSynchs(v, modulesFile);
 	}
 	
 	@Override
-	public void getReferences(Vector<String> v)
+	public void getReferences(List<String> v)
 	{
 		operand1.getReferences(v);
 		operand2.getReferences(v);
@@ -169,15 +171,23 @@ public class SystemParallel extends SystemDefn
 	}
 	
 	@Override
-	@SuppressWarnings("unchecked")
-	public SystemDefn deepCopy()
+	public SystemParallel deepCopy(DeepCopy copier) throws PrismLangException
 	{
-		SystemParallel ret = new SystemParallel();
-		ret.setOperand1(getOperand1().deepCopy());
-		ret.setOperand2(getOperand2().deepCopy());
-		ret.actions = (actions == null) ? null : (Vector<String>)actions.clone();
-		ret.setPosition(this);
-		return ret;
+		operand1 = copier.copy(operand1);
+		operand2 = copier.copy(operand2);
+
+		return this;
+	}
+
+	@SuppressWarnings("unchecked")
+	@Override
+	public SystemParallel clone()
+	{
+		SystemParallel clone = (SystemParallel) super.clone();
+
+		clone.actions = (ArrayList<String>) actions.clone();
+
+		return clone;
 	}
 }
 

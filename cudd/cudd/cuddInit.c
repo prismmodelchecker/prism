@@ -1,28 +1,14 @@
-/**CFile***********************************************************************
+/**
+  @file 
 
-  FileName    [cuddInit.c]
+  @ingroup cudd
 
-  PackageName [cudd]
+  @brief Functions to initialize and shut down the %DD manager.
 
-  Synopsis    [Functions to initialize and shut down the DD manager.]
+  @author Fabio Somenzi
 
-  Description [External procedures included in this module:
-		<ul>
-		<li> Cudd_Init()
-		<li> Cudd_Quit()
-		</ul>
-	       Internal procedures included in this module:
-		<ul>
-		<li> cuddZddInitUniv()
-		<li> cuddZddFreeUniv()
-		</ul>
-	      ]
-
-  SeeAlso     []
-
-  Author      [Fabio Somenzi]
-
-  Copyright   [Copyright (c) 1995-2012, Regents of the University of Colorado
+  @copyright@parblock
+  Copyright (c) 1995-2015, Regents of the University of Colorado
 
   All rights reserved.
 
@@ -52,9 +38,10 @@
   CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
   LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
   ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-  POSSIBILITY OF SUCH DAMAGE.]
+  POSSIBILITY OF SUCH DAMAGE.
+  @endparblock
 
-******************************************************************************/
+*/
 
 #include "util.h"
 #include "cuddInt.h"
@@ -78,52 +65,46 @@
 /* Variable declarations                                                     */
 /*---------------------------------------------------------------------------*/
 
-#ifndef lint
-static char rcsid[] DD_UNUSED = "$Id: cuddInit.c,v 1.34 2012/02/05 01:07:19 fabio Exp $";
-#endif
 
 /*---------------------------------------------------------------------------*/
 /* Macro declarations                                                        */
 /*---------------------------------------------------------------------------*/
 
-
-/**AutomaticStart*************************************************************/
+/** \cond */
 
 /*---------------------------------------------------------------------------*/
 /* Static function prototypes                                                */
 /*---------------------------------------------------------------------------*/
 
-
-/**AutomaticEnd***************************************************************/
+/** \endcond */
 
 
 /*---------------------------------------------------------------------------*/
 /* Definition of exported functions                                          */
 /*---------------------------------------------------------------------------*/
 
-/**Function********************************************************************
+/**
+  @brief Creates a new DD manager.
 
-  Synopsis    [Creates a new DD manager.]
+  @details Initializes the table, the basic constants and the
+  projection functions. If maxMemory is 0, Cudd_Init decides suitable
+  values for the maximum size of the cache and for the limit for fast
+  unique table growth based on the available memory.
 
-  Description [Creates a new DD manager, initializes the table, the
-  basic constants and the projection functions. If maxMemory is 0,
-  Cudd_Init decides suitable values for the maximum size of the cache
-  and for the limit for fast unique table growth based on the available
-  memory. Returns a pointer to the manager if successful; NULL
-  otherwise.]
+  @return a pointer to the manager if successful; NULL otherwise.
 
-  SideEffects [None]
+  @sideeffect None
 
-  SeeAlso     [Cudd_Quit]
+  @see Cudd_Quit
 
-******************************************************************************/
+*/
 DdManager *
 Cudd_Init(
-  unsigned int numVars /* initial number of BDD variables (i.e., subtables) */,
-  unsigned int numVarsZ /* initial number of ZDD variables (i.e., subtables) */,
-  unsigned int numSlots /* initial size of the unique tables */,
-  unsigned int cacheSize /* initial size of the cache */,
-  size_t maxMemory /* target maximum memory occupation */)
+  unsigned int numVars /**< initial number of %BDD variables (i.e., subtables) */,
+  unsigned int numVarsZ /**< initial number of %ZDD variables (i.e., subtables) */,
+  unsigned int numSlots /**< initial size of the unique tables */,
+  unsigned int cacheSize /**< initial size of the cache */,
+  size_t maxMemory /**< target maximum memory occupation */)
 {
     DdManager *unique;
     int i,result;
@@ -147,7 +128,7 @@ Cudd_Init(
     if (result == 0) return(NULL);
 
     saveHandler = MMoutOfMemory;
-    MMoutOfMemory = Cudd_OutOfMem;
+    MMoutOfMemory = unique->outOfMemCallback;
     unique->stash = ALLOC(char,(maxMemory / DD_STASH_FRACTION) + 4);
     MMoutOfMemory = saveHandler;
     if (unique->stash == NULL) {
@@ -158,6 +139,7 @@ Cudd_Init(
     unique->one = cuddUniqueConst(unique,1.0);
     if (unique->one == NULL) return(0);
     cuddRef(unique->one);
+    unique->zero = NULL;
     unique->zero = cuddUniqueConst(unique,0.0);
     if (unique->zero == NULL) return(0);
     cuddRef(unique->zero);
@@ -201,25 +183,22 @@ Cudd_Init(
 } /* end of Cudd_Init */
 
 
-/**Function********************************************************************
+/**
+  @brief Deletes resources associated with a %DD manager.
 
-  Synopsis    [Deletes resources associated with a DD manager.]
+  @details Calling Cudd_Quit with a null pointer has no effect.
 
-  Description [Deletes resources associated with a DD manager and
-  resets the global statistical counters. (Otherwise, another manaqger
-  subsequently created would inherit the stats of this one.)]
+  @sideeffect None
 
-  SideEffects [None]
+  @see Cudd_Init
 
-  SeeAlso     [Cudd_Init]
-
-******************************************************************************/
+*/
 void
 Cudd_Quit(
-  DdManager * unique)
+  DdManager * unique /**< pointer to manager */)
 {
-    if (unique->stash != NULL) FREE(unique->stash);
-    cuddFreeTable(unique);
+    if (unique)
+        cuddFreeTable(unique);
 
 } /* end of Cudd_Quit */
 
@@ -229,18 +208,16 @@ Cudd_Quit(
 /*---------------------------------------------------------------------------*/
 
 
-/**Function********************************************************************
+/**
+  @brief Initializes the %ZDD universe.
 
-  Synopsis    [Initializes the ZDD universe.]
+  @return 1 if successful; 0 otherwise.
 
-  Description [Initializes the ZDD universe. Returns 1 if successful; 0
-  otherwise.]
+  @sideeffect None
 
-  SideEffects [None]
+  @see cuddZddFreeUniv
 
-  SeeAlso     [cuddZddFreeUniv]
-
-******************************************************************************/
+*/
 int
 cuddZddInitUniv(
   DdManager * zdd)
@@ -279,17 +256,14 @@ cuddZddInitUniv(
 } /* end of cuddZddInitUniv */
 
 
-/**Function********************************************************************
+/**
+  @brief Frees the %ZDD universe.
 
-  Synopsis    [Frees the ZDD universe.]
+  @sideeffect None
 
-  Description [Frees the ZDD universe.]
+  @see cuddZddInitUniv
 
-  SideEffects [None]
-
-  SeeAlso     [cuddZddInitUniv]
-
-******************************************************************************/
+*/
 void
 cuddZddFreeUniv(
   DdManager * zdd)

@@ -2,18 +2,18 @@
 
 # Export all model info in different formats
 
--exportmodelprecision 16 -exportmodel robot.prism.all
+-exportmodelprecision 16 -exportmodel robot.prism.all  -noexportheaders
 -exportmodelprecision 16 -exportmodel robot.prism.mrmc.all:mrmc
 -exportmodelprecision 16 -exportmodel robot.prism.matlab.all:matlab
--exportmodelprecision 16 -exportmodel robot.prism.rows.all:rows
+-exportmodelprecision 16 -exportmodel robot.prism.rows.all:rows  -noexportheaders
 
 # Export model info separately (for a few formats)
 
 -exportmodelprecision 16 -exportmodel robot.prism.tra
 -exportmodel robot.prism.lab
 -exportmodel robot.prism.sta
--exportmodelprecision 16 -exportmodel robot.prism.srew
--exportmodel robot.prism.trew
+-exportmodelprecision 16 -exportmodel robot.prism.srew  -noexportheaders
+-exportmodel robot.prism.trew  -noexportheaders
 -exportmodel robot.prism.mrmc.tra:mrmc
 -exportmodel robot.prism.mrmc.lab:mrmc
 -exportmodel robot.prism.mrmc.sta:mrmc
@@ -25,7 +25,10 @@
 # -exportmodel robot.prism.tra -ex # order different
 -exportmodel robot.prism.sta -ex
 -exportmodel robot.prism.lab -ex
--exportmodelprecision 16 -exportmodel robot.prism.srew -ex
+-exportmodelprecision 16 -exportmodel robot.prism.srew -ex -noexportheaders
+-exportmodelprecision 16 -exportmodel robot.prism.header.srew -ex
+-exportmodelprecision 16 -exportmodel robot.prism.header.srew
+-exportmodelprecision 16 -exportmodel robot.prism.header.trew
 #-exportmodel robot.prism.trew -ex
 #-exportmodel robot.prism.mrmc.tra:mrmc -ex
 #-exportmodel robot.prism.mrmc.sta:mrmc -ex

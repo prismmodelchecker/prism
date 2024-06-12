@@ -28,8 +28,9 @@ package parser.type;
 
 import java.math.BigInteger;
 
-import param.BigRational;
 import parser.EvaluateContext.EvalMode;
+import parser.ast.DeclarationIntUnbounded;
+import parser.ast.DeclarationType;
 import prism.PrismLangException;
 
 public class TypeInt extends Type 
@@ -71,7 +72,13 @@ public class TypeInt extends Type
 	}
 	
 	@Override
-	public boolean canAssign(Type type)
+	public DeclarationType defaultDeclarationType()
+	{
+		return new DeclarationIntUnbounded();
+	}
+	
+	@Override
+	public boolean canCastTypeTo(Type type)
 	{
 		return (type instanceof TypeInt);
 	}
@@ -111,12 +118,6 @@ public class TypeInt extends Type
 		default:
 			throw new PrismLangException("Unknown evaluation mode " + evalMode);
 		}
-	}
-
-	@Override
-	public Object castFromBigRational(BigRational value) throws PrismLangException
-	{
-		return value.toInt();
 	}
 
 	// Standard methods:

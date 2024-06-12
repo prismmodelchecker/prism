@@ -34,7 +34,7 @@ import prism.PrismException;
 /**
  * Base class for model transformations, providing support for mapping between states.
  */
-public class BasicModelTransformation<OM extends Model, TM extends Model> implements ModelTransformation<OM, TM>
+public class BasicModelTransformation<OM extends Model<?>, TM extends Model<?>> implements ModelTransformation<OM, TM>
 {
 	public static final IntFunction<Integer> IDENTITY = Integer::valueOf;
 

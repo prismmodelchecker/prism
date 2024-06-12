@@ -26,26 +26,58 @@
 
 package pta;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
-import parser.*;
-import parser.ast.*;
+import parser.ParserUtils;
+import parser.Values;
+import parser.VarList;
+import parser.ast.ASTElement;
+import parser.ast.Command;
+import parser.ast.Declaration;
+import parser.ast.DeclarationClock;
+import parser.ast.DeclarationInt;
+import parser.ast.DeclarationType;
+import parser.ast.Expression;
+import parser.ast.ExpressionBinaryOp;
+import parser.ast.ExpressionConstant;
+import parser.ast.ExpressionFunc;
+import parser.ast.ExpressionIdent;
+import parser.ast.ExpressionLabel;
+import parser.ast.ExpressionProb;
+import parser.ast.ExpressionProp;
+import parser.ast.ExpressionTemporal;
+import parser.ast.ExpressionVar;
+import parser.ast.LabelList;
 import parser.ast.Module;
+import parser.ast.ModulesFile;
 import parser.ast.Observable;
-import parser.type.*;
-import parser.visitor.*;
-import prism.*;
+import parser.ast.PropertiesFile;
+import parser.ast.Property;
+import parser.ast.RewardStruct;
+import parser.ast.RewardStructItem;
+import parser.ast.Update;
+import parser.ast.Updates;
+import parser.type.TypeClock;
+import parser.type.TypeInt;
+import parser.visitor.ASTTraverse;
+import parser.visitor.ASTTraverseModify;
+import prism.ModelType;
+import prism.PrismComponent;
+import prism.PrismException;
+import prism.PrismLangException;
 
 /**
  * Class that converts a PRISM modelling language description
  * of a PTA into a PRISM model of a PTA, through digital clocks
  */
-public class DigitalClocks
+public class DigitalClocks extends PrismComponent
 {
-	// Prism object
-	private Prism prism;
-	// Log
-	private PrismLog mainLog;
 	// Constants from model
 	private Values constantValues;
 	// Variable list for model
@@ -71,12 +103,11 @@ public class DigitalClocks
 	private Expression prop;
 
 	/**
-	 * Constructor.
+	 * Create a new DigitalClocks, inherit basic state from parent (unless null).
 	 */
-	public DigitalClocks(Prism prism)
+	public DigitalClocks(PrismComponent parent) throws PrismException
 	{
-		this.prism = prism;
-		mainLog = prism.getMainLog();
+		super(parent);
 		mf = null;
 		pf = null;
 		prop = null;
@@ -111,10 +142,6 @@ public class DigitalClocks
 	 */
 	public void translate(ModulesFile modulesFile, PropertiesFile propertiesFile, Expression propertyToCheck) throws PrismException
 	{
-		int i, n;
-		ASTElement ast;
-		ASTTraverseModify asttm;
-
 		mainLog.println("\nPerforming digital clocks translation...");
 
 		// Store some info for global access
@@ -125,7 +152,7 @@ public class DigitalClocks
 		varList = modulesFile.createVarList();
 
 		// Check that model does not contain any closed clock constraints
-		ast = findAStrictClockConstraint(modulesFile, null);
+		ASTElement ast = findAStrictClockConstraint(modulesFile, null);
 		if (ast != null) {
 			throw new PrismLangException("Strict clock constraints are not allowed when using the digital clocks method", ast);
 		}
@@ -213,15 +240,8 @@ public class DigitalClocks
 		{
 			public Object visit(parser.ast.Module e) throws PrismLangException
 			{
-				Command timeCommand;
-				Updates ups;
-				Update up;
-				int cMax;
-				Expression invar;
-				ExpressionFunc expr;
-
 				// Get (clock) invariant for module; create default if none
-				invar = e.getInvariant();
+				Expression invar = e.getInvariant();
 				invar = (invar == null) ? Expression.True() : invar.deepCopy();
 				// Collect invariant for "invariants" label
 				if (!Expression.isTrue(invar)) {
@@ -240,23 +260,23 @@ public class DigitalClocks
 					}
 				});
 				// Construct command representing progression of time
-				timeCommand = new Command();
+				Command timeCommand = new Command();
 				timeCommand.setSynch(timeAction);
 				// Guard comes from invariant
 				timeCommand.setGuard(invar);
 				// Update is constructed from clocks
-				up = new Update();
+				Update up = new Update();
 				for (String x : cci.getClocksForModule(e.getName())) {
 					// Get clock max value
-					cMax = cci.getScaledClockMax(x);
+					int cMax = cci.getScaledClockMax(x);
 					// Build expression min(x+1,cMax)
-					expr = new ExpressionFunc("min");
+					ExpressionFunc expr = new ExpressionFunc("min");
 					expr.addOperand(Expression.Plus(new ExpressionVar(x, TypeInt.getInstance()), Expression.Int(1)));
 					expr.addOperand(Expression.Int(cMax + 1));
 					// Add to update
 					up.addElement(new ExpressionIdent(x), expr);
 				}
-				ups = new Updates();
+				Updates ups = new Updates();
 				ups.addUpdate(Expression.Double(1.0), up);
 				timeCommand.setUpdates(ups);
 				e.addCommand(timeCommand);
@@ -272,7 +292,7 @@ public class DigitalClocks
 		// Change the type of any clock variable references to int
 		// and scale the variable appropriately, if required
 		// (in both model and properties list)
-		asttm = new ASTTraverseModify()
+		ASTTraverseModify asttm = new ASTTraverseModify()
 		{
 			// Resets
 			public Object visit(Update e) throws PrismLangException
@@ -318,8 +338,8 @@ public class DigitalClocks
 		// (transition rewards can be left unchanged)
 		// Note: only cumulative (F) properties supported currently.
 		for (RewardStruct rs : mf.getRewardStructs()) {
-			n = rs.getNumItems();
-			for (i = 0; i < n; i++) {
+			int n = rs.getNumItems();
+			for (int i = 0; i < n; i++) {
 				RewardStructItem rsi = rs.getRewardStructItem(i);
 				// Convert state rewards
 				if (!rsi.isTransitionReward()) {
@@ -411,8 +431,8 @@ public class DigitalClocks
 		}
 		prop.findAllVars(mf.getVarNames(), mf.getVarTypes());
 		// Copy across undefined constants since these get lost in the call to tidyUp()
-		mf.setSomeUndefinedConstants(modulesFile.getUndefinedConstantValues());
-		pf.setSomeUndefinedConstants(propertiesFile.getUndefinedConstantValues());
+		mf.setSomeUndefinedConstants(modulesFile.getUndefinedEvaluateContext());
+		pf.setSomeUndefinedConstants(propertiesFile.getUndefinedEvaluateContext());
 	}
 
 	/**
@@ -423,7 +443,6 @@ public class DigitalClocks
 	 */
 	public void checkProperty(Expression propertyToCheck, PropertiesFile propertiesFile) throws PrismLangException
 	{
-		ASTElement ast;
 		LabelList labelList = (propertiesFile == null) ? null : propertiesFile.getLabelList();
 
 		// LTL not handled (look in any P operators)
@@ -471,7 +490,7 @@ public class DigitalClocks
 		}
 
 		// Check for presence of strict clock constraints
-		ast = findAStrictClockConstraint(propertyToCheck, labelList);
+		ASTElement ast = findAStrictClockConstraint(propertyToCheck, labelList);
 		if (ast != null) {
 			throw new PrismLangException("Strict clock constraints are not allowed when using the digital clocks method", ast);
 		}
@@ -678,15 +697,12 @@ public class DigitalClocks
 		// Resets
 		public Object visit(Update e) throws PrismLangException
 		{
-			int i, n;
-			String clock;
-			int maxVal;
 			Collection<Integer> allVals;
-			n = e.getNumElements();
-			for (i = 0; i < n; i++) {
+			int n = e.getNumElements();
+			for (int i = 0; i < n; i++) {
 				if (e.getType(i) instanceof TypeClock) {
-					clock = e.getVar(i);
-					maxVal = ParserUtils.findMaxForIntExpression(e.getExpression(i), varList, constantValues);
+					String clock = e.getVar(i);
+					int maxVal = ParserUtils.findMaxForIntExpression(e.getExpression(i), varList, constantValues);
 					updateMax(clock, maxVal);
 					allVals = ParserUtils.findAllValsForIntExpression(e.getExpression(i), varList, constantValues);
 					allClockVals.addAll(allVals);

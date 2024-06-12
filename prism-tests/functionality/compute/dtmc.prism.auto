@@ -1,0 +1,5 @@
+-tr 5 -exporttransient dtmc.prism.transient5.txt -h
+-tr 5 -exporttransient dtmc.prism.transient5.txt -ex
+-ss -exportsteadystate dtmc.prism.steadystate.txt -h
+-ss -exportsteadystate dtmc.prism.steadystate.txt -ex
+

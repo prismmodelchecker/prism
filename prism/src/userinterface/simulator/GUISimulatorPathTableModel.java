@@ -38,7 +38,9 @@ import javax.swing.table.AbstractTableModel;
 import parser.ast.ModulesFile;
 import prism.ModelInfo;
 import simulator.PathFullInfo;
+import strat.StrategyGenerator;
 import userinterface.simulator.SimulationView.ActionValue;
+import userinterface.simulator.SimulationView.MemoryValue;
 import userinterface.simulator.SimulationView.Observ;
 import userinterface.simulator.SimulationView.RewardStructureColumn;
 import userinterface.simulator.SimulationView.RewardStructureValue;
@@ -52,11 +54,11 @@ public class GUISimulatorPathTableModel extends AbstractTableModel implements GU
 	private static final long serialVersionUID = 1L;
 
 	enum PathTableModelGroupType {
-		STEP, TIME, VARIABLES, OBSERVABLES, REWARDS
+		STEP, TIME, VARIABLES, OBSERVABLES, REWARDS, STRATEGY
 	};
 	
 	enum GUISimulatorPathTableModelColumn {
-		ACTION, STEP, TIME_CUMUL, TIME, VARIABLE, OBSERVABLE, REWARD
+		ACTION, STEP, TIME_CUMUL, TIME, VARIABLE, OBSERVABLE, REWARD, MEMORY
 	};
 	
 	class PathTableModelGroup {
@@ -95,6 +97,7 @@ public class GUISimulatorPathTableModel extends AbstractTableModel implements GU
 	private VariableValue variableValue;
 	private TimeValue timeValue;
 	private ActionValue actionValue;
+	private MemoryValue memoryValue;
 
 	public GUISimulatorPathTableModel(GUISimulator simulator, SimulationView view)
 	{
@@ -172,6 +175,8 @@ public class GUISimulatorPathTableModel extends AbstractTableModel implements GU
 				return "Observables";
 			case REWARDS:
 				return "Rewards";
+			case STRATEGY:
+				return "Strategy";
 			default:
 				return "";
 			}
@@ -196,6 +201,8 @@ public class GUISimulatorPathTableModel extends AbstractTableModel implements GU
 				return null;
 			case REWARDS:
 				return "State, transition and cumulative rewards";
+			case STRATEGY:
+				return "Status of current strategy";
 			default:
 				return "";
 			}
@@ -268,6 +275,8 @@ public class GUISimulatorPathTableModel extends AbstractTableModel implements GU
 			case REWARD:
 				RewardStructureColumn rewardColumn = (RewardStructureColumn) visibleColumns.get(columnIndex).info;
 				return rewardColumn.getColumnName();
+			case MEMORY:
+				return "Memory";
 			default:
 				return "";
 			}
@@ -306,6 +315,8 @@ public class GUISimulatorPathTableModel extends AbstractTableModel implements GU
 				if (rewardColumn.isCumulativeReward()) {
 					return "Cumulative reward of reward structure " + rewardName;
 				}
+			case MEMORY:
+				return "Memory of current strategy";
 			default:
 				return "";
 			}
@@ -379,6 +390,12 @@ public class GUISimulatorPathTableModel extends AbstractTableModel implements GU
 					rewardStructureValue.setRewardValueUnknown(rowIndex > path.size()); // Never unknown
 				}
 				return rewardStructureValue;
+			case MEMORY:
+				int memory = path.getStrategyMemory(rowIndex);
+				String memoryString = simulator.getSimulatorEngine().getStrategy().getMemoryString(memory);
+				memoryValue = view.new MemoryValue(memoryString);
+				memoryValue.setMemoryValueUnknown(rowIndex > path.size()); // Never unknown
+				return memoryValue;
 			default:
 				return "";
 			}
@@ -403,6 +420,7 @@ public class GUISimulatorPathTableModel extends AbstractTableModel implements GU
 	public void updatePathTable()
 	{
 		setVisibleColumnsAndGroups();
+		fireTableStructureChanged();
 		fireTableDataChanged();
 	}
 
@@ -459,6 +477,14 @@ public class GUISimulatorPathTableModel extends AbstractTableModel implements GU
 					visibleColumns.add(new PathTableModelColumn(GUISimulatorPathTableModelColumn.REWARD, rsc));
 				}
 				visibleGroups.add(new PathTableModelGroup(PathTableModelGroupType.REWARDS, null, visibleColumns.size() - 1));
+			}
+			// Strategy
+			if (simulator.isStrategyShown()) {
+				StrategyGenerator stratGen = simulator.getSimulatorEngine().getStrategy();
+				if (stratGen != null && stratGen.hasMemory()) {
+					visibleColumns.add(new PathTableModelColumn(GUISimulatorPathTableModelColumn.MEMORY, null));
+					visibleGroups.add(new PathTableModelGroup(PathTableModelGroupType.STRATEGY, null, visibleColumns.size() - 1));
+				}
 			}
 		}
 	}

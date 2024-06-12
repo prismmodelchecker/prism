@@ -406,7 +406,7 @@ public final class FastAdaptiveUniformisation extends PrismComponent
 	}
 
 	/** model exploration component to generate new states */
-	private ModelGenerator modelGen;
+	private ModelGenerator<Double> modelGen;
 	/** probability allowed to drop birth process */
 	private double epsilon;
 	/** probability threshold when to drop states in discrete-time process */
@@ -461,7 +461,7 @@ public final class FastAdaptiveUniformisation extends PrismComponent
 	/**
 	 * Constructor.
 	 */
-	public FastAdaptiveUniformisation(PrismComponent parent, ModelGenerator modelGen) throws PrismException
+	public FastAdaptiveUniformisation(PrismComponent parent, ModelGenerator<Double> modelGen) throws PrismException
 	{
 		super(parent);
 		

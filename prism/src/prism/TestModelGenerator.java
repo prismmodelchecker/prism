@@ -41,7 +41,7 @@ import parser.ast.PropertiesFile;
 import parser.type.Type;
 import parser.type.TypeInt;
 
-public class TestModelGenerator implements ModelGenerator
+public class TestModelGenerator implements ModelGenerator<Double>
 {
 	protected State exploreState;
 	protected int x;
@@ -118,7 +118,7 @@ public class TestModelGenerator implements ModelGenerator
 	}
 
 	@Override
-	public double getTransitionProbability(int i, int offset) throws PrismException
+	public Double getTransitionProbability(int i, int offset) throws PrismException
 	{
 		return x > 0 && x < n ? 0.5 : 1.0;
 	}

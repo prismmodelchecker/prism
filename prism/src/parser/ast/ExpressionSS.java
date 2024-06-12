@@ -29,6 +29,7 @@ package parser.ast;
 import parser.EvaluateContext;
 import parser.Values;
 import parser.visitor.ASTVisitor;
+import parser.visitor.DeepCopy;
 import prism.OpRelOpBound;
 import prism.PrismException;
 import prism.PrismLangException;
@@ -126,16 +127,15 @@ public class ExpressionSS extends ExpressionQuant
 	}
 
 	@Override
-	public Expression deepCopy()
+	public ExpressionSS deepCopy(DeepCopy copier) throws PrismLangException
 	{
-		ExpressionSS expr = new ExpressionSS();
-		expr.setExpression(getExpression() == null ? null : getExpression().deepCopy());
-		expr.setRelOp(getRelOp());
-		expr.setBound(getBound() == null ? null : getBound().deepCopy());
-		expr.setFilter(getFilter() == null ? null : (Filter)getFilter().deepCopy());
-		expr.setType(type);
-		expr.setPosition(this);
-		return expr;
+		return (ExpressionSS) super.deepCopy(copier);
+	}
+
+	@Override
+	public ExpressionSS clone()
+	{
+		return (ExpressionSS) super.clone();
 	}
 
 	// Standard methods

@@ -27,39 +27,81 @@
 package explicit.rewards;
 
 import java.util.ArrayList;
+import java.util.function.Function;
 
 import explicit.Model;
 import explicit.Product;
+import prism.Evaluator;
 
 /**
  * Explicit-state storage of just state rewards (mutable).
  */
-public class StateRewardsSimple extends StateRewards
+public class StateRewardsSimple<Value> extends StateRewards<Value>
 {
-	/** Arraylist of state rewards **/
-	protected ArrayList<Double> stateRewards;
+	/** State rewards **/
+	protected ArrayList<Value> stateRewards;
 
 	/**
 	 * Constructor: all zero rewards.
 	 */
 	public StateRewardsSimple()
 	{
-		stateRewards = new ArrayList<Double>();
+		// Empty list (denoting all 0)
+		stateRewards = new ArrayList<Value>();
 	}
 
 	/**
 	 * Copy constructor
 	 * @param rews Rewards to copy
 	 */
-	public StateRewardsSimple(StateRewardsSimple rews)
+	public StateRewardsSimple(StateRewardsSimple<Value> rews)
 	{
+		setEvaluator(rews.getEvaluator());
 		if (rews.stateRewards == null) {
 			stateRewards = null;
 		} else {
-			int n = rews.stateRewards.size();
-			stateRewards = new ArrayList<Double>(n);
-			for (int i = 0; i < n; i++) {
-				stateRewards.add(rews.stateRewards.get(i));
+			stateRewards = new ArrayList<>(rews.stateRewards);
+		}
+	}
+
+	/**
+	 * Copy constructor.
+	 * @param rews Rewards to copy
+	 * @param model Associated model (needed for sizes)
+	 */
+	public StateRewardsSimple(StateRewards<Value> rews, Model<?> model)
+	{
+		this(rews, model, r -> r);
+	}
+
+	/**
+	 * Copy constructor, mapping reward values using the provided function.
+	 * Since the type changes (T -> Value), an Evaluator for Value must be given.
+	 * @param rews Rewards to copy
+	 * @param model Associated model (needed for sizes)
+	 * @param rewMap Reward value map
+	 */
+	public StateRewardsSimple(StateRewards<Value> rews, Model<?> model, Function<? super Value, ? extends Value> rewMap)
+	{
+		this(rews, model, rewMap, rews.getEvaluator());
+	}
+
+	/**
+	 * Copy constructor, mapping reward values using the provided function.
+	 * Since the type changes (T -> Value), an Evaluator for Value must be given.
+	 * @param rews Rewards to copy
+	 * @param model Associated model (needed for sizes)
+	 * @param rewMap Reward value map
+	 * @param eval Evaluator for Value
+	 */
+	public <T> StateRewardsSimple(StateRewards<T> rews, Model<?> model, Function<? super T, ? extends Value> rewMap, Evaluator<Value> eval)
+	{
+		setEvaluator(eval);
+		int numStates = model.getNumStates();
+		if (rews.hasStateRewards()) {
+			stateRewards = new ArrayList<Value>(numStates);
+			for (int i = 0; i < numStates; i++) {
+				stateRewards.add(rewMap.apply(rews.getStateReward(i)));
 			}
 		}
 	}
@@ -69,41 +111,47 @@ public class StateRewardsSimple extends StateRewards
 	/**
 	 * Set the reward for state {@code s} to {@code r}.
 	 */
-	public void setStateReward(int s, double r)
+	public void setStateReward(int s, Value r)
 	{
-		if (r == 0.0 && s >= stateRewards.size())
+		if (getEvaluator().isZero(r) && s >= stateRewards.size()) {
 			return;
+		}
 		// If list not big enough, extend
 		int n = s - stateRewards.size() + 1;
 		if (n > 0) {
 			for (int j = 0; j < n; j++) {
-				stateRewards.add(0.0);
+				stateRewards.add(getEvaluator().zero());
 			}
 		}
 		// Set reward
 		stateRewards.set(s, r);
 	}
 
+	/**
+	 * Add {@code r} to the state reward for state {@code s}.
+	 */
+	public void addToStateReward(int s, Value r)
+	{
+		setStateReward(s, getEvaluator().add(getStateReward(s), r));
+	}
+
 	// Accessors
 
 	@Override
-	public double getStateReward(int s)
+	public Value getStateReward(int s)
 	{
-		try {
-			return stateRewards.get(s);
-		} catch (IndexOutOfBoundsException e) {
-			return 0.0;
-		}
+		return (s < stateRewards.size()) ? stateRewards.get(s) : getEvaluator().zero();
 	}
 
 	// Converters
 	
 	@Override
-	public StateRewards liftFromModel(Product<? extends Model> product)
+	public StateRewards<Value> liftFromModel(Product<?> product)
 	{
-		Model modelProd = product.getProductModel();
+		Model<?> modelProd = product.getProductModel();
 		int numStatesProd = modelProd.getNumStates();
-		StateRewardsSimple rewardsProd = new StateRewardsSimple();
+		StateRewardsSimple<Value> rewardsProd = new StateRewardsSimple<>();
+		rewardsProd.setEvaluator(getEvaluator());
 		for (int s = 0; s < numStatesProd; s++) {
 			rewardsProd.setStateReward(s, getStateReward(product.getModelState(s)));
 		}
@@ -113,8 +161,8 @@ public class StateRewardsSimple extends StateRewards
 	// Other
 
 	@Override
-	public StateRewardsSimple deepCopy()
+	public StateRewardsSimple<Value> deepCopy()
 	{
-		return new StateRewardsSimple(this);
+		return new StateRewardsSimple<>(this);
 	}
 }

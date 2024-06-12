@@ -41,28 +41,31 @@ import prism.PrismNotSupportedException;
  * where E(i) is the exit rate for state i: sum_j R(i,j).
  * This class is read-only: most of data is pointers to other model info.
  */
-public class DTMCEmbeddedSimple extends DTMCExplicit
+public class DTMCEmbeddedSimple<Value> extends DTMCExplicit<Value>
 {
 	// Parent CTMC
-	protected CTMCSimple ctmc;
+	protected CTMCSimple<Value> ctmc;
 	// Exit rates vector
-	protected double exitRates[];
+	protected List<Value> exitRates;
 	// Number of extra transitions added (just for stats)
 	protected int numExtraTransitions;
 
 	/**
 	 * Constructor: create from CTMC.
 	 */
-	public DTMCEmbeddedSimple(CTMCSimple ctmc)
+	public DTMCEmbeddedSimple(CTMCSimple<Value> ctmc)
 	{
+		// Initialise/copy basic model info
+		initialise(ctmc.getNumStates());
+		copyFrom(ctmc);
+		// Store CTMC info
 		this.ctmc = ctmc;
-		this.numStates = ctmc.getNumStates();
-		// TODO: should we copy other stuff across too?
-		exitRates = new double[numStates];
+		exitRates = new ArrayList<>(numStates);
 		numExtraTransitions = 0;
 		for (int i = 0; i < numStates; i++) {
-			exitRates[i] = ctmc.getTransitions(i).sum();
-			if (exitRates[i] == 0)
+			Value sum = ctmc.getTransitions(i).sum();
+			exitRates.add(sum);
+			if (getEvaluator().isZero(sum))
 				numExtraTransitions++;
 		}
 	}
@@ -122,7 +125,7 @@ public class DTMCEmbeddedSimple extends DTMCExplicit
 
 	public int getNumTransitions(int s)
 	{
-		if (exitRates[s] == 0) {
+		if (getEvaluator().isZero(exitRates.get(s))) {
 			return 1;
 		} else {
 			return ctmc.getNumTransitions(s);
@@ -132,7 +135,7 @@ public class DTMCEmbeddedSimple extends DTMCExplicit
 	@Override
 	public SuccessorsIterator getSuccessors(final int s)
 	{
-		if (exitRates[s] == 0) {
+		if (getEvaluator().isZero(exitRates.get(s))) {
 			return SuccessorsIterator.fromSingleton(s);
 		} else {
 			return ctmc.getSuccessors(s);
@@ -204,17 +207,17 @@ public class DTMCEmbeddedSimple extends DTMCExplicit
 
 	// Accessors (for DTMC)
 
-	public Iterator<Entry<Integer,Double>> getTransitionsIterator(int s)
+	public Iterator<Entry<Integer,Value>> getTransitionsIterator(int s)
 	{
-		if (exitRates[s] == 0) {
+		if (getEvaluator().isZero(exitRates.get(s))) {
 			// return prob-1 self-loop
-			return Collections.singletonMap(s, 1.0).entrySet().iterator();
+			return Collections.singletonMap(s, getEvaluator().one()).entrySet().iterator();
 		} else {
-			final Iterator<Entry<Integer,Double>> ctmcIterator = ctmc.getTransitionsIterator(s);
+			final Iterator<Entry<Integer,Value>> ctmcIterator = ctmc.getTransitionsIterator(s);
 			
 			// return iterator over entries, with probabilities divided by exitRates[s]
-			final double er = exitRates[s];
-			return new Iterator<Entry<Integer,Double>>() {
+			final Value er = exitRates.get(s);
+			return new Iterator<Entry<Integer,Value>>() {
 				@Override
 				public boolean hasNext()
 				{
@@ -222,11 +225,11 @@ public class DTMCEmbeddedSimple extends DTMCExplicit
 				}
 
 				@Override
-				public Entry<Integer, Double> next()
+				public Entry<Integer, Value> next()
 				{
-					final Entry<Integer, Double> ctmcEntry = ctmcIterator.next();
+					final Entry<Integer, Value> ctmcEntry = ctmcIterator.next();
 					
-					return new Entry<Integer, Double>() {
+					return new Entry<Integer, Value>() {
 						@Override
 						public Integer getKey()
 						{
@@ -234,13 +237,13 @@ public class DTMCEmbeddedSimple extends DTMCExplicit
 						}
 
 						@Override
-						public Double getValue()
+						public Value getValue()
 						{
-							return ctmcEntry.getValue() / er;
+							return getEvaluator().divide(ctmcEntry.getValue(), er);
 						}
 
 						@Override
-						public Double setValue(Double value)
+						public Value setValue(Value value)
 						{
 							throw new UnsupportedOperationException();
 						}
@@ -251,14 +254,28 @@ public class DTMCEmbeddedSimple extends DTMCExplicit
 	}
 
 	@Override
-	public void forEachTransition(int s, TransitionConsumer c)
+	public void forEachTransition(int s, TransitionConsumer<Value> c)
 	{
-		final double er = exitRates[s];
+		final Value er = exitRates.get(s);
+		if (getEvaluator().isZero(er)) {
+			// exit rate = 0 -> prob 1 self loop
+			c.accept(s, s, getEvaluator().one());
+		} else {
+			ctmc.forEachTransition(s, (s_,t,rate) -> {
+				c.accept(s_, t, getEvaluator().divide(rate, er));
+			});
+		}
+	}
+
+	@Override
+	public void forEachDoubleTransition(int s, DoubleTransitionConsumer c)
+	{
+		final double er = getEvaluator().toDouble(exitRates.get(s));
 		if (er == 0) {
 			// exit rate = 0 -> prob 1 self loop
 			c.accept(s, s, 1.0);
 		} else {
-			ctmc.forEachTransition(s, (s_,t,rate) -> {
+			ctmc.forEachDoubleTransition(s, (s_,t,rate) -> {
 				c.accept(s_, t, rate / er);
 			});
 		}
@@ -266,22 +283,18 @@ public class DTMCEmbeddedSimple extends DTMCExplicit
 
 	public double mvMultSingle(int s, double vect[])
 	{
-		int k;
-		double d, er, prob;
-		Distribution distr;
-
-		distr = ctmc.getTransitions(s);
-		d = 0.0;
-		er = exitRates[s];
+		Distribution<Value> distr = ctmc.getTransitions(s);
+		double d = 0.0;
+		double er = getEvaluator().toDouble(exitRates.get(s));
 		// Exit rate 0: prob 1 self-loop
 		if (er == 0) {
 			d += vect[s];
 		}
 		// Exit rate > 0
 		else {
-			for (Map.Entry<Integer, Double> e : distr) {
-				k = (Integer) e.getKey();
-				prob = (Double) e.getValue();
+			for (Map.Entry<Integer, Value> e : distr) {
+				int k = e.getKey();
+				double prob = getEvaluator().toDouble(e.getValue());
 				d += prob * vect[k];
 			}
 			d /= er;
@@ -293,13 +306,9 @@ public class DTMCEmbeddedSimple extends DTMCExplicit
 	@Override
 	public double mvMultJacSingle(int s, double vect[])
 	{
-		int k;
-		double diag, d, er, prob;
-		Distribution distr;
-
-		distr = ctmc.getTransitions(s);
-		diag = d = 0.0;
-		er = exitRates[s];
+		Distribution<Value> distr = ctmc.getTransitions(s);
+		double diag = 0.0, d = 0.0;
+		double er = getEvaluator().toDouble(exitRates.get(s));
 		// Exit rate 0: prob 1 self-loop
 		if (er == 0) {
 			return 0.0;
@@ -309,9 +318,9 @@ public class DTMCEmbeddedSimple extends DTMCExplicit
 			// (sum_{j!=s} P(s,j)*vect[j]) / (1-P(s,s))
 			// = (sum_{j!=s} (R(s,j)/E(s))*vect[j]) / (1-(P(s,s)/E(s)))
 			// = (sum_{j!=s} R(s,j)*vect[j]) / (E(s)-P(s,s))
-			for (Map.Entry<Integer, Double> e : distr) {
-				k = (Integer) e.getKey();
-				prob = (Double) e.getValue();
+			for (Map.Entry<Integer, Value> e : distr) {
+				int k = e.getKey();
+				double prob = getEvaluator().toDouble(e.getValue());
 				// Non-diagonal entries only
 				if (k != s) {
 					d += prob * vect[k];
@@ -325,24 +334,20 @@ public class DTMCEmbeddedSimple extends DTMCExplicit
 		return d;
 	}
 
-	public double mvMultRewSingle(int s, double vect[], MCRewards mcRewards)
+	public double mvMultRewSingle(int s, double vect[], MCRewards<Double> mcRewards)
 	{
-		int k;
-		double d, er, prob;
-		Distribution distr;
-
-		distr = ctmc.getTransitions(s);
-		er = exitRates[s];
-		d = 0;
+		Distribution<Value> distr = ctmc.getTransitions(s);
+		double er = getEvaluator().toDouble(exitRates.get(s));
+		double d = 0;
 		// Exit rate 0: prob 1 self-loop
 		if (er == 0) {
 			d += vect[s];
 		}
 		// Exit rate > 0
 		else {
-			for (Map.Entry<Integer, Double> e : distr) {
-				k = (Integer) e.getKey();
-				prob = (Double) e.getValue();
+			for (Map.Entry<Integer, Value> e : distr) {
+				int k = e.getKey();
+				double prob = getEvaluator().toDouble(e.getValue());
 				d += prob * vect[k];
 			}
 			d /= er;
@@ -353,15 +358,11 @@ public class DTMCEmbeddedSimple extends DTMCExplicit
 	}
 
 	//@Override
-	public double mvMultRewJacSingle(int s, double vect[], MCRewards mcRewards)
+	public double mvMultRewJacSingle(int s, double vect[], MCRewards<Double> mcRewards)
 	{
-		int k;
-		double diag, d, er, prob;
-		Distribution distr;
-
-		distr = ctmc.getTransitions(s);
-		diag = d = 0.0;
-		er = exitRates[s];
+		Distribution<Value> distr = ctmc.getTransitions(s);
+		double diag = 0.0, d = 0.0;
+		double er = getEvaluator().toDouble(exitRates.get(s));
 		// Exit rate 0: prob 1 self-loop
 		if (er == 0) {
 			return mcRewards.getStateReward(s);
@@ -372,9 +373,9 @@ public class DTMCEmbeddedSimple extends DTMCExplicit
 			// = (rew(s) + sum_{j!=s} (R(s,j)/E(s))*vect[j]) / (1-(P(s,s)/E(s)))
 			// = (E(s)*rew(s) + sum_{j!=s} R(s,j)*vect[j]) / (E(s)-P(s,s))
 			d = er * mcRewards.getStateReward(s);
-			for (Map.Entry<Integer, Double> e : distr) {
-				k = (Integer) e.getKey();
-				prob = (Double) e.getValue();
+			for (Map.Entry<Integer, Value> e : distr) {
+				int k = e.getKey();
+				double prob = getEvaluator().toDouble(e.getValue());
 				// Non-diagonal entries only
 				if (k != s) {
 					d += prob * vect[k];
@@ -395,17 +396,17 @@ public class DTMCEmbeddedSimple extends DTMCExplicit
 		Arrays.fill(result, 0);
 		// Go through matrix elements (by row)
 		for (int state = 0; state < numStates; state++) {
-			double er = exitRates[state];
+			double er = getEvaluator().toDouble(exitRates.get(state));
 			// Exit rate 0: prob 1 self-loop
 			if (er == 0) {
 				result[state] += vect[state];
 				continue;
 			}
 			// Exit rate > 0
-			for (Iterator<Entry<Integer, Double>> transitions = ctmc.getTransitionsIterator(state); transitions.hasNext();) {
-				Entry<Integer, Double> trans = transitions.next();
+			for (Iterator<Entry<Integer, Value>> transitions = ctmc.getTransitionsIterator(state); transitions.hasNext();) {
+				Entry<Integer, Value> trans = transitions.next();
 				int target  = trans.getKey();
-				double prob = trans.getValue() / er;
+				double prob = getEvaluator().toDouble(trans.getValue()) / er;
 				result[target] += prob * vect[state];
 			}
 		}
@@ -426,7 +427,7 @@ public class DTMCEmbeddedSimple extends DTMCExplicit
 				first = false;
 			else
 				s += ", ";
-			s += i + ": " + exitRates[i];
+			s += i + ": " + exitRates.get(i);
 		}
 		s += " ]";
 		return s;
@@ -437,7 +438,7 @@ public class DTMCEmbeddedSimple extends DTMCExplicit
 	{
 		if (o == null || !(o instanceof DTMCEmbeddedSimple))
 			return false;
-		DTMCEmbeddedSimple dtmc = (DTMCEmbeddedSimple) o;
+		DTMCEmbeddedSimple<?> dtmc = (DTMCEmbeddedSimple<?>) o;
 		if (!ctmc.equals(dtmc.ctmc))
 			return false;
 		if (!exitRates.equals(dtmc.exitRates))

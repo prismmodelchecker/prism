@@ -26,33 +26,35 @@
 
 package parser.ast;
 
-import java.util.Vector;
+import java.util.ArrayList;
+import java.util.List;
 
-import parser.visitor.*;
+import parser.visitor.ASTVisitor;
+import parser.visitor.DeepCopy;
 import prism.PrismLangException;
 
 public class SystemInterleaved extends SystemDefn
 {
-	// Vector of operands
-	private Vector<SystemDefn> operands;
+	// List of operands
+	private ArrayList<SystemDefn> operands;
 	
 	// Constructor
 	
 	public SystemInterleaved()
 	{
-		operands = new Vector<SystemDefn>();
+		operands = new ArrayList<>();
 	}
 	
 	// Set methods
 	
 	public void addOperand(SystemDefn s)
 	{
-		operands.addElement(s);
+		operands.add(s);
 	}
 		
 	public void setOperand(int i, SystemDefn s)
 	{
-		operands.setElementAt(s, i);
+		operands.set(i, s);
 	}
 			
 	// Get methods
@@ -64,14 +66,14 @@ public class SystemInterleaved extends SystemDefn
 	
 	public SystemDefn getOperand(int i)
 	{
-		return operands.elementAt(i);
+		return operands.get(i);
 	}
 		
 	// Methods required for SystemDefn (all subclasses should implement):
 	
 	@Override
 	@SuppressWarnings("deprecation")
-	public void getModules(Vector<String> v)
+	public void getModules(List<String> v)
 	{
 		int i, n;
 		
@@ -82,7 +84,7 @@ public class SystemInterleaved extends SystemDefn
 	}
 
 	@Override
-	public void getModules(Vector<String> v, ModulesFile modulesFile)
+	public void getModules(List<String> v, ModulesFile modulesFile)
 	{
 		int i, n;
 		
@@ -94,7 +96,7 @@ public class SystemInterleaved extends SystemDefn
 
 	@Override
 	@SuppressWarnings("deprecation")
-	public void getSynchs(Vector<String> v)
+	public void getSynchs(List<String> v)
 	{
 		int i, n;
 		
@@ -105,7 +107,7 @@ public class SystemInterleaved extends SystemDefn
 	}
 	
 	@Override
-	public void getSynchs(Vector<String> v, ModulesFile modulesFile)
+	public void getSynchs(List<String> v, ModulesFile modulesFile)
 	{
 		int i, n;
 		
@@ -116,7 +118,7 @@ public class SystemInterleaved extends SystemDefn
 	}
 	
 	@Override
-	public void getReferences(Vector<String> v)
+	public void getReferences(List<String> v)
 	{
 		int n = getNumOperands();
 		for (int i = 0; i < n; i++) {
@@ -150,16 +152,22 @@ public class SystemInterleaved extends SystemDefn
 	}
 	
 	@Override
-	public SystemDefn deepCopy()
+	public SystemInterleaved deepCopy(DeepCopy copier) throws PrismLangException
 	{
-		int i, n;
-		SystemInterleaved ret = new SystemInterleaved();
-		n = getNumOperands();
-		for (i = 0; i < n; i++) {
-			ret.addOperand(getOperand(i).deepCopy());
-		}
-		ret.setPosition(this);
-		return ret;
+		copier.copyAll(operands);
+
+		return this;
+	}
+
+	@SuppressWarnings("unchecked")
+	@Override
+	public SystemInterleaved clone()
+	{
+		SystemInterleaved clone = (SystemInterleaved) super.clone();
+
+		clone.operands = (ArrayList<SystemDefn>) operands.clone();
+
+		return clone;
 	}
 }
 

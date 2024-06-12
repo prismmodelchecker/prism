@@ -1,35 +1,14 @@
-/**CFile***********************************************************************
+/**
+  @file
 
-  FileName    [cuddCache.c]
+  @ingroup cudd
 
-  PackageName [cudd]
+  @brief Functions for cache insertion and lookup.
 
-  Synopsis    [Functions for cache insertion and lookup.]
+  @author Fabio Somenzi
 
-  Description [Internal procedures included in this module:
-		<ul>
-		<li> cuddInitCache()
-		<li> cuddCacheInsert()
-		<li> cuddCacheInsert2()
-		<li> cuddCacheLookup()
-		<li> cuddCacheLookupZdd()
-		<li> cuddCacheLookup2()
-		<li> cuddCacheLookup2Zdd()
-		<li> cuddConstantLookup()
-		<li> cuddCacheProfile()
-		<li> cuddCacheResize()
-		<li> cuddCacheFlush()
-		<li> cuddComputeFloorLog2()
-		</ul>
-	    Static procedures included in this module:
-		<ul>
-		</ul> ]
-
-  SeeAlso     []
-
-  Author      [Fabio Somenzi]
-
-  Copyright   [Copyright (c) 1995-2012, Regents of the University of Colorado
+  @copyright@parblock
+  Copyright (c) 1995-2015, Regents of the University of Colorado
 
   All rights reserved.
 
@@ -59,9 +38,10 @@
   CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
   LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
   ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-  POSSIBILITY OF SUCH DAMAGE.]
+  POSSIBILITY OF SUCH DAMAGE.
+  @endparblock
 
-******************************************************************************/
+*/
 
 #include "util.h"
 #include "cuddInt.h"
@@ -88,23 +68,18 @@
 /* Variable declarations                                                     */
 /*---------------------------------------------------------------------------*/
 
-#ifndef lint
-static char rcsid[] DD_UNUSED = "$Id: cuddCache.c,v 1.36 2012/02/05 01:07:18 fabio Exp $";
-#endif
 
 /*---------------------------------------------------------------------------*/
 /* Macro declarations                                                        */
 /*---------------------------------------------------------------------------*/
 
-
-/**AutomaticStart*************************************************************/
+/** \cond */
 
 /*---------------------------------------------------------------------------*/
 /* Static function prototypes                                                */
 /*---------------------------------------------------------------------------*/
 
-
-/**AutomaticEnd***************************************************************/
+/** \endcond */
 
 
 /*---------------------------------------------------------------------------*/
@@ -116,23 +91,23 @@ static char rcsid[] DD_UNUSED = "$Id: cuddCache.c,v 1.36 2012/02/05 01:07:18 fab
 /*---------------------------------------------------------------------------*/
 
 
-/**Function********************************************************************
+/**
+  @brief Initializes the computed table.
 
-  Synopsis    [Initializes the computed table.]
+  @details It is called by Cudd_Init.
 
-  Description [Initializes the computed table. It is called by
-  Cudd_Init. Returns 1 in case of success; 0 otherwise.]
+  @return 1 in case of success; 0 otherwise.
 
-  SideEffects [None]
+  @sideeffect None
 
-  SeeAlso     [Cudd_Init]
+  @see Cudd_Init
 
-******************************************************************************/
+*/
 int
 cuddInitCache(
-  DdManager * unique /* unique table */,
-  unsigned int cacheSize /* initial size of the cache */,
-  unsigned int maxCacheSize /* cache size beyond which no resizing occurs */)
+  DdManager * unique /**< unique table */,
+  unsigned int cacheSize /**< initial size of the cache */,
+  unsigned int maxCacheSize /**< cache size beyond which no resizing occurs */)
 {
     int i;
     unsigned int logSize;
@@ -199,20 +174,18 @@ cuddInitCache(
 } /* end of cuddInitCache */
 
 
-/**Function********************************************************************
+/**
+  @brief Inserts a result in the cache for a function with three
+  operands.
 
-  Synopsis    [Inserts a result in the cache for a function with three
-  operands.]
+  @details The operator tag (see cuddInt.h for details) is split and
+  stored into unused bits of the first two pointers.
 
-  Description [Inserts a result in the cache for a function with three
-  operands.  The operator tag (see cuddInt.h for details) is split and stored
-  into unused bits of the first two pointers.]
+  @sideeffect None
 
-  SideEffects [None]
+  @see cuddCacheInsert2 cuddCacheInsert1
 
-  SeeAlso     [cuddCacheInsert2 cuddCacheInsert1]
-
-******************************************************************************/
+*/
 void
 cuddCacheInsert(
   DdManager * table,
@@ -223,7 +196,7 @@ cuddCacheInsert(
   DdNode * data)
 {
     int posn;
-    register DdCache *entry;
+    DdCache *entry;
     ptruint uf, ug, uh;
 
     uf = (ptruint) f | (op & 0xe);
@@ -247,18 +220,15 @@ cuddCacheInsert(
 } /* end of cuddCacheInsert */
 
 
-/**Function********************************************************************
+/**
+  @brief Inserts a result in the cache for a function with two
+  operands.
 
-  Synopsis    [Inserts a result in the cache for a function with two
-  operands.]
+  @sideeffect None
 
-  Description []
+  @see cuddCacheInsert cuddCacheInsert1
 
-  SideEffects [None]
-
-  SeeAlso     [cuddCacheInsert cuddCacheInsert1]
-
-******************************************************************************/
+*/
 void
 cuddCacheInsert2(
   DdManager * table,
@@ -268,7 +238,7 @@ cuddCacheInsert2(
   DdNode * data)
 {
     int posn;
-    register DdCache *entry;
+    DdCache *entry;
 
     posn = ddCHash2(op,f,g,table->cacheShift);
     entry = &table->cache[posn];
@@ -289,18 +259,15 @@ cuddCacheInsert2(
 } /* end of cuddCacheInsert2 */
 
 
-/**Function********************************************************************
+/**
+  @brief Inserts a result in the cache for a function with two
+  operands.
 
-  Synopsis    [Inserts a result in the cache for a function with two
-  operands.]
+  @sideeffect None
 
-  Description []
+  @see cuddCacheInsert cuddCacheInsert2
 
-  SideEffects [None]
-
-  SeeAlso     [cuddCacheInsert cuddCacheInsert2]
-
-******************************************************************************/
+*/
 void
 cuddCacheInsert1(
   DdManager * table,
@@ -309,7 +276,7 @@ cuddCacheInsert1(
   DdNode * data)
 {
     int posn;
-    register DdCache *entry;
+    DdCache *entry;
 
     posn = ddCHash2(op,f,f,table->cacheShift);
     entry = &table->cache[posn];
@@ -330,19 +297,17 @@ cuddCacheInsert1(
 } /* end of cuddCacheInsert1 */
 
 
-/**Function********************************************************************
+/**
+  @brief Looks up in the cache for the result of op applied to f,
+  g, and h.
 
-  Synopsis    [Looks up in the cache for the result of op applied to f,
-  g, and h.]
+  @return the result if found; it returns NULL if no result is found.
 
-  Description [Returns the result if found; it returns NULL if no
-  result is found.]
+  @sideeffect None
 
-  SideEffects [None]
+  @see cuddCacheLookup2 cuddCacheLookup1
 
-  SeeAlso     [cuddCacheLookup2 cuddCacheLookup1]
-
-******************************************************************************/
+*/
 DdNode *
 cuddCacheLookup(
   DdManager * table,
@@ -392,19 +357,17 @@ cuddCacheLookup(
 } /* end of cuddCacheLookup */
 
 
-/**Function********************************************************************
+/**
+  @brief Looks up in the cache for the result of op applied to f,
+  g, and h.
 
-  Synopsis    [Looks up in the cache for the result of op applied to f,
-  g, and h.]
+  @return the result if found; it returns NULL if no result is found.
 
-  Description [Returns the result if found; it returns NULL if no
-  result is found.]
+  @sideeffect None
 
-  SideEffects [None]
+  @see cuddCacheLookup2Zdd cuddCacheLookup1Zdd
 
-  SeeAlso     [cuddCacheLookup2Zdd cuddCacheLookup1Zdd]
-
-******************************************************************************/
+*/
 DdNode *
 cuddCacheLookupZdd(
   DdManager * table,
@@ -454,19 +417,17 @@ cuddCacheLookupZdd(
 } /* end of cuddCacheLookupZdd */
 
 
-/**Function********************************************************************
+/**
+  @brief Looks up in the cache for the result of op applied to f
+  and g.
 
-  Synopsis    [Looks up in the cache for the result of op applied to f
-  and g.]
+  @return the result if found; it returns NULL if no result is found.
 
-  Description [Returns the result if found; it returns NULL if no
-  result is found.]
+  @sideeffect None
 
-  SideEffects [None]
+  @see cuddCacheLookup cuddCacheLookup1
 
-  SeeAlso     [cuddCacheLookup cuddCacheLookup1]
-
-******************************************************************************/
+*/
 DdNode *
 cuddCacheLookup2(
   DdManager * table,
@@ -509,18 +470,16 @@ cuddCacheLookup2(
 } /* end of cuddCacheLookup2 */
 
 
-/**Function********************************************************************
+/**
+  @brief Looks up in the cache for the result of op applied to f.
 
-  Synopsis [Looks up in the cache for the result of op applied to f.]
+  @return the result if found; it returns NULL if no result is found.
 
-  Description [Returns the result if found; it returns NULL if no
-  result is found.]
+  @sideeffect None
 
-  SideEffects [None]
+  @see cuddCacheLookup cuddCacheLookup2
 
-  SeeAlso     [cuddCacheLookup cuddCacheLookup2]
-
-******************************************************************************/
+*/
 DdNode *
 cuddCacheLookup1(
   DdManager * table,
@@ -562,19 +521,17 @@ cuddCacheLookup1(
 } /* end of cuddCacheLookup1 */
 
 
-/**Function********************************************************************
+/**
+  @brief Looks up in the cache for the result of op applied to f
+  and g.
 
-  Synopsis [Looks up in the cache for the result of op applied to f
-  and g.]
+  @return the result if found; it returns NULL if no result is found.
 
-  Description [Returns the result if found; it returns NULL if no
-  result is found.]
+  @sideeffect None
 
-  SideEffects [None]
+  @see cuddCacheLookupZdd cuddCacheLookup1Zdd
 
-  SeeAlso     [cuddCacheLookupZdd cuddCacheLookup1Zdd]
-
-******************************************************************************/
+*/
 DdNode *
 cuddCacheLookup2Zdd(
   DdManager * table,
@@ -617,18 +574,16 @@ cuddCacheLookup2Zdd(
 } /* end of cuddCacheLookup2Zdd */
 
 
-/**Function********************************************************************
+/**
+  @brief Looks up in the cache for the result of op applied to f.
 
-  Synopsis [Looks up in the cache for the result of op applied to f.]
+  @return the result if found; it returns NULL if no result is found.
 
-  Description [Returns the result if found; it returns NULL if no
-  result is found.]
+  @sideeffect None
 
-  SideEffects [None]
+  @see cuddCacheLookupZdd cuddCacheLookup2Zdd
 
-  SeeAlso     [cuddCacheLookupZdd cuddCacheLookup2Zdd]
-
-******************************************************************************/
+*/
 DdNode *
 cuddCacheLookup1Zdd(
   DdManager * table,
@@ -670,22 +625,22 @@ cuddCacheLookup1Zdd(
 } /* end of cuddCacheLookup1Zdd */
 
 
-/**Function********************************************************************
+/**
+  @brief Looks up in the cache for the result of op applied to f,
+  g, and h.
 
-  Synopsis [Looks up in the cache for the result of op applied to f,
-  g, and h.]
-
-  Description [Looks up in the cache for the result of op applied to f,
-  g, and h. Assumes that the calling procedure (e.g.,
+  @details Assumes that the calling procedure (e.g.,
   Cudd_bddIteConstant) is only interested in whether the result is
-  constant or not. Returns the result if found (possibly
-  DD_NON_CONSTANT); otherwise it returns NULL.]
+  constant or not.
 
-  SideEffects [None]
+  @return the result if found (possibly DD_NON_CONSTANT); otherwise it
+  returns NULL.
 
-  SeeAlso     [cuddCacheLookup]
+  @sideeffect None
 
-******************************************************************************/
+  @see cuddCacheLookup
+
+*/
 DdNode *
 cuddConstantLookup(
   DdManager * table,
@@ -733,18 +688,14 @@ cuddConstantLookup(
 } /* end of cuddConstantLookup */
 
 
-/**Function********************************************************************
+/**
+  @brief Computes and prints a profile of the cache usage.
 
-  Synopsis    [Computes and prints a profile of the cache usage.]
+  @return 1 if successful; 0 otherwise.
 
-  Description [Computes and prints a profile of the cache usage.
-  Returns 1 if successful; 0 otherwise.]
+  @sideeffect None
 
-  SideEffects [None]
-
-  SeeAlso     []
-
-******************************************************************************/
+*/
 int
 cuddCacheProfile(
   DdManager * table,
@@ -874,17 +825,12 @@ cuddCacheProfile(
 } /* end of cuddCacheProfile */
 
 
-/**Function********************************************************************
+/**
+  @brief Resizes the cache.
 
-  Synopsis    [Resizes the cache.]
+  @sideeffect None
 
-  Description []
-
-  SideEffects [None]
-
-  SeeAlso     []
-
-******************************************************************************/
+*/
 void
 cuddCacheResize(
   DdManager * table)
@@ -917,7 +863,7 @@ cuddCacheResize(
 #endif
 
     saveHandler = MMoutOfMemory;
-    MMoutOfMemory = Cudd_OutOfMem;
+    MMoutOfMemory = table->outOfMemCallback;
     table->acache = cache = ALLOC(DdCache,slots+1);
     MMoutOfMemory = saveHandler;
     /* If we fail to allocate the new table we just give up. */
@@ -989,17 +935,12 @@ cuddCacheResize(
 } /* end of cuddCacheResize */
 
 
-/**Function********************************************************************
+/**
+  @brief Flushes the cache.
 
-  Synopsis    [Flushes the cache.]
+  @sideeffect None
 
-  Description []
-
-  SideEffects [None]
-
-  SeeAlso     []
-
-******************************************************************************/
+*/
 void
 cuddCacheFlush(
   DdManager * table)
@@ -1020,18 +961,14 @@ cuddCacheFlush(
 } /* end of cuddCacheFlush */
 
 
-/**Function********************************************************************
+/**
+  @brief Returns the floor of the logarithm to the base 2.
 
-  Synopsis    [Returns the floor of the logarithm to the base 2.]
+  @details The input value is assumed to be greater than 0.
 
-  Description [Returns the floor of the logarithm to the base 2.
-  The input value is assumed to be greater than 0.]
+  @sideeffect None
 
-  SideEffects [None]
-
-  SeeAlso     []
-
-******************************************************************************/
+*/
 int
 cuddComputeFloorLog2(
   unsigned int value)

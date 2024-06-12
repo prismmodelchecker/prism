@@ -56,7 +56,9 @@ jlong __jlongpointer cv,	// col vars
 jint num_cvars,
 jlong __jlongpointer od,	// odd
 jint et,		// export type
-jstring fn		// filename
+jstring fn,		// filename
+jstring rsn,    // reward struct name
+jboolean neh    // noexportheaders
 )
 {
 	DdNode *matrix = jlong_to_DdNode(m);		// matrix
@@ -69,6 +71,14 @@ jstring fn		// filename
 	export_name = na ? env->GetStringUTFChars(na, 0) : "M";
 	
 	// print file header
+	if (export_type == EXPORT_PLAIN && !neh) {
+		if (env->GetStringUTFLength(rsn) > 0) {
+			const char *header = env->GetStringUTFChars(rsn,0);
+			export_string("# Reward structure \"%s\"\n", header);
+			env->ReleaseStringUTFChars(rsn, header);
+		}
+		export_string("# Transition rewards\n");
+	}
 	switch (export_type) {
 	case EXPORT_PLAIN: export_string("%" PRId64 " %.0f\n", odd->eoff+odd->toff, DD_GetNumMinterms(ddman, matrix, num_rvars+num_cvars)); break;
 	case EXPORT_MATLAB: export_string("%s = sparse(%" PRId64 ",%" PRId64 ");\n", export_name, odd->eoff+odd->toff, odd->eoff+odd->toff); break;
@@ -111,16 +121,16 @@ static void export_rec(DdNode *dd, DdNode **rvars, DdNode **cvars, int num_vars,
 	}
 	
 	// recurse
-	if (dd->index > cvars[level]->index) {
+	if (Cudd_NodeReadIndex(dd) > Cudd_NodeReadIndex(cvars[level])) {
 		ee = et = te = tt = dd;
 	}
-	else if (dd->index > rvars[level]->index) {
+	else if (Cudd_NodeReadIndex(dd) > Cudd_NodeReadIndex(rvars[level])) {
 		ee = te = Cudd_E(dd);
 		et = tt = Cudd_T(dd);
 	}
 	else {
 		e = Cudd_E(dd);
-		if (e->index > cvars[level]->index) {
+		if (Cudd_NodeReadIndex(e) > Cudd_NodeReadIndex(cvars[level])) {
 			ee = et = e;
 		}
 		else {
@@ -128,7 +138,7 @@ static void export_rec(DdNode *dd, DdNode **rvars, DdNode **cvars, int num_vars,
 			et = Cudd_T(e);
 		}
 		t = Cudd_T(dd);
-		if (t->index > cvars[level]->index) {
+		if (Cudd_NodeReadIndex(t) > Cudd_NodeReadIndex(cvars[level])) {
 			te = tt = t;
 		}
 		else {

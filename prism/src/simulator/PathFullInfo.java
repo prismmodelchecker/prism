@@ -74,6 +74,16 @@ public interface PathFullInfo
 	public abstract double getCumulativeReward(int step, int rsi);
 
 	/**
+	 * Get the memory of the strategy (if present) at a given step of the path.
+	 */
+	public abstract int getStrategyMemory(int step);
+	
+	/**
+	 * Get the decision taken by the strategy (if present) in a given step of the path.
+	 */
+	public abstract Object getStrategyDecision(int step);
+	
+	/**
 	 * Get the time spent in a state at a given step of the path.
 	 * If no time info is stored ({@link #hasTimeInfo()} is false), returns 0.0. 
 	 * @param step Step index (0 = initial state/step of path)

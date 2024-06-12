@@ -26,9 +26,10 @@
 
 package parser.ast;
 
-import java.util.Vector;
+import java.util.List;
 
-import parser.visitor.*;
+import parser.visitor.ASTVisitor;
+import parser.visitor.DeepCopy;
 import prism.PrismLangException;
 
 // note: although this makes no difference to the meaning
@@ -69,32 +70,32 @@ public class SystemBrackets extends SystemDefn
 	
 	@Override
 	@SuppressWarnings("deprecation")
-	public void getModules(Vector<String> v)
+	public void getModules(List<String> v)
 	{
 		operand.getModules(v);
 	}
 
 	@Override
-	public void getModules(Vector<String> v, ModulesFile modulesFile)
+	public void getModules(List<String> v, ModulesFile modulesFile)
 	{
 		operand.getModules(v, modulesFile);
 	}
 
 	@Override
 	@SuppressWarnings("deprecation")
-	public void getSynchs(Vector<String> v)
+	public void getSynchs(List<String> v)
 	{
 		operand.getSynchs(v);
 	}
 	
 	@Override
-	public void getSynchs(Vector<String> v, ModulesFile modulesFile)
+	public void getSynchs(List<String> v, ModulesFile modulesFile)
 	{
 		operand.getSynchs(v, modulesFile);
 	}
 	
 	@Override
-	public void getReferences(Vector<String> v)
+	public void getReferences(List<String> v)
 	{
 		operand.getReferences(v);
 	}
@@ -114,11 +115,17 @@ public class SystemBrackets extends SystemDefn
 	}
 	
 	@Override
-	public SystemDefn deepCopy()
+	public SystemBrackets deepCopy(DeepCopy copier) throws PrismLangException
 	{
-		SystemDefn ret = new SystemBrackets(getOperand().deepCopy());
-		ret.setPosition(this);
-		return ret;
+		operand = copier.copy(operand);
+
+		return this;
+	}
+
+	@Override
+	public SystemBrackets clone()
+	{
+		return (SystemBrackets) super.clone();
 	}
 }
 

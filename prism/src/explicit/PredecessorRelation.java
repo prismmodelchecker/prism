@@ -57,7 +57,7 @@ public class PredecessorRelation
 	 *
 	 * @param model the Model
 	 */
-	public PredecessorRelation(Model model)
+	public PredecessorRelation(Model<?> model)
 	{
 		pre = new ArrayList<ArrayList<Integer>>(model.getNumStates());
 		// construct the (empty) array list for all states
@@ -69,7 +69,7 @@ public class PredecessorRelation
 	}
 
 	/** Compute the predecessor relation using getSuccessorsIterator. */
-	private void compute(Model model)
+	private void compute(Model<?> model)
 	{
 		int n = model.getNumStates();
 
@@ -112,7 +112,7 @@ public class PredecessorRelation
 	 * @param model the model for which the predecessor relation should be computed
 	 * @returns the predecessor relation
 	 **/
-	public static PredecessorRelation forModel(PrismComponent parent, Model model)
+	public static PredecessorRelation forModel(PrismComponent parent, Model<?> model)
 	{
 		long timer = System.currentTimeMillis();
 		

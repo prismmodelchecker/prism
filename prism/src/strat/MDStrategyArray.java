@@ -2,9 +2,8 @@
 //	
 //	Copyright (c) 2002-
 //	Authors:
-//	* Dave Parker <d.a.parker@cs.bham.ac.uk> (University of Birmingham/Oxford)
-//	* Aistis Simaitis <aistis.aimaitis@cs.ox.ac.uk> (University of Oxford)
-//	
+//	* Dave Parker <david.parker@cs.ox.ac.uk> (University of Oxford)
+//
 //------------------------------------------------------------------------------
 //	
 //	This file is part of PRISM.
@@ -27,18 +26,24 @@
 
 package strat;
 
-import prism.PrismLog;
-import explicit.MDP;
+import explicit.ConstructInducedModel;
 import explicit.Model;
+import explicit.NondetModel;
+import parser.State;
+import prism.PrismException;
+import prism.PrismLog;
+
+import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 /**
- * Class to store a memoryless deterministic (MD) strategy, as a (Java) array of choice indices.
+ * Class to store a memoryless deterministic (MD) strategy
+ * as a (Java) array of choice indices associated with an explicit engine model.
  */
-public class MDStrategyArray extends MDStrategy
+public class MDStrategyArray<Value> extends StrategyExplicit<Value> implements MDStrategy<Value>
 {
-	// Model associated with the strategy
-	private explicit.NondetModel model;
-	// Index of choice taken in each state (wrt model above) 
+	// Index of choice taken in each state (wrt model above)
 	// Other possible values: -1 (unknown), -2 (arbitrary), -3 (unreachable)
 	private int choices[];
 
@@ -46,72 +51,85 @@ public class MDStrategyArray extends MDStrategy
 	 * Creates an MDStrategyArray from an integer array of choices.
 	 * The array may later be modified/delete - take a copy if you want to keep it.
 	 */
-	public MDStrategyArray(explicit.NondetModel model, int choices[])
+	public MDStrategyArray(NondetModel<Value> model, int choices[])
 	{
-		this.model = model;
+		super(model);
 		this.choices = choices;
 	}
 
-	// Methods for MDStrategy
-
 	@Override
-	public int getNumStates()
+	public Object getChoiceAction(int s, int m)
 	{
-		return model.getNumStates();
+		int c = choices[s];
+		return c >= 0 ? model.getAction(s, c) : Strategy.UNDEFINED;
 	}
 
 	@Override
-	public boolean isChoiceDefined(int s)
-	{
-		return choices[s] >= 0;
-	}
-
-	@Override
-	public Strategy.Choice getChoice(int s)
-	{
-		switch (choices[s]) {
-		case -1:
-			return Choice.UNKNOWN;
-		case -2:
-			return Choice.ARBITRARY;
-		case -3:
-			return Choice.UNREACHABLE;
-		default:
-			return Choice.INDEX;
-		}
-	}
-
-	@Override
-	public int getChoiceIndex(int s)
+	public int getChoiceIndex(int s, int m)
 	{
 		return choices[s];
 	}
 
 	@Override
-	public Object getChoiceAction(int s)
+	public UndefinedReason whyUndefined(int s, int m)
 	{
-		int c = choices[s];
-		return c >= 0 ? model.getAction(s, c) : c == -1 ? "?" : c == -2 ? "*" : "-";
+		switch (choices[s]) {
+		case -1:
+			return UndefinedReason.UNKNOWN;
+		case -2:
+			return UndefinedReason.ARBITRARY;
+		case -3:
+			return UndefinedReason.UNREACHABLE;
+		default:
+			return null;
+		}
 	}
 
-	// Methods for Strategy
-
 	@Override
-	public void exportInducedModel(PrismLog out, int precision)
+	public void exportActions(PrismLog out, StrategyExportOptions options)
 	{
-		Model dtmcInd = model.constructInducedModel(this);
-		dtmcInd.exportToPrismExplicitTra(out, precision);
+		List<State> states = model.getStatesList();
+		boolean showStates = options.getShowStates() && states != null;
+		int n = getNumStates();
+		for (int s = 0; s < n; s++) {
+			if (isChoiceDefined(s)) {
+				out.println((showStates ? states.get(s) : s) + "=" + getChoiceActionString(s));
+			}
+		}
 	}
 
 	@Override
-	public void exportDotFile(PrismLog out, int precision)
+	public void exportInducedModel(PrismLog out, StrategyExportOptions options) throws PrismException
 	{
-		model.exportToDotFileWithStrat(out, null, choices, precision);
+		ConstructInducedModel cim = new ConstructInducedModel();
+		cim.setMode(options.getMode()).setReachOnly(options.getReachOnly());
+		Model<Value> inducedModel = cim.constructInducedModel(model, this);
+		inducedModel.exportToPrismExplicitTra(out, options.getModelPrecision());
+
+		// NB: for reach=false (and MDPs), it would be slightly cheaper to use:
+		//Model<Value> inducedModel = model.constructInducedModel(this);
+	}
+
+	@Override
+	public void exportDotFile(PrismLog out, StrategyExportOptions options) throws PrismException
+	{
+		ConstructInducedModel cim = new ConstructInducedModel();
+		cim.setMode(options.getMode()).setReachOnly(options.getReachOnly());
+		Model<Value> inducedModel = cim.constructInducedModel(model, this);
+		inducedModel.exportToDotFile(out, null, options.getShowStates(), options.getModelPrecision());
 	}
 
 	@Override
 	public void clear()
 	{
 		choices = null;
+	}
+
+	@Override
+	public String toString()
+	{
+		return "[" + IntStream.range(0, getNumStates())
+				.mapToObj(s -> s + "=" + getChoiceActionString(s))
+				.collect(Collectors.joining(",")) + "]";
 	}
 }

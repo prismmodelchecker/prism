@@ -1,1 +1,12 @@
--exportlabels dice.pm.2.lab
+-exportlabels dice.pm.lab
+-exportmodel dice.pm.lab
+-exportlabels dice.pm.matlab.lab:matlab
+-exportmodel dice.pm.matlab.lab:matlab
+
+-exportlabels dice.pm.2.lab:proplabels
+-exportmodel dice.pm.2.lab:proplabels
+-exportlabels dice.pm.matlab.2.lab:proplabels,matlab
+-exportmodel dice.pm.matlab.2.lab:proplabels,matlab
+
+-exportproplabels dice.pm.3.lab
+-exportproplabels dice.pm.matlab.3.lab:matlab

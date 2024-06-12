@@ -31,6 +31,7 @@ import java.util.List;
 
 import parser.EvaluateContext;
 import parser.visitor.ASTVisitor;
+import parser.visitor.DeepCopy;
 import prism.PrismLangException;
 
 /**
@@ -46,7 +47,7 @@ public class ExpressionStrategy extends Expression
 	protected Coalition coalition = new Coalition(); 
 	
 	/** Child expression(s) */
-	protected List<Expression> operands = new ArrayList<Expression>();
+	protected ArrayList<Expression> operands = new ArrayList<Expression>();
 	
 	/** Is there just a single operand (P/R operator)? If not, the operand list will be parenthesised. **/
 	protected boolean singleOperand = false;
@@ -194,18 +195,23 @@ public class ExpressionStrategy extends Expression
 	}
 
 	@Override
-	public Expression deepCopy()
+	public ExpressionStrategy deepCopy(DeepCopy copier) throws PrismLangException
 	{
-		ExpressionStrategy expr = new ExpressionStrategy();
-		expr.setThereExists(isThereExists());
-		expr.coalition = new Coalition(coalition);
-		for (Expression operand : operands) {
-			expr.addOperand((Expression) operand.deepCopy());
-		}
-		expr.singleOperand = singleOperand;
-		expr.setType(type);
-		expr.setPosition(this);
-		return expr;
+		copier.copyAll(operands);
+
+		return this;
+	}
+
+	@SuppressWarnings("unchecked")
+	@Override
+	public ExpressionStrategy clone()
+	{
+		ExpressionStrategy clone = (ExpressionStrategy) super.clone();
+
+		clone.coalition = new Coalition(coalition);
+		clone.operands  = (ArrayList<Expression>) operands.clone();
+
+		return clone;
 	}
 
 	// Standard methods

@@ -26,10 +26,11 @@
 
 package parser.ast;
 
-import java.util.ArrayList;
-
-import parser.visitor.*;
+import parser.visitor.ASTVisitor;
+import parser.visitor.DeepCopy;
 import prism.PrismLangException;
+
+import java.util.ArrayList;
 
 public class RenamedModule extends ASTElement
 {
@@ -184,21 +185,24 @@ public class RenamedModule extends ASTElement
 		return s;
 	}
 	
-	/**
-	 * Perform a deep copy.
-	 */
-	public ASTElement deepCopy()
+	@Override
+	public RenamedModule deepCopy(DeepCopy copier) throws PrismLangException
 	{
-		int i, n;
-		RenamedModule ret = new RenamedModule(name, baseModule);
-		ret.setNameASTElement((ExpressionIdent)nameASTElement.deepCopy());
-		ret.setBaseModuleASTElement((ExpressionIdent)baseModuleASTElement.deepCopy());
-		n = oldNames.size();
-		for (i = 0; i < n; i++) {
-			ret.addRename(oldNames.get(i), newNames.get(i));
-		}
-		ret.setPosition(this);
-		return ret;
+		return this;
+	}
+
+	@SuppressWarnings("unchecked")
+	@Override
+	public RenamedModule clone()
+	{
+		RenamedModule clone = (RenamedModule) super.clone();
+
+		clone.newNameASTElements = (ArrayList<ExpressionIdent>) newNameASTElements.clone();
+		clone.newNames           = (ArrayList<String>) newNames.clone();
+		clone.oldNameASTElements = (ArrayList<ExpressionIdent>) oldNameASTElements.clone();
+		clone.oldNames           = (ArrayList<String>) oldNames.clone();
+
+		return clone;
 	}
 }
 

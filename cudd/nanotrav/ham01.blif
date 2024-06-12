@@ -1,0 +1,42 @@
+# Checks whether the Hamming distance between X and Y is 0 or 1.
+.model ham01.blif
+.inputs x2 y2 x1 y1 x0 y0
+.outputs H01
+.names one
+1
+.names y0 one one a
+11- 1
+0-0 1
+.names x0 a a b
+11- 1
+0-0 1
+.names y1 one b c
+11- 1
+0-1 1
+.names y1 b one d
+11- 1
+0-1 1
+.names y1 b one e
+11- 1
+0-0 1
+.names y1 one b f
+11- 1
+0-0 1
+.names x1 c d g
+11- 1
+0-1 1
+.names x1 e f h
+11- 1
+0-0 1
+.names y2 g h i
+11- 1
+0-1 1
+.names y2 h g j
+11- 1
+0-1 1
+.names x2 i j k
+11- 1
+0-1 1
+.names k H01
+1 1
+.end

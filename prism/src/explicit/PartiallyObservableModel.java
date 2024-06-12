@@ -30,11 +30,15 @@ package explicit;
 import java.util.List;
 
 import parser.State;
+import prism.ModelInfo;
+import prism.Prism;
+import prism.PrismException;
+import prism.PrismLog;
 
 /**
  * Interface for classes that provide (read-only) access to an explicit-state model with partial observability.
  */
-public interface PartiallyObservableModel extends Model
+public interface PartiallyObservableModel<Value> extends Model<Value>
 {
 	// Accessors
 
@@ -118,4 +122,38 @@ public interface PartiallyObservableModel extends Model
 	 * Get the number of choices for observation {@code 0}.
 	 */
 	public int getNumChoicesForObservation(int o);
+
+	/**
+	 * Export observations list.
+	 */
+	public default void exportObservations(int exportType, ModelInfo modelInfo, PrismLog log) throws PrismException
+	{
+		// Print header: list of observables
+		if (exportType == Prism.EXPORT_MATLAB)
+			log.print("% ");
+		log.print("(");
+		int numObservables = modelInfo.getNumObservables();
+		for (int i = 0; i < numObservables; i++) {
+			log.print(modelInfo.getObservableName(i));
+			if (i < numObservables - 1)
+				log.print(",");
+		}
+		log.println(")");
+		if (exportType == Prism.EXPORT_MATLAB)
+			log.println("obs=[");
+
+		// Print states + observations
+		int numObservations = getNumObservations();
+		List<State> observationsList = getObservationsList();
+		for (int i = 0; i < numObservations; i++) {
+			if (exportType != Prism.EXPORT_MATLAB)
+				log.println(i + ":" + observationsList.get(i).toString());
+			else
+				log.println(observationsList.get(i).toStringNoParentheses());
+		}
+
+		// Print footer
+		if (exportType == Prism.EXPORT_MATLAB)
+			log.println("];");
+	}
 }

@@ -1,0 +1,30 @@
+# general patterns to ignore
+# Emacs backup files
+*~
+# OS X system files
+.DS_Store
+
+# build artefacts by pattern:
+*.o
+*.a
+*.class
+*.dylib
+*.jnilib
+*.so
+*.dll
+*.lo
+*.la
+*.dirstamp
+.deps
+.libs
+
+# build artefacts:
+config.h
+config.log
+config.status
+Makefile
+libtool
+stamp-h1
+doc/cudd.tex
+dddmp/exp/*.sh
+include

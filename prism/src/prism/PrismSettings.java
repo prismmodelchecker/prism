@@ -70,7 +70,7 @@ public class PrismSettings implements Observer
 
 	// Constraint constants
 	public static final Range RANGE_EXPORT_DOUBLE_PRECISION = Range.closed(1, 17);
-	public static final int DEFAULT_EXPORT_MODEL_PRECISION = 17;
+	public static final int DEFAULT_EXPORT_MODEL_PRECISION = 16;
 
 	//Property Constant Keys
 	//======================
@@ -96,12 +96,14 @@ public class PrismSettings implements Observer
 	public static final	String PRISM_INTERVAL_ITER_OPTIONS			= "prism.intervalIterOptions";
 	public static final	String PRISM_MDP_SOLN_METHOD				= "prism.mdpSolnMethod";
 	public static final	String PRISM_MDP_MULTI_SOLN_METHOD			= "prism.mdpMultiSolnMethod";
+	public static final	String PRISM_IMDP_SOLN_METHOD				= "prism.imdpSolnMethod";
 	public static final	String PRISM_TERM_CRIT						= "prism.termCrit";//"prism.termination";
 	public static final	String PRISM_TERM_CRIT_PARAM				= "prism.termCritParam";//"prism.terminationEpsilon";
 	public static final	String PRISM_MAX_ITERS						= "prism.maxIters";//"prism.maxIterations";
 	public static final String PRISM_EXPORT_ITERATIONS				= "prism.exportIterations";
 	public static final	String PRISM_GRID_RESOLUTION				= "prism.gridResolution";
-	public static final String PRISM_EXPORT_MODEL_PRECISION         = "prism.exportmodelprecision";
+	public static final String PRISM_EXPORT_MODEL_PRECISION         = "prism.exportModelPrecision";
+	public static final String PRISM_EXPORT_MODEL_HEADERS           = "prism.exportModelHeaders";
 
 	public static final	String PRISM_CUDD_MAX_MEM					= "prism.cuddMaxMem";
 	public static final	String PRISM_CUDD_EPSILON					= "prism.cuddEpsilon";
@@ -267,6 +269,8 @@ public class PrismSettings implements Observer
 																			"Which method to use when solving Markov decision processes." },
 			{ CHOICE_TYPE,		PRISM_MDP_MULTI_SOLN_METHOD,			"MDP multi-objective solution method",				"4.0.3",			"Value iteration",											"Value iteration,Gauss-Seidel,Linear programming",
 																			"Which method to use when solving multi-objective queries on Markov decision processes." },
+			{ CHOICE_TYPE,		PRISM_IMDP_SOLN_METHOD,					"IMDP/DTMC solution method",				"4.7",			"Gauss-Seidel",																"Value iteration,Gauss-Seidel",
+																			"Which method to use when solving interval Markov decision processes and Markov chains." },
 			{ CHOICE_TYPE,		PRISM_TERM_CRIT,						"Termination criteria",					"2.1",			"Relative",																	"Absolute,Relative",																		
 																			"Criteria to use for checking termination of iterative numerical methods." },
 			{ DOUBLE_TYPE,		PRISM_TERM_CRIT_PARAM,					"Termination epsilon",					"2.1",			Double.valueOf(1.0E-6),															"0.0,",																						
@@ -277,8 +281,10 @@ public class PrismSettings implements Observer
 																			"Export solution vectors for iteration algorithms to iterations.html"},
 			{ INTEGER_TYPE,		PRISM_GRID_RESOLUTION,					"Fixed grid resolution",			    "4.5",			Integer.valueOf(10),															"1,",																						
 																			"The resolution for the fixed grid approximation algorithm for POMDPs." },
-			{ INTEGER_TYPE,		PRISM_EXPORT_MODEL_PRECISION,			"Precision of model export",			"4.7dev",			17,																		RANGE_EXPORT_DOUBLE_PRECISION.min() + "-" + RANGE_EXPORT_DOUBLE_PRECISION.max(),
-																			"Export probabilities/rewards with n significant decimal places"},
+			{ INTEGER_TYPE,		PRISM_EXPORT_MODEL_PRECISION,			"Precision of model export",			"4.7",			16,																		RANGE_EXPORT_DOUBLE_PRECISION.min() + "-" + RANGE_EXPORT_DOUBLE_PRECISION.max(),
+																			"Export model probabilities/rewards to n significant decimal places."},
+			{ BOOLEAN_TYPE,		PRISM_EXPORT_MODEL_HEADERS,				"Include headers in model exports",		"4.7",			Boolean.valueOf(true),															"",
+																			"Whether to include #-commented header lines when exporting model data to explicit files."},
 			// MODEL CHECKING OPTIONS:
 			{ BOOLEAN_TYPE,		PRISM_PRECOMPUTATION,					"Use precomputation",					"2.1",			Boolean.valueOf(true),															"",																							
 																			"Whether to use model checking precomputation algorithms (Prob0, Prob1, etc.), where optional." },
@@ -1026,7 +1032,7 @@ public class PrismSettings implements Observer
 				else if (s.equals("backwards") || s.equals("bw"))
 					set(PRISM_PTA_METHOD, "Backwards reachability");
 				else
-					throw new PrismException("Unrecognised option for -" + sw + " switch (options are: digital, games)");
+					throw new PrismException("Unrecognised option for -" + sw + " switch (options are: digital, games, backwards)");
 			} else {
 				throw new PrismException("No parameter specified for -" + sw + " switch");
 			}
@@ -1073,6 +1079,7 @@ public class PrismSettings implements Observer
 			set(PRISM_LIN_EQ_METHOD, "Gauss-Seidel");
 			set(PRISM_MDP_SOLN_METHOD, "Gauss-Seidel");
 			set(PRISM_MDP_MULTI_SOLN_METHOD, "Gauss-Seidel");
+			set(PRISM_IMDP_SOLN_METHOD, "Gauss-Seidel");
 		} else if (sw.equals("bgaussseidel") || sw.equals("bgs")) {
 			set(PRISM_LIN_EQ_METHOD, "Backwards Gauss-Seidel");
 		} else if (sw.equals("pgaussseidel") || sw.equals("pgs")) {
@@ -1092,6 +1099,7 @@ public class PrismSettings implements Observer
 		} else if (sw.equals("valiter")) {
 			set(PRISM_MDP_SOLN_METHOD, "Value iteration");
 			set(PRISM_MDP_MULTI_SOLN_METHOD, "Value iteration");
+			set(PRISM_IMDP_SOLN_METHOD, "Value iteration");
 		} else if (sw.equals("politer")) {
 			set(PRISM_MDP_SOLN_METHOD, "Policy iteration");
 		} else if (sw.equals("modpoliter")) {
@@ -1217,6 +1225,10 @@ public class PrismSettings implements Observer
 			} else {
 				throw new PrismException("No value specified for -" + sw + " switch");
 			}
+		}
+		// export headers off
+		else if (sw.equals("noexportheaders")) {
+			set(PRISM_EXPORT_MODEL_HEADERS, false);
 		}
 
 		// MODEL CHECKING OPTIONS:
@@ -1817,6 +1829,10 @@ public class PrismSettings implements Observer
 	 */
 	public static void printHelp(PrismLog mainLog)
 	{
+		mainLog.println();
+		mainLog.println("EXPORT OPTIONS:");
+		mainLog.println("-exportmodelprecision <n>....... Export probabilities/rewards with n significant decimal places");
+		mainLog.println("-noexportheaders ............... Don't include headers when exporting rewards");
 		mainLog.println();
 		mainLog.println("ENGINES/METHODS:");
 		mainLog.println("-mtbdd (or -m) ................. Use the MTBDD engine");

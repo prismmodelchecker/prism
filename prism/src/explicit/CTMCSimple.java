@@ -26,13 +26,17 @@
 
 package explicit;
 
+import prism.Evaluator;
+
 import java.util.BitSet;
+import java.util.Iterator;
 import java.util.Map;
+import java.util.function.Function;
 
 /**
  * Simple explicit-state representation of a CTMC.
  */
-public class CTMCSimple extends DTMCSimple implements CTMC
+public class CTMCSimple<Value> extends DTMCSimple<Value> implements CTMC<Value>
 {
 	/**
 	 * The cached embedded DTMC.
@@ -43,7 +47,7 @@ public class CTMCSimple extends DTMCSimple implements CTMC
 	 * We cache this so that the PredecessorRelation of the
 	 * embedded DTMC is cached.
 	 */
-	private DTMCEmbeddedSimple cachedEmbeddedDTMC = null;
+	private DTMCEmbeddedSimple<Value> cachedEmbeddedDTMC = null;
 
 	// Constructors
 
@@ -66,7 +70,7 @@ public class CTMCSimple extends DTMCSimple implements CTMC
 	/**
 	 * Copy constructor.
 	 */
-	public CTMCSimple(CTMCSimple ctmc)
+	public CTMCSimple(CTMCSimple<Value> ctmc)
 	{
 		super(ctmc);
 	}
@@ -77,61 +81,88 @@ public class CTMCSimple extends DTMCSimple implements CTMC
 	 * Note: have to build new Distributions from scratch anyway to do this,
 	 * so may as well provide this functionality as a constructor.
 	 */
-	public CTMCSimple(CTMCSimple ctmc, int permut[])
+	public CTMCSimple(CTMCSimple<Value> ctmc, int permut[])
 	{
 		super(ctmc, permut);
+	}
+
+	/**
+	 * Construct a CTMCSimple object from a CTMC object.
+	 */
+	public CTMCSimple(CTMC<Value> ctmc)
+	{
+		super(ctmc);
+	}
+
+	/**
+	 * Construct a CTMCSimple object from a CTMC object,
+	 * mapping rate values using the provided function.
+	 */
+	public CTMCSimple(CTMC<Value> ctmc, Function<? super Value, ? extends Value> rateMap)
+	{
+		super(ctmc, rateMap, ctmc.getEvaluator());
+	}
+
+	/**
+	 * Construct a CTMCSimple object from a CTMC object,
+	 * mapping rate values using the provided function.
+	 * Since the type changes (T -> Value), an Evaluator for Value must be given.
+	 */
+	public <T> CTMCSimple(DTMC<T> ctmc, Function<? super T, ? extends Value> rateMap, Evaluator<Value> eval)
+	{
+		super(ctmc, rateMap, eval);
 	}
 
 	// Accessors (for CTMC)
 	
 	@Override
-	public double getExitRate(int i)
+	public Value getExitRate(int i)
 	{
 		return trans.get(i).sum();
 	}
 	
 	@Override
-	public double getMaxExitRate()
+	public Value getMaxExitRate()
 	{
-		int i;
-		double d, max = Double.NEGATIVE_INFINITY;
-		for (i = 0; i < numStates; i++) {
-			d = trans.get(i).sum();
-			if (d > max)
+		Value max = null;
+		for (int i = 0; i < numStates; i++) {
+			Value d = trans.get(i).sum();
+			if (max == null || getEvaluator().gt(d, max)) {
 				max = d;
+			}
 		}
 		return max;
 	}
 	
 	@Override
-	public double getMaxExitRate(BitSet subset)
+	public Value getMaxExitRate(BitSet subset)
 	{
-		int i;
-		double d, max = Double.NEGATIVE_INFINITY;
-		for (i = subset.nextSetBit(0); i >= 0; i = subset.nextSetBit(i + 1)) {
-			d = trans.get(i).sum();
-			if (d > max)
+		Value max = null;
+		for (int i = subset.nextSetBit(0); i >= 0; i = subset.nextSetBit(i + 1)) {
+			Value d = trans.get(i).sum();
+			if (max == null || getEvaluator().gt(d, max)) {
 				max = d;
+			}
 		}
 		return max;
 	}
 	
 	@Override
-	public double getDefaultUniformisationRate()
+	public Value getDefaultUniformisationRate()
 	{
-		return 1.02 * getMaxExitRate(); 
+		return getEvaluator().multiply(getEvaluator().fromString("1.02"), getMaxExitRate()); 
 	}
 	
 	@Override
-	public double getDefaultUniformisationRate(BitSet nonAbs)
+	public Value getDefaultUniformisationRate(BitSet nonAbs)
 	{
-		return 1.02 * getMaxExitRate(nonAbs); 
+		return getEvaluator().multiply(getEvaluator().fromString("1.02"), getMaxExitRate(nonAbs)); 
 	}
 	
 	@Override
-	public DTMC buildImplicitEmbeddedDTMC()
+	public DTMC<Value> buildImplicitEmbeddedDTMC()
 	{
-		DTMCEmbeddedSimple dtmc = new DTMCEmbeddedSimple(this);
+		DTMCEmbeddedSimple<Value> dtmc = new DTMCEmbeddedSimple<>(this);
 		if (cachedEmbeddedDTMC != null) {
 			// replace cached DTMC
 			cachedEmbeddedDTMC = dtmc;
@@ -140,34 +171,30 @@ public class CTMCSimple extends DTMCSimple implements CTMC
 	}
 	
 	@Override
-	public DTMC getImplicitEmbeddedDTMC()
+	public DTMC<Value> getImplicitEmbeddedDTMC()
 	{
 		if (cachedEmbeddedDTMC == null) {
-			cachedEmbeddedDTMC = new DTMCEmbeddedSimple(this);
+			cachedEmbeddedDTMC = new DTMCEmbeddedSimple<>(this);
 		}
 		return cachedEmbeddedDTMC;
 	}
 
 	
 	@Override
-	public DTMCSimple buildEmbeddedDTMC()
+	public DTMCSimple<Value> buildEmbeddedDTMC()
 	{
-		DTMCSimple dtmc;
-		Distribution distr;
-		int i;
-		double d;
-		dtmc = new DTMCSimple(numStates);
+		DTMCSimple<Value> dtmc = new DTMCSimple<>(numStates);
 		for (int in : getInitialStates()) {
 			dtmc.addInitialState(in);
 		}
-		for (i = 0; i < numStates; i++) {
-			distr = trans.get(i);
-			d = distr.sum();
-			if (d == 0) {
-				dtmc.setProbability(i, i, 1.0);
+		for (int i = 0; i < numStates; i++) {
+			Distribution<Value> distr = trans.get(i);
+			Value d = distr.sum();
+			if (getEvaluator().isZero(d)) {
+				dtmc.setProbability(i, i, getEvaluator().one());
 			} else {
-				for (Map.Entry<Integer, Double> e : distr) {
-					dtmc.setProbability(i, e.getKey(), e.getValue() / d);
+				for (Map.Entry<Integer, Value> e : distr) {
+					dtmc.setProbability(i, e.getKey(), getEvaluator().divide(e.getValue(), d));
 				}
 			}
 		}
@@ -175,43 +202,38 @@ public class CTMCSimple extends DTMCSimple implements CTMC
 	}
 
 	@Override
-	public void uniformise(double q)
+	public void uniformise(Value q)
 	{
-		Distribution distr;
-		int i;
-		for (i = 0; i < numStates; i++) {
-			distr = trans.get(i);
-			distr.set(i, q - distr.sumAllBut(i));
+		for (int i = 0; i < numStates; i++) {
+			Distribution<Value> distr = trans.get(i);
+			distr.set(i, getEvaluator().subtract(q, distr.sumAllBut(i)));
 		}
 	}
 
 	@Override
-	public DTMC buildImplicitUniformisedDTMC(double q)
+	public DTMC<Value> buildImplicitUniformisedDTMC(Value q)
 	{
-		return new DTMCUniformisedSimple(this, q);
+		return new DTMCUniformisedSimple<>(this, q);
 	}
 	
 	@Override
-	public DTMCSimple buildUniformisedDTMC(double q)
+	public DTMCSimple<Value> buildUniformisedDTMC(Value q)
 	{
-		DTMCSimple dtmc;
-		Distribution distr;
-		int i;
-		double d;
-		dtmc = new DTMCSimple(numStates);
+		DTMCSimple<Value> dtmc = new DTMCSimple<>(numStates);
 		for (int in : getInitialStates()) {
 			dtmc.addInitialState(in);
 		}
-		for (i = 0; i < numStates; i++) {
+		for (int i = 0; i < numStates; i++) {
 			// Add scaled off-diagonal entries
-			distr = trans.get(i);
-			for (Map.Entry<Integer, Double> e : distr) {
-				dtmc.setProbability(i, e.getKey(), e.getValue() / q);
+			Distribution<Value> distr = trans.get(i);
+			for (Map.Entry<Integer, Value> e : distr) {
+				dtmc.setProbability(i, e.getKey(), getEvaluator().divide(e.getValue(), q));
 			}
 			// Add diagonal, if needed
-			d = distr.sumAllBut(i);
-			if (d < q) {
-				dtmc.setProbability(i, i, 1 - (d / q));
+			Value d = distr.sumAllBut(i);
+			// if (d < q): P(i,i) = 1 - (d / q)
+			if (!getEvaluator().geq(d, q)) {
+				dtmc.setProbability(i, i, getEvaluator().subtract(getEvaluator().one(), getEvaluator().divide(d, q)));
 			}
 		}
 		return dtmc;

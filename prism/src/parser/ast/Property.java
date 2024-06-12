@@ -34,6 +34,7 @@ import java.util.regex.Pattern;
 import param.BigRational;
 import parser.Values;
 import parser.visitor.ASTVisitor;
+import parser.visitor.DeepCopy;
 import prism.DefinedConstant;
 import prism.PrismException;
 import prism.PrismLangException;
@@ -303,12 +304,17 @@ public class Property extends ASTElement
 	}
 
 	@Override
-	public Property deepCopy()
+	public Property deepCopy(DeepCopy copier) throws PrismLangException
 	{
-		Property prop = new Property(expr.deepCopy(), name, comment);
-		prop.setType(type);
-		prop.setPosition(this);
-		return prop;
+		expr = copier.copy(expr);
+
+		return this;
+	}
+
+	@Override
+	public Property clone()
+	{
+		return (Property) super.clone();
 	}
 }
 

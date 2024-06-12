@@ -32,38 +32,32 @@ import explicit.Product;
 /**
  * Explicit-state storage of just state rewards.
  */
-public abstract class StateRewards implements MCRewards, MDPRewards, STPGRewards
+public abstract class StateRewards<Value> extends RewardsExplicit<Value> implements MCRewards<Value>, MDPRewards<Value>, STPGRewards<Value>
 {
 	/**
 	 * Get the state reward for state {@code s}.
 	 */
-	public abstract double getStateReward(int s);
+	public abstract Value getStateReward(int s);
 	
 	@Override
-	public double getTransitionReward(int s, int i)
+	public Value getTransitionReward(int s, int i)
 	{
-		return 0.0;
+		return getEvaluator().zero();
 	}
 	
 	@Override
-	public double getNestedTransitionReward(int s, int i, int j)
-	{
-		return 0.0;
-	}
-	
-	@Override
-	public MDPRewards buildMDPRewards()
+	public MDPRewards<Value> buildMDPRewards()
 	{
 		return deepCopy();
 	}
 	
 	@Override
-	public abstract StateRewards liftFromModel(Product<? extends Model> product);
+	public abstract StateRewards<Value> liftFromModel(Product<?> product);
 	
 	/**
 	 * Perform a deep copy.
 	 */
-	public abstract StateRewards deepCopy();
+	public abstract StateRewards<Value> deepCopy();
 
 	@Override
 	public boolean hasTransitionRewards()

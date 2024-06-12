@@ -9,7 +9,7 @@ import java.util.function.*;
 
 /**
  * A {@link Reducible} provides <em>transformation</em> and <em>accumulation</em> operations similar to {@link java.util.stream.Stream Stream}.
- * It servers as a bridge between Iterator-based code and the functional API provided by Java streams.
+ * It serves as a bridge between Iterator-based code and the functional API provided by Java streams.
  * The operations are implemented and specialized in {@link FunctionalIterator} and {@link FunctionalIterable}.
  * The following example illustrates is usage.
  *
@@ -27,7 +27,7 @@ import java.util.function.*;
  * <li>Filter all odd numbers
  * <li>Collect the filtered numbers in a new {@code ArrayList}
  * </ol>
- * Please note that {@link Reducible#mapToInt} and {@link Reducible#filter} only wrap the underlying reducible.
+ * Please note that {@link Reducible#mapToInt} and {@link Reducible#filter} only wrap the underlying Reducible.
  * The actual computation happens on-the-fly when {@code collect} is called.
  *
  * <p><em>Transformation operations</em> (known as <a href="package-summary.html#StreamOps">intermediate operations</a> on streams)
@@ -43,7 +43,7 @@ import java.util.function.*;
  * Please note that implementors of the interface may consume no elements if the result of an accumulation can be computed directly.
  *
  * @param <E> the type of elements returned by this Reducible
- * @param <E_CAT> the type of reducibles accepted by  {@link Reducible#concat concat}
+ * @param <E_CAT> the type of Reducibles accepted by {@link Reducible#concat concat}
  *ø
  * @see java.util.stream.Stream Stream
  */
@@ -194,6 +194,96 @@ public interface Reducible<E, E_CAT>
 	}
 
 	/**
+	 * Concatenate a sequence of Iterables.
+	 * The returned FunctionalIterable iterates over the elements in the order of the argument sequence.
+	 *
+	 * @param iterables the {@link Iterable}s to concatenate
+	 * @return a {@link FunctionalIterable} that iterates over the elements of each Iterable
+	 */
+	static <E> FunctionalIterable<E> concat(Iterable<? extends Iterable<? extends E>> iterables)
+	{
+		return new ChainedIterable.Of(iterables);
+	}
+
+	/**
+	 * Concatenate a sequence of Iterators.
+	 * The returned FunctionalIterator iterates over the elements in the order of the argument sequence.
+	 *
+	 * @param iterators the {@link Iterator}s to concatenate
+	 * @return a {@link FunctionalIterator} that iterates over the elements of each Iterator
+	 */
+	static <E> FunctionalIterator<E> concat(Iterator<? extends Iterator<? extends E>> iterators)
+	{
+		return new ChainedIterator.Of(iterators);
+	}
+
+	/**
+	 * Primitive specialisation of {@code concat} for {@code double}.
+	 *
+	 * @param iterables the {@link PrimitiveIterable.OfDouble}s to concatenate
+	 * @return a {@link FunctionalPrimitiveIterable.OfDouble} that iterates over the elements of each Iterable
+	 */
+	static FunctionalPrimitiveIterable.OfDouble concatDouble(Iterable<? extends PrimitiveIterable.OfDouble> iterables)
+	{
+		return new ChainedIterable.OfDouble(iterables);
+	}
+
+	/**
+	 * Primitive specialisation of {@code concat} for {@code double}.
+	 *
+	 * @param iterators the {@link PrimitiveIterator.OfDouble}s to concatenate
+	 * @return a {@link FunctionalPrimitiveIterator.OfDouble} that iterates over the elements of each Iterator
+	 */
+	static FunctionalPrimitiveIterator.OfDouble concatDouble(Iterator<? extends PrimitiveIterator.OfDouble> iterators)
+	{
+		return new ChainedIterator.OfDouble(iterators);
+	}
+
+	/**
+	 * Primitive specialisation of {@code concat} for {@code int}.
+	 *
+	 * @param iterables the {@link PrimitiveIterable.OfInt}s to concatenate
+	 * @return a {@link FunctionalPrimitiveIterable.OfInt} that iterates over the elements of each Iterable
+	 */
+	static FunctionalPrimitiveIterable.OfInt concatInt(Iterable<? extends PrimitiveIterable.OfInt> iterables)
+	{
+		return new ChainedIterable.OfInt(iterables);
+	}
+
+	/**
+	 * Primitive specialisation of {@code concat} for {@code int}.
+	 *
+	 * @param iterators the {@link PrimitiveIterator.OfInt}s to concatenate
+	 * @return a {@link FunctionalPrimitiveIterator.OfInt} that iterates over the elements of each Iterator
+	 */
+	static FunctionalPrimitiveIterator.OfInt concatInt(Iterator<? extends PrimitiveIterator.OfInt> iterators)
+	{
+		return new ChainedIterator.OfInt(iterators);
+	}
+
+	/**
+	 * Primitive specialisation of {@code concat} for {@code long}.
+	 *
+	 * @param iterables the {@link PrimitiveIterable.OfLong}s to concatenate
+	 * @return a {@link FunctionalPrimitiveIterable.OfLong} that iterates over the elements of each Iterable
+	 */
+	static FunctionalPrimitiveIterable.OfLong concatLong(Iterable<? extends PrimitiveIterable.OfLong> iterables)
+	{
+		return new ChainedIterable.OfLong(iterables);
+	}
+
+	/**
+	 * Primitive specialisation of {@code concat} for {@code long}.
+	 *
+	 * @param iterators the {@link PrimitiveIterator.OfLong}s to concatenate
+	 * @return a {@link FunctionalPrimitiveIterator.OfLong} that iterates over the elements of each Iterator
+	 */
+	static FunctionalPrimitiveIterator.OfLong concatLong(Iterator<? extends PrimitiveIterator.OfLong> iterators)
+	{
+		return new ChainedIterator.OfLong(iterators);
+	}
+
+	/**
 	 * Convert an Iterable&lt;Double&gt; to a FunctionalPrimitiveIterable.OfDouble by unboxing each element.
 	 * If the argument's Iterator yields {@code null}, a {@link NullPointerException} is thrown when iterating.
 	 * Answer the Iterable if it already implements of FunctionalPrimitiveIterable.OfDouble.
@@ -314,7 +404,7 @@ public interface Reducible<E, E_CAT>
 
 	/**
 	 * Concatenate the receiver and the argument.
-	 * The returned reducible first iterates over the elements of the receiver and then over the elements the argument.
+	 * The returned Reducible first iterates over the elements of the receiver and then over the elements of the argument.
 	 *
 	 * @param reducible the {@link Reducible} to append
 	 * @return a {@link Reducible} that iterates over the elements of the receiver and the argument
@@ -401,7 +491,7 @@ public interface Reducible<E, E_CAT>
 	// Accumulations Methods (Consuming)
 
 	/**
-	 * Consume this reducible, i.e., iterate over all its elements.
+	 * Consume this Reducible, i.e., iterate over all its elements.
 	 */
 	default Reducible<E,E_CAT> consume()
 	{

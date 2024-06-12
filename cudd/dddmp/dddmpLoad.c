@@ -634,6 +634,7 @@ DddmpCuddDdArrayLoad (
   unsigned short *pvars2byte = NULL;
   DdNode **proots = NULL;
   int fileToClose = 0;
+  char *retval;
 
   *pproots = NULL;
 
@@ -1109,7 +1110,8 @@ DddmpCuddDdArrayLoad (
 
   /*------------------------ Deal With the File Tail -----------------------*/
 
-  fgets (buf, DDDMP_MAXSTRLEN-1,fp);
+  retval = fgets (buf, DDDMP_MAXSTRLEN-1,fp);
+  Dddmp_CheckAndGotoLabel (!retval, "Error on reading file tail.", failure);
   Dddmp_CheckAndGotoLabel (!matchkeywd(buf, ".end"),
     "Error .end not found.", failure);
 
@@ -1234,6 +1236,7 @@ DddmpBddReadHeader (
   Dddmp_Hdr_t *Hdr = NULL;
   char buf[DDDMP_MAXSTRLEN];
   int retValue, fileToClose = 0;
+  char *retval;
 
   if (fp == NULL) {
     fp = fopen (file, "r");
@@ -1273,7 +1276,8 @@ DddmpBddReadHeader (
 
     /* comment */
     if (buf[0] == '#') {
-      fgets(buf,DDDMP_MAXSTRLEN,fp);
+      retval = fgets(buf,DDDMP_MAXSTRLEN,fp);
+      Dddmp_CheckAndGotoLabel (!retval, "Error on reading comment.", failure);
       continue;
     }
 
@@ -1368,7 +1372,7 @@ DddmpBddReadHeader (
     }
 
     if (matchkeywd(buf, ".suppvarnames") ||
-      ((strcmp (Hdr->ver, "DDDMP-1.0") == 0) &&
+      (Hdr->ver != NULL && (strcmp (Hdr->ver, "DDDMP-1.0") == 0) &&
       matchkeywd (buf, ".varnames"))) {
       Hdr->suppVarNames = DddmpStrArrayRead (fp, Hdr->nsuppvars);
       Dddmp_CheckAndGotoLabel (Hdr->suppVarNames==NULL,
@@ -1426,7 +1430,8 @@ DddmpBddReadHeader (
     }
 
     if (matchkeywd(buf, ".nodes")) {
-      fgets(buf,DDDMP_MAXSTRLEN,fp);
+      retval = fgets(buf,DDDMP_MAXSTRLEN,fp);
+      Dddmp_CheckAndGotoLabel (!retval, "Error on reading nodes.", failure);
       break;
     }
 

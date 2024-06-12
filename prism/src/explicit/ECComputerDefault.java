@@ -46,7 +46,7 @@ import prism.PrismException;
 public class ECComputerDefault extends ECComputer
 {
 	/** The model to compute (M)ECs for **/
-	private NondetModel model;
+	private NondetModel<?> model;
 
 	/** Computed list of MECs **/
 	private List<BitSet> mecs = new ArrayList<BitSet>();
@@ -54,7 +54,7 @@ public class ECComputerDefault extends ECComputer
 	/**
 	 * Build (M)EC computer for a given model.
 	 */
-	public ECComputerDefault(PrismComponent parent, NondetModel model) throws PrismException
+	public ECComputerDefault(PrismComponent parent, NondetModel<?> model) throws PrismException
 	{
 		super(parent);
 		this.model = model;
@@ -115,7 +115,7 @@ public class ECComputerDefault extends ECComputer
 		while (changed) {
 			changed = false;
 			BitSet E = L.remove(0);
-			SubNondetModel submodel = restrict(model, E);
+			SubNondetModel<?> submodel = restrict(model, E);
 			List<BitSet> sccs = translateStates(submodel, computeSCCs(submodel));
 			L = replaceEWithSCCs(L, E, sccs);
 			changed = canLBeChanged(L, E);
@@ -163,7 +163,7 @@ public class ECComputerDefault extends ECComputer
 		return L;
 	}
 
-	private SubNondetModel restrict(NondetModel model, BitSet states)
+	private SubNondetModel<?> restrict(NondetModel<?> model, BitSet states)
 	{
 		Map<Integer, BitSet> actions = new HashMap<Integer, BitSet>();
 		BitSet initialStates = new BitSet();
@@ -190,10 +190,10 @@ public class ECComputerDefault extends ECComputer
 			}
 		}
 
-		return new SubNondetModel(model, states, actions, initialStates);
+		return new SubNondetModel<>(model, states, actions, initialStates);
 	}
 
-	private List<BitSet> computeSCCs(NondetModel model) throws PrismException
+	private List<BitSet> computeSCCs(NondetModel<?> model) throws PrismException
 	{
 		SCCConsumerStore sccs = new SCCConsumerStore();
 		SCCComputer sccc = SCCComputer.createSCCComputer(this, model, sccs);
@@ -201,7 +201,7 @@ public class ECComputerDefault extends ECComputer
 		return sccs.getSCCs();
 	}
 
-	private List<BitSet> translateStates(SubNondetModel model, List<BitSet> sccs)
+	private List<BitSet> translateStates(SubNondetModel<?> model, List<BitSet> sccs)
 	{
 		List<BitSet> r = new ArrayList<BitSet>();
 		for (int i = 0; i < sccs.size(); i++) {

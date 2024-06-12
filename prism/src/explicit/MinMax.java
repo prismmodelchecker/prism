@@ -72,6 +72,26 @@ public class MinMax
 		return min2;
 	}
 	
+	// Additional info about quantification over uncertainty
+	
+	protected boolean minUnc;
+	
+	public MinMax setMinUnc(boolean minUnc)
+	{
+		this.minUnc = minUnc;
+		return this;
+	}
+	
+	public boolean isMinUnc()
+	{
+		return minUnc;
+	}
+	
+	public boolean isMaxUnc()
+	{
+		return !minUnc;
+	}
+	
 	// Create a new instance by applying some operation
 	
 	public MinMax negate()
@@ -79,6 +99,7 @@ public class MinMax
 		MinMax neg = new MinMax();
 		neg.setMin(!isMin());
 		neg.setMinMin(!isMin1(), !isMin2());
+		neg.setMinUnc(!isMinUnc());
 		return neg;
 	}
 	

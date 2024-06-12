@@ -1,0 +1,286 @@
+.model adj49
+.inputs CA
+.inputs WA
+.inputs OR
+.inputs NV
+.inputs ID
+.inputs UT
+.inputs AZ
+.inputs MT
+.inputs WY
+.inputs CO
+.inputs NM
+.inputs ND
+.inputs SD
+.inputs NE
+.inputs KS
+.inputs OK
+.inputs TX
+.inputs MN
+.inputs IA
+.inputs MO
+.inputs AR
+.inputs LA
+.inputs WI
+.inputs IL
+.inputs MS
+.inputs MI
+.inputs IN
+.inputs KY
+.inputs TN
+.inputs AL
+.inputs OH
+.inputs WV
+.inputs VA
+.inputs GA
+.inputs FL
+.inputs PA
+.inputs MD
+.inputs DC
+.inputs NC
+.inputs SC
+.inputs VT
+.inputs NY
+.inputs NJ
+.inputs DE
+.inputs NH
+.inputs MA
+.inputs CT
+.inputs ME
+.inputs RI
+.outputs indep
+.names CA OR caor
+11 0
+.names CA NV canv
+11 0
+.names CA AZ caaz
+11 0
+.names WA OR waor
+11 0
+.names WA ID waid
+11 0
+.names OR ID orid
+11 0
+.names OR NV ornv
+11 0
+.names NV ID nvid
+11 0
+.names NV UT nvut
+11 0
+.names NV AZ nvaz
+11 0
+.names ID MT idmt
+11 0
+.names ID WY idwy
+11 0
+.names ID UT idut
+11 0
+.names UT WY utwy
+11 0
+.names UT CO utco
+11 0
+.names UT AZ utaz
+11 0
+.names AZ NM aznm
+11 0
+.names MT ND mtnd
+11 0
+.names MT SD mtsd
+11 0
+.names MT WY mtwy
+11 0
+.names WY SD wysd
+11 0
+.names WY NE wyne
+11 0
+.names WY CO wyco
+11 0
+.names CO NE cone
+11 0
+.names CO KS coks
+11 0
+.names CO OK cook
+11 0
+.names CO NM conm
+11 0
+.names NM OK nmok
+11 0
+.names NM TX nmtx
+11 0
+.names ND MN ndmn
+11 0
+.names ND SD ndsd
+11 0
+.names SD MN sdmn
+11 0
+.names SD IA sdia
+11 0
+.names SD NE sdne
+11 0
+.names NE IA neia
+11 0
+.names NE MO nemo
+11 0
+.names NE KS neks
+11 0
+.names KS MO ksmo
+11 0
+.names KS OK ksok
+11 0
+.names OK MO okmo
+11 0
+.names OK AR okar
+11 0
+.names OK TX oktx
+11 0
+.names TX AR txar
+11 0
+.names TX LA txla
+11 0
+.names MN WI mnwi
+11 0
+.names MN IA mnia
+11 0
+.names IA WI iawi
+11 0
+.names IA IL iail
+11 0
+.names IA MO iamo
+11 0
+.names MO IL moil
+11 0
+.names MO KY moky
+11 0
+.names MO TN motn
+11 0
+.names MO AR moar
+11 0
+.names AR TN artn
+11 0
+.names AR MS arms
+11 0
+.names AR LA arla
+11 0
+.names LA MS lams
+11 0
+.names WI MI wimi
+11 0
+.names WI IL wiil
+11 0
+.names IL IN ilin
+11 0
+.names IL KY ilky
+11 0
+.names MS TN mstn
+11 0
+.names MS AL msal
+11 0
+.names MI OH mioh
+11 0
+.names MI IN miin
+11 0
+.names IN OH inoh
+11 0
+.names IN KY inky
+11 0
+.names KY OH kyoh
+11 0
+.names KY WV kywv
+11 0
+.names KY VA kyva
+11 0
+.names KY TN kytn
+11 0
+.names TN VA tnva
+11 0
+.names TN NC tnnc
+11 0
+.names TN GA tnga
+11 0
+.names TN AL tnal
+11 0
+.names AL GA alga
+11 0
+.names AL FL alfl
+11 0
+.names OH PA ohpa
+11 0
+.names OH WV ohwv
+11 0
+.names WV PA wvpa
+11 0
+.names WV MD wvmd
+11 0
+.names WV VA wvva
+11 0
+.names VA MD vamd
+11 0
+.names VA DC vadc
+11 0
+.names VA NC vanc
+11 0
+.names GA NC ganc
+11 0
+.names GA SC gasc
+11 0
+.names GA FL gafl
+11 0
+.names PA NY pany
+11 0
+.names PA NJ panj
+11 0
+.names PA DE pade
+11 0
+.names PA MD pamd
+11 0
+.names MD DE mdde
+11 0
+.names MD DC mddc
+11 0
+.names NC SC ncsc
+11 0
+.names VT NH vtnh
+11 0
+.names VT MA vtma
+11 0
+.names VT NY vtny
+11 0
+.names NY MA nyma
+11 0
+.names NY CT nyct
+11 0
+.names NY NJ nynj
+11 0
+.names NJ DE njde
+11 0
+.names NH ME nhme
+11 0
+.names NH MA nhma
+11 0
+.names MA RI mari
+11 0
+.names MA CT mact
+11 0
+.names CT RI ctri
+11 0
+.names caor canv caaz waor waid orid ornv nvid nvut nvaz idmt idwy w0
+111111111111 1
+.names idut utwy utco utaz aznm mtnd mtsd mtwy wysd wyne wyco cone w1
+111111111111 1
+.names coks cook conm nmok nmtx ndmn ndsd sdmn sdia sdne neia nemo w2
+111111111111 1
+.names neks ksmo ksok okmo okar oktx txar txla mnwi mnia iawi iail w3
+111111111111 1
+.names iamo moil moky motn moar artn arms arla lams wimi wiil ilin ilky w4
+1111111111111 1
+.names mstn msal mioh miin inoh inky kyoh kywv kyva kytn tnva tnnc w5
+111111111111 1
+.names tnga tnal alga alfl ohpa ohwv wvpa wvmd wvva vamd vadc vanc w6
+111111111111 1
+.names ganc gasc gafl pany panj pade pamd mdde mddc ncsc vtnh vtma vtny w7
+1111111111111 1
+.names nyma nyct nynj njde nhme nhma mari mact ctri w8
+1111111111 1
+.names w0 w1 w2 w3 w4 w5 w6 w7 w8 indep
+111111111 1
+.end

@@ -1,33 +1,16 @@
-/**CFile***********************************************************************
+/**
+  @file
 
-  FileName    [mtrGroup.c]
+  @ingroup mtr
 
-  PackageName [mtr]
+  @brief Functions to support group specification for reordering.
 
-  Synopsis    [Functions to support group specification for reordering.]
+  @see cudd package
 
-  Description [External procedures included in this module:
-	    <ul>
-	    <li> Mtr_InitGroupTree()
-	    <li> Mtr_MakeGroup()
-	    <li> Mtr_DissolveGroup()
-	    <li> Mtr_FindGroup()
-	    <li> Mtr_SwapGroups()
-            <li> Mtr_ReorderGroups()
-	    <li> Mtr_PrintGroups()
-	    <li> Mtr_ReadGroups()
-	    </ul>
-	Static procedures included in this module:
-	    <ul>
-	    <li> mtrShiftHL
-	    </ul>
-	    ]
+  @author Fabio Somenzi
 
-  SeeAlso     [cudd package]
-
-  Author      [Fabio Somenzi]
-
-  Copyright   [Copyright (c) 1995-2012, Regents of the University of Colorado
+  @copyright@parblock
+  Copyright (c) 1995-2015, Regents of the University of Colorado
 
   All rights reserved.
 
@@ -57,9 +40,10 @@
   CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
   LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
   ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-  POSSIBILITY OF SUCH DAMAGE.]
+  POSSIBILITY OF SUCH DAMAGE.
+  @endparblock
 
-******************************************************************************/
+*/
 
 #include "util.h"
 #include "mtrInt.h"
@@ -80,15 +64,12 @@
 /* Variable declarations                                                     */
 /*---------------------------------------------------------------------------*/
 
-#ifndef lint
-static char rcsid[] MTR_UNUSED = "$Id: mtrGroup.c,v 1.21 2012/02/05 01:06:19 fabio Exp $";
-#endif
 
 /*---------------------------------------------------------------------------*/
 /* Macro declarations                                                        */
 /*---------------------------------------------------------------------------*/
 
-/**AutomaticStart*************************************************************/
+/** \cond */
 
 /*---------------------------------------------------------------------------*/
 /* Static function prototypes                                                */
@@ -96,26 +77,26 @@ static char rcsid[] MTR_UNUSED = "$Id: mtrGroup.c,v 1.21 2012/02/05 01:06:19 fab
 
 static int mtrShiftHL (MtrNode *node, int shift);
 
-/**AutomaticEnd***************************************************************/
+/** \endcond */
 
 /*---------------------------------------------------------------------------*/
 /* Definition of exported functions                                          */
 /*---------------------------------------------------------------------------*/
 
 
-/**Function********************************************************************
+/**
+  @brief Allocate new tree.
 
-  Synopsis    [Allocate new tree.]
-
-  Description [Allocate new tree with one node, whose low and size
+  @details Allocate new tree with one node, whose low and size
   fields are specified by the lower and size parameters.
-  Returns pointer to tree root.]
 
-  SideEffects [None]
+  @return pointer to tree root.
 
-  SeeAlso     [Mtr_InitTree Mtr_FreeTree]
+  @sideeffect None
 
-******************************************************************************/
+  @see Mtr_InitTree Mtr_FreeTree
+
+*/
 MtrNode *
 Mtr_InitGroupTree(
   int  lower,
@@ -133,31 +114,31 @@ Mtr_InitGroupTree(
 } /* end of Mtr_InitGroupTree */
 
 
-/**Function********************************************************************
+/**
+  @brief Makes a new group with size leaves starting at low.
 
-  Synopsis    [Makes a new group with size leaves starting at low.]
-
-  Description [Makes a new group with size leaves starting at low.
-  If the new group intersects an existing group, it must
+  @details If the new group intersects an existing group, it must
   either contain it or be contained by it.  This procedure relies on
   the low and size fields of each node. It also assumes that the
   children of each node are sorted in order of increasing low.  In
   case of a valid request, the flags of the new group are set to the
-  value passed in `flags.'  Returns the pointer to the root of the new
-  group upon successful termination; NULL otherwise. If the group
-  already exists, the pointer to its root is returned.]
+  value passed in `flags.'
 
-  SideEffects [None]
+  @return the pointer to the root of the new group upon successful
+  termination; NULL otherwise. If the group already exists, the
+  pointer to its root is returned.
 
-  SeeAlso     [Mtr_DissolveGroup Mtr_ReadGroups Mtr_FindGroup]
+  @sideeffect None
 
-******************************************************************************/
+  @see Mtr_DissolveGroup Mtr_ReadGroups Mtr_FindGroup
+
+*/
 MtrNode *
 Mtr_MakeGroup(
-  MtrNode * root /* root of the group tree */,
-  unsigned int  low /* lower bound of the group */,
-  unsigned int  size /* size of the group */,
-  unsigned int  flags /* flags for the new group */)
+  MtrNode * root /**< root of the group tree */,
+  unsigned int  low /**< lower bound of the group */,
+  unsigned int  size /**< size of the group */,
+  unsigned int  flags /**< flags for the new group */)
 {
     MtrNode *node,
 	    *first,
@@ -329,25 +310,24 @@ Mtr_MakeGroup(
 } /* end of Mtr_MakeGroup */
 
 
-/**Function********************************************************************
+/**
+  @brief Merges the children of `group' with the children of its
+  parent.
 
-  Synopsis    [Merges the children of `group' with the children of its
-  parent.]
+  @details Disposes of the node pointed by group. If group is the root
+  of the group tree, this procedure leaves the tree unchanged.
 
-  Description [Merges the children of `group' with the children of its
-  parent. Disposes of the node pointed by group. If group is the
-  root of the group tree, this procedure leaves the tree unchanged.
-  Returns the pointer to the parent of `group' upon successful
-  termination; NULL otherwise.]
+  @return the pointer to the parent of `group' upon successful
+  termination; NULL otherwise.
 
-  SideEffects [None]
+  @sideeffect None
 
-  SeeAlso     [Mtr_MakeGroup]
+  @see Mtr_MakeGroup
 
-******************************************************************************/
+*/
 MtrNode *
 Mtr_DissolveGroup(
-  MtrNode * group /* group to be dissolved */)
+  MtrNode * group /**< group to be dissolved */)
 {
     MtrNode *parent;
     MtrNode *last;
@@ -382,26 +362,24 @@ Mtr_DissolveGroup(
 } /* end of Mtr_DissolveGroup */
 
 
-/**Function********************************************************************
+/**
+  @brief Finds a group with size leaves starting at low, if it exists.
 
-  Synopsis [Finds a group with size leaves starting at low, if it exists.]
-
-  Description [Finds a group with size leaves starting at low, if it
-  exists.  This procedure relies on the low and size fields of each
+  @details This procedure relies on the low and size fields of each
   node. It also assumes that the children of each node are sorted in
-  order of increasing low.  Returns the pointer to the root of the
-  group upon successful termination; NULL otherwise.]
+  order of increasing low.
 
-  SideEffects [None]
+  @return the pointer to the root of the group upon successful
+  termination; NULL otherwise.
 
-  SeeAlso     []
+  @sideeffect None
 
-******************************************************************************/
+*/
 MtrNode *
 Mtr_FindGroup(
-  MtrNode * root /* root of the group tree */,
-  unsigned int  low /* lower bound of the group */,
-  unsigned int  size /* upper bound of the group */)
+  MtrNode * root /**< root of the group tree */,
+  unsigned int  low /**< lower bound of the group */,
+  unsigned int  size /**< upper bound of the group */)
 {
     MtrNode *node;
 
@@ -444,24 +422,22 @@ Mtr_FindGroup(
 } /* end of Mtr_FindGroup */
 
 
-/**Function********************************************************************
+/**
+  @brief Swaps two children of a tree node.
 
-  Synopsis    [Swaps two children of a tree node.]
+  @details Adjusts the high and low fields of the two nodes and their
+  descendants.  The two children must be adjacent. However, first may
+  be the younger sibling of second.
 
-  Description [Swaps two children of a tree node. Adjusts the high and
-  low fields of the two nodes and their descendants.  The two children
-  must be adjacent. However, first may be the younger sibling of second.
-  Returns 1 in case of success; 0 otherwise.]
+  @return 1 in case of success; 0 otherwise.
 
-  SideEffects [None]
+  @sideeffect None
 
-  SeeAlso     []
-
-******************************************************************************/
+*/
 int
 Mtr_SwapGroups(
-  MtrNode * first /* first node to be swapped */,
-  MtrNode * second /* second node to be swapped */)
+  MtrNode * first /**< first node to be swapped */,
+  MtrNode * second /**< second node to be swapped */)
 {
     MtrNode *node;
     MtrNode *parent;
@@ -504,22 +480,19 @@ Mtr_SwapGroups(
 } /* end of Mtr_SwapGroups */
 
 
-/**Function********************************************************************
+/**
+  @brief Fix variable tree at the end of tree sifting.
 
-  Synopsis    [Fix variable tree at the end of tree sifting.]
-
-  Description [Fix the levels in the variable tree sorting siblings
+  @details Fix the levels in the variable tree sorting siblings
   according to them.  It should be called on a non-NULL tree.  It then
   maintains this invariant.  It applies insertion sorting to the list of
   siblings  The order is determined by permutation, which is used to find
   the new level of the node index.  Index must refer to the first variable
-  in the group.]
+  in the group.
 
-  SideEffects [The tree is modified.]
+  @sideeffect The tree is modified.
 
-  SeeAlso     []
-
-******************************************************************************/
+*/
 void
 Mtr_ReorderGroups(
   MtrNode *treenode,
@@ -570,13 +543,11 @@ Mtr_ReorderGroups(
 } /* end of Mtr_ReorderGroups */
 
 
-/**Function********************************************************************
+/**
+  @brief Prints the groups as a parenthesized list.
 
-  Synopsis    [Prints the groups as a parenthesized list.]
-
-  Description [Prints the groups as a parenthesized list. After each
-  group, the group's flag are printed, preceded by a `|'.  For each
-  flag (except MTR_TERMINAL) a character is printed.
+  @details After each group, the group's flag are printed, preceded by a `|'.
+  For each flag (except MTR_TERMINAL) a character is printed.
   <ul>
   <li>F: MTR_FIXED
   <li>N: MTR_NEWNODE
@@ -584,17 +555,16 @@ Mtr_ReorderGroups(
   </ul>
   The second argument, silent, if different from 0, causes
   Mtr_PrintGroups to only check the syntax of the group tree.
-  ]
 
-  SideEffects [None]
+  @sideeffect None
 
-  SeeAlso     [Mtr_PrintTree]
+  @see Mtr_PrintTree
 
-******************************************************************************/
+*/
 void
 Mtr_PrintGroups(
-  MtrNode * root /* root of the group tree */,
-  int  silent /* flag to check tree syntax only */)
+  MtrNode const * root /**< root of the group tree */,
+  int  silent /**< flag to check tree syntax only */)
 {
     MtrNode *node;
 
@@ -619,9 +589,9 @@ Mtr_PrintGroups(
     }
     if (!silent) {
 #if SIZEOF_VOID_P == 8
-	(void) printf("%u", root->low + root->size - 1);
+	(void) printf("%u", (MtrHalfWord) (root->low + root->size - 1));
 #else
-	(void) printf("%hu", root->low + root->size - 1);
+	(void) printf("%hu", (MtrHalfWord) (root->low + root->size - 1));
 #endif
 	if (root->flags != MTR_DEFAULT) {
 	    (void) printf("|");
@@ -638,31 +608,30 @@ Mtr_PrintGroups(
 } /* end of Mtr_PrintGroups */
 
 
-/**Function********************************************************************
+/**
+  @brief Prints the variable order as a parenthesized list.
 
-  Synopsis    [Prints the variable order  as a parenthesized list.]
-
-  Description [Prints the variable order as a parenthesized list. After each
-  group, the group's flag are printed, preceded by a `|'.  For each
-  flag (except MTR_TERMINAL) a character is printed.
+  @details After each group, the group's flag are printed, preceded by a `|'.
+  For each flag (except MTR_TERMINAL) a character is printed.
   <ul>
   <li>F: MTR_FIXED
   <li>N: MTR_NEWNODE
   <li>S: MTR_SOFT
   </ul>
   The second argument, gives the map from levels to variable indices.
-  ]
 
-  SideEffects [None]
+  @return 1 if successful; 0 otherwise.
 
-  SeeAlso     [Mtr_PrintGroups]
+  @sideeffect None
 
-******************************************************************************/
+  @see Mtr_PrintGroups
+
+*/
 int
 Mtr_PrintGroupedOrder(
-  MtrNode * root /* root of the group tree */,
-  int *invperm /* map from levels to indices */,
-  FILE *fp /* output file */)
+  MtrNode const * root /**< root of the group tree */,
+  int const *invperm /**< map from levels to indices */,
+  FILE *fp /**< output file */)
 {
     MtrNode *child;
     MtrHalfWord level;
@@ -725,15 +694,13 @@ Mtr_PrintGroupedOrder(
 } /* end of Mtr_PrintGroupedOrder */
 
 
-/**Function********************************************************************
+/**
+  @brief Reads groups from a file and creates a group tree.
 
-  Synopsis    [Reads groups from a file and creates a group tree.]
+  @details Each group is specified by three fields:
 
-  Description [Reads groups from a file and creates a group tree.
-  Each group is specified by three fields:
-  <xmp>
        low size flags.
-  </xmp>
+
   Low and size are (short) integers. Flags is a string composed of the
   following characters (with associated translation):
   <ul>
@@ -745,17 +712,18 @@ Mtr_PrintGroupedOrder(
   </ul>
   Normally, the only flags that are needed are D and F.  Groups and
   fields are separated by white space (spaces, tabs, and newlines).
-  Returns a pointer to the group tree if successful; NULL otherwise.]
 
-  SideEffects [None]
+  @return a pointer to the group tree if successful; NULL otherwise.
 
-  SeeAlso     [Mtr_InitGroupTree Mtr_MakeGroup]
+  @sideeffect None
 
-******************************************************************************/
+  @see Mtr_InitGroupTree Mtr_MakeGroup
+
+*/
 MtrNode *
 Mtr_ReadGroups(
-  FILE * fp /* file pointer */,
-  int  nleaves /* number of leaves of the new tree */)
+  FILE * fp /**< file pointer */,
+  int  nleaves /**< number of leaves of the new tree */)
 {
     int low;
     int size;
@@ -833,24 +801,21 @@ Mtr_ReadGroups(
 /*---------------------------------------------------------------------------*/
 
 
-/**Function********************************************************************
+/**
+  @brief Adjusts the low fields of a node and its descendants.
 
-  Synopsis    [Adjusts the low fields of a node and its descendants.]
+  @details Adds shift to low of each node. Checks that no
+  out-of-bounds values result.
 
-  Description [Adjusts the low fields of a node and its
-  descendants. Adds shift to low of each node. Checks that no
-  out-of-bounds values result.  Returns 1 in case of success; 0
-  otherwise.]
+  @return 1 in case of success; 0 otherwise.
 
-  SideEffects [None]
+  @sideeffect None
 
-  SeeAlso     []
-
-******************************************************************************/
+*/
 static int
 mtrShiftHL(
-  MtrNode * node /* group tree node */,
-  int  shift /* amount by which low should be changed */)
+  MtrNode * node /**< group tree node */,
+  int  shift /**< amount by which low should be changed */)
 {
     MtrNode *auxnode;
     int low;

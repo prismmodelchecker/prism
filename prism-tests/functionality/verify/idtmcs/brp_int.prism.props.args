@@ -1,0 +1,24 @@
+-fixdl -ex -const N=16 -const MAX=2 -epsilon 1e-8 -const err=0.01
+-fixdl -ex -const N=16 -const MAX=3 -epsilon 1e-8 -const err=0.01
+-fixdl -ex -const N=16 -const MAX=4 -epsilon 1e-8 -const err=0.01
+-fixdl -ex -const N=16 -const MAX=5 -epsilon 1e-8 -const err=0.01
+-fixdl -ex -const N=32 -const MAX=2 -epsilon 1e-8 -const err=0.01
+-fixdl -ex -const N=32 -const MAX=3 -epsilon 1e-8 -const err=0.01
+-fixdl -ex -const N=32 -const MAX=4 -epsilon 1e-8 -const err=0.01
+-fixdl -ex -const N=32 -const MAX=5 -epsilon 1e-8 -const err=0.01
+-fixdl -ex -const N=64 -const MAX=2 -epsilon 1e-8 -const err=0.01
+-fixdl -ex -const N=64 -const MAX=3 -epsilon 1e-8 -const err=0.01
+-fixdl -ex -const N=64 -const MAX=4 -epsilon 1e-8 -const err=0.01
+-fixdl -ex -const N=64 -const MAX=5 -epsilon 1e-8 -const err=0.01
+# -fixdl -ex -const N=16 -const MAX=2 -convprog Gurobi -const err=0.01
+# -fixdl -ex -const N=16 -const MAX=3 -convprog Gurobi -const err=0.01
+# -fixdl -ex -const N=16 -const MAX=4 -convprog Gurobi -const err=0.01
+# -fixdl -ex -const N=16 -const MAX=5 -convprog Gurobi -const err=0.01
+# -fixdl -ex -const N=32 -const MAX=2 -convprog Gurobi -const err=0.01
+# -fixdl -ex -const N=32 -const MAX=3 -convprog Gurobi -const err=0.01
+# -fixdl -ex -const N=32 -const MAX=4 -convprog Gurobi -const err=0.01
+# -fixdl -ex -const N=32 -const MAX=5 -convprog Gurobi -const err=0.01
+# -fixdl -ex -const N=64 -const MAX=2 -convprog Gurobi -const err=0.01
+# -fixdl -ex -const N=64 -const MAX=3 -convprog Gurobi -const err=0.01
+# -fixdl -ex -const N=64 -const MAX=4 -convprog Gurobi -const err=0.01
+# -fixdl -ex -const N=64 -const MAX=5 -convprog Gurobi -const err=0.01

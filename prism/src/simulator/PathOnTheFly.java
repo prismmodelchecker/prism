@@ -53,13 +53,15 @@ public class PathOnTheFly extends Path
 	protected State currentObs;
 	protected Object previousAction;
 	protected String previousActionString;
-	protected double previousProbability;
+	protected Object previousProbability;
 	protected double totalTime;
 	double timeInPreviousState;
 	protected double totalRewards[];
 	protected double previousStateRewards[];
 	protected double previousTransitionRewards[];
 	protected double currentStateRewards[];
+	protected int currentStrategyMemory;
+	protected Object currentStrategyDecision;
 	
 	// Loop detector for path
 	protected LoopDetector loopDet;
@@ -132,13 +134,13 @@ public class PathOnTheFly extends Path
 	}
 
 	@Override
-	public void addStep(int choice, Object action, String actionString, double probability, double[] transRewards, State newState, State newObs, double[] newStateRewards, ModelGenerator modelGen)
+	public void addStep(int choice, Object action, String actionString, Object probability, double[] transRewards, State newState, State newObs, double[] newStateRewards, ModelGenerator modelGen)
 	{
 		addStep(1.0, choice, action, actionString, probability, transRewards, newState, newObs, newStateRewards, modelGen);
 	}
 
 	@Override
-	public void addStep(double time, int choice, Object action, String actionString, double probability, double[] transRewards, State newState, State newObs, double[] newStateRewards, ModelGenerator modelGen)
+	public void addStep(double time, int choice, Object action, String actionString, Object probability, double[] transRewards, State newState, State newObs, double[] newStateRewards, ModelGenerator modelGen)
 	{
 		size++;
 		previousState.copy(currentState);
@@ -166,6 +168,13 @@ public class PathOnTheFly extends Path
 		loopDet.addStep(this, modelGen);
 	}
 
+	@Override
+	public void setStrategyInfoForCurrentState(int memory, Object decision)
+	{
+		currentStrategyMemory = memory;
+		currentStrategyDecision = decision;
+	}
+	
 	// ACCESSORS (for Path)
 
 	@Override
@@ -223,7 +232,7 @@ public class PathOnTheFly extends Path
 	}
 
 	@Override
-	public double getPreviousProbability()
+	public Object getPreviousProbability()
 	{
 		return previousProbability;
 	}
@@ -280,6 +289,18 @@ public class PathOnTheFly extends Path
 	public double[] getCurrentStateRewards()
 	{
 		return currentStateRewards;
+	}
+	
+	@Override
+	public int getCurrentStrategyMemory()
+	{
+		return currentStrategyMemory;
+	}
+	
+	@Override
+	public Object getCurrentStrategyDecision()
+	{
+		return currentStrategyDecision;
 	}
 	
 	@Override

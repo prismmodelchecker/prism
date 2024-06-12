@@ -42,6 +42,7 @@ import userinterface.util.*;
 public class ExportBuiltModelThread extends GUIComputationThread
 {
 	private int exportEntity;
+	private boolean exportModelLabels;
 	private int exportType;
 	private File exportFile;
 	private PropertiesFile propertiesFile;
@@ -62,11 +63,18 @@ public class ExportBuiltModelThread extends GUIComputationThread
 	}
 
 	/** Set (optional) associated PropertiesFile (for label export) */
-	public void setPropertiesFile(PropertiesFile propertiesFile)
+	public ExportBuiltModelThread setPropertiesFile(PropertiesFile propertiesFile)
 	{
 		this.propertiesFile = propertiesFile;
+		return this;
 	}
-	
+
+	public ExportBuiltModelThread setExportModelLabels(boolean exportModelLabels)
+	{
+		this.exportModelLabels = exportModelLabels;
+		return this;
+	}
+
 	public void run()
 	{
 		try {
@@ -90,6 +98,9 @@ public class ExportBuiltModelThread extends GUIComputationThread
 				case GUIMultiModelHandler.TRANS_EXPORT:
 					prism.exportTransToFile(true, exportType, exportFile);
 					break;
+				case GUIMultiModelHandler.OBSERVATIONS_EXPORT:
+					prism.exportObservationsToFile(exportType, exportFile);
+					break;
 				case GUIMultiModelHandler.STATE_REWARDS_EXPORT:
 					prism.exportStateRewardsToFile(exportType, exportFile);
 					break;
@@ -97,7 +108,11 @@ public class ExportBuiltModelThread extends GUIComputationThread
 					prism.exportTransRewardsToFile(true, exportType, exportFile);
 					break;
 				case GUIMultiModelHandler.LABELS_EXPORT:
-					prism.exportLabelsToFile(propertiesFile, exportType, exportFile);
+					if (exportModelLabels) {
+						prism.exportLabelsToFile(propertiesFile, exportType, exportFile);
+					} else {
+						prism.exportPropLabelsToFile(propertiesFile, exportType, exportFile);
+					}
 					break;
 				}
 			} catch (FileNotFoundException e) {

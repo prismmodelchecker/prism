@@ -1,18 +1,14 @@
-/**CHeaderFile*****************************************************************
+/**
+  @file 
 
-  FileName    [mtrInt.h]
+  @ingroup mtr
 
-  PackageName [mtr]
+  @brief Internal data structures of the mtr package
 
-  Synopsis    [Internal data structures of the mtr package]
+  @author Fabio Somenzi
 
-  Description [In this package all definitions are external.]
-
-  SeeAlso     []
-
-  Author      [Fabio Somenzi]
-
-  Copyright   [Copyright (c) 1995-2012, Regents of the University of Colorado
+  @copyright@parblock
+  Copyright (c) 1995-2015, Regents of the University of Colorado
 
   All rights reserved.
 
@@ -42,34 +38,84 @@
   CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
   LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
   ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-  POSSIBILITY OF SUCH DAMAGE.]
+  POSSIBILITY OF SUCH DAMAGE.
+  @endparblock
 
-  Revision    [$Id: mtrInt.h,v 1.3 2012/02/05 01:06:19 fabio Exp $]
+*/
 
-******************************************************************************/
-
-#ifndef _MTRINT
-#define _MTRINT
-
-#include "mtr.h"
+#ifndef MTRINT_H_
+#define MTRINT_H_
 
 /*---------------------------------------------------------------------------*/
 /* Nested includes                                                           */
 /*---------------------------------------------------------------------------*/
 
+#include "config.h"
+#include "mtr.h"
 
 /*---------------------------------------------------------------------------*/
 /* Constant declarations                                                     */
 /*---------------------------------------------------------------------------*/
 
-/*---------------------------------------------------------------------------*/
-/* Stucture declarations                                                     */
-/*---------------------------------------------------------------------------*/
+#ifndef SIZEOF_VOID_P
+#define SIZEOF_VOID_P 4
+#endif
+#ifndef SIZEOF_INT
+#define SIZEOF_INT 4
+#endif
 
+#if defined(__GNUC__)
+#define MTR_INLINE __inline__
+# if (__GNUC__ >2 || __GNUC_MINOR__ >=7)
+#   define MTR_UNUSED __attribute__ ((unused))
+# else
+#   define MTR_UNUSED
+# endif
+#else
+#define MTR_INLINE
+#define MTR_UNUSED
+#endif
+
+/* MTR_MAXHIGH is defined in such a way that on 32-bit and 64-bit
+** machines one can cast a value to (int) without generating a negative
+** number.
+*/
+#if SIZEOF_VOID_P == 8
+#define MTR_MAXHIGH	(((MtrHalfWord) ~0) >> 1)
+#else
+#define MTR_MAXHIGH	((MtrHalfWord) ~0)
+#endif
 
 /*---------------------------------------------------------------------------*/
 /* Type declarations                                                         */
 /*---------------------------------------------------------------------------*/
+
+/**
+ * @brief unsigned integer half the size of a pointer.
+ */
+#if SIZEOF_VOID_P == 8
+typedef uint32_t   MtrHalfWord;
+#else
+typedef uint16_t MtrHalfWord;
+#endif
+
+/*---------------------------------------------------------------------------*/
+/* Stucture declarations                                                     */
+/*---------------------------------------------------------------------------*/
+
+/**
+ * @brief multi-way tree node.
+ */
+struct MtrNode_ {
+    MtrHalfWord flags;
+    MtrHalfWord low;
+    MtrHalfWord size;
+    MtrHalfWord index;
+    struct MtrNode_ *parent;
+    struct MtrNode_ *child;
+    struct MtrNode_ *elder;
+    struct MtrNode_ *younger;
+};
 
 /*---------------------------------------------------------------------------*/
 /* Variable declarations                                                     */
@@ -80,13 +126,19 @@
 /* Macro declarations                                                        */
 /*---------------------------------------------------------------------------*/
 
-/**AutomaticStart*************************************************************/
+/* Flag manipulation macros */
+#define MTR_SET(node, flag)	(node->flags |= (flag))
+#define MTR_RESET(node, flag)	(node->flags &= ~ (flag))
+#define MTR_TEST(node, flag)	(node->flags & (flag))
+
+
+/** \cond */
 
 /*---------------------------------------------------------------------------*/
 /* Function prototypes                                                       */
 /*---------------------------------------------------------------------------*/
 
+/** \endcond */
 
-/**AutomaticEnd***************************************************************/
 
-#endif /* _MTRINT */
+#endif /* MTRINT_H_ */

@@ -1,0 +1,19 @@
+// Bug fix for IMDPs where Rmin is finite but Rmax is infty
+
+module M
+
+	s:[0..10];
+	
+	[a] s=0 -> [1,1]:(s'=1);
+	[b] s=0 -> [1,1]:(s'=3);
+	
+	[a] s=0 -> [0.5,0.6]:(s'=1) + [0.4,0.5]:(s'=2);
+	[b] s=0 -> [0.5,0.6]:(s'=3) + [0.4,0.5]:(s'=4);
+	
+	[c] s>0 -> true;
+	
+endmodule
+	
+rewards true : 1; endrewards
+
+label "target" = s=3 | s=4;

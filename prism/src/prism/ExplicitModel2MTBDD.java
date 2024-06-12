@@ -45,7 +45,7 @@ public class ExplicitModel2MTBDD
 	private PrismLog mainLog; // main log
 
 	// Explicit-state model
-	private explicit.Model modelExpl;
+	private explicit.Model<Double> modelExpl;
 
 	// ModulesFile object, essentially just to store variable info
 	private ModulesFile modulesFile;
@@ -110,7 +110,7 @@ public class ExplicitModel2MTBDD
 	 * in which case a corresponding {@code ModulesFile} must be provided for variable
 	 * details (and e.g. module names). If both are null, a single variable x is assumed. 
 	 */
-	public Model buildModel(explicit.Model modelExpl, List<State> statesList, ModulesFile modulesFile, boolean doReach) throws PrismException
+	public Model buildModel(explicit.Model<Double> modelExpl, List<State> statesList, ModulesFile modulesFile, boolean doReach) throws PrismException
 	{
 		Model model = null;
 		JDDNode tmp, tmp2;
@@ -352,7 +352,7 @@ public class ExplicitModel2MTBDD
 	/**
 	 * Construct (symbolic) transition matrix from explicit-state model. 
 	 */
-	private void buildTrans(explicit.Model modelExpl) throws PrismException
+	private void buildTrans(explicit.Model<Double> modelExpl) throws PrismException
 	{
 		String a;
 		int j, r, c, k = 0;
@@ -382,7 +382,7 @@ public class ExplicitModel2MTBDD
 		progress.start();
 		// Case for DTMCs/CTMCs...
 		if (modelType == ModelType.DTMC || modelType == ModelType.CTMC) {
-			DTMC dtmc = (DTMC) modelExpl;
+			DTMC<Double> dtmc = (DTMC<Double>) modelExpl;
 			for (r = 0; r < numStates; r++) {
 				Iterator<Map.Entry<Integer, Double>> iter = dtmc.getTransitionsIterator(r);
 				while (iter.hasNext()) {
@@ -427,7 +427,7 @@ public class ExplicitModel2MTBDD
 		}
 		// Case for MDPs...
 		else if (modelType == ModelType.MDP) {
-			MDP mdp = (MDP) modelExpl;
+			MDP<Double> mdp = (MDP<Double>) modelExpl;
 			for (r = 0; r < numStates; r++) {
 				int nc = mdp.getNumChoices(r);
 				for (k = 0; k < nc; k++) {

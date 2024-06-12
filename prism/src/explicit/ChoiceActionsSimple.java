@@ -171,7 +171,7 @@ public class ChoiceActionsSimple
 	 * If this action storage is completely empty,
 	 * then this method may simply return null.
 	 */
-	public Object[] convertToSparseStorage(NondetModel model)
+	public Object[] convertToSparseStorage(NondetModel<?> model)
 	{
 		if (actions == null) {
 			return null;

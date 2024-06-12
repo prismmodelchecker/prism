@@ -1,0 +1,70 @@
+// Some tests of short-circuiting, in each case:
+// (i) occurring in a constant (so Expression evaluation)
+// (ii) occurring in a constant property (so model checking)
+// (iii) occurring in a state-dependent property (so model checking)
+
+const int c = 0;
+
+// -------------------------
+
+// Baseline: should generate error
+
+// RESULT: Error:exponent
+pow(2,c-1);
+
+// RESULT: Error:exponent
+filter(forall, pow(2,s-1)>0);
+
+// -------------------------
+
+// Short-circuiting or prevents error
+
+// RESULT: true
+cOr; const bool cOr = c=0 | pow(2,c-1)>0;
+
+// RESULT: true
+c=0 | pow(2,c-1)>0;
+
+// RESULT: true
+filter(forall, s=0 | pow(2,s-1)>0);
+
+// -------------------------
+
+// Short-circuiting and prevents error
+
+// RESULT: false
+cAnd; const bool cAnd = c!=0 & pow(2,c-1)>0;
+
+// RESULT: false
+c!=0 & pow(2,c-1)>0;
+
+// RESULT: false
+filter(forall, s!=0 & pow(2,s-1)>0);
+
+// -------------------------
+
+// Short-circuiting implies prevents error
+
+// RESULT: true
+cImplies; const bool cImplies = c!=0 => pow(2,c-1)>0;
+
+// RESULT: true
+c!=0 => pow(2,c-1)>0;
+
+// RESULT: true
+filter(forall, s!=0 => pow(2,s-1)>0);
+
+// -------------------------
+
+// Short-circuiting if-then-else prevents error
+
+// RESULT: 0
+//cITE; const int cITE = c>0 ? pow(2,c-1) : 0;
+
+// RESULT: 0
+c>0 ? pow(2,c-1) : 0;
+
+// RESULT: 447
+filter(sum, s>0 ? pow(2,s-1) : 0);
+
+// -------------------------

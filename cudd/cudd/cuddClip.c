@@ -1,32 +1,14 @@
-/**CFile***********************************************************************
+/**
+  @file
 
-  FileName    [cuddClip.c]
+  @ingroup cudd
 
-  PackageName [cudd]
+  @brief Clipping functions.
 
-  Synopsis    [Clipping functions.]
+  @author Fabio Somenzi
 
-  Description [External procedures included in this module:
-		<ul>
-		<li> Cudd_bddClippingAnd()
-		<li> Cudd_bddClippingAndAbstract()
-		</ul>
-       Internal procedures included in this module:
-		<ul>
-		<li> cuddBddClippingAnd()
-		<li> cuddBddClippingAndAbstract()
-		</ul>
-       Static procedures included in this module:
-		<ul>
-		<li> cuddBddClippingAndRecur()
-		<li> cuddBddClipAndAbsRecur()
-		</ul>
-
-  SeeAlso     []
-
-  Author      [Fabio Somenzi]
-
-  Copyright   [Copyright (c) 1995-2012, Regents of the University of Colorado
+  @copyright@parblock
+  Copyright (c) 1995-2015, Regents of the University of Colorado
 
   All rights reserved.
 
@@ -56,9 +38,10 @@
   CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
   LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
   ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-  POSSIBILITY OF SUCH DAMAGE.]
+  POSSIBILITY OF SUCH DAMAGE.
+  @endparblock
 
-******************************************************************************/
+*/
 
 #include "util.h"
 #include "cuddInt.h"
@@ -82,16 +65,12 @@
 /* Variable declarations                                                     */
 /*---------------------------------------------------------------------------*/
 
-#ifndef lint
-static char rcsid[] DD_UNUSED = "$Id: cuddClip.c,v 1.9 2012/02/05 01:07:18 fabio Exp $";
-#endif
 
 /*---------------------------------------------------------------------------*/
 /* Macro declarations                                                        */
 /*---------------------------------------------------------------------------*/
 
-
-/**AutomaticStart*************************************************************/
+/** \cond */
 
 /*---------------------------------------------------------------------------*/
 /* Static function prototypes                                                */
@@ -100,7 +79,7 @@ static char rcsid[] DD_UNUSED = "$Id: cuddClip.c,v 1.9 2012/02/05 01:07:18 fabio
 static DdNode * cuddBddClippingAndRecur (DdManager *manager, DdNode *f, DdNode *g, int distance, int direction);
 static DdNode * cuddBddClipAndAbsRecur (DdManager *manager, DdNode *f, DdNode *g, DdNode *cube, int distance, int direction);
 
-/**AutomaticEnd***************************************************************/
+/** \endcond */
 
 
 /*---------------------------------------------------------------------------*/
@@ -108,26 +87,24 @@ static DdNode * cuddBddClipAndAbsRecur (DdManager *manager, DdNode *f, DdNode *g
 /*---------------------------------------------------------------------------*/
 
 
-/**Function********************************************************************
+/**
+  @brief Approximates the conjunction of two BDDs f and g.
 
-  Synopsis    [Approximates the conjunction of two BDDs f and g.]
+  @return a pointer to the resulting %BDD if successful; NULL if the
+  intermediate result blows up.
 
-  Description [Approximates the conjunction of two BDDs f and g. Returns a
-  pointer to the resulting BDD if successful; NULL if the intermediate
-  result blows up.]
+  @sideeffect None
 
-  SideEffects [None]
+  @see Cudd_bddAnd
 
-  SeeAlso     [Cudd_bddAnd]
-
-******************************************************************************/
+*/
 DdNode *
 Cudd_bddClippingAnd(
-  DdManager * dd /* manager */,
-  DdNode * f /* first conjunct */,
-  DdNode * g /* second conjunct */,
-  int  maxDepth /* maximum recursion depth */,
-  int  direction /* under (0) or over (1) approximation */)
+  DdManager * dd /**< manager */,
+  DdNode * f /**< first conjunct */,
+  DdNode * g /**< second conjunct */,
+  int  maxDepth /**< maximum recursion depth */,
+  int  direction /**< under (0) or over (1) approximation */)
 {
     DdNode *res;
 
@@ -135,34 +112,36 @@ Cudd_bddClippingAnd(
 	dd->reordered = 0;
 	res = cuddBddClippingAnd(dd,f,g,maxDepth,direction);
     } while (dd->reordered == 1);
+    if (dd->errorCode == CUDD_TIMEOUT_EXPIRED && dd->timeoutHandler) {
+        dd->timeoutHandler(dd, dd->tohArg);
+    }
     return(res);
 
 } /* end of Cudd_bddClippingAnd */
 
 
-/**Function********************************************************************
+/**
+  @brief Approximates the conjunction of two BDDs f and g and
+  simultaneously abstracts the variables in cube.
 
-  Synopsis    [Approximates the conjunction of two BDDs f and g and
-  simultaneously abstracts the variables in cube.]
+  @details The variables are existentially abstracted.
 
-  Description [Approximates the conjunction of two BDDs f and g and
-  simultaneously abstracts the variables in cube. The variables are
-  existentially abstracted. Returns a pointer to the resulting BDD if
-  successful; NULL if the intermediate result blows up.]
+  @return a pointer to the resulting %BDD if successful; NULL if the
+  intermediate result blows up.
 
-  SideEffects [None]
+  @sideeffect None
 
-  SeeAlso     [Cudd_bddAndAbstract Cudd_bddClippingAnd]
+  @see Cudd_bddAndAbstract Cudd_bddClippingAnd
 
-******************************************************************************/
+*/
 DdNode *
 Cudd_bddClippingAndAbstract(
-  DdManager * dd /* manager */,
-  DdNode * f /* first conjunct */,
-  DdNode * g /* second conjunct */,
-  DdNode * cube /* cube of variables to be abstracted */,
-  int  maxDepth /* maximum recursion depth */,
-  int  direction /* under (0) or over (1) approximation */)
+  DdManager * dd /**< manager */,
+  DdNode * f /**< first conjunct */,
+  DdNode * g /**< second conjunct */,
+  DdNode * cube /**< cube of variables to be abstracted */,
+  int  maxDepth /**< maximum recursion depth */,
+  int  direction /**< under (0) or over (1) approximation */)
 {
     DdNode *res;
 
@@ -170,6 +149,9 @@ Cudd_bddClippingAndAbstract(
 	dd->reordered = 0;
 	res = cuddBddClippingAndAbstract(dd,f,g,cube,maxDepth,direction);
     } while (dd->reordered == 1);
+    if (dd->errorCode == CUDD_TIMEOUT_EXPIRED && dd->timeoutHandler) {
+        dd->timeoutHandler(dd, dd->tohArg);
+    }
     return(res);
 
 } /* end of Cudd_bddClippingAndAbstract */
@@ -180,26 +162,24 @@ Cudd_bddClippingAndAbstract(
 /*---------------------------------------------------------------------------*/
 
 
-/**Function********************************************************************
+/**
+  @brief Approximates the conjunction of two BDDs f and g.
 
-  Synopsis    [Approximates the conjunction of two BDDs f and g.]
+  @return a pointer to the resulting %BDD if successful; NULL if the
+  intermediate result blows up.
 
-  Description [Approximates the conjunction of two BDDs f and g. Returns a
-  pointer to the resulting BDD if successful; NULL if the intermediate
-  result blows up.]
+  @sideeffect None
 
-  SideEffects [None]
+  @see Cudd_bddClippingAnd
 
-  SeeAlso     [Cudd_bddClippingAnd]
-
-******************************************************************************/
+*/
 DdNode *
 cuddBddClippingAnd(
-  DdManager * dd /* manager */,
-  DdNode * f /* first conjunct */,
-  DdNode * g /* second conjunct */,
-  int  maxDepth /* maximum recursion depth */,
-  int  direction /* under (0) or over (1) approximation */)
+  DdManager * dd /**< manager */,
+  DdNode * f /**< first conjunct */,
+  DdNode * g /**< second conjunct */,
+  int  maxDepth /**< maximum recursion depth */,
+  int  direction /**< under (0) or over (1) approximation */)
 {
     DdNode *res;
 
@@ -210,29 +190,26 @@ cuddBddClippingAnd(
 } /* end of cuddBddClippingAnd */
 
 
-/**Function********************************************************************
+/**
+  @brief Approximates the conjunction of two BDDs f and g and
+  simultaneously abstracts the variables in cube.
 
-  Synopsis    [Approximates the conjunction of two BDDs f and g and
-  simultaneously abstracts the variables in cube.]
+  @return a pointer to the resulting %BDD if successful; NULL if the
+  intermediate result blows up.
 
-  Description [Approximates the conjunction of two BDDs f and g and
-  simultaneously abstracts the variables in cube. Returns a
-  pointer to the resulting BDD if successful; NULL if the intermediate
-  result blows up.]
+  @sideeffect None
 
-  SideEffects [None]
+  @see Cudd_bddClippingAndAbstract
 
-  SeeAlso     [Cudd_bddClippingAndAbstract]
-
-******************************************************************************/
+*/
 DdNode *
 cuddBddClippingAndAbstract(
-  DdManager * dd /* manager */,
-  DdNode * f /* first conjunct */,
-  DdNode * g /* second conjunct */,
-  DdNode * cube /* cube of variables to be abstracted */,
-  int  maxDepth /* maximum recursion depth */,
-  int  direction /* under (0) or over (1) approximation */)
+  DdManager * dd /**< manager */,
+  DdNode * f /**< first conjunct */,
+  DdNode * g /**< second conjunct */,
+  DdNode * cube /**< cube of variables to be abstracted */,
+  int  maxDepth /**< maximum recursion depth */,
+  int  direction /**< under (0) or over (1) approximation */)
 {
     DdNode *res;
 
@@ -248,19 +225,18 @@ cuddBddClippingAndAbstract(
 /*---------------------------------------------------------------------------*/
 
 
-/**Function********************************************************************
+/**
+  @brief Implements the recursive step of Cudd_bddClippingAnd.
 
-  Synopsis [Implements the recursive step of Cudd_bddClippingAnd.]
+  @details Takes the conjunction of two BDDs.
 
-  Description [Implements the recursive step of Cudd_bddClippingAnd by taking
-  the conjunction of two BDDs.  Returns a pointer to the result is
-  successful; NULL otherwise.]
+  @return a pointer to the result is successful; NULL otherwise.
 
-  SideEffects [None]
+  @sideeffect None
 
-  SeeAlso     [cuddBddClippingAnd]
+  @see cuddBddClippingAnd
 
-******************************************************************************/
+*/
 static DdNode *
 cuddBddClippingAndRecur(
   DdManager * manager,
@@ -271,7 +247,8 @@ cuddBddClippingAndRecur(
 {
     DdNode *F, *ft, *fe, *G, *gt, *ge;
     DdNode *one, *zero, *r, *t, *e;
-    unsigned int topf, topg, index;
+    int topf, topg;
+    unsigned int index;
     DD_CTFP cacheOp;
 
     statLine(manager);
@@ -311,6 +288,8 @@ cuddBddClippingAndRecur(
 	r = cuddCacheLookup2(manager, cacheOp, f, g);
 	if (r != NULL) return(r);
     }
+
+    checkWhetherToGiveUp(manager);
 
     /* Here we can skip the use of cuddI, because the operands are known
     ** to be non-constant.
@@ -382,21 +361,19 @@ cuddBddClippingAndRecur(
 } /* end of cuddBddClippingAndRecur */
 
 
-/**Function********************************************************************
+/**
+  @brief Approximates the AND of two BDDs and simultaneously abstracts the
+  variables in cube.
 
-  Synopsis [Approximates the AND of two BDDs and simultaneously abstracts the
-  variables in cube.]
+  @details The variables are existentially abstracted.
 
-  Description [Approximates the AND of two BDDs and simultaneously
-  abstracts the variables in cube. The variables are existentially
-  abstracted.  Returns a pointer to the result is successful; NULL
-  otherwise.]
+  @return a pointer to the result is successful; NULL otherwise.
 
-  SideEffects [None]
+  @sideeffect None
 
-  SeeAlso     [Cudd_bddClippingAndAbstract]
+  @see Cudd_bddClippingAndAbstract
 
-******************************************************************************/
+*/
 static DdNode *
 cuddBddClipAndAbsRecur(
   DdManager * manager,
@@ -408,7 +385,8 @@ cuddBddClipAndAbsRecur(
 {
     DdNode *F, *ft, *fe, *G, *gt, *ge;
     DdNode *one, *zero, *r, *t, *e, *Cube;
-    unsigned int topf, topg, topcube, top, index;
+    int topf, topg, topcube, top;
+    unsigned int index;
     ptruint cacheTag;
 
     statLine(manager);
@@ -448,6 +426,8 @@ cuddBddClipAndAbsRecur(
 	    return(r);
 	}
     }
+
+    checkWhetherToGiveUp(manager);
 
     /* Here we can skip the use of cuddI, because the operands are known
     ** to be non-constant.

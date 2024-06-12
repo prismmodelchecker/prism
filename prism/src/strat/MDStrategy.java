@@ -30,79 +30,68 @@ package strat;
 import prism.PrismLog;
 
 /**
- * Classes to store memoryless deterministic (MD) strategies.
+ * Interface for classes to store memoryless deterministic (MD) strategies.
  */
-public abstract class MDStrategy implements Strategy
+public interface MDStrategy<Value> extends Strategy<Value>
 {
-	/**
-	 * Current state of model
-	 */
-	protected int currentState = -1;
+	// Additional queries for memoryless strategies (just ignore memory)
 	
 	/**
-	 * Get the number of states of the model associated with this strategy. 
+	 * Get the action chosen by the strategy in the state index s
+	 * Returns {@link StrategyInfo#UNDEFINED} if undefined.
 	 */
-	public abstract int getNumStates();
-
+	public default Object getChoiceAction(int s)
+	{
+		return getChoiceAction(s, -1);
+	}
+	
 	/**
-	 * Is choice information stored for state s?
-	 */
-	public abstract boolean isChoiceDefined(int s);
-
-	/**
-	 * Get the type of choice information stored for state s.
-	 */
-	public abstract Strategy.Choice getChoice(int s);
-
-	/**
-	 * Get the index of the choice taken in state s.
+	 * Get the index of the choice picked by the strategy in the state index s.
 	 * The index is defined with respect to a particular model, stored locally.
-	 * Other possible values: -1 (unknown), -2 (arbitrary), -3 (unreachable)
+	 * Returns a negative value (not necessarily -1) if undefined.
 	 */
-	public abstract int getChoiceIndex(int s);
+	public default int getChoiceIndex(int s)
+	{
+		return getChoiceIndex(s, -1);
+	}
 
 	/**
-	 * Get the action taken in state s.
+	 * Is a choice defined by the strategy in the state index s.
 	 */
-	public abstract Object getChoiceAction(int s);
+	public default boolean isChoiceDefined(int s)
+	{
+		return isChoiceDefined(s, -1);
+	}
+
+	/**
+	 * Get a string representing the choice made by the strategy in the state index s.
+	 * For unlabelled choices, this should return "", not null.
+	 * This may also indicate the reason why it is undefined, if it is.
+	 */
+	public default String getChoiceActionString(int s)
+	{
+		return getChoiceActionString(s, -1);
+	}
 
 	// Methods for Strategy
 	
 	@Override
-	public void initialise(int s)
-	{
-		currentState = s;
-	}
-	
-	@Override
-	public void update(Object action, int s)
-	{
-		currentState = s;
-	}
-	
-	@Override
-	public Object getChoiceAction()
-	{
-		return getChoiceAction(currentState);
-	}
-
-	@Override
-	public void exportActions(PrismLog out)
+	public default void exportActions(PrismLog out, StrategyExportOptions options)
 	{
 		int n = getNumStates();
 		for (int s = 0; s < n; s++) {
 			if (isChoiceDefined(s))
-				out.println(s + ":" + getChoiceAction(s));
+				out.println(s + "=" + getChoiceActionString(s));
 		}
 	}
 
 	@Override
-	public void exportIndices(PrismLog out)
+	public default void exportIndices(PrismLog out, StrategyExportOptions options)
 	{
 		int n = getNumStates();
 		for (int s = 0; s < n; s++) {
 			if (isChoiceDefined(s))
-				out.println(s + ":" + getChoiceIndex(s));
+				out.println(s + "=" + getChoiceIndex(s));
 		}
 	}
 }

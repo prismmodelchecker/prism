@@ -1,44 +1,14 @@
-/**CFile***********************************************************************
+/**
+  @file
 
-  FileName    [cuddSat.c]
+  @ingroup cudd
 
-  PackageName [cudd]
+  @brief Functions for the solution of satisfiability related problems.
 
-  Synopsis    [Functions for the solution of satisfiability related problems.]
+  @author Seh-Woong Jeong, Fabio Somenzi
 
-  Description [External procedures included in this file:
-		<ul>
-		<li> Cudd_Eval()
-		<li> Cudd_ShortestPath()
-		<li> Cudd_LargestCube()
-		<li> Cudd_ShortestLength()
-		<li> Cudd_Decreasing()
-		<li> Cudd_Increasing()
-		<li> Cudd_EquivDC()
-		<li> Cudd_bddLeqUnless()
-		<li> Cudd_EqualSupNorm()
-		<li> Cudd_bddMakePrime()
-                <li> Cudd_bddMaximallyExpand()
-                <li> Cudd_bddLargestPrimeUnate()
-		</ul>
-	Internal procedures included in this module:
-	        <ul>
-		<li> cuddBddMakePrime()
-		</ul>
-	Static procedures included in this module:
-		<ul>
-		<li> freePathPair()
-		<li> getShortest()
-		<li> getPath()
-		<li> getLargest()
-		<li> getCube()
-                <li> ddBddMaximallyExpand()
-                <li> ddShortestPathUnate()
-		</ul>]
-
-  Author      [Seh-Woong Jeong, Fabio Somenzi]
-
-  Copyright   [Copyright (c) 1995-2012, Regents of the University of Colorado
+  @copyright@parblock
+  Copyright (c) 1995-2015, Regents of the University of Colorado
 
   All rights reserved.
 
@@ -68,9 +38,10 @@
   CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
   LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
   ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-  POSSIBILITY OF SUCH DAMAGE.]
+  POSSIBILITY OF SUCH DAMAGE.
+  @endparblock
 
-******************************************************************************/
+*/
 
 #include "util.h"
 #include "cuddInt.h"
@@ -89,6 +60,9 @@
 /* Type declarations                                                         */
 /*---------------------------------------------------------------------------*/
 
+/**
+   @brief Type of item stored in memoization table.
+*/
 typedef struct cuddPathPair {
     int	pos;
     int	neg;
@@ -98,11 +72,6 @@ typedef struct cuddPathPair {
 /* Variable declarations                                                     */
 /*---------------------------------------------------------------------------*/
 
-#ifndef lint
-static char rcsid[] DD_UNUSED = "$Id: cuddSat.c,v 1.39 2012/02/05 01:07:19 fabio Exp $";
-#endif
-
-static	DdNode	*one, *zero;
 
 /*---------------------------------------------------------------------------*/
 /* Macro declarations                                                        */
@@ -110,51 +79,42 @@ static	DdNode	*one, *zero;
 
 #define WEIGHT(weight, col)	((weight) == NULL ? 1 : weight[col])
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-/**AutomaticStart*************************************************************/
+/** \cond */
 
 /*---------------------------------------------------------------------------*/
 /* Static function prototypes                                                */
 /*---------------------------------------------------------------------------*/
 
-static enum st_retval freePathPair (char *key, char *value, char *arg);
-static cuddPathPair getShortest (DdNode *root, int *cost, int *support, st_table *visited);
+static enum st_retval freePathPair (void *key, void *value, void *arg);
+static cuddPathPair getShortest (DdManager *dd, DdNode *root, int *cost, int *support, st_table *visited);
 static DdNode * getPath (DdManager *manager, st_table *visited, DdNode *f, int *weight, int cost);
-static cuddPathPair getLargest (DdNode *root, st_table *visited);
+static cuddPathPair getLargest (DdManager *dd, DdNode *root, st_table *visited);
 static DdNode * getCube (DdManager *manager, st_table *visited, DdNode *f, int cost);
 static DdNode * ddBddMaximallyExpand(DdManager *dd, DdNode *lb, DdNode *ub, DdNode *f);
 static int ddBddShortestPathUnate(DdManager *dd, DdNode *f, int *phases, st_table *table);
 static DdNode * ddGetLargestCubeUnate(DdManager *dd, DdNode *f, int *phases, st_table *table);
 
-/**AutomaticEnd***************************************************************/
-
-#ifdef __cplusplus
-}
-#endif
+/** \endcond */
 
 /*---------------------------------------------------------------------------*/
 /* Definition of exported functions                                          */
 /*---------------------------------------------------------------------------*/
 
 
-/**Function********************************************************************
+/**
+  @brief Returns the value of a %DD for a given variable assignment.
 
-  Synopsis    [Returns the value of a DD for a given variable assignment.]
-
-  Description [Finds the value of a DD for a given variable
-  assignment. The variable assignment is passed in an array of int's,
+  @details The variable assignment is passed in an array of int's,
   that should specify a zero or a one for each variable in the support
-  of the function. Returns a pointer to a constant node. No new nodes
-  are produced.]
+  of the function.
 
-  SideEffects [None]
+  @return a pointer to a constant node. No new nodes are produced.
 
-  SeeAlso     [Cudd_bddLeq Cudd_addEvalConst]
+  @sideeffect None
 
-******************************************************************************/
+  @see Cudd_bddLeq Cudd_addEvalConst
+
+*/
 DdNode *
 Cudd_Eval(
   DdManager * dd,
@@ -164,6 +124,7 @@ Cudd_Eval(
     int comple;
     DdNode *ptr;
 
+    (void) dd; /* avoid warning */
     comple = Cudd_IsComplement(f);
     ptr = Cudd_Regular(f);
 
@@ -180,25 +141,25 @@ Cudd_Eval(
 } /* end of Cudd_Eval */
 
 
-/**Function********************************************************************
+/**
+  @brief Finds a shortest path in a %DD.
 
-  Synopsis    [Finds a shortest path in a DD.]
+  @details f is the %DD we want to get the shortest path for;
+  weight\[i\] is the weight of the THEN arc coming from the node whose
+  index is i. If weight is NULL, then unit weights are assumed for all
+  THEN arcs. All ELSE arcs have 0 weight.  If non-NULL, both weight
+  and support should point to arrays with at least as many entries as
+  there are variables in the manager.
 
-  Description [Finds a shortest path in a DD. f is the DD we want to
-  get the shortest path for; weight\[i\] is the weight of the THEN arc
-  coming from the node whose index is i. If weight is NULL, then unit
-  weights are assumed for all THEN arcs. All ELSE arcs have 0 weight.
-  If non-NULL, both weight and support should point to arrays with at
-  least as many entries as there are variables in the manager.
-  Returns the shortest path as the BDD of a cube.]
+  @return the shortest path as the %BDD of a cube.
 
-  SideEffects [support contains on return the true support of f.
+  @sideeffect support contains on return the true support of f.
   If support is NULL on entry, then Cudd_ShortestPath does not compute
-  the true support info. length contains the length of the path.]
+  the true support info. length contains the length of the path.
 
-  SeeAlso     [Cudd_ShortestLength Cudd_LargestCube]
+  @see Cudd_ShortestLength Cudd_LargestCube
 
-******************************************************************************/
+*/
 DdNode *
 Cudd_ShortestPath(
   DdManager * manager,
@@ -214,8 +175,8 @@ Cudd_ShortestPath(
     int		complement, cost;
     int		i;
 
-    one = DD_ONE(manager);
-    zero = DD_ZERO(manager);
+    DdNode *one = DD_ONE(manager);
+    DdNode *zero = DD_ZERO(manager);
 
     /* Initialize support. Support does not depend on variable order.
     ** Hence, it does not need to be reinitialized if reordering occurs.
@@ -239,13 +200,13 @@ Cudd_ShortestPath(
 	visited = st_init_table(st_ptrcmp, st_ptrhash);
 
 	/* Now get the length of the shortest path(s) from f to 1. */
-	(void) getShortest(f, weight, support, visited);
+	(void) getShortest(manager, f, weight, support, visited);
 
 	complement = Cudd_IsComplement(f);
 
 	F = Cudd_Regular(f);
 
-	if (!st_lookup(visited, F, &rootPair)) return(NULL);
+	if (!st_lookup(visited, F, (void **) &rootPair)) return(NULL);
 
 	if (complement) {
 	  cost = rootPair->neg;
@@ -260,6 +221,9 @@ Cudd_ShortestPath(
 	st_free_table(visited);
 
     } while (manager->reordered == 1);
+    if (manager->errorCode == CUDD_TIMEOUT_EXPIRED && manager->timeoutHandler) {
+        manager->timeoutHandler(manager, manager->tohArg);
+    }
 
     *length = cost;
     return(sol);
@@ -267,37 +231,37 @@ Cudd_ShortestPath(
 } /* end of Cudd_ShortestPath */
 
 
-/**Function********************************************************************
+/**
+  @brief Finds a largest cube in a %DD.
 
-  Synopsis    [Finds a largest cube in a DD.]
+  @details f is the %DD we want to get the largest cube for. The
+  problem is translated into the one of finding a shortest path in f,
+  when both THEN and ELSE arcs are assumed to have unit length. This
+  yields a largest cube in the disjoint cover corresponding to the
+  %DD. Therefore, it is not necessarily the largest implicant of f.
 
-  Description [Finds a largest cube in a DD. f is the DD we want to
-  get the largest cube for. The problem is translated into the one of
-  finding a shortest path in f, when both THEN and ELSE arcs are assumed to
-  have unit length. This yields a largest cube in the disjoint cover
-  corresponding to the DD. Therefore, it is not necessarily the largest
-  implicant of f.  Returns the largest cube as a BDD.]
+  @return the largest cube as a %BDD.
 
-  SideEffects [The number of literals of the cube is returned in the location
-  pointed by length if it is non-null.]
+  @sideeffect The number of literals of the cube is returned in the location
+  pointed by length if it is non-null.
 
-  SeeAlso     [Cudd_ShortestPath]
+  @see Cudd_ShortestPath
 
-******************************************************************************/
+*/
 DdNode *
 Cudd_LargestCube(
   DdManager * manager,
   DdNode * f,
   int * length)
 {
-    register 	DdNode	*F;
+    DdNode	*F;
     st_table	*visited;
     DdNode	*sol;
     cuddPathPair *rootPair;
     int		complement, cost;
 
-    one = DD_ONE(manager);
-    zero = DD_ZERO(manager);
+    DdNode *one = DD_ONE(manager);
+    DdNode *zero = DD_ZERO(manager);
 
     if (f == Cudd_Not(one) || f == zero) {
 	if (length != NULL) {
@@ -314,13 +278,13 @@ Cudd_LargestCube(
 	visited = st_init_table(st_ptrcmp, st_ptrhash);
 
 	/* Now get the length of the shortest path(s) from f to 1. */
-	(void) getLargest(f, visited);
+	(void) getLargest(manager, f, visited);
 
 	complement = Cudd_IsComplement(f);
 
 	F = Cudd_Regular(f);
 
-	if (!st_lookup(visited, F, &rootPair)) return(NULL);
+	if (!st_lookup(visited, F, (void **) &rootPair)) return(NULL);
 
 	if (complement) {
 	  cost = rootPair->neg;
@@ -339,40 +303,43 @@ Cudd_LargestCube(
     if (length != NULL) {
         *length = cost;
     }
+    if (manager->errorCode == CUDD_TIMEOUT_EXPIRED && manager->timeoutHandler) {
+        manager->timeoutHandler(manager, manager->tohArg);
+    }
     return(sol);
 
 } /* end of Cudd_LargestCube */
 
 
-/**Function********************************************************************
+/**
+  @brief Find the length of the shortest path(s) in a %DD.
 
-  Synopsis    [Find the length of the shortest path(s) in a DD.]
+  @details f is the %DD we want to get the shortest path for;
+  weight\[i\] is the weight of the THEN edge coming from the node
+  whose index is i. All ELSE edges have 0 weight.
 
-  Description [Find the length of the shortest path(s) in a DD. f is
-  the DD we want to get the shortest path for; weight\[i\] is the
-  weight of the THEN edge coming from the node whose index is i. All
-  ELSE edges have 0 weight. Returns the length of the shortest
-  path(s) if such a path is found; a large number if the function is
-  identically 0, and CUDD_OUT_OF_MEM in case of failure.]
+  @return the length of the shortest path(s) if such a path is found;
+  a large number if the function is identically 0, and CUDD_OUT_OF_MEM
+  in case of failure.
 
-  SideEffects [None]
+  @sideeffect None
 
-  SeeAlso     [Cudd_ShortestPath]
+  @see Cudd_ShortestPath
 
-******************************************************************************/
+*/
 int
 Cudd_ShortestLength(
   DdManager * manager,
   DdNode * f,
   int * weight)
 {
-    register 	DdNode	*F;
+    DdNode	*F;
     st_table	*visited;
     cuddPathPair *my_pair;
     int		complement, cost;
 
-    one = DD_ONE(manager);
-    zero = DD_ZERO(manager);
+    DdNode *one = DD_ONE(manager);
+    DdNode *zero = DD_ZERO(manager);
 
     if (f == Cudd_Not(one) || f == zero) {
 	return(DD_BIGGY);
@@ -383,13 +350,13 @@ Cudd_ShortestLength(
     visited = st_init_table(st_ptrcmp, st_ptrhash);
 
     /* Now get the length of the shortest path(s) from f to 1. */
-    (void) getShortest(f, weight, NULL, visited);
+    (void) getShortest(manager, f, weight, NULL, visited);
 
     complement = Cudd_IsComplement(f);
 
     F = Cudd_Regular(f);
 
-    if (!st_lookup(visited, F, &my_pair)) return(CUDD_OUT_OF_MEM);
+    if (!st_lookup(visited, F, (void **) &my_pair)) return(CUDD_OUT_OF_MEM);
     
     if (complement) {
 	cost = my_pair->neg;
@@ -405,28 +372,29 @@ Cudd_ShortestLength(
 } /* end of Cudd_ShortestLength */
 
 
-/**Function********************************************************************
+/**
+  @brief Checks whether a %BDD is negative unate in a
+  variable.
 
-  Synopsis    [Determines whether a BDD is negative unate in a
-  variable.]
+  @details Determines whether the function represented by %BDD f is
+  negative unate (monotonic decreasing) in variable i.  This function
+  does not generate any new nodes.
 
-  Description [Determines whether the function represented by BDD f is
-  negative unate (monotonic decreasing) in variable i. Returns the
-  constant one is f is unate and the (logical) constant zero if it is not.
-  This function does not generate any new nodes.]
+  @return the constant one is f is unate and the (logical) constant
+  zero if it is not.
 
-  SideEffects [None]
+  @sideeffect None
 
-  SeeAlso     [Cudd_Increasing]
+  @see Cudd_Increasing
 
-******************************************************************************/
+*/
 DdNode *
 Cudd_Decreasing(
   DdManager * dd,
   DdNode * f,
   int  i)
 {
-    unsigned int topf, level;
+    int topf, level;
     DdNode *F, *fv, *fvn, *res;
     DD_CTFP cacheOp;
 
@@ -455,6 +423,8 @@ Cudd_Decreasing(
 	return(res);
     }
 
+    checkWhetherToGiveUp(dd);
+
     /* Compute cofactors. */
     fv = cuddT(F); fvn = cuddE(F);
     if (F != f) {
@@ -462,7 +432,7 @@ Cudd_Decreasing(
 	fvn = Cudd_Not(fvn);
     }
 
-    if (topf == (unsigned) level) {
+    if (topf == level) {
 	/* Special case: if fv is regular, fv(1,...,1) = 1;
 	** If in addition fvn is complemented, fvn(1,...,1) = 0.
 	** But then f(1,1,...,1) > f(0,1,...,1). Hence f is not
@@ -485,21 +455,19 @@ Cudd_Decreasing(
 } /* end of Cudd_Decreasing */
 
 
-/**Function********************************************************************
+/**
+  @brief Checks whether a %BDD is positive unate in a variable.
 
-  Synopsis    [Determines whether a BDD is positive unate in a
-  variable.]
-
-  Description [Determines whether the function represented by BDD f is
+  @details Determines whether the function represented by %BDD f is
   positive unate (monotonic increasing) in variable i. It is based on
   Cudd_Decreasing and the fact that f is monotonic increasing in i if
-  and only if its complement is monotonic decreasing in i.]
+  and only if its complement is monotonic decreasing in i.
 
-  SideEffects [None]
+  @sideeffect None
 
-  SeeAlso     [Cudd_Decreasing]
+  @see Cudd_Decreasing
 
-******************************************************************************/
+*/
 DdNode *
 Cudd_Increasing(
   DdManager * dd,
@@ -511,20 +479,19 @@ Cudd_Increasing(
 } /* end of Cudd_Increasing */
 
 
-/**Function********************************************************************
+/**
+  @brief Tells whether F and G are identical wherever D is 0.
 
-  Synopsis    [Tells whether F and G are identical wherever D is 0.]
+  @details F and G are either two ADDs or two BDDs.  D is either a 0-1
+  %ADD or a %BDD.  No new nodes are created.
 
-  Description [Tells whether F and G are identical wherever D is 0.  F
-  and G are either two ADDs or two BDDs.  D is either a 0-1 ADD or a
-  BDD.  The function returns 1 if F and G are equivalent, and 0
-  otherwise.  No new nodes are created.]
+  @return 1 if F and G are equivalent, and 0 otherwise.
 
-  SideEffects [None]
+  @sideeffect None
 
-  SeeAlso     [Cudd_bddLeqUnless]
+  @see Cudd_bddLeqUnless
 
-******************************************************************************/
+*/
 int
 Cudd_EquivDC(
   DdManager * dd,
@@ -535,7 +502,7 @@ Cudd_EquivDC(
     DdNode *tmp, *One, *Gr, *Dr;
     DdNode *Fv, *Fvn, *Gv, *Gvn, *Dv, *Dvn;
     int res;
-    unsigned int flevel, glevel, dlevel, top;
+    int flevel, glevel, dlevel, top;
 
     One = DD_ONE(dd);
 
@@ -612,19 +579,18 @@ Cudd_EquivDC(
 } /* end of Cudd_EquivDC */
 
 
-/**Function********************************************************************
+/**
+  @brief Tells whether f is less than of equal to G unless D is 1.
 
-  Synopsis    [Tells whether f is less than of equal to G unless D is 1.]
+  @details f, g, and D are BDDs.  No new nodes are created.
 
-  Description [Tells whether f is less than of equal to G unless D is
-  1.  f, g, and D are BDDs.  The function returns 1 if f is less than
-  of equal to G, and 0 otherwise.  No new nodes are created.]
+  @return 1 if f is less than of equal to G, and 0 otherwise.
 
-  SideEffects [None]
+  @sideeffect None
 
-  SeeAlso     [Cudd_EquivDC Cudd_bddLeq Cudd_bddIteConstant]
+  @see Cudd_EquivDC Cudd_bddLeq Cudd_bddIteConstant
 
-******************************************************************************/
+*/
 int
 Cudd_bddLeqUnless(
   DdManager *dd,
@@ -635,7 +601,7 @@ Cudd_bddLeqUnless(
     DdNode *tmp, *One, *F, *G;
     DdNode *Ft, *Fe, *Gt, *Ge, *Dt, *De;
     int res;
-    unsigned int flevel, glevel, dlevel, top;
+    int flevel, glevel, dlevel, top;
 
     statLine(dd);
 
@@ -783,37 +749,34 @@ Cudd_bddLeqUnless(
 } /* end of Cudd_bddLeqUnless */
 
 
-/**Function********************************************************************
+/**
+  @brief Compares two ADDs for equality within tolerance.
 
-  Synopsis    [Compares two ADDs for equality within tolerance.]
+  @details Two ADDs are reported to be equal if the maximum difference
+  between them (the sup norm of their difference) is less than or
+  equal to the tolerance parameter.  If parameter <code>pr</code> is
+  positive the first failure is reported to the standard output.
 
-  Description [Compares two ADDs for equality within tolerance. Two
-  ADDs are reported to be equal if the maximum difference between them
-  (the sup norm of their difference) is less than or equal to the
-  tolerance parameter. Returns 1 if the two ADDs are equal (within
-  tolerance); 0 otherwise. If parameter <code>pr</code> is positive
-  the first failure is reported to the standard output.]
+  @return 1 if the two ADDs are equal (within tolerance); 0 otherwise.
 
-  SideEffects [None]
+  @sideeffect None
 
-  SeeAlso     []
-
-******************************************************************************/
+*/
 int
 Cudd_EqualSupNorm(
-  DdManager * dd /* manager */,
-  DdNode * f /* first ADD */,
-  DdNode * g /* second ADD */,
-  CUDD_VALUE_TYPE  tolerance /* maximum allowed difference */,
-  int  pr /* verbosity level */)
+  DdManager * dd /**< manager */,
+  DdNode * f /**< first %ADD */,
+  DdNode * g /**< second %ADD */,
+  CUDD_VALUE_TYPE  tolerance /**< maximum allowed difference */,
+  int  pr /**< verbosity level */)
 {
     DdNode *fv, *fvn, *gv, *gvn, *r;
-    unsigned int topf, topg;
+    int topf, topg;
 
     statLine(dd);
     /* Check terminal cases. */
     if (f == g) return(1);
-    if (Cudd_IsConstant(f) && Cudd_IsConstant(g)) {
+    if (cuddIsConstant(f) && cuddIsConstant(g)) {
 	if (ddEqualVal(cuddV(f),cuddV(g),tolerance)) {
 	    return(1);
 	} else {
@@ -854,33 +817,32 @@ Cudd_EqualSupNorm(
 } /* end of Cudd_EqualSupNorm */
 
 
-/**Function********************************************************************
+/**
+  @brief Compares two ADDs for equality within relative tolerance.
 
-  Synopsis    [Compares two ADDs for equality within tolerance.]
+  @details Same as Cudd_EqualSupNorm but tests for max _relative_
+  difference, i.e., (f-g/f)<e instead of (f-g)<e.
+  
+  @return 1 if the two ADDs are equal (within tolerance); 0 otherwise.
 
-  Description [Same as Cudd_EqualSupNorm but tests for max _relative_ difference
-              i.e. (f-g/f)<e instead of (f-g)<e ]
+  @sideeffect None
 
-  SideEffects [None]
-
-  SeeAlso     []
-
-******************************************************************************/
+*/
 int
 Cudd_EqualSupNormRel(
-  DdManager * dd /* manager */,
-  DdNode * f /* first ADD */,
-  DdNode * g /* second ADD */,
-  CUDD_VALUE_TYPE  tolerance /* maximum allowed difference */,
-  int  pr /* verbosity level */)
+  DdManager * dd /**< manager */,
+  DdNode * f /**< first %ADD */,
+  DdNode * g /**< second %ADD */,
+  CUDD_VALUE_TYPE  tolerance /**< maximum allowed difference */,
+  int  pr /**< verbosity level */)
 {
     DdNode *fv, *fvn, *gv, *gvn, *r;
-    unsigned int topf, topg;
+    int topf, topg;
 
     statLine(dd);
     /* Check terminal cases. */
     if (f == g) return(1);
-    if (Cudd_IsConstant(f) && Cudd_IsConstant(g)) {
+    if (cuddIsConstant(f) && cuddIsConstant(g)) {
 	if (ddAbs((cuddV(f) - cuddV(g))/cuddV(f)) < tolerance) {
 	    return(1);
 	} else {
@@ -921,24 +883,23 @@ Cudd_EqualSupNormRel(
 } /* end of Cudd_EqualSupNormRel */
 
 
-/**Function********************************************************************
+/**
+  @brief Expands cube to a prime implicant of f.
 
-  Synopsis    [Expands cube to a prime implicant of f.]
+  @return the prime if successful; NULL otherwise.  In particular,
+  NULL is returned if cube is not a real cube or is not an implicant
+  of f.
 
-  Description [Expands cube to a prime implicant of f. Returns the prime
-  if successful; NULL otherwise.  In particular, NULL is returned if cube
-  is not a real cube or is not an implicant of f.]
+  @sideeffect None
 
-  SideEffects [None]
+  @see Cudd_bddMaximallyExpand
 
-  SeeAlso     [Cudd_bddMaximallyExpand]
-
-******************************************************************************/
+*/
 DdNode *
 Cudd_bddMakePrime(
-  DdManager *dd /* manager */,
-  DdNode *cube /* cube to be expanded */,
-  DdNode *f /* function of which the cube is to be made a prime */)
+  DdManager *dd /**< manager */,
+  DdNode *cube /**< cube to be expanded */,
+  DdNode *f /**< function of which the cube is to be made a prime */)
 {
     DdNode *res;
 
@@ -948,33 +909,37 @@ Cudd_bddMakePrime(
 	dd->reordered = 0;
 	res = cuddBddMakePrime(dd,cube,f);
     } while (dd->reordered == 1);
+    if (dd->errorCode == CUDD_TIMEOUT_EXPIRED && dd->timeoutHandler) {
+        dd->timeoutHandler(dd, dd->tohArg);
+    }
     return(res);
 
 } /* end of Cudd_bddMakePrime */
 
 
-/**Function********************************************************************
+/**
+  @brief Expands lb to prime implicants of (f and ub).
 
-  Synopsis    [Expands lb to prime implicants of (f and ub).]
+  @details Expands lb to all prime implicants of (f and ub) that
+  contain lb.  Assumes that lb is contained in ub.
 
-  Description [Expands lb to all prime implicants of (f and ub) that contain lb.
-  Assumes that lb is contained in ub.  Returns the disjunction of the primes if
-  lb is contained in f; returns the zero BDD if lb is not contained in f;
-  returns NULL in case of failure.  In particular, NULL is returned if cube is
-  not a real cube or is not an implicant of f.  Returning the disjunction of
-  all prime implicants works because the resulting function is unate.]
+  @return the disjunction of the primes if lb is contained in f;
+  returns the zero %BDD if lb is not contained in f; returns NULL in
+  case of failure.  In particular, NULL is returned if cube is not a
+  real cube or is not an implicant of f.  Returning the disjunction of
+  all prime implicants works because the resulting function is unate.
 
-  SideEffects [None]
+  @sideeffect None
 
-  SeeAlso     [Cudd_bddMakePrime]
+  @see Cudd_bddMakePrime
 
-******************************************************************************/
+*/
 DdNode *
 Cudd_bddMaximallyExpand(
-  DdManager *dd /* manager */,
-  DdNode *lb /* cube to be expanded */,
-  DdNode *ub /* upper bound cube */,
-  DdNode *f /* function against which to expand */)
+  DdManager *dd /**< manager */,
+  DdNode *lb /**< cube to be expanded */,
+  DdNode *ub /**< upper bound cube */,
+  DdNode *f /**< function against which to expand */)
 {
     DdNode *res;
 
@@ -984,31 +949,34 @@ Cudd_bddMaximallyExpand(
 	dd->reordered = 0;
 	res = ddBddMaximallyExpand(dd,lb,ub,f);
     } while (dd->reordered == 1);
+    if (dd->errorCode == CUDD_TIMEOUT_EXPIRED && dd->timeoutHandler) {
+        dd->timeoutHandler(dd, dd->tohArg);
+    }
     return(res);
 
 } /* end of Cudd_bddMaximallyExpand */
 
 
-/**Function********************************************************************
+/**
+  @brief Find a largest prime implicant of a unate function.
 
-  Synopsis    [Find a largest prime of a unate function.]
+  @details The behavior is undefined if f is not unate.  The third
+  argument is used to determine whether f is unate positive
+  (increasing) or negative (decreasing) in each of the variables in
+  its support.
 
-  Description [Find a largest prime implicant of a unate function.
-  Returns the BDD for the prime if succesful; NULL otherwise.  The behavior
-  is undefined if f is not unate.  The third argument is used to determine
-  whether f is unate positive (increasing) or negative (decreasing)
-  in each of the variables in its support.]
+  @return the %BDD for the prime if succesful; NULL otherwise.
 
-  SideEffects [None]
+  @sideeffect None
 
-  SeeAlso     [Cudd_bddMaximallyExpand]
+  @see Cudd_bddMaximallyExpand
 
-******************************************************************************/
+*/
 DdNode *
 Cudd_bddLargestPrimeUnate(
-  DdManager *dd /* manager */,
-  DdNode *f /* unate function */,
-  DdNode *phaseBdd /* cube of the phases */)
+  DdManager *dd /**< manager */,
+  DdNode *f /**< unate function */,
+  DdNode *phaseBdd /**< cube of the phases */)
 {
     DdNode *res;
     int *phases;
@@ -1036,6 +1004,9 @@ Cudd_bddLargestPrimeUnate(
     } while (dd->reordered == 1);
 
     FREE(phases);
+    if (dd->errorCode == CUDD_TIMEOUT_EXPIRED && dd->timeoutHandler) {
+        dd->timeoutHandler(dd, dd->tohArg);
+    }
     return(res);
 
 } /* end of Cudd_bddLargestPrimeUnate */
@@ -1046,32 +1017,28 @@ Cudd_bddLargestPrimeUnate(
 /*---------------------------------------------------------------------------*/
 
 
-/**Function********************************************************************
+/**
+  @brief Performs the recursive step of Cudd_bddMakePrime.
 
-  Synopsis    [Performs the recursive step of Cudd_bddMakePrime.]
+  @return the prime if successful; NULL otherwise.
 
-  Description [Performs the recursive step of Cudd_bddMakePrime.
-  Returns the prime if successful; NULL otherwise.]
+  @sideeffect None
 
-  SideEffects [None]
-
-  SeeAlso     []
-
-******************************************************************************/
+*/
 DdNode *
 cuddBddMakePrime(
-  DdManager *dd /* manager */,
-  DdNode *cube /* cube to be expanded */,
-  DdNode *f /* function of which the cube is to be made a prime */)
+  DdManager *dd /**< manager */,
+  DdNode *cube /**< cube to be expanded */,
+  DdNode *f /**< function of which the cube is to be made a prime */)
 {
     DdNode *scan;
     DdNode *t, *e;
     DdNode *res = cube;
-    DdNode *zero = Cudd_Not(DD_ONE(dd));
+    DdNode *lzero = Cudd_Not(DD_ONE(dd));
 
     Cudd_Ref(res);
     scan = cube;
-    while (!Cudd_IsConstant(scan)) {
+    while (!Cudd_IsConstantInt(scan)) {
 	DdNode *reg = Cudd_Regular(scan);
 	DdNode *var = dd->vars[reg->index];
 	DdNode *expanded = Cudd_bddExistAbstract(dd,res,var);
@@ -1087,9 +1054,9 @@ cuddBddMakePrime(
 	    Cudd_RecursiveDeref(dd,expanded);
 	}
 	cuddGetBranches(scan,&t,&e);
-	if (t == zero) {
+	if (t == lzero) {
 	    scan = e;
-	} else if (e == zero) {
+	} else if (e == lzero) {
 	    scan = t;
 	} else {
 	    Cudd_RecursiveDeref(dd,res);
@@ -1113,51 +1080,48 @@ cuddBddMakePrime(
 /*---------------------------------------------------------------------------*/
 
 
-/**Function********************************************************************
+/**
+  @brief Frees the entries of the visited symbol table.
 
-  Synopsis    [Frees the entries of the visited symbol table.]
+  @return ST_CONTINUE.
 
-  Description [Frees the entries of the visited symbol table. Returns
-  ST_CONTINUE.]
+  @sideeffect None
 
-  SideEffects [None]
-
-******************************************************************************/
+*/
 static enum st_retval
 freePathPair(
-  char * key,
-  char * value,
-  char * arg)
+  void * key,
+  void * value,
+  void * arg)
 {
-    cuddPathPair *pair;
+    cuddPathPair *pair = (cuddPathPair *) value;
 
-    pair = (cuddPathPair *) value;
-	FREE(pair);
+    (void) key; /* avoid warning */
+    (void) arg; /* avoid warning */
+    FREE(pair);
     return(ST_CONTINUE);
 
 } /* end of freePathPair */
 
 
-/**Function********************************************************************
+/**
+  @brief Finds the length of the shortest path(s) in a %DD.
 
-  Synopsis    [Finds the length of the shortest path(s) in a DD.]
+  @details Uses a local symbol table to store the lengths for each
+  node. Only the lengths for the regular nodes are entered in the
+  table, because those for the complement nodes are simply obtained by
+  swapping the two lenghts.
 
-  Description [Finds the length of the shortest path(s) in a DD.
-  Uses a local symbol table to store the lengths for each
-  node. Only the lengths for the regular nodes are entered in the table,
-  because those for the complement nodes are simply obtained by swapping
-  the two lenghts.
-  Returns a pair of lengths: the length of the shortest path to 1;
-  and the length of the shortest path to 0. This is done so as to take
-  complement arcs into account.]
+  @return a pair of lengths: the length of the shortest path to 1; and
+  the length of the shortest path to 0. This is done so as to take
+  complement arcs into account.
 
-  SideEffects [Accumulates the support of the DD in support.]
+  @sideeffect Accumulates the support of the %DD in support.
 
-  SeeAlso     []
-
-******************************************************************************/
+*/
 static cuddPathPair
 getShortest(
+  DdManager * dd,
   DdNode * root,
   int * cost,
   int * support,
@@ -1166,10 +1130,11 @@ getShortest(
     cuddPathPair *my_pair, res_pair, pair_T, pair_E;
     DdNode	*my_root, *T, *E;
     int		weight;
+    DdNode	*zero = DD_ZERO(dd);
 
     my_root = Cudd_Regular(root);
 
-    if (st_lookup(visited, my_root, &my_pair)) {
+    if (st_lookup(visited, my_root, (void **) &my_pair)) {
 	if (Cudd_IsComplement(root)) {
 	    res_pair.pos = my_pair->neg;
 	    res_pair.neg = my_pair->pos;
@@ -1197,8 +1162,8 @@ getShortest(
 	T = cuddT(my_root);
 	E = cuddE(my_root);
 
-	pair_T = getShortest(T, cost, support, visited);
-	pair_E = getShortest(E, cost, support, visited);
+	pair_T = getShortest(dd, T, cost, support, visited);
+	pair_E = getShortest(dd, E, cost, support, visited);
 	weight = WEIGHT(cost, my_root->index);
 	res_pair.pos = ddMin(pair_T.pos+weight, pair_E.pos);
 	res_pair.neg = ddMin(pair_T.neg+weight, pair_E.neg);
@@ -1221,7 +1186,7 @@ getShortest(
     my_pair->pos = res_pair.pos;
     my_pair->neg = res_pair.neg;
 
-    st_insert(visited, (char *)my_root, (char *)my_pair);
+    st_insert(visited, my_root, my_pair);
     if (Cudd_IsComplement(root)) {
 	res_pair.pos = my_pair->neg;
 	res_pair.neg = my_pair->pos;
@@ -1234,24 +1199,21 @@ getShortest(
 } /* end of getShortest */
 
 
-/**Function********************************************************************
+/**
+  @brief Build a %BDD for a shortest path of f.
 
-  Synopsis    [Build a BDD for a shortest path of f.]
+  @details Given the minimum length from the root, and the minimum
+  lengths for each node (in visited), apply triangulation at each
+  node.  Of the two children of each node on a shortest path, at least
+  one is on a shortest path. In case of ties the procedure chooses the
+  THEN children.
 
-  Description [Build a BDD for a shortest path of f.
-  Given the minimum length from the root, and the minimum
-  lengths for each node (in visited), apply triangulation at each node.
-  Of the two children of each node on a shortest path, at least one is
-  on a shortest path. In case of ties the procedure chooses the THEN
-  children.
-  Returns a pointer to the cube BDD representing the path if
-  successful; NULL otherwise.]
+  @return a pointer to the cube %BDD representing the path if
+  successful; NULL otherwise.
 
-  SideEffects [None]
+  @sideeffect None
 
-  SeeAlso     []
-
-******************************************************************************/
+*/
 static DdNode *
 getPath(
   DdManager * manager,
@@ -1269,7 +1231,7 @@ getPath(
     my_dd = Cudd_Regular(f);
     complement = Cudd_IsComplement(f);
 
-    sol = one;
+    sol = DD_ONE(manager);
     cuddRef(sol);
 
     while (!cuddIsConstant(my_dd)) {
@@ -1281,7 +1243,7 @@ getPath(
 
 	if (complement) {T = Cudd_Not(T); E = Cudd_Not(E);}
 
-	st_lookup(visited, Cudd_Regular(T), &T_pair);
+	st_lookup(visited, Cudd_Regular(T), (void **) &T_pair);
 	if ((Cudd_IsComplement(T) && T_pair->neg == Tcost) ||
 	(!Cudd_IsComplement(T) && T_pair->pos == Tcost)) {
 	    tmp = cuddBddAndRecur(manager,manager->vars[my_dd->index],sol);
@@ -1298,7 +1260,7 @@ getPath(
 	    cost = Tcost;
 	    continue;
 	}
-	st_lookup(visited, Cudd_Regular(E), &E_pair);
+	st_lookup(visited, Cudd_Regular(E), (void **) &E_pair);
 	if ((Cudd_IsComplement(E) && E_pair->neg == Ecost) ||
 	(!Cudd_IsComplement(E) && E_pair->pos == Ecost)) {
 	    tmp = cuddBddAndRecur(manager,Cudd_Not(manager->vars[my_dd->index]),sol);
@@ -1325,37 +1287,36 @@ getPath(
 } /* end of getPath */
 
 
-/**Function********************************************************************
+/**
+  @brief Finds the size of the largest cube(s) in a %DD.
 
-  Synopsis    [Finds the size of the largest cube(s) in a DD.]
+  @details This problem is translated into finding the shortest paths
+  from a node when both THEN and ELSE arcs have unit lengths.  Uses a
+  local symbol table to store the lengths for each node. Only the
+  lengths for the regular nodes are entered in the table, because
+  those for the complement nodes are simply obtained by swapping the
+  two lenghts.
 
-  Description [Finds the size of the largest cube(s) in a DD.
-  This problem is translated into finding the shortest paths from a node
-  when both THEN and ELSE arcs have unit lengths.
-  Uses a local symbol table to store the lengths for each
-  node. Only the lengths for the regular nodes are entered in the table,
-  because those for the complement nodes are simply obtained by swapping
-  the two lenghts.
-  Returns a pair of lengths: the length of the shortest path to 1;
-  and the length of the shortest path to 0. This is done so as to take
-  complement arcs into account.]
+  @return a pair of lengths: the length of the shortest path to 1; and
+  the length of the shortest path to 0. This is done so as to take
+  complement arcs into account.
 
-  SideEffects [none]
+  @sideeffect none
 
-  SeeAlso     []
-
-******************************************************************************/
+*/
 static cuddPathPair
 getLargest(
+  DdManager * dd,
   DdNode * root,
   st_table * visited)
 {
     cuddPathPair *my_pair, res_pair, pair_T, pair_E;
     DdNode	*my_root, *T, *E;
+    DdNode	*zero = DD_ZERO(dd);
 
     my_root = Cudd_Regular(root);
 
-    if (st_lookup(visited, my_root, &my_pair)) {
+    if (st_lookup(visited, my_root, (void **) &my_pair)) {
 	if (Cudd_IsComplement(root)) {
 	    res_pair.pos = my_pair->neg;
 	    res_pair.neg = my_pair->pos;
@@ -1383,8 +1344,8 @@ getLargest(
 	T = cuddT(my_root);
 	E = cuddE(my_root);
 
-	pair_T = getLargest(T, visited);
-	pair_E = getLargest(E, visited);
+	pair_T = getLargest(dd, T, visited);
+	pair_E = getLargest(dd, E, visited);
 	res_pair.pos = ddMin(pair_T.pos, pair_E.pos) + 1;
 	res_pair.neg = ddMin(pair_T.neg, pair_E.neg) + 1;
     }
@@ -1402,7 +1363,7 @@ getLargest(
     my_pair->neg = res_pair.neg;
 
     /* Caching may fail without affecting correctness. */
-    st_insert(visited, (char *)my_root, (char *)my_pair);
+    st_insert(visited, my_root, my_pair);
     if (Cudd_IsComplement(root)) {
 	res_pair.pos = my_pair->neg;
 	res_pair.neg = my_pair->pos;
@@ -1415,24 +1376,21 @@ getLargest(
 } /* end of getLargest */
 
 
-/**Function********************************************************************
+/**
+  @brief Build a %BDD for a largest cube of f.
 
-  Synopsis    [Build a BDD for a largest cube of f.]
+  @details Given the minimum length from the root, and the minimum
+  lengths for each node (in visited), apply triangulation at each
+  node.  Of the two children of each node on a shortest path, at least
+  one is on a shortest path. In case of ties the procedure chooses the
+  THEN children.
 
-  Description [Build a BDD for a largest cube of f.
-  Given the minimum length from the root, and the minimum
-  lengths for each node (in visited), apply triangulation at each node.
-  Of the two children of each node on a shortest path, at least one is
-  on a shortest path. In case of ties the procedure chooses the THEN
-  children.
-  Returns a pointer to the cube BDD representing the path if
-  successful; NULL otherwise.]
+  @return a pointer to the cube %BDD representing the path if
+  successful; NULL otherwise.
 
-  SideEffects [None]
+  @sideeffect None
 
-  SeeAlso     []
-
-******************************************************************************/
+*/
 static DdNode *
 getCube(
   DdManager * manager,
@@ -1449,7 +1407,7 @@ getCube(
     my_dd = Cudd_Regular(f);
     complement = Cudd_IsComplement(f);
 
-    sol = one;
+    sol = DD_ONE(manager);
     cuddRef(sol);
 
     while (!cuddIsConstant(my_dd)) {
@@ -1461,7 +1419,7 @@ getCube(
 
 	if (complement) {T = Cudd_Not(T); E = Cudd_Not(E);}
 
-	if (!st_lookup(visited, Cudd_Regular(T), &T_pair)) return(NULL);
+	if (!st_lookup(visited, Cudd_Regular(T), (void **)&T_pair)) return(NULL);
 	if ((Cudd_IsComplement(T) && T_pair->neg == Tcost) ||
 	(!Cudd_IsComplement(T) && T_pair->pos == Tcost)) {
 	    tmp = cuddBddAndRecur(manager,manager->vars[my_dd->index],sol);
@@ -1478,7 +1436,7 @@ getCube(
 	    cost = Tcost;
 	    continue;
 	}
-	if (!st_lookup(visited, Cudd_Regular(E), &E_pair)) return(NULL);
+	if (!st_lookup(visited, Cudd_Regular(E), (void **)&E_pair)) return(NULL);
 	if ((Cudd_IsComplement(E) && E_pair->neg == Ecost) ||
 	(!Cudd_IsComplement(E) && E_pair->pos == Ecost)) {
 	    tmp = cuddBddAndRecur(manager,Cudd_Not(manager->vars[my_dd->index]),sol);
@@ -1505,36 +1463,34 @@ getCube(
 } /* end of getCube */
 
 
-/**Function********************************************************************
+/**
+  @brief Performs the recursive step of Cudd_bddMaximallyExpand.
 
-  Synopsis    [Performs the recursive step of Cudd_bddMaximallyExpand.]
+  @details On entry to this function, ub and lb should be different
+  from the zero %BDD.  The function then maintains this invariant.
 
-  Description [Performs the recursive step of Cudd_bddMaximallyExpand.
-  Returns set of primes or zero BDD if successful; NULL otherwise.  On entry
-  to this function, ub and lb should be different from the zero BDD.  The
-  function then maintains this invariant.]
+  @return set of primes or zero %BDD if successful; NULL otherwise.
 
-  SideEffects [None]
+  @sideeffect None
 
-  SeeAlso     []
-
-******************************************************************************/
+*/
 static DdNode *
 ddBddMaximallyExpand(
-  DdManager *dd /* manager */,
-  DdNode *lb /* cube to be expanded */,
-  DdNode *ub /* upper bound cube */,
-  DdNode *f /* function against which to expand */)
+  DdManager *dd /**< manager */,
+  DdNode *lb /**< cube to be expanded */,
+  DdNode *ub /**< upper bound cube */,
+  DdNode *f /**< function against which to expand */)
 {
-    DdNode *one, *zero, *lbv, *lbvn, *lbnx, *ubv, *ubvn, *fv, *fvn, *res;
+    DdNode *lone, *lzero, *lbv, *lbvn, *lbnx, *ubv, *ubvn, *fv, *fvn, *res;
     DdNode *F, *UB, *LB, *t, *e;
-    unsigned int top, toplb, topub, topf, index;
+    int top, toplb, topub, topf;
+    unsigned int index;
 
     statLine(dd);
     /* Terminal cases. */
-    one = DD_ONE(dd);
-    zero = Cudd_Not(one);
-    assert(ub != zero && lb != zero);
+    lone = DD_ONE(dd);
+    lzero = Cudd_Not(lone);
+    assert(ub != lzero && lb != lzero);
     /** There are three major terminal cases in theory:
      **   ub -> f     : return ub
      **   lb == f     : return lb
@@ -1542,11 +1498,11 @@ ddBddMaximallyExpand(
      ** Only the second case can be checked exactly in constant time.
      ** For the others, we check for sufficient conditions.
      */
-    if (ub == f || f == one) return(ub);
+    if (ub == f || f == lone) return(ub);
     if (lb == f) return(lb);
-    if (f == zero || ub == Cudd_Not(f) || lb == one || lb == Cudd_Not(f))
-        return(zero);
-    if (!Cudd_IsComplement(lb) && Cudd_IsComplement(f)) return(zero);
+    if (f == lzero || ub == Cudd_Not(f) || lb == lone || lb == Cudd_Not(f))
+        return(lzero);
+    if (!Cudd_IsComplement(lb) && Cudd_IsComplement(f)) return(lzero);
 
     /* Here lb and f are not constant. */
 
@@ -1561,6 +1517,8 @@ ddBddMaximallyExpand(
         }
     }
 
+    checkWhetherToGiveUp(dd);
+
     /* Compute cofactors.  For lb we use the non-zero one in
     ** both branches of the recursion.
     */
@@ -1568,7 +1526,7 @@ ddBddMaximallyExpand(
     UB = Cudd_Regular(ub);
     topf = dd->perm[F->index];
     toplb = dd->perm[LB->index];
-    topub = (ub == one) ? CUDD_CONST_INDEX : dd->perm[UB->index];
+    topub = (ub == lone) ? CUDD_CONST_INDEX : (unsigned int) dd->perm[UB->index];
     assert(toplb <= topub);
     top = ddMin(topf,toplb);
     if (toplb == top) {
@@ -1579,7 +1537,7 @@ ddBddMaximallyExpand(
             lbv = Cudd_Not(lbv);
             lbvn = Cudd_Not(lbvn);
         }
-        if (lbv == zero) {
+        if (lbv == lzero) {
             lbnx = lbvn;
         } else {
             lbnx = lbv;
@@ -1610,12 +1568,12 @@ ddBddMaximallyExpand(
     }
 
     /* Recursive calls. */
-    if (ubv != zero) {
+    if (ubv != lzero) {
         t = ddBddMaximallyExpand(dd, lbnx, ubv, fv);
         if (t == NULL) return(NULL);
     } else {
-        assert(topub == toplb && topub == top && lbv == zero);
-        t = zero;
+        assert(topub == toplb && topub == top && lbv == lzero);
+        t = lzero;
     }
     cuddRef(t);
 
@@ -1627,15 +1585,15 @@ ddBddMaximallyExpand(
     if (ubv == ubvn && fv == fvn) {
         res = t;
     } else {
-        if (ubvn != zero) {
+        if (ubvn != lzero) {
             e = ddBddMaximallyExpand(dd, lbnx, ubvn, fvn);
             if (e == NULL) {
                 Cudd_IterDerefBdd(dd,t);
                 return(NULL);
             }
         } else {
-            assert(topub == toplb && topub == top && lbvn == zero);
-            e = zero;
+            assert(topub == toplb && topub == top && lbvn == lzero);
+            e = lzero;
         }
 
         if (t == e) {
@@ -1644,12 +1602,12 @@ ddBddMaximallyExpand(
             cuddRef(e);
 
             if (toplb == top) {
-                if (lbv == zero) {
+                if (lbv == lzero) {
                     /* Top variable appears in negative phase. */
-                    if (t != one) {
+                    if (t != lone) {
                         DdNode *newT;
                         if (Cudd_IsComplement(t)) {
-                            newT = cuddUniqueInter(dd, index, Cudd_Not(t), zero);
+                            newT = cuddUniqueInter(dd, index, Cudd_Not(t), lzero);
                             if (newT == NULL) {
                                 Cudd_IterDerefBdd(dd,t);
                                 Cudd_IterDerefBdd(dd,e);
@@ -1657,7 +1615,7 @@ ddBddMaximallyExpand(
                             }
                             newT = Cudd_Not(newT);
                         } else {
-                            newT = cuddUniqueInter(dd, index, t, one);
+                            newT = cuddUniqueInter(dd, index, t, lone);
                             if (newT == NULL) {
                                 Cudd_IterDerefBdd(dd,t);
                                 Cudd_IterDerefBdd(dd,e);
@@ -1668,11 +1626,11 @@ ddBddMaximallyExpand(
                         cuddDeref(t);
                         t = newT;
                     }
-                } else if (lbvn == zero) {
+                } else if (lbvn == lzero) {
                     /* Top variable appears in positive phase. */
-                    if (e != one) {
+                    if (e != lone) {
                         DdNode *newE;
-                        newE = cuddUniqueInter(dd, index, one, e);
+                        newE = cuddUniqueInter(dd, index, lone, e);
                         if (newE == NULL) {
                             Cudd_IterDerefBdd(dd,t);
                             Cudd_IterDerefBdd(dd,e);
@@ -1713,21 +1671,21 @@ ddBddMaximallyExpand(
 } /* end of ddBddMaximallyExpand */
 
 
-/**Function********************************************************************
+/**
+  @brief Performs shortest path computation on a unate function.
 
-  Synopsis    [Performs shortest path computation on a unate function.]
+  @details This function is based on the observation that in the %BDD
+  of a unate function no node except the constant is reachable from
+  the root via paths of different parity.
 
-  Description [Performs shortest path computation on a unate function.
-  Returns the length of the shortest path to one if successful;
-  CUDD_OUT_OF_MEM otherwise.  This function is based on the observation
-  that in the BDD of a unate function no node except the constant is
-  reachable from the root via paths of different parity.]
+  @return the length of the shortest path to one if successful;
+  CUDD_OUT_OF_MEM otherwise.
 
-  SideEffects [None]
+  @sideeffect None
 
-  SeeAlso     [getShortest]
+  @see getShortest
 
-******************************************************************************/
+*/
 static int
 ddBddShortestPathUnate(
   DdManager *dd,
@@ -1736,16 +1694,16 @@ ddBddShortestPathUnate(
   st_table *table)
 {
     int positive, l, lT, lE;
-    DdNode *one = DD_ONE(dd);
-    DdNode *zero = Cudd_Not(one);
+    DdNode *lone = DD_ONE(dd);
+    DdNode *lzero = Cudd_Not(lone);
     DdNode *F, *fv, *fvn;
 
     if (st_lookup_int(table, f, &l)) {
         return(l);
     }
-    if (f == one) {
+    if (f == lone) {
         l = 0;
-    } else if (f == zero) {
+    } else if (f == lzero) {
         l = DD_BIGGY;
     } else {
         F = Cudd_Regular(f);
@@ -1768,18 +1726,16 @@ ddBddShortestPathUnate(
 } /* end of ddShortestPathUnate */
 
 
-/**Function********************************************************************
+/**
+  @brief Extracts largest prime of a unate function.
 
-  Synopsis    [Extracts largest prime of a unate function.]
+  @return the %BDD of the prime if successful; NULL otherwise.
 
-  Description [Extracts largest prime of a unate function.  Returns the BDD of
-  the prime if successful; NULL otherwise.]
+  @sideeffect None
 
-  SideEffects [None]
+  @see getPath
 
-  SeeAlso     [getPath]
-
-******************************************************************************/
+*/
 static DdNode *
 ddGetLargestCubeUnate(
   DdManager *dd,
@@ -1788,19 +1744,18 @@ ddGetLargestCubeUnate(
   st_table *table)
 {
     DdNode *res, *scan;
-    DdNode *one = DD_ONE(dd);
     int cost;
 
-    res = one;
+    res = DD_ONE(dd);
     cuddRef(res);
     scan = f;
     st_lookup_int(table, scan, &cost);
 
-    while (!Cudd_IsConstant(scan)) {
+    while (!Cudd_IsConstantInt(scan)) {
         int Pcost, Ncost, Tcost;
         DdNode *tmp, *T, *E;
         DdNode *rscan = Cudd_Regular(scan);
-        int index = rscan->index;
+        unsigned int index = rscan->index;
         assert(phases[index] == 0 || phases[index] == 1);
         int positive = phases[index] == 1;
         Pcost = positive ? cost - 1 : cost;

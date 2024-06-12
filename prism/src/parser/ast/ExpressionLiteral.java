@@ -35,6 +35,7 @@ import parser.type.Type;
 import parser.type.TypeDouble;
 import parser.type.TypeInt;
 import parser.visitor.ASTVisitor;
+import parser.visitor.DeepCopy;
 import prism.PrismLangException;
 public class ExpressionLiteral extends Expression
 {
@@ -133,11 +134,15 @@ public class ExpressionLiteral extends Expression
 	}
 
 	@Override
-	public Expression deepCopy()
+	public ExpressionLiteral deepCopy(DeepCopy copier)
 	{
-		Expression expr = new ExpressionLiteral(type, value, string);
-		expr.setPosition(this);
-		return expr;
+		return this;
+	}
+
+	@Override
+	public ExpressionLiteral clone()
+	{
+		return (ExpressionLiteral) super.clone();
 	}
 
 	// Standard methods

@@ -26,6 +26,8 @@
 
 package prism;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Vector;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -63,7 +65,7 @@ public class Modules2MTBDD
 	private Values constantValues;	// values of constants
 	// synch info
 	private int numSynchs;			// number of synchronisations
-	private Vector<String> synchs;			// synchronisations
+	private List<String> synchs;			// synchronisations
 	// rewards
 	private int numRewardStructs;		// number of reward structs
 	private String[] rewardStructNames;	// reward struct names
@@ -153,6 +155,25 @@ public class Modules2MTBDD
 		public void clear()
 		{
 			JDD.DerefNonNull(guard);
+			JDD.DerefNonNull(up);
+		}
+	}
+
+	/**
+	 * Data structure used to store mtbdds and related info
+	 * for an update
+	 */
+	private static class UpdateDDs
+	{
+		/** MTBDD for the updates */
+		public JDDNode up;
+
+		public UpdateDDs(JDDNode up)
+		{
+			this.up = up;
+		}
+
+		public void clear() {
 			JDD.DerefNonNull(up);
 		}
 	}
@@ -322,7 +343,7 @@ public class Modules2MTBDD
 			modelWasBuilt = true;
 
 			// We also store a copy of the list of action label names
-			model.setSynchs((Vector<String>)synchs.clone());
+			model.setSynchs(new ArrayList<>(synchs));
 		
 			// For MDPs, we also store the DDs used to construct the part
 			// of the transition matrix that corresponds to each action
@@ -487,7 +508,7 @@ public class Modules2MTBDD
 			if (modelType == ModelType.MDP) {
 				// allocate vars
 				for (i = 0; i < numSynchs; i++) {
-					ddSynchVars[i] = modelVariables.allocateVariable(synchs.elementAt(i)+".a");
+					ddSynchVars[i] = modelVariables.allocateVariable(synchs.get(i)+".a");
 				}
 			}
 		
@@ -564,7 +585,7 @@ public class Modules2MTBDD
 			// allocate synchronizing action variables
 			if (modelType == ModelType.MDP) {
 				for (i = 0; i < numSynchs; i++) {
-					ddSynchVars[i] = modelVariables.allocateVariable(synchs.elementAt(i)+".a");
+					ddSynchVars[i] = modelVariables.allocateVariable(synchs.get(i)+".a");
 				}
 			}
 
@@ -1017,7 +1038,7 @@ public class Modules2MTBDD
 		sysDDs.ind = translateModule(m, module, "", 0);
 		// build mtbdd for each synchronising action
 		for (i = 0; i < numSynchs; i++) {
-			synch = synchs.elementAt(i);
+			synch = synchs.get(i);
 			sysDDs.synchs[i] = translateModule(m, module, synch, synchMin[i]);
 		}
 		// store identity matrix
@@ -1139,7 +1160,7 @@ public class Modules2MTBDD
 		// go thru all synchronising actions and decide if we will synchronise on each one
 		synchBool = new boolean[numSynchs];
 		for (i = 0; i < numSynchs; i++) {
-			synchBool[i] = sys.containsAction(synchs.elementAt(i));
+			synchBool[i] = sys.containsAction(synchs.get(i));
 		}
 		
 		// construct mtbdds for first operand
@@ -1198,7 +1219,7 @@ public class Modules2MTBDD
 		// store this in new array - old one may still be used elsewhere
 		newSynchMin = new int[numSynchs];
 		for (i = 0; i < numSynchs; i++) {
-			if (sys.containsAction(synchs.elementAt(i))) {
+			if (sys.containsAction(synchs.get(i))) {
 				newSynchMin[i] = 0;
 			}
 			else {
@@ -1221,7 +1242,7 @@ public class Modules2MTBDD
 			// if the action is in the set to be hidden, hide it...
 			// note that it doesn't matter if an action is included more than once in the set
 			// (although this would be picked up during the syntax check anyway)
-			if (sys.containsAction(synchs.elementAt(i))) {
+			if (sys.containsAction(synchs.get(i))) {
 				
 				// move these transitions into the independent bit
 				sysDDs.ind = combineComponentDDs(sysDDs.ind, sysDDs1.synchs[i]);
@@ -1267,7 +1288,7 @@ public class Modules2MTBDD
 		for (i = 0; i < numSynchs; i++) {
 			// find out what this action is renamed to
 			// (this may be itself, i.e. it's not renamed)
-			s = sys.getNewName(synchs.elementAt(i));
+			s = sys.getNewName(synchs.get(i));
 			j = synchs.indexOf(s);
 			if (j == -1) {
 				throw new PrismLangException("Invalid action name \"" + s + "\" in renaming", sys);
@@ -1299,7 +1320,7 @@ public class Modules2MTBDD
 			// find out what this action is renamed to
 			// (this may be itself, i.e. it's not renamed)
 			// then add it to result
-			s = sys.getNewName(synchs.elementAt(i));
+			s = sys.getNewName(synchs.get(i));
 			j = synchs.indexOf(s);
 			if (j == -1) {
 				throw new PrismLangException("Invalid action name \"" + s + "\" in renaming", sys);
@@ -1496,7 +1517,7 @@ public class Modules2MTBDD
 	 */
 	private CommandDDs translateCommand(int m, parser.ast.Module module, int l, Command command) throws PrismException
 	{
-		JDDNode guardDD, upDD;
+		JDDNode guardDD, upDD = null;
 		// translate guard
 		guardDD = translateExpression(command.getGuard());
 		guardDD = JDD.Times(guardDD, range.copy());
@@ -1513,14 +1534,19 @@ public class Modules2MTBDD
 		}
 		else {
 			// translate updates and do some checks on probs/rates
-			upDD = translateUpdates(m, l, command.getUpdates(), (command.getSynch()=="")?false:true, guardDD);
-			upDD = JDD.Times(upDD, guardDD.copy());
-
+			UpdateDDs up = null;
 			try {
+				up = translateUpdates(m, l, command.getUpdates(), (command.getSynch()=="")?false:true, guardDD);
+				up.up = JDD.Times(up.up, guardDD.copy());
+				upDD = up.up.copy();
 				checkCommandProbRates(m, module, l, command, guardDD, upDD);
 			} catch (Throwable e) {
-				JDD.Deref(guardDD, upDD);
+				JDD.DerefNonNull(guardDD, upDD);
 				throw e;
+			} finally {
+				if (up != null) {
+					up.clear();
+				}
 			}
 		}
 
@@ -1558,8 +1584,8 @@ public class Modules2MTBDD
 			// compute min/max sums
 			dmin = JDD.FindMin(tmp);
 			double dmax = JDD.FindMax(tmp);
-			// check sums for NaNs (note how to check if x=NaN i.e. x!=x)
-			if (dmin != dmin || dmax != dmax) {
+			// check sums for NaNs
+			if (Double.isNaN(dmin) || Double.isNaN(dmax)) {
 				JDD.Deref(tmp);
 				String s = (modelType == ModelType.CTMC) ? "Rates" : "Probabilities";
 				s += " in command " + (l+1) + " of module \"" + module.getName() + "\" have errors (NaN) for some states. ";
@@ -1568,7 +1594,7 @@ public class Modules2MTBDD
 				throw new PrismLangException(s, command);
 			}
 			// check min sums - 1 (ish) for dtmcs/mdps, 0 for ctmcs
-			if (modelType != ModelType.CTMC && dmin < 1-prism.getSumRoundOff()) {
+			if (modelType != ModelType.CTMC && !PrismUtils.doublesAreEqual(dmin, 1.0)) {
 				JDD.Deref(tmp);
 				String s = "Probabilities in command " + (l+1) + " of module \"" + module.getName() + "\" sum to less than one";
 				s += " (e.g. " + dmin + ") for some states. ";
@@ -1585,14 +1611,14 @@ public class Modules2MTBDD
 				throw new PrismLangException(s, command);
 			}
 			// check max sums - 1 (ish) for dtmcs/mdps, infinity for ctmcs
-			if (modelType != ModelType.CTMC && dmax > 1+prism.getSumRoundOff()) {
+			if (modelType != ModelType.CTMC && !PrismUtils.doublesAreEqual(dmax, 1.0)) {
 				JDD.Deref(tmp);
 				String s = "Probabilities in command " + (l+1) + " of module \"" + module.getName() + "\" sum to more than one";
 				s += " (e.g. " + dmax + ") for some states. ";
 				s += "Perhaps the guard needs to be strengthened";
 				throw new PrismLangException(s, command);
 			}
-			if (modelType == ModelType.CTMC && dmax == Double.POSITIVE_INFINITY) {
+			if (modelType == ModelType.CTMC && Double.isInfinite(dmax)) {
 				JDD.Deref(tmp);
 				String s = "Rates in command " + (l+1) + " of module \"" + module.getName() + "\" sum to infinity for some states. ";
 				s += "Perhaps the guard needs to be strengthened";
@@ -1864,11 +1890,12 @@ public class Modules2MTBDD
 	 * @param synch true if this command is synchronising (named action)
 	 * @param guard the guard
 	 */
-	private JDDNode translateUpdates(int m, int l, Updates u, boolean synch, JDDNode guard) throws PrismException
+	private UpdateDDs translateUpdates(int m, int l, Updates u, boolean synch, JDDNode guard) throws PrismException
 	{
 		int i, n;
 		Expression p;
-		JDDNode dd, udd, pdd;
+		JDDNode dd, udd, pdd = null;
+		UpdateDDs updateDDs;
 		boolean warned;
 		String msg;
 		
@@ -1877,7 +1904,13 @@ public class Modules2MTBDD
 		n = u.getNumUpdates();
 		for (i = 0; i < n; i++) {
 			// translate a single update
-			udd = translateUpdate(m, u.getUpdate(i), synch, guard);
+			try {
+				updateDDs = translateUpdate(m, u.getUpdate(i), synch, guard);
+				udd = updateDDs.up;
+			} catch (Exception|StackOverflowError e) {
+				JDD.Deref(dd);
+				throw e;
+			}
 			// check for zero update
 			warned = false;
 			if (udd.equals(JDD.ZERO)) {
@@ -1890,7 +1923,13 @@ public class Modules2MTBDD
 			// multiply by probability/rate
 			p = u.getProbability(i);
 			if (p == null) p = Expression.Double(1.0);
-			pdd = translateExpression(p);
+			try {
+				pdd = translateExpression(p);
+			} catch (Exception|StackOverflowError e) {
+				JDD.Deref(dd, udd);
+				JDD.DerefNonNull(pdd);
+				throw e;
+			}
 			udd = JDD.Times(udd, pdd);
 			// check (again) for zero update
 			if (!warned && udd.equals(JDD.ZERO)) {
@@ -1902,7 +1941,7 @@ public class Modules2MTBDD
 			dd = JDD.Plus(dd, udd);
 		}
 		
-		return dd;
+		return new UpdateDDs(dd);
 	}
 
 	/**
@@ -1913,7 +1952,7 @@ public class Modules2MTBDD
 	 * @param synch true if this command is synchronising (named action)
 	 * @param guard the guard
 	 */
-	private JDDNode translateUpdate(int m, Update c, boolean synch, JDDNode guard) throws PrismException
+	private UpdateDDs translateUpdate(int m, Update c, boolean synch, JDDNode guard) throws PrismException
 	{
 		int n;
 		
@@ -1925,8 +1964,13 @@ public class Modules2MTBDD
 		JDDNode dd = JDD.Constant(1);
 		n = c.getNumElements();
 		for (int i = 0; i < n; i++) {
-			JDDNode cl = translateUpdateElement(m, c, i, synch, guard);
-			dd = JDD.Times(dd, cl);
+			try {
+				UpdateDDs udd = translateUpdateElement(m, c, i, synch, guard);
+				dd = JDD.Times(dd, udd.up);
+			} catch (Exception|StackOverflowError e) {
+				JDD.Deref(dd);
+				throw e;
+			}
 		}
 		// if a variable from this module or a global variable
 		// does not appear in this update assume it does not change value
@@ -1937,7 +1981,7 @@ public class Modules2MTBDD
 			}
 		}
 		
-		return dd;
+		return new UpdateDDs(dd);
 	}
 
 	/**
@@ -1949,7 +1993,7 @@ public class Modules2MTBDD
 	 * @param synch true if this command is synchronising (named action)
 	 * @param guard the guard for this command
 	 */
-	private JDDNode translateUpdateElement(int m, Update c, int i, boolean synch, JDDNode guard) throws PrismException
+	private UpdateDDs translateUpdateElement(int m, Update c, int i, boolean synch, JDDNode guard) throws PrismException
 	{
 		// get variable
 		String s = c.getVar(i);
@@ -1984,7 +2028,7 @@ public class Modules2MTBDD
 		cl = JDD.Times(cl, varColRangeDDs[v].copy());
 		cl = JDD.Times(cl, range.copy());
 
-		return cl;
+		return new UpdateDDs(cl);
 	}
 
 	/**

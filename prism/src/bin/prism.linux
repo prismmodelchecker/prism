@@ -65,10 +65,17 @@ fi
 ARGS=( "$@" )
 for ((i=0;i<${#ARGS[@]};i+=1)); do
 	if [ "${ARGS[$i]}" = "-javaparams" -o "${ARGS[$i]}" = "--javaparams" ]; then
-		JAVA_PARAMS=${JAVA_PARAMS}${JAVA_PARAMS:+ }${ARGS[$i+1]}
+		PRISM_JAVA_PARAMS=${PRISM_JAVA_PARAMS}${PRISM_JAVA_PARAMS:+ }${ARGS[$i+1]}
 	fi
 done
 
+# Detect -javaversion switch
+ARGS=( "$@" )
+for ((i=0;i<${#ARGS[@]};i+=1)); do
+	if [ "${ARGS[$i]}" = "-javaversion" -o "${ARGS[$i]}" = "--javaversion" ]; then
+		PRISM_PRINT_JAVA_VERSION=yes
+	fi
+done
 
 # Set up CLASSPATH:
 #  - PRISM jar file (for binary versions) (gets priority)
@@ -82,7 +89,7 @@ PRISM_CLASSPATH="$PRISM_DIR"/lib/prism.jar:"$PRISM_DIR"/classes:"$PRISM_DIR":"$P
 PRISM_LIB_PATH="$PRISM_DIR"/lib
 
 # Copy library path to relevant vars
-LD_LIBRARY_PATH=${PRISM_LIB_PATH}${LD_LIBRARY_PATH:+:}${LD_LIBRARY_PATH}
+LD_LIBRARY_PATH="${PRISM_LIB_PATH}${LD_LIBRARY_PATH:+:}${LD_LIBRARY_PATH}"
 JAVA_LIBRARY_PATH="$PRISM_LIB_PATH"
 
 # Export environment variables
@@ -99,6 +106,11 @@ if [ "$PRISM_DEBUG" != "" ]; then
 	PRISM_JAVA_ARG1="$PRISM_JAVA"
 	PRISM_JAVA_ARG2="$PRISM_DEBUG_ARG"
 	PRISM_JAVA="$PRISM_DEBUG"
+fi
+
+# If requested, just print the version of Java and exit
+if [ "$PRISM_PRINT_JAVA_VERSION" = "yes" ]; then
+	"$PRISM_JAVA" -version && exit
 fi
 
 #

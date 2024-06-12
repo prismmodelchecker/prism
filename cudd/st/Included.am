@@ -1,0 +1,16 @@
+cudd_libcudd_la_SOURCES += st/st.h st/st.c
+
+check_PROGRAMS += st/testst
+st_testst_SOURCES = st/testst.c
+st_testst_CPPFLAGS = $(cudd_libcudd_la_CPPFLAGS)
+st_testst_LDADD = cudd/libcudd.la
+
+check_SCRIPTS += st/test_st.test
+EXTRA_DIST += st/test_st.test.in
+if !CROSS_COMPILING
+TESTS += st/test_st.test
+endif !CROSS_COMPILING
+
+st/test_st.test: st/test_st.test.in Makefile
+	$(do_subst) $< > $@
+	chmod +x $@

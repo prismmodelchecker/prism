@@ -1,0 +1,218 @@
+// randomized protocol for signing contracts Even, Goldreich and Lempel
+
+dtmc
+
+// we now let B to makes his/her choices based on what he/she knows 
+// to do this I have added non-determinism to the previous version
+// and changed the modules so that only "B's view" is visible
+// then reveal the values when B thinks he has an advantage
+
+// to model the non-deterministic behaviour of corrupt party (party B)
+// we have a set of possible initial states corresponding to what messages
+// he/she tries to over hear when sending - we could do this with nondeterminism 
+// but it will just make the model less structured and B has to make the choices 
+// at the start anyway since B's view at this point should tell him nothing
+// (we use the new construct init...endinit to specify the set of initial states)
+
+// note that certain variables that belong to a party appear in the other party's module
+// as this leads to a more structured model - without this PRISM runs out of memory
+
+// note we have included the case when B stops if he/she thinks that the protocol has reached 
+// a state where he/she has an advantage
+
+// currently, this model only works for N up to 20
+
+const int N; // number of pairs of secrets the party sends
+const int L; // number of bits in each secret
+
+const double err;
+
+module counter
+	
+	b : [1..L]; // counter for current bit to be send (used in phases 2 and 3)
+	n : [0..max(N-1,1)]; // counter as parties send N messages in a row
+	phase : [1..5]; // phase of the protocol
+	party : [1..2]; // which party moves
+	// 1 first phase of the protocol (sending messages of the form OT(.,.,.,.)
+	// 2 and 3 - second phase of the protocol (sending secretes 1..n and n+1..2n respectively)
+	// 4 finished the protocol
+	
+	// FIRST PHASE
+	[receiveB] phase=1 & party=1 -> (party'=2); // first A sends a message then B does
+	[receiveA] phase=1 & party=2 & n<N-1 -> (party'=1) & (n'=n+1); // after B sends a message we move onto the next message
+	[receiveA] phase=1 & party=2 & n=N-1 -> (party'=1) & (phase'=2) & (n'=0); // B has sent his final message - move to next phase
+	// SECOND AND THIRD PHASES
+	// when A sends
+	[receiveB] ((phase)>=(2)&(phase)<=(3))& party=1 & n=0-> (party'=2); // A transmits bth bit of secrets 1..N or N=1..2N
+	[receiveA] ((phase)>=(2)&(phase)<=(3))& party=2 & n<N-1-> (n'=n+1); // A transmits bth bit of secrets 1..N or N=1..2N
+	[receiveA] ((phase)>=(2)&(phase)<=(3))& party=2 & n=N-1 -> (party'=1) & (n'=1); // finished for party A now move to party B
+	// when A sends
+	[receiveB] ((phase)>=(2)&(phase)<=(3))& party=1 & n<N-1 & n>0 -> (n'=n+1); // B transmits bth bit of secrets 1..N or N=1..2N
+	[receiveB] ((phase)>=(2)&(phase)<=(3))& party=1 & n=N-1 & b<L -> (party'=1) & (n'=0) & (b'=b+1); // finished for party B move to next bit
+	[receiveB] phase=2 & party=1 & n=N-1 & b=L -> (phase'=3) & (party'=1) & (n'=0) & (b'=1); // finished for party B move to next phase
+	[receiveB] phase=3 & party=1 & n=N-1 & b=L -> (phase'=4); // finished protocol (reveal values)
+	
+	// FINISHED
+	[] phase=4 -> (phase'=4); // loop
+	
+endmodule
+
+// party A
+module partyA
+	
+	// bi the number of bits of B's ith secret A knows 
+	// (keep pairs of secrets together to give a more structured model)
+	b0  : [0..L]; b20 : [0..L];
+	b1  : [0..L]; b21 : [0..L];
+	b2  : [0..L]; b22 : [0..L];
+	b3  : [0..L]; b23 : [0..L];
+	b4  : [0..L]; b24 : [0..L];
+	b5  : [0..L]; b25 : [0..L];
+	b6  : [0..L]; b26 : [0..L];
+	b7  : [0..L]; b27 : [0..L];
+	b8  : [0..L]; b28 : [0..L];
+	b9  : [0..L]; b29 : [0..L];
+	b10 : [0..L]; b30 : [0..L];
+	b11 : [0..L]; b31 : [0..L];
+	b12 : [0..L]; b32 : [0..L];
+	b13 : [0..L]; b33 : [0..L];
+	b14 : [0..L]; b34 : [0..L];
+	b15 : [0..L]; b35 : [0..L];
+	b16 : [0..L]; b36 : [0..L];
+	b17 : [0..L]; b37 : [0..L];
+	b18 : [0..L]; b38 : [0..L];
+	b19 : [0..L]; b39 : [0..L];
+	
+	
+	// first step (get either secret i or (N-1)+i with equal probability)
+	[receiveA] phase=1 & n=0  -> [0.5*(1-err),0.5*(1+err)] : (b0'=L)  + [0.5*(1-err),0.5*(1+err)] : (b20'=L);
+	[receiveA] phase=1 & n=1  -> [0.5*(1-err),0.5*(1+err)] : (b1'=L)  + [0.5*(1-err),0.5*(1+err)] : (b21'=L);
+	[receiveA] phase=1 & n=2  -> [0.5*(1-err),0.5*(1+err)] : (b2'=L)  + [0.5*(1-err),0.5*(1+err)] : (b22'=L);
+	[receiveA] phase=1 & n=3  -> [0.5*(1-err),0.5*(1+err)] : (b3'=L)  + [0.5*(1-err),0.5*(1+err)] : (b23'=L);
+	[receiveA] phase=1 & n=4  -> [0.5*(1-err),0.5*(1+err)] : (b4'=L)  + [0.5*(1-err),0.5*(1+err)] : (b24'=L);
+	[receiveA] phase=1 & n=5  -> [0.5*(1-err),0.5*(1+err)] : (b5'=L)  + [0.5*(1-err),0.5*(1+err)] : (b25'=L);
+	[receiveA] phase=1 & n=6  -> [0.5*(1-err),0.5*(1+err)] : (b6'=L)  + [0.5*(1-err),0.5*(1+err)] : (b26'=L);
+	[receiveA] phase=1 & n=7  -> [0.5*(1-err),0.5*(1+err)] : (b7'=L)  + [0.5*(1-err),0.5*(1+err)] : (b27'=L);
+	[receiveA] phase=1 & n=8  -> [0.5*(1-err),0.5*(1+err)] : (b8'=L)  + [0.5*(1-err),0.5*(1+err)] : (b28'=L);
+	[receiveA] phase=1 & n=9  -> [0.5*(1-err),0.5*(1+err)] : (b9'=L)  + [0.5*(1-err),0.5*(1+err)] : (b29'=L);
+	[receiveA] phase=1 & n=10 -> [0.5*(1-err),0.5*(1+err)] : (b10'=L) + [0.5*(1-err),0.5*(1+err)] : (b30'=L);
+	[receiveA] phase=1 & n=11 -> [0.5*(1-err),0.5*(1+err)] : (b11'=L) + [0.5*(1-err),0.5*(1+err)] : (b31'=L);
+	[receiveA] phase=1 & n=12 -> [0.5*(1-err),0.5*(1+err)] : (b12'=L) + [0.5*(1-err),0.5*(1+err)] : (b32'=L);
+	[receiveA] phase=1 & n=13 -> [0.5*(1-err),0.5*(1+err)] : (b13'=L) + [0.5*(1-err),0.5*(1+err)] : (b33'=L);
+	[receiveA] phase=1 & n=14 -> [0.5*(1-err),0.5*(1+err)] : (b14'=L) + [0.5*(1-err),0.5*(1+err)] : (b34'=L);
+	[receiveA] phase=1 & n=15 -> [0.5*(1-err),0.5*(1+err)] : (b15'=L) + [0.5*(1-err),0.5*(1+err)] : (b35'=L);
+	[receiveA] phase=1 & n=16 -> [0.5*(1-err),0.5*(1+err)] : (b16'=L) + [0.5*(1-err),0.5*(1+err)] : (b36'=L);
+	[receiveA] phase=1 & n=17 -> [0.5*(1-err),0.5*(1+err)] : (b17'=L) + [0.5*(1-err),0.5*(1+err)] : (b37'=L);
+	[receiveA] phase=1 & n=18 -> [0.5*(1-err),0.5*(1+err)] : (b18'=L) + [0.5*(1-err),0.5*(1+err)] : (b38'=L);
+	[receiveA] phase=1 & n=19 -> [0.5*(1-err),0.5*(1+err)] : (b19'=L) + [0.5*(1-err),0.5*(1+err)] : (b39'=L);
+	// second step (secrets 0,...,N-1)
+	[receiveA] phase=2 & n=0  -> (b0'=min(b0+1,L));
+	[receiveA] phase=2 & n=1  -> (b1'=min(b1+1,L));
+	[receiveA] phase=2 & n=2  -> (b2'=min(b2+1,L));
+	[receiveA] phase=2 & n=3  -> (b3'=min(b3+1,L));
+	[receiveA] phase=2 & n=4  -> (b4'=min(b4+1,L));
+	[receiveA] phase=2 & n=5  -> (b5'=min(b5+1,L));
+	[receiveA] phase=2 & n=6  -> (b6'=min(b6+1,L));
+	[receiveA] phase=2 & n=7  -> (b7'=min(b7+1,L));
+	[receiveA] phase=2 & n=8  -> (b8'=min(b8+1,L));
+	[receiveA] phase=2 & n=9  -> (b9'=min(b9+1,L));
+	[receiveA] phase=2 & n=10 -> (b10'=min(b10+1,L));
+	[receiveA] phase=2 & n=11 -> (b11'=min(b11+1,L));
+	[receiveA] phase=2 & n=12 -> (b12'=min(b12+1,L));
+	[receiveA] phase=2 & n=13 -> (b13'=min(b13+1,L));
+	[receiveA] phase=2 & n=14 -> (b14'=min(b14+1,L));
+	[receiveA] phase=2 & n=15 -> (b15'=min(b15+1,L));
+	[receiveA] phase=2 & n=16 -> (b16'=min(b16+1,L));
+	[receiveA] phase=2 & n=17 -> (b17'=min(b17+1,L));
+	[receiveA] phase=2 & n=18 -> (b18'=min(b18+1,L));
+	[receiveA] phase=2 & n=19 -> (b19'=min(b19+1,L));
+	// second step (secrets N,...,2N-1)
+	[receiveA] phase=3 & n=0  -> (b20'=min(b20+1,L));
+	[receiveA] phase=3 & n=1  -> (b21'=min(b21+1,L));
+	[receiveA] phase=3 & n=2  -> (b22'=min(b22+1,L));
+	[receiveA] phase=3 & n=3  -> (b23'=min(b23+1,L));
+	[receiveA] phase=3 & n=4  -> (b24'=min(b24+1,L));
+	[receiveA] phase=3 & n=5  -> (b25'=min(b25+1,L));
+	[receiveA] phase=3 & n=6  -> (b26'=min(b26+1,L));
+	[receiveA] phase=3 & n=7  -> (b27'=min(b27+1,L));
+	[receiveA] phase=3 & n=8  -> (b28'=min(b28+1,L));
+	[receiveA] phase=3 & n=9  -> (b29'=min(b29+1,L));
+	[receiveA] phase=3 & n=10 -> (b30'=min(b30+1,L));
+	[receiveA] phase=3 & n=11 -> (b31'=min(b31+1,L));
+	[receiveA] phase=3 & n=12 -> (b32'=min(b32+1,L));
+	[receiveA] phase=3 & n=13 -> (b33'=min(b33+1,L));
+	[receiveA] phase=3 & n=14 -> (b34'=min(b34+1,L));
+	[receiveA] phase=3 & n=15 -> (b35'=min(b35+1,L));
+	[receiveA] phase=3 & n=16 -> (b36'=min(b36+1,L));
+	[receiveA] phase=3 & n=17 -> (b37'=min(b37+1,L));
+	[receiveA] phase=3 & n=18 -> (b38'=min(b38+1,L));
+	[receiveA] phase=3 & n=19 -> (b39'=min(b39+1,L));
+
+endmodule
+
+// construct module for party B through renaming
+module partyB=partyA[b0 =a0 ,b1 =a1 ,b2 =a2 ,b3 =a3 ,b4 =a4 ,b5 =a5 ,b6 =a6 ,b7 =a7 ,b8 =a8 ,b9 =a9,
+                     b10=a10,b11=a11,b12=a12,b13=a13,b14=a14,b15=a15,b16=a16,b17=a17,b18=a18,b19=a19,
+                     b20=a20,b21=a21,b22=a22,b23=a23,b24=a24,b25=a25,b26=a26,b27=a27,b28=a28,b29=a29,
+                     b30=a30,b31=a31,b32=a32,b33=a33,b34=a34,b35=a35,b36=a36,b37=a37,b38=a38,b39=a39,
+                     receiveA=receiveB] 
+endmodule
+
+// formulae
+formula kB = ( (a0=L  & a20=L)
+			 | (a1=L  & a21=L)
+			 | (a2=L  & a22=L)
+			 | (a3=L  & a23=L)
+			 | (a4=L  & a24=L)
+			 | (a5=L  & a25=L)
+			 | (a6=L  & a26=L)
+			 | (a7=L  & a27=L)
+			 | (a8=L  & a28=L)
+			 | (a9=L  & a29=L)
+			 | (a10=L & a30=L)
+			 | (a11=L & a31=L)
+			 | (a12=L & a32=L)
+			 | (a13=L & a33=L)
+			 | (a14=L & a34=L)
+			 | (a15=L & a35=L)
+			 | (a16=L & a36=L)
+			 | (a17=L & a37=L)
+			 | (a18=L & a38=L)
+			 | (a19=L & a39=L));
+
+formula kA = ( (b0=L  & b20=L)
+			 | (b1=L  & b21=L)
+			 | (b2=L  & b22=L)
+			 | (b3=L  & b23=L)
+			 | (b4=L  & b24=L)
+			 | (b5=L  & b25=L)
+			 | (b6=L  & b26=L)
+			 | (b7=L  & b27=L)
+			 | (b8=L  & b28=L)
+			 | (b9=L  & b29=L)
+			 | (b10=L & b30=L)
+			 | (b11=L & b31=L)
+			 | (b12=L & b32=L)
+			 | (b13=L & b33=L)
+			 | (b14=L & b34=L)
+			 | (b15=L & b35=L)
+			 | (b16=L & b36=L)
+			 | (b17=L & b37=L)
+			 | (b18=L & b38=L)
+			 | (b19=L & b39=L));
+
+// labels
+label "knowB" = kB;
+label "knowA" = kA;
+
+// reward structures
+
+// messages from B that A needs to knows a pair once B knows a pair
+rewards "messages_A_needs"
+	[receiveA] kB & !kA : 1;
+endrewards
+
+// messages from A that B needs to knows a pair once A knows a pair
+rewards "messages_B_needs"
+	[receiveA] kA & !kB : 1;
+endrewards

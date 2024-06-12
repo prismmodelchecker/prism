@@ -3,16 +3,27 @@ package simulator;
 import java.util.ArrayList;
 import java.util.List;
 
+import common.Interval;
+import param.BigRational;
+import param.Function;
+import param.FunctionFactory;
+import parser.EvaluateContext;
+import parser.EvaluateContextState;
 import parser.State;
 import parser.Values;
 import parser.VarList;
+import parser.ast.ConstantList;
 import parser.ast.DeclarationType;
 import parser.ast.Expression;
+import parser.ast.ExpressionConstant;
+import parser.ast.ExpressionLiteral;
 import parser.ast.LabelList;
 import parser.ast.ModulesFile;
 import parser.ast.RewardStruct;
 import parser.type.Type;
 import parser.type.TypeClock;
+import parser.visitor.ASTTraverseModify;
+import prism.Evaluator;
 import prism.ModelGenerator;
 import prism.ModelType;
 import prism.PrismComponent;
@@ -20,53 +31,160 @@ import prism.PrismException;
 import prism.PrismLangException;
 import prism.RewardGenerator;
 
-public class ModulesFileModelGenerator implements ModelGenerator, RewardGenerator
+public class ModulesFileModelGenerator<Value> implements ModelGenerator<Value>, RewardGenerator<Value>
 {
 	// Parent PrismComponent (logs, settings etc.)
 	protected PrismComponent parent;
 	
+	// Evaluator for values/states
+	protected Evaluator<Value> eval;
+	
+	// Interval evaluator for probability intervals, if needed
+	protected Evaluator<Interval<Value>> evalInt;
+	
+	// Evaluation context for expressions
+	protected EvaluateContextState ec;
+	
 	// PRISM model info
 	/** The original modules file (might have unresolved constants) */
-	private ModulesFile originalModulesFile;
+	protected ModulesFile originalModulesFile;
 	/** The modules file used for generating (has no unresolved constants after {@code initialise}) */
-	private ModulesFile modulesFile;
-	private ModelType modelType;
-	private Values mfConstants;
-	private VarList varList;
-	private LabelList labelList;
-	private List<String> labelNames;
+	protected ModulesFile modulesFile;
+	protected ModelType modelType;
+	protected Values mfConstants;
+	protected VarList varList;
+	protected LabelList labelList;
+	protected List<String> labelNames;
 	
 	// Model exploration info
 	
 	// State currently being explored
-	private State exploreState;
+	protected State exploreState;
+	
 	// Updater object for model
-	protected Updater updater;
+	protected Updater<Value> updater;
 	// List of currently available transitions
-	protected TransitionList transitionList;
+	protected TransitionList<Value> transitionList;
 	// Has the transition list been built? 
 	protected boolean transitionListBuilt;
+	
+	// List of currently available transitions (interval models)
+	protected TransitionList<Interval<Value>> transitionListInt;
+	// Updater object for model (interval models)
+	protected Updater<Interval<Value>> updaterInt;
+	// Has the transition list been built? (interval models)
+	protected boolean transitionListIntBuilt;
+	
 	// Global clock invariant (conjunction of per-module invariants)
 	protected Expression invariant;
 	
 	/**
-	 * Build a ModulesFileModelGenerator for a particular PRISM model, represented by a ModuleFile instance.
-	 * Throw an explanatory exception if this is not possible.
+	 * Build a ModulesFileModelGenerator for a particular PRISM model, represented by a {@link ModulesFile} instance.
+	 * This method assumes that doubles are used to represent probabilities (rather than, say, exact arithmetic).
+	 * The method takes care of {@link Evaluator} creation so should be preferred to calling constructors directly.
+	 * Throw an explanatory exception if the model generator cannot be created.
+	 * @param modulesFile The PRISM model
+	 * @param parent Parent, used e.g. for settings (can be null)
+	 */
+	public static ModulesFileModelGenerator<?> create(ModulesFile modulesFile, PrismComponent parent) throws PrismException
+	{
+		return create(modulesFile, false, parent);
+	}
+	
+	/**
+	 * Build a ModulesFileModelGenerator for a particular PRISM model, represented by a {@link ModulesFile} instance.
+	 * If {@code exact} is true, the ModelGenerator will use {@link BigRational}s not doubles for probabilities.
+	 * The method takes care of {@link Evaluator} creation so should be preferred to calling constructors directly.
+	 * Throw an explanatory exception if the model generator cannot be created.
+	 * @param modulesFile The PRISM model
+	 * @param exact Use exact arithmetic?
+	 * @param parent Parent, used e.g. for settings (can be null)
+	 */
+	public static ModulesFileModelGenerator<?> create(ModulesFile modulesFile, boolean exact, PrismComponent parent) throws PrismException
+	{
+		return new ModulesFileModelGenerator<>(modulesFile, createEvaluator(modulesFile, exact), parent);
+	}
+	
+	/**
+	 * Helper function to create an Evaluator of the appropriate type.
+	 */
+	private static Evaluator<?> createEvaluator(ModulesFile modulesFile, boolean exact) throws PrismException
+	{
+		if (!exact) {
+			return Evaluator.forDouble();
+		} else {
+			return Evaluator.forBigRational();
+		}
+	}
+	
+	/**
+	 * Build a ModulesFileModelGenerator for a particular PRISM model, represented by a {@link ModulesFile} instance.
+	 * This method builds a generator for a parametric model using the function factory provided.
+	 * Use this method to guarantee getting a {@code ModulesFileModelGenerator<Function>}.
+	 * Throw an explanatory exception if the model generator cannot be created.
+	 * @param modulesFile The PRISM model
+	 * @param functionFactory Factory for creating/manipulating rational functions 
+	 * @param parent Parent, used e.g. for settings (can be null)
+	 */
+	public static ModulesFileModelGenerator<Function> createForRationalFunctions(ModulesFile modulesFile, FunctionFactory functionFactory, PrismComponent parent) throws PrismException
+	{
+		Evaluator<Function> eval = Evaluator.forRationalFunction(functionFactory);
+		return new ModulesFileModelGenerator<>(modulesFile, eval, parent);
+	}
+	
+	/**
+	 * Build a ModulesFileModelGenerator for a particular PRISM model, represented by a {@link ModulesFile} instance.
+	 * This method assumes that doubles are used to represent probabilities (rather than, say, exact arithmetic).
+	 * Use this method to guarantee getting a {@code ModulesFileModelGenerator<Double>}.
+	 * Throw an explanatory exception if the model generator cannot be created.
+	 * @param modulesFile The PRISM model
+	 * @param parent Parent, used e.g. for settings (can be null)
+	 */
+	public static ModulesFileModelGenerator<Double> createForDoubles(ModulesFile modulesFile, PrismComponent parent) throws PrismException
+	{
+		Evaluator<Double> eval = Evaluator.forDouble();
+		return new ModulesFileModelGenerator<>(modulesFile, eval, parent);
+	}
+	
+	/**
+	 * Build a ModulesFileModelGenerator for a particular PRISM model, represented by a {@link ModulesFile} instance.
+	 * This constructor assumes that doubles are used to represent probabilities (rather than, say, exact arithmetic).
+	 * Throw an explanatory exception if the model generator cannot be created.
 	 * @param modulesFile The PRISM model
 	 */
 	public ModulesFileModelGenerator(ModulesFile modulesFile) throws PrismException
 	{
-		this(modulesFile, null);
+		this(modulesFile, (PrismComponent) null);
 	}
 	
 	/**
-	 * Build a ModulesFileModelGenerator for a particular PRISM model, represented by a ModuleFile instance.
-	 * Throw an explanatory exception if this is not possible.
+	 * Build a ModulesFileModelGenerator for a particular PRISM model, represented by a {@link ModulesFile} instance.
+	 * This constructor assumes that doubles are used to represent probabilities (rather than, say, exact arithmetic).
+	 * Throw an explanatory exception if the model generator cannot be created.
 	 * @param modulesFile The PRISM model
+	 * @param parent Parent, used e.g. for settings (can be null)
 	 */
+	@SuppressWarnings("unchecked")
 	public ModulesFileModelGenerator(ModulesFile modulesFile, PrismComponent parent) throws PrismException
 	{
+		this(modulesFile, (Evaluator<Value>) Evaluator.forDouble(), parent);
+	}
+	
+	/**
+	 * Build a ModulesFileModelGenerator for a particular PRISM model, represented by a {@link ModulesFile} instance.
+	 * Takes in an {@link Evaluator}{@code <Value>} to match the type parameter {@code Value} of this class.
+	 * Throw an explanatory exception if the model generator cannot be created.
+	 * @param modulesFile The PRISM model
+	 * @param eval Evaluator matching the type parameter {@code Value} of this class
+	 * @param parent Parent, used e.g. for settings (can be null)
+	 */
+	public ModulesFileModelGenerator(ModulesFile modulesFile, Evaluator<Value> eval, PrismComponent parent) throws PrismException
+	{
 		this.parent = parent;
+		this.eval = eval;
+		if (modulesFile.getModelType().uncertain()) {
+			evalInt = eval.createIntervalEvaluator();
+		}
 		
 		// No support for system...endsystem yet
 		if (modulesFile.getSystemDefn() != null) {
@@ -84,6 +202,10 @@ public class ModulesFileModelGenerator implements ModelGenerator, RewardGenerato
 		if (mfConstants != null) {
 			initialise();
 		}
+		
+		// Create evaluate context for re-use
+		ec = new EvaluateContextState(mfConstants, new State(modulesFile.getNumVars()));
+		ec.setEvaluationMode(eval.evalMode());
 	}
 	
 	/**
@@ -92,18 +214,54 @@ public class ModulesFileModelGenerator implements ModelGenerator, RewardGenerato
 	 */
 	private void initialise() throws PrismException
 	{
-		// Evaluate constants on (a copy) of the modules file, insert constant values and optimize arithmetic expressions
-		modulesFile = (ModulesFile) modulesFile.deepCopy().replaceConstants(mfConstants).simplify();
-
+		// Evaluate and replace constants on (a copy) of the modules file
+		// We do this using a custom traversal, rather than just calling
+		// replaceConstants() or evaluatePartially() because we also need
+		// to expand undefined constants (e.g., for parametric model checking)
+		modulesFile = (ModulesFile) modulesFile.deepCopy();
+		ConstantList constantList = modulesFile.getConstantList();
+		modulesFile = (ModulesFile) modulesFile.accept(new ASTTraverseModify()
+		{
+			public Object visit(ExpressionConstant e) throws PrismLangException
+			{
+				String name = e.getName();
+				// Constants whose values have been fixed (directly or indirectly)
+				// are replaced with constant literals
+				int i = mfConstants.getIndexOf(name);
+				if (i != -1) {
+					return new ExpressionLiteral(e.getType(), mfConstants.getValue(i));
+				}
+				// Otherwise, see if there is definition (in terms of other constants)
+				// in the model's constant list
+				int i2 = constantList.getConstantIndex(e.getName());
+				if (i2 != -1 && constantList.getConstant(i2) != null) {
+					return constantList.getConstant(i2).accept(this);
+				}
+				// If not, the constant cannot be defined (might, for example,
+				// be a parameter in parametric model checking). So leave unchanged.
+				return e;
+			}
+			
+		});
+		// Optimise arithmetic expressions (not in exact mode: can create some round-off issues)
+		if (!eval.exact()) {
+			modulesFile = (ModulesFile) modulesFile.simplify();
+		}
 		// Get info
 		varList = modulesFile.createVarList();
 		labelList = modulesFile.getLabelList();
 		labelNames = labelList.getLabelNames();
 		
 		// Create data structures for exploring model
-		updater = new Updater(modulesFile, varList, parent);
-		transitionList = new TransitionList();
+		if (!modelType.uncertain()) {
+			updater = new Updater<Value>(modulesFile, varList, eval, parent);
+			transitionList = new TransitionList<Value>(eval);
+		} else {
+			updaterInt = new Updater<Interval<Value>>(modulesFile, varList, evalInt, parent);
+			transitionListInt = new TransitionList<Interval<Value>>(evalInt);
+		}
 		transitionListBuilt = false;
+		transitionListIntBuilt = false;
 	}
 	
 	// Methods for ModelInfo interface
@@ -115,13 +273,7 @@ public class ModulesFileModelGenerator implements ModelGenerator, RewardGenerato
 	}
 
 	@Override
-	public void setSomeUndefinedConstants(Values someValues) throws PrismException
-	{
-		setSomeUndefinedConstants(someValues, false);
-	}
-
-	@Override
-	public void setSomeUndefinedConstants(Values someValues, boolean exact) throws PrismException
+	public void setSomeUndefinedConstants(EvaluateContext ecUndefined) throws PrismException
 	{
 		// We start again with a copy of the original modules file
 		// and set the constants in the copy.
@@ -130,8 +282,9 @@ public class ModulesFileModelGenerator implements ModelGenerator, RewardGenerato
 		// start again at a place where references to constants have not
 		// yet been replaced.
 		modulesFile = (ModulesFile) originalModulesFile.deepCopy();
-		modulesFile.setSomeUndefinedConstants(someValues, exact);
+		modulesFile.setSomeUndefinedConstants(ecUndefined);
 		mfConstants = modulesFile.getConstantValues();
+		ec.setConstantValues(mfConstants);
 		initialise();
 	}
 	
@@ -234,6 +387,18 @@ public class ModulesFileModelGenerator implements ModelGenerator, RewardGenerato
 	// Methods for ModelGenerator interface
 	
 	@Override
+	public Evaluator<Value> getEvaluator()
+	{
+		return eval;
+	}
+	
+	@Override
+	public Evaluator<Interval<Value>> getIntervalEvaluator()
+	{
+		return evalInt;
+	}
+	
+	@Override
 	public boolean hasSingleInitialState() throws PrismException
 	{
 		return modulesFile.getInitialStates() == null;
@@ -265,7 +430,7 @@ public class ModulesFileModelGenerator implements ModelGenerator, RewardGenerato
 			Expression init = modulesFile.getInitialStates();
 			List<State> allPossStates = varList.getAllStates();
 			for (State possState : allPossStates) {
-				if (init.evaluateBoolean(modulesFile.getConstantValues(), possState)) {
+				if (init.evaluateBoolean(ec.setState(possState))) {
 					initStates.add(possState);
 				}
 			}
@@ -319,7 +484,7 @@ public class ModulesFileModelGenerator implements ModelGenerator, RewardGenerato
 	@Override
 	public Object getTransitionAction(int i, int offset) throws PrismException
 	{
-		TransitionList transitions = getTransitionList();
+		TransitionList<?> transitions = getTransitionList();
 		int a = transitions.getTransitionModuleOrActionIndex(transitions.getTotalIndexOfTransition(i, offset));
 		return a < 0 ? null : modulesFile.getSynch(a - 1);
 	}
@@ -327,7 +492,7 @@ public class ModulesFileModelGenerator implements ModelGenerator, RewardGenerato
 	@Override
 	public String getTransitionActionString(int i, int offset) throws PrismException
 	{
-		TransitionList transitions = getTransitionList();
+		TransitionList<?> transitions = getTransitionList();
 		int a = transitions.getTransitionModuleOrActionIndex(transitions.getTotalIndexOfTransition(i, offset));
 		return getDescriptionForModuleOrActionIndex(a);
 	}
@@ -335,7 +500,7 @@ public class ModulesFileModelGenerator implements ModelGenerator, RewardGenerato
 	@Override
 	public Object getChoiceAction(int index) throws PrismException
 	{
-		TransitionList transitions = getTransitionList();
+		TransitionList<?> transitions = getTransitionList();
 		int a = transitions.getChoiceModuleOrActionIndex(index);
 		return a < 0 ? null : modulesFile.getSynch(a - 1);
 	}
@@ -343,7 +508,7 @@ public class ModulesFileModelGenerator implements ModelGenerator, RewardGenerato
 	@Override
 	public String getChoiceActionString(int index) throws PrismException
 	{
-		TransitionList transitions = getTransitionList();
+		TransitionList<?> transitions = getTransitionList();
 		int a = transitions.getChoiceModuleOrActionIndex(index);
 		return getDescriptionForModuleOrActionIndex(a);
 	}
@@ -369,56 +534,79 @@ public class ModulesFileModelGenerator implements ModelGenerator, RewardGenerato
 	@Override
 	public Expression getChoiceClockGuard(int i) throws PrismException
 	{
-		TransitionList transitions = getTransitionList();
+		TransitionList<?> transitions = getTransitionList();
 		return transitions.getChoice(i).getClockGuard();
 	}
 	
 	@Override
-	public double getTransitionProbability(int i, int offset) throws PrismException
+	public Value getTransitionProbability(int i, int offset) throws PrismException
 	{
-		TransitionList transitions = getTransitionList();
-		return transitions.getChoice(i).getProbability(offset);
+		TransitionList<Value> transitions = getTransitionListScalars();
+		if (transitions != null) {
+			return transitions.getChoice(i).getProbability(offset);
+		} else {
+			throw new PrismException("Cannot get scalar transition probability for " + getModelType());
+		}
 	}
 
 	@Override
-	public double getChoiceProbabilitySum(int i) throws PrismException
+	public Value getChoiceProbabilitySum(int i) throws PrismException
 	{
-		TransitionList transitions = getTransitionList();
-		return transitions.getChoice(i).getProbabilitySum();
+		TransitionList<Value> transitions = getTransitionListScalars();
+		if (transitions != null) {
+			return transitions.getChoice(i).getProbabilitySum();
+		} else {
+			throw new PrismException("Cannot get scalar transition probability for " + getModelType());
+		}
 	}
 	
 	@Override
-	public double getProbabilitySum() throws PrismException
+	public Value getProbabilitySum() throws PrismException
 	{
-		TransitionList transitions = getTransitionList();
-		return transitions.getProbabilitySum();
+		TransitionList<Value> transitions = getTransitionListScalars();
+		if (transitions != null) {
+			return transitions.getProbabilitySum();
+		} else {
+			throw new PrismException("Cannot get scalar transition probability for " + getModelType());
+		}
 	}
 	
+	@Override
+	public Interval<Value> getTransitionProbabilityInterval(int i, int offset) throws PrismException
+	{
+		TransitionList<Interval<Value>> transitions = getTransitionListIntervals();
+		if (transitions != null) {
+			return transitions.getChoice(i).getProbability(offset);
+		} else {
+			throw new PrismException("Cannot get transition probability interval for " + getModelType());
+		}
+	}
+
 	@Override
 	public String getTransitionUpdateString(int i, int offset) throws PrismException
 	{
-		TransitionList transitions = getTransitionList();
+		TransitionList<?> transitions = getTransitionList();
 		return transitions.getTransitionUpdateString(transitions.getTotalIndexOfTransition(i, offset), exploreState);
 	}
 	
 	@Override
 	public String getTransitionUpdateStringFull(int i, int offset) throws PrismException
 	{
-		TransitionList transitions = getTransitionList();
+		TransitionList<?> transitions = getTransitionList();
 		return transitions.getTransitionUpdateStringFull(transitions.getTotalIndexOfTransition(i, offset));
 	}
 	
 	@Override
 	public State computeTransitionTarget(int index, int offset) throws PrismException
 	{
-		return getTransitionList().getChoice(index).computeTarget(offset, exploreState);
+		return getTransitionList().getChoice(index).computeTarget(offset, exploreState, varList);
 	}
 
 	@Override
 	public boolean isLabelTrue(int i) throws PrismException
 	{
 		Expression expr = labelList.getLabel(i);
-		return expr.evaluateBoolean(exploreState);
+		return expr.evaluateBoolean(ec.setState(exploreState));
 	}
 	
 	@Override
@@ -445,7 +633,7 @@ public class ModulesFileModelGenerator implements ModelGenerator, RewardGenerato
 				stateNoClocks.varValues[v] = null;
 			}
 		}
-		return (Expression) invariant.deepCopy().evaluatePartially(stateNoClocks).simplify();
+		return (Expression) invariant.deepCopy().evaluatePartially(ec.setState(stateNoClocks)).simplify();
 	}
 	
 	@Override
@@ -457,7 +645,7 @@ public class ModulesFileModelGenerator implements ModelGenerator, RewardGenerato
 		int numObservables = getNumObservables();
 		State sObs = new State(numObservables);
 		for (int i = 0; i < numObservables; i++) {
-			Object oObs = modulesFile.getObservable(i).getDefinition().evaluate(modulesFile.getConstantValues(), state);
+			Object oObs = modulesFile.getObservable(i).getDefinition().evaluate(ec.setState(state));
 			sObs.setValue(i, oObs);
 		}
 		return sObs;
@@ -465,6 +653,12 @@ public class ModulesFileModelGenerator implements ModelGenerator, RewardGenerato
 	
 	// Methods for RewardGenerator interface
 
+	@Override
+	public Evaluator<Value> getRewardEvaluator()
+	{
+		return eval;
+	}
+	
 	@Override
 	public List<String> getRewardStructNames()
 	{
@@ -484,26 +678,27 @@ public class ModulesFileModelGenerator implements ModelGenerator, RewardGenerato
 	}
 	
 	@Override
-	public double getStateReward(int r, State state) throws PrismException
+	public Value getStateReward(int r, State state) throws PrismException
 	{
 		RewardStruct rewStr = modulesFile.getRewardStruct(r);
 		int n = rewStr.getNumItems();
-		double d = 0;
+		Value d = eval.zero();
 		for (int i = 0; i < n; i++) {
 			if (!rewStr.getRewardStructItem(i).isTransitionReward()) {
 				Expression guard = rewStr.getStates(i);
-				if (guard.evaluateBoolean(modulesFile.getConstantValues(), state)) {
-					double rew = rewStr.getReward(i).evaluateDouble(modulesFile.getConstantValues(), state);
+				boolean guardSat = guard.evaluateBoolean(ec.setState(state));
+				if (guardSat) {
+					Value rew = eval.evaluate(rewStr.getReward(i), modulesFile.getConstantValues(), state);
 					// Check reward is finite/non-negative (would be checked at model construction time,
 					// but more fine grained error reporting can be done here)
 					// Note use of original model since modulesFile may have been simplified
-					if (!Double.isFinite(rew)) {
-						throw new PrismLangException("Reward structure is not finite at state " + state, originalModulesFile.getRewardStruct(r).getReward(i));
+					if (!eval.isFinite(rew)) {
+						throw new PrismLangException("Reward structure is not finite at state " + state, rewStr.getReward(i));
 					}
-					if (rew < 0) {
+					if (!eval.geq(rew, eval.zero())) {
 						throw new PrismLangException("Reward structure is negative + (" + rew + ") at state " + state, originalModulesFile.getRewardStruct(r).getReward(i));
 					}
-					d += rew;
+					d = eval.add(d, rew);
 				}
 			}
 		}
@@ -511,28 +706,29 @@ public class ModulesFileModelGenerator implements ModelGenerator, RewardGenerato
 	}
 
 	@Override
-	public double getStateActionReward(int r, State state, Object action) throws PrismException
+	public Value getStateActionReward(int r, State state, Object action) throws PrismException
 	{
 		RewardStruct rewStr = modulesFile.getRewardStruct(r);
 		int n = rewStr.getNumItems();
-		double d = 0;
+		Value d = eval.zero();
 		for (int i = 0; i < n; i++) {
 			if (rewStr.getRewardStructItem(i).isTransitionReward()) {
 				Expression guard = rewStr.getStates(i);
 				String cmdAction = rewStr.getSynch(i);
 				if (action == null ? (cmdAction.isEmpty()) : action.equals(cmdAction)) {
-					if (guard.evaluateBoolean(modulesFile.getConstantValues(), state)) {
-						double rew = rewStr.getReward(i).evaluateDouble(modulesFile.getConstantValues(), state);
+					boolean guardSat = guard.evaluateBoolean(ec.setState(state));
+					if (guardSat) {
+						Value rew = eval.evaluate(rewStr.getReward(i), modulesFile.getConstantValues(), state);
 						// Check reward is finite/non-negative (would be checked at model construction time,
 						// but more fine grained error reporting can be done here)
 						// Note use of original model since modulesFile may have been simplified
-						if (!Double.isFinite(rew)) {
-							throw new PrismLangException("Reward structure is not finite at state " + state, originalModulesFile.getRewardStruct(r).getReward(i));
+						if (!eval.isFinite(rew)) {
+							throw new PrismLangException("Reward structure is not finite at state " + state, rewStr.getReward(i));
 						}
-						if (rew < 0) {
+						if (!eval.geq(rew, eval.zero())) {
 							throw new PrismLangException("Reward structure is negative + (" + rew + ") at state " + state, originalModulesFile.getRewardStruct(r).getReward(i));
 						}
-						d += rew;
+						d = eval.add(d, rew);
 					}
 				}
 			}
@@ -545,13 +741,40 @@ public class ModulesFileModelGenerator implements ModelGenerator, RewardGenerato
 	/**
 	 * Returns the current list of available transitions, generating it first if this has not yet been done.
 	 */
-	private TransitionList getTransitionList() throws PrismException
+	private TransitionList<?> getTransitionList() throws PrismException
 	{
+		return modelType.uncertain() ? getTransitionListIntervals() : getTransitionListScalars();
+	}
+	
+	/**
+	 * Returns the current list of available transitions, generating it first if this has not yet been done.
+	 */
+	private TransitionList<Value> getTransitionListScalars() throws PrismException
+	{
+		if (modelType.uncertain()) {
+			return null;
+		}
 		// Compute the current transition list, if required
 		if (!transitionListBuilt) {
 			updater.calculateTransitions(exploreState, transitionList);
 			transitionListBuilt = true;
 		}
 		return transitionList;
+	}
+	
+	/**
+	 * Returns the current list of available transitions (interval models), generating it first if this has not yet been done.
+	 */
+	private TransitionList<Interval<Value>> getTransitionListIntervals() throws PrismException
+	{
+		if (!modelType.uncertain()) {
+			return null;
+		}
+		// Compute the current transition list, if required
+		if (!transitionListBuilt) {
+			updaterInt.calculateTransitions(exploreState, transitionListInt);
+			transitionListIntBuilt = true;
+		}
+		return transitionListInt;
 	}
 }

@@ -1,0 +1,33 @@
+/**
+ * @mainpage CUDD Documentation
+ *
+ * @brief The CUDD package manipulates Binary Decision Diagrams (BDDs),
+ * Algebraic Decision Diagrams (ADDs), and Zero-suppressed binary Decision
+ * Diagrams (ZDDs).
+ */
+
+/**
+ * @defgroup cudd cudd
+ * @brief The University of Colorado Decision Diagram package.
+ *
+ * @defgroup mtr mtr
+ * @brief Multiway-branching Trees.
+ *
+ * @defgroup epd epd
+ * @brief Extended double precision package.
+ *
+ * @defgroup st st
+ * @brief Symbol Table package.
+ *
+ * @defgroup util util
+ * @brief Low-level utilities.
+ *
+ * @defgroup cstringstream cstringstream
+ * @brief (Simple) stringstreams in C.
+ *
+ * @defgroup cplusplus cplusplus
+ * @brief C++ CUDD wrapper.
+ *
+ * @defgroup nanotrav nanotrav
+ * @brief CUDD test application.
+ */

@@ -1,6 +1,65 @@
 This file contains details of the changes in each new version of PRISM.
 
 -----------------------------------------------------------------------------
+Version 4.8.1 (first released 13/1/2024)
+-----------------------------------------------------------------------------
+
+* Migrate to CUDD version 3
+* Transition reward export (MDP-like models) for explicit engine
+* Fix broken transient probability computation
+* Updates/fixes in install/launch/testing scripts and build process
+* New tests in etc/tests available for easier build tests
+* New -javaversion switch to show Java version used
+* New --print-failures switch for prism-auto
+* Various bugfixes
+
+-----------------------------------------------------------------------------
+Version 4.8 (first released 5/7/2023)
+-----------------------------------------------------------------------------
+
+* Support for interval DTMC (IDTMC) and interval MDP (IMDP) model checking
+
+* Improved strategy (policy) generation
+  - switch -exportstrat exports to tra/dot/txt format
+  - additional export options (restrict/reduce, states, reach)
+  - strategy generation extended for bounded reachability, LTL, POMDPs
+  - GUI support for generating, exporting and simulating strategies
+
+* Other features/enhancements:
+  - PTA model checking supports global/non-local variables
+  - ModelGenerator interface now supports real-time models (e.g., PTAs)
+  - new -javaparams switch to pass command-line arguments to JVM
+  - prism-log-extract: new field 'dd_nodes' for model MTBDD size
+
+* Import/export enhancements:
+  - import of multiple (and named) reward structures
+  - reward exports include header with name/type
+  - new setting for model export precision (-exportmodelprecision)
+  - new "proplabels" option for -exportmodel and -exportlabels
+  - new -exportproplabels switch to export (just) properties file labels
+  - explicit model import without -importmodel: prism model.all
+  - results export to new formats: PRISM comment, dataframe
+  - results import from dataframe format (-importresults or GUI)
+  - observation export for POMDPs (-exportobs or GUI)
+
+* Fixes / upgrades
+  - compile fix for newer MacOS
+  - library updates: JAS (2.7.90), Log4j (2.16.0), jhoafparser (1.1.1)
+  - various bugfixes
+
+* Development and code-level changes
+  - automated testing via GitHub Actions
+  - unit testing via JUnit
+  - JavaCC upgraded from version 6.0 to 7.0
+  - major refactoring:
+    > generic model/reward classes
+    > ASTElement deepCopy()
+    > Expression evaluation
+    > explicit.StateValues
+    > Strategy and related classes
+    > Modules2MTBDD
+
+-----------------------------------------------------------------------------
 Version 4.7 (first released 19/3/2021)
 -----------------------------------------------------------------------------
 

@@ -50,8 +50,9 @@ public class CTMDPModelChecker extends ProbModelChecker
 	
 	// Model checking functions
 
+	@SuppressWarnings("unchecked")
 	@Override
-	protected StateValues checkProbBoundedUntil(Model model, ExpressionTemporal expr, MinMax minMax, BitSet statesOfInterest) throws PrismException
+	protected StateValues checkProbBoundedUntil(Model<?> model, ExpressionTemporal expr, MinMax minMax, BitSet statesOfInterest) throws PrismException
 	{
 		double uTime;
 		BitSet b1, b2;
@@ -76,7 +77,7 @@ public class CTMDPModelChecker extends ProbModelChecker
 			// prob is 1 in b2 states, 0 otherwise
 			probs = StateValues.createFromBitSetAsDoubles(b2, model);
 		} else {
-			res = computeBoundedUntilProbs((CTMDP) model, b1, b2, uTime, minMax.isMin());
+			res = computeBoundedUntilProbs((CTMDP<Double>) model, b1, b2, uTime, minMax.isMin());
 			probs = StateValues.createFromDoubleArray(res.soln, model);
 		}
 
@@ -93,7 +94,7 @@ public class CTMDPModelChecker extends ProbModelChecker
 	 * @param t Bound
 	 * @param min Min or max probabilities (true=min, false=max)
 	 */
-	public ModelCheckerResult computeBoundedUntilProbs(CTMDP ctmdp, BitSet remain, BitSet target, double t, boolean min) throws PrismException
+	public ModelCheckerResult computeBoundedUntilProbs(CTMDP<Double> ctmdp, BitSet remain, BitSet target, double t, boolean min) throws PrismException
 	{
 		return computeBoundedReachProbs(ctmdp, remain, target, t, min, null, null);
 	}
@@ -108,11 +109,11 @@ public class CTMDPModelChecker extends ProbModelChecker
 	 * @param init Initial solution vector - pass null for default
 	 * @param results Optional array of size b+1 to store (init state) results for each step (null if unused)
 	 */
-	public ModelCheckerResult computeBoundedReachProbs(CTMDP ctmdp, BitSet remain, BitSet target, double t, boolean min, double init[], double results[]) throws PrismException
+	public ModelCheckerResult computeBoundedReachProbs(CTMDP<Double> ctmdp, BitSet remain, BitSet target, double t, boolean min, double init[], double results[]) throws PrismException
 	{
 		// TODO: implement until
 		
-		MDP mdp;
+		MDP<Double> mdp;
 		MDPModelChecker mc;
 		ModelCheckerResult res;
 
@@ -145,7 +146,7 @@ public class CTMDPModelChecker extends ProbModelChecker
 	 * @param init: Initial solution vector - pass null for default
 	 * @param results: Optional array of size b+1 to store (init state) results for each step (null if unused)
 	 */
-	public ModelCheckerResult computeBoundedReachProbsOld(CTMDP ctmdp, BitSet remain, BitSet target, double t, boolean min, double init[], double results[]) throws PrismException
+	public ModelCheckerResult computeBoundedReachProbsOld(CTMDP<Double> ctmdp, BitSet remain, BitSet target, double t, boolean min, double init[], double results[]) throws PrismException
 	{
 		// TODO: implement until
 		
@@ -249,7 +250,7 @@ public class CTMDPModelChecker extends ProbModelChecker
 	 * @param target Target states
 	 * @param min Min or max probabilities (true=min, false=max)
 	 */
-	public ModelCheckerResult computeReachProbs(CTMDP ctmdp, BitSet target, boolean min) throws PrismException
+	public ModelCheckerResult computeReachProbs(CTMDP<Double> ctmdp, BitSet target, boolean min) throws PrismException
 	{
 		throw new PrismNotSupportedException("Not implemented yet");
 	}
@@ -264,7 +265,7 @@ public class CTMDPModelChecker extends ProbModelChecker
 	 * @param min Min or max probabilities (true=min, false=max)
 	 * @param lastSoln Vector of values from which to recompute in one iteration 
 	 */
-	public List<Integer> probReachStrategy(CTMDP ctmdp, int state, BitSet target, boolean min, double lastSoln[]) throws PrismException
+	public List<Integer> probReachStrategy(CTMDP<Double> ctmdp, int state, BitSet target, boolean min, double lastSoln[]) throws PrismException
 	{
 		throw new PrismNotSupportedException("Not implemented yet");
 	}
@@ -275,14 +276,14 @@ public class CTMDPModelChecker extends ProbModelChecker
 	public static void main(String args[])
 	{
 		CTMDPModelChecker mc;
-		CTMDPSimple ctmdp;
+		CTMDPSimple<Double> ctmdp;
 		ModelCheckerResult res;
 		BitSet target;
 		Map<String, BitSet> labels;
 		boolean min = true;
 		try {
 			mc = new CTMDPModelChecker(null);
-			ctmdp = new CTMDPSimple();
+			ctmdp = new CTMDPSimple<>();
 			ctmdp.buildFromPrismExplicit(args[0]);
 			ctmdp.addInitialState(0);
 			System.out.println(ctmdp);

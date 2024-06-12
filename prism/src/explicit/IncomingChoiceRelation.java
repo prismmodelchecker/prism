@@ -117,7 +117,7 @@ public class IncomingChoiceRelation
 	 *
 	 * @param model the Model
 	 */
-	public IncomingChoiceRelation(NondetModel model)
+	public IncomingChoiceRelation(NondetModel<?> model)
 	{
 		pre = new ArrayList<ArrayList<Choice>>(model.getNumStates());
 		// construct the (empty) array list for all states
@@ -129,7 +129,7 @@ public class IncomingChoiceRelation
 	}
 
 	/** Compute the predecessor relation using getSuccessorsIterator. */
-	private void compute(NondetModel model)
+	private void compute(NondetModel<?> model)
 	{
 		int n = model.getNumStates();
 
@@ -172,7 +172,7 @@ public class IncomingChoiceRelation
 	 * @param model the non-deterministic model for which the predecessor relation should be computed
 	 * @returns the incoming choices information
 	 **/
-	public static IncomingChoiceRelation forModel(PrismComponent parent, NondetModel model)
+	public static IncomingChoiceRelation forModel(PrismComponent parent, NondetModel<?> model)
 	{
 		long timer = System.currentTimeMillis();
 

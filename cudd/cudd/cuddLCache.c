@@ -1,47 +1,14 @@
-/**CFile***********************************************************************
+/**
+  @file
 
-  FileName    [cuddLCache.c]
+  @ingroup cudd
 
-  PackageName [cudd]
+  @brief Functions for local caches.
 
-  Synopsis    [Functions for local caches.]
+  @author Fabio Somenzi
 
-  Description [Internal procedures included in this module:
-		<ul>
-		<li> cuddLocalCacheInit()
-		<li> cuddLocalCacheQuit()
-		<li> cuddLocalCacheInsert()
-		<li> cuddLocalCacheLookup()
-		<li> cuddLocalCacheClearDead()
-		<li> cuddLocalCacheClearAll()
-		<li> cuddLocalCacheProfile()
-		<li> cuddHashTableInit()
-		<li> cuddHashTableQuit()
-		<li> cuddHashTableGenericQuit()
-		<li> cuddHashTableInsert()
-		<li> cuddHashTableLookup()
-		<li> cuddHashTableGenericInsert()
-		<li> cuddHashTableGenericLookup()
-		<li> cuddHashTableInsert2()
-		<li> cuddHashTableLookup2()
-		<li> cuddHashTableInsert3()
-		<li> cuddHashTableLookup3()
-		</ul>
-	    Static procedures included in this module:
-		<ul>
-		<li> cuddLocalCacheResize()
-		<li> ddLCHash()
-		<li> cuddLocalCacheAddToList()
-		<li> cuddLocalCacheRemoveFromList()
-		<li> cuddHashTableResize()
-		<li> cuddHashTableAlloc()
-		</ul> ]
-
-  SeeAlso     []
-
-  Author      [Fabio Somenzi]
-
-  Copyright   [Copyright (c) 1995-2012, Regents of the University of Colorado
+  @copyright@parblock
+  Copyright (c) 1995-2015, Regents of the University of Colorado
 
   All rights reserved.
 
@@ -71,9 +38,10 @@
   CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
   LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
   ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-  POSSIBILITY OF SUCH DAMAGE.]
+  POSSIBILITY OF SUCH DAMAGE.
+  @endparblock
 
-******************************************************************************/
+*/
 
 #include "util.h"
 #include "cuddInt.h"
@@ -98,25 +66,19 @@
 /* Variable declarations                                                     */
 /*---------------------------------------------------------------------------*/
 
-#ifndef lint
-static char rcsid[] DD_UNUSED = "$Id: cuddLCache.c,v 1.27 2012/02/05 01:07:19 fabio Exp $";
-#endif
 
 /*---------------------------------------------------------------------------*/
 /* Macro declarations                                                        */
 /*---------------------------------------------------------------------------*/
 
-/**Macro***********************************************************************
+/**
+  @brief Computes hash function for keys of one operand.
 
-  Synopsis    [Computes hash function for keys of one operand.]
+  @sideeffect None
 
-  Description []
+  @see ddLCHash3 ddLCHash
 
-  SideEffects [None]
-
-  SeeAlso     [ddLCHash3 ddLCHash]
-
-******************************************************************************/
+*/
 #if SIZEOF_VOID_P == 8 && SIZEOF_INT == 4
 #define ddLCHash1(f,shift) \
 (((unsigned)(ptruint)(f) * DD_P1) >> (shift))
@@ -126,17 +88,14 @@ static char rcsid[] DD_UNUSED = "$Id: cuddLCache.c,v 1.27 2012/02/05 01:07:19 fa
 #endif
 
 
-/**Macro***********************************************************************
+/**
+  @brief Computes hash function for keys of two operands.
 
-  Synopsis    [Computes hash function for keys of two operands.]
+  @sideeffect None
 
-  Description []
+  @see ddLCHash3 ddLCHash
 
-  SideEffects [None]
-
-  SeeAlso     [ddLCHash3 ddLCHash]
-
-******************************************************************************/
+*/
 #if SIZEOF_VOID_P == 8 && SIZEOF_INT == 4
 #define ddLCHash2(f,g,shift) \
 ((((unsigned)(ptruint)(f) * DD_P1 + \
@@ -147,34 +106,31 @@ static char rcsid[] DD_UNUSED = "$Id: cuddLCache.c,v 1.27 2012/02/05 01:07:19 fa
 #endif
 
 
-/**Macro***********************************************************************
+/**
+  @brief Computes hash function for keys of three operands.
 
-  Synopsis    [Computes hash function for keys of three operands.]
+  @sideeffect None
 
-  Description []
+  @see ddLCHash2 ddLCHash
 
-  SideEffects [None]
-
-  SeeAlso     [ddLCHash2 ddLCHash]
-
-******************************************************************************/
+*/
 #define ddLCHash3(f,g,h,shift) ddCHash2(f,g,h,shift)
 
 
-/**AutomaticStart*************************************************************/
+/** \cond */
 
 /*---------------------------------------------------------------------------*/
 /* Static function prototypes                                                */
 /*---------------------------------------------------------------------------*/
 
 static void cuddLocalCacheResize (DdLocalCache *cache);
-DD_INLINE static unsigned int ddLCHash (DdNodePtr *key, unsigned int keysize, int shift);
+static unsigned int ddLCHash (DdNodePtr *key, unsigned int keysize, int shift);
 static void cuddLocalCacheAddToList (DdLocalCache *cache);
 static void cuddLocalCacheRemoveFromList (DdLocalCache *cache);
 static int cuddHashTableResize (DdHashTable *hash);
-DD_INLINE static DdHashItem * cuddHashTableAlloc (DdHashTable *hash);
+static DdHashItem * cuddHashTableAlloc (DdHashTable *hash);
 
-/**AutomaticEnd***************************************************************/
+/** \endcond */
 
 
 /*---------------------------------------------------------------------------*/
@@ -186,24 +142,23 @@ DD_INLINE static DdHashItem * cuddHashTableAlloc (DdHashTable *hash);
 /*---------------------------------------------------------------------------*/
 
 
-/**Function********************************************************************
+/**
+  @brief Initializes a local computed table.
 
-  Synopsis    [Initializes a local computed table.]
+  @return a pointer the the new local cache in case of success; NULL
+  otherwise.
 
-  Description [Initializes a computed table.  Returns a pointer the
-  the new local cache in case of success; NULL otherwise.]
+  @sideeffect None
 
-  SideEffects [None]
+  @see cuddInitCache
 
-  SeeAlso     [cuddInitCache]
-
-******************************************************************************/
+*/
 DdLocalCache *
 cuddLocalCacheInit(
-  DdManager * manager /* manager */,
-  unsigned int  keySize /* size of the key (number of operands) */,
-  unsigned int  cacheSize /* Initial size of the cache */,
-  unsigned int  maxCacheSize /* Size of the cache beyond which no resizing occurs */)
+  DdManager * manager /**< manager */,
+  unsigned int  keySize /**< size of the key (number of operands) */,
+  unsigned int  cacheSize /**< Initial size of the cache */,
+  unsigned int  maxCacheSize /**< Size of the cache beyond which no resizing occurs */)
 {
     DdLocalCache *cache;
     int logSize;
@@ -248,22 +203,17 @@ cuddLocalCacheInit(
 } /* end of cuddLocalCacheInit */
 
 
-/**Function********************************************************************
+/**
+  @brief Shuts down a local computed table.
 
-  Synopsis    [Shuts down a local computed table.]
+  @sideeffect None
 
-  Description [Initializes the computed table. It is called by
-  Cudd_Init. Returns a pointer the the new local cache in case of
-  success; NULL otherwise.]
+  @see cuddLocalCacheInit
 
-  SideEffects [None]
-
-  SeeAlso     [cuddLocalCacheInit]
-
-******************************************************************************/
+*/
 void
 cuddLocalCacheQuit(
-  DdLocalCache * cache /* cache to be shut down */)
+  DdLocalCache * cache /**< cache to be shut down */)
 {
     cache->manager->memused -=
 	cache->slots * cache->itemsize + sizeof(DdLocalCache);
@@ -276,17 +226,12 @@ cuddLocalCacheQuit(
 } /* end of cuddLocalCacheQuit */
 
 
-/**Function********************************************************************
+/**
+  @brief Inserts a result in a local cache.
 
-  Synopsis    [Inserts a result in a local cache.]
+  @sideeffect None
 
-  Description []
-
-  SideEffects [None]
-
-  SeeAlso     []
-
-******************************************************************************/
+*/
 void
 cuddLocalCacheInsert(
   DdLocalCache * cache,
@@ -308,18 +253,14 @@ cuddLocalCacheInsert(
 } /* end of cuddLocalCacheInsert */
 
 
-/**Function********************************************************************
+/**
+  @brief Looks up in a local cache.
 
-  Synopsis [Looks up in a local cache.]
+  @return the result if found; it returns NULL if no result is found.
 
-  Description [Looks up in a local cache. Returns the result if found;
-  it returns NULL if no result is found.]
+  @sideeffect None
 
-  SideEffects [None]
-
-  SeeAlso     []
-
-******************************************************************************/
+*/
 DdNode *
 cuddLocalCacheLookup(
   DdLocalCache * cache,
@@ -355,18 +296,14 @@ cuddLocalCacheLookup(
 } /* end of cuddLocalCacheLookup */
 
 
-/**Function********************************************************************
+/**
+  @brief Clears the dead entries of the local caches of a manager.
 
-  Synopsis [Clears the dead entries of the local caches of a manager.]
+  @details Used during garbage collection.
 
-  Description [Clears the dead entries of the local caches of a manager.
-  Used during garbage collection.]
+  @sideeffect None
 
-  SideEffects [None]
-
-  SeeAlso     []
-
-******************************************************************************/
+*/
 void
 cuddLocalCacheClearDead(
   DdManager * manager)
@@ -407,18 +344,14 @@ cuddLocalCacheClearDead(
 } /* end of cuddLocalCacheClearDead */
 
 
-/**Function********************************************************************
+/**
+  @brief Clears the local caches of a manager.
 
-  Synopsis [Clears the local caches of a manager.]
+  @details Used before reordering.
 
-  Description [Clears the local caches of a manager.
-  Used before reordering.]
+  @sideeffect None
 
-  SideEffects [None]
-
-  SeeAlso     []
-
-******************************************************************************/
+*/
 void
 cuddLocalCacheClearAll(
   DdManager * manager)
@@ -438,18 +371,14 @@ cuddLocalCacheClearAll(
 
 #define DD_HYSTO_BINS 8
 
-/**Function********************************************************************
+/**
+  @brief Computes and prints a profile of a local cache usage.
 
-  Synopsis    [Computes and prints a profile of a local cache usage.]
+  @return 1 if successful; 0 otherwise.
 
-  Description [Computes and prints a profile of a local cache usage.
-  Returns 1 if successful; 0 otherwise.]
+  @sideeffect None
 
-  SideEffects [None]
-
-  SeeAlso     []
-
-******************************************************************************/
+*/
 int
 cuddLocalCacheProfile(
   DdLocalCache * cache)
@@ -541,23 +470,26 @@ cuddLocalCacheProfile(
 #endif
 
 
-/**Function********************************************************************
+/**
+  @brief Initializes a hash table.
 
-  Synopsis    [Initializes a hash table.]
+  @details The table associates tuples of DdNode pointers to one DdNode pointer.
+  This type of table is used for functions that cannot (or prefer not to) use
+  the main computed table.  The package also provides functions that allow the
+  caller to store arbitrary pointers in the table.
 
-  Description [Initializes a hash table. Returns a pointer to the new
-  table if successful; NULL otherwise.]
+  @return a pointer to the new table if successful; NULL otherwise.
 
-  SideEffects [None]
+  @sideeffect None
 
-  SeeAlso     [cuddHashTableQuit]
+  @see cuddHashTableQuit cuddHashTableGenericQuit
 
-******************************************************************************/
+*/
 DdHashTable *
 cuddHashTableInit(
-  DdManager * manager,
-  unsigned int  keySize,
-  unsigned int  initSize)
+  DdManager * manager /**< %DD manager */,
+  unsigned int keySize /**< number of pointers in the key */,
+  unsigned int initSize /**< initial size of the table */)
 {
     DdHashTable *hash;
     int logSize;
@@ -592,17 +524,16 @@ cuddHashTableInit(
 } /* end of cuddHashTableInit */
 
 
-/**Function********************************************************************
+/**
+  @brief Shuts down a hash table.
 
-  Synopsis    [Shuts down a hash table.]
+  @details Dereferences all the values.
 
-  Description [Shuts down a hash table, dereferencing all the values.]
+  @sideeffect None
 
-  SideEffects [None]
+  @see cuddHashTableInit
 
-  SeeAlso     [cuddHashTableInit]
-
-******************************************************************************/
+*/
 void
 cuddHashTableQuit(
   DdHashTable * hash)
@@ -636,26 +567,21 @@ cuddHashTableQuit(
 } /* end of cuddHashTableQuit */
 
 
-/**Function********************************************************************
+/**
+  @brief Shuts down a hash table.
 
-  Synopsis    [Shuts down a hash table.]
+  @details Shuts down a hash table, when the values are not DdNode
+  pointers.
 
-  Description [Shuts down a hash table, when the values are not DdNode
-  pointers.]
+  @sideeffect None
 
-  SideEffects [None]
+  @see cuddHashTableInit
 
-  SeeAlso     [cuddHashTableInit]
-
-******************************************************************************/
+*/
 void
 cuddHashTableGenericQuit(
   DdHashTable * hash)
 {
-#ifdef __osf__
-#pragma pointer_size save
-#pragma pointer_size short
-#endif
     DdHashItem **memlist, **nextmem;
 
     memlist = hash->memoryList;
@@ -667,28 +593,26 @@ cuddHashTableGenericQuit(
 
     FREE(hash->bucket);
     FREE(hash);
-#ifdef __osf__
-#pragma pointer_size restore
-#endif
 
     return;
 
 } /* end of cuddHashTableGenericQuit */
 
 
-/**Function********************************************************************
+/**
+  @brief Inserts an item in a hash table.
 
-  Synopsis    [Inserts an item in a hash table.]
+  @details Inserts an item in a hash table when the key has more than
+  three pointers.
 
-  Description [Inserts an item in a hash table when the key has more than
-  three pointers.  Returns 1 if successful; 0 otherwise.]
+  @return 1 if successful; 0 otherwise.
 
-  SideEffects [None]
+  @sideeffect None
 
-  SeeAlso     [[cuddHashTableInsert1 cuddHashTableInsert2 cuddHashTableInsert3
-  cuddHashTableLookup]
+  @see [cuddHashTableInsert1 cuddHashTableInsert2 cuddHashTableInsert3
+  cuddHashTableLookup
 
-******************************************************************************/
+*/
 int
 cuddHashTableInsert(
   DdHashTable * hash,
@@ -727,23 +651,24 @@ cuddHashTableInsert(
 } /* end of cuddHashTableInsert */
 
 
-/**Function********************************************************************
+/**
+  @brief Looks up a key in a hash table.
 
-  Synopsis    [Looks up a key in a hash table.]
+  @details Looks up a key consisting of more than three pointers in a
+  hash table.  If the entry is present, its reference counter is
+  decremented if not saturated. If the counter reaches 0, the value of
+  the entry is dereferenced, and the entry is returned to the free
+  list.
 
-  Description [Looks up a key consisting of more than three pointers
-  in a hash table.  Returns the value associated to the key if there
-  is an entry for the given key in the table; NULL otherwise. If the
-  entry is present, its reference counter is decremented if not
-  saturated. If the counter reaches 0, the value of the entry is
-  dereferenced, and the entry is returned to the free list.]
+  @return the value associated to the key if there is an entry for the
+  given key in the table; NULL otherwise.
 
-  SideEffects [None]
+  @sideeffect None
 
-  SeeAlso     [cuddHashTableLookup1 cuddHashTableLookup2 cuddHashTableLookup3
-  cuddHashTableInsert]
+  @see cuddHashTableLookup1 cuddHashTableLookup2 cuddHashTableLookup3
+  cuddHashTableInsert
 
-******************************************************************************/
+*/
 DdNode *
 cuddHashTableLookup(
   DdHashTable * hash,
@@ -795,19 +720,19 @@ cuddHashTableLookup(
 } /* end of cuddHashTableLookup */
 
 
-/**Function********************************************************************
+/**
+  @brief Inserts an item in a hash table.
 
-  Synopsis    [Inserts an item in a hash table.]
+  @details Inserts an item in a hash table when the key is one pointer.
 
-  Description [Inserts an item in a hash table when the key is one pointer.
-  Returns 1 if successful; 0 otherwise.]
+  @return 1 if successful; 0 otherwise.
 
-  SideEffects [None]
+  @sideeffect None
 
-  SeeAlso     [cuddHashTableInsert cuddHashTableInsert2 cuddHashTableInsert3
-  cuddHashTableLookup1]
+  @see cuddHashTableInsert cuddHashTableInsert2 cuddHashTableInsert3
+  cuddHashTableLookup1
 
-******************************************************************************/
+*/
 int
 cuddHashTableInsert1(
   DdHashTable * hash,
@@ -843,23 +768,23 @@ cuddHashTableInsert1(
 } /* end of cuddHashTableInsert1 */
 
 
-/**Function********************************************************************
+/**
+  @brief Looks up a key consisting of one pointer in a hash table.
 
-  Synopsis    [Looks up a key consisting of one pointer in a hash table.]
+  @details If the entry is present, its reference count is
+  decremented if not saturated. If the counter reaches 0, the value of
+  the entry is dereferenced, and the entry is returned to the free
+  list.
 
-  Description [Looks up a key consisting of one pointer in a hash table.
-  Returns the value associated to the key if there is an entry for the given
-  key in the table; NULL otherwise. If the entry is present, its reference
-  counter is decremented if not saturated. If the counter reaches 0, the
-  value of the entry is dereferenced, and the entry is returned to the free
-  list.]
+  @return the value associated to the key if there is an entry for the
+  given key in the table; NULL otherwise.
 
-  SideEffects [None]
+  @sideeffect None
 
-  SeeAlso     [cuddHashTableLookup cuddHashTableLookup2 cuddHashTableLookup3
-  cuddHashTableInsert1]
+  @see cuddHashTableLookup cuddHashTableLookup2 cuddHashTableLookup3
+  cuddHashTableInsert1
 
-******************************************************************************/
+*/
 DdNode *
 cuddHashTableLookup1(
   DdHashTable * hash,
@@ -902,19 +827,21 @@ cuddHashTableLookup1(
 } /* end of cuddHashTableLookup1 */
 
 
-/**Function********************************************************************
+/**
+  @brief Inserts a generic item in a hash table.
 
-  Synopsis    [Inserts an item in a hash table.]
+  @details Inserts an item in a hash table when the key is one
+  pointer and the value is not a DdNode pointer.  The main difference w.r.t.
+  cuddHashTableInsert1 is that the reference count of the value is not
+  incremented.
 
-  Description [Inserts an item in a hash table when the key is one
-  pointer and the value is not a DdNode pointer.  Returns 1 if
-  successful; 0 otherwise.]
+  @return 1 if successful; 0 otherwise.
 
-  SideEffects [None]
+  @sideeffect None
 
-  SeeAlso     [cuddHashTableInsert1 cuddHashTableGenericLookup]
+  @see cuddHashTableInsert1 cuddHashTableGenericLookup
 
-******************************************************************************/
+*/
 int
 cuddHashTableGenericInsert(
   DdHashTable * hash,
@@ -948,20 +875,20 @@ cuddHashTableGenericInsert(
 } /* end of cuddHashTableGenericInsert */
 
 
-/**Function********************************************************************
+/**
+  @brief Looks up a key consisting of one pointer in a hash table.
 
-  Synopsis    [Looks up a key consisting of one pointer in a hash table.]
+  @details Looks up a key consisting of one pointer in a hash
+  table when the value is not a DdNode pointer.
 
-  Description [Looks up a key consisting of one pointer in a hash
-  table when the value is not a DdNode pointer.  Returns the value
-  associated to the key if there is an entry for the given key in the
-  table; NULL otherwise.]
+  @return the value associated to the key if there is an entry for the
+  given key in the table; NULL otherwise.
 
-  SideEffects [None]
+  @sideeffect None
 
-  SeeAlso     [cuddHashTableLookup1 cuddHashTableGenericInsert]
+  @see cuddHashTableLookup1 cuddHashTableGenericInsert
 
-******************************************************************************/
+*/
 void *
 cuddHashTableGenericLookup(
   DdHashTable * hash,
@@ -988,19 +915,20 @@ cuddHashTableGenericLookup(
 } /* end of cuddHashTableGenericLookup */
 
 
-/**Function********************************************************************
+/**
+  @brief Inserts an item in a hash table.
 
-  Synopsis    [Inserts an item in a hash table.]
+  @details Inserts an item in a hash table when the key is
+  composed of two pointers.
 
-  Description [Inserts an item in a hash table when the key is
-  composed of two pointers. Returns 1 if successful; 0 otherwise.]
+  @return 1 if successful; 0 otherwise.
 
-  SideEffects [None]
+  @sideeffect None
 
-  SeeAlso     [cuddHashTableInsert cuddHashTableInsert1 cuddHashTableInsert3
-  cuddHashTableLookup2]
+  @see cuddHashTableInsert cuddHashTableInsert1 cuddHashTableInsert3
+  cuddHashTableLookup2
 
-******************************************************************************/
+*/
 int
 cuddHashTableInsert2(
   DdHashTable * hash,
@@ -1038,23 +966,23 @@ cuddHashTableInsert2(
 } /* end of cuddHashTableInsert2 */
 
 
-/**Function********************************************************************
+/**
+  @brief Looks up a key consisting of two pointers in a hash table.
 
-  Synopsis    [Looks up a key consisting of two pointers in a hash table.]
+  @details If the entry is present, its reference counter is
+  decremented if not saturated. If the counter reaches 0, the value of
+  the entry is dereferenced, and the entry is returned to the free
+  list.
 
-  Description [Looks up a key consisting of two pointer in a hash table.
-  Returns the value associated to the key if there is an entry for the given
-  key in the table; NULL otherwise. If the entry is present, its reference
-  counter is decremented if not saturated. If the counter reaches 0, the
-  value of the entry is dereferenced, and the entry is returned to the free
-  list.]
+  @return the value associated to the key if there is an entry for the
+  given key in the table; NULL otherwise.
 
-  SideEffects [None]
+  @sideeffect None
 
-  SeeAlso     [cuddHashTableLookup cuddHashTableLookup1 cuddHashTableLookup3
-  cuddHashTableInsert2]
+  @see cuddHashTableLookup cuddHashTableLookup1 cuddHashTableLookup3
+  cuddHashTableInsert2
 
-******************************************************************************/
+*/
 DdNode *
 cuddHashTableLookup2(
   DdHashTable * hash,
@@ -1098,19 +1026,20 @@ cuddHashTableLookup2(
 } /* end of cuddHashTableLookup2 */
 
 
-/**Function********************************************************************
+/**
+  @brief Inserts an item in a hash table.
 
-  Synopsis    [Inserts an item in a hash table.]
+  @details Inserts an item in a hash table when the key is
+  composed of three pointers.
 
-  Description [Inserts an item in a hash table when the key is
-  composed of three pointers. Returns 1 if successful; 0 otherwise.]
+  @return 1 if successful; 0 otherwise.
 
-  SideEffects [None]
+  @sideeffect None
 
-  SeeAlso     [cuddHashTableInsert cuddHashTableInsert1 cuddHashTableInsert2
-  cuddHashTableLookup3]
+  @see cuddHashTableInsert cuddHashTableInsert1 cuddHashTableInsert2
+  cuddHashTableLookup3
 
-******************************************************************************/
+*/
 int
 cuddHashTableInsert3(
   DdHashTable * hash,
@@ -1150,23 +1079,23 @@ cuddHashTableInsert3(
 } /* end of cuddHashTableInsert3 */
 
 
-/**Function********************************************************************
+/**
+  @brief Looks up a key consisting of three pointers in a hash table.
 
-  Synopsis    [Looks up a key consisting of three pointers in a hash table.]
+  @details If the entry is present, its reference counter is
+  decremented if not saturated. If the counter reaches 0, the value of
+  the entry is dereferenced, and the entry is returned to the free
+  list.
 
-  Description [Looks up a key consisting of three pointers in a hash table.
-  Returns the value associated to the key if there is an entry for the given
-  key in the table; NULL otherwise. If the entry is present, its reference
-  counter is decremented if not saturated. If the counter reaches 0, the
-  value of the entry is dereferenced, and the entry is returned to the free
-  list.]
+  @return the value associated to the key if there is an entry for the
+  given key in the table; NULL otherwise.
 
-  SideEffects [None]
+  @sideeffect None
 
-  SeeAlso     [cuddHashTableLookup cuddHashTableLookup1 cuddHashTableLookup2
-  cuddHashTableInsert3]
+  @see cuddHashTableLookup cuddHashTableLookup1 cuddHashTableLookup2
+  cuddHashTableInsert3
 
-******************************************************************************/
+*/
 DdNode *
 cuddHashTableLookup3(
   DdHashTable * hash,
@@ -1216,17 +1145,12 @@ cuddHashTableLookup3(
 /*---------------------------------------------------------------------------*/
 
 
-/**Function********************************************************************
+/**
+  @brief Resizes a local cache.
 
-  Synopsis    [Resizes a local cache.]
+  @sideeffect None
 
-  Description []
-
-  SideEffects [None]
-
-  SeeAlso     []
-
-******************************************************************************/
+*/
 static void
 cuddLocalCacheResize(
   DdLocalCache * cache)
@@ -1252,7 +1176,7 @@ cuddLocalCacheResize(
 #endif
 
     saveHandler = MMoutOfMemory;
-    MMoutOfMemory = Cudd_OutOfMem;
+    MMoutOfMemory = cache->manager->outOfMemCallback;
     cache->item = item =
 	(DdLocalCacheItem *) ALLOC(char, slots * cache->itemsize);
     MMoutOfMemory = saveHandler;
@@ -1296,19 +1220,14 @@ cuddLocalCacheResize(
 } /* end of cuddLocalCacheResize */
 
 
-/**Function********************************************************************
+/**
+  @brief Computes the hash value for a local cache.
 
-  Synopsis    [Computes the hash value for a local cache.]
+  @return the bucket index.
 
-  Description [Computes the hash value for a local cache. Returns the
-  bucket index.]
+  @sideeffect None
 
-  SideEffects [None]
-
-  SeeAlso     []
-
-******************************************************************************/
-DD_INLINE
+*/
 static unsigned int
 ddLCHash(
   DdNodePtr * key,
@@ -1327,17 +1246,12 @@ ddLCHash(
 } /* end of ddLCHash */
 
 
-/**Function********************************************************************
+/**
+  @brief Inserts a local cache in the manager list.
 
-  Synopsis    [Inserts a local cache in the manager list.]
+  @sideeffect None
 
-  Description []
-
-  SideEffects [None]
-
-  SeeAlso     []
-
-******************************************************************************/
+*/
 static void
 cuddLocalCacheAddToList(
   DdLocalCache * cache)
@@ -1351,17 +1265,12 @@ cuddLocalCacheAddToList(
 } /* end of cuddLocalCacheAddToList */
 
 
-/**Function********************************************************************
+/**
+  @brief Removes a local cache from the manager list.
 
-  Synopsis    [Removes a local cache from the manager list.]
+  @sideeffect None
 
-  Description []
-
-  SideEffects [None]
-
-  SeeAlso     []
-
-******************************************************************************/
+*/
 static void
 cuddLocalCacheRemoveFromList(
   DdLocalCache * cache)
@@ -1385,18 +1294,16 @@ cuddLocalCacheRemoveFromList(
 } /* end of cuddLocalCacheRemoveFromList */
 
 
-/**Function********************************************************************
+/**
+  @brief Resizes a hash table.
 
-  Synopsis    [Resizes a hash table.]
+  @return 1 if successful; 0 otherwise.
 
-  Description [Resizes a hash table. Returns 1 if successful; 0
-  otherwise.]
+  @sideeffect None
 
-  SideEffects [None]
+  @see cuddHashTableInsert
 
-  SeeAlso     [cuddHashTableInsert]
-
-******************************************************************************/
+*/
 static int
 cuddHashTableResize(
   DdHashTable * hash)
@@ -1417,7 +1324,7 @@ cuddHashTableResize(
     /* Compute the new size of the table. */
     numBuckets = oldNumBuckets << 1;
     saveHandler = MMoutOfMemory;
-    MMoutOfMemory = Cudd_OutOfMem;
+    MMoutOfMemory = hash->manager->outOfMemCallback;
     buckets = ALLOC(DdHashItem *, numBuckets);
     MMoutOfMemory = saveHandler;
     if (buckets == NULL) {
@@ -1484,21 +1391,19 @@ cuddHashTableResize(
 } /* end of cuddHashTableResize */
 
 
-/**Function********************************************************************
+/**
+  @brief Fast storage allocation for items in a hash table.
 
-  Synopsis    [Fast storage allocation for items in a hash table.]
+  @details The first sizeof(void *) bytes of a chunk contain a pointer to the
+  next block; the rest contains DD_MEM_CHUNK spaces for hash items.
 
-  Description [Fast storage allocation for items in a hash table. The
-  first 4 bytes of a chunk contain a pointer to the next block; the
-  rest contains DD_MEM_CHUNK spaces for hash items.  Returns a pointer to
-  a new item if successful; NULL is memory is full.]
+  @return a pointer to a new item if successful; NULL is memory is full.
 
-  SideEffects [None]
+  @sideeffect None
 
-  SeeAlso     [cuddAllocNode cuddDynamicAllocNode]
+  @see cuddAllocNode cuddDynamicAllocNode
 
-******************************************************************************/
-DD_INLINE
+*/
 static DdHashItem *
 cuddHashTableAlloc(
   DdHashTable * hash)
@@ -1511,7 +1416,7 @@ cuddHashTableAlloc(
 
     if (hash->nextFree == NULL) {
 	saveHandler = MMoutOfMemory;
-	MMoutOfMemory = Cudd_OutOfMem;
+	MMoutOfMemory = hash->manager->outOfMemCallback;
 	mem = (DdHashItem **) ALLOC(char,(DD_MEM_CHUNK+1) * itemsize);
 	MMoutOfMemory = saveHandler;
 	if (mem == NULL) {

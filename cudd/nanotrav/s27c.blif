@@ -1,0 +1,14 @@
+.model s27c.bench
+.outputs G11
+.latch     G10 G5  0
+.latch     G11 G6  0
+.latch     G7 G7  0
+.names G11 G10
+0 1
+.names G5 G9 G11
+00 1
+.names G6 G8
+1 1
+.names G8 G7 G9
+01 1
+.end

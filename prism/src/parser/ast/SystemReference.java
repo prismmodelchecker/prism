@@ -26,9 +26,10 @@
 
 package parser.ast;
 
-import java.util.Vector;
+import java.util.List;
 
-import parser.visitor.*;
+import parser.visitor.ASTVisitor;
+import parser.visitor.DeepCopy;
 import prism.PrismLangException;
 
 public class SystemReference extends SystemDefn
@@ -60,13 +61,13 @@ public class SystemReference extends SystemDefn
 	// Methods required for SystemDefn (all subclasses should implement):
 	
 	@Override
-	public void getModules(Vector<String> v)
+	public void getModules(List<String> v)
 	{
-		v.addElement(name);
+		v.add(name);
 	}
 	
 	@Override
-	public void getModules(Vector<String> v, ModulesFile modulesFile)
+	public void getModules(List<String> v, ModulesFile modulesFile)
 	{
 		// Recurse into referenced SystemDefn
 		SystemDefn ref = modulesFile.getSystemDefnByName(name);
@@ -76,13 +77,13 @@ public class SystemReference extends SystemDefn
 	}
 	
 	@Override
-	public void getSynchs(Vector<String> v)
+	public void getSynchs(List<String> v)
 	{
 		// do nothing
 	}
 	
 	@Override
-	public void getSynchs(Vector<String> v, ModulesFile modulesFile)
+	public void getSynchs(List<String> v, ModulesFile modulesFile)
 	{
 		// Recurse into referenced SystemDefn
 		SystemDefn ref = modulesFile.getSystemDefnByName(name);
@@ -92,7 +93,7 @@ public class SystemReference extends SystemDefn
 	}
 	
 	@Override
-	public void getReferences(Vector<String> v)
+	public void getReferences(List<String> v)
 	{
 		if (!v.contains(name))
 			v.add(name);
@@ -113,11 +114,15 @@ public class SystemReference extends SystemDefn
 	}
 	
 	@Override
-	public SystemDefn deepCopy()
+	public SystemReference deepCopy(DeepCopy copier)
 	{
-		SystemDefn ret = new SystemReference(name);
-		ret.setPosition(this);
-		return ret;
+		return this;
+	}
+
+	@Override
+	public SystemReference clone()
+	{
+		return (SystemReference) super.clone();
 	}
 }
 

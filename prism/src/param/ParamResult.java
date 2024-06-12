@@ -28,12 +28,11 @@
 
 package param;
 
+import java.util.Collections;
 import java.util.List;
 
 import parser.Values;
-import parser.ast.ConstantList;
 import parser.ast.Expression;
-import parser.ast.ExpressionIdent;
 import parser.ast.ExpressionLiteral;
 import parser.type.Type;
 import parser.type.TypeBool;
@@ -55,8 +54,6 @@ public class ParamResult
 	private ParamMode mode;
 	/** The actual result */
 	private RegionValues regionValues;
-	/** The model builder (for accessing expr2func) */
-	private ModelBuilder modelBuilder;
 	/** The function factory used for model checking */
 	private FunctionFactory factory;
 
@@ -66,11 +63,10 @@ public class ParamResult
 	 * @param modelBuilder the model builder used during checking
 	 * @param factory the function factory used during checking
 	 */
-	public ParamResult(ParamMode mode, RegionValues regionValues, ModelBuilder modelBuilder, FunctionFactory factory)
+	public ParamResult(ParamMode mode, RegionValues regionValues, FunctionFactory factory)
 	{
 		this.mode = mode;
 		this.regionValues = regionValues;
-		this.modelBuilder = modelBuilder;
 		this.factory = factory;
 	}
 
@@ -142,20 +138,13 @@ public class ParamResult
 			} else if (strExpected.equals("NaN")) {
 				exprExpected =  new ExpressionLiteral(TypeDouble.getInstance(), BigRational.NAN);
 			} else {
+				// Parse expression
 				exprExpected = Prism.parseSingleExpressionString(strExpected);
-
-				// the constants that can be used in the expected result expression:
-				// defined constants
-				ConstantList constantList = new ConstantList(constValues);
-				// and parametric constants
-				for (String p : params) {
-					constantList.addConstant(new ExpressionIdent(p), null, TypeDouble.getInstance());
-				}
-				exprExpected = (Expression) exprExpected.findAllConstants(constantList);
+				// And find constants: either defined constants or parametric constants
+				exprExpected = (Expression) exprExpected.findAllConstants(constValues.getNames(), constValues.getTypes());
+				exprExpected = (Expression) exprExpected.findAllConstants(params, Collections.nCopies(params.size(), TypeDouble.getInstance()));
+				// Type check and plug in values for constants that have them
 				exprExpected.typeCheck();
-
-				// replace constants in the expression that have a value
-				// with the value
 				exprExpected = (Expression) exprExpected.evaluatePartially(constValues);
 			}
 		} catch (PrismLangException e) {
@@ -193,7 +182,7 @@ public class ParamResult
 			// numeric result
 			Function funcExpected;
 			try {
-				funcExpected = modelBuilder.expr2function(factory, expected);
+				funcExpected = factory.expr2function(expected);
 			} catch (PrismException e) {
 				throw new PrismException("Invalid (or unsupported) RESULT specification \"" + strExpected + "\" for " + mode + " property");
 			}

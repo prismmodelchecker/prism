@@ -30,6 +30,6 @@ package explicit;
  * Interface for simple mutable explicit-state nondeterministic model representations
  * (i.e. classes that implement both {@link explicit.NondetModel} and {@link explicit.ModelSimple}).
  */
-public interface NondetModelSimple extends NondetModel, ModelSimple
+public interface NondetModelSimple<Value> extends NondetModel<Value>, ModelSimple<Value>
 {
 }

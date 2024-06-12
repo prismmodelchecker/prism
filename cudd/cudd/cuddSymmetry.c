@@ -1,37 +1,14 @@
-/**CFile***********************************************************************
+/**
+  @file
 
-  FileName    [cuddSymmetry.c]
+  @ingroup cudd
 
-  PackageName [cudd]
+  @brief Functions for symmetry-based variable reordering.
 
-  Synopsis    [Functions for symmetry-based variable reordering.]
+  @author Shipra Panda, Fabio Somenzi
 
-  Description [External procedures included in this file:
-		<ul>
-		<li> Cudd_SymmProfile()
-		</ul>
-	Internal procedures included in this module:
-		<ul>
-		<li> cuddSymmCheck()
-		<li> cuddSymmSifting()
-		<li> cuddSymmSiftingConv()
-		</ul>
-	Static procedures included in this module:
-		<ul>
-		<li> ddSymmUniqueCompare()
-		<li> ddSymmSiftingAux()
-		<li> ddSymmSiftingConvAux()
-		<li> ddSymmSiftingUp()
-		<li> ddSymmSiftingDown()
-		<li> ddSymmGroupMove()
-		<li> ddSymmGroupMoveBackward()
-		<li> ddSymmSiftingBackward()
-		<li> ddSymmSummary()
-		</ul>]
-
-  Author      [Shipra Panda, Fabio Somenzi]
-
-  Copyright   [Copyright (c) 1995-2012, Regents of the University of Colorado
+  @copyright@parblock
+  Copyright (c) 1995-2015, Regents of the University of Colorado
 
   All rights reserved.
 
@@ -61,9 +38,10 @@
   CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
   LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
   ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-  POSSIBILITY OF SUCH DAMAGE.]
+  POSSIBILITY OF SUCH DAMAGE.
+  @endparblock
 
-******************************************************************************/
+*/
 
 #include "util.h"
 #include "cuddInt.h"
@@ -86,28 +64,17 @@
 /* Variable declarations                                                     */
 /*---------------------------------------------------------------------------*/
 
-#ifndef lint
-static char rcsid[] DD_UNUSED = "$Id: cuddSymmetry.c,v 1.28 2012/02/05 01:07:19 fabio Exp $";
-#endif
-
-static	int	*entry;
-
-extern  int	ddTotalNumberSwapping;
-#ifdef DD_STATS
-extern	int	ddTotalNISwaps;
-#endif
-
 /*---------------------------------------------------------------------------*/
 /* Macro declarations                                                        */
 /*---------------------------------------------------------------------------*/
 
-/**AutomaticStart*************************************************************/
+/** \cond */
 
 /*---------------------------------------------------------------------------*/
 /* Static function prototypes                                                */
 /*---------------------------------------------------------------------------*/
 
-static int ddSymmUniqueCompare (int *ptrX, int *ptrY);
+static int ddSymmUniqueCompare (void const *ptrX, void const *ptrY);
 static int ddSymmSiftingAux (DdManager *table, int x, int xLow, int xHigh);
 static int ddSymmSiftingConvAux (DdManager *table, int x, int xLow, int xHigh);
 static Move * ddSymmSiftingUp (DdManager *table, int y, int xLow);
@@ -117,7 +84,7 @@ static int ddSymmGroupMoveBackward (DdManager *table, int x, int y);
 static int ddSymmSiftingBackward (DdManager *table, Move *moves, int size);
 static void ddSymmSummary (DdManager *table, int lower, int upper, int *symvars, int *symgroups);
 
-/**AutomaticEnd***************************************************************/
+/** \endcond */
 
 
 /*---------------------------------------------------------------------------*/
@@ -125,15 +92,16 @@ static void ddSymmSummary (DdManager *table, int lower, int upper, int *symvars,
 /*---------------------------------------------------------------------------*/
 
 
-/**Function********************************************************************
+/**
+  @brief Prints statistics on symmetric variables.
 
-  Synopsis    [Prints statistics on symmetric variables.]
+  @details The information is accurate only if this function is called
+  right after reordering with methods CUDD_REORDER_SYMM_SIFT or
+  CUDD_REORDER_SYMM_SIFT_CONV.
 
-  Description []
+  @sideeffect None
 
-  SideEffects [None]
-
-******************************************************************************/
+*/
 void
 Cudd_SymmProfile(
   DdManager * table,
@@ -173,17 +141,16 @@ Cudd_SymmProfile(
 /*---------------------------------------------------------------------------*/
 
 
-/**Function********************************************************************
+/**
+  @brief Checks for symmetry of x and y.
 
-  Synopsis    [Checks for symmetry of x and y.]
+  @details Ignores projection functions, unless they are isolated.
 
-  Description [Checks for symmetry of x and y. Ignores projection
-  functions, unless they are isolated. Returns 1 in case of symmetry; 0
-  otherwise.]
+  @return 1 in case of symmetry; 0 otherwise.
 
-  SideEffects [None]
+  @sideeffect None
 
-******************************************************************************/
+*/
 int
 cuddSymmCheck(
   DdManager * table,
@@ -292,12 +259,10 @@ cuddSymmCheck(
 } /* end of cuddSymmCheck */
 
 
-/**Function********************************************************************
+/**
+  @brief Symmetric sifting algorithm.
 
-  Synopsis    [Symmetric sifting algorithm.]
-
-  Description [Symmetric sifting algorithm.
-  Assumes that no dead nodes are present.
+  @details Assumes that no dead nodes are present.
     <ol>
     <li> Order all the variables according to the number of entries in
     each unique subtable.
@@ -306,14 +271,15 @@ cuddSymmCheck(
     <li> Select the best permutation.
     <li> Repeat 3 and 4 for all variables.
     </ol>
-  Returns 1 plus the number of symmetric variables if successful; 0
-  otherwise.]
 
-  SideEffects [None]
+  @return 1 plus the number of symmetric variables if successful; 0
+  otherwise.
 
-  SeeAlso     [cuddSymmSiftingConv]
+  @sideeffect None
 
-******************************************************************************/
+  @see cuddSymmSiftingConv
+
+*/
 int
 cuddSymmSifting(
   DdManager * table,
@@ -321,7 +287,7 @@ cuddSymmSifting(
   int  upper)
 {
     int		i;
-    int		*var;
+    IndexKey	*var;
     int		size;
     int		x;
     int		result;
@@ -334,13 +300,7 @@ cuddSymmSifting(
     size = table->size;
 
     /* Find order in which to sift variables. */
-    var = NULL;
-    entry = ALLOC(int,size);
-    if (entry == NULL) {
-	table->errorCode = CUDD_MEMORY_OUT;
-	goto ddSymmSiftingOutOfMem;
-    }
-    var = ALLOC(int,size);
+    var = ALLOC(IndexKey,size);
     if (var == NULL) {
 	table->errorCode = CUDD_MEMORY_OUT;
 	goto ddSymmSiftingOutOfMem;
@@ -348,11 +308,11 @@ cuddSymmSifting(
 
     for (i = 0; i < size; i++) {
 	x = table->perm[i];
-	entry[i] = table->subtables[x].keys;
-	var[i] = i;
+	var[i].index = i;
+	var[i].keys = table->subtables[x].keys;
     }
 
-    qsort((void *)var,size,sizeof(int),(DD_QSFP)ddSymmUniqueCompare);
+    util_qsort(var,size,sizeof(IndexKey),ddSymmUniqueCompare);
 
     /* Initialize the symmetry of each subtable to itself. */
     for (i = lower; i <= upper; i++) {
@@ -360,15 +320,20 @@ cuddSymmSifting(
     }
 
     for (i = 0; i < ddMin(table->siftMaxVar,size); i++) {
-	if (ddTotalNumberSwapping >= table->siftMaxSwap)
+	if (table->ddTotalNumberSwapping >= table->siftMaxSwap)
 	    break;
         if (util_cpu_time() - table->startTime > table->timeLimit) {
             table->autoDyn = 0; /* prevent further reordering */
             break;
         }
-	x = table->perm[var[i]];
+        if (table->terminationCallback != NULL &&
+            table->terminationCallback(table->tcbArg)) {
+            table->autoDyn = 0; /* prevent further reordering */
+            break;
+        }
+	x = table->perm[var[i].index];
 #ifdef DD_STATS
-	previousSize = table->keys - table->isolated;
+	previousSize = (int) (table->keys - table->isolated);
 #endif
 	if (x < lower || x > upper) continue;
 	if (table->subtables[x].next == (unsigned) x) {
@@ -389,7 +354,6 @@ cuddSymmSifting(
     }
 
     FREE(var);
-    FREE(entry);
 
     ddSymmSummary(table, lower, upper, &symvars, &symgroups);
 
@@ -404,7 +368,6 @@ cuddSymmSifting(
 
 ddSymmSiftingOutOfMem:
 
-    if (entry != NULL) FREE(entry);
     if (var != NULL) FREE(var);
 
     return(0);
@@ -412,29 +375,28 @@ ddSymmSiftingOutOfMem:
 } /* end of cuddSymmSifting */
 
 
-/**Function********************************************************************
+/**
+  @brief Symmetric sifting to convergence algorithm.
 
-  Synopsis    [Symmetric sifting to convergence algorithm.]
-
-  Description [Symmetric sifting to convergence algorithm.
-  Assumes that no dead nodes are present.
+  @details Assumes that no dead nodes are present.
     <ol>
     <li> Order all the variables according to the number of entries in
     each unique subtable.
     <li> Sift the variable up and down, remembering each time the total
-    size of the DD heap and grouping variables that are symmetric.
+    size of the %DD heap and grouping variables that are symmetric.
     <li> Select the best permutation.
     <li> Repeat 3 and 4 for all variables.
     <li> Repeat 1-4 until no further improvement.
     </ol>
-  Returns 1 plus the number of symmetric variables if successful; 0
-  otherwise.]
 
-  SideEffects [None]
+  @return 1 plus the number of symmetric variables if successful; 0
+  otherwise.
 
-  SeeAlso     [cuddSymmSifting]
+  @sideeffect None
 
-******************************************************************************/
+  @see cuddSymmSifting
+
+*/
 int
 cuddSymmSiftingConv(
   DdManager * table,
@@ -442,7 +404,7 @@ cuddSymmSiftingConv(
   int  upper)
 {
     int		i;
-    int		*var;
+    IndexKey	*var;
     int		size;
     int		x;
     int		result;
@@ -454,18 +416,12 @@ cuddSymmSiftingConv(
     int		previousSize;
 #endif
 
-    initialSize = table->keys - table->isolated;
+    initialSize = (int) (table->keys - table->isolated);
 
     size = table->size;
 
     /* Find order in which to sift variables. */
-    var = NULL;
-    entry = ALLOC(int,size);
-    if (entry == NULL) {
-	table->errorCode = CUDD_MEMORY_OUT;
-	goto ddSymmSiftingConvOutOfMem;
-    }
-    var = ALLOC(int,size);
+    var = ALLOC(IndexKey,size);
     if (var == NULL) {
 	table->errorCode = CUDD_MEMORY_OUT;
 	goto ddSymmSiftingConvOutOfMem;
@@ -473,11 +429,11 @@ cuddSymmSiftingConv(
 
     for (i = 0; i < size; i++) {
 	x = table->perm[i];
-	entry[i] = table->subtables[x].keys;
-	var[i] = i;
+	var[i].index = i;
+	var[i].keys = table->subtables[x].keys;
     }
 
-    qsort((void *)var,size,sizeof(int),(DD_QSFP)ddSymmUniqueCompare);
+    util_qsort(var,size,sizeof(IndexKey),ddSymmUniqueCompare);
 
     /* Initialize the symmetry of each subtable to itself
     ** for first pass of converging symmetric sifting.
@@ -487,18 +443,23 @@ cuddSymmSiftingConv(
     }
 
     for (i = 0; i < ddMin(table->siftMaxVar, table->size); i++) {
-	if (ddTotalNumberSwapping >= table->siftMaxSwap)
+	if (table->ddTotalNumberSwapping >= table->siftMaxSwap)
 	    break;
         if (util_cpu_time() - table->startTime > table->timeLimit) {
             table->autoDyn = 0; /* prevent further reordering */
             break;
         }
-	x = table->perm[var[i]];
+        if (table->terminationCallback != NULL &&
+            table->terminationCallback(table->tcbArg)) {
+            table->autoDyn = 0; /* prevent further reordering */
+            break;
+        }
+	x = table->perm[var[i].index];
 	if (x < lower || x > upper) continue;
 	/* Only sift if not in symmetry group already. */
 	if (table->subtables[x].next == (unsigned) x) {
 #ifdef DD_STATS
-	    previousSize = table->keys - table->isolated;
+          previousSize = (int) (table->keys - table->isolated);
 #endif
 	    result = ddSymmSiftingAux(table,x,lower,upper);
 	    if (!result) goto ddSymmSiftingConvOutOfMem;
@@ -518,7 +479,7 @@ cuddSymmSiftingConv(
 
     /* Sifting now until convergence. */
     while ((unsigned) initialSize > table->keys - table->isolated) {
-	initialSize = table->keys - table->isolated;
+      initialSize = (int) (table->keys - table->isolated);
 #ifdef DD_STATS
 	(void) fprintf(table->out,"\n");
 #endif
@@ -532,24 +493,29 @@ cuddSymmSiftingConv(
 	    ** Hence, the next increment of x will move it to a new group.
 	    */
 	    i = table->invperm[x];
-	    entry[i] = table->subtables[x].keys;
-	    var[classes] = i;
+	    var[classes].keys = table->subtables[x].keys;
+	    var[classes].index = i;
 	}
 
-	qsort((void *)var,classes,sizeof(int),(DD_QSFP)ddSymmUniqueCompare);
+	util_qsort(var,classes,sizeof(IndexKey),ddSymmUniqueCompare);
 
 	/* Now sift. */
 	for (i = 0; i < ddMin(table->siftMaxVar,classes); i++) {
-	    if (ddTotalNumberSwapping >= table->siftMaxSwap)
+	    if (table->ddTotalNumberSwapping >= table->siftMaxSwap)
 		break;
             if (util_cpu_time() - table->startTime > table->timeLimit) {
               table->autoDyn = 0; /* prevent further reordering */
               break;
             }
-	    x = table->perm[var[i]];
+            if (table->terminationCallback != NULL &&
+                table->terminationCallback(table->tcbArg)) {
+                table->autoDyn = 0; /* prevent further reordering */
+                break;
+            }
+	    x = table->perm[var[i].index];
 	    if ((unsigned) x >= table->subtables[x].next) {
 #ifdef DD_STATS
-		previousSize = table->keys - table->isolated;
+              previousSize = (int) (table->keys - table->isolated);
 #endif
 		result = ddSymmSiftingConvAux(table,x,lower,upper);
 		if (!result ) goto ddSymmSiftingConvOutOfMem;
@@ -578,13 +544,11 @@ cuddSymmSiftingConv(
 #endif
 
     FREE(var);
-    FREE(entry);
 
     return(1+symvars);
 
 ddSymmSiftingConvOutOfMem:
 
-    if (entry != NULL) FREE(entry);
     if (var != NULL) FREE(var);
 
     return(0);
@@ -597,46 +561,47 @@ ddSymmSiftingConvOutOfMem:
 /*---------------------------------------------------------------------------*/
 
 
-/**Function********************************************************************
+/**
+  @brief Comparison function used by qsort.
 
-  Synopsis    [Comparison function used by qsort.]
+  @details Used to order the variables according to the number of keys
+  in the subtables.
 
-  Description [Comparison function used by qsort to order the variables
-  according to the number of keys in the subtables.
-  Returns the difference in number of keys between the two
-  variables being compared.]
+  @return the difference in number of keys between the two variables
+  being compared.
 
-  SideEffects [None]
+  @sideeffect None
 
-******************************************************************************/
+*/
 static int
 ddSymmUniqueCompare(
-  int * ptrX,
-  int * ptrY)
+  void const * ptrX,
+  void const * ptrY)
 {
+    IndexKey const * pX = (IndexKey const *) ptrX;
+    IndexKey const * pY = (IndexKey const *) ptrY;
 #if 0
-    if (entry[*ptrY] == entry[*ptrX]) {
-	return((*ptrX) - (*ptrY));
+    if (pY->keys == pX->keys) {
+	return(pX->index - pY->index);
     }
 #endif
-    return(entry[*ptrY] - entry[*ptrX]);
+    return(pY->keys - pX->keys);
 
 } /* end of ddSymmUniqueCompare */
 
 
-/**Function********************************************************************
+/**
+  @brief Given xLow <= x <= xHigh moves x up and down between the
+  boundaries.
 
-  Synopsis    [Given xLow <= x <= xHigh moves x up and down between the
-  boundaries.]
+  @details Finds the best position and does the required changes.
+  Assumes that x is not part of a symmetry group.
 
-  Description [Given xLow <= x <= xHigh moves x up and down between the
-  boundaries. Finds the best position and does the required changes.
-  Assumes that x is not part of a symmetry group. Returns 1 if
-  successful; 0 otherwise.]
+  @return 1 if successful; 0 otherwise.
 
-  SideEffects [None]
+  @sideeffect None
 
-******************************************************************************/
+*/
 static int
 ddSymmSiftingAux(
   DdManager * table,
@@ -659,7 +624,7 @@ ddSymmSiftingAux(
     assert(table->subtables[x].next == (unsigned) x);
 #endif
 
-    initialSize = table->keys - table->isolated;
+    initialSize = (int) (table->keys - table->isolated);
 
     moveDown = NULL;
     moveUp = NULL;
@@ -733,7 +698,7 @@ ddSymmSiftingAux(
 	    /* No new symmetry groups detected, return to best position */
 	    result = ddSymmSiftingBackward(table,moveDown,initialSize);
 	} else {
-	    initialSize = table->keys - table->isolated;
+          initialSize = (int) (table->keys - table->isolated);
 	    moveUp = ddSymmSiftingUp(table,x,xLow);
 	    result = ddSymmSiftingBackward(table,moveUp,initialSize);
 	}
@@ -767,7 +732,7 @@ ddSymmSiftingAux(
 	    /* No new symmetry groups detected, return to best position */
 	    result = ddSymmSiftingBackward(table,moveUp,initialSize);
 	} else {
-	    initialSize = table->keys - table->isolated;
+          initialSize = (int) (table->keys - table->isolated);
 	    moveDown = ddSymmSiftingDown(table,x,xHigh);
 	    result = ddSymmSiftingBackward(table,moveDown,initialSize);
 	}
@@ -826,7 +791,7 @@ ddSymmSiftingAux(
 		cuddDeallocMove(table, moveDown);
 		moveDown = move;
 	    }
-	    initialSize = table->keys - table->isolated;
+	    initialSize = (int) (table->keys - table->isolated);
 	    moveDown = ddSymmSiftingDown(table,x,xHigh);
 	    result = ddSymmSiftingBackward(table,moveDown,initialSize);
 	}
@@ -884,7 +849,7 @@ ddSymmSiftingAux(
 		cuddDeallocMove(table, moveUp);
 		moveUp = move;
 	    }
-	    initialSize = table->keys - table->isolated;
+	    initialSize = (int) (table->keys - table->isolated);
 	    moveUp = ddSymmSiftingUp(table,x,xLow);
 	    result = ddSymmSiftingBackward(table,moveUp,initialSize);
 	}
@@ -925,20 +890,20 @@ ddSymmSiftingAuxOutOfMem:
 } /* end of ddSymmSiftingAux */
 
 
-/**Function********************************************************************
+/**
+  @brief Given xLow <= x <= xHigh moves x up and down between the
+  boundaries.
 
-  Synopsis    [Given xLow <= x <= xHigh moves x up and down between the
-  boundaries.]
-
-  Description [Given xLow <= x <= xHigh moves x up and down between the
-  boundaries. Finds the best position and does the required changes.
+  @details Finds the best position and does the required changes.
   Assumes that x is either an isolated variable, or it is the bottom of
   a symmetry group. All symmetries may not have been found, because of
-  exceeded growth limit. Returns 1 if successful; 0 otherwise.]
+  exceeded growth limit.
 
-  SideEffects [None]
+  @return 1 if successful; 0 otherwise.
 
-******************************************************************************/
+  @sideeffect None
+
+*/
 static int
 ddSymmSiftingConvAux(
   DdManager * table,
@@ -955,7 +920,7 @@ ddSymmSiftingConvAux(
     int  initGroupSize, finalGroupSize;
 
 
-    initialSize = table->keys - table->isolated;
+    initialSize = (int) (table->keys - table->isolated);
 
     moveDown = NULL;
     moveUp = NULL;
@@ -989,7 +954,7 @@ ddSymmSiftingConvAux(
 	    /* No new symmetries detected, go back to best position */
 	    result = ddSymmSiftingBackward(table,moveDown,initialSize);
 	} else {
-	    initialSize = table->keys - table->isolated;
+          initialSize = (int) (table->keys - table->isolated);
 	    moveUp = ddSymmSiftingUp(table,x,xLow);
 	    result = ddSymmSiftingBackward(table,moveUp,initialSize);
 	}
@@ -1024,7 +989,7 @@ ddSymmSiftingConvAux(
 	    /* No new symmetry groups detected, return to best position */
 	    result = ddSymmSiftingBackward(table,moveUp,initialSize);
 	} else {
-	    initialSize = table->keys - table->isolated;
+          initialSize = (int) (table->keys - table->isolated);
 	    moveDown = ddSymmSiftingDown(table,x,xHigh);
 	    result = ddSymmSiftingBackward(table,moveDown,initialSize);
 	}
@@ -1082,7 +1047,7 @@ ddSymmSiftingConvAux(
 		cuddDeallocMove(table, moveDown);
 		moveDown = move;
 	    }
-	    initialSize = table->keys - table->isolated;
+	    initialSize = (int) (table->keys - table->isolated);
 	    moveDown = ddSymmSiftingDown(table,x,xHigh);
 	    result = ddSymmSiftingBackward(table,moveDown,initialSize);
 	}
@@ -1140,7 +1105,7 @@ ddSymmSiftingConvAux(
 		cuddDeallocMove(table, moveUp);
 		moveUp = move;
 	    }
-	    initialSize = table->keys - table->isolated;
+	    initialSize = (int) (table->keys - table->isolated);
 	    moveUp = ddSymmSiftingUp(table,x,xLow);
 	    result = ddSymmSiftingBackward(table,moveUp,initialSize);
 	}
@@ -1181,21 +1146,21 @@ ddSymmSiftingConvAuxOutOfMem:
 } /* end of ddSymmSiftingConvAux */
 
 
-/**Function********************************************************************
+/**
+  @brief Moves x up until either it reaches the bound (xLow) or
+  the size of the %DD heap increases too much.
 
-  Synopsis    [Moves x up until either it reaches the bound (xLow) or
-  the size of the DD heap increases too much.]
+  @details Assumes that x is the top of a symmetry group.  Checks x
+  for symmetry to the adjacent variables. If symmetry is found, the
+  symmetry group of x is merged with the symmetry group of the other
+  variable.
 
-  Description [Moves x up until either it reaches the bound (xLow) or
-  the size of the DD heap increases too much. Assumes that x is the top
-  of a symmetry group.  Checks x for symmetry to the adjacent
-  variables. If symmetry is found, the symmetry group of x is merged
-  with the symmetry group of the other variable. Returns the set of
-  moves in case of success; MV_OOM if memory is full.]
+  @return the set of moves in case of success; MV_OOM if memory is
+  full.
 
-  SideEffects [None]
+  @sideeffect None
 
-******************************************************************************/
+*/
 static Move *
 ddSymmSiftingUp(
   DdManager * table,
@@ -1228,7 +1193,7 @@ ddSymmSiftingUp(
     ** change. The rest may vanish in the best case, except for
     ** the nodes at level xLow, which will not vanish, regardless.
     */
-    limitSize = L = table->keys - table->isolated;
+    limitSize = L = (int) (table->keys - table->isolated);
     gybot = y;
     while ((unsigned) gybot < table->subtables[gybot].next)
 	gybot = table->subtables[gybot].next;
@@ -1236,7 +1201,7 @@ ddSymmSiftingUp(
 	zindex = table->invperm[z];
 	if (zindex == yindex || cuddTestInteract(table,zindex,yindex)) {
 	    isolated = table->vars[zindex]->ref == 1;
-	    L -= table->subtables[z].keys - isolated;
+	    L -= (int) table->subtables[z].keys - isolated;
 	}
     }
 
@@ -1246,12 +1211,12 @@ ddSymmSiftingUp(
 	gybot = y;
 	while ((unsigned) gybot < table->subtables[gybot].next)
 	    gybot = table->subtables[gybot].next;
-	checkL = table->keys - table->isolated;
+	checkL = (int) (table->keys - table->isolated);
 	for (z = xLow + 1; z <= gybot; z++) {
 	    zindex = table->invperm[z];
 	    if (zindex == yindex || cuddTestInteract(table,zindex,yindex)) {
 		isolated = table->vars[zindex]->ref == 1;
-		checkL -= table->subtables[z].keys - isolated;
+		checkL -= (int) table->subtables[z].keys - isolated;
 	    }
 	}
 	assert(L == checkL);
@@ -1277,7 +1242,7 @@ ddSymmSiftingUp(
 	    /* Update the lower bound. */
 	    if (cuddTestInteract(table,xindex,yindex)) {
 		isolated = table->vars[xindex]->ref == 1;
-		L += table->subtables[y].keys - isolated;
+		L += (int) table->subtables[y].keys - isolated;
 	    }
 	    move = (Move *) cuddDynamicAllocNode(table);
 	    if (move == NULL) goto ddSymmSiftingUpOutOfMem;
@@ -1298,7 +1263,7 @@ ddSymmSiftingUp(
 		zindex = table->invperm[z];
 		if (cuddTestInteract(table,zindex,yindex)) {
 		    isolated = table->vars[zindex]->ref == 1;
-		    L += table->subtables[z].keys - isolated;
+		    L += (int) table->subtables[z].keys - isolated;
 		}
 		z = table->subtables[z].next;
 	    } while (z != (int) moves->y);
@@ -1323,21 +1288,21 @@ ddSymmSiftingUpOutOfMem:
 } /* end of ddSymmSiftingUp */
 
 
-/**Function********************************************************************
+/**
+  @brief Moves x down until either it reaches the bound (xHigh) or
+  the size of the %DD heap increases too much.
 
-  Synopsis    [Moves x down until either it reaches the bound (xHigh) or
-  the size of the DD heap increases too much.]
+  @details Assumes that x is the bottom of a symmetry group. Checks x
+  for symmetry to the adjacent variables. If symmetry is found, the
+  symmetry group of x is merged with the symmetry group of the other
+  variable.
 
-  Description [Moves x down until either it reaches the bound (xHigh)
-  or the size of the DD heap increases too much. Assumes that x is the
-  bottom of a symmetry group. Checks x for symmetry to the adjacent
-  variables. If symmetry is found, the symmetry group of x is merged
-  with the symmetry group of the other variable. Returns the set of
-  moves in case of success; MV_OOM if memory is full.]
+  @return the set of moves in case of success; MV_OOM if memory is
+  full.
 
-  SideEffects [None]
+  @sideeffect None
 
-******************************************************************************/
+*/
 static Move *
 ddSymmSiftingDown(
   DdManager * table,
@@ -1363,13 +1328,13 @@ ddSymmSiftingDown(
     /* Initialize R */
     xindex = table->invperm[x];
     gxtop = table->subtables[x].next;
-    limitSize = size = table->keys - table->isolated;
+    limitSize = size = (int) (table->keys - table->isolated);
     R = 0;
     for (z = xHigh; z > gxtop; z--) {
 	zindex = table->invperm[z];
 	if (zindex == xindex || cuddTestInteract(table,xindex,zindex)) {
 	    isolated = table->vars[zindex]->ref == 1;
-	    R += table->subtables[z].keys - isolated;
+	    R += (int) table->subtables[z].keys - isolated;
 	}
     }
 
@@ -1382,7 +1347,7 @@ ddSymmSiftingDown(
 	    zindex = table->invperm[z];
 	    if (zindex == xindex || cuddTestInteract(table,xindex,zindex)) {
 		isolated = table->vars[zindex]->ref == 1;
-		checkR += table->subtables[z].keys - isolated;
+		checkR += (int) table->subtables[z].keys - isolated;
 	    }
 	}
 	assert(R == checkR);
@@ -1402,7 +1367,7 @@ ddSymmSiftingDown(
 	    yindex = table->invperm[y];
 	    if (cuddTestInteract(table,xindex,yindex)) {
 		isolated = table->vars[yindex]->ref == 1;
-		R -= table->subtables[y].keys - isolated;
+		R -= (int) table->subtables[y].keys - isolated;
 	    }
 	    size = cuddSwapInPlace(table,x,y);
 #ifdef DD_DEBUG
@@ -1428,7 +1393,7 @@ ddSymmSiftingDown(
 		zindex = table->invperm[z];
 		if (zindex == xindex || cuddTestInteract(table,xindex,zindex)) {
 		    isolated = table->vars[zindex]->ref == 1;
-		    R -= table->subtables[z].keys - isolated;
+		    R -= (int) table->subtables[z].keys - isolated;
 		}
 		z++;
 	    } while (z <= gybot);
@@ -1443,7 +1408,7 @@ ddSymmSiftingDown(
 		zindex = table->invperm[z];
 		if (zindex == xindex || cuddTestInteract(table,xindex,zindex)) {
 		    isolated = table->vars[zindex]->ref == 1;
-		    R += table->subtables[z].keys - isolated;
+		    R += (int) table->subtables[z].keys - isolated;
 		}
 	    }
 	}
@@ -1464,18 +1429,18 @@ ddSymmSiftingDownOutOfMem:
 } /* end of ddSymmSiftingDown */
 
 
-/**Function********************************************************************
+/**
+  @brief Swaps two groups.
 
-  Synopsis    [Swaps two groups.]
+  @details x is assumed to be the bottom variable of the first
+  group. y is assumed to be the top variable of the second group.
+  Updates the list of moves.
 
-  Description [Swaps two groups. x is assumed to be the bottom variable
-  of the first group. y is assumed to be the top variable of the second
-  group.  Updates the list of moves. Returns the number of keys in the
-  table if successful; 0 otherwise.]
+  @return the number of keys in the table if successful; 0 otherwise.
 
-  SideEffects [None]
+  @sideeffect None
 
-******************************************************************************/
+*/
 static int
 ddSymmGroupMove(
   DdManager * table,
@@ -1484,10 +1449,10 @@ ddSymmGroupMove(
   Move ** moves)
 {
     Move *move;
-    int	 size;
+    int	 size = 0;
     int  i,j;
     int  xtop,xbot,xsize,ytop,ybot,ysize,newxtop;
-    int  swapx,swapy;
+    int  swapx = 0, swapy = 0;
 
 #ifdef DD_DEBUG
     assert(x < y);	/* we assume that x < y */
@@ -1545,25 +1510,24 @@ ddSymmGroupMove(
 } /* end of ddSymmGroupMove */
 
 
-/**Function********************************************************************
+/**
+  @brief Undoes the swap of two groups.
 
-  Synopsis    [Undoes the swap of two groups.]
+  @details x is assumed to be the bottom variable of the first
+  group. y is assumed to be the top variable of the second group.
 
-  Description [Undoes the swap of two groups. x is assumed to be the
-  bottom variable of the first group. y is assumed to be the top
-  variable of the second group.  Returns the number of keys in the table
-  if successful; 0 otherwise.]
+  @return the number of keys in the table if successful; 0 otherwise.
 
-  SideEffects [None]
+  @sideeffect None
 
-******************************************************************************/
+*/
 static int
 ddSymmGroupMoveBackward(
   DdManager * table,
   int  x,
   int  y)
 {
-    int	size;
+  int	size = (int) (table->keys - table->isolated);
     int i,j;
     int	xtop,xbot,xsize,ytop,ybot,ysize,newxtop;
 
@@ -1580,6 +1544,10 @@ ddSymmGroupMoveBackward(
 	ybot = table->subtables[ybot].next;
     ytop = y;
     ysize = ybot - ytop + 1;
+#ifdef DD_DEBUG
+    assert(xsize > 0);
+    assert(ysize > 0);
+#endif
 
     /* Sift the variables of the second group up through the first group. */
     for (i = 1; i <= ysize; i++) {
@@ -1615,19 +1583,18 @@ ddSymmGroupMoveBackward(
 } /* end of ddSymmGroupMoveBackward */
 
 
-/**Function********************************************************************
+/**
+  @brief Given a set of moves, returns the %DD heap to the position
+  giving the minimum size.
 
-  Synopsis    [Given a set of moves, returns the DD heap to the position
-  giving the minimum size.]
+  @details In case of ties, returns to the closest position giving the
+  minimum size.
 
-  Description [Given a set of moves, returns the DD heap to the
-  position giving the minimum size. In case of ties, returns to the
-  closest position giving the minimum size. Returns 1 in case of
-  success; 0 otherwise.]
+  @return 1 in case of success; 0 otherwise.
 
-  SideEffects [None]
+  @sideeffect None
 
-******************************************************************************/
+*/
 static int
 ddSymmSiftingBackward(
   DdManager * table,
@@ -1662,16 +1629,12 @@ ddSymmSiftingBackward(
 } /* end of ddSymmSiftingBackward */
 
 
-/**Function********************************************************************
+/**
+  @brief Counts numbers of symmetric variables and symmetry groups.
 
-  Synopsis    [Counts numbers of symmetric variables and symmetry
-  groups.]
+  @sideeffect None
 
-  Description []
-
-  SideEffects [None]
-
-******************************************************************************/
+*/
 static void
 ddSymmSummary(
   DdManager * table,

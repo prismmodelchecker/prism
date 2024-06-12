@@ -26,14 +26,11 @@
 
 package parser;
 
-import java.math.BigInteger;
 import java.util.ArrayList;
+import java.util.List;
 
-import param.BigRational;
 import parser.type.Type;
-import parser.type.TypeBool;
-import parser.type.TypeDouble;
-import parser.type.TypeInt;
+import parser.type.TypeUtils;
 import prism.ModelInfo;
 import prism.PrismLangException;
 import prism.PrismUtils;
@@ -207,6 +204,14 @@ public class Values implements Cloneable //implements Comparable
 	}
 
 	/**
+	 * Get a list of all names for values stored.
+	 */
+	public List<String> getNames()
+	{
+		return names;
+	}
+
+	/**
 	 * Get the index of the value for variable/constant {@code name} (-1 if not present).
 	 */
 	public int getIndexOf(String name)
@@ -222,21 +227,6 @@ public class Values implements Cloneable //implements Comparable
 		return names.contains(name);
 	}
 	
-	/**
-	 * Get the type for the {@code i}th value.
-	 * (This is based on the type of the Object storing the value.)
-	 */
-	public Type getType(int i)
-	{
-		Object o = values.get(i);
-		if (o instanceof Integer) return TypeInt.getInstance();
-		if (o instanceof BigInteger) return TypeInt.getInstance();
-		if (o instanceof Double)  return TypeDouble.getInstance();
-		if (o instanceof BigRational) return TypeDouble.getInstance();
-		if (o instanceof Boolean) return TypeBool.getInstance();
-		else return null;
-	}
-
 	/**
 	 * Get the {@code i}th value.
 	 */
@@ -256,6 +246,34 @@ public class Values implements Cloneable //implements Comparable
 		i = getIndexOf(name);
 		if (i == -1) throw new PrismLangException("Couldn't get value for \"" + name + "\"");
 		return getValue(i);
+	}
+
+	/**
+	 * Get a list of all values stored.
+	 */
+	public List<Object> getValues()
+	{
+		return values;
+	}
+
+	/**
+	 * Get a type for the {@code i}th value.
+	 * This is not stored explicitly here, so an appropriate type
+	 * is guessed based on the type of the Object storing the value.
+	 */
+	public Type getType(int i) throws PrismLangException
+	{
+		return TypeUtils.guessTypeForValue(values.get(i));
+	}
+
+	/**
+	 * Get a list of types for all values stored.
+	 * These are not stored explicitly here, so appropriate types
+	 * are guessed based on the types of the Objects storing the values.
+	 */
+	public List<Type> getTypes() throws PrismLangException
+	{
+		return TypeUtils.guessTypesForValues(values);
 	}
 
 	@Override

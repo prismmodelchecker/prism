@@ -1,0 +1,447 @@
+
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+"http://www.w3.org/TR/html4/loose.dtd">
+
+
+<html>
+<head>
+
+<title>
+PRISM Manual | Installing PRISM / Instructions 
+</title>
+
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta name="keywords" content="prism, probabilistic, symbolic, model, checker, verification, birmingham, oxford, parker, norman, kwiatkowska">
+
+<link rel="icon" href="http://www.prismmodelchecker.org/images/prism.ico" type="image/x-icon">
+<link rel="shortcut icon" href="http://www.prismmodelchecker.org/images/prism.ico" type="image/x-icon">
+
+<!--The following line is needed by PmWiki (for the manual) - don't delete-->
+<!--HTMLHeader--><style type='text/css'><!--
+  ul, ol, pre, dl, p { margin-top:0px; margin-bottom:0px; }
+  code.escaped { white-space: pre; }
+  .vspace { margin-top:1.33em; }
+  .indent { margin-left:40px; }
+  .outdent { margin-left:40px; text-indent:-40px; }
+  a.createlinktext { text-decoration:none; border-bottom:1px dotted gray; }
+  a.createlink { text-decoration:none; position:relative; top:-0.5em;
+    font-weight:bold; font-size:smaller; border-bottom:none; }
+  img { border:0px; }
+  .editconflict { color:green; 
+  font-style:italic; margin-top:1.33em; margin-bottom:1.33em; }
+
+  table.markup { border:2px dotted #ccf; width:90%; }
+  td.markup1, td.markup2 { padding-left:10px; padding-right:10px; }
+  table.vert td.markup1 { border-bottom:1px solid #ccf; }
+  table.horiz td.markup1 { width:23em; border-right:1px solid #ccf; }
+  table.markup caption { text-align:left; }
+  div.faq p, div.faq pre { margin-left:2em; }
+  div.faq p.question { margin:1em 0 0.75em 0; font-weight:bold; }
+  div.faqtoc div.faq * { display:none; }
+  div.faqtoc div.faq p.question 
+    { display:block; font-weight:normal; margin:0.5em 0 0.5em 20px; line-height:normal; }
+  div.faqtoc div.faq p.question * { display:inline; }
+  td.markup1 pre { white-space: pre-wrap; }
+  .noPmTOC, .PmTOCdiv:empty {display:none;}
+.PmTOCdiv { display: inline-block; font-size: 13px; overflow: auto; max-height: 500px;}
+.PmTOCdiv a { text-decoration: none; display: block; line-height: 1;}
+.PmTOCdiv a.pmtoc-indent1 { margin-left: 1em; }
+.PmTOCdiv a.pmtoc-indent2 { margin-left: 2em; }
+.PmTOCdiv a.pmtoc-indent3 { margin-left: 3em; }
+.PmTOCdiv a.pmtoc-indent4 { margin-left: 4em; }
+.PmTOCdiv a.pmtoc-indent5 { margin-left: 5em; }
+.PmTOCdiv a.pmtoc-indent6 { margin-left: 6em; }
+.back-arrow {font-size: .8rem; text-decoration: none; vertical-align: text-top;}
+#PmTOCchk + label {cursor: pointer;}
+#PmTOCchk {display: none;}
+#PmTOCchk:not(:checked) + label > .pmtoc-show {display: none;}
+#PmTOCchk:checked + label > .pmtoc-hide {display: none;}
+#PmTOCchk:checked + label + div {display: none;}table.sortable th { cursor: pointer; }
+table.sortable th::after { color: transparent; content: "\00A0\025B8"; }
+table.sortable th:hover::after { color: inherit; content: "\00A0\025B8"; }
+table.sortable th.dir-u::after { color: inherit; content: "\00A0\025BE"; }
+table.sortable th.dir-d::after { color: inherit; content: "\00A0\025B4"; } 
+    .frame 
+      { border:1px solid #cccccc; padding:4px; background-color:#f9f9f9; }
+    .lfloat { float:left; margin-right:0.5em; }
+    .rfloat { float:right; margin-left:0.5em; }
+a.varlink { text-decoration:none;}
+
+.sourceblocklink {
+  text-align: right;
+  font-size: smaller;
+}
+.sourceblocktext {
+  padding: 0.5em;
+  border: 1px solid #808080;
+  color: #000000;
+  background-color: #f1f0ed;
+}
+.sourceblocktext div {
+  font-family: monospace;
+  font-size: small;
+  line-height: 1;
+  height: 1%;
+}
+.sourceblocktext div.head,
+.sourceblocktext div.foot {
+  font: italic medium serif;
+  padding: 0.5em;
+}
+
+--></style>  <meta name='robots' content='index,follow' />
+
+
+<link type="text/css" rel="stylesheet" href="http://www.prismmodelchecker.org/css/base.css">
+<link type="text/css" rel="stylesheet" href="http://www.prismmodelchecker.org/css/prism.css">
+<link type="text/css" rel="stylesheet" href="http://www.prismmodelchecker.org/css/print.css" media="print">
+<link type="text/css" rel="stylesheet" href="http://www.prismmodelchecker.org/css/bib.css">
+
+<link type="text/css" rel="stylesheet" href="pub/skins/prism/css/prismmanual.css">
+
+
+<script type="text/javascript" src="http://www.prismmodelchecker.org/includes/prism.js"></script>
+
+
+<script type="text/javascript">
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+  ga('create', 'UA-42079741-1', 'prismmodelchecker.org');
+  ga('send', 'pageview');
+</script>
+
+</head>
+
+<body text="#000000" bgcolor="#ffffff" onload="initialise()">
+
+<div id="prism-banner">
+	<div id="prism-bannerlefthalf"></div>
+	<div id="prism-bannerrighthalf"></div>
+	<div id="prism-bannerurl"><a href="http://www.prismmodelchecker.org/"><img src="http://www.prismmodelchecker.org/images/url_thin.png" alt="www.prismmodelchecker.org"></a></div>
+	<div id="prism-bannerlogo"><a href="http://www.prismmodelchecker.org/"><img src="http://www.prismmodelchecker.org/images/p_blue.png" alt="P"></a></div>
+	<form id="prism-searchbox" title="Search the PRISM site with Google" method="get" action="https://www.google.com/search">
+	<input type="hidden" name="domains" value="www.prismmodelchecker.org">
+	<input type="hidden" name="sitesearch" value="www.prismmodelchecker.org">
+	<input class="input1" id="q" name="q" type="text" size="30">
+	<input class="input2" id="submit" type="submit" value="Search">
+	</form>
+</div>
+
+<div id="prism-navbar">
+<div id="prism-navbarinner">
+
+<ul id="prism-navbarmenu">
+<li class="prism-navitem"><a href="http://www.prismmodelchecker.org/" title="">Home</a>
+
+<li> &nbsp;&#8226;&nbsp;
+<li class="prism-navitem"><a href="http://www.prismmodelchecker.org/about.php" title="">About</a>
+	<ul class="prism-navbarsubmenu">
+	<li class="prism-navsubitem">&#187; <a href="http://www.prismmodelchecker.org/about.php">About PRISM</a>
+	<li class="prism-navsubitem">&#187; <a href="http://www.prismmodelchecker.org/people.php">People</a>
+	<li class="prism-navsubitem">&#187; <a href="http://www.prismmodelchecker.org/sponsors.php">Sponsors</a>
+	<li class="prism-navsubitem">&#187; <a href="http://www.prismmodelchecker.org/contact.php">Contact</a>
+	<li class="prism-navsubitem">&#187; <a href="http://www.prismmodelchecker.org/news.php">News</a>
+	<li class="prism-navsubitem">&#187; <a href="http://www.prismmodelchecker.org/screenshots.php">Screenshots</a>
+	<li class="prism-navsubitem">&#187; <a href="http://www.prismmodelchecker.org/other-tools.php">Other tools</a>
+	<li class="prism-navsubitem">&#187; <a href="http://www.prismmodelchecker.org/links.php">Links</a>
+	</ul>
+<li> &nbsp;&#8226;&nbsp;
+<li class="prism-navitem"><a href="http://www.prismmodelchecker.org/download.php" title="">Downloads</a>
+	<ul class="prism-navbarsubmenu">
+	<li class="prism-navsubitem">&#187; <a href="http://www.prismmodelchecker.org/download.php">PRISM</a>
+	<li class="prism-navsubitem">&#187; <a href="http://www.prismmodelchecker.org/dev/">Development versions</a>
+	<li class="prism-navsubitem">&#187; <a href="http://www.prismmodelchecker.org/benchmarks/">Benchmarks</a>
+	<li class="prism-navsubitem">&#187; <a href="http://www.prismmodelchecker.org/games/download.php">PRISM-games</a>
+	<li class="prism-navsubitem">&#187; <a href="http://www.prismmodelchecker.org/other-downloads.php">Other downloads</a>
+	</ul>
+<li> &nbsp;&#8226;&nbsp;
+<li class="prism-navitem"><a href="http://www.prismmodelchecker.org/doc/" title="">Documentation</a>
+	<ul class="prism-navbarsubmenu">
+	<li class="prism-navsubitem">&#187; <a href="InstallingPRISM.html">Installation</a>
+	<li class="prism-navsubitem">&#187; <a href="index.html">Manual</a>
+	<li class="prism-navsubitem">&#187; <a href="FrequentlyAskedQuestions.html">FAQ</a>
+	<li class="prism-navsubitem">&#187; <a href="http://www.prismmodelchecker.org/tutorial/">Tutorial</a>
+	<li class="prism-navsubitem">&#187; <a href="http://www.prismmodelchecker.org/lectures/">Lectures</a>
+	</ul>
+<li> &nbsp;&#8226;&nbsp;
+<li class="prism-navitemsel"><a href="index.html" title="">Manual</a>
+
+<li> &nbsp;&#8226;&nbsp;
+<li class="prism-navitem"><a href="http://www.prismmodelchecker.org/publ-lists.php" title="">Publications</a>
+	<ul class="prism-navbarsubmenu">
+	<li class="prism-navsubitem">&#187; <a href="http://www.prismmodelchecker.org/publ-selected.php">Selected publications</a>
+	<li class="prism-navsubitem">&#187; <a href="http://www.prismmodelchecker.org/publications.php">PRISM publications</a>
+	<li class="prism-navsubitem">&#187; <a href="http://www.prismmodelchecker.org/bib.php">PRISM bibliography</a>
+	<li class="prism-navsubitem">&#187; <a href="http://www.prismmodelchecker.org/bib-ext.php">External publications</a>
+	<li class="prism-navsubitem">&#187; <a href="http://www.prismmodelchecker.org/publ-search.php">Search</a>
+	</ul>
+<li> &nbsp;&#8226;&nbsp;
+<li class="prism-navitem"><a href="http://www.prismmodelchecker.org/casestudies/index.php" title="">Case Studies</a>
+
+<li> &nbsp;&#8226;&nbsp;
+<li class="prism-navitem"><a href="http://www.prismmodelchecker.org/support.php" title="">Support</a>
+	<ul class="prism-navbarsubmenu">
+	<li class="prism-navsubitem">&#187; <a href="InstallingPRISM/CommonProblemsAndQuestions.html">Installation FAQ</a>
+	<li class="prism-navsubitem">&#187; <a href="FrequentlyAskedQuestions/index.html">PRISM FAQ</a>
+	<li class="prism-navsubitem">&#187; <a href="http://groups.google.com/group/prismmodelchecker">Forum (Google)</a>
+	</ul>
+<li> &nbsp;&#8226;&nbsp;
+<li class="prism-navitem"><a href="https://github.com/prismmodelchecker/prism/wiki" title="">Developers</a>
+	<ul class="prism-navbarsubmenu">
+	<li class="prism-navsubitem">&#187; <a href="https://github.com/prismmodelchecker/prism/wiki">Developer resources</a>
+	<li class="prism-navsubitem">&#187; <a href="http://groups.google.com/group/prismmodelchecker-dev">Developer forum</a>
+	</ul>
+<li> &nbsp;&#8226;&nbsp;
+<li class="prism-navitem"><a href="http://www.prismmodelchecker.org/games/" title="">PRISM-games</a>
+	<ul class="prism-navbarsubmenu">
+	<li class="prism-navsubitem">&#187; <a href="http://www.prismmodelchecker.org/games/download.php">Download</a>
+	<li class="prism-navsubitem">&#187; <a href="http://www.prismmodelchecker.org/games/publ.php">Publications</a>
+	</ul>
+</ul>
+<div style="clear:both;"></div>
+
+</div> <!-- id="prism-navbarinner" -->
+</div> <!-- id="prism-navbar" -->
+
+<div id="layout-maincontainer">
+<div id="layout-main">
+
+<div id="prism-mainbox">
+
+<!--<a href="http://www.ox.ac.uk/"><img id="prism-unilogo" src="/images/oxford_logo_pale.png" alt="University of Oxford"></a>-->
+
+<!-- ============================================================================= -->
+
+<!--PageHeaderFmt-->
+  <div id="prism-man-commands1">
+    <p><span class='prism-man-commands'><a class='selflink' href='InstallingPRISM/Main.html'>View</a> - </span><a rel='nofollow'  class='wikilink' href='InstallingPRISM/Instructions@action=edit.html'>Edit</a> - <a class='wikilink' href='InstallingPRISM/Instructions@action=print.html'>Print</a> - <a class='wikilink' href='Main/Search.html'>Search</a>
+</p>
+
+  </div>
+<!--/PageHeaderFmt-->
+
+<!--PageTitleFmt-->
+  <div id="prism-man-title">
+    <p><a class='wikilink' href='InstallingPRISM/Main.html'>Installing PRISM</a> /
+</p><h1>Instructions</h1>
+
+  </div>
+<!--PageText-->
+<div id='wikitext'>
+<h3>Prerequisites</h3>
+<p>PRISM is known to run on Linux, Windows and macOS, both 64-bit and 32-bit versions.
+</p>
+<p class='vspace'>You will need <strong>Java</strong>, version 9 or above
+(get it, for example from <a class='urllink' href='https://jdk.java.net/'>Oracle</a>
+or <a class='urllink' href='https://adoptopenjdk.net/'>AdoptOpenJDK</a>).
+To run binary versions of PRISM, you only need the Java Runtime Environment (JRE), not the full Java Development Kit (JDK).
+</p>
+<p class='vspace'>To compile PRISM from source, you need the Java Development Kit (JDK), GNU make and a C/C++ compiler (e.g. gcc/g++). For compilation under Windows, you will need Cygwin. See below for more information:
+</p>
+<div class='vspace'></div><ul><li><a href='InstallingPRISM/Main.html#windows'>Installation on Windows</a>
+</li><li><a href='InstallingPRISM/Main.html#binaries'>Installation of Linux/Mac binary versions</a>
+</li><li><a href='InstallingPRISM/Main.html#source'>Building PRISM from source (non-Windows)</a>
+</li><li><a href='InstallingPRISM/Main.html#cygwin'>Building PRISM from source on Windows using Cygwin</a>
+</li><li><a href='InstallingPRISM/Main.html#msys'>Building PRISM from source on Windows using MSYS2</a>
+</li></ul><p class='vspace'>If you are installing on a completely fresh operating system installation (e.g. in a virtual machine), you may find the following scripts useful,
+which install the required dependencies and PRISM itself. They can be found in the <code>prism/etc/scripts</code> directory:
+</p>
+<div class='vspace'></div><ul><li>Script to build on a clean install of Ubuntu: <a class='urllink' href='https://raw.githubusercontent.com/prismmodelchecker/prism/master/prism/etc/scripts/prism-install-ubuntu'>prism-install-ubuntu</a>
+</li><li>Script to build on a clean install of Fedora-based Linux (e.g. Amazon Linux): <a class='urllink' href='https://raw.githubusercontent.com/prismmodelchecker/prism/master/prism/etc/scripts/prism-install-fedora'>prism-install-fedora</a>
+</li><li>Scripts to build on a clean install of Windows: <a class='urllink' href='https://raw.githubusercontent.com/prismmodelchecker/prism/master/prism/etc/scripts/prism-install-windows.bat'>prism-install-windows.bat</a> and <a class='urllink' href='https://raw.githubusercontent.com/prismmodelchecker/prism/master/prism/etc/scripts/prism-install-cygwin'>prism-install-cygwin</a>
+</li></ul><div class='vspace'></div><hr />
+<p class='vspace'><a name='windows' id='windows'></a>
+<a name='windows64' id='windows64'></a>
+</p><h3>Installation on Windows</h3>
+<p>To install PRISM on Windows, just run the self-extracting installer which you <a class='urllink' href='http://www.prismmodelchecker.org/download.php'>downloaded</a>. You do <strong>not</strong> need administrator privileges for this, just write-access to the directory chosen for installation.
+</p>
+<p class='vspace'>If requested, the installer will place shortcuts to run PRISM on the desktop and/or start menu. If not, you can run by PRISM double-clicking the file <code>xprism.bat</code> (which may just appear as <code>xprism</code>) in the <code>bin</code> folder of your PRISM folder. If nothing happens, the most likely explanation is that Java is not installed or not in your path. To check, open a command prompt window, navigate to the PRISM directory, type <code>cd bin</code>, then <code>xprism.bat</code> and examine the resulting error. If you want to create shortcuts to <code>xprism.bat</code> manually, you will find some PRISM icons in the <code>etc</code> folder.
+</p>
+<p class='vspace'>If you wish to use the command-line version of PRISM on Windows, open a command prompt window and type for example:
+</p>
+<div class='vspace'></div>
+<div class='sourceblock ' id='sourceblock1'>
+  <div class='sourceblocktext'><div class="shell"><span style="font-weight:bold;">cd "c:\Program Files\prism-4.8-win\bin"</span><br/>
+<span style="font-weight:bold;">prism ..\prism-examples\simple\dice\dice.pm</span><br/>
+</div></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/InstallingPRISM/Instructions?action=sourceblock&amp;num=1' type='text/plain'>[&#036;[Get Code]]</a></div>
+</div>
+    
+<p class='vspace'>You can also edit the file <code>bin\prism.bat</code> to allow it to be run from any location. See the instructions within the file for further details.
+</p>
+<p class='vspace'><strong>Problems?</strong> See the section "<a class='wikilink' href='InstallingPRISM/CommonProblemsAndQuestions.html'>Common Problems And Questions</a>''.
+</p>
+<div class='vspace'></div><hr />
+<p class='vspace'><a name='binaries' id='binaries'></a>
+</p><h3>Installation of Linux/Mac binary versions</h3>
+<p>We provide pre-compiled <a class='urllink' href='http://www.prismmodelchecker.org/download.php'>binary distributions</a> for Linux and macOS
+(if you have any problems running these, try compiling PRISM from source instead - see below for instructions).
+To install a binary distribution, unpack the tarred/zipped PRISM distribution into a suitable location, enter the directory and run the <code>install.sh</code> script, e.g.:
+</p>
+<div class='vspace'></div>
+<div class='sourceblock ' id='sourceblock2'>
+  <div class='sourceblocktext'><div class="shell"><span style="font-weight:bold;">tar xfz prism-4.8-linux64-x86.tar.gz</span><br/>
+<span style="font-weight:bold;">cd prism-4.8-linux64-x86</span><br/>
+<span style="font-weight:bold;">./install.sh</span><br/>
+</div></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/InstallingPRISM/Instructions?action=sourceblock&amp;num=2' type='text/plain'>[&#036;[Get Code]]</a></div>
+</div>
+
+<p class='vspace'>You do not need to be root to install PRISM. The install script simply makes some small customisations to the scripts used to launch PRISM. The PRISM distribution is self-contained and can be freely moved/renamed, however if you do so you will need to re-run <code>./install.sh</code> afterwards.
+</p>
+<p class='vspace'>To run PRISM, execute either the <code>xprism</code> or <code>prism</code> script (for the graphical user interface or command-line version, respectively). These can be found in the <code>bin</code> directory. These scripts are designed to be run from anywhere and you can easily create symbolic links or aliases to them. If you want icons to create desktop shortcuts to PRISM, you can find some in the <code>etc</code> directory.
+</p>
+<p class='vspace'><strong>Problems?</strong> See the section "<a class='wikilink' href='InstallingPRISM/CommonProblemsAndQuestions.html'>Common Problems And Questions</a>''.
+</p>
+<div class='vspace'></div><hr />
+<p class='vspace'><a name='source' id='source'></a>
+</p><h3>Building PRISM from source (non-Windows)</h3>
+<p>To compile PRISM form source code, you will need:
+</p>
+<div class='vspace'></div><ul><li>GNU make (sometimes called gmake)
+</li><li>a C/C++ compiler (e.g. gcc/g++)
+</li><li>a Java Development Kit, version 9 or above
+</li></ul><p class='vspace'>To check that you have the development kit, type <code>javac</code>. If you get an error message that <code>javac</code> cannot be found, you probably do not have the JDK installed (or your path is not set up correctly). To check what version you have, type <code>javac -version</code>. 
+</p>
+<p class='vspace'>Hopefully, you can build PRISM simply by entering the PRISM directory and running <code>make</code>, e.g.:
+</p>
+<div class='vspace'></div>
+<div class='sourceblock ' id='sourceblock3'>
+  <div class='sourceblocktext'><div class="shell"><span style="font-weight:bold;">tar xfz prism-4.8-src.tar.gz</span><br/>
+<span style="font-weight:bold;">cd prism-4.8-src/prism</span><br/>
+<span style="font-weight:bold;">make</span><br/>
+</div></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/InstallingPRISM/Instructions?action=sourceblock&amp;num=3' type='text/plain'>[&#036;[Get Code]]</a></div>
+</div>
+
+<p class='vspace'>For this process to complete correctly, PRISM needs to be able to determine your operating system (<code>OSTYPE</code>), machine architecture (<code>ARCH</code>) and the location of your Java distribution (<code>JAVA_DIR</code>). If there is a problem with either of these, you will see an error message and will need to specify one or more of these manually, such as in these examples:
+</p>
+<div class='vspace'></div>
+<div class='sourceblock ' id='sourceblock4'>
+  <div class='sourceblocktext'><div class="shell"><span style="font-weight:bold;">  </span><br/>
+<span style="font-weight:bold;">make OSTYPE=linux</span><br/>
+<span style="font-weight:bold;">make OSTYPE=linux ARCH=aarch64</span><br/>
+<span style="font-weight:bold;">make JAVA_DIR=/usr/java/jdk1.8.0</span><br/>
+<span style="font-weight:bold;">make OSTYPE=cygwin JAVA_DIR="/cygdrive/c/Program Files/Java/jdk1.8.0"</span><br/>
+</div></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/InstallingPRISM/Instructions?action=sourceblock&amp;num=4' type='text/plain'>[&#036;[Get Code]]</a></div>
+</div>
+
+<p class='vspace'>Note the use of double quotes for the case where the directory contains a space. If you don't know the location of your Java installation, try typing <code>which javac</code>. If the result is e.g. <code>/usr/java/jdk1.8.0/bin/javac</code> then your Java directory is <code>/usr/java/jdk1.8.0</code>. Sometimes <code>javac</code> will be a symbolic link, in which case use "<code>ls -l</code>" to determine the actual location.
+</p>
+<p class='vspace'>It is also possible to to set the environment variables directly or edit their values in the Makefile directly. Note that even when you specify <code>JAVA_DIR</code> explicitly (in either way), PRISM still uses the version of <code>javac</code> that is in your path. To override this, you can also specify a specific version by setting <code>JAVAC</code>.
+</p>
+<p class='vspace'><strong>Problems?</strong> See the section "<a class='wikilink' href='InstallingPRISM/CommonProblemsAndQuestions.html'>Common Problems And Questions</a>''.
+</p>
+<div class='vspace'></div><hr />
+<p class='vspace'><a name='cygwin' id='cygwin'></a>
+</p><h3>Building PRISM from source on Windows using Cygwin</h3>
+<p>The compilation of PRISM currently relies on a Unix-like environment. On Windows, this can be achieved using the <a class='urllink' href='http://www.cygwin.com/'>Cygwin</a> development environment, with the packages below installed.
+You can run the script <a class='urllink' href='https://raw.githubusercontent.com/prismmodelchecker/prism/master/prism/etc/scripts/prism-install-windows.bat'>prism-install-windows.bat</a> in a Command Prompt to automate this.
+</p><ul><li><code>make</code>
+</li><li><code>mingw64-x86_64-gcc-g++</code> (for 64-bit Windows) or <code>mingw64-i686-gcc-g++</code> (for 32-bit Windows)
+</li><li><code>binutils</code>
+</li><li><code>dos2unix</code>
+</li><li><code>git</code> (if you will pull source code from GitHub)
+</li><li><code>wget</code> (if you will pull source code from the web)
+</li></ul><p>Then proceed as described in the previous section. Note that the PRISM compilation process uses the <a class='urllink' href='http://www.mingw.org/'>MinGW</a> libraries so that the final result is independent of Cygwin at run-time.
+</p>
+<p class='vspace'>One thing to note: make sure you unzip the PRISM distribution from within Cygwin (e.g. using <code>tar xfz prism-XXX-src.tar.gz</code>). Don't use a Windows program (Winzip, etc.) since this can cause problems.
+</p>
+<p class='vspace'>If you use git to checkout the PRISM repository, we recommend that you use the version of git provided by Cygwin.
+If you use a native Windows version of git, you may want to disable the Unix-to-Windows line-ending conversion, e.g., via
+</p>
+<div class='vspace'></div><ul><li><code>git config --global core.autocrlf false</code>
+</li></ul><p class='vspace'><strong>Problems?</strong> See the section "<a class='wikilink' href='InstallingPRISM/CommonProblemsAndQuestions.html'>Common Problems And Questions</a>''.
+</p>
+<div class='vspace'></div><hr />
+<p class='vspace'><a name='msys' id='msys'></a>
+</p><h3>Building PRISM from source on Windows using MSYS2</h3>
+<p>An alternative to Cygwin on Windows is <a class='urllink' href='https://www.msys2.org/'>MSYS2</a>.
+You can install the required MSYS2 packages like this:
+</p>
+<div class='vspace'></div>
+<div class='sourceblock ' id='sourceblock5'>
+  <div class='sourceblocktext'><div class="shell"><span style="font-weight:bold;">pacman -S make mingw-w64-x86_64-gcc binutils dos2unix git wget unzip python nano</span><br/>
+</div></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/InstallingPRISM/Instructions?action=sourceblock&amp;num=5' type='text/plain'>[&#036;[Get Code]]</a></div>
+</div>
+
+<p class='vspace'>The environment is currently not directly supported in the Makefile,
+which can be fixed as follows:
+</p>
+<div class='vspace'></div>
+<div class='sourceblock ' id='sourceblock6'>
+  <div class='sourceblocktext'><div class="shell"><span style="font-weight:bold;">make OSTYPE=cygwin CC=/mingw64/bin/gcc CXX=/mingw64/bin/g++</span><br/>
+</div></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/InstallingPRISM/Instructions?action=sourceblock&amp;num=6' type='text/plain'>[&#036;[Get Code]]</a></div>
+</div>
+
+<p class='vspace'>Additionally, MSYS2 does not handle symlinks in the same way as Cygwin does.
+At some point <code>make</code> will fail, saying that it cannot find the CUDD library.
+You can solve this as follows:
+</p>
+<div class='vspace'></div>
+<div class='sourceblock ' id='sourceblock7'>
+  <div class='sourceblocktext'><div class="shell"><span style="font-weight:bold;">cd ../cudd/</span><br/>
+<span style="font-weight:bold;">rmdir lib/ </span><br/>
+<span style="font-weight:bold;">./setup.sh</span><br/>
+<span style="font-weight:bold;">cd ../prism</span><br/>
+<span style="font-weight:bold;">make OSTYPE=cygwin CC=/mingw64/bin/gcc CXX=/mingw64/bin/g++</span><br/>
+<span style="font-weight:bold;">./install.sh</span><br/>
+</div></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/InstallingPRISM/Instructions?action=sourceblock&amp;num=7' type='text/plain'>[&#036;[Get Code]]</a></div>
+</div>
+
+<p class='vspace'><strong>Problems?</strong> See the section "<a class='wikilink' href='InstallingPRISM/CommonProblemsAndQuestions.html'>Common Problems And Questions</a>''.
+</p>
+</div>
+
+
+<!--PageFooterFmt-->
+  <div id='prism-man-footer'>
+    <div id='prism-man-commands2'>
+      <p><a class='selflink' href='InstallingPRISM/Main.html'>View</a> - <a rel='nofollow'  class='wikilink' href='InstallingPRISM/Instructions@action=edit.html'>Edit</a> - <a class='wikilink' href='InstallingPRISM/Instructions@action=print.html'>Print</a> - <a class='wikilink' href='Main/Search.html'>Search</a> - <a rel='nofollow'  class='wikilink' href='InstallingPRISM/Instructions@action=login.html'>Login</a>
+</p>
+
+    </div>
+    <div id='prism-man-lastmod'>Page last modified on December 30, 2023, at 10:06 AM</div>
+  </div>
+<!--/PageFooterFmt-->
+
+
+<!-- ============================================================================= -->
+
+</div> <!-- id="prism-mainbox" -->
+
+<div id="prism-footer">
+<a href="http://validator.w3.org/check/referer"><img border="0" src="http://www.prismmodelchecker.org/images/valid_html.png" alt="Valid HTML 4.1"/></a>
+<a href="http://www.php.net/"><img border="0" src="http://www.prismmodelchecker.org/images/php_powered.png" alt="Powered by PHP"/></a>
+<a href="http://jigsaw.w3.org/css-validator/check/referer"><img border="0" src="http://www.prismmodelchecker.org/images/valid_css.png" alt="Valid CSS"/></a>
+<span style="color:#888888; font-size:85%; margin-left:20px;">Site hosted at the Department of Computer Science, University of Oxford</span>
+</div> <!-- id="prism-footer" -->
+
+</div> <!-- id="layout-main" -->
+</div> <!-- id="layout-maincontainer" -->
+
+<div id="layout-leftcol">
+<div id="prism-navbar2">
+
+<h3><a class='wikilink' href='Main/Main.html'>PRISM Manual</a></h3>
+<p><strong><a class='wikilink' href='InstallingPRISM/Main.html'>Installing PRISM</a></strong>
+</p><ul><li><a class='selflink' href='InstallingPRISM/Main.html'>Instructions</a>
+</li><li><a class='wikilink' href='InstallingPRISM/CommonProblemsAndQuestions.html'>Common Problems And Questions</a>
+</li></ul><p>[ <a class='wikilink' href='InstallingPRISM/AllOnOnePage.html'>View all</a> ]
+</p>
+
+
+</div>  <!-- id="prism-navbar2" -->
+</div> <!-- id="layout-leftcol" -->
+
+<div id="layout-footer">
+</div> <!-- id="layout-footer" -->
+
+</body>
+</html>

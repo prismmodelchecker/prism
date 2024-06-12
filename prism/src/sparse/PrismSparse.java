@@ -588,12 +588,12 @@ public class PrismSparse
 	//------------------------------------------------------------------------------
 
 	// export matrix
-	private static native int PS_ExportMatrix(long matrix, String name, long rv, int nrv, long cv, int ncv, long odd, int exportType, String filename);
-	public static void ExportMatrix(JDDNode matrix, String name, JDDVars rows, JDDVars cols, ODDNode odd, int exportType, String filename, int precision) throws FileNotFoundException, PrismException
+	private static native int PS_ExportMatrix(long matrix, String name, long rv, int nrv, long cv, int ncv, long odd, int exportType, String filename, String rewardStructName, boolean noexportheaders);
+	public static void ExportMatrix(JDDNode matrix, String name, JDDVars rows, JDDVars cols, ODDNode odd, int exportType, String filename, int precision, String rewardStructName, boolean noexportheaders) throws FileNotFoundException, PrismException
 	{
 		PrismNative.setExportModelPrecision(precision);
 		checkNumStates(odd);
-		int res = PS_ExportMatrix(matrix.ptr(), name, rows.array(), rows.n(), cols.array(), cols.n(), odd.ptr(), exportType, filename);
+		int res = PS_ExportMatrix(matrix.ptr(), name, rows.array(), rows.n(), cols.array(), cols.n(), odd.ptr(), exportType, filename, rewardStructName, noexportheaders);
 		if (res == -1) {
 			throw new FileNotFoundException();
 		}
@@ -618,12 +618,12 @@ public class PrismSparse
 	}
 	
 	// export sub-mdp, i.e. mdp transition rewards
-	private static native int PS_ExportSubMDP(long mdp, long submdp, String name, long rv, int nrv, long cv, int ncv, long ndv, int nndv, long odd, int exportType, String filename);
-	public static void ExportSubMDP(JDDNode mdp, JDDNode submdp, String name, JDDVars rows, JDDVars cols, JDDVars nondet, ODDNode odd, int exportType, String filename, int precision) throws FileNotFoundException, PrismException
+	private static native int PS_ExportSubMDP(long mdp, long submdp, String name, long rv, int nrv, long cv, int ncv, long ndv, int nndv, long odd, int exportType, String filename, String rewardStructName, boolean noexportheaders);
+	public static void ExportSubMDP(JDDNode mdp, JDDNode submdp, String name, JDDVars rows, JDDVars cols, JDDVars nondet, ODDNode odd, int exportType, String filename, int precision, String rewardStructName, boolean noexportheaders) throws FileNotFoundException, PrismException
 	{
 		PrismNative.setExportModelPrecision(precision);
 		checkNumStates(odd);
-		int res = PS_ExportSubMDP(mdp.ptr(), submdp.ptr(), name, rows.array(), rows.n(), cols.array(), cols.n(), nondet.array(), nondet.n(), odd.ptr(), exportType, filename);
+		int res = PS_ExportSubMDP(mdp.ptr(), submdp.ptr(), name, rows.array(), rows.n(), cols.array(), cols.n(), nondet.array(), nondet.n(), odd.ptr(), exportType, filename, rewardStructName, noexportheaders);
 		if (res == -1) {
 			throw new FileNotFoundException();
 		}

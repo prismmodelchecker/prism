@@ -28,6 +28,7 @@ package parser.ast;
 
 import parser.EvaluateContext;
 import parser.visitor.ASTVisitor;
+import parser.visitor.DeepCopy;
 import prism.PrismLangException;
 
 /*
@@ -113,13 +114,15 @@ public class ExpressionObs extends Expression
 	}
 
 	@Override
-	public Expression deepCopy()
+	public ExpressionObs deepCopy(DeepCopy copier)
 	{
-		ExpressionObs expr = new ExpressionObs(name);
-		expr.setType(type);
-		expr.setIndex(index);
-		expr.setPosition(this);
-		return expr;
+		return this;
+	}
+
+	@Override
+	public ExpressionObs clone()
+	{
+		return (ExpressionObs) super.clone();
 	}
 
 	// Standard methods

@@ -27,10 +27,10 @@
 package parser.ast;
 
 import java.util.ArrayList;
-import java.util.List;
 import java.util.stream.Collectors;
 
 import parser.visitor.ASTVisitor;
+import parser.visitor.DeepCopy;
 import prism.PrismLangException;
 
 /**
@@ -41,7 +41,7 @@ public class ObservableVars extends ASTElement
 	/**
 	 * List of variables (stored as AST elements referencing them)
 	 */
-	private List<Expression> vars;
+	private ArrayList<Expression> vars;
 	
 	// Constructor
 	
@@ -125,17 +125,21 @@ public class ObservableVars extends ASTElement
 		return s;
 	}
 	
-	/**
-	 * Perform a deep copy.
-	 */
-	public ObservableVars deepCopy()
+	@Override
+	public ObservableVars deepCopy(DeepCopy copier) throws PrismLangException
 	{
-		ObservableVars ret = new ObservableVars();
-		for (Expression var : vars) {
-			ret.addVar(var.deepCopy());
-		}
-		ret.setPosition(this);
-		return ret;
+		copier.copyAll(vars);
+
+		return this;
+	}
+
+	@SuppressWarnings("unchecked")
+	@Override
+	public ObservableVars clone()
+	{
+		ObservableVars clone = (ObservableVars) super.clone();
+		clone.vars = (ArrayList<Expression>) vars.clone();
+		return clone;
 	}
 }
 

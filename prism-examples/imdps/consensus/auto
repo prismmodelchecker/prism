@@ -1,0 +1,7 @@
+#!/bin/csh
+
+prism coin2.prism coin.props -const K=2,bias1=0.01
+prism coin2.prism coin.props -const K=4,bias1=0.01
+
+prism coin4.prism coin.props -const K=2,bias1=0.01
+prism coin4.prism coin.props -const K=4,bias1=0.01

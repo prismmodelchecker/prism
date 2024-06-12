@@ -1,47 +1,16 @@
-/**CFile***********************************************************************
+/**
+  @file
 
-  FileName    [cuddApprox.c]
+  @ingroup cudd
 
-  PackageName [cudd]
+  @brief Procedures to approximate a given %BDD.
 
-  Synopsis    [Procedures to approximate a given BDD.]
+  @see cuddSubsetHB.c cuddSubsetSP.c cuddGenCof.c
 
-  Description [External procedures provided by this module:
-                <ul>
-		<li> Cudd_UnderApprox()
-		<li> Cudd_OverApprox()
-		<li> Cudd_RemapUnderApprox()
-		<li> Cudd_RemapOverApprox()
-		<li> Cudd_BiasedUnderApprox()
-		<li> Cudd_BiasedOverApprox()
-		</ul>
-	       Internal procedures included in this module:
-		<ul>
-		<li> cuddUnderApprox()
-		<li> cuddRemapUnderApprox()
-		<li> cuddBiasedUnderApprox()
-		</ul>
-	       Static procedures included in this module:
-		<ul>
-                <li> updateParity()
-		<li> gatherInfoAux()
-		<li> gatherInfo()
-		<li> computeSavings()
-		<li> updateRefs()
-		<li> UAmarkNodes()
-		<li> UAbuildSubset()
-		<li> RAmarkNodes()
-		<li> BAmarkNodes()
-		<li> RAbuildSubset()
-                <li> BAapplyBias()
-		</ul>
-		]
+  @author Fabio Somenzi
 
-  SeeAlso     [cuddSubsetHB.c cuddSubsetSP.c cuddGenCof.c]
-
-  Author      [Fabio Somenzi]
-
-  Copyright   [Copyright (c) 1995-2012, Regents of the University of Colorado
+  @copyright@parblock
+  Copyright (c) 1995-2015, Regents of the University of Colorado
 
   All rights reserved.
 
@@ -71,9 +40,10 @@
   CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
   LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
   ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-  POSSIBILITY OF SUCH DAMAGE.]
+  POSSIBILITY OF SUCH DAMAGE.
+  @endparblock
 
-******************************************************************************/
+*/
 
 #ifdef __STDC__
 #include <float.h>
@@ -107,38 +77,46 @@
 /* Type declarations                                                         */
 /*---------------------------------------------------------------------------*/
 
-/* Data structure to store the information on each node. It keeps the
-** number of minterms of the function rooted at this node in terms of
-** the number of variables specified by the user; the number of
-** minterms of the complement; the impact of the number of minterms of
-** this function on the number of minterms of the root function; the
-** reference count of the node from within the root function; the
-** flag that says whether the node intersects the care set; the flag
-** that says whether the node should be replaced and how; the results
-** of subsetting in both phases. */
+/**
+ ** @brief Data structure to store the information on each node.
+ **
+ ** @details It keeps the number of minterms of the function rooted at
+ ** this node in terms of the number of variables specified by the
+ ** user; the number of minterms of the complement; the impact of the
+ ** number of minterms of this function on the number of minterms of
+ ** the root function; the reference count of the node from within the
+ ** root function; the flag that says whether the node intersects the
+ ** care set; the flag that says whether the node should be replaced
+ ** and how; the results of subsetting in both phases.
+ */
 typedef struct NodeData {
-    double mintermsP;		/* minterms for the regular node */
-    double mintermsN;		/* minterms for the complemented node */
-    int functionRef;		/* references from within this function */
-    char care;			/* node intersects care set */
-    char replace;		/* replacement decision */
-    short int parity;		/* 1: even; 2: odd; 3: both */
-    DdNode *resultP;		/* result for even parity */
-    DdNode *resultN;		/* result for odd parity */
+    double mintermsP;		/**< minterms for the regular node */
+    double mintermsN;		/**< minterms for the complemented node */
+    int functionRef;		/**< references from within this function */
+    char care;			/**< node intersects care set */
+    char replace;		/**< replacement decision */
+    short int parity;		/**< 1: even; 2: odd; 3: both */
+    DdNode *resultP;		/**< result for even parity */
+    DdNode *resultN;		/**< result for odd parity */
 } NodeData;
 
+/**
+ **  @brief Main bookkeeping data structure for approximation algorithms.
+ */
 typedef struct ApproxInfo {
-    DdNode *one;		/* one constant */
-    DdNode *zero;		/* BDD zero constant */
-    NodeData *page;		/* per-node information */
-    DdHashTable *table;		/* hash table to access the per-node info */
-    int index;			/* index of the current node */
-    double max;			/* max number of minterms */
-    int size;			/* how many nodes are left */
-    double minterms;		/* how many minterms are left */
+    DdNode *one;		/**< one constant */
+    DdNode *zero;		/**< %BDD zero constant */
+    NodeData *page;		/**< per-node information */
+    DdHashTable *table;		/**< hash table to access the per-node info */
+    int index;			/**< index of the current node */
+    double max;			/**< max number of minterms */
+    int size;			/**< how many nodes are left */
+    double minterms;		/**< how many minterms are left */
 } ApproxInfo;
 
-/* Item of the queue used in the levelized traversal of the BDD. */
+/**
+ ** @brief Item of the queue used in the levelized traversal of the %BDD.
+ */
 typedef struct GlobalQueueItem {
     struct GlobalQueueItem *next;
     struct GlobalQueueItem *cnext;
@@ -146,7 +124,10 @@ typedef struct GlobalQueueItem {
     double impactP;
     double impactN;
 } GlobalQueueItem;
- 
+
+/**
+ ** @brief Type of the item of the local queue.
+ */
 typedef struct LocalQueueItem {
     struct LocalQueueItem *next;
     struct LocalQueueItem *cnext;
@@ -159,15 +140,12 @@ typedef struct LocalQueueItem {
 /* Variable declarations                                                     */
 /*---------------------------------------------------------------------------*/
 
-#ifndef lint
-static char rcsid[] DD_UNUSED = "$Id: cuddApprox.c,v 1.31 2012/02/05 04:38:07 fabio Exp $";
-#endif
 
 /*---------------------------------------------------------------------------*/
 /* Macro declarations                                                        */
 /*---------------------------------------------------------------------------*/
 
-/**AutomaticStart*************************************************************/
+/** \cond */
 
 /*---------------------------------------------------------------------------*/
 /* Static function prototypes                                                */
@@ -185,23 +163,20 @@ static int BAmarkNodes (DdManager *dd, DdNode *f, ApproxInfo *info, int threshol
 static DdNode * RAbuildSubset (DdManager *dd, DdNode *node, ApproxInfo *info);
 static int BAapplyBias (DdManager *dd, DdNode *f, DdNode *b, ApproxInfo *info, DdHashTable *cache);
 
-/**AutomaticEnd***************************************************************/
+/** \endcond */
 
 
 /*---------------------------------------------------------------------------*/
 /* Definition of exported functions                                          */
 /*---------------------------------------------------------------------------*/
 
-/**Function********************************************************************
+/**
+  @brief Extracts a dense subset from a %BDD with Shiple's
+  underapproximation method.
 
-  Synopsis [Extracts a dense subset from a BDD with Shiple's
-  underapproximation method.]
-
-  Description [Extracts a dense subset from a BDD. This procedure uses
-  a variant of Tom Shiple's underapproximation method. The main
-  difference from the original method is that density is used as cost
-  function.  Returns a pointer to the BDD of the subset if
-  successful. NULL if the procedure runs out of memory. The parameter
+  @details This procedure uses a variant of Tom Shiple's
+  underapproximation method. The main difference from the original
+  method is that density is used as cost function.  The parameter
   numVars is the maximum number of variables to be used in minterm
   calculation.  The optimal number should be as close as possible to
   the size of the support of f.  However, it is safe to pass the value
@@ -209,21 +184,24 @@ static int BAapplyBias (DdManager *dd, DdNode *f, DdNode *b, ApproxInfo *info, D
   is under 1023.  If numVars is larger than 1023, it will cause
   overflow. If a 0 parameter is passed then the procedure will compute
   a value which will avoid overflow but will cause underflow with 2046
-  variables or more.]
+  variables or more.
 
-  SideEffects [None]
+  @return a pointer to the %BDD of the subset if successful; NULL if
+  the procedure runs out of memory.
 
-  SeeAlso     [Cudd_SubsetShortPaths Cudd_SubsetHeavyBranch Cudd_ReadSize]
+  @sideeffect None
 
-******************************************************************************/
+  @see Cudd_SubsetShortPaths Cudd_SubsetHeavyBranch Cudd_ReadSize
+
+*/
 DdNode *
 Cudd_UnderApprox(
-  DdManager * dd /* manager */,
-  DdNode * f /* function to be subset */,
-  int  numVars /* number of variables in the support of f */,
-  int  threshold /* when to stop approximation */,
-  int  safe /* enforce safe approximation */,
-  double  quality /* minimum improvement for accepted changes */)
+  DdManager * dd /**< manager */,
+  DdNode * f /**< function to be subset */,
+  int  numVars /**< number of variables in the support of f */,
+  int  threshold /**< when to stop approximation */,
+  int  safe /**< enforce safe approximation */,
+  double  quality /**< minimum improvement for accepted changes */)
 {
     DdNode *subset;
 
@@ -231,46 +209,48 @@ Cudd_UnderApprox(
 	dd->reordered = 0;
 	subset = cuddUnderApprox(dd, f, numVars, threshold, safe, quality);
     } while (dd->reordered == 1);
+    if (dd->errorCode == CUDD_TIMEOUT_EXPIRED && dd->timeoutHandler) {
+        dd->timeoutHandler(dd, dd->tohArg);
+    }
 
     return(subset);
 
 } /* end of Cudd_UnderApprox */
 
 
-/**Function********************************************************************
+/**
+  @brief Extracts a dense superset from a %BDD with Shiple's
+  underapproximation method.
 
-  Synopsis    [Extracts a dense superset from a BDD with Shiple's
-  underapproximation method.]
-
-  Description [Extracts a dense superset from a BDD. The procedure is
-  identical to the underapproximation procedure except for the fact that it
-  works on the complement of the given function. Extracting the subset
-  of the complement function is equivalent to extracting the superset
-  of the function.
-  Returns a pointer to the BDD of the superset if successful. NULL if
-  intermediate result causes the procedure to run out of memory. The
+  @details The procedure is identical to the underapproximation
+  procedure except for the fact that it works on the complement of the
+  given function. Extracting the subset of the complement function is
+  equivalent to extracting the superset of the function.  The
   parameter numVars is the maximum number of variables to be used in
-  minterm calculation.  The optimal number
-  should be as close as possible to the size of the support of f.
-  However, it is safe to pass the value returned by Cudd_ReadSize for
-  numVars when the number of variables is under 1023.  If numVars is
-  larger than 1023, it will overflow. If a 0 parameter is passed then
-  the procedure will compute a value which will avoid overflow but
-  will cause underflow with 2046 variables or more.]
+  minterm calculation.  The optimal number should be as close as
+  possible to the size of the support of f.  However, it is safe to
+  pass the value returned by Cudd_ReadSize for numVars when the number
+  of variables is under 1023.  If numVars is larger than 1023, it will
+  overflow. If a 0 parameter is passed then the procedure will compute
+  a value which will avoid overflow but will cause underflow with 2046
+  variables or more.
+  
+  @return a pointer to the %BDD of the superset if successful. NULL if
+  intermediate result causes the procedure to run out of memory.
 
-  SideEffects [None]
+  @sideeffect None
 
-  SeeAlso     [Cudd_SupersetHeavyBranch Cudd_SupersetShortPaths Cudd_ReadSize]
+  @see Cudd_SupersetHeavyBranch Cudd_SupersetShortPaths Cudd_ReadSize
 
-******************************************************************************/
+*/
 DdNode *
 Cudd_OverApprox(
-  DdManager * dd /* manager */,
-  DdNode * f /* function to be superset */,
-  int  numVars /* number of variables in the support of f */,
-  int  threshold /* when to stop approximation */,
-  int  safe /* enforce safe approximation */,
-  double  quality /* minimum improvement for accepted changes */)
+  DdManager * dd /**< manager */,
+  DdNode * f /**< function to be superset */,
+  int  numVars /**< number of variables in the support of f */,
+  int  threshold /**< when to stop approximation */,
+  int  safe /**< enforce safe approximation */,
+  double  quality /**< minimum improvement for accepted changes */)
 {
     DdNode *subset, *g;
 
@@ -279,42 +259,44 @@ Cudd_OverApprox(
 	dd->reordered = 0;
 	subset = cuddUnderApprox(dd, g, numVars, threshold, safe, quality);
     } while (dd->reordered == 1);
-    
+    if (dd->errorCode == CUDD_TIMEOUT_EXPIRED && dd->timeoutHandler) {
+        dd->timeoutHandler(dd, dd->tohArg);
+    }
+
     return(Cudd_NotCond(subset, (subset != NULL)));
     
 } /* end of Cudd_OverApprox */
 
 
-/**Function********************************************************************
+/**
+  @brief Extracts a dense subset from a %BDD with the remapping
+  underapproximation method.
 
-  Synopsis [Extracts a dense subset from a BDD with the remapping
-  underapproximation method.]
+  @details This procedure uses a remapping technique and density as
+  the cost function.  The parameter numVars is the maximum number of
+  variables to be used in minterm calculation.  The optimal number
+  should be as close as possible to the size of the support of f.
+  However, it is safe to pass the value returned by Cudd_ReadSize for
+  numVars when the number of variables is under 1023.  If numVars is
+  larger than 1023, it will cause overflow. If a 0 parameter is passed
+  then the procedure will compute a value which will avoid overflow
+  but will cause underflow with 2046 variables or more.
 
-  Description [Extracts a dense subset from a BDD. This procedure uses
-  a remapping technique and density as the cost function.
-  Returns a pointer to the BDD of the subset if
-  successful. NULL if the procedure runs out of memory. The parameter
-  numVars is the maximum number of variables to be used in minterm
-  calculation.  The optimal number should be as close as possible to
-  the size of the support of f.  However, it is safe to pass the value
-  returned by Cudd_ReadSize for numVars when the number of variables
-  is under 1023.  If numVars is larger than 1023, it will cause
-  overflow. If a 0 parameter is passed then the procedure will compute
-  a value which will avoid overflow but will cause underflow with 2046
-  variables or more.]
+  @return a pointer to the %BDD of the subset if successful. NULL if
+  the procedure runs out of memory.
+  
+  @sideeffect None
 
-  SideEffects [None]
+  @see Cudd_SubsetShortPaths Cudd_SubsetHeavyBranch Cudd_UnderApprox Cudd_ReadSize
 
-  SeeAlso     [Cudd_SubsetShortPaths Cudd_SubsetHeavyBranch Cudd_UnderApprox Cudd_ReadSize]
-
-******************************************************************************/
+*/
 DdNode *
 Cudd_RemapUnderApprox(
-  DdManager * dd /* manager */,
-  DdNode * f /* function to be subset */,
-  int  numVars /* number of variables in the support of f */,
-  int  threshold /* when to stop approximation */,
-  double  quality /* minimum improvement for accepted changes */)
+  DdManager * dd /**< manager */,
+  DdNode * f /**< function to be subset */,
+  int  numVars /**< number of variables in the support of f */,
+  int  threshold /**< when to stop approximation */,
+  double  quality /**< minimum improvement for accepted changes */)
 {
     DdNode *subset;
 
@@ -322,45 +304,47 @@ Cudd_RemapUnderApprox(
 	dd->reordered = 0;
 	subset = cuddRemapUnderApprox(dd, f, numVars, threshold, quality);
     } while (dd->reordered == 1);
+    if (dd->errorCode == CUDD_TIMEOUT_EXPIRED && dd->timeoutHandler) {
+        dd->timeoutHandler(dd, dd->tohArg);
+    }
 
     return(subset);
 
 } /* end of Cudd_RemapUnderApprox */
 
 
-/**Function********************************************************************
+/**
+  @brief Extracts a dense superset from a %BDD with the remapping
+  underapproximation method.
 
-  Synopsis    [Extracts a dense superset from a BDD with the remapping
-  underapproximation method.]
+  @details The procedure is identical to the underapproximation
+  procedure except for the fact that it works on the complement of the
+  given function. Extracting the subset of the complement function is
+  equivalent to extracting the superset of the function. The parameter
+  numVars is the maximum number of variables to be used in minterm
+  calculation.  The optimal number should be as close as possible to
+  the size of the support of f.  However, it is safe to pass the value
+  returned by Cudd_ReadSize for numVars when the number of variables
+  is under 1023.  If numVars is larger than 1023, it will overflow. If
+  a 0 parameter is passed then the procedure will compute a value
+  which will avoid overflow but will cause underflow with 2046
+  variables or more.
 
-  Description [Extracts a dense superset from a BDD. The procedure is
-  identical to the underapproximation procedure except for the fact that it
-  works on the complement of the given function. Extracting the subset
-  of the complement function is equivalent to extracting the superset
-  of the function.
-  Returns a pointer to the BDD of the superset if successful. NULL if
-  intermediate result causes the procedure to run out of memory. The
-  parameter numVars is the maximum number of variables to be used in
-  minterm calculation.  The optimal number
-  should be as close as possible to the size of the support of f.
-  However, it is safe to pass the value returned by Cudd_ReadSize for
-  numVars when the number of variables is under 1023.  If numVars is
-  larger than 1023, it will overflow. If a 0 parameter is passed then
-  the procedure will compute a value which will avoid overflow but
-  will cause underflow with 2046 variables or more.]
+  @return a pointer to the %BDD of the superset if successful. NULL if
+  intermediate result causes the procedure to run out of memory.
+  
+  @sideeffect None
 
-  SideEffects [None]
+  @see Cudd_SupersetHeavyBranch Cudd_SupersetShortPaths Cudd_ReadSize
 
-  SeeAlso     [Cudd_SupersetHeavyBranch Cudd_SupersetShortPaths Cudd_ReadSize]
-
-******************************************************************************/
+*/
 DdNode *
 Cudd_RemapOverApprox(
-  DdManager * dd /* manager */,
-  DdNode * f /* function to be superset */,
-  int  numVars /* number of variables in the support of f */,
-  int  threshold /* when to stop approximation */,
-  double  quality /* minimum improvement for accepted changes */)
+  DdManager * dd /**< manager */,
+  DdNode * f /**< function to be superset */,
+  int  numVars /**< number of variables in the support of f */,
+  int  threshold /**< when to stop approximation */,
+  double  quality /**< minimum improvement for accepted changes */)
 {
     DdNode *subset, *g;
 
@@ -369,47 +353,49 @@ Cudd_RemapOverApprox(
 	dd->reordered = 0;
 	subset = cuddRemapUnderApprox(dd, g, numVars, threshold, quality);
     } while (dd->reordered == 1);
-    
+    if (dd->errorCode == CUDD_TIMEOUT_EXPIRED && dd->timeoutHandler) {
+        dd->timeoutHandler(dd, dd->tohArg);
+    }
+
     return(Cudd_NotCond(subset, (subset != NULL)));
     
 } /* end of Cudd_RemapOverApprox */
 
 
-/**Function********************************************************************
+/**
+  @brief Extracts a dense subset from a %BDD with the biased
+  underapproximation method.
 
-  Synopsis [Extracts a dense subset from a BDD with the biased
-  underapproximation method.]
+  @details This procedure uses a biased remapping technique and
+  density as the cost function. The bias is a function. This procedure
+  tries to approximate where the bias is 0 and preserve the given
+  function where the bias is 1.  The parameter numVars is the maximum
+  number of variables to be used in minterm calculation.  The optimal
+  number should be as close as possible to the size of the support of
+  f.  However, it is safe to pass the value returned by Cudd_ReadSize
+  for numVars when the number of variables is under 1023.  If numVars
+  is larger than 1023, it will cause overflow. If a 0 parameter is
+  passed then the procedure will compute a value which will avoid
+  overflow but will cause underflow with 2046 variables or more.
 
-  Description [Extracts a dense subset from a BDD. This procedure uses
-  a biased remapping technique and density as the cost function. The bias
-  is a function. This procedure tries to approximate where the bias is 0
-  and preserve the given function where the bias is 1.
-  Returns a pointer to the BDD of the subset if
-  successful. NULL if the procedure runs out of memory. The parameter
-  numVars is the maximum number of variables to be used in minterm
-  calculation.  The optimal number should be as close as possible to
-  the size of the support of f.  However, it is safe to pass the value
-  returned by Cudd_ReadSize for numVars when the number of variables
-  is under 1023.  If numVars is larger than 1023, it will cause
-  overflow. If a 0 parameter is passed then the procedure will compute
-  a value which will avoid overflow but will cause underflow with 2046
-  variables or more.]
+  @return a pointer to the %BDD of the subset if successful. NULL if
+  the procedure runs out of memory.
+  
+  @sideeffect None
 
-  SideEffects [None]
+  @see Cudd_SubsetShortPaths Cudd_SubsetHeavyBranch Cudd_UnderApprox
+  Cudd_RemapUnderApprox Cudd_ReadSize
 
-  SeeAlso     [Cudd_SubsetShortPaths Cudd_SubsetHeavyBranch Cudd_UnderApprox
-  Cudd_RemapUnderApprox Cudd_ReadSize]
-
-******************************************************************************/
+*/
 DdNode *
 Cudd_BiasedUnderApprox(
-  DdManager *dd /* manager */,
-  DdNode *f /* function to be subset */,
-  DdNode *b /* bias function */,
-  int numVars /* number of variables in the support of f */,
-  int threshold /* when to stop approximation */,
-  double quality1 /* minimum improvement for accepted changes when b=1 */,
-  double quality0 /* minimum improvement for accepted changes when b=0 */)
+  DdManager *dd /**< manager */,
+  DdNode *f /**< function to be subset */,
+  DdNode *b /**< bias function */,
+  int numVars /**< number of variables in the support of f */,
+  int threshold /**< when to stop approximation */,
+  double quality1 /**< minimum improvement for accepted changes when b=1 */,
+  double quality0 /**< minimum improvement for accepted changes when b=0 */)
 {
     DdNode *subset;
 
@@ -418,48 +404,50 @@ Cudd_BiasedUnderApprox(
 	subset = cuddBiasedUnderApprox(dd, f, b, numVars, threshold, quality1,
 				       quality0);
     } while (dd->reordered == 1);
+    if (dd->errorCode == CUDD_TIMEOUT_EXPIRED && dd->timeoutHandler) {
+        dd->timeoutHandler(dd, dd->tohArg);
+    }
 
     return(subset);
 
 } /* end of Cudd_BiasedUnderApprox */
 
 
-/**Function********************************************************************
+/**
+  @brief Extracts a dense superset from a %BDD with the biased
+  underapproximation method.
 
-  Synopsis    [Extracts a dense superset from a BDD with the biased
-  underapproximation method.]
-
-  Description [Extracts a dense superset from a BDD. The procedure is
-  identical to the underapproximation procedure except for the fact that it
-  works on the complement of the given function. Extracting the subset
-  of the complement function is equivalent to extracting the superset
-  of the function.
-  Returns a pointer to the BDD of the superset if successful. NULL if
-  intermediate result causes the procedure to run out of memory. The
+  @details The procedure is identical to the underapproximation
+  procedure except for the fact that it works on the complement of the
+  given function. Extracting the subset of the complement function is
+  equivalent to extracting the superset of the function.  The
   parameter numVars is the maximum number of variables to be used in
-  minterm calculation.  The optimal number
-  should be as close as possible to the size of the support of f.
-  However, it is safe to pass the value returned by Cudd_ReadSize for
-  numVars when the number of variables is under 1023.  If numVars is
-  larger than 1023, it will overflow. If a 0 parameter is passed then
-  the procedure will compute a value which will avoid overflow but
-  will cause underflow with 2046 variables or more.]
+  minterm calculation.  The optimal number should be as close as
+  possible to the size of the support of f.  However, it is safe to
+  pass the value returned by Cudd_ReadSize for numVars when the number
+  of variables is under 1023.  If numVars is larger than 1023, it will
+  overflow. If a 0 parameter is passed then the procedure will compute
+  a value which will avoid overflow but will cause underflow with 2046
+  variables or more.
 
-  SideEffects [None]
+  @return a pointer to the %BDD of the superset if successful. NULL if
+  intermediate result causes the procedure to run out of memory.
+  
+  @sideeffect None
 
-  SeeAlso     [Cudd_SupersetHeavyBranch Cudd_SupersetShortPaths
-  Cudd_RemapOverApprox Cudd_BiasedUnderApprox Cudd_ReadSize]
+  @see Cudd_SupersetHeavyBranch Cudd_SupersetShortPaths
+  Cudd_RemapOverApprox Cudd_BiasedUnderApprox Cudd_ReadSize
 
-******************************************************************************/
+*/
 DdNode *
 Cudd_BiasedOverApprox(
-  DdManager *dd /* manager */,
-  DdNode *f /* function to be superset */,
-  DdNode *b /* bias function */,
-  int numVars /* number of variables in the support of f */,
-  int threshold /* when to stop approximation */,
-  double quality1 /* minimum improvement for accepted changes when b=1*/,
-  double quality0 /* minimum improvement for accepted changes when b=0 */)
+  DdManager *dd /**< manager */,
+  DdNode *f /**< function to be superset */,
+  DdNode *b /**< bias function */,
+  int numVars /**< number of variables in the support of f */,
+  int threshold /**< when to stop approximation */,
+  double quality1 /**< minimum improvement for accepted changes when b=1*/,
+  double quality0 /**< minimum improvement for accepted changes when b=0 */)
 {
     DdNode *subset, *g;
 
@@ -469,7 +457,10 @@ Cudd_BiasedOverApprox(
 	subset = cuddBiasedUnderApprox(dd, g, b, numVars, threshold, quality1,
 				      quality0);
     } while (dd->reordered == 1);
-    
+    if (dd->errorCode == CUDD_TIMEOUT_EXPIRED && dd->timeoutHandler) {
+        dd->timeoutHandler(dd, dd->tohArg);
+    }
+
     return(Cudd_NotCond(subset, (subset != NULL)));
     
 } /* end of Cudd_BiasedOverApprox */
@@ -480,33 +471,32 @@ Cudd_BiasedOverApprox(
 /*---------------------------------------------------------------------------*/
 
 
-/**Function********************************************************************
+/**
+  @brief Applies Tom Shiple's underappoximation algorithm.
 
-  Synopsis    [Applies Tom Shiple's underappoximation algorithm.]
-
-  Description [Applies Tom Shiple's underappoximation algorithm. Proceeds
-  in three phases:
+  @details Proceeds in three phases:
   <ul>
-  <li> collect information on each node in the BDD; this is done via DFS.
-  <li> traverse the BDD in top-down fashion and compute for each node
+  <li> collect information on each node in the %BDD; this is done via DFS.
+  <li> traverse the %BDD in top-down fashion and compute for each node
   whether its elimination increases density.
-  <li> traverse the BDD via DFS and actually perform the elimination.
+  <li> traverse the %BDD via DFS and actually perform the elimination.
   </ul>
-  Returns the approximated BDD if successful; NULL otherwise.]
 
-  SideEffects [None]
+  @return the approximated %BDD if successful; NULL otherwise.
 
-  SeeAlso     [Cudd_UnderApprox]
+  @sideeffect None
 
-******************************************************************************/
+  @see Cudd_UnderApprox
+
+*/
 DdNode *
 cuddUnderApprox(
-  DdManager * dd /* DD manager */,
-  DdNode * f /* current DD */,
-  int  numVars /* maximum number of variables */,
-  int  threshold /* threshold under which approximation stops */,
-  int  safe /* enforce safe approximation */,
-  double  quality /* minimum improvement for accepted changes */)
+  DdManager * dd /**< %DD manager */,
+  DdNode * f /**< current %DD */,
+  int  numVars /**< maximum number of variables */,
+  int  threshold /**< threshold under which approximation stops */,
+  int  safe /**< enforce safe approximation */,
+  double  quality /**< minimum improvement for accepted changes */)
 {
     ApproxInfo *info;
     DdNode *subset;
@@ -517,7 +507,7 @@ cuddUnderApprox(
 	return(NULL);
     }
 
-    if (Cudd_IsConstant(f)) {
+    if (Cudd_IsConstantInt(f)) {
 	return(f);
     }
 
@@ -570,32 +560,31 @@ cuddUnderApprox(
 } /* end of cuddUnderApprox */
 
 
-/**Function********************************************************************
+/**
+  @brief Applies the remapping underappoximation algorithm.
 
-  Synopsis    [Applies the remapping underappoximation algorithm.]
-
-  Description [Applies the remapping underappoximation algorithm.
-  Proceeds in three phases:
+  @details Proceeds in three phases:
   <ul>
-  <li> collect information on each node in the BDD; this is done via DFS.
-  <li> traverse the BDD in top-down fashion and compute for each node
+  <li> collect information on each node in the %BDD; this is done via DFS.
+  <li> traverse the %BDD in top-down fashion and compute for each node
   whether remapping increases density.
-  <li> traverse the BDD via DFS and actually perform the elimination.
+  <li> traverse the %BDD via DFS and actually perform the elimination.
   </ul>
-  Returns the approximated BDD if successful; NULL otherwise.]
 
-  SideEffects [None]
+  @return the approximated %BDD if successful; NULL otherwise.
 
-  SeeAlso     [Cudd_RemapUnderApprox]
+  @sideeffect None
 
-******************************************************************************/
+  @see Cudd_RemapUnderApprox
+
+*/
 DdNode *
 cuddRemapUnderApprox(
-  DdManager * dd /* DD manager */,
-  DdNode * f /* current DD */,
-  int  numVars /* maximum number of variables */,
-  int  threshold /* threshold under which approximation stops */,
-  double  quality /* minimum improvement for accepted changes */)
+  DdManager * dd /**< %DD manager */,
+  DdNode * f /**< current %DD */,
+  int  numVars /**< maximum number of variables */,
+  int  threshold /**< threshold under which approximation stops */,
+  double  quality /**< minimum improvement for accepted changes */)
 {
     ApproxInfo *info;
     DdNode *subset;
@@ -607,7 +596,7 @@ cuddRemapUnderApprox(
 	return(NULL);
     }
 
-    if (Cudd_IsConstant(f)) {
+    if (Cudd_IsConstantInt(f)) {
 	return(f);
     }
 
@@ -660,34 +649,33 @@ cuddRemapUnderApprox(
 } /* end of cuddRemapUnderApprox */
 
 
-/**Function********************************************************************
+/**
+  @brief Applies the biased remapping underappoximation algorithm.
 
-  Synopsis    [Applies the biased remapping underappoximation algorithm.]
-
-  Description [Applies the biased remapping underappoximation algorithm.
-  Proceeds in three phases:
+  @details Proceeds in three phases:
   <ul>
-  <li> collect information on each node in the BDD; this is done via DFS.
-  <li> traverse the BDD in top-down fashion and compute for each node
+  <li> collect information on each node in the %BDD; this is done via DFS.
+  <li> traverse the %BDD in top-down fashion and compute for each node
   whether remapping increases density.
-  <li> traverse the BDD via DFS and actually perform the elimination.
+  <li> traverse the %BDD via DFS and actually perform the elimination.
   </ul>
-  Returns the approximated BDD if successful; NULL otherwise.]
 
-  SideEffects [None]
+  @return the approximated %BDD if successful; NULL otherwise.
 
-  SeeAlso     [Cudd_BiasedUnderApprox]
+  @sideeffect None
 
-******************************************************************************/
+  @see Cudd_BiasedUnderApprox
+
+*/
 DdNode *
 cuddBiasedUnderApprox(
-  DdManager *dd /* DD manager */,
-  DdNode *f /* current DD */,
-  DdNode *b /* bias function */,
-  int numVars /* maximum number of variables */,
-  int threshold /* threshold under which approximation stops */,
-  double quality1 /* minimum improvement for accepted changes when b=1 */,
-  double quality0 /* minimum improvement for accepted changes when b=0 */)
+  DdManager *dd /**< %DD manager */,
+  DdNode *f /**< current %DD */,
+  DdNode *b /**< bias function */,
+  int numVars /**< maximum number of variables */,
+  int threshold /**< threshold under which approximation stops */,
+  double quality1 /**< minimum improvement for accepted changes when b=1 */,
+  double quality0 /**< minimum improvement for accepted changes when b=0 */)
 {
     ApproxInfo *info;
     DdNode *subset;
@@ -700,7 +688,7 @@ cuddBiasedUnderApprox(
 	return(NULL);
     }
 
-    if (Cudd_IsConstant(f)) {
+    if (Cudd_IsConstantInt(f)) {
 	return(f);
     }
 
@@ -771,23 +759,21 @@ cuddBiasedUnderApprox(
 /*---------------------------------------------------------------------------*/
 
 
-/**Function********************************************************************
+/**
+  @brief Recursively update the parity of the paths reaching a node.
 
-  Synopsis    [Recursively update the parity of the paths reaching a node.]
+  @details Assumes that node is regular and propagates the invariant.
 
-  Description [Recursively update the parity of the paths reaching a node.
-  Assumes that node is regular and propagates the invariant.]
+  @sideeffect None
 
-  SideEffects [None]
+  @see gatherInfoAux
 
-  SeeAlso     [gatherInfoAux]
-
-******************************************************************************/
+*/
 static void
 updateParity(
-  DdNode * node /* function to analyze */,
-  ApproxInfo * info /* info on BDD */,
-  int newparity /* new parity for node */)
+  DdNode * node /**< function to analyze */,
+  ApproxInfo * info /**< info on %BDD */,
+  int newparity /**< new parity for node */)
 {
     NodeData *infoN;
     DdNode *E;
@@ -796,7 +782,7 @@ updateParity(
         return;
     if ((infoN->parity & newparity) != 0) return;
     infoN->parity |= (short) newparity;
-    if (Cudd_IsConstant(node)) return;
+    if (Cudd_IsConstantInt(node)) return;
     updateParity(cuddT(node),info,newparity);
     E = cuddE(node);
     if (Cudd_IsComplement(E)) {
@@ -809,28 +795,25 @@ updateParity(
 } /* end of updateParity */
 
 
-/**Function********************************************************************
+/**
+  @brief Recursively counts minterms and computes reference counts
+  of each node in the %BDD.
 
-  Synopsis    [Recursively counts minterms and computes reference counts
-  of each node in the BDD.]
+  @details Similar to the cuddCountMintermAux which recursively counts
+  the number of minterms for the dag rooted at each node in terms of
+  the total number of variables (max). It assumes that the node
+  pointer passed to it is regular and it maintains the invariant.
 
-  Description [Recursively counts minterms and computes reference
-  counts of each node in the BDD.  Similar to the cuddCountMintermAux
-  which recursively counts the number of minterms for the dag rooted
-  at each node in terms of the total number of variables (max). It assumes
-  that the node pointer passed to it is regular and it maintains the
-  invariant.]
+  @sideeffect None
 
-  SideEffects [None]
+  @see gatherInfo
 
-  SeeAlso     [gatherInfo]
-
-******************************************************************************/
+*/
 static NodeData *
 gatherInfoAux(
-  DdNode * node /* function to analyze */,
-  ApproxInfo * info /* info on BDD */,
-  int parity /* gather parity information */)
+  DdNode * node /**< function to analyze */,
+  ApproxInfo * info /**< info on %BDD */,
+  int parity /**< gather parity information */)
 {
     DdNode	*N, *Nt, *Ne;
     NodeData	*infoN, *infoT, *infoE;
@@ -881,21 +864,22 @@ gatherInfoAux(
 } /* end of gatherInfoAux */
 
 
-/**Function********************************************************************
+/**
+  @brief Gathers information about each node.
 
-  Synopsis    [Gathers information about each node.]
-
-  Description [Counts minterms and computes reference counts of each
-  node in the BDD. The minterm count is separately computed for the
+  @details Counts minterms and computes reference counts of each
+  node in the %BDD. The minterm count is separately computed for the
   node and its complement. This is to avoid cancellation
-  errors. Returns a pointer to the data structure holding the
-  information gathered if successful; NULL otherwise.]
+  errors.
 
-  SideEffects [None]
+  @return a pointer to the data structure holding the information
+  gathered if successful; NULL otherwise.
 
-  SeeAlso     [cuddUnderApprox gatherInfoAux]
+  @sideeffect None
 
-******************************************************************************/
+  @see cuddUnderApprox gatherInfoAux
+
+*/
 static ApproxInfo *
 gatherInfo(
   DdManager * dd /* manager */,
@@ -948,8 +932,8 @@ gatherInfo(
     /* Info for the constant node: Initialize only fields different from 0. */
     if (cuddHashTableGenericInsert(info->table, info->one, info->page) == 0) {
 	FREE(info->page);
-	FREE(info);
 	cuddHashTableGenericQuit(info->table);
+	FREE(info);
 	return(NULL);
     }
     info->page[0].mintermsP = info->max;
@@ -974,22 +958,22 @@ gatherInfo(
 } /* end of gatherInfo */
 
 
-/**Function********************************************************************
+/**
+  @brief Counts the nodes that would be eliminated if a given node
+  were replaced by zero.
 
-  Synopsis    [Counts the nodes that would be eliminated if a given node
-  were replaced by zero.]
+  @details This procedure uses a queue passed by the caller for
+  efficiency: since the queue is left empty at the endof the search,
+  it can be reused as is by the next search.
 
-  Description [Counts the nodes that would be eliminated if a given
-  node were replaced by zero. This procedure uses a queue passed by
-  the caller for efficiency: since the queue is left empty at the
-  endof the search, it can be reused as is by the next search. Returns
-  the count (always striclty positive) if successful; 0 otherwise.]
+  @return the count (always striclty positive) if successful; 0
+  otherwise.
 
-  SideEffects [None]
+  @sideeffect None
 
-  SeeAlso     [UAmarkNodes RAmarkNodes BAmarkNodes]
+  @see UAmarkNodes RAmarkNodes BAmarkNodes
 
-******************************************************************************/
+*/
 static int
 computeSavings(
   DdManager * dd,
@@ -1004,6 +988,7 @@ computeSavings(
     int savings = 0;
 
     node = Cudd_Regular(f);
+    if (node == NULL) return(0);
     skip = Cudd_Regular(skip);
     /* Insert the given node in the level queue. Its local reference
     ** count is set equal to the function reference count so that the
@@ -1052,18 +1037,16 @@ computeSavings(
 } /* end of computeSavings */
 
 
-/**Function********************************************************************
+/**
+  @brief Update function reference counts to account for replacement.
 
-  Synopsis    [Update function reference counts.]
+  @return the number of nodes saved if successful; 0 otherwise.
 
-  Description [Update function reference counts to account for replacement.
-  Returns the number of nodes saved if successful; 0 otherwise.]
+  @sideeffect None
 
-  SideEffects [None]
+  @see UAmarkNodes RAmarkNodes BAmarkNodes
 
-  SeeAlso     [UAmarkNodes RAmarkNodes BAmarkNodes]
-
-******************************************************************************/
+*/
 static int
 updateRefs(
   DdManager * dd,
@@ -1132,26 +1115,24 @@ updateRefs(
 } /* end of updateRefs */
 
 
-/**Function********************************************************************
+/**
+  @brief Marks nodes for replacement by zero.
 
-  Synopsis    [Marks nodes for replacement by zero.]
+  @return 1 if successful; 0 otherwise.
 
-  Description [Marks nodes for replacement by zero. Returns 1 if successful;
-  0 otherwise.]
+  @sideeffect None
 
-  SideEffects [None]
+  @see cuddUnderApprox
 
-  SeeAlso     [cuddUnderApprox]
-
-******************************************************************************/
+*/
 static int
 UAmarkNodes(
-  DdManager * dd /* manager */,
-  DdNode * f /* function to be analyzed */,
-  ApproxInfo * info /* info on BDD */,
-  int  threshold /* when to stop approximating */,
-  int  safe /* enforce safe approximation */,
-  double  quality /* minimum improvement for accepted changes */)
+  DdManager * dd /**< manager */,
+  DdNode * f /**< function to be analyzed */,
+  ApproxInfo * info /**< info on %BDD */,
+  int  threshold /**< when to stop approximating */,
+  int  safe /**< enforce safe approximation */,
+  double  quality /**< minimum improvement for accepted changes */)
 {
     DdLevelQueue *queue;
     DdLevelQueue *localQueue;
@@ -1166,12 +1147,12 @@ UAmarkNodes(
     (void) printf("initial size = %d initial minterms = %g\n",
 		  info->size, info->minterms);
 #endif
-    queue = cuddLevelQueueInit(dd->size,sizeof(GlobalQueueItem),info->size);
+    queue = cuddLevelQueueInit(dd->size,sizeof(GlobalQueueItem),info->size,dd);
     if (queue == NULL) {
 	return(0);
     }
     localQueue = cuddLevelQueueInit(dd->size,sizeof(LocalQueueItem),
-				    dd->initSlots);
+				    dd->initSlots,dd);
     if (localQueue == NULL) {
 	cuddLevelQueueQuit(queue);
 	return(0);
@@ -1235,7 +1216,7 @@ UAmarkNodes(
 	    item->impactP += impactP/2.0;
 	    item->impactN += impactN/2.0;
 	}
-	if (!Cudd_IsConstant(cuddE(node))) {
+	if (!Cudd_IsConstantInt(cuddE(node))) {
 	    item = (GlobalQueueItem *) cuddLevelQueueEnqueue(queue,Cudd_Regular(cuddE(node)),
 					 cuddI(dd,Cudd_Regular(cuddE(node))->index));
 	    if (Cudd_IsComplement(cuddE(node))) {
@@ -1255,30 +1236,29 @@ UAmarkNodes(
 } /* end of UAmarkNodes */
 
 
-/**Function********************************************************************
+/**
+  @brief Builds the subset %BDD. 
 
-  Synopsis    [Builds the subset BDD.] 
+  @details Based on the info table, replaces selected nodes by zero.
 
-  Description [Builds the subset BDD. Based on the info table,
-  replaces selected nodes by zero. Returns a pointer to the result if
-  successful; NULL otherwise.]
+  @return a pointer to the result if successful; NULL otherwise.
 
-  SideEffects [None]
+  @sideeffect None
 
-  SeeAlso     [cuddUnderApprox]
+  @see cuddUnderApprox
 
-******************************************************************************/
+*/
 static DdNode *
 UAbuildSubset(
-  DdManager * dd /* DD manager */,
-  DdNode * node /* current node */,
-  ApproxInfo * info /* node info */)
+  DdManager * dd /**< %DD manager */,
+  DdNode * node /**< current node */,
+  ApproxInfo * info /**< node info */)
 {
 
     DdNode *Nt, *Ne, *N, *t, *e, *r;
     NodeData *infoN;
 
-    if (Cudd_IsConstant(node))
+    if (Cudd_IsConstantInt(node))
 	return(node);
 
     N = Cudd_Regular(node);
@@ -1351,25 +1331,23 @@ UAbuildSubset(
 } /* end of UAbuildSubset */
 
 
-/**Function********************************************************************
+/**
+  @brief Marks nodes for remapping.
 
-  Synopsis    [Marks nodes for remapping.]
+  @return 1 if successful; 0 otherwise.
 
-  Description [Marks nodes for remapping. Returns 1 if successful; 0
-  otherwise.]
+  @sideeffect None
 
-  SideEffects [None]
+  @see cuddRemapUnderApprox
 
-  SeeAlso     [cuddRemapUnderApprox]
-
-******************************************************************************/
+*/
 static int
 RAmarkNodes(
-  DdManager * dd /* manager */,
-  DdNode * f /* function to be analyzed */,
-  ApproxInfo * info /* info on BDD */,
-  int threshold /* when to stop approximating */,
-  double quality /* minimum improvement for accepted changes */)
+  DdManager * dd /**< manager */,
+  DdNode * f /**< function to be analyzed */,
+  ApproxInfo * info /**< info on %BDD */,
+  int threshold /**< when to stop approximating */,
+  double quality /**< minimum improvement for accepted changes */)
 {
     DdLevelQueue *queue;
     DdLevelQueue *localQueue;
@@ -1387,12 +1365,12 @@ RAmarkNodes(
     (void) fprintf(dd->out,"initial size = %d initial minterms = %g\n",
 		  info->size, info->minterms);
 #endif
-    queue = cuddLevelQueueInit(dd->size,sizeof(GlobalQueueItem),info->size);
+    queue = cuddLevelQueueInit(dd->size,sizeof(GlobalQueueItem),info->size,dd);
     if (queue == NULL) {
 	return(0);
     }
     localQueue = cuddLevelQueueInit(dd->size,sizeof(LocalQueueItem),
-				    dd->initSlots);
+				    dd->initSlots,dd);
     if (localQueue == NULL) {
 	cuddLevelQueueQuit(queue);
 	return(0);
@@ -1426,7 +1404,7 @@ RAmarkNodes(
 	assert(item->impactP >= 0 && item->impactP <= 1.0);
 	assert(item->impactN >= 0 && item->impactN <= 1.0);
 	assert(!Cudd_IsComplement(node));
-	assert(!Cudd_IsConstant(node));
+	assert(!Cudd_IsConstantInt(node));
 #endif
 	if ((infoN = (NodeData *) cuddHashTableGenericLookup(info->table, node)) == NULL) {
 	    cuddLevelQueueQuit(queue);
@@ -1610,7 +1588,7 @@ RAmarkNodes(
 	    }
 	}
 	if ((replace == REPLACE_T || replace == NOTHING) &&
-	    !Cudd_IsConstant(cuddE(node))) {
+	    !Cudd_IsConstantInt(cuddE(node))) {
 	    item = (GlobalQueueItem *) cuddLevelQueueEnqueue(queue,Cudd_Regular(cuddE(node)),
 					 cuddI(dd,Cudd_Regular(cuddE(node))->index));
 	    if (Cudd_IsComplement(cuddE(node))) {
@@ -1632,7 +1610,7 @@ RAmarkNodes(
 	    }
 	}
 	if ((replace == REPLACE_TT || replace == REPLACE_TE) &&
-	    !Cudd_IsConstant(shared)) {
+	    !Cudd_IsConstantInt(shared)) {
 	    item = (GlobalQueueItem *) cuddLevelQueueEnqueue(queue,Cudd_Regular(shared),
 					 cuddI(dd,Cudd_Regular(shared)->index));
 	    if (Cudd_IsComplement(shared)) {
@@ -1652,26 +1630,24 @@ RAmarkNodes(
 } /* end of RAmarkNodes */
 
 
-/**Function********************************************************************
+/**
+  @brief Marks nodes for remapping.
 
-  Synopsis    [Marks nodes for remapping.]
+  @return 1 if successful; 0 otherwise.
 
-  Description [Marks nodes for remapping. Returns 1 if successful; 0
-  otherwise.]
+  @sideeffect None
 
-  SideEffects [None]
+  @see cuddBiasedUnderApprox
 
-  SeeAlso     [cuddBiasedUnderApprox]
-
-******************************************************************************/
+*/
 static int
 BAmarkNodes(
-  DdManager *dd /* manager */,
-  DdNode *f /* function to be analyzed */,
-  ApproxInfo *info /* info on BDD */,
-  int threshold /* when to stop approximating */,
-  double quality1 /* minimum improvement for accepted changes when b=1 */,
-  double quality0 /* minimum improvement for accepted changes when b=0 */)
+  DdManager *dd /**< manager */,
+  DdNode *f /**< function to be analyzed */,
+  ApproxInfo *info /**< info on %BDD */,
+  int threshold /**< when to stop approximating */,
+  double quality1 /**< minimum improvement for accepted changes when b=1 */,
+  double quality0 /**< minimum improvement for accepted changes when b=0 */)
 {
     DdLevelQueue *queue;
     DdLevelQueue *localQueue;
@@ -1690,12 +1666,12 @@ BAmarkNodes(
     (void) fprintf(dd->out,"initial size = %d initial minterms = %g\n",
 		  info->size, info->minterms);
 #endif
-    queue = cuddLevelQueueInit(dd->size,sizeof(GlobalQueueItem),info->size);
+    queue = cuddLevelQueueInit(dd->size,sizeof(GlobalQueueItem),info->size,dd);
     if (queue == NULL) {
 	return(0);
     }
     localQueue = cuddLevelQueueInit(dd->size,sizeof(LocalQueueItem),
-				    dd->initSlots);
+				    dd->initSlots,dd);
     if (localQueue == NULL) {
 	cuddLevelQueueQuit(queue);
 	return(0);
@@ -1730,7 +1706,7 @@ BAmarkNodes(
 	assert(item->impactP >= 0 && item->impactP <= 1.0);
 	assert(item->impactN >= 0 && item->impactN <= 1.0);
 	assert(!Cudd_IsComplement(node));
-	assert(!Cudd_IsConstant(node));
+	assert(!Cudd_IsConstantInt(node));
 #endif
 	if ((infoN = (NodeData *) cuddHashTableGenericLookup(info->table, node)) == NULL) {
 	    cuddLevelQueueQuit(queue);
@@ -1764,7 +1740,7 @@ BAmarkNodes(
 	    if (infoN->parity == 1) {
 		impact = impactP;
 		minterms = infoE->mintermsP/2.0 - infoT->mintermsP/2.0;
-		if (infoE->functionRef == 1 && !Cudd_IsConstant(E)) {
+		if (infoE->functionRef == 1 && !Cudd_IsConstantInt(E)) {
 		    savings = 1 + computeSavings(dd,E,NULL,info,localQueue);
 		    if (savings == 1) {
 			cuddLevelQueueQuit(queue);
@@ -1781,7 +1757,7 @@ BAmarkNodes(
 #endif
 		impact = impactN;
 		minterms = infoT->mintermsN/2.0 - infoE->mintermsN/2.0;
-		if (infoT->functionRef == 1 && !Cudd_IsConstant(T)) {
+		if (infoT->functionRef == 1 && !Cudd_IsConstantInt(T)) {
 		    savings = 1 + computeSavings(dd,T,NULL,info,localQueue);
 		    if (savings == 1) {
 			cuddLevelQueueQuit(queue);
@@ -1803,7 +1779,7 @@ BAmarkNodes(
 		impact = impactP;
 		minterms = infoT->mintermsP/2.0 -
 		    ((E == Ereg) ? infoE->mintermsP : infoE->mintermsN)/2.0;
-		if (infoT->functionRef == 1 && !Cudd_IsConstant(T)) {
+		if (infoT->functionRef == 1 && !Cudd_IsConstantInt(T)) {
 		    savings = 1 + computeSavings(dd,T,NULL,info,localQueue);
 		    if (savings == 1) {
 			cuddLevelQueueQuit(queue);
@@ -1821,7 +1797,7 @@ BAmarkNodes(
 		impact = impactN;
 		minterms = ((E == Ereg) ? infoE->mintermsN :
 			    infoE->mintermsP)/2.0 - infoT->mintermsN/2.0;
-		if (infoE->functionRef == 1 && !Cudd_IsConstant(E)) {
+		if (infoE->functionRef == 1 && !Cudd_IsConstantInt(E)) {
 		    savings = 1 + computeSavings(dd,E,NULL,info,localQueue);
 		    if (savings == 1) {
 			cuddLevelQueueQuit(queue);
@@ -1915,7 +1891,7 @@ BAmarkNodes(
 	    }
 	}
 	if ((replace == REPLACE_T || replace == NOTHING) &&
-	    !Cudd_IsConstant(cuddE(node))) {
+	    !Cudd_IsConstantInt(cuddE(node))) {
 	    item = (GlobalQueueItem *) cuddLevelQueueEnqueue(queue,Cudd_Regular(cuddE(node)),
 					 cuddI(dd,Cudd_Regular(cuddE(node))->index));
 	    if (Cudd_IsComplement(cuddE(node))) {
@@ -1937,7 +1913,7 @@ BAmarkNodes(
 	    }
 	}
 	if ((replace == REPLACE_TT || replace == REPLACE_TE) &&
-	    !Cudd_IsConstant(shared)) {
+	    !Cudd_IsConstantInt(shared)) {
 	    item = (GlobalQueueItem *) cuddLevelQueueEnqueue(queue,Cudd_Regular(shared),
 					 cuddI(dd,Cudd_Regular(shared)->index));
 	    if (Cudd_IsComplement(shared)) {
@@ -1967,30 +1943,29 @@ BAmarkNodes(
 } /* end of BAmarkNodes */
 
 
-/**Function********************************************************************
+/**
+  @brief Builds the subset %BDD for cuddRemapUnderApprox.
 
-  Synopsis [Builds the subset BDD for cuddRemapUnderApprox.]
+  @details Based on the info table, performs remapping or replacement
+  at selected nodes.
 
-  Description [Builds the subset BDDfor cuddRemapUnderApprox.  Based
-  on the info table, performs remapping or replacement at selected
-  nodes. Returns a pointer to the result if successful; NULL
-  otherwise.]
+  @return a pointer to the result if successful; NULL otherwise.
 
-  SideEffects [None]
+  @sideeffect None
 
-  SeeAlso     [cuddRemapUnderApprox]
+  @see cuddRemapUnderApprox
 
-******************************************************************************/
+*/
 static DdNode *
 RAbuildSubset(
-  DdManager * dd /* DD manager */,
-  DdNode * node /* current node */,
-  ApproxInfo * info /* node info */)
+  DdManager * dd /**< %DD manager */,
+  DdNode * node /**< current node */,
+  ApproxInfo * info /**< node info */)
 {
     DdNode *Nt, *Ne, *N, *t, *e, *r;
     NodeData *infoN;
 
-    if (Cudd_IsConstant(node))
+    if (Cudd_IsConstantInt(node))
 	return(node);
 
     N = Cudd_Regular(node);
@@ -2047,7 +2022,7 @@ RAbuildSubset(
 	} else if (infoN->replace == REPLACE_TE) {
 	    DdNode *Nte = Cudd_NotCond(cuddE(cuddT(N)),
 				       Cudd_IsComplement(node));
-	    int index = cuddT(N)->index;
+	    unsigned int index = cuddT(N)->index;
 	    t = info->one;
 	    e = RAbuildSubset(dd, Nte, info);
 	    if (e == NULL) {
@@ -2116,19 +2091,17 @@ RAbuildSubset(
 } /* end of RAbuildSubset */
 
 
-/**Function********************************************************************
+/**
+  @brief Finds don't care nodes by traversing f and b in parallel.
 
-  Synopsis    [Finds don't care nodes.]
+  @return the care status of the visited f node if successful;
+  CARE_ERROR otherwise.
 
-  Description [Finds don't care nodes by traversing f and b in parallel.
-  Returns the care status of the visited f node if successful; CARE_ERROR
-  otherwise.]
+  @sideeffect None
 
-  SideEffects [None]
+  @see cuddBiasedUnderApprox
 
-  SeeAlso     [cuddBiasedUnderApprox]
-
-******************************************************************************/
+*/
 static int
 BAapplyBias(
   DdManager *dd,
@@ -2139,7 +2112,7 @@ BAapplyBias(
 {
     DdNode *one, *zero, *res;
     DdNode *Ft, *Fe, *B, *Bt, *Be;
-    unsigned int topf, topb;
+    int topf, topb;
     NodeData *infoF;
     int careT, careE;
 

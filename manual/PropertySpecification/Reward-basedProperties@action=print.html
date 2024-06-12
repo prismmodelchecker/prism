@@ -1,0 +1,321 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html>
+<head>
+
+<title>PRISM Manual | PropertySpecification / Reward-basedProperties </title>
+
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1"/>
+
+<!--HeaderText--><style type='text/css'><!--
+  ul, ol, pre, dl, p { margin-top:0px; margin-bottom:0px; }
+  code.escaped { white-space: pre; }
+  .vspace { margin-top:1.33em; }
+  .indent { margin-left:40px; }
+  .outdent { margin-left:40px; text-indent:-40px; }
+  a.createlinktext { text-decoration:none; border-bottom:1px dotted gray; }
+  a.createlink { text-decoration:none; position:relative; top:-0.5em;
+    font-weight:bold; font-size:smaller; border-bottom:none; }
+  img { border:0px; }
+  .editconflict { color:green; 
+  font-style:italic; margin-top:1.33em; margin-bottom:1.33em; }
+
+  table.markup { border:2px dotted #ccf; width:90%; }
+  td.markup1, td.markup2 { padding-left:10px; padding-right:10px; }
+  table.vert td.markup1 { border-bottom:1px solid #ccf; }
+  table.horiz td.markup1 { width:23em; border-right:1px solid #ccf; }
+  table.markup caption { text-align:left; }
+  div.faq p, div.faq pre { margin-left:2em; }
+  div.faq p.question { margin:1em 0 0.75em 0; font-weight:bold; }
+  div.faqtoc div.faq * { display:none; }
+  div.faqtoc div.faq p.question 
+    { display:block; font-weight:normal; margin:0.5em 0 0.5em 20px; line-height:normal; }
+  div.faqtoc div.faq p.question * { display:inline; }
+  td.markup1 pre { white-space: pre-wrap; }
+  .noPmTOC, .PmTOCdiv:empty {display:none;}
+.PmTOCdiv { display: inline-block; font-size: 13px; overflow: auto; max-height: 500px;}
+.PmTOCdiv a { text-decoration: none; display: block; line-height: 1;}
+.PmTOCdiv a.pmtoc-indent1 { margin-left: 1em; }
+.PmTOCdiv a.pmtoc-indent2 { margin-left: 2em; }
+.PmTOCdiv a.pmtoc-indent3 { margin-left: 3em; }
+.PmTOCdiv a.pmtoc-indent4 { margin-left: 4em; }
+.PmTOCdiv a.pmtoc-indent5 { margin-left: 5em; }
+.PmTOCdiv a.pmtoc-indent6 { margin-left: 6em; }
+.back-arrow {font-size: .8rem; text-decoration: none; vertical-align: text-top;}
+#PmTOCchk + label {cursor: pointer;}
+#PmTOCchk {display: none;}
+#PmTOCchk:not(:checked) + label > .pmtoc-show {display: none;}
+#PmTOCchk:checked + label > .pmtoc-hide {display: none;}
+#PmTOCchk:checked + label + div {display: none;}table.sortable th { cursor: pointer; }
+table.sortable th::after { color: transparent; content: "\00A0\025B8"; }
+table.sortable th:hover::after { color: inherit; content: "\00A0\025B8"; }
+table.sortable th.dir-u::after { color: inherit; content: "\00A0\025BE"; }
+table.sortable th.dir-d::after { color: inherit; content: "\00A0\025B4"; } 
+    .frame 
+      { border:1px solid #cccccc; padding:4px; background-color:#f9f9f9; }
+    .lfloat { float:left; margin-right:0.5em; }
+    .rfloat { float:right; margin-left:0.5em; }
+a.varlink { text-decoration:none;}
+
+.sourceblocklink {
+  text-align: right;
+  font-size: smaller;
+}
+.sourceblocktext {
+  padding: 0.5em;
+  border: 1px solid #808080;
+  color: #000000;
+  background-color: #f1f0ed;
+}
+.sourceblocktext div {
+  font-family: monospace;
+  font-size: small;
+  line-height: 1;
+  height: 1%;
+}
+.sourceblocktext div.head,
+.sourceblocktext div.foot {
+  font: italic medium serif;
+  padding: 0.5em;
+}
+
+--></style>  <meta name='robots' content='noindex,nofollow' />
+
+
+<link type="text/css" rel="stylesheet" href="http://www.prismmodelchecker.org/css/base.css"/>
+<link type="text/css" rel="stylesheet" href="http://www.prismmodelchecker.org/css/prism.css"/>
+<link type="text/css" rel="stylesheet" href="http://www.prismmodelchecker.org/css/print.css" media="print"/>
+<link type="text/css" rel="stylesheet" href="http://www.prismmodelchecker.org/css/bib.css"/>
+
+<link type="text/css" rel="stylesheet" href="http://www.prismmodelchecker.org/manual/pub/skins/prismprint/css/prismmanual.css"/>
+<link type="text/css" rel="stylesheet" href="http://www.prismmodelchecker.org/manual/pub/skins/prismprint/css/prismprint.css"/>
+</head>
+
+<body text="#000000" bgcolor="#ffffcc">
+
+<!--PageTitleFmt-->
+  <p><a class='wikilink' href='Main.html'>Property Specification</a> /
+</p><h1>Reward-based Properties</h1>
+
+<!--PageText-->
+<div id='wikitext'>
+<p>PRISM models can be augmented with information about <a class='wikilink' href='../ThePRISMLanguage/CostsAndRewards.html'>rewards</a> (or, equivalently, costs).
+The tool can analyse properties which relate to the <em>expected values</em> of these rewards.
+This is achieved using the <code><strong>R</strong></code> operator, which works in a similar fashion to the
+<code><strong>P</strong></code> and <code><strong>S</strong></code> operators, and can be used either in a Boolean-valued query, e.g.:
+</p>
+<div class='vspace'></div>
+<div class='sourceblock ' id='sourceblock1'>
+  <div class='sourceblocktext'><div class="prism"> <span class="prismkeyword">R</span> <span class="prismident">bound</span> [ <span class="prismident">rewardprop</span> ] <br/>
+</div></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/PropertySpecification/Reward-basedProperties?action=sourceblock&amp;num=1' type='text/plain'>[&#036;[Get Code]]</a></div>
+</div>
+
+<p class='vspace'>where <code>bound</code> takes the form <code>&lt;r</code>, <code>&lt;=r</code>, <code>&gt;r</code> or <code>&gt;=r</code> for an expression <code>r</code> evaluating to a non-negative double,
+or a real-valued query, e.g.:
+</p>
+<div class='vspace'></div>
+<div class='sourceblock ' id='sourceblock2'>
+  <div class='sourceblocktext'><div class="prism"> <span class="prismkeyword">R</span> <span class="prismident">query</span> [ <span class="prismident">rewardprop</span> ] <br/>
+</div></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/PropertySpecification/Reward-basedProperties?action=sourceblock&amp;num=2' type='text/plain'>[&#036;[Get Code]]</a></div>
+</div>
+
+<p class='vspace'>where <code>query</code> is <code>=?</code>, <code>min=?</code> or <code>max=?</code>.
+In the latter case, <a class='wikilink' href='Filters.html'>filters</a> can be used, as for the <code><strong>P</strong></code> and <code><strong>S</strong></code> operators.
+</p>
+<p class='vspace'>Informally, "<code><strong>R</strong> bound [ rewardprop ]</code>" is true in a state of a model if
+"the expected reward associated with <code>rewardprop</code> of the model when starting from that state''
+meets the bound <code>bound</code> and "<code><strong>R</strong> query [ rewardprop ]</code>"  returns the actual expected reward value.
+</p>
+<p class='vspace'>There are various different types of reward properties:
+</p>
+<div class='vspace'></div><ul><li>"reachability reward": <code><strong>F</strong> prop</code>
+</li><li>"co-safe LTL reward": e.g. <code><strong>F</strong> (prop1 &amp; <strong>F</strong> prop2)</code>
+</li><li>"cumulative reward" : <code><strong>C</strong>&lt;=t</code>
+</li><li>"total reward" : <code><strong>C</strong></code>
+</li><li>"instantaneous reward" : <code><strong>I</strong>=t</code>
+</li><li>"steady-state reward" : <code><strong>S</strong></code>.
+</li></ul><p class='vspace'>Below, we consider each of these cases in turn.
+The descriptions here are kept relatively informal.
+Precise definitions for most of these can be found in, for example,
+[<a class='wikilink' href='../Main/References.html#KNP07a'>KNP07a</a>] (for DTMCs and CTMCs) or [<a class='wikilink' href='../Main/References.html#FKNP11'>FKNP11</a>] (for MDPs).
+</p>
+<div class='vspace'></div><h3>"Reachability reward" properties</h3>
+<p>"Reachability reward" properties associate a reward with each path of a model.
+More specifically, they refer to the reward accumulated along a path until a certain point is reached.
+The manner in which rewards are accumulated depends on the model type.
+For DTMCs and MDPs, the total reward for a path is the sum of the state rewards for each state along the path
+plus the sum of the transition rewards for each transition between these states.
+The situation for CTMCs is similar, except that the state reward assigned to each state
+of the model is interpreted as the <em>rate</em> at which rewards are accumulated in that state,
+i.e. if <em>t</em> time units are spent in a state with state reward <em>r</em>,
+the reward accumulated in that state is <em>r</em> x <em>t</em>.
+Hence, the total reward for a path in a CTMC is the sum of these products for each state along the path
+plus the sum of the transition rewards for each transition between these states.
+</p>
+<p class='vspace'>The reward property "<code>F prop</code>" corresponds to the reward cumulated along a path
+until a state satisfying property <code>prop</code> is reached,
+where rewards are cumulated as described above.
+State rewards for the <code>prop</code>-satisfying state reached are not included in the cumulated value.
+In the case where the probability of reaching a state satisfying <code>prop</code> is less than 1, the reward is equal to infinity.
+</p>
+<p class='vspace'>A common application of this type of property is the case when the rewards associated with the model correspond to time.
+One can then state, for example:
+</p>
+<div class='vspace'></div>
+<div class='sourceblock ' id='sourceblock3'>
+  <div class='sourceblocktext'><div class="prism"> <span class="prismkeyword">R</span>&lt;=<span class="prismnum">9.5</span> [ <span class="prismkeyword">F</span> <span class="prismident">z</span>=<span class="prismnum">2</span> ] <br/>
+</div></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/PropertySpecification/Reward-basedProperties?action=sourceblock&amp;num=3' type='text/plain'>[&#036;[Get Code]]</a></div>
+</div>
+
+<p class='vspace'>which is true in a state <em>s</em> if "the expected time taken to reach, from <em>s</em>, a state where <code>z</code> equals 2 is less than or equal to 9.5".
+</p>
+<div class='vspace'></div><h3>"Co-safe LTL reward" properties</h3>
+<p>These generalise the "reachability" properties above. Again, reward is accumulated along a path up until some point,
+but this is specified in a more general way, by giving a formula in the co-safe fragment of linear temporal logic (LTL).
+Rewards are accumulated up until the point where the formula is first satisfied. For example, this property, for a DTMC or CTMC,
+queries the expected reward accumulated until first <code>goal</code> equals 1 and then subsequently <code>goal</code> equals 2:
+</p>
+<div class='vspace'></div>
+<div class='sourceblock ' id='sourceblock4'>
+  <div class='sourceblocktext'><div class="prism"> <span class="prismkeyword">R</span>=? [ <span class="prismkeyword">F</span> (<span class="prismident">goal</span>=<span class="prismnum">1</span> &amp; <span class="prismkeyword">F</span> <span class="prismident">goal</span>=<span class="prismnum">2</span>) ] <br/>
+</div></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/PropertySpecification/Reward-basedProperties?action=sourceblock&amp;num=4' type='text/plain'>[&#036;[Get Code]]</a></div>
+</div>
+
+<p class='vspace'>and this property, for an MDP, minimises the expected reward until <code>loc</code> equals 1,
+having passed only through states where <code>loc</code> never equals 4
+</p>
+<div class='vspace'></div>
+<div class='sourceblock ' id='sourceblock5'>
+  <div class='sourceblocktext'><div class="prism"> <span class="prismkeyword">Rmin</span>=? [ <span class="prismident">loc</span>!=<span class="prismnum">4</span> <span class="prismkeyword">U</span> <span class="prismident">loc</span>=<span class="prismnum">1</span> ] <br/>
+</div></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/PropertySpecification/Reward-basedProperties?action=sourceblock&amp;num=5' type='text/plain'>[&#036;[Get Code]]</a></div>
+</div>
+
+<p class='vspace'>As for reachability rewards, if the probability of satisfying the formula is less than 1,
+then the expected reward is defined to be infinite.
+</p>
+<p class='vspace'>Intuitively, a <em>co-safe</em> formula is one that is satisfied within a finite period of time,
+and remains true for ever once it becomes true for the first time.
+For simplicity, PRISM actually supports the <em>syntactic</em> co-safe fragment of LTL,
+which is defined as any LTL formula that only uses the temporal operators <code><strong>F</strong></code>, <code><strong>U</strong></code> and <code><strong>X</strong></code>
+(but not <code><strong>G</strong></code>, for example).
+PRISM's notation for LTL formulas is described <a class='wikilink' href='ThePOperator.html'>here</a>.
+</p>
+<div class='vspace'></div><h3>"Cumulative reward" properties</h3>
+<p>"Cumulative reward" properties also associate a reward with each path of a model,
+but only up to a given time bound.
+The property <code>C&lt;=t</code> corresponds to the reward cumulated along a path
+until <code>t</code> time units have elapsed.
+For DTMCs and MDPs, the bound <code>t</code> must evaluate to an integer;
+for CTMCs, it can evaluate to double.
+State and transition rewards along a path are cumulated exactly as described in the previous section.
+</p>
+<p class='vspace'>A typical application of this type of property is the following.
+Consider a model of a disk-drive controller which includes a queue of incoming disk requests.
+If we assign a reward of 1 to each transition of the model
+corresponding to the situation where an incoming request is lost because the queue is full,
+then the property:
+</p>
+<div class='vspace'></div>
+<div class='sourceblock ' id='sourceblock6'>
+  <div class='sourceblocktext'><div class="prism"> <span class="prismkeyword">R</span>=? [ <span class="prismkeyword">C</span>&lt;=<span class="prismnum">15.5</span> ] <br/>
+</div></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/PropertySpecification/Reward-basedProperties?action=sourceblock&amp;num=6' type='text/plain'>[&#036;[Get Code]]</a></div>
+</div>
+
+<p class='vspace'>would return, for a given state of the model,
+"the expected number of lost requests within 15.5 time units of operation".
+</p>
+<p class='vspace'><a name='total' id='total'></a>
+</p><h3>"Total reward" properties</h3>
+<p>"Total reward" properties refer to the accumulation of state and transition rewards
+in the same way as for "reachability reward" and "cumulative reward" properties,
+but the rewards is accumulated indefinitely,
+i.e. the total reward accumulated along the whole (infinite) path.
+Note that this means that, unless a path ends up remaining forever in states with zero reward,
+the total reward will be infinite.
+</p>
+<p class='vspace'>Re-using the reward structure in the previous example,
+</p>
+<div class='vspace'></div>
+<div class='sourceblock ' id='sourceblock7'>
+  <div class='sourceblocktext'><div class="prism"> <span class="prismkeyword">R</span>=? [ <span class="prismkeyword">C</span> ] <br/>
+</div></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/PropertySpecification/Reward-basedProperties?action=sourceblock&amp;num=7' type='text/plain'>[&#036;[Get Code]]</a></div>
+</div>
+
+<p class='vspace'>returns "the expected total number of lost requests".
+</p>
+<div class='vspace'></div><h3>"Instantaneous reward" properties</h3>
+<p>"Instantaneous reward" properties refer to the reward of a model at a particular instant in time.
+The reward property <code>I=t</code> associates with a path the reward in the state 
+of that path when exactly <code>t</code> time units have elapsed.
+For DTMCs and MDPs, the bound <code>t</code> must evaluate to an integer;
+for CTMCs, it can evaluate to double.
+</p>
+<p class='vspace'>Returning to our example from the previous section of a model for a disk-request queue in a disk-drive controller,
+consider the case where the rewards assigned to each state of the model give the current size of the queue in that state.
+Then, the following property:
+</p>
+<div class='vspace'></div>
+<div class='sourceblock ' id='sourceblock8'>
+  <div class='sourceblocktext'><div class="prism"> <span class="prismkeyword">R</span>&lt;<span class="prismnum">4.4</span> [ <span class="prismkeyword">I</span>=<span class="prismnum">100</span> ] <br/>
+</div></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/PropertySpecification/Reward-basedProperties?action=sourceblock&amp;num=8' type='text/plain'>[&#036;[Get Code]]</a></div>
+</div>
+
+<p class='vspace'>would be true in a state <em>s</em> of the model if
+"starting from <em>s</em>, the expected queue size exactly 100 time units later is less than 4.4".
+Note that, for this type of reward property, state rewards for CTMCs do not have to refer to rates;
+they can refer to any instantaneous measure of interest for a state.
+</p>
+<div class='vspace'></div><h3>"Steady-state reward" properties</h3>
+<p>Unlike the previous three types of property,
+"steady-state reward" properties relate not to paths, but rather to the reward in the long-run.
+A typical application of this type of property would be, in the case where
+the rewards associated with the model correspond to power consumption, the property:
+</p>
+<div class='vspace'></div>
+<div class='sourceblock ' id='sourceblock9'>
+  <div class='sourceblocktext'><div class="prism"> <span class="prismkeyword">R</span>&lt;=<span class="prismnum">0.7</span> [ <span class="prismkeyword">S</span> ] <br/>
+</div></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/PropertySpecification/Reward-basedProperties?action=sourceblock&amp;num=9' type='text/plain'>[&#036;[Get Code]]</a></div>
+</div>
+
+<p class='vspace'>which is true in a state <em>s</em> if "starting from <em>s</em>, the long-run average power consumption is less than 0.7".
+</p>
+<div class='vspace'></div><h3>Which reward structure?</h3>
+<p>In the case where a PRISM model has multiple <a class='wikilink' href='../ThePRISMLanguage/CostsAndRewards.html'>reward structures</a> you may need to specify which reward structure your property refers to. This is done by placing the information in braces (<code>{}</code>) after the <code>R</code> operator. You can do so either using the name assigned to a reward structure (if any) or using the index (where <code>1</code> means the first rewards structure in the PRISM model file, <code>2</code> the second, etc.). Examples are:
+</p>
+<div class='vspace'></div>
+<div class='sourceblock ' id='sourceblock10'>
+  <div class='sourceblocktext'><div class="prism"><span class="prismkeyword">R</span>{"<span class="prismident">num_failures</span>"}=? [ <span class="prismkeyword">C</span>&lt;=<span class="prismnum">10.0</span> ]<br/>
+<span class="prismkeyword">R</span>{"<span class="prismident">time</span>"}=? [ <span class="prismkeyword">F</span> <span class="prismident">step</span>=<span class="prismident">final</span> ]<br/>
+<span class="prismkeyword">R</span>{<span class="prismnum">2</span>}=? [ <span class="prismkeyword">F</span> <span class="prismident">step</span>=<span class="prismident">final</span> ]<br/>
+</div></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/PropertySpecification/Reward-basedProperties?action=sourceblock&amp;num=10' type='text/plain'>[&#036;[Get Code]]</a></div>
+</div>
+
+<p class='vspace'>Note that when using an index to specify the reward structure, you can actually put any expression that evaluates to an integer. This allows you to, for example, write a property of the form <code>R{c}=?[...]</code> where <code>c</code> is an undefined integer constant. You can then vary the value of <code>c</code> in an experiment and compute values for several different reward structures at once.
+</p>
+<p class='vspace'>If you don't specify a reward structure to the <code>R</code> operator, by default, the first one in the model file is used.
+</p>
+<div class='vspace'></div><h3>Availability</h3>
+<p>There are currently a few restrictions on the model checking <a class='wikilink' href='../ConfiguringPRISM/ComputationEngines.html'>engines</a> that can be used for some reward properties. The following table summarises the currently availability, where S, M, H and E denote the "sparse", "MTBDD", "hybrid" and "explicit" engines, respectively, for DTMCs, CTMCs and MDPs. For PTAs, support for rewards is currently quite restrictive; see the later section on <a class='wikilink' href='Real-timeModels.html'>real-time model properties</a> for details.
+</p>
+<div class='vspace'></div>
+<table border='1' cellpadding='5' ><tr ><td >&nbsp;</td><td  align='center'><code><strong>F</strong></code></td><td  align='center'>cosafe</td><td  align='center'><code><strong>C</strong>&lt;=t</code></td><td  align='center'><code><strong>C</strong></code></td><td  align='left'><code><strong>I</strong>=t</code></td><td  align='right'><code><strong>S</strong></code></td></tr>
+<tr ><td  align='center'><strong>DTMCs</strong></td><td  align='center'>SMHE</td><td  align='center'>SMHE</td><td  align='center'>SMHE</td><td  align='center'>SMHE</td><td  align='center'>SMHE</td><td  align='right'>SMHE</td></tr>
+<tr ><td  align='center'><strong>CTMCs</strong></td><td  align='center'>SMHE</td><td  align='center'>SMHE</td><td  align='center'>SMHE</td><td  align='center'>SMHE</td><td  align='center'>SMHE</td><td  align='right'>SMHE</td></tr>
+<tr ><td  align='center'><strong>MDPs</strong></td><td  align='center'>SM-E</td><td  align='center'>SMHE</td><td  align='center'>S--E</td><td  align='center'>----</td><td  align='center'>SM-E</td><td  align='right'>----</td></tr>
+</table>
+</div>
+
+
+</body>
+</html>

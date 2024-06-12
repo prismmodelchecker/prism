@@ -42,7 +42,7 @@ import prism.PrismException;
 public class SCCComputerTarjan extends SCCComputer
 {
 	/* The model to compute (B)SCCs for */
-	private Model model;
+	private Model<?> model;
 	/* Number of nodes (model states) */
 	private int numNodes;
 
@@ -61,7 +61,7 @@ public class SCCComputerTarjan extends SCCComputer
 	/**
 	 * Build (B)SCC computer for a given model.
 	 */
-	public SCCComputerTarjan(PrismComponent parent, Model model, SCCConsumer consumer) throws PrismException
+	public SCCComputerTarjan(PrismComponent parent, Model<?> model, SCCConsumer consumer) throws PrismException
 	{
 		super(parent, consumer);
 		this.model = model;

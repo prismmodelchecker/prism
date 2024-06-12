@@ -37,7 +37,7 @@ import explicit.graphviz.ShowRewardDecorator;
 import explicit.modelviews.EquivalenceRelationInteger;
 import explicit.modelviews.MDPDroppedChoicesCached;
 import explicit.modelviews.MDPEquiv;
-import explicit.modelviews.MDPEquiv.StateChoicePair;
+import explicit.modelviews.StateChoicePair;
 import explicit.rewards.MDPRewards;
 import prism.PrismComponent;
 import prism.PrismException;
@@ -52,27 +52,27 @@ import prism.PrismException;
  * In the quotient, those zero-reward MECs are each collapsed to a single state,
  * with choices that have transitions outside the MEC preserved.
  */
-public class ZeroRewardECQuotient
+public class ZeroRewardECQuotient<Value>
 {
-	private MDPEquiv quotient;
-	private MDPRewards quotientRewards;
+	private MDPEquiv<Value> quotient;
+	private MDPRewards<Value> quotientRewards;
 	private int numberOfZMECs;
 
 	private static final boolean debug = false;
 
-	private ZeroRewardECQuotient(MDPEquiv quotient, MDPRewards quotientRewards, int numberOfZMECs)
+	private ZeroRewardECQuotient(MDPEquiv<Value> quotient, MDPRewards<Value> quotientRewards, int numberOfZMECs)
 	{
 		this.quotient = quotient;
 		this.quotientRewards = quotientRewards;
 		this.numberOfZMECs = numberOfZMECs;
 	}
 
-	public MDP getModel()
+	public MDP<Value> getModel()
 	{
 		return quotient;
 	}
 
-	public MDPRewards getRewards()
+	public MDPRewards<Value> getRewards()
 	{
 		return quotientRewards;
 	}
@@ -94,19 +94,20 @@ public class ZeroRewardECQuotient
 		}
 	}
 
-	public static ZeroRewardECQuotient getQuotient(PrismComponent parent, MDP mdp, BitSet restrict, MDPRewards rewards) throws PrismException
+	public static <Value> ZeroRewardECQuotient<Value> getQuotient(PrismComponent parent, MDP<Value> mdp, BitSet restrict, MDPRewards<Value> rewards) throws PrismException
 	{
 		PairPredicateInt positiveRewardChoice = (int s, int i) -> {
-			if (rewards.getStateReward(s) > 0)
+			if (mdp.getEvaluator().gt(rewards.getStateReward(s), mdp.getEvaluator().zero())) {
 				return true;
-			if (rewards.getTransitionReward(s, i) > 0) {
+			}
+			if (mdp.getEvaluator().gt(rewards.getTransitionReward(s, i), mdp.getEvaluator().zero())) {
 				return true;
 			}
 			return false;
 		};
 
 		// drop positive reward choices
-		MDPDroppedChoicesCached zeroRewMDP = new MDPDroppedChoicesCached(mdp, positiveRewardChoice);
+		MDPDroppedChoicesCached<Value> zeroRewMDP = new MDPDroppedChoicesCached<>(mdp, positiveRewardChoice);
 		// compute the MECs in the zero-reward sub-MDP
 		ECComputer ecComputer = ECComputerDefault.createECComputer(parent, zeroRewMDP);
 		ecComputer.computeMECStates(restrict);
@@ -132,22 +133,22 @@ public class ZeroRewardECQuotient
 			return rv;
 		};
 
-		final MDPDroppedChoicesCached droppedZeroRewardLoops = new MDPDroppedChoicesCached(mdp, zeroRewardECloop);
+		final MDPDroppedChoicesCached<Value> droppedZeroRewardLoops = new MDPDroppedChoicesCached<>(mdp, zeroRewardECloop);
 		if (debug)
 			droppedZeroRewardLoops.exportToDotFile("zero-mec-loops-dropped.dot");
 
-		BasicModelTransformation<MDP, MDPEquiv> transform = MDPEquiv.transform(droppedZeroRewardLoops, equiv);
-		final MDPEquiv quotient = transform.getTransformedModel();
+		BasicModelTransformation<MDP<Value>, MDPEquiv<Value>> transform = MDPEquiv.transform(droppedZeroRewardLoops, equiv);
+		final MDPEquiv<Value> quotient = transform.getTransformedModel();
 
-		MDPRewards quotientRewards = new MDPRewards() {
+		MDPRewards<Value> quotientRewards = new MDPRewards<Value>() {
 			@Override
-			public double getStateReward(int s)
+			public Value getStateReward(int s)
 			{
 				return rewards.getStateReward(s);
 			}
 
 			@Override
-			public double getTransitionReward(int s, int i)
+			public Value getTransitionReward(int s, int i)
 			{
 				StateChoicePair mapped = quotient.mapToOriginalModel(s, i);
 				int mappedChoiceInOriginal = droppedZeroRewardLoops.mapChoiceToOriginalModel(mapped.getState(), mapped.getChoice());
@@ -155,7 +156,7 @@ public class ZeroRewardECQuotient
 			}
 
 			@Override
-			public MDPRewards liftFromModel(Product<? extends Model> product)
+			public MDPRewards<Value> liftFromModel(Product<?> product)
 			{
 				throw new RuntimeException("Not implemented");
 			}
@@ -168,11 +169,11 @@ public class ZeroRewardECQuotient
 		};
 
 		if (debug) {
-			List<Decorator> decorators = Arrays.asList(new ShowRewardDecorator(quotientRewards));
+			List<Decorator> decorators = Arrays.asList(new ShowRewardDecorator<>(quotientRewards));
 			quotient.exportToDotFile("zero-mec-quotient.dot", decorators);
 		}
 
-		return new ZeroRewardECQuotient(quotient, quotientRewards, mecs.size());
+		return new ZeroRewardECQuotient<>(quotient, quotientRewards, mecs.size());
 	}
 
 }

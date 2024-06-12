@@ -34,7 +34,7 @@ import java.util.*;
  * The order in which distributions are inserted is preserved
  * (but does not affect equality of distributions sets).
  */
-public class DistributionSet extends LinkedHashSet<Distribution>
+public class DistributionSet<Value> extends LinkedHashSet<Distribution<Value>>
 {
 	private static final long serialVersionUID = 1L;
 
@@ -61,7 +61,7 @@ public class DistributionSet extends LinkedHashSet<Distribution>
 	 */
 	public boolean isSubsetOf(BitSet set)
 	{
-		for (Distribution itDist : this) {
+		for (Distribution<Value> itDist : this) {
 			if (!itDist.isSubsetOf(set)) {
 				return false;
 			}
@@ -74,7 +74,7 @@ public class DistributionSet extends LinkedHashSet<Distribution>
 	 */
 	public boolean containsOneOf(BitSet set)
 	{
-		for (Distribution itDist : this) {
+		for (Distribution<Value> itDist : this) {
 			if (itDist.containsOneOf(set)) {
 				return true;
 			}
@@ -89,7 +89,7 @@ public class DistributionSet extends LinkedHashSet<Distribution>
 
 	public boolean equals(Object o)
 	{
-		return super.equals(o) && action == ((DistributionSet) o).action;
+		return super.equals(o) && action == ((DistributionSet<?>) o).action;
 	}
 
 	/**
@@ -97,10 +97,10 @@ public class DistributionSet extends LinkedHashSet<Distribution>
 	 * @param d the distribution to look up
 	 * @return the index of {@code d} or -1 if not found
 	 */
-	public int indexOf(Distribution d)
+	public int indexOf(Distribution<Value> d)
 	{
 		int i = -1;
-		for (Distribution itDist : this) {
+		for (Distribution<Value> itDist : this) {
 			i++;
 			if (itDist.equals(d)) {
 				return i;

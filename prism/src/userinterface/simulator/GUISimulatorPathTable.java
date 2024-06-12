@@ -47,7 +47,7 @@ public class GUISimulatorPathTable extends GUIGroupedTable
 	// Table model
 	private GUISimulatorPathTableModel ptm;
 	// Component on left hand side to show path loops
-	private JList loopIndicator;
+	private JList<String> loopIndicator;
 	private LoopIndicatorListModel loopIndicatorModel;
 
 	/** Creates a new instance of GUISimulatorPathTable */
@@ -63,7 +63,7 @@ public class GUISimulatorPathTable extends GUIGroupedTable
 		setDefaultRenderer(Object.class, new PathChangeTableRenderer(true));
 		// Loop indicator
 		loopIndicatorModel = new LoopIndicatorListModel();
-		loopIndicator = new JList(loopIndicatorModel);
+		loopIndicator = new JList<>(loopIndicatorModel);
 		loopIndicator.setBackground(new JPanel().getBackground());
 		loopIndicator.setFixedCellWidth(25);
 		loopIndicator.setFixedCellHeight(getRowHeight());
@@ -109,7 +109,7 @@ public class GUISimulatorPathTable extends GUIGroupedTable
 
 	// Cell renderer for list representing loop indicator (left of path table)
 
-	class LoopIndicatorRenderer extends JPanel implements ListCellRenderer
+	class LoopIndicatorRenderer extends JPanel implements ListCellRenderer<String>
 	{
 		private static final long serialVersionUID = 1L;
 
@@ -126,7 +126,7 @@ public class GUISimulatorPathTable extends GUIGroupedTable
 			 setFont(header.getFont());*/
 		}
 
-		public Component getListCellRendererComponent(JList list, Object value, int index, boolean isSelected, boolean cellHasFocus)
+		public Component getListCellRendererComponent(JList<? extends String> list, String value, int index, boolean isSelected, boolean cellHasFocus)
 		{
 			//setText((value == null) ? "" : value.toString());
 			//setBorder(new LineBorder(Color.black, 1));
@@ -216,11 +216,11 @@ public class GUISimulatorPathTable extends GUIGroupedTable
 
 	// Model for list representing loop indicator
 
-	class LoopIndicatorListModel extends AbstractListModel
+	class LoopIndicatorListModel extends AbstractListModel<String>
 	{
 		private static final long serialVersionUID = 1L;
 
-		public Object getElementAt(int index)
+		public String getElementAt(int index)
 		{
 			return "";
 		}
@@ -257,10 +257,7 @@ public class GUISimulatorPathTable extends GUIGroupedTable
 			this.value = value;
 			this.isSelected = isSelected;
 
-			if (value instanceof String) {
-				stringValue = (String) value;
-				this.setToolTipText("State " + row);
-			} else if (value instanceof ActionValue) {
+			if (value instanceof ActionValue) {
 				ActionValue actionValue = (ActionValue) value;
 				if (actionValue.isActionValueUnknown()) {
 					// unused:
@@ -321,7 +318,18 @@ public class GUISimulatorPathTable extends GUIGroupedTable
 					if (rewardValue.getRewardStructureColumn().isTransitionReward())
 						this.setToolTipText("Transition reward of reward structure " + rewardName + " from state " + (row) + " to " + (row + 1));
 				}
-
+			} else if (value instanceof MemoryValue) {
+				MemoryValue memoryValue = (MemoryValue) value;
+				if (memoryValue.isMemoryValueUnknown()) {
+					stringValue = "?";
+					this.setToolTipText("Memory of strategy in state " + (row) + " (not yet known)");
+				} else {
+					stringValue = memoryValue.getValue().toString();
+					this.setToolTipText("Memory of strategy in state " + (row));
+				}
+			} else {
+				stringValue = value.toString();
+				this.setToolTipText("State " + row);
 			}
 		}
 
@@ -339,19 +347,8 @@ public class GUISimulatorPathTable extends GUIGroupedTable
 			width = (int) Math.ceil(rect.getWidth());
 			height = (int) Math.ceil(rect.getHeight());
 
-			// State index/action
-			if (value instanceof String || value instanceof ActionValue) {
-				// Position (horiz centred, vert centred)
-				x = (getWidth() / 2) - (width / 2);
-				y = (getHeight() / 2) + (height / 2);
-				// Write value
-				g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_OFF);
-				g2.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
-				g2.setColor(Color.black);
-				g2.drawString(stringValue, x, y);
-			}
 			// Variable value
-			else if (value instanceof VariableValue) {
+			if (value instanceof VariableValue) {
 				VariableValue variableValue = (VariableValue) value;
 				// Position (horiz centred, vert centred)
 				x = (getWidth() / 2) - (width / 2);
@@ -443,6 +440,17 @@ public class GUISimulatorPathTable extends GUIGroupedTable
 				g2.setColor(Color.black);
 				g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_OFF);
 				g2.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+				g2.drawString(stringValue, x, y);
+			}
+			// Anything else (including ActionValue)
+			else {
+				// Position (horiz centred, vert centred)
+				x = (getWidth() / 2) - (width / 2);
+				y = (getHeight() / 2) + (height / 2);
+				// Write value
+				g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_OFF);
+				g2.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+				g2.setColor(Color.black);
 				g2.drawString(stringValue, x, y);
 			}
 		}

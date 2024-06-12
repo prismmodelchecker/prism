@@ -41,7 +41,7 @@ import strat.MDStrategy;
  * Each transition from a state is considered to be a separate (singleton) "choice",
  * following the terminology in other nondeterministic explicit-state models.
  */
-public class LTSSimple extends ModelExplicit implements LTS, NondetModelSimple
+public class LTSSimple<Value> extends ModelExplicit<Value> implements LTS<Value>, NondetModelSimple<Value>
 {
 	// Transition relation
 	protected List<List<Integer>> trans;
@@ -73,7 +73,7 @@ public class LTSSimple extends ModelExplicit implements LTS, NondetModelSimple
 	/**
 	 * Construct an LTS from an existing one.
 	 */
-	public LTSSimple(LTSSimple lts)
+	public LTSSimple(LTSSimple<Value> lts)
 	{
 		this(lts.getNumStates());
 		copyFrom(lts);
@@ -93,7 +93,7 @@ public class LTSSimple extends ModelExplicit implements LTS, NondetModelSimple
 	 * Construct an LTS from an existing one and a state index permutation,
 	 * i.e. in which state index i becomes index permut[i].
 	 */
-	public LTSSimple(LTSSimple lts, int permut[])
+	public LTSSimple(LTSSimple<Value> lts, int permut[])
 	{
 		this(lts.getNumStates());
 		copyFrom(lts, permut);
@@ -283,7 +283,7 @@ public class LTSSimple extends ModelExplicit implements LTS, NondetModelSimple
 	}
 
 	@Override
-	public Model constructInducedModel(MDStrategy strat)
+	public Model<Value> constructInducedModel(MDStrategy<Value> strat)
 	{
 		throw new UnsupportedOperationException();
 	}

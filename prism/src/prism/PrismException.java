@@ -33,6 +33,14 @@ public class PrismException extends Exception
 		super(s);
 	}
 	
+	/**
+	 * Return a new exception of the same type with {@code prefix} prepended to the message.
+	 */
+	public PrismException prepend(String prefix)
+	{
+		return new PrismException(prefix + getMessage());
+	}
+	
 	public String toString()
 	{
 		return "Error: " + getMessage() + ".";

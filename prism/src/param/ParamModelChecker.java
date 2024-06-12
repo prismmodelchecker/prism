@@ -141,8 +141,6 @@ final public class ParamModelChecker extends PrismComponent
 	private Lumper.BisimType bisimType;
 	private boolean simplifyRegions;
 
-	private ModelBuilder modelBuilder;
-	
 	/**
 	 * Constructor
 	 */
@@ -263,7 +261,7 @@ final public class ParamModelChecker extends PrismComponent
 		// Store result
 		result = new Result();
 		vals.clearExceptInit();
-		result.setResult(new ParamResult(mode, vals, modelBuilder, functionFactory));
+		result.setResult(new ParamResult(mode, vals, functionFactory));
 		
 		/* // Output plot to tex file
 		if (paramLower.length == 2) {
@@ -328,6 +326,9 @@ final public class ParamModelChecker extends PrismComponent
 			break;
 		case ExpressionBinaryOp.DIVIDE:
 			regionOp = Region.DIVIDE;
+			break;
+		case ExpressionBinaryOp.POW:
+			regionOp = Region.POW;
 			break;
 		default:
 			throw new PrismNotSupportedException("operator \"" + ExpressionBinaryOp.opSymbols[parserOp]
@@ -1135,7 +1136,7 @@ final public class ParamModelChecker extends PrismComponent
 						varMap[i] = i;
 					}
 					Expression exprState = (Expression) expr.deepCopy().evaluatePartially(statesList.get(state), varMap);
-					Function newReward = modelBuilder.expr2function(functionFactory, exprState);
+					Function newReward = functionFactory.expr2function(exprState, constantValues);
 					for (int choice = model.stateBegin(state); choice < model.stateEnd(state); choice++) {
 						Function sumOut = model.sumLeaving(choice);
 						Function choiceReward;
@@ -1249,9 +1250,4 @@ final public class ParamModelChecker extends PrismComponent
 	public static void closeDown() {
 		ComputerThreads.terminate();
 	}
-
-	public void setModelBuilder(ModelBuilder builder)
-	{
-		this.modelBuilder = builder;
-	}	
 }

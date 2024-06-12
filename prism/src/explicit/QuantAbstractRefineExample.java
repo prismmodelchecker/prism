@@ -48,7 +48,7 @@ public class QuantAbstractRefineExample extends QuantAbstractRefine
 	protected boolean rebuildImmed = false; // Rebuild split states immediately
 
 	// Concrete model
-	protected ModelSimple modelConcrete;
+	protected ModelSimple<Double> modelConcrete;
 	protected ModulesFile modulesFile;
 	protected int nConcrete; // Number of (concrete) states
 	protected BitSet initialConcrete; // Initial (concrete) states
@@ -164,10 +164,10 @@ public class QuantAbstractRefineExample extends QuantAbstractRefine
 	/**
 	 * Abstract a concrete state c of an MDP ready to add to an STPG state.
 	 */
-	protected DistributionSet buildAbstractDistributionSet(int c, MDPSimple mdp, STPG stpg)
+	protected DistributionSet buildAbstractDistributionSet(int c, MDPSimple<Double> mdp, STPG stpg)
 	{
 		DistributionSet set = ((STPGAbstrSimple) stpg).newDistributionSet(null);
-		for (Distribution distr : mdp.getChoices(c)) {
+		for (Distribution<Double> distr : mdp.getChoices(c)) {
 			set.add(distr.map(concreteToAbstract));
 		}
 		return set;
@@ -324,7 +324,7 @@ public class QuantAbstractRefineExample extends QuantAbstractRefine
 			ModulesFile modulesFile = prism.parseModelFile(new File(args[0]));
 			UndefinedConstants undefinedConstants = new UndefinedConstants(modulesFile, null);
 			undefinedConstants.defineUsingConstSwitch("");
-			modulesFile.setUndefinedConstants(undefinedConstants.getMFConstantValues());
+			modulesFile.setSomeUndefinedConstants(undefinedConstants.getMFConstantValues());
 			modulesFile = (ModulesFile) modulesFile.deepCopy().expandConstants(modulesFile.getConstantList());
 			
 			// Build the model (explicit-state reachability) 

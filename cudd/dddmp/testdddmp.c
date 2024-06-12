@@ -323,6 +323,7 @@ main(
   return (DDDMP_SUCCESS);
 }
 
+
 /*---------------------------------------------------------------------------*/
 /* Definition of internal functions                                          */
 /*---------------------------------------------------------------------------*/
@@ -557,13 +558,16 @@ BddCreate (
   DdNode **vet, *f, *g, *h;
   int nb, nv, vi0, vi1, nc, i, j;
   char row[DDDMPTEST_MAX_FILENAME_LENGTH];
+  char *retval;
 
   /*------------------------ Read Operation Operands ------------------------*/
 
   ReadInt (DDDMP_MESSAGE_BDD, &nb);
 
   fprintf (stdout, "Variables Index [n-m] (m-n = number of variables): ");
-  fgets (row, DDDMPTEST_MAX_STRING_LENGTH, stdin);
+  retval = fgets (row, DDDMPTEST_MAX_STRING_LENGTH, stdin);
+  if (!retval)
+    return (DDDMP_FAILURE);
   sscanf (row, "%d-%d", &vi0, &vi1);
   nv = vi1-vi0+1;
 
@@ -1406,7 +1410,7 @@ BddArrayLoadCnf (
 {
   DdNode **rootsPtr = NULL;
   Dddmp_DecompCnfLoadType loadingMode = DDDMP_CNF_MODE_CONJ_QUANT;
-  int i, j, nRoots, retValue;
+  int i, j, nRoots;
   char fileName[DDDMPTEST_MAX_FILENAME_LENGTH];
 
   /*------------------------ Read Operation Operands ------------------------*/
@@ -1416,7 +1420,7 @@ BddArrayLoadCnf (
 
   /*--------------------------- Loading BDDs --------------------------------*/
 
-  retValue = Dddmp_cuddBddArrayLoadCnf (ddMgr, rootmatchmode,
+  (void) Dddmp_cuddBddArrayLoadCnf (ddMgr, rootmatchmode,
     varInfo->rootNames, varmatchmode,
     varInfo->orderedVarNames, varInfo->varIdsAll, varInfo->varComposeIdsAll,
     loadingMode, fileName, NULL, &rootsPtr, &nRoots);
@@ -1938,6 +1942,7 @@ SetLoadMatchmode (
 {
   int sel;
   char row[DDDMPTEST_MAX_FILENAME_LENGTH];
+  char *retval;
 
   fprintf (stdout, "Variable matchmode:\n");
   fprintf (stdout, "Match IDs                                (1)\n");
@@ -1948,7 +1953,9 @@ SetLoadMatchmode (
   fprintf (stdout, "Your choice: ");
   fflush (stdout);
 
-  fgets (row, DDDMPTEST_MAX_STRING_LENGTH, stdin);
+  retval = fgets (row, DDDMPTEST_MAX_STRING_LENGTH, stdin);
+  if (!retval)
+    return (DDDMP_FAILURE);
   sscanf (row, "%d", &sel);
 
   switch (sel) {
@@ -2172,6 +2179,7 @@ ReadInt (
   )
 {
   char row[DDDMPTEST_MAX_FILENAME_LENGTH];
+  char *retval;
 
   switch (message) {
     case DDDMP_MESSAGE_MANAGER_VAR:
@@ -2220,9 +2228,10 @@ ReadInt (
   }
   fflush (stdout);
 
-  fgets (row, DDDMPTEST_MAX_STRING_LENGTH, stdin);
+  retval = fgets (row, DDDMPTEST_MAX_STRING_LENGTH, stdin);
+  if (!retval)
+    return;
   sscanf (row, "%d", i);
-  fflush (stdin);
 
   return;
 }
@@ -2247,6 +2256,7 @@ ReadString (
   )
 {
   char localString[DDDMPTEST_MAX_STRING_LENGTH];
+  char *retval;
 
   switch (message) {
     case DDDMP_MESSAGE_PROMPT:
@@ -2267,9 +2277,11 @@ ReadString (
   }
   fflush (stdout);
 
-  fgets (localString, DDDMPTEST_MAX_STRING_LENGTH, stdin);
+  string[0] = '\n';
+  retval = fgets (localString, DDDMPTEST_MAX_STRING_LENGTH, stdin);
+  if (!retval)
+    return;
   sscanf (localString, "%s", string);
-  fflush (stdin);
 
   return;
 }

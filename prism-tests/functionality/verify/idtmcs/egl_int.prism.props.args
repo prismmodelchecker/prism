@@ -1,0 +1,3 @@
+# -ex -const N=4 -const L=4 -const err=0.1 -convprog Gurobi
+# -ex -const N=4 -const L=4 -const err=0.1 -convprog lpsolve
+-ex -const N=4 -const L=4 -const err=0.1 -epsilon 1e-8

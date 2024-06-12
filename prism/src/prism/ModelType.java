@@ -188,6 +188,33 @@ public enum ModelType
 		{
 			return DTMC;
 		}
+	},
+	IDTMC("interval discrete-time Markov chain") {
+		@Override
+		public boolean nondeterministic()
+		{
+			// NB: we distinguish between nondeterminism and uncertainty
+			return false;
+		}
+		
+		@Override
+		public boolean uncertain()
+		{
+			return true;
+		}
+	},
+	IMDP("interval Markov decision process") {
+		@Override
+		public ModelType removeNondeterminism()
+		{
+			return DTMC;
+		}
+		
+		@Override
+		public boolean uncertain()
+		{
+			return true;
+		}
 	};
 
 	private static final String PROBABILITY = "Probability";
@@ -282,6 +309,14 @@ public enum ModelType
 		return false;
 	}
 	
+	/**
+	 * Does this model have uncertainty (e.g., intervals)?
+	 */
+	public boolean uncertain()
+	{
+		return false;
+	}
+
 	/**
 	 * Return the model type that results from removing the nondeterminism
 	 * in this model type.

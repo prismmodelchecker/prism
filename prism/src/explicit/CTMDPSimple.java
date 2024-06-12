@@ -33,7 +33,7 @@ import prism.PrismUtils;
 /**
  * Simple explicit-state representation of a CTMDP.
  */
-public class CTMDPSimple extends MDPSimple implements CTMDP
+public class CTMDPSimple<Value> extends MDPSimple<Value> implements CTMDP<Value>
 {
 	// Constructors
 
@@ -56,7 +56,7 @@ public class CTMDPSimple extends MDPSimple implements CTMDP
 	/**
 	 * Copy constructor.
 	 */
-	public CTMDPSimple(CTMDPSimple ctmdp)
+	public CTMDPSimple(CTMDPSimple<Value> ctmdp)
 	{
 		super(ctmdp);
 	}
@@ -67,7 +67,7 @@ public class CTMDPSimple extends MDPSimple implements CTMDP
 	 * Note: have to build new Distributions from scratch anyway to do this,
 	 * so may as well provide this functionality as a constructor.
 	 */
-	public CTMDPSimple(CTMDPSimple ctmdp, int permut[])
+	public CTMDPSimple(CTMDPSimple<Value> ctmdp, int permut[])
 	{
 		super(ctmdp, permut);
 	}
@@ -75,15 +75,15 @@ public class CTMDPSimple extends MDPSimple implements CTMDP
 	// Accessors (for CTMDP)
 
 	@Override
-	public double getMaxExitRate()
+	public Value getMaxExitRate()
 	{
-		int i;
-		double d, max = Double.NEGATIVE_INFINITY;
-		for (i = 0; i < numStates; i++) {
-			for (Distribution distr : trans.get(i)) {
-				d = distr.sum();
-				if (d > max)
+		Value max = null;
+		for (int i = 0; i < numStates; i++) {
+			for (Distribution<Value> distr : trans.get(i)) {
+				Value d = distr.sum();
+				if (max == null || getEvaluator().gt(d, max)) {
 					max = d;
+				}
 			}
 		}
 		return max;
@@ -98,9 +98,9 @@ public class CTMDPSimple extends MDPSimple implements CTMDP
 			n = trans.get(i).size();
 			if (n < 2)
 				continue;
-			d = trans.get(i).get(0).sum();
+			d = (Double) trans.get(i).get(0).sum();
 			for (j = 1; j < n; j++) {
-				if (!PrismUtils.doublesAreCloseAbs(trans.get(i).get(j).sum(), d, 1e-12))
+				if (!PrismUtils.doublesAreCloseAbs((Double) trans.get(i).get(j).sum(), d, 1e-12))
 					return false;
 			}
 		}
@@ -108,15 +108,16 @@ public class CTMDPSimple extends MDPSimple implements CTMDP
 	}
 
 	@Override
-	public MDP buildImplicitDiscretisedMDP(double tau)
+	public MDP<Value> buildImplicitDiscretisedMDP(double tau)
 	{
 		// TODO
 		return null;
 	}
 
 	@Override
-	public MDPSimple buildDiscretisedMDP(double tau)
+	public MDPSimple<Value> buildDiscretisedMDP(double tau)
 	{
+		// Assumes doubles for now (needs exponent)
 		MDPSimple mdp;
 		Distribution distrNew;
 		int i;
@@ -127,10 +128,10 @@ public class CTMDPSimple extends MDPSimple implements CTMDP
 		}
 		for (i = 0; i < numStates; i++) {
 			for (Distribution distr : trans.get(i)) {
-				distrNew = new Distribution();
-				sum = distr.sum();
+				distrNew = Distribution.ofDouble();
+				sum = (Double) distr.sum();
 				d = Math.exp(-sum * tau);
-				for (Map.Entry<Integer, Double> e : distr) {
+				for (Map.Entry<Integer, Double> e : (Distribution<Double>) distr) {
 					distrNew.add(e.getKey(), (1 - d) * (e.getValue() / sum));
 				}
 				distrNew.add(i, d);

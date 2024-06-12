@@ -29,18 +29,49 @@ package explicit.rewards;
 
 import explicit.Model;
 import explicit.Product;
+import prism.Evaluator;
 
 /**
  * Interface implemented by all reward classes.
  */
-public interface Rewards
+public interface Rewards<Value>
 {
 	/**
 	 * Create a new reward structure that lifts this one such that it is defined over states of a
 	 * model that is a product of the one that this reward structure is defined over. 
 	 */
-	public Rewards liftFromModel(Product<? extends Model> product);
+	public Rewards<Value> liftFromModel(Product<?> product);
 
-	/** Returns true if this reward structure has transition rewards */
-	public boolean hasTransitionRewards();
+	/**
+	 * Returns true if this reward structure has state rewards.
+	 * This method can sometimes return true even if there are some,
+	 * but a value of false always indicates that none are present.
+	 */
+	public default boolean hasStateRewards()
+	{
+		// Safe to assume true by default
+		return true;
+	}
+
+	/**
+	 * Returns true if this reward structure has transition rewards.
+	 * This method can sometimes return true even if there are some,
+	 * but a value of false always indicates that none are present.
+	 */
+	public default boolean hasTransitionRewards()
+	{
+		// Safe to assume true by default
+		return true;
+	}
+
+	/**
+	 * Get an Evaluator for the reward values stored in this class.
+	 * This is needed, for example, to compute sums, check for equality to 0/1, etc.
+	 * A default implementation provides an evaluator for the (usual) case when Value is Double.
+	 */
+	@SuppressWarnings("unchecked")
+	public default Evaluator<Value> getEvaluator()
+	{
+		return (Evaluator<Value>) Evaluator.forDouble();
+	}
 }

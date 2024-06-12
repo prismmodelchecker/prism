@@ -126,7 +126,7 @@ static ODDNode *build_odd_rec(DdManager *ddman, DdNode *dd, int level, DdNode **
 			ptr->e = NULL;
 			ptr->t = NULL;
 		}
-		else if (vars[level]->index < dd->index) {
+		else if (Cudd_NodeReadIndex(vars[level]) < Cudd_NodeReadIndex(dd)) {
 			ptr->e = build_odd_rec(ddman, dd, level+1, vars, num_vars, tables);
 			ptr->t = ptr->e;
 		}
@@ -213,12 +213,12 @@ int get_index_of_first_from_bdd(DdManager *ddman, DdNode *dd, DdNode **vars, int
 	ptr = dd;
 	odd_ptr = odd;
 	for (i = 0; i < num_vars; i++) {
-		ptr_next = (ptr->index > vars[i]->index) ? ptr : Cudd_E(ptr);
+		ptr_next = (Cudd_NodeReadIndex(ptr) > Cudd_NodeReadIndex(vars[i])) ? ptr : Cudd_E(ptr);
 		if (ptr_next != Cudd_ReadZero(ddman)) {
 			odd_ptr = odd_ptr->e;
 		}
 		else {
-			ptr_next = (ptr->index > vars[i]->index) ? ptr : Cudd_T(ptr);
+			ptr_next = (Cudd_NodeReadIndex(ptr) > Cudd_NodeReadIndex(vars[i])) ? ptr : Cudd_T(ptr);
 			index += odd_ptr->eoff;
 			odd_ptr = odd_ptr->t;
 		}

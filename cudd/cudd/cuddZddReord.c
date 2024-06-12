@@ -1,45 +1,14 @@
-/**CFile***********************************************************************
+/**
+  @file
 
-  FileName    [cuddZddReord.c]
+  @ingroup cudd
 
-  PackageName [cudd]
+  @brief Procedures for dynamic variable ordering of ZDDs.
 
-  Synopsis    [Procedures for dynamic variable ordering of ZDDs.]
+  @author Hyong-Kyoon Shin, In-Ho Moon
 
-  Description [External procedures included in this module:
-		    <ul>
-		    <li> Cudd_zddReduceHeap()
-		    <li> Cudd_zddShuffleHeap()
-		    </ul>
-	       Internal procedures included in this module:
-		    <ul>
-		    <li> cuddZddAlignToBdd()
-		    <li> cuddZddNextHigh()
-		    <li> cuddZddNextLow()
-		    <li> cuddZddUniqueCompare()
-		    <li> cuddZddSwapInPlace()
-		    <li> cuddZddSwapping()
-		    <li> cuddZddSifting()
-		    </ul>
-	       Static procedures included in this module:
-		    <ul>
-		    <li> zddSwapAny()
-		    <li> cuddZddSiftingAux()
-		    <li> cuddZddSiftingUp()
-		    <li> cuddZddSiftingDown()
-		    <li> cuddZddSiftingBackward()
-		    <li> zddReorderPreprocess()
-		    <li> zddReorderPostprocess()
-		    <li> zddShuffle()
-		    <li> zddSiftUp()
-		    </ul>
-	      ]
-
-  SeeAlso     []
-
-  Author      [Hyong-Kyoon Shin, In-Ho Moon]
-
-  Copyright   [Copyright (c) 1995-2012, Regents of the University of Colorado
+  @copyright@parblock
+  Copyright (c) 1995-2015, Regents of the University of Colorado
 
   All rights reserved.
 
@@ -69,11 +38,13 @@
   CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
   LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
   ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-  POSSIBILITY OF SUCH DAMAGE.]
+  POSSIBILITY OF SUCH DAMAGE.
+  @endparblock
 
-******************************************************************************/
+*/
 
 #include "util.h"
+#include "mtrInt.h"
 #include "cuddInt.h"
 
 /*---------------------------------------------------------------------------*/
@@ -81,7 +52,6 @@
 /*---------------------------------------------------------------------------*/
 
 #define DD_MAX_SUBTABLE_SPARSITY 8
-#define DD_SHRINK_FACTOR 2
 
 /*---------------------------------------------------------------------------*/
 /* Stucture declarations                                                     */
@@ -97,23 +67,12 @@
 /* Variable declarations                                                     */
 /*---------------------------------------------------------------------------*/
 
-#ifndef lint
-static char rcsid[] DD_UNUSED = "$Id: cuddZddReord.c,v 1.49 2012/02/05 01:07:19 fabio Exp $";
-#endif
-
-int	*zdd_entry;
-
-int	zddTotalNumberSwapping;
-
-static  DdNode	*empty;
-
 
 /*---------------------------------------------------------------------------*/
 /* Macro declarations                                                        */
 /*---------------------------------------------------------------------------*/
 
-
-/**AutomaticStart*************************************************************/
+/** \cond */
 
 /*---------------------------------------------------------------------------*/
 /* Static function prototypes                                                */
@@ -130,7 +89,7 @@ static int zddShuffle (DdManager *table, int *permutation);
 static int zddSiftUp (DdManager *table, int x, int xLow);
 static void zddFixTree (DdManager *table, MtrNode *treenode);
 
-/**AutomaticEnd***************************************************************/
+/** \endcond */
 
 
 /*---------------------------------------------------------------------------*/
@@ -138,11 +97,10 @@ static void zddFixTree (DdManager *table, MtrNode *treenode);
 /*---------------------------------------------------------------------------*/
 
 
-/**Function********************************************************************
+/**
+  @brief Main dynamic reordering routine for ZDDs.
 
-  Synopsis    [Main dynamic reordering routine for ZDDs.]
-
-  Description [Main dynamic reordering routine for ZDDs.
+  @details@parblock
   Calls one of the possible reordering procedures:
   <ul>
   <li>Swapping
@@ -151,23 +109,25 @@ static void zddFixTree (DdManager *table, MtrNode *treenode);
   </ul>
 
   For sifting and symmetric sifting it is possible to request reordering
-  to convergence.<p>
+  to convergence.
 
   The core of all methods is the reordering procedure
   cuddZddSwapInPlace() which swaps two adjacent variables.
-  Returns 1 in case of success; 0 otherwise. In the case of symmetric
+  @endparblock
+
+  @return 1 in case of success; 0 otherwise. In the case of symmetric
   sifting (with and without convergence) returns 1 plus the number of
-  symmetric variables, in case of success.]
+  symmetric variables, in case of success.
 
-  SideEffects [Changes the variable order for all ZDDs and clears
-  the cache.]
+  @sideeffect Changes the variable order for all ZDDs and clears
+  the cache.
 
-******************************************************************************/
+*/
 int
 Cudd_zddReduceHeap(
-  DdManager * table /* DD manager */,
-  Cudd_ReorderingType heuristic /* method used for reordering */,
-  int minsize /* bound below which no reordering occurs */)
+  DdManager * table /**< DD manager */,
+  Cudd_ReorderingType heuristic /**< method used for reordering */,
+  int minsize /**< bound below which no reordering occurs */)
 {
     DdHook	 *hook;
     int		 result;
@@ -193,7 +153,6 @@ Cudd_zddReduceHeap(
     ** we count it.
     */
     table->reorderings++;
-    empty = table->zero;
 
     localTime = util_cpu_time();
 
@@ -207,7 +166,7 @@ Cudd_zddReduceHeap(
 
     /* Clear the cache and collect garbage. */
     zddReorderPreprocess(table);
-    zddTotalNumberSwapping = 0;
+    table->zddTotalNumberSwapping = 0;
 
 #ifdef DD_STATS
     initialSize = table->keysZ;
@@ -243,7 +202,7 @@ Cudd_zddReduceHeap(
     (void) fprintf(table->out,"#:T_REORDER %8g: total time (sec)\n",
 		   ((double)(util_cpu_time() - localTime)/1000.0)); 
     (void) fprintf(table->out,"#:N_REORDER %8d: total swaps\n",
-		   zddTotalNumberSwapping);
+		   table->zddTotalNumberSwapping);
 #endif
 
     if (result == 0)
@@ -280,31 +239,30 @@ Cudd_zddReduceHeap(
 } /* end of Cudd_zddReduceHeap */
 
 
-/**Function********************************************************************
+/**
+  @brief Reorders %ZDD variables according to given permutation.
 
-  Synopsis    [Reorders ZDD variables according to given permutation.]
+  @details The i-th entry of the permutation array contains the index
+  of the variable that should be brought to the i-th level.  The size
+  of the array should be equal or greater to the number of variables
+  currently in use.
 
-  Description [Reorders ZDD variables according to given permutation.
-  The i-th entry of the permutation array contains the index of the variable
-  that should be brought to the i-th level.  The size of the array should be
-  equal or greater to the number of variables currently in use.
-  Returns 1 in case of success; 0 otherwise.]
+  @return 1 in case of success; 0 otherwise.
 
-  SideEffects [Changes the ZDD variable order for all diagrams and clears
-  the cache.]
+  @sideeffect Changes the %ZDD variable order for all diagrams and clears
+  the cache.
 
-  SeeAlso [Cudd_zddReduceHeap]
+  @see Cudd_zddReduceHeap
 
-******************************************************************************/
+*/
 int
 Cudd_zddShuffleHeap(
-  DdManager * table /* DD manager */,
-  int * permutation /* required variable permutation */)
+  DdManager * table /**< DD manager */,
+  int * permutation /**< required variable permutation */)
 {
 
     int	result;
 
-    empty = table->zero;
     zddReorderPreprocess(table);
 
     result = zddShuffle(table,permutation);
@@ -321,32 +279,30 @@ Cudd_zddShuffleHeap(
 /*---------------------------------------------------------------------------*/
 
 
-/**Function********************************************************************
+/**
+  @brief Reorders %ZDD variables according to the order of the %BDD
+  variables.
 
-  Synopsis    [Reorders ZDD variables according to the order of the BDD
-  variables.]
+  @details This function can be called at the end of %BDD reordering to
+  insure that the order of the %ZDD variables is consistent with the
+  order of the %BDD variables. The number of %ZDD variables must be a
+  multiple of the number of %BDD variables. Let <code>M</code> be the
+  ratio of the two numbers. cuddZddAlignToBdd then considers the %ZDD
+  variables from <code>M*i</code> to <code>(M+1)*i-1</code> as
+  corresponding to %BDD variable <code>i</code>.  This function should
+  be normally called from Cudd_ReduceHeap, which clears the cache.
 
-  Description [Reorders ZDD variables according to the order of the
-  BDD variables. This function can be called at the end of BDD
-  reordering to insure that the order of the ZDD variables is
-  consistent with the order of the BDD variables. The number of ZDD
-  variables must be a multiple of the number of BDD variables. Let
-  <code>M</code> be the ratio of the two numbers. cuddZddAlignToBdd
-  then considers the ZDD variables from <code>M*i</code> to
-  <code>(M+1)*i-1</code> as corresponding to BDD variable
-  <code>i</code>.  This function should be normally called from
-  Cudd_ReduceHeap, which clears the cache.  Returns 1 in case of
-  success; 0 otherwise.]
+  @return 1 in case of success; 0 otherwise.
 
-  SideEffects [Changes the ZDD variable order for all diagrams and performs
-  garbage collection of the ZDD unique table.]
+  @sideeffect Changes the %ZDD variable order for all diagrams and performs
+  garbage collection of the %ZDD unique table.
 
-  SeeAlso [Cudd_zddShuffleHeap Cudd_ReduceHeap]
+  @see Cudd_zddShuffleHeap Cudd_ReduceHeap
 
-******************************************************************************/
+*/
 int
 cuddZddAlignToBdd(
-  DdManager * table /* DD manager */)
+  DdManager * table /**< %DD manager */)
 {
     int *invpermZ;		/* permutation array */
     int M;			/* ratio of ZDD variables to BDD variables */
@@ -357,7 +313,6 @@ cuddZddAlignToBdd(
     if (table->sizeZ == 0)
 	return(1);
 
-    empty = table->zero;
     M = table->sizeZ / table->size;
     /* Check whether the number of ZDD variables is a multiple of the
     ** number of BDD variables.
@@ -393,89 +348,80 @@ cuddZddAlignToBdd(
 } /* end of cuddZddAlignToBdd */
 
 
-/**Function********************************************************************
+/**
+  @brief Finds the next subtable with a larger index.
 
-  Synopsis    [Finds the next subtable with a larger index.]
+  @return the index.
 
-  Description [Finds the next subtable with a larger index. Returns the
-  index.]
+  @sideeffect None
 
-  SideEffects [None]
-
-  SeeAlso     []
-
-******************************************************************************/
+*/
 int
 cuddZddNextHigh(
   DdManager * table,
   int  x)
 {
+    (void) table; /* avoid warning */
     return(x + 1);
 
 } /* end of cuddZddNextHigh */
 
 
-/**Function********************************************************************
+/**
+  @brief Finds the next subtable with a smaller index.
 
-  Synopsis    [Finds the next subtable with a smaller index.]
+  @return the index.
 
-  Description [Finds the next subtable with a smaller index. Returns the
-  index.]
+  @sideeffect None
 
-  SideEffects [None]
-
-  SeeAlso     []
-
-******************************************************************************/
+*/
 int
 cuddZddNextLow(
   DdManager * table,
   int  x)
 {
+    (void) table; /* avoid warning */
     return(x - 1);
 
 } /* end of cuddZddNextLow */
 
 
-/**Function********************************************************************
+/**
+  @brief Comparison function used by qsort.
 
-  Synopsis [Comparison function used by qsort.]
+  @details Comparison function used by qsort to order the variables
+  according to the number of keys in the subtables.
 
-  Description [Comparison function used by qsort to order the
-  variables according to the number of keys in the subtables.
-  Returns the difference in number of keys between the two
-  variables being compared.]
+  @return the difference in number of keys between the two variables
+  being compared.
 
-  SideEffects [None]
+  @sideeffect None
 
-  SeeAlso     []
-
-******************************************************************************/
+*/
 int
 cuddZddUniqueCompare(
-  int * ptr_x,
-  int * ptr_y)
+  void const * ptr_x,
+  void const * ptr_y)
 {
-    return(zdd_entry[*ptr_y] - zdd_entry[*ptr_x]);
+    IndexKey const * pX = (IndexKey const *) ptr_x;
+    IndexKey const * pY = (IndexKey const *) ptr_y;
+    return(pY->keys - pX->keys);
 
 } /* end of cuddZddUniqueCompare */
 
 
-/**Function********************************************************************
+/**
+  @brief Swaps two adjacent variables.
 
-  Synopsis    [Swaps two adjacent variables.]
+  @details It assumes that no dead nodes are present on entry to this
+  procedure.  The procedure then guarantees that no dead nodes will be
+  present when it terminates.  cuddZddSwapInPlace assumes that x &lt; y.
 
-  Description [Swaps two adjacent variables. It assumes that no dead
-  nodes are present on entry to this procedure.  The procedure then
-  guarantees that no dead nodes will be present when it terminates.
-  cuddZddSwapInPlace assumes that x &lt; y.  Returns the number of keys in
-  the table if successful; 0 otherwise.]
+  @return the number of keys in the table if successful; 0 otherwise.
 
-  SideEffects [None]
+  @sideeffect None
 
-  SeeAlso     []
-
-******************************************************************************/
+*/
 int
 cuddZddSwapInPlace(
   DdManager * table,
@@ -491,8 +437,9 @@ cuddZddSwapInPlace(
     int		i;
     int		posn;
     DdNode	*f, *f1, *f0, *f11, *f10, *f01, *f00;
-    DdNode	*newf1, *newf0, *next;
+    DdNode	*newf1 = NULL, *newf0 = NULL, *next;
     DdNodePtr	g, *lastP, *previousP;
+    DdNode	*empty = table->zero;
 
 #ifdef DD_DEBUG
     assert(x < y);
@@ -503,7 +450,7 @@ cuddZddSwapInPlace(
     assert(table->subtableZ[y].dead == 0);
 #endif
 
-    zddTotalNumberSwapping++;
+    table->zddTotalNumberSwapping++;
 
     /* Get parameters of x subtable. */
     xindex   = table->invpermZ[x];
@@ -718,11 +665,10 @@ zddSwapOutOfMem:
 } /* end of cuddZddSwapInPlace */
 
 
-/**Function********************************************************************
+/**
+  @brief Reorders variables by a sequence of (non-adjacent) swaps.
 
-  Synopsis    [Reorders variables by a sequence of (non-adjacent) swaps.]
-
-  Description [Implementation of Plessier's algorithm that reorders
+  @details Implementation of Plessier's algorithm that reorders
   variables by a sequence of (non-adjacent) swaps.
     <ol>
     <li> Select two variables (RANDOM or HEURISTIC).
@@ -731,13 +677,12 @@ zddSwapOutOfMem:
     <li> Otherwise reconstruct the original heap.
     <li> Loop.
     </ol>
-  Returns 1 in case of success; 0 otherwise.]
 
-  SideEffects [None]
+  @return 1 in case of success; 0 otherwise.
 
-  SeeAlso     []
+  @sideeffect None
 
-******************************************************************************/
+*/
 int
 cuddZddSwapping(
   DdManager * table,
@@ -752,7 +697,7 @@ cuddZddSwapping(
     int iterate;
     int previousSize;
     Move *moves, *move;
-    int	pivot;
+    int	pivot = 0;
     int modulo;
     int result;
 
@@ -779,7 +724,7 @@ cuddZddSwapping(
 		y = pivot;	/* y = nvars-1 */
 	    } else {
 		/* y = random # from {pivot+1 .. nvars-1} */
-		y = pivot + 1 + (int) (Cudd_Random() % modulo);
+		y = pivot + 1 + (int) (Cudd_Random(table) % modulo);
 	    }
 
 	    modulo = pivot - lower - 1;
@@ -787,15 +732,15 @@ cuddZddSwapping(
 		x = lower;
 	    } else {
 		do { /* x = random # from {0 .. pivot-2} */
-		    x = (int) Cudd_Random() % modulo;
+		    x = (int) Cudd_Random(table) % modulo;
 		} while (x == y);
 		  /* Is this condition really needed, since x and y
 		     are in regions separated by pivot? */
 	    }
 	} else {
-	    x = (int) (Cudd_Random() % nvars) + lower;
+	    x = (int) (Cudd_Random(table) % nvars) + lower;
 	    do {
-		y = (int) (Cudd_Random() % nvars) + lower;
+		y = (int) (Cudd_Random(table) % nvars) + lower;
 	    } while (x == y);
 	}
 
@@ -838,27 +783,24 @@ cuddZddSwappingOutOfMem:
 } /* end of cuddZddSwapping */
 
 
-/**Function********************************************************************
+/**
+  @brief Implementation of Rudell's sifting algorithm.
 
-  Synopsis    [Implementation of Rudell's sifting algorithm.]
-
-  Description [Implementation of Rudell's sifting algorithm.
-  Assumes that no dead nodes are present.
+  @details Assumes that no dead nodes are present.
     <ol>
     <li> Order all the variables according to the number of entries
     in each unique table.
     <li> Sift the variable up and down, remembering each time the
-    total size of the DD heap.
+    total size of the %DD heap.
     <li> Select the best permutation.
     <li> Repeat 3 and 4 for all variables.
     </ol>
-  Returns 1 if successful; 0 otherwise.]
 
-  SideEffects [None]
+  @return 1 if successful; 0 otherwise.
 
-  SeeAlso     []
+  @sideeffect None
 
-******************************************************************************/
+*/
 int
 cuddZddSifting(
   DdManager * table,
@@ -866,7 +808,7 @@ cuddZddSifting(
   int  upper)
 {
     int	i;
-    int	*var;
+    IndexKey *var;
     int	size;
     int	x;
     int	result;
@@ -877,13 +819,7 @@ cuddZddSifting(
     size = table->sizeZ;
 
     /* Find order in which to sift variables. */
-    var = NULL;
-    zdd_entry = ALLOC(int, size);
-    if (zdd_entry == NULL) {
-	table->errorCode = CUDD_MEMORY_OUT;
-	goto cuddZddSiftingOutOfMem;
-    }
-    var = ALLOC(int, size);
+    var = ALLOC(IndexKey, size);
     if (var == NULL) {
 	table->errorCode = CUDD_MEMORY_OUT;
 	goto cuddZddSiftingOutOfMem;
@@ -891,21 +827,26 @@ cuddZddSifting(
 
     for (i = 0; i < size; i++) {
 	x = table->permZ[i];
-	zdd_entry[i] = table->subtableZ[x].keys;
-	var[i] = i;
+	var[i].index = i;
+	var[i].keys = table->subtableZ[x].keys;
     }
 
-    qsort((void *)var, size, sizeof(int), (DD_QSFP)cuddZddUniqueCompare);
+    util_qsort(var, size, sizeof(IndexKey), cuddZddUniqueCompare);
 
     /* Now sift. */
     for (i = 0; i < ddMin(table->siftMaxVar, size); i++) {
-	if (zddTotalNumberSwapping >= table->siftMaxSwap)
+	if (table->zddTotalNumberSwapping >= table->siftMaxSwap)
 	    break;
         if (util_cpu_time() - table->startTime > table->timeLimit) {
             table->autoDynZ = 0; /* prevent further reordering */
             break;
         }
-	x = table->permZ[var[i]];
+        if (table->terminationCallback != NULL &&
+            table->terminationCallback(table->tcbArg)) {
+            table->autoDynZ = 0; /* prevent further reordering */
+            break;
+        }
+	x = table->permZ[var[i].index];
 	if (x < lower || x > upper) continue;
 #ifdef DD_STATS
 	previousSize = table->keysZ;
@@ -918,7 +859,7 @@ cuddZddSifting(
 	    (void) fprintf(table->out,"-");
 	} else if (table->keysZ > (unsigned) previousSize) {
 	    (void) fprintf(table->out,"+");	/* should never happen */
-	    (void) fprintf(table->out,"\nSize increased from %d to %d while sifting variable %d\n", previousSize, table->keysZ , var[i]);
+	    (void) fprintf(table->out,"\nSize increased from %d to %d while sifting variable %d\n", previousSize, table->keysZ , var[i].index);
 	} else {
 	    (void) fprintf(table->out,"=");
 	}
@@ -927,13 +868,11 @@ cuddZddSifting(
     }
 
     FREE(var);
-    FREE(zdd_entry);
 
     return(1);
 
 cuddZddSiftingOutOfMem:
 
-    if (zdd_entry != NULL) FREE(zdd_entry);
     if (var != NULL) FREE(var);
 
     return(0);
@@ -946,17 +885,14 @@ cuddZddSiftingOutOfMem:
 /*---------------------------------------------------------------------------*/
 
 
-/**Function********************************************************************
+/**
+  @brief Swaps any two variables.
 
-  Synopsis    [Swaps any two variables.]
+  @return the set of moves.
 
-  Description [Swaps any two variables. Returns the set of moves.]
+  @sideeffect None
 
-  SideEffects [None]
-
-  SeeAlso     []
-
-******************************************************************************/
+*/
 static Move *
 zddSwapAny(
   DdManager * table,
@@ -1099,20 +1035,17 @@ zddSwapAnyOutOfMem:
 } /* end of zddSwapAny */
 
 
-/**Function********************************************************************
+/**
+  @brief Given xLow <= x <= xHigh moves x up and down between the
+  boundaries.
 
-  Synopsis    [Given xLow <= x <= xHigh moves x up and down between the
-  boundaries.]
+  @details Finds the best position and does the required changes.
 
-  Description [Given xLow <= x <= xHigh moves x up and down between the
-  boundaries. Finds the best position and does the required changes.
-  Returns 1 if successful; 0 otherwise.]
+  @return 1 if successful; 0 otherwise.
 
-  SideEffects [None]
+  @sideeffect None
 
-  SeeAlso     []
-
-******************************************************************************/
+*/
 static int
 cuddZddSiftingAux(
   DdManager * table,
@@ -1220,19 +1153,17 @@ cuddZddSiftingAuxOutOfMem:
 } /* end of cuddZddSiftingAux */
 
 
-/**Function********************************************************************
+/**
+  @brief Sifts a variable up.
 
-  Synopsis    [Sifts a variable up.]
+  @details Moves y up until either it reaches the bound (x_low) or the
+  size of the %ZDD heap increases too much.
 
-  Description [Sifts a variable up. Moves y up until either it reaches
-  the bound (x_low) or the size of the ZDD heap increases too much.
-  Returns the set of moves in case of success; NULL if memory is full.]
+  @return the set of moves in case of success; NULL if memory is full.
 
-  SideEffects [None]
+  @sideeffect None
 
-  SeeAlso     []
-
-******************************************************************************/
+*/
 static Move *
 cuddZddSiftingUp(
   DdManager * table,
@@ -1282,20 +1213,18 @@ cuddZddSiftingUpOutOfMem:
 } /* end of cuddZddSiftingUp */
 
 
-/**Function********************************************************************
+/**
+  @brief Sifts a variable down.
 
-  Synopsis    [Sifts a variable down.]
+  @details Moves x down until either it reaches the bound (x_high) or
+  the size of the %ZDD heap increases too much.
 
-  Description [Sifts a variable down. Moves x down until either it
-  reaches the bound (x_high) or the size of the ZDD heap increases too
-  much. Returns the set of moves in case of success; NULL if memory is
-  full.]
+  @return the set of moves in case of success; NULL if memory is
+  full.
 
-  SideEffects [None]
+  @sideeffect None
 
-  SeeAlso     []
-
-******************************************************************************/
+*/
 static Move *
 cuddZddSiftingDown(
   DdManager * table,
@@ -1345,21 +1274,18 @@ cuddZddSiftingDownOutOfMem:
 } /* end of cuddZddSiftingDown */
 
 
-/**Function********************************************************************
+/**
+  @brief Given a set of moves, returns the %ZDD heap to the position
+  giving the minimum size.
 
-  Synopsis    [Given a set of moves, returns the ZDD heap to the position
-  giving the minimum size.]
+  @details In case of ties, returns to the closest position giving the
+  minimum size.
 
-  Description [Given a set of moves, returns the ZDD heap to the
-  position giving the minimum size. In case of ties, returns to the
-  closest position giving the minimum size. Returns 1 in case of
-  success; 0 otherwise.]
+  @return 1 in case of success; 0 otherwise.
 
-  SideEffects [None]
+  @sideeffect None
 
-  SeeAlso     []
-
-******************************************************************************/
+*/
 static int
 cuddZddSiftingBackward(
   DdManager * table,
@@ -1395,17 +1321,16 @@ cuddZddSiftingBackward(
 } /* end of cuddZddSiftingBackward */
 
 
-/**Function********************************************************************
+/**
+  @brief Prepares the %ZDD heap for dynamic reordering.
 
-  Synopsis    [Prepares the ZDD heap for dynamic reordering.]
+  @details Does garbage collection, to guarantee that there are no
+  dead nodes; and clears the cache, which is invalidated by dynamic
+  reordering.
 
-  Description [Prepares the ZDD heap for dynamic reordering. Does
-  garbage collection, to guarantee that there are no dead nodes;
-  and clears the cache, which is invalidated by dynamic reordering.]
+  @sideeffect None
 
-  SideEffects [None]
-
-******************************************************************************/
+*/
 static void
 zddReorderPreprocess(
   DdManager * table)
@@ -1422,19 +1347,18 @@ zddReorderPreprocess(
 } /* end of ddReorderPreprocess */
 
 
-/**Function********************************************************************
+/**
+  @brief Shrinks almost empty %ZDD subtables at the end of reordering
+  to guarantee that they have a reasonable load factor.
 
-  Synopsis    [Shrinks almost empty ZDD subtables at the end of reordering
-  to guarantee that they have a reasonable load factor.]
+  @details However, if there many nodes are being reclaimed, then no
+  resizing occurs.
 
-  Description [Shrinks almost empty subtables at the end of reordering to
-  guarantee that they have a reasonable load factor. However, if there many
-  nodes are being reclaimed, then no resizing occurs. Returns 1 in case of
-  success; 0 otherwise.]
+  @return 1 in case of success; 0 otherwise.
 
-  SideEffects [None]
+  @sideeffect None
 
-******************************************************************************/
+*/
 static int
 zddReorderPostprocess(
   DdManager * table)
@@ -1467,7 +1391,7 @@ zddReorderPostprocess(
 	oldnodelist = table->subtableZ[i].nodelist;
 	slots = oldslots >> 1;
 	saveHandler = MMoutOfMemory;
-	MMoutOfMemory = Cudd_OutOfMem;
+	MMoutOfMemory = table->outOfMemCallback;
 	nodelist = ALLOC(DdNodePtr, slots);
 	MMoutOfMemory = saveHandler;
 	if (nodelist == NULL) {
@@ -1515,21 +1439,19 @@ zddReorderPostprocess(
 } /* end of zddReorderPostprocess */
 
 
-/**Function********************************************************************
+/**
+  @brief Reorders %ZDD variables according to a given permutation.
 
-  Synopsis    [Reorders ZDD variables according to a given permutation.]
+  @details The i-th permutation array contains the index of the
+  variable that should be brought to the i-th level. zddShuffle
+  assumes that no dead nodes are present.  The reordering is achieved
+  by a series of upward sifts.
 
-  Description [Reorders ZDD variables according to a given permutation.
-  The i-th permutation array contains the index of the variable that
-  should be brought to the i-th level. zddShuffle assumes that no
-  dead nodes are present.  The reordering is achieved by a series of
-  upward sifts.  Returns 1 if successful; 0 otherwise.]
+  @return 1 if successful; 0 otherwise.
 
-  SideEffects [None]
+  @sideeffect None
 
-  SeeAlso []
-
-******************************************************************************/
+*/
 static int
 zddShuffle(
   DdManager * table,
@@ -1547,7 +1469,7 @@ zddShuffle(
     int		previousSize;
 #endif
 
-    zddTotalNumberSwapping = 0;
+    table->zddTotalNumberSwapping = 0;
 #ifdef DD_STATS
     localTime = util_cpu_time();
     initialSize = table->keysZ;
@@ -1584,7 +1506,7 @@ zddShuffle(
     (void) fprintf(table->out,"#:T_SHUFFLE %8g: total time (sec)\n",
 	((double)(util_cpu_time() - localTime)/1000.0)); 
     (void) fprintf(table->out,"#:N_SHUFFLE %8d: total swaps\n",
-		   zddTotalNumberSwapping);
+		   table->zddTotalNumberSwapping);
 #endif
 
     return(1);
@@ -1592,19 +1514,17 @@ zddShuffle(
 } /* end of zddShuffle */
 
 
-/**Function********************************************************************
+/**
+  @brief Moves one %ZDD variable up.
 
-  Synopsis    [Moves one ZDD variable up.]
-
-  Description [Takes a ZDD variable from position x and sifts it up to
+  @details Takes a %ZDD variable from position x and sifts it up to
   position xLow;  xLow should be less than or equal to x.
-  Returns 1 if successful; 0 otherwise]
 
-  SideEffects [None]
+  @return 1 if successful; 0 otherwise
 
-  SeeAlso     []
+  @sideeffect None
 
-******************************************************************************/
+*/
 static int
 zddSiftUp(
   DdManager * table,
@@ -1628,19 +1548,15 @@ zddSiftUp(
 } /* end of zddSiftUp */
 
 
-/**Function********************************************************************
+/**
+  @brief Fixes the %ZDD variable group tree after a shuffle.
 
-  Synopsis    [Fixes the ZDD variable group tree after a shuffle.]
+  @details Assumes that the order of the variables in a terminal node
+  has not been changed.
 
-  Description [Fixes the ZDD variable group tree after a
-  shuffle. Assumes that the order of the variables in a terminal node
-  has not been changed.]
+  @sideeffect Changes the %ZDD variable group tree.
 
-  SideEffects [Changes the ZDD variable group tree.]
-
-  SeeAlso     []
-
-******************************************************************************/
+*/
 static void
 zddFixTree(
   DdManager * table,
@@ -1648,7 +1564,7 @@ zddFixTree(
 {
     if (treenode == NULL) return;
     treenode->low = ((int) treenode->index < table->sizeZ) ?
-	table->permZ[treenode->index] : treenode->index;
+	(MtrHalfWord) table->permZ[treenode->index] : treenode->index;
     if (treenode->child != NULL) {
 	zddFixTree(table, treenode->child);
     }

@@ -28,6 +28,7 @@ package parser.ast;
 
 import parser.EvaluateContext;
 import parser.visitor.ASTVisitor;
+import parser.visitor.DeepCopy;
 import prism.PrismLangException;
 
 public class ExpressionLabel extends Expression
@@ -100,12 +101,15 @@ public class ExpressionLabel extends Expression
 	}
 	
 	@Override
-	public Expression deepCopy()
+	public ExpressionLabel deepCopy(DeepCopy copier)
 	{
-		ExpressionLabel expr = new ExpressionLabel(name);
-		expr.setType(type);
-		expr.setPosition(this);
-		return expr;
+		return this;
+	}
+
+	@Override
+	public ExpressionLabel clone()
+	{
+		return (ExpressionLabel) super.clone();
 	}
 
 	// Standard methods

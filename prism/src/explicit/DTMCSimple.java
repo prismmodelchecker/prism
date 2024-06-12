@@ -29,16 +29,18 @@ package explicit;
 import java.util.*;
 import java.util.Map.Entry;
 import java.io.*;
+import java.util.function.Function;
 
+import prism.Evaluator;
 import prism.PrismException;
 
 /**
  * Simple explicit-state representation of a DTMC.
  */
-public class DTMCSimple extends DTMCExplicit implements ModelSimple
+public class DTMCSimple<Value> extends DTMCExplicit<Value> implements ModelSimple<Value>
 {
 	// Transition matrix (distribution list) 
-	protected List<Distribution> trans;
+	protected List<Distribution<Value>> trans;
 
 	// Other statistics
 	protected int numTransitions;
@@ -64,12 +66,12 @@ public class DTMCSimple extends DTMCExplicit implements ModelSimple
 	/**
 	 * Copy constructor.
 	 */
-	public DTMCSimple(DTMCSimple dtmc)
+	public DTMCSimple(DTMCSimple<Value> dtmc)
 	{
 		this(dtmc.numStates);
 		copyFrom(dtmc);
 		for (int i = 0; i < numStates; i++) {
-			trans.set(i, new Distribution(dtmc.trans.get(i)));
+			trans.set(i, new Distribution<Value>(dtmc.trans.get(i)));
 		}
 		numTransitions = dtmc.numTransitions;
 	}
@@ -81,14 +83,53 @@ public class DTMCSimple extends DTMCExplicit implements ModelSimple
 	 * Note: have to build new Distributions from scratch anyway to do this,
 	 * so may as well provide this functionality as a constructor.
 	 */
-	public DTMCSimple(DTMCSimple dtmc, int permut[])
+	public DTMCSimple(DTMCSimple<Value> dtmc, int permut[])
 	{
 		this(dtmc.numStates);
 		copyFrom(dtmc, permut);
 		for (int i = 0; i < numStates; i++) {
-			trans.set(permut[i], new Distribution(dtmc.trans.get(i), permut));
+			trans.set(permut[i], new Distribution<Value>(dtmc.trans.get(i), permut));
 		}
 		numTransitions = dtmc.numTransitions;
+	}
+
+	/**
+	 * Construct a DTMCSimple object from a DTMC object.
+	 */
+	public DTMCSimple(DTMC<Value> dtmc)
+	{
+		this(dtmc, p -> p);
+	}
+
+	/**
+	 * Construct a DTMCSimple object from a DTMC object,
+	 * mapping probability values using the provided function.
+	 * There is no attempt to check that distributions sum to one.
+	 */
+	public DTMCSimple(DTMC<Value> dtmc, Function<? super Value, ? extends Value> probMap)
+	{
+		this(dtmc, probMap, dtmc.getEvaluator());
+	}
+
+	/**
+	 * Construct a DTMCSimple object from a DTMC object,
+	 * mapping probability values using the provided function.
+	 * There is no attempt to check that distributions sum to one.
+	 * Since the type changes (T -> Value), an Evaluator for Value must be given.
+	 */
+	public <T> DTMCSimple(DTMC<T> dtmc, Function<? super T, ? extends Value> probMap, Evaluator<Value> eval)
+	{
+		this(dtmc.getNumStates());
+		copyFrom(dtmc);
+		setEvaluator(eval);
+		int numStates = getNumStates();
+		for (int i = 0; i < numStates; i++) {
+			Iterator<Map.Entry<Integer, T>> iter = dtmc.getTransitionsIterator(i);
+			while (iter.hasNext()) {
+				Map.Entry<Integer, T> e = iter.next();
+				addToProbability(i, e.getKey(), probMap.apply(e.getValue()));
+			}
+		}
 	}
 
 	// Mutators (for ModelSimple)
@@ -97,9 +138,9 @@ public class DTMCSimple extends DTMCExplicit implements ModelSimple
 	public void initialise(int numStates)
 	{
 		super.initialise(numStates);
-		trans = new ArrayList<Distribution>(numStates);
+		trans = new ArrayList<Distribution<Value>>(numStates);
 		for (int i = 0; i < numStates; i++) {
-			trans.add(new Distribution());
+			trans.add(new Distribution<Value>(getEvaluator()));
 		}
 	}
 
@@ -125,7 +166,7 @@ public class DTMCSimple extends DTMCExplicit implements ModelSimple
 	public void addStates(int numToAdd)
 	{
 		for (int i = 0; i < numToAdd; i++) {
-			trans.add(new Distribution());
+			trans.add(new Distribution<Value>(getEvaluator()));
 			numStates++;
 		}
 	}
@@ -135,7 +176,7 @@ public class DTMCSimple extends DTMCExplicit implements ModelSimple
 	{
 		String s, ss[];
 		int i, j, n, lineNum = 0;
-		double prob;
+		Value prob;
 
 		// Open file for reading, automatic close when done
 		try (BufferedReader in = new BufferedReader(new FileReader(new File(filename)))) {
@@ -158,7 +199,7 @@ public class DTMCSimple extends DTMCExplicit implements ModelSimple
 					ss = s.split(" ");
 					i = Integer.parseInt(ss[0]);
 					j = Integer.parseInt(ss[1]);
-					prob = Double.parseDouble(ss[2]);
+					prob = getEvaluator().fromString(ss[2]);
 					setProbability(i, j, prob);
 				}
 				s = in.readLine();
@@ -176,12 +217,12 @@ public class DTMCSimple extends DTMCExplicit implements ModelSimple
 	/**
 	 * Set the probability for a transition. 
 	 */
-	public void setProbability(int i, int j, double prob)
+	public void setProbability(int i, int j, Value prob)
 	{
-		Distribution distr = trans.get(i);
-		if (distr.get(j) != 0.0)
+		Distribution<Value> distr = trans.get(i);
+		if (!getEvaluator().isZero(distr.get(j)))
 			numTransitions--;
-		if (prob != 0.0)
+		if (!getEvaluator().isZero(prob))
 			numTransitions++;
 		distr.set(j, prob);
 	}
@@ -189,10 +230,10 @@ public class DTMCSimple extends DTMCExplicit implements ModelSimple
 	/**
 	 * Add to the probability for a transition. 
 	 */
-	public void addToProbability(int i, int j, double prob)
+	public void addToProbability(int i, int j, Value prob)
 	{
 		if (!trans.get(i).add(j, prob)) {
-			if (prob != 0.0)
+			if (!getEvaluator().isZero(prob))
 				numTransitions++;
 		}
 	}
@@ -249,7 +290,7 @@ public class DTMCSimple extends DTMCExplicit implements ModelSimple
 			if (trans.get(i).isEmpty()) {
 				addDeadlockState(i);
 				if (fix)
-					setProbability(i, i, 1.0);
+					setProbability(i, i, getEvaluator().one());
 			}
 		}
 	}
@@ -266,7 +307,7 @@ public class DTMCSimple extends DTMCExplicit implements ModelSimple
 	// Accessors (for DTMC)
 
 	@Override
-	public Iterator<Entry<Integer, Double>> getTransitionsIterator(int s)
+	public Iterator<Entry<Integer, Value>> getTransitionsIterator(int s)
 	{
 		return trans.get(s).iterator();
 	}
@@ -276,7 +317,7 @@ public class DTMCSimple extends DTMCExplicit implements ModelSimple
 	/**
 	 * Get the transitions (a distribution) for state s.
 	 */
-	public Distribution getTransitions(int s)
+	public Distribution<Value> getTransitions(int s)
 	{
 		return trans.get(s);
 	}
@@ -309,7 +350,7 @@ public class DTMCSimple extends DTMCExplicit implements ModelSimple
 			return false;
 		if (!super.equals(o))
 			return false;
-		DTMCSimple dtmc = (DTMCSimple) o;
+		DTMCSimple<?> dtmc = (DTMCSimple<?>) o;
 		if (!trans.equals(dtmc.trans))
 			return false;
 		if (numTransitions != dtmc.numTransitions)

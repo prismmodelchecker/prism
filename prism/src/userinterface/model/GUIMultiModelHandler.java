@@ -79,6 +79,7 @@ public class GUIMultiModelHandler extends JPanel implements PrismModelListener
 	public static final int TRANS_REWARDS_EXPORT = 3;
 	public static final int STATES_EXPORT = 4;
 	public static final int LABELS_EXPORT = 5;
+	public static final int OBSERVATIONS_EXPORT = 6;
 
 	private GUIMultiModel theModel;
 	private GUIMultiModelTree tree;
@@ -754,7 +755,9 @@ public class GUIMultiModelHandler extends JPanel implements PrismModelListener
 		// if export is being done to log, switch view to log
 		if (exportFile == null)
 			theModel.logToFront();
-		new ExportBuiltModelThread(this, exportEntity, exportType, exportFile).start();
+		new ExportBuiltModelThread(this, exportEntity, exportType, exportFile)
+		    .setExportModelLabels(true)
+		    .start();
 	}
 
 	// Compute steady-state...

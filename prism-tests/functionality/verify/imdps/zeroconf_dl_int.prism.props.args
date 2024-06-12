@@ -1,0 +1,3 @@
+-const err=0.05,N=200,K=5,reset=false,deadline=15 -epsilon 1e-8
+# -const err=0.05,N=200,K=5,reset=false,deadline=15 -convprog Gurobi
+# -const err=0.05,N=200,K=5,reset=false,deadline=15 -convprog lpsolve

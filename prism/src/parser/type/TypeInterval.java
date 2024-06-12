@@ -26,9 +26,14 @@
 
 package parser.type;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
 
-public class TypeInterval extends Type 
+import common.Interval;
+import parser.EvaluateContext.EvalMode;
+import prism.PrismLangException;
+
+public class TypeInterval extends Type
 {
 	private static Map<Type, TypeInterval> singletons;
 	
@@ -39,21 +44,93 @@ public class TypeInterval extends Type
 	
 	private Type subType;
 	
-	public TypeInterval(Type subType)
+	private TypeInterval(Type subType)
 	{
 		this.subType = subType;
 	}
 
-	public Type getSubType() 
+	public static TypeInterval getInstance(Type subType)
+	{
+		return singletons.computeIfAbsent(subType, TypeInterval::new);
+	}
+
+	public Type getSubType()
 	{
 		return subType;
 	}
 
-	public void setSubType(Type subType) 
+	public void setSubType(Type subType)
 	{
 		this.subType = subType;
 	}
+
+	// Methods required for Type:
 	
+	@Override
+	public String getTypeString()
+	{
+		return "interval of " + subType.getTypeString();
+	}
+	
+	@Override
+	public boolean isPrimitive()
+	{
+		return false;
+	}
+	
+	@Override
+	public Object defaultValue()
+	{
+		return new Interval<Object>(subType.defaultValue(), subType.defaultValue());
+	}
+	
+	@Override
+	public boolean canCastTypeTo(Type type)
+	{
+		return type instanceof TypeDouble || type instanceof TypeInt || (type instanceof TypeInterval && getSubType().canCastTypeTo(((TypeInterval) type).getSubType()));
+	}
+	
+	@Override
+	public Interval<?> castValueTo(Object value) throws PrismLangException
+	{
+		// Scalar converts to singleton interval
+		if (value instanceof Double || value instanceof Integer) {
+			Object subValue = getSubType().castValueTo(value);
+			return new Interval<>(subValue, subValue);
+		}
+		// For interval, cast low/high
+		else if (value instanceof Interval) {
+			Object lower = getSubType().castValueTo(((Interval<?>) value).getLower());
+			Object upper = getSubType().castValueTo(((Interval<?>) value).getUpper());
+			return new Interval<>(lower, upper);
+		}
+		else {
+			throw new PrismLangException("Can't convert " + value.getClass() + " to type " + getTypeString());
+		}
+	}
+
+	@Override
+	public Interval<?> castValueTo(Object value, EvalMode evalMode) throws PrismLangException
+	{
+		// Scalar converts to singleton interval
+		if (value instanceof Double || value instanceof Integer) {
+			Object subValue = getSubType().castValueTo(value, evalMode);
+			return new Interval<Object>(subValue, subValue);
+		}
+		// For interval, cast low/high
+		else if (value instanceof Interval) {
+			Object lower = getSubType().castValueTo(((Interval<?>) value).getLower(), evalMode);
+			Object upper = getSubType().castValueTo(((Interval<?>) value).getUpper(), evalMode);
+			return new Interval<Object>(lower, upper);
+		}
+		else {
+			throw new PrismLangException("Can't convert " + value.getClass() + " to type " + getTypeString());
+		}
+	}
+
+	// Standard methods:
+	
+	@Override
 	public boolean equals(Object o)
 	{
 		if (o instanceof TypeInterval)
@@ -63,18 +140,5 @@ public class TypeInterval extends Type
 		}
 		
 		return false;
-	}
-	
-	public String getTypeString()
-	{
-		return "interval of " + subType.getTypeString();
-	}
-	
-	public static TypeInterval getInstance(Type subType)
-	{
-		if (!singletons.containsKey(subType))
-			singletons.put(subType, new TypeInterval(subType));
-			
-		return singletons.get(subType);
 	}
 }

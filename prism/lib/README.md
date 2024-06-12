@@ -7,8 +7,9 @@ To simplify maintenance of scripts and config files, we mostly omit version numb
 * jcommon.jar - JCommon, version 1.0.16
 * jfreechart.jar - JFreeChart, version 1.0.13
 * jhoafparser.jar - jhoafparser, version 1.1.1
-* nailgun-server.jar - Nailgun, version 0.9.2-SNAPSHOT
 * junit-platform-console-standalone.jar - JUnit 5 executable & dependencies, version 1.7.2
+* nailgun-server.jar - Nailgun, version 0.9.2-SNAPSHOT
+* pepa.zip - PEPA-to-PRISM Compiler version 0.03.2
 
 See here for more details and links:
 

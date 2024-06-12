@@ -1,54 +1,21 @@
-/**CFile***********************************************************************
+/**
+  @file
 
-  FileName    [cuddCompose.c]
+  @ingroup cudd
 
-  PackageName [cudd]
+  @brief Functional composition and variable permutation of DDs.
 
-  Synopsis    [Functional composition and variable permutation of DDs.]
+  @details The permutation functions use a local cache because the
+  results to be remembered depend on the permutation being applied.
+  Since the permutation is just an array, it cannot be stored in the
+  global cache. There are different procedured for BDDs and ADDs. This
+  is because bddPermuteRecur uses cuddBddIteRecur. If this were
+  changed, the procedures could be merged.
 
-  Description [External procedures included in this module:
-		<ul>
-		<li> Cudd_bddCompose()
-		<li> Cudd_addCompose()
-		<li> Cudd_addPermute()
-		<li> Cudd_addSwapVariables()
-		<li> Cudd_bddPermute()
-		<li> Cudd_bddVarMap()
-		<li> Cudd_SetVarMap()
-		<li> Cudd_bddSwapVariables()
-		<li> Cudd_bddAdjPermuteX()
-		<li> Cudd_addVectorCompose()
-		<li> Cudd_addGeneralVectorCompose()
-		<li> Cudd_addNonSimCompose()
-		<li> Cudd_bddVectorCompose()
-		</ul>
-	       Internal procedures included in this module:
-		<ul>
-		<li> cuddBddComposeRecur()
-		<li> cuddAddComposeRecur()
-		</ul>
-	       Static procedures included in this module:
-		<ul>
-		<li> cuddAddPermuteRecur()
-		<li> cuddBddPermuteRecur()
-		<li> cuddBddVarMapRecur()
-		<li> cuddAddVectorComposeRecur()
-		<li> cuddAddGeneralVectorComposeRecur()
-		<li> cuddAddNonSimComposeRecur()
-		<li> cuddBddVectorComposeRecur()
-		<li> ddIsIthAddVar()
-		<li> ddIsIthAddVarPair()
-	       </ul>
-  The permutation functions use a local cache because the results to
-  be remembered depend on the permutation being applied.  Since the
-  permutation is just an array, it cannot be stored in the global
-  cache. There are different procedured for BDDs and ADDs. This is
-  because bddPermuteRecur uses cuddBddIteRecur. If this were changed,
-  the procedures could be merged.]
+  @author Fabio Somenzi and Kavita Ravi
 
-  Author      [Fabio Somenzi and Kavita Ravi]
-
-  Copyright   [Copyright (c) 1995-2012, Regents of the University of Colorado
+  @copyright@parblock
+  Copyright (c) 1995-2015, Regents of the University of Colorado
 
   All rights reserved.
 
@@ -78,13 +45,13 @@
   CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
   LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
   ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-  POSSIBILITY OF SUCH DAMAGE.]
+  POSSIBILITY OF SUCH DAMAGE.
+  @endparblock
 
-******************************************************************************/
+*/
 
 #include "util.h"
 #include "cuddInt.h"
-
 
 /*---------------------------------------------------------------------------*/
 /* Constant declarations                                                     */
@@ -102,25 +69,11 @@
 /* Variable declarations                                                     */
 /*---------------------------------------------------------------------------*/
 
-#ifndef lint
-static char rcsid[] DD_UNUSED = "$Id: cuddCompose.c,v 1.46 2012/02/05 01:07:18 fabio Exp $";
-#endif
-
-#ifdef DD_DEBUG
-static int addPermuteRecurHits;
-static int bddPermuteRecurHits;
-static int bddVectorComposeHits;
-static int addVectorComposeHits;
-
-static int addGeneralVectorComposeHits;
-#endif
-
 /*---------------------------------------------------------------------------*/
 /* Macro declarations                                                        */
 /*---------------------------------------------------------------------------*/
 
-
-/**AutomaticStart*************************************************************/
+/** \cond */
 
 /*---------------------------------------------------------------------------*/
 /* Static function prototypes                                                */
@@ -132,12 +85,12 @@ static DdNode * cuddBddVarMapRecur (DdManager *manager, DdNode *f);
 static DdNode * cuddAddVectorComposeRecur (DdManager *dd, DdHashTable *table, DdNode *f, DdNode **vector, int deepest);
 static DdNode * cuddAddNonSimComposeRecur (DdManager *dd, DdNode *f, DdNode **vector, DdNode *key, DdNode *cube, int lastsub);
 static DdNode * cuddBddVectorComposeRecur (DdManager *dd, DdHashTable *table, DdNode *f, DdNode **vector, int deepest);
-DD_INLINE static int ddIsIthAddVar (DdManager *dd, DdNode *f, unsigned int i);
+static int ddIsIthAddVar (DdManager *dd, DdNode *f, unsigned int i);
 
 static DdNode * cuddAddGeneralVectorComposeRecur (DdManager *dd, DdHashTable *table, DdNode *f, DdNode **vectorOn, DdNode **vectorOff, int deepest);
-DD_INLINE static int ddIsIthAddVarPair (DdManager *dd, DdNode *f, DdNode *g, unsigned int i);
+static int ddIsIthAddVarPair (DdManager *dd, DdNode *f, DdNode *g, unsigned int i);
 
-/**AutomaticEnd***************************************************************/
+/** \endcond */
 
 
 /*---------------------------------------------------------------------------*/
@@ -145,20 +98,20 @@ DD_INLINE static int ddIsIthAddVarPair (DdManager *dd, DdNode *f, DdNode *g, uns
 /*---------------------------------------------------------------------------*/
 
 
-/**Function********************************************************************
+/**
+  @brief Substitutes g for x_v in the %BDD for f.
 
-  Synopsis    [Substitutes g for x_v in the BDD for f.]
+  @details v is the index of the variable to be substituted.
+  Cudd_bddCompose passes the corresponding projection function to the
+  recursive procedure, so that the cache may be used.
 
-  Description [Substitutes g for x_v in the BDD for f. v is the index of the
-  variable to be substituted. Cudd_bddCompose passes the corresponding
-  projection function to the recursive procedure, so that the cache may
-  be used.  Returns the composed BDD if successful; NULL otherwise.]
+  @return the composed %BDD if successful; NULL otherwise.
 
-  SideEffects [None]
+  @sideeffect None
 
-  SeeAlso     [Cudd_addCompose]
+  @see Cudd_addCompose
 
-******************************************************************************/
+*/
 DdNode *
 Cudd_bddCompose(
   DdManager * dd,
@@ -176,26 +129,28 @@ Cudd_bddCompose(
 	dd->reordered = 0;
 	res = cuddBddComposeRecur(dd,f,g,proj);
     } while (dd->reordered == 1);
+    if (dd->errorCode == CUDD_TIMEOUT_EXPIRED && dd->timeoutHandler) {
+        dd->timeoutHandler(dd, dd->tohArg);
+    }
     return(res);
 
 } /* end of Cudd_bddCompose */
 
 
-/**Function********************************************************************
+/**
+  @brief Substitutes g for x_v in the %ADD for f.
 
-  Synopsis    [Substitutes g for x_v in the ADD for f.]
+  @details v is the index of the variable to be substituted. g must be
+  a 0-1 %ADD. Cudd_bddCompose passes the corresponding projection
+  function to the recursive procedure, so that the cache may be used.
 
-  Description [Substitutes g for x_v in the ADD for f. v is the index of the
-  variable to be substituted. g must be a 0-1 ADD. Cudd_bddCompose passes
-  the corresponding projection function to the recursive procedure, so
-  that the cache may be used.  Returns the composed ADD if successful;
-  NULL otherwise.]
+  @return the composed %ADD if successful; NULL otherwise.
 
-  SideEffects [None]
+  @sideeffect None
 
-  SeeAlso     [Cudd_bddCompose]
+  @see Cudd_bddCompose
 
-******************************************************************************/
+*/
 DdNode *
 Cudd_addCompose(
   DdManager * dd,
@@ -213,27 +168,31 @@ Cudd_addCompose(
 	dd->reordered = 0;
 	res = cuddAddComposeRecur(dd,f,g,proj);
     } while (dd->reordered == 1);
+    if (dd->errorCode == CUDD_TIMEOUT_EXPIRED && dd->timeoutHandler) {
+        dd->timeoutHandler(dd, dd->tohArg);
+    }
     return(res);
 
 } /* end of Cudd_addCompose */
 
 
-/**Function********************************************************************
+/**
+  @brief Permutes the variables of an %ADD.
 
-  Synopsis    [Permutes the variables of an ADD.]
-
-  Description [Given a permutation in array permut, creates a new ADD
+  @details Given a permutation in array permut, creates a new %ADD
   with permuted variables. There should be an entry in array permut
   for each variable in the manager. The i-th entry of permut holds the
   index of the variable that is to substitute the i-th
-  variable. Returns a pointer to the resulting ADD if successful; NULL
-  otherwise.]
+  variable.
 
-  SideEffects [None]
+  @return a pointer to the resulting %ADD if successful; NULL
+  otherwise.
 
-  SeeAlso     [Cudd_bddPermute Cudd_addSwapVariables]
+  @sideeffect None
 
-******************************************************************************/
+  @see Cudd_bddPermute Cudd_addSwapVariables
+
+*/
 DdNode *
 Cudd_addPermute(
   DdManager * manager,
@@ -255,26 +214,29 @@ Cudd_addPermute(
     } while (manager->reordered == 1);
 
     if (res != NULL) cuddDeref(res);
+    if (manager->errorCode == CUDD_TIMEOUT_EXPIRED && manager->timeoutHandler) {
+        manager->timeoutHandler(manager, manager->tohArg);
+    }
     return(res);
 
 } /* end of Cudd_addPermute */
 
 
-/**Function********************************************************************
+/**
+  @brief Swaps two sets of variables of the same size (x and y) in
+  the %ADD f.
 
-  Synopsis [Swaps two sets of variables of the same size (x and y) in
-  the ADD f.]
+  @details The size is given by n. The two sets of variables are
+  assumed to be disjoint.
 
-  Description [Swaps two sets of variables of the same size (x and y) in
-  the ADD f.  The size is given by n. The two sets of variables are
-  assumed to be disjoint. Returns a pointer to the resulting ADD if
-  successful; NULL otherwise.]
+  @return a pointer to the resulting %ADD if successful; NULL
+  otherwise.
 
-  SideEffects [None]
+  @sideeffect None
 
-  SeeAlso     [Cudd_addPermute Cudd_bddSwapVariables]
+  @see Cudd_addPermute Cudd_bddSwapVariables
 
-******************************************************************************/
+*/
 DdNode *
 Cudd_addSwapVariables(
   DdManager * dd,
@@ -308,22 +270,22 @@ Cudd_addSwapVariables(
 } /* end of Cudd_addSwapVariables */
 
 
-/**Function********************************************************************
+/**
+  @brief Permutes the variables of a %BDD.
 
-  Synopsis    [Permutes the variables of a BDD.]
-
-  Description [Given a permutation in array permut, creates a new BDD
+  @details Given a permutation in array permut, creates a new %BDD
   with permuted variables. There should be an entry in array permut
   for each variable in the manager. The i-th entry of permut holds the
   index of the variable that is to substitute the i-th variable.
-  Returns a pointer to the resulting BDD if successful; NULL
-  otherwise.]
 
-  SideEffects [None]
+  @return a pointer to the resulting %BDD if successful; NULL
+  otherwise.
 
-  SeeAlso     [Cudd_addPermute Cudd_bddSwapVariables]
+  @sideeffect None
 
-******************************************************************************/
+  @see Cudd_addPermute Cudd_bddSwapVariables
+
+*/
 DdNode *
 Cudd_bddPermute(
   DdManager * manager,
@@ -345,30 +307,32 @@ Cudd_bddPermute(
     } while (manager->reordered == 1);
 
     if (res != NULL) cuddDeref(res);
+    if (manager->errorCode == CUDD_TIMEOUT_EXPIRED && manager->timeoutHandler) {
+        manager->timeoutHandler(manager, manager->tohArg);
+    }
     return(res);
 
 } /* end of Cudd_bddPermute */
 
 
-/**Function********************************************************************
+/**
+  @brief Remaps the variables of a %BDD using the default variable map.
 
-  Synopsis    [Remaps the variables of a BDD using the default variable map.]
-
-  Description [Remaps the variables of a BDD using the default
-  variable map.  A typical use of this function is to swap two sets of
+  @details A typical use of this function is to swap two sets of
   variables.  The variable map must be registered with Cudd_SetVarMap.
-  Returns a pointer to the resulting BDD if successful; NULL
-  otherwise.]
 
-  SideEffects [None]
+  @return a pointer to the resulting %BDD if successful; NULL
+  otherwise.
 
-  SeeAlso     [Cudd_bddPermute Cudd_bddSwapVariables Cudd_SetVarMap]
+  @sideeffect None
 
-******************************************************************************/
+  @see Cudd_bddPermute Cudd_bddSwapVariables Cudd_SetVarMap
+
+*/
 DdNode *
 Cudd_bddVarMap(
-  DdManager * manager /* DD manager */,
-  DdNode * f /* function in which to remap variables */)
+  DdManager * manager /**< %DD manager */,
+  DdNode * f /**< function in which to remap variables */)
 {
     DdNode *res;
 
@@ -377,17 +341,19 @@ Cudd_bddVarMap(
 	manager->reordered = 0;
 	res = cuddBddVarMapRecur(manager, f);
     } while (manager->reordered == 1);
+    if (manager->errorCode == CUDD_TIMEOUT_EXPIRED && manager->timeoutHandler) {
+        manager->timeoutHandler(manager, manager->tohArg);
+    }
 
     return(res);
 
 } /* end of Cudd_bddVarMap */
 
 
-/**Function********************************************************************
+/**
+  @brief Registers a variable mapping with the manager.
 
-  Synopsis [Registers a variable mapping with the manager.]
-
-  Description [Registers with the manager a variable mapping described
+  @details Registers with the manager a variable mapping described
   by two sets of variables.  This variable mapping is then used by
   functions like Cudd_bddVarMap.  This function is convenient for
   those applications that perform the same mapping several times.
@@ -400,20 +366,22 @@ Cudd_bddVarMap(
   not imposeded by the function. When new variables are created, the
   map is automatically extended (each new variable maps to
   itself). The typical use, however, is to wait until all variables
-  are created, and then create the map.  Returns 1 if the mapping is
-  successfully registered with the manager; 0 otherwise.]
+  are created, and then create the map.
 
-  SideEffects [Modifies the manager. May clear the cache.]
+  @return 1 if the mapping is successfully registered with the
+  manager; 0 otherwise.
 
-  SeeAlso     [Cudd_bddVarMap Cudd_bddPermute Cudd_bddSwapVariables]
+  @sideeffect Modifies the manager. May clear the cache.
 
-******************************************************************************/
+  @see Cudd_bddVarMap Cudd_bddPermute Cudd_bddSwapVariables
+
+*/
 int
 Cudd_SetVarMap (
-  DdManager *manager /* DD manager */,
-  DdNode **x /* first array of variables */,
-  DdNode **y /* second array of variables */,
-  int n /* length of both arrays */)
+  DdManager *manager /**< %DD manager */,
+  DdNode **x /**< first array of variables */,
+  DdNode **y /**< second array of variables */,
+  int n /**< length of both arrays */)
 {
     int i;
 
@@ -441,21 +409,21 @@ Cudd_SetVarMap (
 } /* end of Cudd_SetVarMap */
 
 
-/**Function********************************************************************
+/**
+  @brief Swaps two sets of variables of the same size (x and y) in
+  the %BDD f.
 
-  Synopsis [Swaps two sets of variables of the same size (x and y) in
-  the BDD f.]
+  @details The size is given by n. The two sets of variables are
+  assumed to be disjoint.
 
-  Description [Swaps two sets of variables of the same size (x and y)
-  in the BDD f. The size is given by n. The two sets of variables are
-  assumed to be disjoint.  Returns a pointer to the resulting BDD if
-  successful; NULL otherwise.]
+  @return a pointer to the resulting %BDD if successful; NULL
+  otherwise.
 
-  SideEffects [None]
+  @sideeffect None
 
-  SeeAlso     [Cudd_bddPermute Cudd_addSwapVariables]
+  @see Cudd_bddPermute Cudd_addSwapVariables
 
-******************************************************************************/
+*/
 DdNode *
 Cudd_bddSwapVariables(
   DdManager * dd,
@@ -489,21 +457,20 @@ Cudd_bddSwapVariables(
 } /* end of Cudd_bddSwapVariables */
 
 
-/**Function********************************************************************
+/**
+  @brief Rearranges a set of variables in the %BDD B.
 
-  Synopsis [Rearranges a set of variables in the BDD B.]
+  @details The size of the set is given by n. This procedure is
+  intended for the `randomization' of the priority functions.
 
-  Description [Rearranges a set of variables in the BDD B. The size of
-  the set is given by n. This procedure is intended for the
-  `randomization' of the priority functions. Returns a pointer to the
-  BDD if successful; NULL otherwise.]
+  @return a pointer to the %BDD if successful; NULL otherwise.
 
-  SideEffects [None]
+  @sideeffect None
 
-  SeeAlso     [Cudd_bddPermute Cudd_bddSwapVariables
-  Cudd_Dxygtdxz Cudd_Dxygtdyz Cudd_PrioritySelect]
+  @see Cudd_bddPermute Cudd_bddSwapVariables
+  Cudd_Dxygtdxz Cudd_Dxygtdyz Cudd_PrioritySelect
 
-******************************************************************************/
+*/
 DdNode *
 Cudd_bddAdjPermuteX(
   DdManager * dd,
@@ -536,25 +503,25 @@ Cudd_bddAdjPermuteX(
 } /* end of Cudd_bddAdjPermuteX */
 
 
-/**Function********************************************************************
+/**
+  @brief Composes an %ADD with a vector of 0-1 ADDs.
 
-  Synopsis    [Composes an ADD with a vector of 0-1 ADDs.]
-
-  Description [Given a vector of 0-1 ADDs, creates a new ADD by
-  substituting the 0-1 ADDs for the variables of the ADD f.  There
+  @details Given a vector of 0-1 ADDs, creates a new %ADD by
+  substituting the 0-1 ADDs for the variables of the %ADD f.  There
   should be an entry in vector for each variable in the manager.
   If no substitution is sought for a given variable, the corresponding
   projection function should be specified in the vector.
   This function implements simultaneous composition.
-  Returns a pointer to the resulting ADD if successful; NULL
-  otherwise.]
 
-  SideEffects [None]
+  @return a pointer to the resulting %ADD if successful; NULL
+  otherwise.
 
-  SeeAlso     [Cudd_addNonSimCompose Cudd_addPermute Cudd_addCompose
-  Cudd_bddVectorCompose]
+  @sideeffect None
 
-******************************************************************************/
+  @see Cudd_addNonSimCompose Cudd_addPermute Cudd_addCompose
+  Cudd_bddVectorCompose
+
+*/
 DdNode *
 Cudd_addVectorCompose(
   DdManager * dd,
@@ -589,30 +556,34 @@ Cudd_addVectorCompose(
     } while (dd->reordered == 1);
 
     if (res != NULL) cuddDeref(res);
+    if (dd->errorCode == CUDD_TIMEOUT_EXPIRED && dd->timeoutHandler) {
+        dd->timeoutHandler(dd, dd->tohArg);
+    }
     return(res);
 
 } /* end of Cudd_addVectorCompose */
 
 
-/**Function********************************************************************
+/**
+  @brief Composes an %ADD with a vector of ADDs.
 
-  Synopsis    [Composes an ADD with a vector of ADDs.]
-
-  Description [Given a vector of ADDs, creates a new ADD by substituting the
-  ADDs for the variables of the ADD f. vectorOn contains ADDs to be substituted
+  @details Given a vector of ADDs, creates a new %ADD by substituting the
+  ADDs for the variables of the %ADD f. vectorOn contains ADDs to be substituted
   for the x_v and vectorOff the ADDs to be substituted for x_v'. There should
   be an entry in vector for each variable in the manager.  If no substitution
   is sought for a given variable, the corresponding projection function should
   be specified in the vector.  This function implements simultaneous
-  composition.  Returns a pointer to the resulting ADD if successful; NULL
-  otherwise.]
+  composition.
 
-  SideEffects [None]
+  @return a pointer to the resulting %ADD if successful; NULL
+  otherwise.
 
-  SeeAlso [Cudd_addVectorCompose Cudd_addNonSimCompose Cudd_addPermute
-  Cudd_addCompose Cudd_bddVectorCompose]
+  @sideeffect None
 
-******************************************************************************/
+  @see Cudd_addVectorCompose Cudd_addNonSimCompose Cudd_addPermute
+  Cudd_addCompose Cudd_bddVectorCompose
+
+*/
 DdNode *
 Cudd_addGeneralVectorCompose(
   DdManager * dd,
@@ -649,31 +620,34 @@ Cudd_addGeneralVectorCompose(
     } while (dd->reordered == 1);
 
     if (res != NULL) cuddDeref(res);
+    if (dd->errorCode == CUDD_TIMEOUT_EXPIRED && dd->timeoutHandler) {
+        dd->timeoutHandler(dd, dd->tohArg);
+    }
     return(res);
 
 } /* end of Cudd_addGeneralVectorCompose */
 
 
-/**Function********************************************************************
+/**
+  @brief Composes an %ADD with a vector of 0-1 ADDs.
 
-  Synopsis    [Composes an ADD with a vector of 0-1 ADDs.]
-
-  Description [Given a vector of 0-1 ADDs, creates a new ADD by
-  substituting the 0-1 ADDs for the variables of the ADD f.  There
+  @details Given a vector of 0-1 ADDs, creates a new %ADD by
+  substituting the 0-1 ADDs for the variables of the %ADD f.  There
   should be an entry in vector for each variable in the manager.
   This function implements non-simultaneous composition. If any of the
   functions being composed depends on any of the variables being
   substituted, then the result depends on the order of composition,
   which in turn depends on the variable order: The variables farther from
   the roots in the order are substituted first.
-  Returns a pointer to the resulting ADD if successful; NULL
-  otherwise.]
 
-  SideEffects [None]
+  @return a pointer to the resulting %ADD if successful; NULL
+  otherwise.
 
-  SeeAlso     [Cudd_addVectorCompose Cudd_addPermute Cudd_addCompose]
+  @sideeffect None
 
-******************************************************************************/
+  @see Cudd_addVectorCompose Cudd_addPermute Cudd_addCompose
+
+*/
 DdNode *
 Cudd_addNonSimCompose(
   DdManager * dd,
@@ -760,29 +734,32 @@ Cudd_addNonSimCompose(
     Cudd_RecursiveDeref(dd,key);
     Cudd_RecursiveDeref(dd,cube);
     if (res != NULL) cuddDeref(res);
+    if (dd->errorCode == CUDD_TIMEOUT_EXPIRED && dd->timeoutHandler) {
+        dd->timeoutHandler(dd, dd->tohArg);
+    }
     return(res);
 
 } /* end of Cudd_addNonSimCompose */
 
 
-/**Function********************************************************************
+/**
+  @brief Composes a %BDD with a vector of BDDs.
 
-  Synopsis    [Composes a BDD with a vector of BDDs.]
-
-  Description [Given a vector of BDDs, creates a new BDD by
-  substituting the BDDs for the variables of the BDD f.  There
+  @details Given a vector of BDDs, creates a new %BDD by
+  substituting the BDDs for the variables of the %BDD f.  There
   should be an entry in vector for each variable in the manager.
   If no substitution is sought for a given variable, the corresponding
   projection function should be specified in the vector.
   This function implements simultaneous composition.
-  Returns a pointer to the resulting BDD if successful; NULL
-  otherwise.]
 
-  SideEffects [None]
+  @return a pointer to the resulting %BDD if successful; NULL
+  otherwise.
 
-  SeeAlso     [Cudd_bddPermute Cudd_bddCompose Cudd_addVectorCompose]
+  @sideeffect None
 
-******************************************************************************/
+  @see Cudd_bddPermute Cudd_bddCompose Cudd_addVectorCompose
+
+*/
 DdNode *
 Cudd_bddVectorCompose(
   DdManager * dd,
@@ -817,6 +794,9 @@ Cudd_bddVectorCompose(
     } while (dd->reordered == 1);
 
     if (res != NULL) cuddDeref(res);
+    if (dd->errorCode == CUDD_TIMEOUT_EXPIRED && dd->timeoutHandler) {
+        dd->timeoutHandler(dd, dd->tohArg);
+    }
     return(res);
 
 } /* end of Cudd_bddVectorCompose */
@@ -827,21 +807,20 @@ Cudd_bddVectorCompose(
 /*---------------------------------------------------------------------------*/
 
 
-/**Function********************************************************************
+/**
+  @brief Performs the recursive step of Cudd_bddCompose.
 
-  Synopsis    [Performs the recursive step of Cudd_bddCompose.]
-
-  Description [Performs the recursive step of Cudd_bddCompose.
-  Exploits the fact that the composition of f' with g
+  @details Exploits the fact that the composition of f' with g
   produces the complement of the composition of f with g to better
-  utilize the cache.  Returns the composed BDD if successful; NULL
-  otherwise.]
+  utilize the cache.
 
-  SideEffects [None]
+  @return the composed %BDD if successful; NULL otherwise.
 
-  SeeAlso     [Cudd_bddCompose]
+  @sideeffect None
 
-******************************************************************************/
+  @see Cudd_bddCompose
+
+*/
 DdNode *
 cuddBddComposeRecur(
   DdManager * dd,
@@ -849,9 +828,10 @@ cuddBddComposeRecur(
   DdNode * g,
   DdNode * proj)
 {
-    DdNode	*F, *G, *f1, *f0, *g1, *g0, *r, *t, *e;
-    unsigned int v, topf, topg, topindex;
-    int		comple;
+    DdNode	 *F, *G, *f1, *f0, *g1, *g0, *r, *t, *e;
+    unsigned int topindex;
+    int		 topf, topg, v;
+    int		 comple;
 
     statLine(dd);
     v = dd->perm[proj->index];
@@ -871,6 +851,8 @@ cuddBddComposeRecur(
     if (r != NULL) {
 	return(Cudd_NotCond(r,comple));
     }
+
+    checkWhetherToGiveUp(dd);
 
     if (topf == v) {
 	/* Compose. */
@@ -932,18 +914,16 @@ cuddBddComposeRecur(
 } /* end of cuddBddComposeRecur */
 
 
-/**Function********************************************************************
+/**
+  @brief Performs the recursive step of Cudd_addCompose.
 
-  Synopsis    [Performs the recursive step of Cudd_addCompose.]
+  @return the composed %BDD if successful; NULL otherwise.
 
-  Description [Performs the recursive step of Cudd_addCompose.
-  Returns the composed BDD if successful; NULL otherwise.]
+  @sideeffect None
 
-  SideEffects [None]
+  @see Cudd_addCompose
 
-  SeeAlso     [Cudd_addCompose]
-
-******************************************************************************/
+*/
 DdNode *
 cuddAddComposeRecur(
   DdManager * dd,
@@ -952,7 +932,9 @@ cuddAddComposeRecur(
   DdNode * proj)
 {
     DdNode *f1, *f0, *g1, *g0, *r, *t, *e;
-    unsigned int v, topf, topg, topindex;
+    int v;
+    int topf, topg;
+    unsigned int topindex;
 
     statLine(dd);
     v = dd->perm[proj->index];
@@ -966,6 +948,8 @@ cuddAddComposeRecur(
     if (r != NULL) {
 	return(r);
     }
+
+    checkWhetherToGiveUp(dd);
 
     if (topf == v) {
 	/* Compose. */
@@ -1029,32 +1013,31 @@ cuddAddComposeRecur(
 /*---------------------------------------------------------------------------*/
 
 
-/**Function********************************************************************
+/**
+  @brief Implements the recursive step of Cudd_addPermute.
 
-  Synopsis    [Implements the recursive step of Cudd_addPermute.]
-
-  Description [ Recursively puts the ADD in the order given in the
+  @details Recursively puts the %ADD in the order given in the
   array permut. Checks for trivial cases to terminate recursion, then
   splits on the children of this node.  Once the solutions for the
   children are obtained, it puts into the current position the node
-  from the rest of the ADD that should be here. Then returns this ADD.
+  from the rest of the %ADD that should be here. Then returns this %ADD.
   The key here is that the node being visited is NOT put in its proper
   place by this instance, but rather is switched when its proper
   position is reached in the recursion tree.<p>
-  The DdNode * that is returned is the same ADD as passed in as node,
-  but in the new order.]
+  The DdNode * that is returned is the same %ADD as passed in as node,
+  but in the new order.
 
-  SideEffects [None]
+  @sideeffect None
 
-  SeeAlso     [Cudd_addPermute cuddBddPermuteRecur]
+  @see Cudd_addPermute cuddBddPermuteRecur
 
-******************************************************************************/
+*/
 static DdNode *
 cuddAddPermuteRecur(
-  DdManager * manager /* DD manager */,
-  DdHashTable * table /* computed table */,
-  DdNode * node /* ADD to be reordered */,
-  int * permut /* permutation array */)
+  DdManager * manager /**< %DD manager */,
+  DdHashTable * table /**< computed table */,
+  DdNode * node /**< %ADD to be reordered */,
+  int * permut /**< permutation array */)
 {
     DdNode	*T,*E;
     DdNode	*res,*var;
@@ -1069,7 +1052,7 @@ cuddAddPermuteRecur(
     /* If problem already solved, look up answer and return. */
     if (node->ref != 1 && (res = cuddHashTableLookup1(table,node)) != NULL) {
 #ifdef DD_DEBUG
-	addPermuteRecurHits++;
+	manager->addPermuteRecurHits++;
 #endif
 	return(res);
     }
@@ -1122,32 +1105,31 @@ cuddAddPermuteRecur(
 } /* end of cuddAddPermuteRecur */
 
 
-/**Function********************************************************************
+/**
+  @brief Implements the recursive step of Cudd_bddPermute.
 
-  Synopsis    [Implements the recursive step of Cudd_bddPermute.]
-
-  Description [ Recursively puts the BDD in the order given in the array permut.
+  @details Recursively puts the %BDD in the order given in the array permut.
   Checks for trivial cases to terminate recursion, then splits on the
   children of this node.  Once the solutions for the children are
   obtained, it puts into the current position the node from the rest of
-  the BDD that should be here. Then returns this BDD.
+  the %BDD that should be here. Then returns this %BDD.
   The key here is that the node being visited is NOT put in its proper
   place by this instance, but rather is switched when its proper position
   is reached in the recursion tree.<p>
-  The DdNode * that is returned is the same BDD as passed in as node,
-  but in the new order.]
+  The DdNode * that is returned is the same %BDD as passed in as node,
+  but in the new order.
 
-  SideEffects [None]
+  @sideeffect None
 
-  SeeAlso     [Cudd_bddPermute cuddAddPermuteRecur]
+  @see Cudd_bddPermute cuddAddPermuteRecur
 
-******************************************************************************/
+*/
 static DdNode *
 cuddBddPermuteRecur(
-  DdManager * manager /* DD manager */,
-  DdHashTable * table /* computed table */,
-  DdNode * node /* BDD to be reordered */,
-  int * permut /* permutation array */)
+  DdManager * manager /**< %DD manager */,
+  DdHashTable * table /**< computed table */,
+  DdNode * node /**< %BDD to be reordered */,
+  int * permut /**< permutation array */)
 {
     DdNode	*N,*T,*E;
     DdNode	*res;
@@ -1164,7 +1146,7 @@ cuddBddPermuteRecur(
     /* If problem already solved, look up answer and return. */
     if (N->ref != 1 && (res = cuddHashTableLookup1(table,N)) != NULL) {
 #ifdef DD_DEBUG
-	bddPermuteRecurHits++;
+	manager->bddPermuteRecurHits++;
 #endif
 	return(Cudd_NotCond(res,N != node));
     }
@@ -1212,22 +1194,20 @@ cuddBddPermuteRecur(
 } /* end of cuddBddPermuteRecur */
 
 
-/**Function********************************************************************
+/**
+  @brief Implements the recursive step of Cudd_bddVarMap.
 
-  Synopsis    [Implements the recursive step of Cudd_bddVarMap.]
+  @return a pointer to the result if successful; NULL otherwise.
 
-  Description [Implements the recursive step of Cudd_bddVarMap.
-  Returns a pointer to the result if successful; NULL otherwise.]
+  @sideeffect None
 
-  SideEffects [None]
+  @see Cudd_bddVarMap
 
-  SeeAlso     [Cudd_bddVarMap]
-
-******************************************************************************/
+*/
 static DdNode *
 cuddBddVarMapRecur(
-  DdManager *manager /* DD manager */,
-  DdNode *f /* BDD to be remapped */)
+  DdManager *manager /**< %DD manager */,
+  DdNode *f /**< %BDD to be remapped */)
 {
     DdNode	*F, *T, *E;
     DdNode	*res;
@@ -1246,6 +1226,8 @@ cuddBddVarMapRecur(
 	(res = cuddCacheLookup1(manager,Cudd_bddVarMap,F)) != NULL) {
 	return(Cudd_NotCond(res,F != f));
     }
+
+    checkWhetherToGiveUp(manager);
 
     /* Split and recur on children of this node. */
     T = cuddBddVarMapRecur(manager,cuddT(F));
@@ -1285,24 +1267,19 @@ cuddBddVarMapRecur(
 } /* end of cuddBddVarMapRecur */
 
 
-/**Function********************************************************************
+/**
+  @brief Performs the recursive step of Cudd_addVectorCompose.
 
-  Synopsis    [Performs the recursive step of Cudd_addVectorCompose.]
+  @sideeffect None
 
-  Description []
-
-  SideEffects [None]
-
-  SeeAlso     []
-
-******************************************************************************/
+*/
 static DdNode *
 cuddAddVectorComposeRecur(
-  DdManager * dd /* DD manager */,
-  DdHashTable * table /* computed table */,
-  DdNode * f /* ADD in which to compose */,
-  DdNode ** vector /* functions to substitute */,
-  int  deepest /* depth of deepest substitution */)
+  DdManager * dd /**< %DD manager */,
+  DdHashTable * table /**< computed table */,
+  DdNode * f /**< %ADD in which to compose */,
+  DdNode ** vector /**< functions to substitute */,
+  int  deepest /**< depth of deepest substitution */)
 {
     DdNode	*T,*E;
     DdNode	*res;
@@ -1315,7 +1292,7 @@ cuddAddVectorComposeRecur(
 
     if ((res = cuddHashTableLookup1(table,f)) != NULL) {
 #ifdef DD_DEBUG
-	addVectorComposeHits++;
+	dd->addVectorComposeHits++;
 #endif
 	return(res);
     }
@@ -1361,25 +1338,20 @@ cuddAddVectorComposeRecur(
 } /* end of cuddAddVectorComposeRecur */
 
 
-/**Function********************************************************************
+/**
+  @brief Performs the recursive step of Cudd_addGeneralVectorCompose.
 
-  Synopsis    [Performs the recursive step of Cudd_addGeneralVectorCompose.]
+  @sideeffect None
 
-  Description []
-
-  SideEffects [None]
-
-  SeeAlso     []
-
-******************************************************************************/
+*/
 static DdNode *
 cuddAddGeneralVectorComposeRecur(
-  DdManager * dd /* DD manager */,
-  DdHashTable * table /* computed table */,
-  DdNode * f /* ADD in which to compose */,
-  DdNode ** vectorOn /* functions to substitute for x_i */,
-  DdNode ** vectorOff /* functions to substitute for x_i' */,
-  int  deepest /* depth of deepest substitution */)
+  DdManager * dd /**< %DD manager */,
+  DdHashTable * table /**< computed table */,
+  DdNode * f /**< %ADD in which to compose */,
+  DdNode ** vectorOn /**< functions to substitute for x_i */,
+  DdNode ** vectorOff /**< functions to substitute for x_i' */,
+  int  deepest /**< depth of deepest substitution */)
 {
     DdNode	*T,*E,*t,*e;
     DdNode	*res;
@@ -1391,7 +1363,7 @@ cuddAddGeneralVectorComposeRecur(
 
     if ((res = cuddHashTableLookup1(table,f)) != NULL) {
 #ifdef DD_DEBUG
-	addGeneralVectorComposeHits++;
+	dd->addGeneralVectorComposeHits++;
 #endif
 	return(res);
     }
@@ -1458,17 +1430,12 @@ cuddAddGeneralVectorComposeRecur(
 } /* end of cuddAddGeneralVectorComposeRecur */
 
 
-/**Function********************************************************************
+/**
+  @brief Performs the recursive step of Cudd_addNonSimCompose.
 
-  Synopsis    [Performs the recursive step of Cudd_addNonSimCompose.]
+  @sideeffect None
 
-  Description []
-
-  SideEffects [None]
-
-  SeeAlso     []
-
-******************************************************************************/
+*/
 static DdNode *
 cuddAddNonSimComposeRecur(
   DdManager * dd,
@@ -1481,7 +1448,7 @@ cuddAddNonSimComposeRecur(
     DdNode *f1, *f0, *key1, *key0, *cube1, *var;
     DdNode *T,*E;
     DdNode *r;
-    unsigned int top, topf, topk, topc;
+    int top, topf, topk, topc;
     unsigned int index;
     int i;
     DdNode **vect1;
@@ -1498,6 +1465,8 @@ cuddAddNonSimComposeRecur(
     if (r != NULL) {
 	return(r);
     }
+
+    checkWhetherToGiveUp(dd);
 
     /* Find top variable. we just need to look at f, key, and cube,
     ** because all the varibles in the gi are in key.
@@ -1618,24 +1587,19 @@ cuddAddNonSimComposeRecur(
 } /* end of cuddAddNonSimComposeRecur */
 
 
-/**Function********************************************************************
+/**
+  @brief Performs the recursive step of Cudd_bddVectorCompose.
 
-  Synopsis    [Performs the recursive step of Cudd_bddVectorCompose.]
+  @sideeffect None
 
-  Description []
-
-  SideEffects [None]
-
-  SeeAlso     []
-
-******************************************************************************/
+*/
 static DdNode *
 cuddBddVectorComposeRecur(
-  DdManager * dd /* DD manager */,
-  DdHashTable * table /* computed table */,
-  DdNode * f /* BDD in which to compose */,
-  DdNode ** vector /* functions to be composed */,
-  int deepest /* depth of the deepest substitution */)
+  DdManager * dd /**< %DD manager */,
+  DdHashTable * table /**< computed table */,
+  DdNode * f /**< %BDD in which to compose */,
+  DdNode ** vector /**< functions to be composed */,
+  int deepest /**< depth of the deepest substitution */)
 {
     DdNode	*F,*T,*E;
     DdNode	*res;
@@ -1651,7 +1615,7 @@ cuddBddVectorComposeRecur(
     /* If problem already solved, look up answer and return. */
     if ((res = cuddHashTableLookup1(table,F)) != NULL) {
 #ifdef DD_DEBUG
-	bddVectorComposeHits++;
+	dd->bddVectorComposeHits++;
 #endif
 	return(Cudd_NotCond(res,F != f));
     }
@@ -1697,19 +1661,14 @@ cuddBddVectorComposeRecur(
 } /* end of cuddBddVectorComposeRecur */
 
 
-/**Function********************************************************************
+/**
+  @brief Comparison of a function to the i-th %ADD variable.
 
-  Synopsis    [Comparison of a function to the i-th ADD variable.]
+  @return 1 if the function is the i-th %ADD variable; 0 otherwise.
 
-  Description [Comparison of a function to the i-th ADD variable. Returns 1 if
-  the function is the i-th ADD variable; 0 otherwise.]
+  @sideeffect None
 
-  SideEffects [None]
-
-  SeeAlso     []
-
-******************************************************************************/
-DD_INLINE
+*/
 static int
 ddIsIthAddVar(
   DdManager * dd,
@@ -1721,20 +1680,15 @@ ddIsIthAddVar(
 } /* end of ddIsIthAddVar */
 
 
-/**Function********************************************************************
+/**
+  @brief Comparison of a pair of functions to the i-th %ADD variable.
 
-  Synopsis    [Comparison of a pair of functions to the i-th ADD variable.]
+  @return 1 if the functions are the i-th %ADD variable and its
+  complement; 0 otherwise.
 
-  Description [Comparison of a pair of functions to the i-th ADD
-  variable. Returns 1 if the functions are the i-th ADD variable and its
-  complement; 0 otherwise.]
+  @sideeffect None
 
-  SideEffects [None]
-
-  SeeAlso     []
-
-******************************************************************************/
-DD_INLINE
+*/
 static int
 ddIsIthAddVarPair(
   DdManager * dd,

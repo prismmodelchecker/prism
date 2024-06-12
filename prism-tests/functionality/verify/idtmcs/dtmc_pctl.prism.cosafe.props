@@ -1,0 +1,11 @@
+// RESULT: 1
+Pmin=? [ X F s>=2 ];
+
+// RESULT: 1
+Pmax=? [ X F s>=2 ];
+
+// RESULT: 2
+Rmin=? [ X F s>=2 ];
+
+// RESULT: 2
+Rmax=? [ X F s>=2 ];

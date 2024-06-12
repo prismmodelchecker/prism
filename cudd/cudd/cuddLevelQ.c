@@ -1,13 +1,12 @@
-/**CFile***********************************************************************
+/**
+  @file
 
-  FileName    [cuddLevelQ.c]
+  @ingroup cudd
 
-  PackageName [cudd]
+  @brief Procedure to manage level queues.
 
-  Synopsis    [Procedure to manage level queues.]
-
-  Description [The functions in this file allow an application to
-  easily manipulate a queue where nodes are prioritized by level. The
+  @details The functions in this file allow an application to easily
+  manipulate a queue where nodes are prioritized by level. The
   emphasis is on efficiency. Therefore, the queue items can have
   variable size.  If the application does not need to attach
   information to the nodes, it can declare the queue items to be of
@@ -22,28 +21,11 @@
   appears at most once in the queue. They do so by keeping a hash
   table where the node is used as key.  Queue items are recycled via a
   free list for efficiency.
-  
-  Internal procedures provided by this module:
-                <ul>
-		<li> cuddLevelQueueInit()
-		<li> cuddLevelQueueQuit()
-		<li> cuddLevelQueueEnqueue()
-		<li> cuddLevelQueueDequeue()
-		</ul>
-  Static procedures included in this module:
-		<ul>
-		<li> hashLookup()
-		<li> hashInsert()
-		<li> hashDelete()
-		<li> hashResize()
-		</ul>
-		]
 
-  SeeAlso     []
+  @author Fabio Somenzi
 
-  Author      [Fabio Somenzi]
-
-  Copyright   [Copyright (c) 1995-2012, Regents of the University of Colorado
+  @copyright@parblock
+  Copyright (c) 1995-2015, Regents of the University of Colorado
 
   All rights reserved.
 
@@ -73,9 +55,10 @@
   CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
   LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
   ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-  POSSIBILITY OF SUCH DAMAGE.]
+  POSSIBILITY OF SUCH DAMAGE.
+  @endparblock
 
-******************************************************************************/
+*/
 
 #include "util.h"
 #include "cuddInt.h"
@@ -99,26 +82,20 @@
 /* Variable declarations                                                     */
 /*---------------------------------------------------------------------------*/
 
-#ifndef lint
-static char rcsid[] DD_UNUSED = "$Id: cuddLevelQ.c,v 1.16 2012/02/05 01:07:19 fabio Exp $";
-#endif
 
 /*---------------------------------------------------------------------------*/
 /* Macro declarations                                                        */
 /*---------------------------------------------------------------------------*/
 
 
-/**Macro***********************************************************************
+/**
+  @brief Hash function for the table of a level queue.
 
-  Synopsis    [Hash function for the table of a level queue.]
+  @sideeffect None
 
-  Description [Hash function for the table of a level queue.]
+  @see hashInsert hashLookup hashDelete
 
-  SideEffects [None]
-
-  SeeAlso     [hashInsert hashLookup hashDelete]
-
-******************************************************************************/
+*/
 #if SIZEOF_VOID_P == 8 && SIZEOF_INT == 4
 #define lqHash(key,shift) \
 (((unsigned)(ptruint)(key) * DD_P1) >> (shift))
@@ -128,7 +105,7 @@ static char rcsid[] DD_UNUSED = "$Id: cuddLevelQ.c,v 1.16 2012/02/05 01:07:19 fa
 #endif
 
 
-/**AutomaticStart*************************************************************/
+/** \cond */
 
 /*---------------------------------------------------------------------------*/
 /* Static function prototypes                                                */
@@ -139,7 +116,7 @@ static int hashInsert(DdLevelQueue *queue, DdQueueItem *item);
 static void hashDelete(DdLevelQueue *queue, DdQueueItem *item);
 static int hashResize(DdLevelQueue *queue);
 
-/**AutomaticEnd***************************************************************/
+/** \endcond */
 
 
 /*---------------------------------------------------------------------------*/
@@ -147,27 +124,27 @@ static int hashResize(DdLevelQueue *queue);
 /*---------------------------------------------------------------------------*/
 
 
-/**Function********************************************************************
+/**
+  @brief Initializes a level queue.
 
-  Synopsis    [Initializes a level queue.]
+  @details A level queue is a queue where inserts are based on the
+  levels of the nodes. Within each level the policy is FIFO. Level
+  queues are useful in traversing a %BDD top-down. Queue items are kept
+  in a free list when dequeued for efficiency.
 
-  Description [Initializes a level queue. A level queue is a queue
-  where inserts are based on the levels of the nodes. Within each
-  level the policy is FIFO. Level queues are useful in traversing a
-  BDD top-down. Queue items are kept in a free list when dequeued for
-  efficiency. Returns a pointer to the new queue if successful; NULL
-  otherwise.]
+  @return a pointer to the new queue if successful; NULL otherwise.
 
-  SideEffects [None]
+  @sideeffect None
 
-  SeeAlso     [cuddLevelQueueQuit cuddLevelQueueEnqueue cuddLevelQueueDequeue]
+  @see cuddLevelQueueQuit cuddLevelQueueEnqueue cuddLevelQueueDequeue
 
-******************************************************************************/
+*/
 DdLevelQueue *
 cuddLevelQueueInit(
-  int  levels /* number of levels */,
-  int  itemSize /* size of the item */,
-  int  numBuckets /* initial number of hash buckets */)
+  int  levels /**< number of levels */,
+  int  itemSize /**< size of the item */,
+  int  numBuckets /**< initial number of hash buckets */,
+  DdManager * manager /*<< DD manager */)
 {
     DdLevelQueue *queue;
     int logSize;
@@ -200,23 +177,22 @@ cuddLevelQueueInit(
     queue->itemsize = itemSize;
     queue->size = 0;
     queue->maxsize = queue->numBuckets * DD_MAX_SUBTABLE_DENSITY;
+    queue->manager = manager;
     return(queue);
 
 } /* end of cuddLevelQueueInit */
 
 
-/**Function********************************************************************
+/**
+  @brief Shuts down a level queue.
 
-  Synopsis    [Shuts down a level queue.]
+  @details Releases all the associated memory.
 
-  Description [Shuts down a level queue and releases all the
-  associated memory.]
+  @sideeffect None
 
-  SideEffects [None]
+  @see cuddLevelQueueInit
 
-  SeeAlso     [cuddLevelQueueInit]
-
-******************************************************************************/
+*/
 void
 cuddLevelQueueQuit(
   DdLevelQueue * queue)
@@ -241,25 +217,24 @@ cuddLevelQueueQuit(
 } /* end of cuddLevelQueueQuit */
 
 
-/**Function********************************************************************
+/**
+  @brief Inserts a new key in a level queue.
 
-  Synopsis    [Inserts a new key in a level queue.]
+  @details A new entry is created in the queue only if the node is not
+  already enqueued.
 
-  Description [Inserts a new key in a level queue. A new entry is
-  created in the queue only if the node is not already
-  enqueued. Returns a pointer to the queue item if successful; NULL
-  otherwise.]
+  @return a pointer to the queue item if successful; NULL otherwise.
 
-  SideEffects [None]
+  @sideeffect None
 
-  SeeAlso     [cuddLevelQueueInit cuddLevelQueueDequeue]
+  @see cuddLevelQueueInit cuddLevelQueueDequeue
 
-******************************************************************************/
+*/
 void *
 cuddLevelQueueEnqueue(
-  DdLevelQueue * queue /* level queue */,
-  void * key /* key to be enqueued */,
-  int  level /* level at which to insert */)
+  DdLevelQueue * queue /**< level queue */,
+  void * key /**< key to be enqueued */,
+  int  level /**< level at which to insert */)
 {
     DdQueueItem *item;
 
@@ -315,23 +290,21 @@ cuddLevelQueueEnqueue(
 } /* end of cuddLevelQueueEnqueue */
 
 
-/**Function********************************************************************
+/**
+  @brief Inserts the first key in a level queue.
 
-  Synopsis    [Inserts the first key in a level queue.]
+  @return a pointer to the queue item if successful; NULL otherwise.
 
-  Description [Inserts the first key in a level queue. Returns a
-  pointer to the queue item if successful; NULL otherwise.]
+  @sideeffect None
 
-  SideEffects [None]
+  @see cuddLevelQueueEnqueue
 
-  SeeAlso     [cuddLevelQueueEnqueue]
-
-******************************************************************************/
+*/
 void *
 cuddLevelQueueFirst(
-  DdLevelQueue * queue /* level queue */,
-  void * key /* key to be enqueued */,
-  int  level /* level at which to insert */)
+  DdLevelQueue * queue /**< level queue */,
+  void * key /**< key to be enqueued */,
+  int  level /**< level at which to insert */)
 {
     DdQueueItem *item;
 
@@ -370,17 +343,14 @@ cuddLevelQueueFirst(
 } /* end of cuddLevelQueueFirst */
 
 
-/**Function********************************************************************
+/**
+  @brief Remove an item from the front of a level queue.
 
-  Synopsis    [Remove an item from the front of a level queue.]
+  @sideeffect None
 
-  Description [Remove an item from the front of a level queue.]
+  @see cuddLevelQueueEnqueue
 
-  SideEffects [None]
-
-  SeeAlso     [cuddLevelQueueEnqueue]
-
-******************************************************************************/
+*/
 void
 cuddLevelQueueDequeue(
   DdLevelQueue * queue,
@@ -413,19 +383,17 @@ cuddLevelQueueDequeue(
 /*---------------------------------------------------------------------------*/
 
 
-/**Function********************************************************************
+/**
+  @brief Looks up a key in the hash table of a level queue.
 
-  Synopsis    [Looks up a key in the hash table of a level queue.]
+  @return a pointer to the item with the given key if the key is
+  found; NULL otherwise.
 
-  Description [Looks up a key in the hash table of a level queue. Returns
-  a pointer to the item with the given key if the key is found; NULL
-  otherwise.]
+  @sideeffect None
 
-  SideEffects [None]
+  @see cuddLevelQueueEnqueue hashInsert
 
-  SeeAlso     [cuddLevelQueueEnqueue hashInsert]
-
-******************************************************************************/
+*/
 static DdQueueItem *
 hashLookup(
   DdLevelQueue * queue,
@@ -448,19 +416,19 @@ hashLookup(
 } /* end of hashLookup */
 
 
-/**Function********************************************************************
+/**
+  @brief Inserts an item in the hash table of a level queue.
 
-  Synopsis    [Inserts an item in the hash table of a level queue.]
+  @details No check is performed to see if an item with the same key
+  is already in the hash table.
 
-  Description [Inserts an item in the hash table of a level queue. Returns
-  1 if successful; 0 otherwise. No check is performed to see if an item with
-  the same key is already in the hash table.]
+  @return 1 if successful; 0 otherwise.
 
-  SideEffects [None]
+  @sideeffect None
 
-  SeeAlso     [cuddLevelQueueEnqueue]
+  @see cuddLevelQueueEnqueue
 
-******************************************************************************/
+*/
 static int
 hashInsert(
   DdLevelQueue * queue,
@@ -483,18 +451,16 @@ hashInsert(
 } /* end of hashInsert */
 
 
-/**Function********************************************************************
+/**
+  @brief Removes an item from the hash table of a level queue.
 
-  Synopsis    [Removes an item from the hash table of a level queue.]
+  @details Nothing is done if the item is not in the table.
 
-  Description [Removes an item from the hash table of a level queue.
-  Nothing is done if the item is not in the table.]
+  @sideeffect None
 
-  SideEffects [None]
+  @see cuddLevelQueueDequeue hashInsert
 
-  SeeAlso     [cuddLevelQueueDequeue hashInsert]
-
-******************************************************************************/
+*/
 static void
 hashDelete(
   DdLevelQueue * queue,
@@ -524,18 +490,16 @@ hashDelete(
 } /* end of hashDelete */
 
 
-/**Function********************************************************************
+/**
+  @brief Resizes the hash table of a level queue.
 
-  Synopsis    [Resizes the hash table of a level queue.]
+  @return 1 if successful; 0 otherwise.
 
-  Description [Resizes the hash table of a level queue. Returns 1 if
-  successful; 0 otherwise.]
+  @sideeffect None
 
-  SideEffects [None]
+  @see hashInsert
 
-  SeeAlso     [hashInsert]
-
-******************************************************************************/
+*/
 static int
 hashResize(
   DdLevelQueue * queue)
@@ -555,7 +519,7 @@ hashResize(
     /* Compute the new size of the subtable. */
     numBuckets = oldNumBuckets << 1;
     saveHandler = MMoutOfMemory;
-    MMoutOfMemory = Cudd_OutOfMem;
+    MMoutOfMemory = queue->manager->outOfMemCallback;
     buckets = queue->buckets = ALLOC(DdQueueItem *, numBuckets);
     MMoutOfMemory = saveHandler;
     if (buckets == NULL) {

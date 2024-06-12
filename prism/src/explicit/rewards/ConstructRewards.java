@@ -41,6 +41,7 @@ import parser.Values;
 import parser.ast.ASTElement;
 import parser.ast.Expression;
 import parser.ast.RewardStruct;
+import prism.Evaluator;
 import prism.PrismComponent;
 import prism.PrismException;
 import prism.PrismLangException;
@@ -70,18 +71,24 @@ public class ConstructRewards extends PrismComponent
 	 * @param rewardGen The RewardGenerator defining the rewards
 	 * @param r The index of the reward structure to build
 	 */
-	public Rewards buildRewardStructure(Model model, RewardGenerator rewardGen, int r) throws PrismException
+	public <Value> Rewards<Value> buildRewardStructure(Model<Value> model, RewardGenerator<Value> rewardGen, int r) throws PrismException
 	{
+		Rewards<Value> rewards = null;
 		switch (model.getModelType()) {
 		case DTMC:
 		case CTMC:
-			return buildMCRewardStructure((DTMC) model, rewardGen, r);
+		case IDTMC:
+			rewards = buildMCRewardStructure((DTMC<Value>) model, rewardGen, r);
+			break;
 		case MDP:
 		case POMDP:
-			return buildMDPRewardStructure((MDP) model, rewardGen, r);
+		case IMDP:
+			rewards = buildMDPRewardStructure((MDP<Value>) model, rewardGen, r);
+			break;
 		default:
 			throw new PrismNotSupportedException("Cannot build rewards for " + model.getModelType() + "s");
 		}
+		return rewards;
 	}
 
 	/**
@@ -90,21 +97,37 @@ public class ConstructRewards extends PrismComponent
 	 * @param rewardGen The RewardGenerator defining the rewards
 	 * @param r The index of the reward structure to build
 	 */
-	public MCRewards buildMCRewardStructure(DTMC mc, RewardGenerator rewardGen, int r) throws PrismException
+	@SuppressWarnings("unchecked")
+	public <Value> Rewards<Value> buildMCRewardStructure(DTMC<Value> mc, RewardGenerator<Value> rewardGen, int r) throws PrismException
 	{
 		if (rewardGen.rewardStructHasTransitionRewards(r)) {
 			throw new PrismNotSupportedException("Explicit engine does not yet handle transition rewards for D/CTMCs");
 		}
+		boolean dbl = rewardGen.getRewardEvaluator().one() instanceof Double;
 		int numStates = mc.getNumStates();
 		List<State> statesList = mc.getStatesList();
-		StateRewardsArray rewSA = new StateRewardsArray(numStates);
+		// Create reward structure object
+		RewardsExplicit<Value> rewards = null;
+		StateRewardsArray rewSA = null;
+		StateRewardsSimple<Value> rewSimple = null;
+		if (dbl) {
+			rewards = (RewardsExplicit<Value>) (rewSA = new StateRewardsArray(numStates));
+		} else {
+			rewards = rewSimple = new StateRewardsSimple<Value>();
+		}
+		rewards.setEvaluator(rewardGen.getRewardEvaluator());
+		// Add rewards to it
 		for (int s = 0; s < numStates; s++) {
 			if (rewardGen.rewardStructHasStateRewards(r)) {
-				double rew = getAndCheckStateReward(s, rewardGen, r, statesList);
-				rewSA.addToStateReward(s, rew);
+				Value rew = getAndCheckStateReward(s, rewardGen, r, statesList);
+				if (dbl) {
+					rewSA.addToStateReward(s, (Double) rew);
+				} else {
+					rewSimple.addToStateReward(s, rew);
+				}
 			}
 		}
-		return rewSA;
+		return rewards;
 	}
 
 	/**
@@ -113,14 +136,18 @@ public class ConstructRewards extends PrismComponent
 	 * @param rewardGen The RewardGenerator defining the rewards
 	 * @param r The index of the reward structure to build
 	 */
-	public MDPRewards buildMDPRewardStructure(MDP mdp, RewardGenerator rewardGen, int r) throws PrismException
+	public <Value> Rewards<Value> buildMDPRewardStructure(MDP<Value> mdp, RewardGenerator<Value> rewardGen, int r) throws PrismException
 	{
 		int numStates = mdp.getNumStates();
 		List<State> statesList = mdp.getStatesList();
-		MDPRewardsSimple rewSimple = new MDPRewardsSimple(numStates);
+		MDPRewardsSimple<Value> rewSimple = null;
+		// Create reward structure object
+		rewSimple = new MDPRewardsSimple<>(numStates);
+		rewSimple.setEvaluator(rewardGen.getRewardEvaluator());
+		// Add rewards to it
 		for (int s = 0; s < numStates; s++) {
 			if (rewardGen.rewardStructHasStateRewards(r)) {
-				double rew = getAndCheckStateReward(s, rewardGen, r, statesList);
+				Value rew = getAndCheckStateReward(s, rewardGen, r, statesList);
 				rewSimple.addToStateReward(s, rew);
 			}
 			if (rewardGen.rewardStructHasTransitionRewards(r)) {
@@ -130,7 +157,7 @@ public class ConstructRewards extends PrismComponent
 				}
 				int numChoices = mdp.getNumChoices(s);
 				for (int k = 0; k < numChoices; k++) {
-					double rew = getAndCheckStateActionReward(s, mdp.getAction(s, k), rewardGen, r, statesList);
+					Value rew = getAndCheckStateActionReward(s, mdp.getAction(s, k), rewardGen, r, statesList);
 					rewSimple.addToTransitionReward(s, k, rew);
 				}
 			}
@@ -146,9 +173,10 @@ public class ConstructRewards extends PrismComponent
 	 * @param r The index of the reward structure to build
 	 * @param statesLists List of states (maybe needed for state look up)
 	 */
-	private double getAndCheckStateReward(int s, RewardGenerator rewardGen, int r, List<State> statesList) throws PrismException
+	private <Value> Value getAndCheckStateReward(int s, RewardGenerator<Value> rewardGen, int r, List<State> statesList) throws PrismException
 	{
-		double rew = 0;
+		Evaluator<Value> eval = rewardGen.getRewardEvaluator();
+		Value rew = eval.zero();
 		Object stateIndex = null;
 		if (rewardGen.isRewardLookupSupported(RewardLookup.BY_STATE)) {
 			State state = statesList.get(s);
@@ -160,7 +188,7 @@ public class ConstructRewards extends PrismComponent
 		} else {
 			throw new PrismException("Unknown reward lookup mechanism for reward generator");
 		}
-		checkStateReward(rew, stateIndex, null);
+		checkStateReward(rew, eval, stateIndex, null);
 		return rew;
 	}
 
@@ -172,9 +200,10 @@ public class ConstructRewards extends PrismComponent
 	 * @param r The index of the reward structure to build
 	 * @param statesLists List of states (maybe needed for state look up)
 	 */
-	private double getAndCheckStateActionReward(int s, Object action, RewardGenerator rewardGen, int r, List<State> statesList) throws PrismException
+	private <Value> Value getAndCheckStateActionReward(int s, Object action, RewardGenerator<Value> rewardGen, int r, List<State> statesList) throws PrismException
 	{
-		double rew = 0;
+		Evaluator<Value> eval = rewardGen.getRewardEvaluator();
+		Value rew = eval.zero();
 		Object stateIndex = null;
 		if (rewardGen.isRewardLookupSupported(RewardLookup.BY_STATE)) {
 			State state = statesList.get(s);
@@ -186,7 +215,7 @@ public class ConstructRewards extends PrismComponent
 		} else {
 			throw new PrismException("Unknown reward lookup mechanism for reward generator");
 		}
-		checkTransitionReward(rew, stateIndex, null);
+		checkTransitionReward(rew, eval, stateIndex, null);
 		return rew;
 	}
 
@@ -196,15 +225,15 @@ public class ConstructRewards extends PrismComponent
 	 * @param rewStr The reward structure
 	 * @param constantValues Values for any undefined constants needed
 	 */
-	public Rewards buildRewardStructure(Model model, RewardStruct rewStr, Values constantValues) throws PrismException
+	public Rewards<Double> buildRewardStructure(Model<Double> model, RewardStruct rewStr, Values constantValues) throws PrismException
 	{
 		switch (model.getModelType()) {
 		case DTMC:
 		case CTMC:
-			return buildMCRewardStructure((DTMC) model, rewStr, constantValues);
+			return buildMCRewardStructure((DTMC<Double>) model, rewStr, constantValues);
 		case MDP:
 		case POMDP:
-			return buildMDPRewardStructure((MDP) model, rewStr, constantValues);
+			return buildMDPRewardStructure((MDP<Double>) model, rewStr, constantValues);
 		default:
 			throw new PrismNotSupportedException("Cannot build rewards for " + model.getModelType() + "s");
 		}
@@ -216,7 +245,7 @@ public class ConstructRewards extends PrismComponent
 	 * @param rewStr The reward structure
 	 * @param constantValues Values for any undefined constants needed
 	 */
-	public MCRewards buildMCRewardStructure(DTMC mc, RewardStruct rewStr, Values constantValues) throws PrismException
+	public MCRewards<Double> buildMCRewardStructure(DTMC<Double> mc, RewardStruct rewStr, Values constantValues) throws PrismException
 	{
 		List<State> statesList;
 		Expression guard;
@@ -229,7 +258,7 @@ public class ConstructRewards extends PrismComponent
 		if (rewStr.getNumStateItems() == 1 && Expression.isTrue(rewStr.getStates(0)) && rewStr.getReward(0).isConstant()) {
 			double rew = rewStr.getReward(0).evaluateDouble(constantValues);
 			checkStateReward(rew, null, rewStr.getReward(0));
-			return new StateRewardsConstant(rew);
+			return new StateRewardsConstant<>(rew);
 		}
 		// Normal: state rewards
 		else {
@@ -257,7 +286,7 @@ public class ConstructRewards extends PrismComponent
 	 * @param rewStr The reward structure
 	 * @param constantValues Values for any undefined constants needed
 	 */
-	public MDPRewards buildMDPRewardStructure(MDP mdp, RewardStruct rewStr, Values constantValues) throws PrismException
+	public MDPRewards<Double> buildMDPRewardStructure(MDP<Double> mdp, RewardStruct rewStr, Values constantValues) throws PrismException
 	{
 		List<State> statesList;
 		Expression guard;
@@ -269,13 +298,13 @@ public class ConstructRewards extends PrismComponent
 		if (rewStr.getNumStateItems() == 1 && Expression.isTrue(rewStr.getStates(0)) && rewStr.getReward(0).isConstant()) {
 			double rew = rewStr.getReward(0).evaluateDouble(constantValues);
 			checkStateReward(rew, null, rewStr.getReward(0));
-			return new StateRewardsConstant(rew);
+			return new StateRewardsConstant<>(rew);
 		}
 		// Normal: state and transition rewards
 		else {
 			numStates = mdp.getNumStates();
 			statesList = mdp.getStatesList();
-			MDPRewardsSimple rewSimple = new MDPRewardsSimple(numStates);
+			MDPRewardsSimple<Double> rewSimple = new MDPRewardsSimple<>(numStates);
 			n = rewStr.getNumItems();
 			for (i = 0; i < n; i++) {
 				guard = rewStr.getStates(i);
@@ -320,7 +349,7 @@ public class ConstructRewards extends PrismComponent
 	 * @param rews The file containing state rewards (ignored if null)
 	 * @param rewt The file containing transition rewards (ignored if null)
 	 */
-	public MCRewards buildMCRewardsFromPrismExplicit(DTMC mc, File rews, File rewt) throws PrismException
+	public MCRewards<Double> buildMCRewardsFromPrismExplicit(DTMC<Double> mc, File rews, File rewt) throws PrismException
 	{
 		String s, ss[];
 		int i, lineNum = 0;
@@ -371,12 +400,12 @@ public class ConstructRewards extends PrismComponent
 	 * @param rews The file containing state rewards (ignored if null)
 	 * @param rewt The file containing transition rewards (ignored if null)
 	 */
-	public MDPRewards buildMDPRewardsFromPrismExplicit(MDP mdp, File rews, File rewt) throws PrismException
+	public MDPRewards<Double> buildMDPRewardsFromPrismExplicit(MDP<Double> mdp, File rews, File rewt) throws PrismException
 	{
 		String s, ss[];
 		int i, j, lineNum = 0;
 		double reward;
-		MDPRewardsSimple rs = new MDPRewardsSimple(mdp.getNumStates());
+		MDPRewardsSimple<Double> rs = new MDPRewardsSimple<>(mdp.getNumStates());
 
 		if (rews != null) {
 			// Open state rewards file, automatic close
@@ -450,15 +479,16 @@ public class ConstructRewards extends PrismComponent
 	 * Optionally, provide a state where the error occurs (as an Object),
 	 * and/or a pointer to where the error occurs syntactically (as an ASTElement) 
 	 * @param rew The reward value
+	 * @param eval Evaluator matching the type {@code Value} of the reward value
 	 * @param stateIndex The index of the state, for error reporting (optional)
 	 * @param ast Where the error occurred, for error reporting (optional)
 	 */
-	private void checkStateReward(double rew, Object stateIndex, ASTElement ast) throws PrismException
+	private <Value> void checkStateReward(Value rew, Evaluator<Value> eval, Object stateIndex, ASTElement ast) throws PrismException
 	{
 		String error = null;
-		if (!Double.isFinite(rew)) {
+		if (!eval.isFinite(rew)) {
 			error = "State reward is not finite";
-		} else if (!allowNegative && rew < 0) {
+		} else if (!allowNegative && !eval.geq(rew, eval.zero())) {
 			error = "State reward is negative (" + rew + ")";
 		}
 		if (error != null) {
@@ -474,20 +504,20 @@ public class ConstructRewards extends PrismComponent
 	}
 
 	/**
-	 * Check that a state reward is legal. Throw an exception if not.
-	 * @param rew The reward value
+	 * Check that a transition reward is legal. Throw an exception if not.
 	 * Optionally, provide a state where the error occurs (as an Object),
 	 * and/or a pointer to where the error occurs syntactically (as an ASTElement) 
 	 * @param rew The reward value
+	 * @param eval Evaluator matching the type {@code Value} of the reward value
 	 * @param stateIndex The index of the state, for error reporting (optional)
 	 * @param ast Where the error occurred, for error reporting (optional)
 	 */
-	private void checkTransitionReward(double rew, Object stateIndex, ASTElement ast) throws PrismException
+	private <Value> void checkTransitionReward(Value rew, Evaluator<Value> eval, Object stateIndex, ASTElement ast) throws PrismException
 	{
 		String error = null;
-		if (!Double.isFinite(rew)) {
+		if (!eval.isFinite(rew)) {
 			error = "Transition reward is not finite";
-		} else if (!allowNegative && rew < 0) {
+		} else if (!allowNegative && !eval.geq(rew, eval.zero())) {
 			error = "Transition reward is negative (" + rew + ")";
 		}
 		if (error != null) {
@@ -500,5 +530,31 @@ public class ConstructRewards extends PrismComponent
 				throw new PrismException(error);
 			}
 		}
+	}
+
+	/**
+	 * Check that a (double-valued) state reward is legal. Throw an exception if not.
+	 * Optionally, provide a state where the error occurs (as an Object),
+	 * and/or a pointer to where the error occurs syntactically (as an ASTElement) 
+	 * @param rew The reward value
+	 * @param stateIndex The index of the state, for error reporting (optional)
+	 * @param ast Where the error occurred, for error reporting (optional)
+	 */
+	private <Value> void checkStateReward(double rew, Object stateIndex, ASTElement ast) throws PrismException
+	{
+		checkStateReward(rew, Evaluator.forDouble(), stateIndex, ast);
+	}
+
+	/**
+	 * Check that a (double-valued) transition reward is legal. Throw an exception if not.
+	 * Optionally, provide a state where the error occurs (as an Object),
+	 * and/or a pointer to where the error occurs syntactically (as an ASTElement) 
+	 * @param rew The reward value
+	 * @param stateIndex The index of the state, for error reporting (optional)
+	 * @param ast Where the error occurred, for error reporting (optional)
+	 */
+	private <Value> void checkTransitionReward(double rew, Object stateIndex, ASTElement ast) throws PrismException
+	{
+		checkTransitionReward(rew, Evaluator.forDouble(), stateIndex, ast);
 	}
 }

@@ -92,6 +92,18 @@ public class CexPathStates implements PathFullInfo
 	}
 
 	@Override
+	public int getStrategyMemory(int step)
+	{
+		return -1;
+	}
+	
+	@Override
+	public Object getStrategyDecision(int step)
+	{
+		return null;
+	}
+	
+	@Override
 	public double getCumulativeTime(int step)
 	{
 		return 0.0;

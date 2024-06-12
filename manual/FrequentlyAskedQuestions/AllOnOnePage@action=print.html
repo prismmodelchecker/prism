@@ -1,0 +1,315 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html>
+<head>
+
+<title>PRISM Manual | FrequentlyAskedQuestions / AllOnOnePage </title>
+
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1"/>
+
+<!--HeaderText--><style type='text/css'><!--
+  ul, ol, pre, dl, p { margin-top:0px; margin-bottom:0px; }
+  code.escaped { white-space: pre; }
+  .vspace { margin-top:1.33em; }
+  .indent { margin-left:40px; }
+  .outdent { margin-left:40px; text-indent:-40px; }
+  a.createlinktext { text-decoration:none; border-bottom:1px dotted gray; }
+  a.createlink { text-decoration:none; position:relative; top:-0.5em;
+    font-weight:bold; font-size:smaller; border-bottom:none; }
+  img { border:0px; }
+  .editconflict { color:green; 
+  font-style:italic; margin-top:1.33em; margin-bottom:1.33em; }
+
+  table.markup { border:2px dotted #ccf; width:90%; }
+  td.markup1, td.markup2 { padding-left:10px; padding-right:10px; }
+  table.vert td.markup1 { border-bottom:1px solid #ccf; }
+  table.horiz td.markup1 { width:23em; border-right:1px solid #ccf; }
+  table.markup caption { text-align:left; }
+  div.faq p, div.faq pre { margin-left:2em; }
+  div.faq p.question { margin:1em 0 0.75em 0; font-weight:bold; }
+  div.faqtoc div.faq * { display:none; }
+  div.faqtoc div.faq p.question 
+    { display:block; font-weight:normal; margin:0.5em 0 0.5em 20px; line-height:normal; }
+  div.faqtoc div.faq p.question * { display:inline; }
+  td.markup1 pre { white-space: pre-wrap; }
+  .noPmTOC, .PmTOCdiv:empty {display:none;}
+.PmTOCdiv { display: inline-block; font-size: 13px; overflow: auto; max-height: 500px;}
+.PmTOCdiv a { text-decoration: none; display: block; line-height: 1;}
+.PmTOCdiv a.pmtoc-indent1 { margin-left: 1em; }
+.PmTOCdiv a.pmtoc-indent2 { margin-left: 2em; }
+.PmTOCdiv a.pmtoc-indent3 { margin-left: 3em; }
+.PmTOCdiv a.pmtoc-indent4 { margin-left: 4em; }
+.PmTOCdiv a.pmtoc-indent5 { margin-left: 5em; }
+.PmTOCdiv a.pmtoc-indent6 { margin-left: 6em; }
+.back-arrow {font-size: .8rem; text-decoration: none; vertical-align: text-top;}
+#PmTOCchk + label {cursor: pointer;}
+#PmTOCchk {display: none;}
+#PmTOCchk:not(:checked) + label > .pmtoc-show {display: none;}
+#PmTOCchk:checked + label > .pmtoc-hide {display: none;}
+#PmTOCchk:checked + label + div {display: none;}table.sortable th { cursor: pointer; }
+table.sortable th::after { color: transparent; content: "\00A0\025B8"; }
+table.sortable th:hover::after { color: inherit; content: "\00A0\025B8"; }
+table.sortable th.dir-u::after { color: inherit; content: "\00A0\025BE"; }
+table.sortable th.dir-d::after { color: inherit; content: "\00A0\025B4"; } 
+    .frame 
+      { border:1px solid #cccccc; padding:4px; background-color:#f9f9f9; }
+    .lfloat { float:left; margin-right:0.5em; }
+    .rfloat { float:right; margin-left:0.5em; }
+a.varlink { text-decoration:none;}
+
+.sourceblocklink {
+  text-align: right;
+  font-size: smaller;
+}
+.sourceblocktext {
+  padding: 0.5em;
+  border: 1px solid #808080;
+  color: #000000;
+  background-color: #f1f0ed;
+}
+.sourceblocktext div {
+  font-family: monospace;
+  font-size: small;
+  line-height: 1;
+  height: 1%;
+}
+.sourceblocktext div.head,
+.sourceblocktext div.foot {
+  font: italic medium serif;
+  padding: 0.5em;
+}
+
+--></style>  <meta name='robots' content='noindex,nofollow' />
+
+
+<link type="text/css" rel="stylesheet" href="http://www.prismmodelchecker.org/css/base.css"/>
+<link type="text/css" rel="stylesheet" href="http://www.prismmodelchecker.org/css/prism.css"/>
+<link type="text/css" rel="stylesheet" href="http://www.prismmodelchecker.org/css/print.css" media="print"/>
+<link type="text/css" rel="stylesheet" href="http://www.prismmodelchecker.org/css/bib.css"/>
+
+<link type="text/css" rel="stylesheet" href="http://www.prismmodelchecker.org/manual/pub/skins/prismprint/css/prismmanual.css"/>
+<link type="text/css" rel="stylesheet" href="http://www.prismmodelchecker.org/manual/pub/skins/prismprint/css/prismprint.css"/>
+</head>
+
+<body text="#000000" bgcolor="#ffffcc">
+
+<!--PageTitleFmt--><!--PageText-->
+<div id='wikitext'>
+<div class='vspace'></div><h1><span class='big'>Frequently Asked Questions</span></h1>
+<hr />
+<h1>Memory Problems</h1>
+<p><a name='crash' id='crash'></a>
+</p><h3>PRISM crashed or stopped responding. Why?</h3>
+<div class='answer' > 
+<p>When PRISM crashes, the most likely cause is that it has run out of memory.
+Similarly, if PRISM (or the machine you are running it on) becomes very slow or seems to have stopped responding, this is probably because it is using too much of your machine's memory. Probabilistic model checking, much like other formal verification techniques, can be a very resource-intensive process. It is very easy to create a seemingly simple PRISM model that requires a large amount of time and/or memory to construct and analyse. See some of the other questions in this section for tips on how to avoid this.
+</p>
+<p class='vspace'>The other possibility is that you have found a bug.
+If PRISM crashes or freezes whilst not using all/most of the available memory (you can check this with the <code>top</code> command in a Unix/Linux terminal or the Task Manager (via Ctrl-Alt-Delete) on Windows) then please file a <a class='urllink' href='https://github.com/prismmodelchecker/prism/issues'>bug report</a>.
+</p></div>
+<p class='vspace'><a name='memout' id='memout'></a>
+</p><h3>I ran out of memory. What can I do?</h3>
+<div class='answer' > 
+<p>It depends. First, you need to establish at what point in PRISM's operation, you ran out of memory. If you are running the command-line version of PRISM then the output from the tool so far should give an indication of this. If using the GUI, check the log tab for this information. If PRISM crashed because of its memory usage, the error message can be helpful. If using the GUI, you may need to start the GUI from the command-line to see any error messages.
+</p>
+<p class='vspace'>The two main steps that PRISM typically has to perform are:
+</p>
+<div class='vspace'></div><ol><li><strong>Model construction</strong> (conversion of a PRISM language description to the corresponding probabilistic model)
+</li><li><strong>Model checking/analysis</strong> (processing/analysis of a constructed probabilistic model in order to determine the result of a property or to compute steady-state/transient probabilities)
+</li></ol><p class='vspace'>Memory usage issues for each of these steps are discussed in separate sections below. In some cases the process performed prior to step 1 (<strong>model parsing</strong> - reading in a model description in the PRISM language and checking it for correctness) can also be resource intensive. This is also discussed below.
+</p>
+<p class='vspace'>If you are using the <strong>simulator</strong> to generate approximate model checking results then step 1 (model construction) is not performed and step 2 is carried out very differently. Memory consumption is not usually a problem in this case.
+</p></div>
+<p class='vspace'><a name='memout_constr' id='memout_constr'></a>
+</p><h3>I ran out of memory during model construction. What can I do?</h3>
+<div class='answer' > 
+<p>If PRISM has already output this:
+</p>
+<div class='sourceblock ' id='sourceblock1'>
+  <div class='sourceblocktext'><div class="shell"><span style="font-style:italic;">Building model...</span><br/>
+</div></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/FrequentlyAskedQuestions/AllOnOnePage?action=sourceblock&amp;num=1' type='text/plain'>[&#036;[Get Code]]</a></div>
+</div>
+
+<p>but there is no line of the form:
+</p>
+<div class='sourceblock ' id='sourceblock2'>
+  <div class='sourceblocktext'><div class="shell"><span style="font-style:italic;">Time for model construction: 34.3 seconds.</span><br/>
+</div></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/FrequentlyAskedQuestions/AllOnOnePage?action=sourceblock&amp;num=2' type='text/plain'>[&#036;[Get Code]]</a></div>
+</div>
+
+<p>and then you get an error like this:
+</p>
+<div class='sourceblock ' id='sourceblock3'>
+  <div class='sourceblocktext'><div class="shell"><span style="font-style:italic;">#</span><br/>
+<span style="font-style:italic;"># An unexpected error has been detected by Java Runtime Environment:</span><br/>
+<span style="font-style:italic;">#</span><br/>
+<span style="font-style:italic;">#  SIGSEGV (0xb) at pc=0xb5249323, pid=19298, tid=3086363536</span><br/>
+<span style="font-style:italic;">#</span><br/>
+<span style="font-style:italic;"># Java VM: Java HotSpot(TM) Client VM (1.6.0-b105 mixed mode, sharing)</span><br/>
+<span style="font-style:italic;"># Problematic frame:</span><br/>
+<span style="font-style:italic;"># C  [libdd.so+0x39323]  Cudd_Ref+0xf</span><br/>
+<span style="font-style:italic;">#</span><br/>
+<span style="font-style:italic;"># An error report file with more information is saved as hs_err_pid19298.log</span><br/>
+<span style="font-style:italic;">#</span><br/>
+<span style="font-style:italic;"># If you would like to submit a bug report, please visit:</span><br/>
+<span style="font-style:italic;">#   http://java.sun.com/webapps/bugreport/crash.jsp</span><br/>
+<span style="font-style:italic;">#</span><br/>
+<span style="font-style:italic;">/home/dxp/bin/prism: line 50: 19298 Aborted                 "$PRISM_JAVA" #$PRISM_JAVAMAXMEM -Djava.awt.headless=$PRISM_HEADLESS -Djava.library.path=$PRISM_DIR/lib -classpath "$PRISM_CLASSPATH" $PRISM_MAINCLASS "$@"</span><br/>
+</div></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/FrequentlyAskedQuestions/AllOnOnePage?action=sourceblock&amp;num=3' type='text/plain'>[&#036;[Get Code]]</a></div>
+</div>
+
+<p>or like this:
+</p>
+<div class='sourceblock ' id='sourceblock4'>
+  <div class='sourceblocktext'><div class="shell"><span style="font-style:italic;"># </span><br/>
+<span style="font-style:italic;"># An unexpected error has been detected by HotSpot Virtual Machine: </span><br/>
+<span style="font-style:italic;"># </span><br/>
+<span style="font-style:italic;"># EXCEPTION_ACCESS_VIOLATION (0xc0000005) at pc=0x0b1c7da3, pid=2884, tid=2544 </span><br/>
+<span style="font-style:italic;"># </span><br/>
+<span style="font-style:italic;"># Java VM: Java HotSpot(TM) Client VM (1.5.0_06-b05 mixed mode) </span><br/>
+<span style="font-style:italic;"># Problematic frame: </span><br/>
+<span style="font-style:italic;"># C [dd.dll+0x7da3] </span><br/>
+<span style="font-style:italic;">#</span><br/>
+<span style="font-style:italic;">...</span><br/>
+</div></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/FrequentlyAskedQuestions/AllOnOnePage?action=sourceblock&amp;num=4' type='text/plain'>[&#036;[Get Code]]</a></div>
+</div>
+
+<p>then PRISM ran out of memory whilst trying to construct the model.
+Model construction in PRISM is performed using BDDs (binary decision diagrams) and MTBDDs (multi-terminal) BDDs which are implemented in the CUDD library.
+The first thing to try in this case is to increase the amount of memory available to CUDD. See the entry "CUDD memory" in the section "<a class='wikilink' href='../ConfiguringPRISM/OtherOptions.html'>Configuring PRISM - Other Options</a>" for details of this.
+</p>
+<p class='vspace'>If increasing this memory limit does not resolve the problem, then you will need to consider ways to reduce the size of your model. You can find some tips on this in the <a class='wikilink' href='PRISMModelling.html'>PRISM Modelling</a> section. Bear in mind also that if you are having to increase the CUDD memory limit too high (e.g. close to the physical memory available on your computer) just for model construction, then it is unlikely that you will have enough memory for subsequent model checking operations.
+</p>
+<p class='vspace'>Finally, it is also worth considering the ordering of the modules and variables in your model since this can have a (in some cases dramatic) effect on the size of MTBDD representation of the model. This topic is covered in the "<a class='wikilink' href='PRISMModelling.html'>PRISM Modelling</a>" section of this FAQ.
+</p></div>
+<p class='vspace'><a name='memout_check' id='memout_check'></a>
+</p><h3>I ran out of memory during model checking. What can I do?</h3>
+<div class='answer' > 
+<p>If model construction was successfully completed (see previous question) but model checking was not, there are several things you can try. First of all, if the error message you see looks like the one in the previous question or you see a message such as
+</p>
+<div class='sourceblock ' id='sourceblock5'>
+  <div class='sourceblocktext'><div class="shell"><span style="font-style:italic;">DD_MatrixMultiply: res is NULL</span><br/>
+</div></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/FrequentlyAskedQuestions/AllOnOnePage?action=sourceblock&amp;num=5' type='text/plain'>[&#036;[Get Code]]</a></div>
+</div>
+
+<p>then it may be worth increasing the memory limit for CUDD (as described above). However, if you see an error more like this:
+</p>
+<div class='sourceblock ' id='sourceblock6'>
+  <div class='sourceblocktext'><div class="shell"><span style="font-style:italic;">/home/dxp/bin/prism: line 50:  3139 Aborted                 "$PRISM_JAVA" $PRISM_JAVAMAXMEM -Djava.awt.headless=$PRISM_HEADLESS -Djava.library.path=$PRISM_DIR/lib -classpath "$PRISM_CLASSPATH" $PRISM_MAINCLASS "$@"</span><br/>
+</div></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/FrequentlyAskedQuestions/AllOnOnePage?action=sourceblock&amp;num=6' type='text/plain'>[&#036;[Get Code]]</a></div>
+</div>
+
+<p>then increasing the memory CUDD probably will not help - PRISM is just trying to allocate more memory than is physically available on your system.
+</p>
+<p class='vspace'>Here are some general tips:
+</p>
+<div class='vspace'></div><ul><li>Try experimenting with using the different <em>engines</em> in PRISM. Read the section "<a class='wikilink' href='../ConfiguringPRISM/ComputationEngines.html'>Configuring PRISM - Computation Engines</a>" for details.
+<div class='vspace'></div></li><li>Look at the detailed output of PRISM for information about memory usage. If you are using the hybrid (or sparse) engine and the limiting factor in terms of memory is creation of the vectors, then you have no choice but to try and reduce the size (number of states) of your model. If you are using the MTBDD engine, it is also well worth considering the variable ordering of your model. Both topics are discussed in the "<a class='wikilink' href='PRISMModelling.html'>PRISM Modelling</a>" section of this FAQ.
+<div class='vspace'></div></li><li>Finally, if you can find no way to reduce the size of your model and are happy to consider an approximate (rather than exact) analysis, you may wish to try using PRISM's <a class='wikilink' href='../RunningPRISM/ApproximateModelChecking.html'>discrete-event simulation engine</a> for analysis.
+</li></ul></div>
+<p class='vspace'><a name='memout_parse' id='memout_parse'></a>
+</p><h3>I ran out of memory during model parsing. What can I do?</h3>
+<div class='answer' > 
+<p>This is a less common problem and will only occur if the actual PRISM language description of your model is very large. This may be the case, for example, if you are automatically generating PRISM models in some way. Errors due to lack of memory during parsing usually look like:
+</p>
+<div class='sourceblock ' id='sourceblock7'>
+  <div class='sourceblocktext'><div class="shell"><span style="font-weight:bold;">Exception in thread "main" java.lang.OutOfMemoryError: Java heap space </span><br/>
+</div></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/FrequentlyAskedQuestions/AllOnOnePage?action=sourceblock&amp;num=7' type='text/plain'>[&#036;[Get Code]]</a></div>
+</div>
+
+<p>or:
+</p>
+<div class='sourceblock ' id='sourceblock8'>
+  <div class='sourceblocktext'><div class="shell"><span style="font-weight:bold;">Exception in thread "main" java.lang.StackOverflowError</span><br/>
+</div></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/FrequentlyAskedQuestions/AllOnOnePage?action=sourceblock&amp;num=8' type='text/plain'>[&#036;[Get Code]]</a></div>
+</div>
+
+<p>You can resolve this problem by increasing the memory allocated to Java.
+See the entry "Java memory" in the section "<a class='wikilink' href='../ConfiguringPRISM/OtherOptions.html'>Configuring PRISM - Other Options</a>" for details of this.
+</p></div>
+<hr />
+<h1>PRISM Modelling</h1>
+<p><a name='max_model_size' id='max_model_size'></a>
+</p><h3>What size models can PRISM handle?</h3>
+<div class='answer' > 
+<p>There is no definitive answer to this. Because of PRISM's symbolic implementation, using data structures based on binary decision diagrams (BDDs), its performance can be unpredictable in this respect. There are also several factors that affect performance, including the type of model and property being checked and the engine being used (PRISM has several different engines, which have varying performance).
+</p>
+<p class='vspace'>Having said that, using the default engine in PRISM (the “hybrid” engine), you can normally expect to be able to handle models with up to 10^7-10^8 states on a typical PC. Using the MTBDD engine, you may be able to analyse much larger models (on some of the PRISM case studies, for example, PRISM can do numerical analysis of models with as many as 10^10 or 10^11 states). The manual has more information about PRISM's <a class='urllink' href='../ConfiguringPRISM/ComputationEngines.html'>engines</a>.
+</p></div>
+<p class='vspace'><a name='model_size' id='model_size'></a>
+</p><h3>How can I reduce the size of my model?</h3>
+<div class='answer' > 
+<p>The size of a probabilistic model (i.e. the number of states/transitions) is critical to the efficiency of performing probabilistic model checking on it, since both the time and memory required to do so are often proportional to the model size. Unfortunately, it is very easy to create models that are extremely large. Below are a few general tips for reducing model size.
+</p>
+<div class='vspace'></div><ul><li>Look for variables that have unnecessarily large ranges and try to reduce them. Even if your model needs large variables, it is generally a good strategy to first get a smaller version building successfully and then scale it up afterwards.
+<div class='vspace'></div></li><li>Similarly, can you (if only temporarily) reduce the number of modules/components of your model? Start with the smallest number of components possible and then add others one by one.
+<div class='vspace'></div></li><li>Do you have any inter-dependencies between variables? For example, perhaps you have some variables which are simply functions of other variables of the model. Even if these are convenient for model checking, they can be replaced with <a class='wikilink' href='../ThePRISMLanguage/FormulasAndLabels.html'>formulas or labels</a>, which do not contribute to the state space.
+<div class='vspace'></div></li><li>Do any variables include more detail than is necessary for the model? Perhaps this can be exploited in order to reduce the number of variables in your model.
+<div class='vspace'></div></li><li>More generally, are any aspects of the model not relevant to the properties that you are interested in? If so, start with a simpler, more abstract version of the model and then add more details if possible.
+</li></ul></div>
+<p class='vspace'><a name='ordering' id='ordering'></a>
+</p><h3>How can I choose a good variable ordering?</h3>
+<div class='answer' > 
+<p>Because PRISM is a symbolic model checker, the amount of memory required to store the probabilistic model can vary (sometime unpredictably) according to several factors. One example is the order in which the variables of your model appear in the model file. In general, there is no definitive answer to what the best ordering is but the following heuristics are a good guide.
+</p>
+<div class='vspace'></div><ul><li>Variables which are closely related should appear close together
+<div class='vspace'></div></li><li>Variables which are related to most or all other variables should appear near the start of the ordering
+</li></ul><p class='vspace'>Variables <code>x</code> and <code>y</code> are "related" if, for example, the value of one is has an effect on how the other changes (e.g. <code>(y'=x+1)</code>) or if both appear together in an expression (e.g. a guard).
+</p>
+<p class='vspace'>These heuristics also apply to the ordering of <em>modules</em> within the model file.
+</p>
+<p class='vspace'>For technical details about variable ordering issues, see e.g. section 8 of [<a class='wikilink' href='../Main/References.html#HKN+03'>HKN+03</a>] or section 4.1.2 of [<a class='wikilink' href='../Main/References.html#Par02'>Par02</a>].
+</p></div>
+<p class='vspace'><a name='det_delay' id='det_delay'></a>
+</p><h3>How can I add deterministic time delays to a CTMC model?</h3>
+<div class='answer' > 
+<p>All delays in a CTMC need to be modelled as <em>exponential</em> distributions. This is what makes them efficient to analyse. If you included a transition whose delay was <em>deterministic</em>, i.e. which always occurred after exactly the same delay,  the model would no longer be a CTMC.
+</p>
+<p class='vspace'>One solution to this, if your model require such a delay, is to approximate a deterministic delay with an <a class='urllink' href='http://en.wikipedia.org/wiki/Erlang_distribution'>Erlang distribution</a> (a special case of a phase-type distribution). See for example this PRISM model:
+</p>
+<div class='vspace'></div>
+<div class='sourceblock ' id='sourceblock9'>
+  <div class='sourceblocktext'><div class="prism"><span class="prismkeyword">ctmc</span><br/>
+<br/>
+<span class="prismkeyword">const</span> <span class="prismkeyword">int</span> <span class="prismident">k</span>;<br/>
+<span class="prismkeyword">const</span> <span class="prismkeyword">double</span> <span class="prismident">mean</span> = <span class="prismnum">10</span>;<br/>
+<br/>
+<span class="prismkeyword">module</span> <span class="prismident">trigger</span><br/>
+<br/>
+	<span class="prismident">i</span> : [<span class="prismnum">1</span>..<span class="prismident">k</span>+<span class="prismnum">1</span>];<br/>
+<br/>
+	[]&nbsp;&nbsp;&nbsp;<span class="prismident">i</span> &lt; <span class="prismident">k</span> -&gt; <span class="prismident">k</span>/<span class="prismident">mean</span> : (<span class="prismident">i</span>'=<span class="prismident">i</span>+<span class="prismnum">1</span>);<br/>
+	[<span class="prismident">go</span>] <span class="prismident">i</span> = <span class="prismident">k</span> -&gt; <span class="prismident">k</span>/<span class="prismident">mean</span> : (<span class="prismident">i</span>'=<span class="prismident">i</span>+<span class="prismnum">1</span>);<br/>
+<br/>
+<span class="prismkeyword">endmodule</span><br/>
+<br/>
+<span class="prismkeyword">module</span> <span class="prismident">main</span><br/>
+<br/>
+	<span class="prismident">x</span> : [<span class="prismnum">0</span>..<span class="prismnum">1</span>];<br/>
+<br/>
+	[<span class="prismident">go</span>] <span class="prismident">x</span>=<span class="prismnum">0</span> -&gt; (<span class="prismident">x</span>'=<span class="prismnum">1</span>);<br/>
+<br/>
+<span class="prismkeyword">endmodule</span><br/>
+</div></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/FrequentlyAskedQuestions/AllOnOnePage?action=sourceblock&amp;num=9' type='text/plain'>[&#036;[Get Code]]</a></div>
+</div>
+
+<p class='vspace'>In the model, the occurrence of the the go-labelled action occurs with an Erlang distribution with mean <code>mean</code> and shape <code>k</code>. The special case of <code>k</code>=1 is just an exponential distribution. The graph below shows the probability distribution of the delay, i.e. of <code>P=? [ F&lt;=T x=1 ]</code> for different values of <code>k</code>.
+</p>
+<div class='vspace'></div><div class='img imgonly'><img src='../uploads/faq-erlang.jpg' alt='' /></div>
+<p class='vspace'>There is an obvious trade-off here between the accuracy (how close it is to modelling a deterministic time delay) and the resulting blow-up in the size of the model that you add this to. For <code>k</code>=1000, you can see that the shape is quite "deterministic" but this would increase your model size by a factor of ~1000.
+</p></div>
+</div>
+
+
+</body>
+</html>

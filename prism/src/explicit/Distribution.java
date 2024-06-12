@@ -33,58 +33,100 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
-import prism.PrismUtils;
+import common.iterable.FunctionalIterable;
+import common.iterable.FunctionalIterator;
+import common.iterable.Reducible;
+import prism.Evaluator;
+import simulator.RandomNumberGenerator;
 
 /**
  * Explicit representation of a probability distribution.
- * Basically, a mapping from (integer-valued) indices to (non-zero, double-valued) probabilities. 
+ * Basically, a mapping from (integer-valued) indices to (non-zero) probabilities.
+ * This is a generic class where probabilities are of type {@code Value}.
  */
-public class Distribution implements Iterable<Entry<Integer, Double>>
+public class Distribution<Value> implements FunctionalIterable<Entry<Integer, Value>>
 {
-	private HashMap<Integer, Double> map;
+	/** Mapping from indices to probability values */
+	protected final HashMap<Integer, Value> map;
+	
+	/** Evaluator for manipulating probability values in the distribution (of type {@code Value}) */
+	protected final Evaluator<Value> eval;
+
+	/**
+	 * Create an empty distribution
+	 * (assumes an Evaluator of type Double, unless set afterwards).
+	 * This constructor is deprecated: it is preferable to either use the
+	 * static creation methods such as {@link #ofDouble()}, or pass an
+	 * evaluator, e.g., with {@link #Distribution(Evaluator)}.
+	 */
+	@Deprecated
+	public Distribution()
+	{
+		this((Evaluator<Value>) Evaluator.forDouble());
+	}
 
 	/**
 	 * Create an empty distribution.
+	 * (with an Evaluator to match the type parameter Value)
 	 */
-	public Distribution()
+	public Distribution(Evaluator<Value> eval)
 	{
-		clear();
+		this.eval = eval;
+		this.map = new HashMap<>();
 	}
 
 	/**
-	 * Copy constructor.
+	 * Construct a distribution from an iterator over transitions
+	 * (with an Evaluator to match the type parameter Value).
 	 */
-	public Distribution(Distribution distr)
+	public Distribution(Iterator<Entry<Integer, Value>> transitions, Evaluator<Value> eval)
 	{
-		this(distr.iterator());
+		this(eval);
+		// use #add to ensure probabilities sum up for any duplicated indices
+		transitions.forEachRemaining(t -> add(t.getKey(), t.getValue()));
 	}
 
 	/**
-	 * Construct a distribution from an iterator over transitions.
+	 * Copy constructor
+	 * (the Evaluator is also copied).
 	 */
-	public Distribution(Iterator<Entry<Integer, Double>> transitions)
+	public Distribution(Distribution<Value> distr)
 	{
-		this();
-		while (transitions.hasNext()) {
-			final Entry<Integer, Double> trans = transitions.next();
-			add(trans.getKey(), trans.getValue());
-		}
+		this(distr.getEvaluator());
+		// use Map#put since for each index we get only one probability
+		distr.forEach(t -> map.put(t.getKey(), t.getValue()));
 	}
 
 	/**
 	 * Construct a distribution from an existing one and an index permutation,
-	 * i.e. in which index i becomes index permut[i].
+	 * i.e. in which index i becomes index permut[i]
+	 * (the Evaluator is also copied).
 	 * Note: have to build the new distributions from scratch anyway to do this,
 	 * so may as well provide this functionality as a constructor.
 	 */
-	public Distribution(Distribution distr, int permut[])
+	public Distribution(Distribution<Value> distr, int permut[])
 	{
-		this();
-		Iterator<Entry<Integer, Double>> i = distr.iterator();
-		while (i.hasNext()) {
-			Map.Entry<Integer, Double> e = i.next();
-			add(permut[e.getKey()], e.getValue());
-		}
+		this(distr.getEvaluator());
+		// use #add to ensure probabilities sum up for each index
+		distr.forEach(t -> add(permut[t.getKey()], t.getValue()));
+	}
+
+	/**
+	 * Construct an empty distribution
+	 * assuming an Evaluator of type Double.
+	 */
+	public static Distribution<Double> ofDouble()
+	{
+		return new Distribution<>(Evaluator.forDouble());
+	}
+
+	/**
+	 * Construct a distribution from an iterator over transitions
+	 * assuming an Evaluator of type Double.
+	 */
+	public static Distribution<Double> ofDouble(Iterator<Entry<Integer, Double>> transitions)
+	{
+		return new Distribution<Double>(transitions, Evaluator.forDouble());
 	}
 
 	/**
@@ -92,53 +134,52 @@ public class Distribution implements Iterable<Entry<Integer, Double>>
 	 */
 	public void clear()
 	{
-		map = new HashMap<Integer, Double>();
+		map.clear();
 	}
 
 	/**
-	 * Add 'prob' to the probability for index 'j'.
-	 * Return boolean indicating whether or not there was already
-	 * non-zero probability for this index (i.e. false denotes new transition).
+	 * Add non-negative {@code prob} to the probability for index {@code j}.
+	 * Return boolean {@code true} if no new transition is created,
+	 * i.e., {@code false} indicates a new transition with prob > 0.
+	 *
+	 * @return {@code true} iff p(j) != 0 || prob == 0
 	 */
-	public boolean add(int j, double prob)
+	public boolean add(int j, Value prob)
 	{
-		Double d = (Double) map.get(j);
-		if (d == null) {
-			map.put(j, prob);
-			return false;
-		} else {
-			set(j, d + prob);
+		if (eval.isZero(prob)) {
 			return true;
+		}
+		Value sum = map.merge(j, prob, eval::add);
+		return sum != prob;
+
+	}
+
+	/**
+	 * Set the probability for index {@code j} to {@code prob}.
+	 */
+	public void set(int j, Value prob)
+	{
+		if (eval.isZero(prob)) {
+			map.remove(j);
+		} else {
+			map.put(j, prob);
 		}
 	}
 
 	/**
-	 * Set the probability for index 'j' to 'prob'.
+	 * Get the probability for index {@code j}.
 	 */
-	public void set(int j, double prob)
+	public Value get(int j)
 	{
-		if (prob == 0.0)
-			map.remove(j);
-		else
-			map.put(j, prob);
+		return map.getOrDefault(j, eval.zero());
 	}
 
 	/**
-	 * Get the probability for index j. 
-	 */
-	public double get(int j)
-	{
-		Double d;
-		d = (Double) map.get(j);
-		return d == null ? 0.0 : d.doubleValue();
-	}
-
-	/**
-	 * Returns true if index j is in the support of the distribution. 
+	 * Returns true if index {@code j} is in the support of the distribution.
 	 */
 	public boolean contains(int j)
 	{
-		return map.get(j) != null;
+		return map.containsKey(j);
 	}
 
 	/**
@@ -146,13 +187,7 @@ public class Distribution implements Iterable<Entry<Integer, Double>>
 	 */
 	public boolean isSubsetOf(BitSet set)
 	{
-		Iterator<Entry<Integer, Double>> i = iterator();
-		while (i.hasNext()) {
-			Map.Entry<Integer, Double> e = i.next();
-			if (!set.get((Integer) e.getKey()))
-				return false;
-		}
-		return true;
+		return Reducible.extend(getSupport()).allMatch(set::get);
 	}
 
 	/**
@@ -160,13 +195,7 @@ public class Distribution implements Iterable<Entry<Integer, Double>>
 	 */
 	public boolean containsOneOf(BitSet set)
 	{
-		Iterator<Entry<Integer, Double>> i = iterator();
-		while (i.hasNext()) {
-			Map.Entry<Integer, Double> e = i.next();
-			if (set.get((Integer) e.getKey()))
-				return true;
-		}
-		return false;
+		return Reducible.extend(getSupport()).anyMatch(set::get);
 	}
 
 	/**
@@ -180,9 +209,9 @@ public class Distribution implements Iterable<Entry<Integer, Double>>
 	/**
 	 * Get an iterator over the entries of the map defining the distribution.
 	 */
-	public Iterator<Entry<Integer, Double>> iterator()
+	public FunctionalIterator<Entry<Integer, Value>> iterator()
 	{
-		return map.entrySet().iterator();
+		return Reducible.extend(map.entrySet().iterator());
 	}
 
 	/**
@@ -202,109 +231,96 @@ public class Distribution implements Iterable<Entry<Integer, Double>>
 	}
 
 	/**
-	 * Get the mean of the distribution.
+	 * Sample an index at random from the distribution.
+	 * Returns -1 if the distribution is empty.
 	 */
-	/*public double mean()
+	public int sample()
 	{
-		double d = 0.0;
-		Iterator<Entry<Integer, Double>> i = iterator();
-		while (i.hasNext()) {
-			Map.Entry<Integer, Double> e = i.next();
-			d += e.getValue() * e.getKey();
+		return getValueByProbabilitySum(Math.random());
+	}
+	
+	/**
+	 * Sample an index at random from the distribution, using the specified RandomNumberGenerator.
+	 * Returns -1 if the distribution is empty.
+	 */
+	public int sample(RandomNumberGenerator rng)
+	{
+		return getValueByProbabilitySum(rng.randomUnifDouble());
+	}
+	
+	/**
+	 * Get the first index for which the sum of probabilities of that and all prior indices exceeds x.
+	 * Returns -1 if the distribution is empty.
+	 * @param x Probability sum
+	 */
+	private int getValueByProbabilitySum(double x)
+	{
+		if (isEmpty()) {
+			return -1;
 		}
-		return d;
-	}*/
-	
-	/**
-	 * Get the variance of the distribution.
-	 */
-	/*public double variance()
-	{
-		double mean = mean();
-		double meanSq = 0.0;
-		Iterator<Entry<Integer, Double>> i = iterator();
-		while (i.hasNext()) {
-			Map.Entry<Integer, Double> e = i.next();
-			meanSq += e.getValue() * e.getKey() * e.getKey();
+		Iterator<Entry<Integer, Value>> i = iterator();
+		Map.Entry<Integer, Value> e = null;
+		Value tot = eval.zero();
+		while (x >= eval.toDouble(tot) && i.hasNext()) {
+			e = i.next();
+			tot = eval.add(tot, e.getValue());
 		}
-		return Math.abs(meanSq - mean * mean);
-	}*/
-	
-	/**
-	 * Get the standard deviation of the distribution.
-	 */
-	/*public double standardDeviation()
-	{
-		return Math.sqrt(variance());
-	}*/
-	
-	/**
-	 * Get the relative standard deviation of the distribution,
-	 * i.e., as a percentage of the mean.
-	 */
-	/*public double standardDeviationRelative()
-	{
-		return 100.0 * standardDeviation() / mean();
-	}*/
-	
+		return e.getKey();
+	}
+
 	/**
 	 * Get the sum of the probabilities in the distribution.
 	 */
-	public double sum()
+	public Value sum()
 	{
-		double mean = 0.0;
-		Iterator<Entry<Integer, Double>> i = iterator();
-		while (i.hasNext()) {
-			Map.Entry<Integer, Double> e = i.next();
-			mean += e.getValue();
-		}
-		return mean;
+		return map(Entry::getValue).reduce(eval.zero(), eval::add);
 	}
 
 	/**
 	 * Get the sum of all the probabilities in the distribution except for index j.
 	 */
-	public double sumAllBut(int j)
+	public Value sumAllBut(int j)
 	{
-		double d = 0.0;
-		Iterator<Entry<Integer, Double>> i = iterator();
-		while (i.hasNext()) {
-			Map.Entry<Integer, Double> e = i.next();
-			if (e.getKey() != j)
-				d += e.getValue();
-		}
-		return d;
+		return filter(t -> t.getKey() != j).map(Entry::getValue).reduce(eval.zero(), eval::add);
 	}
 
 	/**
 	 * Create a new distribution, based on a mapping from the indices
 	 * used in this distribution to a different set of indices.
 	 */
-	public Distribution map(int map[])
+	public Distribution<Value> map(int map[])
 	{
-		Distribution distrNew = new Distribution();
-		Iterator<Entry<Integer, Double>> i = iterator();
-		while (i.hasNext()) {
-			Map.Entry<Integer, Double> e = i.next();
-			distrNew.add(map[e.getKey()], e.getValue());
-		}
-		return distrNew;
+		return new Distribution<Value>(this, map);
 	}
 
+	/**
+	 * Get an Evaluator for the probability values stored in this distribution.
+	 * This is need, for example, to compute probability sums, check for equality to 0/1, etc.
+	 * By default, this is initialised to an evaluator for the (usual) case when Value is Double.
+	 */
+	public Evaluator<Value> getEvaluator()
+	{
+		return eval;
+	}
+	
 	@Override
 	public boolean equals(Object o)
 	{
-		Double d1, d2;
-		Distribution d = (Distribution) o;
-		if (d.size() != size())
+		if (! (o instanceof Distribution)) {
 			return false;
-		Iterator<Entry<Integer, Double>> i = iterator();
-		while (i.hasNext()) {
-			Map.Entry<Integer, Double> e = i.next();
-			d1 = e.getValue();
-			d2 = d.map.get(e.getKey());
-			if (d2 == null || !PrismUtils.doublesAreEqual(d1, d2))
+		}
+		// Check elements of distribution using evaluator equals method
+		HashMap<Integer,Value> oMap = ((Distribution<Value>) o).map;
+		if (map.size() != oMap.size()) {
+			return false;
+		}
+		for (Map.Entry<Integer,Value> entry : map.entrySet()) {
+			Integer key = entry.getKey();
+			Value value = entry.getValue(); // We assume nothing maps to null
+			Value oValue = oMap.get(key);
+			if (oValue == null || !getEvaluator().equals(value, oValue)) {
 				return false;
+			}
 		}
 		return true;
 	}
@@ -325,15 +341,15 @@ public class Distribution implements Iterable<Entry<Integer, Double>>
 	public String toStringCSV()
 	{
 		String s = "Value";
-		Iterator<Entry<Integer, Double>> i = iterator();
+		Iterator<Entry<Integer, Value>> i = iterator();
 		while (i.hasNext()) {
-			Map.Entry<Integer, Double> e = i.next();
+			Map.Entry<Integer, Value> e = i.next();
 			s += ", " + e.getKey();
 		}
 		s += "\nProbability";
 		i = iterator();
 		while (i.hasNext()) {
-			Map.Entry<Integer, Double> e = i.next();
+			Map.Entry<Integer, Value> e = i.next();
 			s += ", " + e.getValue();
 		}
 		s += "\n";

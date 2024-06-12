@@ -26,7 +26,8 @@
 
 package parser.ast;
 
-import parser.visitor.*;
+import parser.visitor.ASTVisitor;
+import parser.visitor.DeepCopy;
 import prism.PrismLangException;
 
 public class Command extends ASTElement
@@ -138,18 +139,19 @@ public class Command extends ASTElement
 		return s;
 	}
 	
-	/**
-	 * Perform a deep copy.
-	 */
-	public ASTElement deepCopy()
+	@Override
+	public Command deepCopy(DeepCopy copier) throws PrismLangException
 	{
-		Command ret = new Command();
-		ret.setSynch(getSynch());
-		ret.setSynchIndex(getSynchIndex());
-		ret.setGuard(getGuard().deepCopy());
-		ret.setUpdates((Updates)getUpdates().deepCopy());
-		ret.setPosition(this);
-		return ret;
+		guard = copier.copy(guard);
+		setUpdates(copier.copy(updates));
+
+		return this;
+	}
+
+	@Override
+	public Command clone()
+	{
+		return (Command) super.clone();
 	}
 }
 

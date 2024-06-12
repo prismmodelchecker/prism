@@ -43,6 +43,7 @@ import jdd.JDDVars;
 import parser.Values;
 import parser.VarList;
 
+
 /**
  * Class to convert explicit-state file storage of a model to symbolic representation.
  */
@@ -56,7 +57,6 @@ public class ExplicitFiles2MTBDD
 	private File statesFile;
 	private File transFile;
 	private File labelsFile;
-	private File stateRewardsFile;
 
 	// Model info
 	private ModelInfo modelInfo;
@@ -68,14 +68,16 @@ public class ExplicitFiles2MTBDD
 	// Explicit storage of states
 	private int statesArray[][] = null;
 
+	private String rewardStructNames[];
+
 	// mtbdd stuff
 
 	// dds/dd vars - whole system
 	private JDDNode trans; // transition matrix dd
 	private JDDNode range; // dd giving range for system
 	private JDDNode start; // dd for start state
-	private JDDNode stateRewards; // dd of state rewards
-	private JDDNode transRewards; // dd of transition rewards
+	private JDDNode stateRewards[]; // array of dds for state rewards
+	private JDDNode transRewards[]; // array of dds for transition rewards
 	private JDDVars allDDRowVars; // all dd vars (rows)
 	private JDDVars allDDColVars; // all dd vars (cols)
 	private JDDVars allDDSynchVars; // all dd vars (synchronising actions)
@@ -108,6 +110,8 @@ public class ExplicitFiles2MTBDD
 	private int maxNumChoices = 0;
 	private LinkedHashMap<String, JDDNode> labelsDD;
 
+	protected ExplicitFilesRewardGenerator4MTBDD efrg4m; // reward generator
+
 	public ExplicitFiles2MTBDD(Prism prism)
 	{
 		this.prism = prism;
@@ -119,18 +123,20 @@ public class ExplicitFiles2MTBDD
 	 * Variable info and model type is taken from a {@code ModelInfo} object.
 	 * The number of states should also be passed in as {@code numStates}.
 	 */
-	public Model build(File statesFile, File transFile, File labelsFile, File stateRewardsFile, ModelInfo modelInfo, int numStates) throws PrismException
+	public Model build(File statesFile, File transFile, File labelsFile, ModelInfo modelInfo, int numStates,
+			ExplicitFilesRewardGenerator4MTBDD efrg4m) throws PrismException
 	{
 		this.statesFile = statesFile;
 		this.transFile = transFile;
 		this.labelsFile = labelsFile;
-		this.stateRewardsFile = stateRewardsFile;
 		this.modelInfo = modelInfo;
 		modelType = modelInfo.getModelType();
 		varList = modelInfo.createVarList();
 		numVars = varList.getNumVars();
 		this.numStates = numStates;
 		modelVariables = new ModelVariablesDD();
+
+		this.efrg4m = efrg4m;
 		
 		// Build states list, if info is available
 		if (statesFile != null) {
@@ -249,26 +255,25 @@ public class ExplicitFiles2MTBDD
 
 		Values constantValues = new Values(); // no constants
 
-		JDDNode stateRewardsArray[] = new JDDNode[1];
-		stateRewardsArray[0] = stateRewards;
-		JDDNode transRewardsArray[] = new JDDNode[1];
-		transRewardsArray[0] = transRewards;
-		String rewardStructNames[] = new String[1];
-		rewardStructNames[0] = "";
+		// transition reward not yet supported - just make 0
+		JDDNode transRewardsArray[] = new JDDNode[rewardStructNames.length];
+		for (int k = 0; k < rewardStructNames.length; k++) {
+			transRewardsArray[k] = JDD.Constant(0);
+		}
 
 		// create new Model object to be returned
 		// they need a module name list, so we fake that
 		int numModules = 1;
 		String moduleNames[] = new String[] { "M" };
 		if (modelType == ModelType.DTMC) {
-			model = new ProbModel(trans, start, stateRewardsArray, transRewardsArray, rewardStructNames, allDDRowVars, allDDColVars, modelVariables, numModules,
+			model = new ProbModel(trans, start, stateRewards, transRewardsArray, rewardStructNames, allDDRowVars, allDDColVars, modelVariables, numModules,
 					moduleNames, moduleDDRowVars, moduleDDColVars, numVars, varList, varDDRowVars, varDDColVars, constantValues);
 		} else if (modelType == ModelType.MDP) {
-			model = new NondetModel(trans, start, stateRewardsArray, transRewardsArray, rewardStructNames, allDDRowVars, allDDColVars, allDDSynchVars,
+			model = new NondetModel(trans, start, stateRewards, transRewardsArray, rewardStructNames, allDDRowVars, allDDColVars, allDDSynchVars,
 					allDDSchedVars, allDDChoiceVars, allDDNondetVars, modelVariables, numModules, moduleNames, moduleDDRowVars, moduleDDColVars, numVars, varList,
 					varDDRowVars, varDDColVars, constantValues);
 		} else if (modelType == ModelType.CTMC) {
-			model = new StochModel(trans, start, stateRewardsArray, transRewardsArray, rewardStructNames, allDDRowVars, allDDColVars, modelVariables, numModules,
+			model = new StochModel(trans, start, stateRewards, transRewardsArray, rewardStructNames, allDDRowVars, allDDColVars, modelVariables, numModules,
 					moduleNames, moduleDDRowVars, moduleDDColVars, numVars, varList, varDDRowVars, varDDColVars, constantValues);
 		}
 		// set action info
@@ -539,7 +544,6 @@ public class ExplicitFiles2MTBDD
 
 		// initialise mtbdds
 		trans = JDD.Constant(0);
-		transRewards = JDD.Constant(0);
 		if (modelType != ModelType.MDP) {
 			transPerAction = new Vector<JDDNode>();
 			transPerAction.add(JDD.Constant(0));
@@ -738,66 +742,17 @@ public class ExplicitFiles2MTBDD
 		}
 	}
 
-	/** Read info about state rewards from a .srew file */
+	/**
+	 * Method gets state rewards from files with ExplicitFilesRewardGenerator4MTBDD.
+	 *
+	 * @throws PrismException can be thrown from reward generator
+	 * @throws NullPointerException if a file is null
+	 */
 	private void computeStateRewards() throws PrismException
 	{
-		String s, ss[];
-		int i, j, lineNum = 0;
-		double d;
-		JDDNode tmp;
-
-		// initialise mtbdd
-		stateRewards = JDD.Constant(0);
-
-		if (stateRewardsFile == null)
-			return;
-
-		// open file for reading, automatic close when done
-		try (BufferedReader in = new BufferedReader(new FileReader(stateRewardsFile))) {
-			// skip first line
-			in.readLine();
-			lineNum = 1;
-			// read remaining lines
-			s = in.readLine();
-			lineNum++;
-			while (s != null) {
-				// skip blank lines
-				s = s.trim();
-				if (s.length() > 0) {
-					// split into two parts
-					ss = s.split(" ");
-					if (ss.length != 2)
-						throw new PrismException("");
-					// determine which state this line refers to
-					i = Integer.parseInt(ss[0]);
-					// determine reward value
-					d = Double.parseDouble(ss[1]);
-					// construct element of vector mtbdd
-					// case where we don't have a state list...
-					if (statesFile == null) {
-						tmp = JDD.SetVectorElement(JDD.Constant(0), varDDRowVars[0], i, 1.0);
-					}
-					// case where we do have a state list...
-					else {
-						tmp = JDD.Constant(1);
-						for (j = 0; j < numVars; j++) {
-							tmp = JDD.Apply(JDD.TIMES, tmp, JDD.SetVectorElement(JDD.Constant(0), varDDRowVars[j], statesArray[i][j], 1));
-						}
-					}
-					// add it into mtbdd for state rewards
-					stateRewards = JDD.Apply(JDD.PLUS, stateRewards, JDD.Apply(JDD.TIMES, JDD.Constant(d), tmp));
-				}
-				// read next line
-				s = in.readLine();
-				lineNum++;
-			}
-		} catch (IOException e) {
-			throw new PrismException("File I/O error reading from \"" + stateRewardsFile + "\": " + e.getMessage());
-		} catch (NumberFormatException e) {
-			throw new PrismException("Error detected at line " + lineNum + " of state rewards file \"" + stateRewardsFile + "\"");
-		} catch (PrismException e) {
-			throw new PrismException("Error detected " + e.getMessage() + "at line " + lineNum + " of state rewards file \"" + stateRewardsFile + "\"");
-		}
+		efrg4m.initRewardGenerator(statesArray, varDDColVars, varDDRowVars, numVars);
+		stateRewards = efrg4m.getRewardStructs();
+		this.rewardStructNames = efrg4m.getRewardStructNames().toArray(new String[0]);
 	}
 }
 

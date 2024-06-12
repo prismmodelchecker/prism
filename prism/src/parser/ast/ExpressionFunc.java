@@ -26,17 +26,20 @@
 
 package parser.ast;
 
-import java.math.BigInteger;
-import java.util.ArrayList;
-
 import common.SafeCast;
 import param.BigRational;
-import parser.*;
+import parser.EvaluateContext;
 import parser.EvaluateContext.EvalMode;
-import parser.visitor.*;
+import parser.type.Type;
+import parser.type.TypeDouble;
+import parser.type.TypeInt;
+import parser.visitor.ASTVisitor;
+import parser.visitor.DeepCopy;
 import prism.PrismLangException;
 import prism.PrismUtils;
-import parser.type.*;
+
+import java.math.BigInteger;
+import java.util.ArrayList;
 
 public class ExpressionFunc extends Expression
 {
@@ -54,7 +57,7 @@ public class ExpressionFunc extends Expression
 	// Built-in function names
 	public static final String names[] = { "min", "max", "floor", "ceil", "round", "pow", "mod", "log", "multi", "partial" };
 	// Min/max function arities
-	public static final int minArities[] = { 2, 2, 1, 1, 1, 2, 2, 2, 1, 1 };
+	public static final int minArities[] = { 1, 1, 1, 1, 1, 2, 2, 2, 1, 1 };
 	public static final int maxArities[] = { -1, -1, 1, 1, 1, 2, 2, 2, -1, -1 };
 
 	// Function name
@@ -496,30 +499,45 @@ public class ExpressionFunc extends Expression
 	 */
 	private Object applyPow(Object eval1, Object eval2, EvalMode evalMode) throws PrismLangException
 	{
+		try {
+			// The apply code is in a separate static method for re-use elsewhere
+			return applyPow(getType(), eval1, eval2, evalMode);
+		} catch (PrismLangException e) {
+			throw new PrismLangException(e.getMessage(), this);
+		}
+	}
+
+	/**
+	 * Apply a (pow) function instance of the specified type to the arguments provided
+	 * The arguments are assumed to be the correct kinds of Objects for their type
+	 * (as returned by {@link Type#castValueTo(Object, EvalMode)}).
+	 */
+	public static Object applyPow(Type type, Object eval1, Object eval2, EvalMode evalMode) throws PrismLangException
+	{
 		// All arguments ints
-		if (getType() instanceof TypeInt) {
+		if (type instanceof TypeInt) {
 			switch (evalMode) {
 			case FP:
 				int iBase = (int) eval1;
 				int iExp = (int) eval2;
 				// Not allowed to do e.g. pow(2,-2) because of typing (should be pow(2.0,-2) instead)
 				if (iExp < 0)
-					throw new PrismLangException("Negative exponent not allowed for integer power", this);
+					throw new PrismLangException("Negative exponent not allowed for integer power");
 				try {
 					return SafeCast.toIntExact(Math.pow(iBase, iExp));
 				} catch (ArithmeticException e) {
-					throw new PrismLangException("Overflow evaluating integer power: " + e.getMessage(), this);
+					throw new PrismLangException("Overflow evaluating integer power: " + e.getMessage());
 				}
 			case EXACT:
 				BigInteger biBase = (BigInteger) eval1;
 				BigInteger biExp = (BigInteger) eval2;
 				// Not allowed to do e.g. pow(2,-2) because of typing (should be pow(2.0,-2) instead)
 				if (biExp.compareTo(BigInteger.ZERO) < 0)
-					throw new PrismLangException("Negative exponent not allowed for integer power", this);
+					throw new PrismLangException("Negative exponent not allowed for integer power");
 				try {
 					return biBase.pow(biExp.intValue());
 				} catch (ArithmeticException e) {
-					throw new PrismLangException("Can not compute pow exactly, as there is a problem with the exponent: " + e.getMessage(), this);
+					throw new PrismLangException("Cannot compute pow exactly, as there is a problem with the exponent: " + e.getMessage());
 				}
 			default:
 				throw new PrismLangException("Unknown evaluation mode " + evalMode);
@@ -533,7 +551,11 @@ public class ExpressionFunc extends Expression
 			case FP:
 				return Math.pow((double) base, (double) exp);
 			case EXACT:
-				return ((BigRational) base).pow(((BigRational) exp).toInt());
+				if (((BigRational) exp).isInteger()) {
+					return ((BigRational) base).pow(((BigRational) exp).toInt());
+				} else {
+					throw new PrismLangException("Cannot compute fractional powers exactly");
+				}
 			default:
 				throw new PrismLangException("Unknown evaluation mode " + evalMode);
 			}
@@ -587,7 +609,7 @@ public class ExpressionFunc extends Expression
 			// Type will be double; so evaluate both operands and cast to doubles
 			return PrismUtils.log((double) x, (double) b);
 		case EXACT:
-			throw new PrismLangException("Currently, can not compute log exactly", this);
+			throw new PrismLangException("Currently, cannot compute log exactly", this);
 		default:
 			throw new PrismLangException("Unknown evaluation mode " + evalMode);
 		}
@@ -615,21 +637,23 @@ public class ExpressionFunc extends Expression
 	}
 
 	@Override
-	public Expression deepCopy()
+	public ExpressionFunc deepCopy(DeepCopy copier) throws PrismLangException
 	{
-		int i, n;
-		ExpressionFunc e;
+		copier.copyAll(operands);
 
-		e = new ExpressionFunc(name);
-		e.setOldStyle(oldStyle);
-		n = getNumOperands();
-		for (i = 0; i < n; i++) {
-			e.addOperand((Expression) getOperand(i).deepCopy());
-		}
-		e.setType(type);
-		e.setPosition(this);
+		return this;
+	}
 
-		return e;
+
+	@SuppressWarnings("unchecked")
+	@Override
+	public ExpressionFunc clone()
+	{
+		ExpressionFunc clone = (ExpressionFunc) super.clone();
+
+		clone.operands = (ArrayList<Expression>) operands.clone();
+
+		return clone;
 	}
 	
 	// Standard methods

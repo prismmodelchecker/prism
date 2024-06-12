@@ -1,0 +1,29 @@
+// Maximum probability all stations send successfully before a collision with max backoff 
+//RESULT (err=0.2): 0.82
+"all_before_max1": Pmaxmin=? [ !"collision_max_backoff" U "all_delivered" ];
+//RESULT (err=0.2): 0.92
+"all_before_max2": Pmaxmax=? [ !"collision_max_backoff" U "all_delivered" ];
+
+// Minimum probability all stations send successfully before a collision with max backoff
+//RESULT (err=0.2): 0.82
+"all_before_min1": Pminmin=? [ !"collision_max_backoff" U "all_delivered" ];
+//RESULT (err=0.2): 0.92
+"all_before_min2": Pminmax=? [ !"collision_max_backoff" U "all_delivered" ];
+
+// Minimum expected time for all messages to be sent
+//RESULT (err=0.2): 65.56150885
+"time_min1": R{"time"}minmin=? [ F "all_delivered" ];
+//RESULT (err=0.2): 68.81219280798
+"time_min2": R{"time"}minmax=? [ F "all_delivered" ];
+
+// Maximum expected time for all messages to be sent
+//RESULT (err=0.2): 69.06092106902
+"time_max1": R{"time"}maxmin=? [ F "all_delivered" ];
+//RESULT (err=0.2): 72.6691525693
+"time_max2": R{"time"}maxmax=? [ F "all_delivered" ];
+
+// Minimum probability that some station eventually delivers with less than K backoffs
+//RESULT (err=0.2): 0.4
+"some_before1": Pminmin=? [ F min_backoff_after_success<K ];
+//RESULT (err=0.2): 0.6
+"some_before2": Pminmax=? [ F min_backoff_after_success<K ];

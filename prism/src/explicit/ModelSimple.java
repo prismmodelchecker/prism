@@ -30,12 +30,14 @@ import java.util.BitSet;
 import java.util.List;
 
 import parser.State;
+import prism.ModelType;
 import prism.PrismException;
+import prism.PrismNotSupportedException;
 
 /**
  * Interface for simple mutable explicit-state model representations.
  */
-public interface ModelSimple extends Model
+public interface ModelSimple<Value> extends Model<Value>
 {
 	/**
 	 * Add a state to the list of initial states.
@@ -76,4 +78,37 @@ public interface ModelSimple extends Model
 	 * @param states The states that satisfy the label 
 	 */
 	public void addLabel(String name, BitSet states);
+
+	// Static helper methods
+
+	/**
+	 * Create a new ModelSimple object of the appropriate kind for a given model type
+	 */
+	public static ModelSimple<?> forModelType(ModelType modelType) throws PrismException
+	{
+		ModelSimple<?> prodModel = null;
+		switch (modelType) {
+			case DTMC:
+				prodModel = new DTMCSimple<>();
+				break;
+			case MDP:
+				prodModel = new MDPSimple<>();
+				break;
+			case POMDP:
+				prodModel = new POMDPSimple<>();
+				break;
+			case IDTMC:
+				prodModel = new IDTMCSimple<>();
+				break;
+			case IMDP:
+				prodModel = new IMDPSimple<>();
+				break;
+			case STPG:
+				prodModel = new STPGSimple<>();
+				break;
+			default:
+				throw new PrismNotSupportedException("Model construction not supported for " + modelType + "s");
+		}
+		return prodModel;
+	}
 }

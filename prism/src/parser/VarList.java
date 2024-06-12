@@ -29,7 +29,6 @@ package parser;
 import java.util.*;
 
 import prism.*;
-import parser.VarList.Var;
 import parser.ast.*;
 import parser.type.*;
 
@@ -48,12 +47,16 @@ public class VarList
 	private Map<String, Integer> nameMap;
 	// Total number of bits needed  to encode
 	private int totalNumBits;
+	
+	// Evaluation context (constant values + evaluation mode)
+	private EvaluateContext ec;
 
 	/**
 	 * Construct empty variable list.
 	 */
 	public VarList()
 	{
+		setEvaluateContext(EvaluateContext.create());
 		vars = new ArrayList<Var>();
 		nameMap = new HashMap<String, Integer>();
 		totalNumBits = 0;
@@ -65,35 +68,53 @@ public class VarList
 	public VarList(ModelInfo modelInfo) throws PrismException
 	{
 		this();
-
+		setEvaluateContext(modelInfo.getEvaluateContext());
 		int numVars = modelInfo.getNumVars();
 		for (int i = 0; i < numVars; i++) {
 			DeclarationType declType = modelInfo.getVarDeclarationType(i);
 			int module = modelInfo.getVarModuleIndex(i);
-			addVar(modelInfo.getVarName(i), declType, module, modelInfo.getConstantValues());
+			addVar(modelInfo.getVarName(i), declType, module);
 		}
 	}
-	 
+
+	/**
+	 * Set the evaluation context used to evaluate any expressions,
+	 * e.g. for variable range bounds. This supplies constant values
+	 * and determines the evaluation mode used.
+	 */
+	public void setEvaluateContext(EvaluateContext ec)
+	{
+		this.ec = ec;
+	}
+
 	/**
 	 * Add a new variable to the end of the VarList.
 	 * @param decl Declaration defining the variable
 	 * @param module Index of module containing variable
-	 * @param constantValues Values of constants needed to evaluate low/high/etc.
 	 */
-	public void addVar(Declaration decl, int module, Values constantValues) throws PrismLangException
+	public void addVar(Declaration decl, int module) throws PrismLangException
 	{
-		addVar(decl.getName(), decl.getDeclType(), module, constantValues);
+		addVar(decl.getName(), decl.getDeclType(), module);
 	}
 
+	/**
+	 * Add a new variable to the start of the VarList.
+	 * @param decl Declaration defining the variable
+	 * @param module Index of module containing variable
+	 */
+	public void addVarAtStart(Declaration decl, int module) throws PrismLangException
+	{
+		addVar(0, decl, module);
+	}
+	
 	/**
 	 * Add a new variable at position i in the VarList.
 	 * @param decl Declaration defining the variable
 	 * @param module Index of module containing variable
-	 * @param constantValues Values of constants needed to evaluate low/high/etc.
 	 */
-	public void addVar(int i, Declaration decl, int module, Values constantValues) throws PrismLangException
+	public void addVar(int i, Declaration decl, int module) throws PrismLangException
 	{
-		Var var = createVar(decl.getName(), decl.getDeclType(), module, constantValues);
+		Var var = createVar(decl.getName(), decl.getDeclType(), module);
 		vars.add(i, var);
 		totalNumBits += getRangeLogTwo(i);
 		// Recompute name map
@@ -110,11 +131,10 @@ public class VarList
 	 * @param name Variable name
 	 * @param declType Type declaration defining the variable
 	 * @param module Index of module containing variable
-	 * @param constantValues Values of constants needed to evaluate low/high/etc.
 	 */
-	public void addVar(String name, DeclarationType declType, int module, Values constantValues) throws PrismLangException
+	public void addVar(String name, DeclarationType declType, int module) throws PrismLangException
 	{
-		Var var = createVar(name, declType, module, constantValues);
+		Var var = createVar(name, declType, module);
 		vars.add(var);
 		totalNumBits += getRangeLogTwo(vars.size() - 1);
 		nameMap.put(name, vars.size() - 1);
@@ -125,9 +145,8 @@ public class VarList
 	 * @param name Variable name
 	 * @param declType Type declaration defining the variable
 	 * @param module Index of module containing variable
-	 * @param constantValues Values of constants needed to evaluate low/high/etc.
 	 */
-	private Var createVar(String name, DeclarationType declType, int module, Values constantValues) throws PrismLangException
+	private Var createVar(String name, DeclarationType declType, int module) throws PrismLangException
 	{
 		Var var;
 		int low, high;
@@ -140,8 +159,8 @@ public class VarList
 		// Variable is a bounded integer
 		if (declType instanceof DeclarationInt) {
 			DeclarationInt intdecl = (DeclarationInt) declType;
-			low = intdecl.getLow().evaluateInt(constantValues);
-			high = intdecl.getHigh().evaluateInt(constantValues);
+			low = intdecl.getLow().evaluateInt(ec);
+			high = intdecl.getHigh().evaluateInt(ec);
 			// Check range is valid
 			if (high - low <= 0) {
 				String s = "Invalid range (" + low + "-" + high + ") for variable \"" + name + "\"";
@@ -279,21 +298,27 @@ public class VarList
 	}
 
 	/**
-	 * Get the value (as an Object) for the ith variable, from its encoding as an integer. 
+	 * Get the value (as an Object) for the ith variable, from its encoding as an integer.
+	 * In case of any problems, this will return null.
 	 */
 	public Object decodeFromInt(int i, int val)
 	{
-		Type type = getType(i);
-		// Integer type
-		if (type instanceof TypeInt) {
-			return val + getLow(i);
+		try {
+			Type type = getType(i);
+			// Integer type
+			if (type instanceof TypeInt) {
+				return type.castValueTo(val + getLow(i), ec.getEvaluationMode());
+			}
+			// Boolean type
+			else if (type instanceof TypeBool) {
+				return val != 0;
+			}
+			// Unknown
+			return null;
+		} catch (PrismLangException e) {
+			// In case of any error return null
+			return null;
 		}
-		// Boolean type
-		else if (type instanceof TypeBool) {
-			return val != 0;
-		}
-		// Anything else
-		return null;
 	}
 
 	/**
@@ -392,10 +417,10 @@ public class VarList
 					vals = allValues.get(j);
 					for (k = lo + 1; k < hi + 1; k++) {
 						valsNew = new Values(vals);
-						valsNew.setValue(var, k);
+						valsNew.setValue(var, getType(i).castValueTo(k, ec.getEvaluationMode()));
 						allValues.add(valsNew);
 					}
-					vals.addValue(var, lo);
+					vals.addValue(var, getType(i).castValueTo(lo, ec.getEvaluationMode()));
 				}
 			} else {
 				throw new PrismLangException("Cannot determine all values for a variable of type " + getType(i));
@@ -434,10 +459,10 @@ public class VarList
 					state = allStates.get(j);
 					for (int k = lo + 1; k < hi + 1; k++) {
 						stateNew = new State(state);
-						stateNew.setValue(i, k);
+						stateNew.setValue(i, getType(i).castValueTo(k, ec.getEvaluationMode()));
 						allStates.add(stateNew);
 					}
-					state.setValue(i, lo);
+					state.setValue(i, getType(i).castValueTo(lo, ec.getEvaluationMode()));
 				}
 			} else {
 				throw new PrismLangException("Cannot determine all values for a variable of type " + getType(i));
@@ -480,6 +505,7 @@ public class VarList
 		int i, n;
 		n = getNumVars();
 		VarList rv = new VarList();
+		rv.setEvaluateContext(ec);
 		rv.vars = new ArrayList<Var>(n);
 		rv.nameMap = new HashMap<String, Integer>(n);
 		for (i = 0; i < n; i++) {

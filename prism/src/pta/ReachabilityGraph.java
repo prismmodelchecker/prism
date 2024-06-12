@@ -187,7 +187,7 @@ public class ReachabilityGraph
 		for (src = 0; src < numStates; src++) {
 			// And for each outgoing transition in PTA...
 			for (SymbolicTransition st : trans.get(src)) {
-				distr = new Distribution();
+				distr = Distribution.ofDouble();
 				count = -1;
 				for (Edge edge : st.tr.getEdges()) {
 					count++;

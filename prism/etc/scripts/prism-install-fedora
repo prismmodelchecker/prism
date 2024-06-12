@@ -1,0 +1,23 @@
+#!/bin/sh
+
+# Script for installation of PRISM on a clean install of Fedora-based Linux
+# (current based on Amazon Linux, should be easy to adapt to RHEL/CentOS/etc.)
+
+set -e # Abort if one of the commands fails
+set -x # Print commands as they are executed
+
+# Install dependencies: make/gcc/Java/git
+sudo yum -y update
+sudo yum -y install make gcc gcc-c++ java-11-amazon-corretto-devel git
+
+# Install Python (only needed for testing (prism-auto) currently)
+sudo yum -y install python
+
+# Download the latest development version from GitHub
+git clone https://github.com/prismmodelchecker/prism.git
+
+# Compile PRISM and run a single test (unless --nobuild passed)
+# (should ultimately display: "Testing result: PASS")
+if [ "$*" = "${*/--nobuild}" ]; then
+  (cd prism/prism && make && make test)
+fi

@@ -33,6 +33,8 @@ package parser;
  */
 public abstract class EvaluateContext
 {
+	// Core information stored in an EvaluateContext
+	
 	/**
 	 * Evaluation mode (floating point? exact?)
 	 */
@@ -43,6 +45,8 @@ public abstract class EvaluateContext
 	 * Constant values (optional)
 	 */
 	protected Values constantValues = null;
+	
+	// Setters and getters for core information
 	
 	/**
 	 * Set the evaluation mode (floating point? exact?)
@@ -73,6 +77,38 @@ public abstract class EvaluateContext
 	}
 	
 	/**
+	 * Add some constant values. The Values object is copied, not stored.
+	 * There is no checking for duplicates.
+	 * Returns a copy of this EvaluateContext to allow chaining of method calls.
+	 */
+	public EvaluateContext addConstantValues(Values moreConstantValues)
+	{
+		this.constantValues = new Values(this.constantValues, moreConstantValues);
+		return this;
+	}
+	
+	/**
+	 * Get the constant values.
+	 */
+	public Values getConstantValues()
+	{
+		return constantValues;
+	}
+	
+	/**
+	 * Copy core information (constants, evaluation mode, etc.) from another EvaluateContext.
+	 * Return a copy of this EvaluateContext (to allow method chaining).
+	 */
+	public EvaluateContext copyFrom(EvaluateContext ec)
+	{
+		this.evalMode = ec.evalMode;
+		this.constantValues = ec.constantValues == null ? null : new Values(ec.constantValues);
+		return this;
+	}
+	
+	// Main interface for EvaluateContext classes
+	
+	/**
 	 * Return the value for a constant (by name); null if unknown.
 	 */
 	public Object getConstantValue(String name)
@@ -99,5 +135,56 @@ public abstract class EvaluateContext
 	{
 		// No observables defined by default
 		return null;
+	}
+	
+	// Utility methods
+	
+	/**
+	 * Create an EvaluateContext with no constants and default (floating point) evaluation mode.
+	 */
+	public static EvaluateContext create()
+	{
+		return new EvaluateContextConstants(null);
+	}
+	
+	/**
+	 * Create an EvaluateContext with no constants and the specified evaluation mode.
+	 */
+	public static EvaluateContext create(EvalMode evalMode)
+	{
+		return new EvaluateContextConstants(null).setEvaluationMode(evalMode);
+	}
+	
+	/**
+	 * Create an EvaluateContext with the specified constants and default (floating point) evaluation mode.
+	 */
+	public static EvaluateContext create(Values constantValues)
+	{
+		return new EvaluateContextConstants(constantValues);
+	}
+	
+	/**
+	 * Create an EvaluateContext with the specified constants and evaluation mode.
+	 */
+	public static EvaluateContext create(Values constantValues, EvalMode evalMode)
+	{
+		return new EvaluateContextConstants(constantValues).setEvaluationMode(evalMode);
+	}
+	
+	/**
+	 * Create an EvaluateContext with the specified constants and evaluation mode (exact or not).
+	 */
+	public static EvaluateContext create(Values constantValues, boolean exact)
+	{
+		return new EvaluateContextConstants(constantValues).setEvaluationMode(exact ? EvalMode.EXACT : EvalMode.FP);
+	}
+	
+	/**
+	 * Create an EvaluateContext by copying core information
+	 * (constants, evaluation mode, etc.) from another EvaluateContext.
+	 */
+	public static EvaluateContext create(EvaluateContext ec)
+	{
+		return create().copyFrom(ec);
 	}
 }

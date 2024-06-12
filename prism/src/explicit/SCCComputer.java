@@ -61,7 +61,7 @@ public abstract class SCCComputer extends PrismComponent
 	/**
 	 * Static method to create a new SCCComputer object, depending on current settings.
 	 */
-	public static SCCComputer createSCCComputer(PrismComponent parent, Model model, SCCConsumer consumer) throws PrismException
+	public static SCCComputer createSCCComputer(PrismComponent parent, Model<?> model, SCCConsumer consumer) throws PrismException
 	{
 		// Only one algorithm implemented currently
 		return new SCCComputerTarjan(parent, model, consumer);
@@ -73,7 +73,7 @@ public abstract class SCCComputer extends PrismComponent
 	 * @param model the model
 	 * @param withTrivialSCCs include trivial SCCs?
 	 */
-	public static SCCInfo computeTopologicalOrdering(PrismComponent parent, Model model, boolean withTrivialSCCs) throws PrismException
+	public static SCCInfo computeTopologicalOrdering(PrismComponent parent, Model<?> model, boolean withTrivialSCCs) throws PrismException
 	{
 		return computeTopologicalOrdering(parent, model, withTrivialSCCs, null);
 	}
@@ -90,7 +90,7 @@ public abstract class SCCComputer extends PrismComponent
 	 * @param withTrivialSCCs include trivial SCCs?
 	 * @param restrict predicate that indicates that a state is relevant ({@code null}: all states are relevant)
 	 */
-	public static SCCInfo computeTopologicalOrdering(PrismComponent parent, Model model, boolean withTrivialSCCs, IntPredicate restrict) throws PrismException
+	public static SCCInfo computeTopologicalOrdering(PrismComponent parent, Model<?> model, boolean withTrivialSCCs, IntPredicate restrict) throws PrismException
 	{
 		SCCInfo sccs = new SCCInfo(model.getNumStates());
 		SCCComputer sccComputer = SCCComputer.createSCCComputer(parent, model, sccs);
@@ -115,7 +115,7 @@ public abstract class SCCComputer extends PrismComponent
 	 * @param model the model
 	 * @param sccConsumer the consumer
 	 */
-	public static void forEachSCC(PrismComponent parent, Model model, Consumer<BitSet> sccConsumer) throws PrismException
+	public static void forEachSCC(PrismComponent parent, Model<?> model, Consumer<BitSet> sccConsumer) throws PrismException
 	{
 		// use consumer that reuses the BitSet
 		SCCComputer sccComputer = createSCCComputer(parent, model, new SCCConsumerBitSet(true) {
@@ -173,7 +173,7 @@ public abstract class SCCComputer extends PrismComponent
 	 * @param model the model
 	 * @param state the state index
 	 */
-	protected boolean isTrivialSCC(Model model, int state)
+	protected boolean isTrivialSCC(Model<?> model, int state)
 	{
 		// false if there is a self-loop, i.e., a successor t == state
 		return !(model.someSuccessorsMatch(state, (t) -> {return t == state;}));

@@ -200,7 +200,22 @@ final class JasFunction extends Function {
 		}
 		return new JasFunction((JasFunctionFactory) factory, jas.divide(((JasFunction) other).jas), NORMAL);
 	}
-	
+
+	@Override
+	public Function pow(int exp)
+	{
+		if (this.isNaN()) {
+			return factory.getNaN();
+		}
+		if (this.isInf()) {
+			return factory.getMInf();
+		}
+		if (this.isMInf()) {
+			return factory.getMInf();
+		}
+		return new JasFunction((JasFunctionFactory) factory, jas.power(exp), NORMAL);
+	}
+
 	@Override
 	public Function star()
 	{

@@ -29,6 +29,7 @@
 #include "JDDNode.h"
 #include "JDDVars.h"
 #include "jnipointer.h"
+#include "cuddInt.h"
 
 #include <cstdio>
 #include <util.h>
@@ -814,7 +815,7 @@ JNIEXPORT jboolean JNICALL Java_jdd_JDDNode_DDN_1IsConstant(JNIEnv *env, jclass 
 
 JNIEXPORT jint JNICALL Java_jdd_JDDNode_DDN_1GetIndex(JNIEnv *env, jclass cls, jlong __jlongpointer dd)
 {
-	return (jlong_to_DdNode(dd))->index;
+	return Cudd_NodeReadIndex(jlong_to_DdNode(dd));
 }
 
 //------------------------------------------------------------------------------
@@ -890,7 +891,7 @@ JNIEXPORT void JNICALL Java_jdd_JDDVars_DDV_1FreeArray(JNIEnv *env, jobject obj,
 
 JNIEXPORT jint JNICALL Java_jdd_JDDVars_DDV_1GetIndex(JNIEnv *env, jobject obj, jlong __jlongpointer dd)
 {
-	return (jlong_to_DdNode(dd))->index;
+	return Cudd_NodeReadIndex(jlong_to_DdNode(dd));
 }
 
 //------------------------------------------------------------------------------

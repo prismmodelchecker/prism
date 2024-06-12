@@ -29,6 +29,7 @@ package parser.ast;
 import parser.EvaluateContext;
 import parser.type.Type;
 import parser.visitor.ASTVisitor;
+import parser.visitor.DeepCopy;
 import prism.PrismLangException;
 
 public class ExpressionConstant extends Expression
@@ -102,11 +103,15 @@ public class ExpressionConstant extends Expression
 	}
 	
 	@Override
-	public Expression deepCopy()
+	public ExpressionConstant deepCopy(DeepCopy copier)
 	{
-		Expression ret = new ExpressionConstant(name, type);
-		ret.setPosition(this);
-		return ret;
+		return this;
+	}
+
+	@Override
+	public ExpressionConstant clone()
+	{
+		return (ExpressionConstant) super.clone();
 	}
 	
 	// Standard methods

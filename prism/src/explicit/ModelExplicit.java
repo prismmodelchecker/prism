@@ -37,6 +37,7 @@ import java.util.TreeSet;
 import parser.State;
 import parser.Values;
 import parser.VarList;
+import prism.Evaluator;
 import prism.Prism;
 import prism.PrismException;
 import prism.PrismLog;
@@ -44,8 +45,12 @@ import prism.PrismLog;
 /**
  * Base class for explicit-state model representations.
  */
-public abstract class ModelExplicit implements Model
+public abstract class ModelExplicit<Value> implements Model<Value>
 {
+	/** Evaluator for manipulating values in the model (of type {@code Value}) */
+	@SuppressWarnings("unchecked")
+	protected Evaluator<Value> eval = (Evaluator<Value>) Evaluator.forDouble();
+	
 	// Basic model information
 
 	/** Number of states */
@@ -77,11 +82,20 @@ public abstract class ModelExplicit implements Model
 	// Mutators
 
 	/**
+	 * Set the {@link Evaluator} object for manipulating values in the model
+	 */
+	public void setEvaluator(Evaluator<Value> eval)
+	{
+		this.eval = eval;
+	}
+	
+	/**
 	 * Copy data from another Model (used by superclass copy constructors).
 	 * Assumes that this has already been initialise()ed.
 	 */
-	public void copyFrom(Model model)
+	public void copyFrom(Model<?> model)
 	{
+		setEvaluator((Evaluator<Value>) model.getEvaluator());
 		numStates = model.getNumStates();
 		for (int in : model.getInitialStates()) {
 			addInitialState(in);
@@ -103,8 +117,9 @@ public abstract class ModelExplicit implements Model
 	 * Assumes that this has already been initialise()ed.
 	 * Pointer to states list is NOT copied (since now wrong).
 	 */
-	public void copyFrom(Model model, int permut[])
+	public void copyFrom(Model<Value> model, int permut[])
 	{
+		setEvaluator(model.getEvaluator());
 		numStates = model.getNumStates();
 		for (int in : model.getInitialStates()) {
 			addInitialState(permut[in]);
@@ -245,6 +260,12 @@ public abstract class ModelExplicit implements Model
 
 	// Accessors (for Model interface)
 
+	@Override
+	public Evaluator<Value> getEvaluator()
+	{
+		return eval;
+	}
+	
 	@Override
 	public int getNumStates()
 	{
@@ -400,7 +421,7 @@ public abstract class ModelExplicit implements Model
 	{
 		if (o == null || !(o instanceof ModelExplicit))
 			return false;
-		ModelExplicit model = (ModelExplicit) o;
+		ModelExplicit<?> model = (ModelExplicit<?>) o;
 		if (numStates != model.numStates)
 			return false;
 		if (!initialStates.equals(model.initialStates))
@@ -408,7 +429,7 @@ public abstract class ModelExplicit implements Model
 		return true;
 	}
 
-	@Override
+@Override
 	public boolean hasStoredPredecessorRelation() {
 		return (predecessorRelation != null);
 	}
@@ -431,5 +452,4 @@ public abstract class ModelExplicit implements Model
 	public void clearPredecessorRelation() {
 		predecessorRelation = null;
 	}
-
 }

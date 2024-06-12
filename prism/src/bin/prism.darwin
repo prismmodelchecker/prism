@@ -1,0 +1,140 @@
+#!/bin/sh
+
+# Startup script for PRISM (Mac OS X)
+
+# PRISM home directory
+PRISM_DIR=/home/luser/prism
+
+# Command to launch Java
+if [ "$PRISM_JAVA" = "" ]; then
+	PRISM_JAVA=java
+	# On OS X, we want to avoiding calling java from the /usr/bin link
+	# since it causes problems with dynamic linking (DYLD_LIBRARY_PATH)
+	if $(which java | grep -q '^/usr/bin'); then
+		if [ -x /usr/libexec/java_home ]; then
+			PRISM_JAVA=`/usr/libexec/java_home`"/bin/java"
+		fi
+	fi
+fi
+
+#### Java heap size handling (either via -javamaxmem argument or PRISM_JAVAMAXMEM environment variable)
+
+# If there is a -javamaxmem switch, use it for PRISM_JAVAMAXMEM
+ARGS=( "$@" )
+for ((i=0;i<${#ARGS[@]};i+=1)); do
+	if [ "${ARGS[$i]}" = "-javamaxmem" -o "${ARGS[$i]}" = "--javamaxmem" ]; then
+		PRISM_JAVAMAXMEM=${ARGS[$i+1]}
+		PRISM_JAVAMAXMEM=`echo "$PRISM_JAVAMAXMEM" | awk /^[0-9]+[kmg]?$/`
+		if [ "$PRISM_JAVAMAXMEM" = "" ]; then
+			echo; echo "Error: Invalid value for -javamaxmem switch."; exit
+		fi
+	fi
+done
+
+# Max memory for Java
+if [ "$PRISM_JAVAMAXMEM" != "" ]; then
+	PRISM_JAVAMAXMEM=`echo "$PRISM_JAVAMAXMEM" | awk /^[0-9]+[kmg]?$/`
+	if [ "$PRISM_JAVAMAXMEM" = "" ]; then
+		echo; echo "Error: Environment variable PRISM_JAVAMAXMEM is invalid."; exit
+	fi
+	PRISM_JAVAMAXMEM="-Xmx$PRISM_JAVAMAXMEM"
+else
+	# default
+	PRISM_JAVAMAXMEM="-Xmx1g"
+fi
+
+#### Java stack size handling (either via -javastack argument or PRISM_JAVASTACKSIZE environment variable)
+
+# If there is a -javastack switch, use it for PRISM_JAVASTACKSIZE
+for ((i=0;i<${#ARGS[@]};i+=1)); do
+	if [ "${ARGS[$i]}" = "-javastack" -o "${ARGS[$i]}" = "--javastack" ]; then
+		PRISM_JAVASTACKSIZE=${ARGS[$i+1]}
+		PRISM_JAVASTACKSIZE=`echo "$PRISM_JAVASTACKSIZE" | awk /^[0-9]+[kmg]?$/`
+		if [ "$PRISM_JAVASTACKSIZE" = "" ]; then
+			echo; echo "Error: Invalid value for -javastack switch."; exit
+		fi
+	fi
+done
+
+# Stack size for Java
+if [ "$PRISM_JAVASTACKSIZE" != "" ]; then
+	PRISM_JAVASTACKSIZE=`echo "$PRISM_JAVASTACKSIZE" | awk /^[0-9]+[kmg]?$/`
+	if [ "$PRISM_JAVASTACKSIZE" = "" ]; then
+		echo; echo "Error: Environment variable PRISM_JAVASTACKSIZE is invalid."; exit
+	fi
+	PRISM_JAVASTACKSIZE="-Xss$PRISM_JAVASTACKSIZE"
+else
+	# default (4 MB)
+	PRISM_JAVASTACKSIZE="-Xss4m"
+fi
+
+####
+
+# JVM parameters via -javaparams switch
+ARGS=( "$@" )
+for ((i=0;i<${#ARGS[@]};i+=1)); do
+	if [ "${ARGS[$i]}" = "-javaparams" -o "${ARGS[$i]}" = "--javaparams" ]; then
+		PRISM_JAVA_PARAMS=${PRISM_JAVA_PARAMS}${PRISM_JAVA_PARAMS:+ }${ARGS[$i+1]}
+	fi
+done
+
+# Detect -javaversion switch
+ARGS=( "$@" )
+for ((i=0;i<${#ARGS[@]};i+=1)); do
+	if [ "${ARGS[$i]}" = "-javaversion" -o "${ARGS[$i]}" = "--javaversion" ]; then
+		PRISM_PRINT_JAVA_VERSION=yes
+	fi
+done
+
+# Set up CLASSPATH:
+#  - PRISM jar file (for binary versions) (gets priority)
+#  - classes directory (most PRISM classes)
+#  - top-level directory (for images, dtds)
+#  - lib/pepa.zip (PEPA stuff)
+#  - lib/*.jar (all other jars)
+PRISM_CLASSPATH="$PRISM_DIR"/lib/prism.jar:"$PRISM_DIR"/classes:"$PRISM_DIR":"$PRISM_DIR"/lib/pepa.zip:"$PRISM_DIR"/lib/*
+
+# Set up pointers to libraries
+PRISM_LIB_PATH="$PRISM_DIR"/lib
+
+# Copy library path to relevant vars
+DYLD_LIBRARY_PATH="${PRISM_LIB_PATH}${DYLD_LIBRARY_PATH:+:}${DYLD_LIBRARY_PATH}"
+JAVA_LIBRARY_PATH="$PRISM_LIB_PATH"
+
+# Export environment variables
+export PRISM_DIR DYLD_LIBRARY_PATH
+
+# Main Java class to launch
+PRISM_MAINCLASS=${PRISM_MAINCLASS:-prism.PrismCL}
+
+# Do we run headless? (GUI overrides this)
+PRISM_HEADLESS=${PRISM_HEADLESS:-true}
+
+PRISM_ICON="-Xdock:icon=$PRISM_DIR/etc/icons/p64.png"
+PRISM_DOCK_NAME="-Xdock:name=PRISM"
+
+# If debugging enabled, set up vars accordingly
+if [ "$PRISM_DEBUG" != "" ]; then
+	PRISM_JAVA_ARG1="$PRISM_JAVA"
+	PRISM_JAVA_ARG2="$PRISM_DEBUG_ARG"
+	PRISM_JAVA="$PRISM_DEBUG"
+fi
+
+# If requested, just print the version of Java and exit
+if [ "$PRISM_PRINT_JAVA_VERSION" = "yes" ]; then
+	"$PRISM_JAVA" -version && exit
+fi
+
+#
+# If environment variable PRISM_NO_EXEC is set to 'yes', use old method of starting Java.
+# The default method is to use an exec call.
+#
+if [ "$PRISM_NO_EXEC" = "yes" ]; then
+	# Run PRISM through Java as a child process (exit code of script is exit code of the java call)
+	# Note: Killing this startup script will not necessarily kill the Java process
+	"$PRISM_JAVA" $PRISM_JAVA_ARG1 $PRISM_JAVA_ARG2 $PRISM_JAVA_DEBUG $PRISM_JAVA_PARAMS $PRISM_JAVAMAXMEM $PRISM_JAVASTACKSIZE "$PRISM_ICON" "$PRISM_DOCK_NAME" -Djava.awt.headless=$PRISM_HEADLESS -Djava.library.path="$JAVA_LIBRARY_PATH" -classpath "$PRISM_CLASSPATH" $PRISM_MAINCLASS "$@"
+else
+	# (Default) Run PRISM through Java via an exec call (the shell process is replaced by the Java process)
+	exec "$PRISM_JAVA" $PRISM_JAVA_ARG1 $PRISM_JAVA_ARG2 $PRISM_JAVA_DEBUG $PRISM_JAVA_PARAMS $PRISM_JAVAMAXMEM $PRISM_JAVASTACKSIZE "$PRISM_ICON" "$PRISM_DOCK_NAME" -Djava.awt.headless=$PRISM_HEADLESS -Djava.library.path="$JAVA_LIBRARY_PATH" -classpath "$PRISM_CLASSPATH" $PRISM_MAINCLASS "$@"
+fi
+

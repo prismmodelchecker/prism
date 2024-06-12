@@ -1,0 +1,91 @@
+	// RESULT: 1/2
+	Pmin=? [ X s=1 ];
+	
+	// RESULT: 1/6
+	Pmin=? [ F s=2 ];
+	
+	// RESULT: 1/3
+	Pmin=? [ F s=2|s=4 ];
+	
+	// RESULT: 0
+	Pmin=? [ F<=0 s=2 ];
+	
+	// RESULT: 1/8
+	Pmin=? [ F<=2 s=2 ];
+	
+	// RESULT: 1/8
+	Pmin=? [ F<=3 s=2 ];
+	
+	// RESULT: 1/8
+	Pmin=? [ F<4 s=2 ];
+	
+	// RESULT: 0.16650390625
+	Pmin=? [ F<=10 s=2 ];
+	
+	// RESULT: 0
+	Pmin=? [ G s<2 ];
+	
+	// RESULT: 0.0625
+	Pmin=? [ G<=4 s<2 ];
+	
+	// RESULT: 1/2
+	Pmin=? [ s!=1 U s=3 ];
+	
+	// RESULT: 1/2
+	Pmin=? [ s!=1 U<=1 s=3 ];
+	
+	// RESULT: 1/2
+	Pmin=? [ s!=1 U<=8 s=3 ];
+	
+	// RESULT: 14.060546875
+	R{"r"}min=? [ C<=10 ];
+	
+	// RESULT: 23/12
+	R{"r"}min=? [ S ];
+
+// ---
+
+	// RESULT: 1/2
+	Pmax=? [ X s=1 ];
+	
+	// RESULT: 1/6
+	Pmax=? [ F s=2 ];
+	
+	// RESULT: 1/3
+	Pmax=? [ F s=2|s=4 ];
+	
+	// RESULT: 0
+	Pmax=? [ F<=0 s=2 ];
+	
+	// RESULT: 1/8
+	Pmax=? [ F<=2 s=2 ];
+	
+	// RESULT: 1/8
+	Pmax=? [ F<=3 s=2 ];
+	
+	// RESULT: 1/8
+	Pmax=? [ F<4 s=2 ];
+	
+	// RESULT: 0.16650390625
+	Pmax=? [ F<=10 s=2 ];
+	
+	// RESULT: 0
+	Pmax=? [ G s<2 ];
+	
+	// RESULT: 0.0625
+	Pmax=? [ G<=4 s<2 ];
+	
+	// RESULT: 1/2
+	Pmax=? [ s!=1 U s=3 ];
+	
+	// RESULT: 1/2
+	Pmax=? [ s!=1 U<=1 s=3 ];
+	
+	// RESULT: 1/2
+	Pmax=? [ s!=1 U<=8 s=3 ];
+	
+	// RESULT: 14.060546875
+	R{"r"}max=? [ C<=10 ];
+	
+	// RESULT: 23/12
+	R{"r"}max=? [ S ];

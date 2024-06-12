@@ -32,6 +32,6 @@ package prism;
  * Basically redundant since these interfaces now have default method implementations.
  * Retained just for backwards compatibility.
  */
-public abstract class DefaultModelGenerator implements ModelGenerator, RewardGenerator
+public abstract class DefaultModelGenerator implements ModelGenerator<Double>, RewardGenerator<Double>
 {
 }

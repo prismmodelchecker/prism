@@ -52,6 +52,20 @@ public enum RelOp
 			return MAX;
 		}
 	},
+	MINMAX("minmax=") {
+		@Override
+		public RelOp negate(boolean keepStrictness) throws PrismLangException
+		{
+			return MAXMIN;
+		}
+	},
+	MINMIN("minmin=") {
+		@Override
+		public RelOp negate(boolean keepStrictness) throws PrismLangException
+		{
+			return MAXMAX;
+		}
+	},
 	LT("<") {
 		@Override
 		public boolean isUpperBound()
@@ -95,6 +109,20 @@ public enum RelOp
 		public RelOp negate(boolean keepStrictness) throws PrismLangException
 		{
 			return MIN;
+		}
+	},
+	MAXMAX("maxmax=") {
+		@Override
+		public RelOp negate(boolean keepStrictness) throws PrismLangException
+		{
+			return MINMIN;
+		}
+	},
+	MAXMIN("maxmin=") {
+		@Override
+		public RelOp negate(boolean keepStrictness) throws PrismLangException
+		{
+			return MINMAX;
 		}
 	},
 	EQ("=") {

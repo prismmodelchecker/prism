@@ -31,7 +31,7 @@ import prism.PrismException;
 /**
  * Interface for a model transformation.
  */
-public interface ModelTransformation<OriginalModel extends Model, TransformedModel extends Model> {
+public interface ModelTransformation<OriginalModel extends Model<?>, TransformedModel extends Model<?>> {
 
 	/** Get the original model. */
 	public OriginalModel getOriginalModel();

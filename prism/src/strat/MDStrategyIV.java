@@ -26,19 +26,22 @@
 
 package strat;
 
-import java.io.FileNotFoundException;
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
+import dv.IntegerVector;
 import prism.Model;
-import prism.Prism;
 import prism.PrismException;
 import prism.PrismLog;
-import dv.IntegerVector;
+import prism.PrismNotSupportedException;
 
 /**
- * Class to store a memoryless deterministic (MD) strategy, as an IntegerVector (i.e. stored natively as an array).
+ * Class to store a memoryless deterministic (MD) strategy
+ * as an IntegerVector (i.e. stored natively as an array)
+ * associated with a sparse/symbolic engine model.
  */
-public class MDStrategyIV extends MDStrategy
+public class MDStrategyIV extends StrategyWithStates<Double> implements MDStrategy<Double>
 {
 	// Model associated with the strategy
 	private Model model;
@@ -57,10 +60,43 @@ public class MDStrategyIV extends MDStrategy
 		numStates = (int) model.getNumStates();
 		actions = model.getSynchs();
 		this.iv = iv;
+		setStateLookUp(state -> {
+			try {
+				return model.getReachableStates().getIndexOfState(state);
+			} catch (PrismNotSupportedException e) {
+				return -1;
+			}
+		});
 	}
 	
-	// Methods for MDStrategy
+	@Override
+	public Object getChoiceAction(int s, int m)
+	{
+		int c = iv.getElement(s);
+		return c >= 0 ? actions.get(c) : Strategy.UNDEFINED;
+	}
 	
+	@Override
+	public int getChoiceIndex(int s, int m)
+	{
+		throw new UnsupportedOperationException();
+	}
+	
+	@Override
+	public UndefinedReason whyUndefined(int s, int m)
+	{
+		switch (iv.getElement(s)) {
+		case -1:
+			return UndefinedReason.UNKNOWN;
+		case -2:
+			return UndefinedReason.ARBITRARY;
+		case -3:
+			return UndefinedReason.UNREACHABLE;
+		default:
+			return null;
+		}
+	}
+
 	@Override
 	public int getNumStates()
 	{
@@ -68,60 +104,15 @@ public class MDStrategyIV extends MDStrategy
 	}
 	
 	@Override
-	public boolean isChoiceDefined(int s)
+	public void exportInducedModel(PrismLog out, StrategyExportOptions options) throws PrismException
 	{
-		return iv.getElement(s) >= 0;
+		throw new PrismException("Induced model construction not yet supported for symbolic engines");
 	}
 
 	@Override
-	public Strategy.Choice getChoice(int s)
+	public void exportDotFile(PrismLog out, StrategyExportOptions options) throws PrismException
 	{
-		int c = iv.getElement(s);
-		switch (c) {
-		case -1:
-			return Choice.UNKNOWN;
-		case -2:
-			return Choice.ARBITRARY;
-		case -3:
-			return Choice.UNREACHABLE;
-		default:
-			return Choice.INDEX;
-		}
-	}
-	
-	@Override
-	public int getChoiceIndex(int s)
-	{
-		throw new UnsupportedOperationException();
-	}
-	
-	@Override
-	public Object getChoiceAction(int s)
-	{
-		int c = iv.getElement(s);
-		return c >= 0 ? actions.get(c) : c == -1 ? "?" : c == -2 ? "*" : "-";
-	}
-	
-	// Methods for Strategy
-	
-	@Override
-	public void exportInducedModel(PrismLog out, int precision)
-	{
-		// TODO
-	}
-
-	@Override
-	public void exportDotFile(PrismLog out, int precision)
-	{
-		try {
-			model.exportToFile(Prism.EXPORT_DOT, true, new java.io.File("a.dot"), precision);
-		} catch (FileNotFoundException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (PrismException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+		throw new PrismException("Strategy dot export not yet supported for symbolic engines");
 	}
 	
 	@Override
@@ -129,5 +120,13 @@ public class MDStrategyIV extends MDStrategy
 	{
 		iv.clear();
 		iv = null;
+	}
+
+	@Override
+	public String toString()
+	{
+		return "[" + IntStream.range(0, getNumStates())
+				.mapToObj(s -> s + "=" + getChoiceActionString(s))
+				.collect(Collectors.joining(",")) + "]";
 	}
 }

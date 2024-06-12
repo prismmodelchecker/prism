@@ -27,6 +27,7 @@
 package parser.ast;
 
 import parser.visitor.ASTVisitor;
+import parser.visitor.DeepCopy;
 import prism.PrismLangException;
 
 public class Observable extends ASTElement
@@ -101,14 +102,18 @@ public class Observable extends ASTElement
 		return "observable \"" + name + "\" = " + definition + ";";
 	}
 	
-	/**
-	 * Perform a deep copy.
-	 */
-	public Observable deepCopy()
+	@Override
+	public Observable deepCopy(DeepCopy copier) throws PrismLangException
 	{
-		Observable ret = new Observable(name, definition.deepCopy());
-		ret.setPosition(this);
-		return ret;
+		definition = copier.copy(definition);
+
+		return this;
+	}
+
+	@Override
+	public Observable clone()
+	{
+		return (Observable) super.clone();
 	}
 }
 

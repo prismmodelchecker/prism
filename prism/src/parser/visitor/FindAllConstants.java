@@ -26,7 +26,10 @@
 
 package parser.visitor;
 
+import java.util.List;
+
 import parser.ast.*;
+import parser.type.Type;
 import prism.PrismLangException;
 
 /**
@@ -34,21 +37,48 @@ import prism.PrismLangException;
  */
 public class FindAllConstants extends ASTTraverseModify
 {
+	// Either:
 	private ConstantList constantList;
+	// Or:
+	private List<String> constIdents;
+	private List<Type> constTypes;
 	
 	public FindAllConstants(ConstantList constantList)
 	{
 		this.constantList = constantList;
 	}
 	
+	public FindAllConstants(List<String> constIdents, List<Type> constTypes)
+	{
+		this.constIdents = constIdents;
+		this.constTypes = constTypes;
+	}
+	
+	private int getConstantIndex(String name)
+	{
+		if (constantList != null) {
+			return constantList.getConstantIndex(name);
+		} else {
+			return constIdents.indexOf(name);
+		}
+	}
+	
+	private Type getConstantType(int i)
+	{
+		if (constantList != null) {
+			return constantList.getConstantType(i);
+		} else {
+			return constTypes.get(i);
+		}
+	}
+	
 	public Object visit(ExpressionIdent e) throws PrismLangException
 	{
-		int i;
 		// See if identifier corresponds to a constant
-		i = constantList.getConstantIndex(e.getName());
+		int i = getConstantIndex(e.getName());
 		if (i != -1) {
 			// If so, replace it with an ExpressionConstant object
-			ExpressionConstant expr = new ExpressionConstant(e.getName(),  constantList.getConstantType(i));
+			ExpressionConstant expr = new ExpressionConstant(e.getName(), getConstantType(i));
 			expr.setPosition(e);
 			return expr;
 		}

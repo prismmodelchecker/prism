@@ -28,6 +28,7 @@ package parser.ast;
 
 import parser.EvaluateContext;
 import parser.visitor.ASTVisitor;
+import parser.visitor.DeepCopy;
 import prism.PrismLangException;
 
 public class ExpressionFormula extends Expression
@@ -113,12 +114,17 @@ public class ExpressionFormula extends Expression
 	}
 		
 	@Override
-	public Expression deepCopy()
+	public ExpressionFormula deepCopy(DeepCopy copier) throws PrismLangException
 	{
-		ExpressionFormula ret = new ExpressionFormula(name);
-		ret.setDefinition(definition == null ? null : definition.deepCopy());
-		ret.setPosition(this);
-		return ret;
+		definition = copier.copy(definition);
+
+		return this;
+	}
+
+	@Override
+	public ExpressionFormula clone()
+	{
+		return (ExpressionFormula) super.clone();
 	}
 
 	// Standard methods

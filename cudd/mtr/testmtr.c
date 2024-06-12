@@ -1,18 +1,14 @@
-/**CFile***********************************************************************
- 
-   FileName    [testmtr.c]
+/**
+  @file
 
-   PackageName [mtr]
+  @ingroup mtr
 
-   Synopsis    [Test program for the mtr package.]
+  @brief Test program for the mtr package.
 
-   Description []
-
-   SeeAlso     []
-
-   Author      [Fabio Somenzi]
+  @author Fabio Somenzi
    
-  Copyright   [Copyright (c) 1995-2012, Regents of the University of Colorado
+  @copyright@parblock
+  Copyright (c) 1995-2015, Regents of the University of Colorado
 
   All rights reserved.
 
@@ -42,19 +38,20 @@
   CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
   LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
   ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-  POSSIBILITY OF SUCH DAMAGE.]
+  POSSIBILITY OF SUCH DAMAGE.
+  @endparblock
 
-******************************************************************************/
+*/
 
 #include "util.h"
-#include "mtr.h"
+#include "mtrInt.h"
 
 /*---------------------------------------------------------------------------*/
 /* Variable declarations                                                     */
 /*---------------------------------------------------------------------------*/
 
 #ifndef lint
-static char rcsid[] MTR_UNUSED = "$Id: testmtr.c,v 1.5 2012/02/05 06:10:35 fabio Exp $";
+static char rcsid[] MTR_UNUSED = "$Id: testmtr.c,v 1.8 2015/07/01 20:43:45 fabio Exp $";
 #endif
 
 /*---------------------------------------------------------------------------*/
@@ -64,7 +61,8 @@ static char rcsid[] MTR_UNUSED = "$Id: testmtr.c,v 1.5 2012/02/05 06:10:35 fabio
 #define TESTMTR_VERSION\
     "TestMtr Version #0.6, Release date 2/6/12"
 
-/**AutomaticStart*************************************************************/
+/** \cond */
+
 
 /*---------------------------------------------------------------------------*/
 /* Static function prototypes                                                */
@@ -72,26 +70,24 @@ static char rcsid[] MTR_UNUSED = "$Id: testmtr.c,v 1.5 2012/02/05 06:10:35 fabio
 
 static void usage (char *prog);
 static FILE * open_file (const char *filename, const char *mode);
+static void printHeader(int argc, char **argv);
 
-/**AutomaticEnd***************************************************************/
+/** \endcond */
+
 
 /*---------------------------------------------------------------------------*/
 /* Definition of exported functions                                          */
 /*---------------------------------------------------------------------------*/
 
-/**Function********************************************************************
+/**
+  @brief Main program for testmtr.
 
-  Synopsis    [Main program for testmtr.]
+  @details Performs initialization.  Reads command line options and
+  network(s).  Builds some simple trees and prints them out.
 
-  Description [Main program for testmtr.  Performs initialization.
-  Reads command line options and network(s).  Builds some simple trees
-  and prints them out.]
+  @sideeffect None
 
-  SideEffects [None]
-
-  SeeAlso     []
-
-******************************************************************************/
+*/
 int
 main(
   int  argc,
@@ -100,44 +96,30 @@ main(
     MtrNode *root,
 	    *node;
     int	    i,
-	    c,
 	    pr = 0;
     FILE    *fp;
     const char *file = NULL;
-    
-    (void) printf("# %s\n", TESTMTR_VERSION);
-    /* Echo command line and arguments. */
-    (void) printf("#");
-    for(i = 0; i < argc; i++) {
-	(void) printf(" %s", argv[i]);
-    }
-    (void) printf("\n");
-    (void) fflush(stdout);
 
-    while ((c = getopt(argc, argv, "Mhp:")) != EOF) {
-	switch(c) {
-	case 'M':
-#ifdef MNEMOSYNE
-	    (void) mnem_setrecording(0);
-#endif
-	    break;
-	case 'p':
-	    pr = atoi(optarg);
-	    break;
-	case 'h':
-	default:
-	    usage(argv[0]);
-	    break;
-	}
+    for (i = 1; i < argc; i++) {
+      if (strcmp("-M", argv[i]) == 0) {
+        continue;
+      } else if (strcmp("-p", argv[i]) == 0) {
+        pr = atoi(argv[++i]);
+      } else if (strcmp("-h", argv[i]) == 0) {
+        printHeader(argc, argv);
+        usage(argv[0]);
+      } else if (i == argc - 1) {
+        file = argv[i];
+      } else {
+        printHeader(argc, argv);
+        usage(argv[0]);
+      }
     }
-
-    if (argc - optind == 0) {
-	file = "-";
-    } else if (argc - optind == 1) {
-	file = argv[optind];
-    } else {
-	usage(argv[0]);
+    if (file == NULL) {
+      file = "-";
     }
+    if (pr > 0)
+        printHeader(argc, argv);
 
     /* Create and print a simple tree. */
     root = Mtr_InitTree();
@@ -149,83 +131,98 @@ main(
     node = Mtr_CreateFirstChild(root);
     node->flags = 3;
     node = Mtr_AllocNode();
+    node->child = NULL;
     node->flags = 4;
     Mtr_MakeNextSibling(root->child,node);
-    Mtr_PrintTree(root);
+    if (pr > 0) {
+        Mtr_PrintTree(root);
+        (void) printf("#------------------------\n");
+    }
     Mtr_FreeTree(root);
-    (void) printf("#------------------------\n");
 
     /* Create an initial tree in which all variables belong to one group. */
     root = Mtr_InitGroupTree(0,12);
-    Mtr_PrintTree(root); (void) printf("#  ");
-    Mtr_PrintGroups(root,pr == 0); (void) printf("\n");
-    node = Mtr_MakeGroup(root,0,6,MTR_DEFAULT);
-    node = Mtr_MakeGroup(root,6,6,MTR_DEFAULT);
-    Mtr_PrintTree(root); (void) printf("#  ");
-    Mtr_PrintGroups(root,pr == 0); (void) printf("\n");
-    for (i = 0; i < 6; i+=2) {
-	node = Mtr_MakeGroup(root,(unsigned) i,(unsigned) 2,MTR_DEFAULT);
+    if (pr > 0) {
+        Mtr_PrintTree(root); (void) printf("#  ");
+        Mtr_PrintGroups(root,pr == 0); (void) printf("\n");
     }
-    node = Mtr_MakeGroup(root,0,12,MTR_FIXED);
-    Mtr_PrintTree(root); (void) printf("#  ");
-    Mtr_PrintGroups(root,pr == 0); (void) printf("\n");
-    /* Print a partial tree. */
-    (void) printf("#  ");
-    Mtr_PrintGroups(root->child,pr == 0); (void) printf("\n");
+    (void) Mtr_MakeGroup(root,0,6,MTR_DEFAULT);
+    (void) Mtr_MakeGroup(root,6,6,MTR_DEFAULT);
+    if (pr > 0) {
+        Mtr_PrintTree(root); (void) printf("#  ");
+        Mtr_PrintGroups(root,pr == 0); (void) printf("\n");
+    }
+    for (i = 0; i < 6; i+=2) {
+      (void) Mtr_MakeGroup(root,(unsigned) i,(unsigned) 2,MTR_DEFAULT);
+    }
+    (void) Mtr_MakeGroup(root,0,12,MTR_FIXED);
+    if (pr > 0) {
+        Mtr_PrintTree(root); (void) printf("#  ");
+        Mtr_PrintGroups(root,pr == 0); (void) printf("\n");
+        /* Print a partial tree. */
+        (void) printf("#  ");
+        Mtr_PrintGroups(root->child,pr == 0); (void) printf("\n");
+    }
     node = Mtr_FindGroup(root,0,6);
-    node = Mtr_DissolveGroup(node);
-    Mtr_PrintTree(root); (void) printf("#  ");
-    Mtr_PrintGroups(root,pr == 0); (void) printf("\n");
+    (void) Mtr_DissolveGroup(node);
+    if (pr > 0) {
+        Mtr_PrintTree(root); (void) printf("#  ");
+        Mtr_PrintGroups(root,pr == 0); (void) printf("\n");
+    }
     node = Mtr_FindGroup(root,4,2);
     if (!Mtr_SwapGroups(node,node->younger)) {
 	(void) printf("error in Mtr_SwapGroups\n");
-	exit(3);
+	return 3;
     }
-    Mtr_PrintTree(root); (void) printf("#  ");
-    Mtr_PrintGroups(root,pr == 0);
+    if (pr > 0) {
+        Mtr_PrintTree(root); (void) printf("#  ");
+        Mtr_PrintGroups(root,pr == 0);
+        (void) printf("#------------------------\n");
+    }
     Mtr_FreeTree(root);
-    (void) printf("#------------------------\n");
 
     /* Create a group tree with fixed subgroups. */
     root = Mtr_InitGroupTree(0,4);
-    Mtr_PrintTree(root); (void) printf("#  ");
-    Mtr_PrintGroups(root,pr == 0); (void) printf("\n");
-    node = Mtr_MakeGroup(root,0,2,MTR_FIXED);
-    node = Mtr_MakeGroup(root,2,2,MTR_FIXED);
-    Mtr_PrintTree(root); (void) printf("#  ");
-    Mtr_PrintGroups(root,pr == 0); (void) printf("\n");
+    if (pr > 0) {
+        Mtr_PrintTree(root); (void) printf("#  ");
+        Mtr_PrintGroups(root,pr == 0); (void) printf("\n");
+    }
+    (void) Mtr_MakeGroup(root,0,2,MTR_FIXED);
+    (void) Mtr_MakeGroup(root,2,2,MTR_FIXED);
+    if (pr > 0) {
+        Mtr_PrintTree(root); (void) printf("#  ");
+        Mtr_PrintGroups(root,pr == 0); (void) printf("\n");
+    }
     Mtr_FreeTree(root);
-    (void) printf("#------------------------\n");
+    if (pr > 0) {
+        (void) printf("#------------------------\n");
+    }
 
     /* Open input file. */
     fp = open_file(file, "r");
     root = Mtr_ReadGroups(fp,12);
-    Mtr_PrintTree(root); (void) printf("#  ");
-    Mtr_PrintGroups(root,pr == 0); (void) printf("\n");
-
+    fclose(fp);
+    if (pr > 0) {
+        if (root) {
+            Mtr_PrintTree(root); (void) printf("#  ");
+            Mtr_PrintGroups(root,pr == 0); (void) printf("\n");
+        } else {
+            (void) printf("error in group file\n");
+        }
+    }
     Mtr_FreeTree(root);
 
-#ifdef MNEMOSYNE
-    mnem_writestats();
-#endif
-
-    exit(0);
-    /* NOTREACHED */
+    return 0;
 
 } /* end of main */
 
 
-/**Function********************************************************************
+/**
+  @brief Prints usage message and exits.
 
-  Synopsis    [Prints usage message and exits.]
+  @sideeffect none
 
-  Description []
-
-  SideEffects [none]
-
-  SeeAlso     []
-
-******************************************************************************/
+*/
 static void
 usage(
   char * prog)
@@ -239,18 +236,15 @@ usage(
 } /* end of usage */
 
 
-/**Function********************************************************************
+/**
+  @brief Opens a file.
 
-  Synopsis    [Opens a file.]
+  @details Opens a file, or fails with an error message and exits.
+  Allows '-' as a synonym for standard input.
 
-  Description [Opens a file, or fails with an error message and exits.
-  Allows '-' as a synonym for standard input.]
+  @sideeffect None
 
-  SideEffects [None]
-
-  SeeAlso     []
-
-******************************************************************************/
+*/
 static FILE *
 open_file(
   const char * filename,
@@ -268,3 +262,26 @@ open_file(
 
 } /* end of open_file */
 
+
+/**
+  @brief Prints the header of the program output.
+
+  @sideeffect None
+
+*/
+static void
+printHeader(
+  int argc,
+  char **argv)
+{
+    int i;
+
+    (void) printf("# %s\n", TESTMTR_VERSION);
+    /* Echo command line and arguments. */
+    (void) printf("#");
+    for(i = 0; i < argc; i++) {
+	(void) printf(" %s", argv[i]);
+    }
+    (void) printf("\n");
+    (void) fflush(stdout);
+}

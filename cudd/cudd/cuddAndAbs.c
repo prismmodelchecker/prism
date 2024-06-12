@@ -1,24 +1,14 @@
-/**CFile***********************************************************************
+/**
+  @file
 
-  FileName    [cuddAndAbs.c]
+  @ingroup cudd
 
-  PackageName [cudd]
+  @brief Combined AND and existential abstraction for BDDs
 
-  Synopsis    [Combined AND and existential abstraction for BDDs]
+  @author Fabio Somenzi
 
-  Description [External procedures included in this module:
-		<ul>
-		<li> Cudd_bddAndAbstract()
-		<li> Cudd_bddAndAbstractLimit()
-		</ul>
-	    Internal procedures included in this module:
-		<ul>
-		<li> cuddBddAndAbstractRecur()
-		</ul>]
-
-  Author      [Fabio Somenzi]
-
-  Copyright   [Copyright (c) 1995-2012, Regents of the University of Colorado
+  @copyright@parblock
+  Copyright (c) 1995-2015, Regents of the University of Colorado
 
   All rights reserved.
 
@@ -48,9 +38,10 @@
   CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
   LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
   ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-  POSSIBILITY OF SUCH DAMAGE.]
+  POSSIBILITY OF SUCH DAMAGE.
+  @endparblock
 
-******************************************************************************/
+*/
 
 #include "util.h"
 #include "cuddInt.h"
@@ -75,24 +66,18 @@
 /* Variable declarations                                                     */
 /*---------------------------------------------------------------------------*/
 
-#ifndef lint
-static char rcsid[] DD_UNUSED = "$Id: cuddAndAbs.c,v 1.20 2012/02/05 01:07:18 fabio Exp $";
-#endif
-
 
 /*---------------------------------------------------------------------------*/
 /* Macro declarations                                                        */
 /*---------------------------------------------------------------------------*/
 
-
-/**AutomaticStart*************************************************************/
+/** \cond */
 
 /*---------------------------------------------------------------------------*/
 /* Static function prototypes                                                */
 /*---------------------------------------------------------------------------*/
 
-
-/**AutomaticEnd***************************************************************/
+/** \endcond */
 
 
 /*---------------------------------------------------------------------------*/
@@ -100,22 +85,21 @@ static char rcsid[] DD_UNUSED = "$Id: cuddAndAbs.c,v 1.20 2012/02/05 01:07:18 fa
 /*---------------------------------------------------------------------------*/
 
 
-/**Function********************************************************************
+/**
+  @brief Takes the AND of two BDDs and simultaneously abstracts the
+  variables in cube.
 
-  Synopsis [Takes the AND of two BDDs and simultaneously abstracts the
-  variables in cube.]
-
-  Description [Takes the AND of two BDDs and simultaneously abstracts
-  the variables in cube. The variables are existentially abstracted.
-  Returns a pointer to the result is successful; NULL otherwise.
+  @details The variables are existentially abstracted.
   Cudd_bddAndAbstract implements the semiring matrix multiplication
-  algorithm for the boolean semiring.]
+  algorithm for the boolean semiring.
 
-  SideEffects [None]
+  @return a pointer to the result is successful; NULL otherwise.
 
-  SeeAlso     [Cudd_addMatrixMultiply Cudd_addTriangle Cudd_bddAnd]
+  @sideeffect None
 
-******************************************************************************/
+  @see Cudd_addMatrixMultiply Cudd_addTriangle Cudd_bddAnd
+
+*/
 DdNode *
 Cudd_bddAndAbstract(
   DdManager * manager,
@@ -129,27 +113,29 @@ Cudd_bddAndAbstract(
 	manager->reordered = 0;
 	res = cuddBddAndAbstractRecur(manager, f, g, cube);
     } while (manager->reordered == 1);
+    if (manager->errorCode == CUDD_TIMEOUT_EXPIRED && manager->timeoutHandler) {
+        manager->timeoutHandler(manager, manager->tohArg);
+    }
     return(res);
 
 } /* end of Cudd_bddAndAbstract */
 
 
-/**Function********************************************************************
+/**
+  @brief Takes the AND of two BDDs and simultaneously abstracts
+  variables unless too many nodes are needed.
 
-  Synopsis [Takes the AND of two BDDs and simultaneously abstracts the
-  variables in cube.  Returns NULL if too many nodes are required.]
+  @details The variables in cube are existentially abstracted.
 
-  Description [Takes the AND of two BDDs and simultaneously abstracts
-  the variables in cube. The variables are existentially abstracted.
-  Returns a pointer to the result is successful; NULL otherwise.
+  @return a pointer to the result is successful; NULL otherwise.
   In particular, if the number of new nodes created exceeds
-  <code>limit</code>, this function returns NULL.]
+  <code>limit</code>, this function returns NULL.
 
-  SideEffects [None]
+  @sideeffect None
 
-  SeeAlso     [Cudd_bddAndAbstract]
+  @see Cudd_bddAndAbstract
 
-******************************************************************************/
+*/
 DdNode *
 Cudd_bddAndAbstractLimit(
   DdManager * manager,
@@ -168,6 +154,9 @@ Cudd_bddAndAbstractLimit(
 	res = cuddBddAndAbstractRecur(manager, f, g, cube);
     } while (manager->reordered == 1);
     manager->maxLive = saveLimit;
+    if (manager->errorCode == CUDD_TIMEOUT_EXPIRED && manager->timeoutHandler) {
+        manager->timeoutHandler(manager, manager->tohArg);
+    }
     return(res);
 
 } /* end of Cudd_bddAndAbstractLimit */
@@ -178,20 +167,19 @@ Cudd_bddAndAbstractLimit(
 /*---------------------------------------------------------------------------*/
 
 
-/**Function********************************************************************
+/**
+  @brief Takes the AND of two BDDs and simultaneously abstracts the
+  variables in cube.
 
-  Synopsis [Takes the AND of two BDDs and simultaneously abstracts the
-  variables in cube.]
+  @details The variables are existentially abstracted.
 
-  Description [Takes the AND of two BDDs and simultaneously abstracts
-  the variables in cube. The variables are existentially abstracted.
-  Returns a pointer to the result is successful; NULL otherwise.]
+  @return a pointer to the result is successful; NULL otherwise.
 
-  SideEffects [None]
+  @sideeffect None
 
-  SeeAlso     [Cudd_bddAndAbstract]
+  @see Cudd_bddAndAbstract
 
-******************************************************************************/
+*/
 DdNode *
 cuddBddAndAbstractRecur(
   DdManager * manager,
@@ -201,7 +189,8 @@ cuddBddAndAbstractRecur(
 {
     DdNode *F, *ft, *fe, *G, *gt, *ge;
     DdNode *one, *zero, *r, *t, *e;
-    unsigned int topf, topg, topcube, top, index;
+    int topf, topg, top, topcube;
+    unsigned int index;
 
     statLine(manager);
     one = DD_ONE(manager);
@@ -254,6 +243,8 @@ cuddBddAndAbstractRecur(
 	    return(r);
 	}
     }
+
+    checkWhetherToGiveUp(manager);
 
     if (topf == top) {
 	index = F->index;

@@ -35,20 +35,17 @@ import java.util.Map;
 import explicit.IndexedSet;
 import explicit.StateStorage;
 import parser.State;
+import parser.Values;
 import parser.ast.Expression;
-import parser.ast.ExpressionBinaryOp;
-import parser.ast.ExpressionConstant;
-import parser.ast.ExpressionFunc;
-import parser.ast.ExpressionITE;
-import parser.ast.ExpressionLiteral;
-import parser.ast.ExpressionUnaryOp;
-import prism.ModelGeneratorSymbolic;
+import prism.Evaluator;
+import prism.ModelGenerator;
 import prism.ModelType;
 import prism.PrismComponent;
 import prism.PrismException;
 import prism.PrismLangException;
 import prism.PrismNotSupportedException;
 import prism.PrismSettings;
+import prism.Evaluator.EvaluatorBigRational;
 
 /**
  * Class to construct a parametric Markov model.
@@ -57,16 +54,10 @@ public final class ModelBuilder extends PrismComponent
 {
 	/** mode (parametric / exact) */
 	private final ParamMode mode;
-	/** the ModelGeneratorSymbolic interface providing the model to be transformed to a {@code ParamModel} */
-	private ModelGeneratorSymbolic modelGenSym;
 	/** function factory used in the constructed parametric model */
 	private FunctionFactory functionFactory;
 	/** names of parameters */
 	private String[] paramNames;
-	/** lower bounds of parameters */
-	private BigRational[] lower;
-	/** upper bounds of parameters */
-	private BigRational[] upper;
 	/** name of function type to use, as read from PRISM settings */
 	private String functionType;
 	/** maximal error probability of DAG function representation */
@@ -90,105 +81,6 @@ public final class ModelBuilder extends PrismComponent
 	}
 	
 	/**
-	 * Transform PRISM expression to rational function.
-	 * If successful, a function representing the given expression will be
-	 * constructed. This is however not always possible, as not each PRISM
-	 * expression can be represented as a rational function. In this case
-	 * a {@code PrismException} will be thrown.
-	 * 
-	 * @param factory function factory used to construct function
-	 * @param expr PRISM expression to transform to rational function
-	 * @return rational function representing the given PRISM expression
-	 * @throws PrismException thrown if {@code expr} cannot be represented as rational function
-	 */
-	public Function expr2function(FunctionFactory factory, Expression expr) throws PrismException
-	{
-		if (expr instanceof ExpressionLiteral) {
-			String exprString = ((ExpressionLiteral) expr).getString();
-			if (exprString == null || exprString.equals("")) {
-				throw new PrismException("cannot convert from literal " + "for which no string is set");
-			}
-			return factory.fromBigRational(new BigRational(exprString));
-		} else if (expr instanceof ExpressionConstant) {
-			String exprString = ((ExpressionConstant) expr).getName();
-			if (modelGenSym.getConstantValues().contains(exprString)) {
-				Object val = modelGenSym.getConstantValues().getValueOf(exprString);
-				return factory.fromBigRational(new BigRational(val.toString()));
-			}
-			Expression constExpr = modelGenSym.getUnknownConstantDefinition(exprString);
-			if (constExpr == null) {
-				return factory.getVar(exprString);
-			} else {
-				return expr2function(factory, constExpr);
-			}
-		} else if (expr instanceof ExpressionBinaryOp) {
-			ExpressionBinaryOp binExpr = ((ExpressionBinaryOp) expr);
-			Function f1 = expr2function(factory, binExpr.getOperand1());
-			Function f2 = expr2function(factory, binExpr.getOperand2());
-			switch (binExpr.getOperator()) {
-			case ExpressionBinaryOp.PLUS:
-				return f1.add(f2);
-			case ExpressionBinaryOp.MINUS:
-				return f1.subtract(f2);
-			case ExpressionBinaryOp.TIMES:
-				return f1.multiply(f2);
-			case ExpressionBinaryOp.DIVIDE:
-				return f1.divide(f2);
-			default:
-				throw new PrismNotSupportedException("For " + mode.engine() + ", analysis with rate/probability of " + expr + " not implemented");
-			}
-		} else if (expr instanceof ExpressionUnaryOp) {
-			ExpressionUnaryOp unExpr = ((ExpressionUnaryOp) expr);
-			Function f = expr2function(factory, unExpr.getOperand());
-			switch (unExpr.getOperator()) {
-			case ExpressionUnaryOp.MINUS:
-				return f.negate();
-			case ExpressionUnaryOp.PARENTH:
-				return f;
-			default:
-				throw new PrismNotSupportedException("For " + mode.engine() + ", analysis with rate/probability of " + expr + " not implemented");
-			}
-		} else if (expr instanceof ExpressionITE){
-			ExpressionITE iteExpr = (ExpressionITE) expr;
-			// ITE expressions where the if-expression does not
-			// depend on a parametric constant are supported
-			if (iteExpr.getOperand1().isConstant()) {
-				try {
-					// non-parametric constants and state variable values have
-					// been already partially expanded, so if this evaluation
-					// succeeds there are no parametric constants involved
-					boolean ifValue = iteExpr.getOperand1().evaluateExact().toBoolean();
-					if (ifValue) {
-						return expr2function(factory, iteExpr.getOperand2());
-					} else {
-						return expr2function(factory, iteExpr.getOperand3());
-					}
-				} catch (PrismException e) {
-					// Most likely, a parametric constant occurred.
-					// Do nothing here, exception is thrown below
-				}
-			}
-			throw new PrismNotSupportedException("For " + mode.engine() + ", analysis with rate/probability of " + expr + " not implemented");
-		} else if (expr instanceof ExpressionFunc) {
-			// functions (min, max, floor, ...) are supported if
-			// they don't refer to parametric constants in their arguments
-			// and can be exactly evaluated
-			try {
-				// non-parametric constants and state variable values have
-				// been already partially expanded, so if this evaluation
-				// succeeds there are no parametric constants involved
-				BigRational value = expr.evaluateExact();
-				return factory.fromBigRational(value);
-			} catch (PrismException e) {
-				// Most likely, a parametric constant occurred.
-				throw new PrismNotSupportedException("For " + mode.engine() + ", analysis with rate/probability of " + expr + " not implemented");
-			}
-		} else {
-			throw new PrismNotSupportedException("For " + mode.engine() + ", analysis with rate/probability of " + expr + " not implemented");
-		}
-	}
-
-	/**
 	 * Get the parameter names as a list of strings.
 	 * @return the parameter names
 	 */
@@ -197,27 +89,11 @@ public final class ModelBuilder extends PrismComponent
 		return Arrays.asList(paramNames);
 	}
 
-	/**
-	 * Construct a parametric model and return it.
-	 * All of {@code paramNames}, {@code lower}, {@code} upper must have the same length,
-	 * and {@code lower} bounds of parameters must not be higher than {@code upper} bounds.
-	 * @param modelGenSym The ModelGeneratorSymbolic interface providing the model 
-	 * @param paramNames names of parameters
-	 * @param lowerStr lower bounds of parameters
-	 * @param upperStr upper bounds of parameters
-	 */
-	public ParamModel constructModel(ModelGeneratorSymbolic modelGenSym, String[] paramNames, String[] lowerStr, String[] upperStr) throws PrismException
+	public FunctionFactory getFunctionFactory(String[] paramNames, String[] lowerStr, String[] upperStr)
 	{
-		// No model construction for real-time, models
-		if (modelGenSym.getModelType().realTime()) {
-			throw new PrismNotSupportedException("For " + mode.engine() + ", you cannot build a " + modelGenSym.getModelType() + " model explicitly, only perform model checking");
-		}
-
-		// Store model generator and parameter info
-		this.modelGenSym = modelGenSym;
 		this.paramNames = paramNames;
-		lower = new BigRational[lowerStr.length];
-		upper = new BigRational[upperStr.length];
+		BigRational[] lower = new BigRational[lowerStr.length];
+		BigRational[] upper = new BigRational[upperStr.length];
 		for (int param = 0; param < lowerStr.length; param++) {
 			lower[param] = new BigRational(lowerStr[param]);
 			upper[param] = new BigRational(upperStr[param]);
@@ -231,8 +107,35 @@ public final class ModelBuilder extends PrismComponent
 		} else if (functionType.equals("DAG")) {
 			functionFactory = new DagFunctionFactory(paramNames, lower, upper, dagMaxError, false);
 		}
-		// And pass it to the model generator
-		modelGenSym.setSymbolic(this, functionFactory);
+
+		return functionFactory;
+	}
+	
+	
+	/**
+	 * Construct a parametric model and return it.
+	 * All of {@code paramNames}, {@code lower}, {@code} upper must have the same length,
+	 * and {@code lower} bounds of parameters must not be higher than {@code upper} bounds.
+	 * @param modelGenSym The ModelGeneratorSymbolic interface providing the model 
+	 * @param paramNames names of parameters
+	 * @param lowerStr lower bounds of parameters
+	 * @param upperStr upper bounds of parameters
+	 */
+	public ParamModel constructModel(ModelGenerator<Function> modelGenSym) throws PrismException
+	{
+		// No model construction for PTAs
+		if (modelGenSym.getModelType() == ModelType.PTA) {
+			throw new PrismNotSupportedException("For " + mode.engine() + ", you cannot build a PTA model explicitly, only perform model checking");
+		}
+
+		// And execute parameteric model checking
+		/*
+		ConstructModel constructModel = new ConstructModel(this);
+		explicit.Model modelParam = constructModel.constructModel(modelGenSym);
+		mainLog.println(modelParam);
+		modelParam.exportToPrismExplicitTra(mainLog);
+		if (1==1) System.exit(1);
+		*/
 		
 		// First, set values for any constants in the model
 		// (but do this *symbolically* - partly because some constants are parameters and therefore unknown,
@@ -272,7 +175,7 @@ public final class ModelBuilder extends PrismComponent
 	 * @param states list of states to be filled by this method
 	 * @throws PrismException thrown if problems in underlying methods occur
 	 */
-	private void reserveMemoryAndExploreStates(ModelGeneratorSymbolic modelGenSym, ParamModel model, StateStorage<State> states) throws PrismException
+	private void reserveMemoryAndExploreStates(ModelGenerator<Function> modelGenSym, ParamModel model, StateStorage<State> states) throws PrismException
 	{
 		boolean isNonDet = modelGenSym.getModelType().nondeterministic();
 		int numStates = 0;
@@ -325,7 +228,7 @@ public final class ModelBuilder extends PrismComponent
 	 * @return parametric model constructed
 	 * @throws PrismException thrown if model cannot be constructed
 	 */
-	private ParamModel doModelConstruction(ModelGeneratorSymbolic modelGenSym) throws PrismException
+	private ParamModel doModelConstruction(ModelGenerator<Function> modelGenSym) throws PrismException
 	{
 		final ModelType modelType;
 
@@ -359,33 +262,15 @@ public final class ModelBuilder extends PrismComponent
 			modelGenSym.exploreState(state);
 			int numChoices = modelGenSym.getNumChoices();
 			boolean computeSumOut = !isNonDet;
-			boolean checkChoiceSumEqualsOne = doProbChecks && model.getModelType().choicesSumToOne();
 
 			// sumOut = the sum over all outgoing choices from this state
 			Function sumOut = functionFactory.getZero();
 			for (int choiceNr = 0; choiceNr < numChoices; choiceNr++) {
 				int numSuccessors = modelGenSym.getNumTransitions(choiceNr);
-
-				// sumOutForChoice = the sum over all outgoing transitions for this choice
-				Function sumOutForChoice = functionFactory.getZero();
 				for (int succNr = 0; succNr < numSuccessors; succNr++) {
-					Function probFunc = modelGenSym.getTransitionProbabilityFunction(choiceNr, succNr);
+					Function probFunc = modelGenSym.getTransitionProbability(choiceNr, succNr);
 					if (computeSumOut)
 						sumOut = sumOut.add(probFunc);
-					if (checkChoiceSumEqualsOne)
-						sumOutForChoice = sumOutForChoice.add(probFunc);
-				}
-				if (checkChoiceSumEqualsOne) {
-					if (!sumOutForChoice.equals(functionFactory.getOne())) {
-						if (sumOutForChoice.isConstant()) {
-							// as the sum is constant, we know that it is really not 1
-							throw new PrismLangException("Probabilities sum to " + sumOutForChoice.asBigRational() + " instead of 1 in state "
-									+ state.toString(modelGenSym) + " for some command");
-						} else {
-							throw new PrismLangException("In state " + state.toString(modelGenSym) + " the probabilities sum to "
-									+ sumOutForChoice + " for some command, which can not be determined to be equal to 1 (to ignore, use -noprobchecks option)");
-						}
-					}
 				}
 			}
 
@@ -398,7 +283,7 @@ public final class ModelBuilder extends PrismComponent
 				int numSuccessors = modelGenSym.getNumTransitions(choiceNr);
 				for (int succNr = 0; succNr < numSuccessors; succNr++) {
 					State stateNew = modelGenSym.computeTransitionTarget(choiceNr, succNr);
-					Function probFn = modelGenSym.getTransitionProbabilityFunction(choiceNr, succNr);
+					Function probFn = modelGenSym.getTransitionProbability(choiceNr, succNr);
 
 					if (modelType == ModelType.CTMC) {
 						// check rate (non-normal?)
@@ -412,7 +297,7 @@ public final class ModelBuilder extends PrismComponent
 					}
 
 					// divide by sumOut
-					// for DTMC, this normalises over the choices
+					// for DTMC, this does nothing (sumOut is set to 1)
 					// for CTMC this builds the embedded DTMC
 					// for MDP this does nothing (sumOut is set to 1)
 					probFn = probFn.divide(sumOut);

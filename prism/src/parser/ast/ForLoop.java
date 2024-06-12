@@ -26,9 +26,10 @@
 
 package parser.ast;
 
-import parser.visitor.*;
+import parser.type.TypeInt;
+import parser.visitor.ASTVisitor;
+import parser.visitor.DeepCopy;
 import prism.PrismLangException;
-import parser.type.*;
 public class ForLoop extends ASTElement
 {
 	// For loop info
@@ -139,20 +140,20 @@ public class ForLoop extends ASTElement
 		return s;
 	}
 	
-	/**
-	 * Perform a deep copy.
-	 */
-	public ASTElement deepCopy()
+	@Override
+	public ForLoop deepCopy(DeepCopy copier) throws PrismLangException
 	{
-		ForLoop ret = new ForLoop();
-		ret.lhs = lhs;
-		ret.from = from.deepCopy();
-		ret.to = to.deepCopy();
-		ret.step = step.deepCopy();
-		ret.pc = pc;
-		ret.between = between;
-		ret.setPosition(this);
-		return ret;
+		to = copier.copy(to);
+		from = copier.copy(from);
+		step = copier.copy(step);
+
+		return this;
+	}
+
+	@Override
+	public ForLoop clone()
+	{
+		return (ForLoop) super.clone();
 	}
 }
 

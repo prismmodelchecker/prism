@@ -26,32 +26,33 @@
 
 package parser.ast;
 
-import java.util.Vector;
+import java.util.ArrayList;
+import java.util.List;
 
-import parser.visitor.*;
+import parser.visitor.ASTVisitor;
+import parser.visitor.DeepCopy;
 import prism.PrismLangException;
 
 public class SystemRename extends SystemDefn
 {
 	// Operand
 	private SystemDefn operand;
-	// Vectors for pairs of actions to be renamed
-	private Vector<String> from;
-	private Vector<String> to;
+	// lists for pairs of actions to be renamed
+	private ArrayList<String> from;
+	private ArrayList<String> to;
 
 	// Constructors
 
 	public SystemRename()
 	{
-		from = new Vector<String>();
-		to = new Vector<String>();
+		from = new ArrayList<>();
+		to = new ArrayList<>();
 	}
 
 	public SystemRename(SystemDefn s)
 	{
+		this();
 		operand = s;
-		from = new Vector<String>();
-		to = new Vector<String>();
 	}
 
 	// Set methods
@@ -63,14 +64,14 @@ public class SystemRename extends SystemDefn
 
 	public void addRename(String s1, String s2)
 	{
-		from.addElement(s1);
-		to.addElement(s2);
+		from.add(s1);
+		to.add(s2);
 	}
 
 	public void setRename(int i, String s1, String s2)
 	{
-		from.setElementAt(s1, i);
-		to.setElementAt(s2, i);
+		from.set(i, s1);
+		to.set(i, s2);
 	}
 
 	// Get methods
@@ -87,12 +88,12 @@ public class SystemRename extends SystemDefn
 
 	public String getFrom(int i)
 	{
-		return from.elementAt(i);
+		return from.get(i);
 	}
 
 	public String getTo(int i)
 	{
-		return to.elementAt(i);
+		return to.get(i);
 	}
 
 	public String getNewName(String s)
@@ -103,7 +104,7 @@ public class SystemRename extends SystemDefn
 		if (i == -1) {
 			return s;
 		} else {
-			return (String) to.elementAt(i);
+			return to.get(i);
 		}
 	}
 
@@ -111,32 +112,32 @@ public class SystemRename extends SystemDefn
 
 	@Override
 	@SuppressWarnings("deprecation")
-	public void getModules(Vector<String> v)
+	public void getModules(List<String> v)
 	{
 		operand.getModules(v);
 	}
 
 	@Override
-	public void getModules(Vector<String> v, ModulesFile modulesFile)
+	public void getModules(List<String> v, ModulesFile modulesFile)
 	{
 		operand.getModules(v, modulesFile);
 	}
 
 	@Override
 	@SuppressWarnings("deprecation")
-	public void getSynchs(Vector<String> v)
+	public void getSynchs(List<String> v)
 	{
 		int i, n;
 		String s;
 
 		// add action names in renames
-		// (only look in 'to' vector because we're only
+		// (only look in 'to' list because we're only
 		//  interested in actions _introduced_)
 		n = getNumRenames();
 		for (i = 0; i < n; i++) {
 			s = getTo(i);
 			if (!(v.contains(s)))
-				v.addElement(s);
+				v.add(s);
 		}
 
 		// recurse
@@ -144,19 +145,19 @@ public class SystemRename extends SystemDefn
 	}
 
 	@Override
-	public void getSynchs(Vector<String> v, ModulesFile modulesFile)
+	public void getSynchs(List<String> v, ModulesFile modulesFile)
 	{
 		int i, n;
 		String s;
 
 		// add action names in renames
-		// (only look in 'to' vector because we're only
+		// (only look in 'to' list because we're only
 		//  interested in actions _introduced_)
 		n = getNumRenames();
 		for (i = 0; i < n; i++) {
 			s = getTo(i);
 			if (!(v.contains(s)))
-				v.addElement(s);
+				v.add(s);
 		}
 
 		// recurse
@@ -164,7 +165,7 @@ public class SystemRename extends SystemDefn
 	}
 
 	@Override
-	public void getReferences(Vector<String> v)
+	public void getReferences(List<String> v)
 	{
 		operand.getReferences(v);
 	}
@@ -197,16 +198,23 @@ public class SystemRename extends SystemDefn
 	}
 
 	@Override
-	public SystemDefn deepCopy()
+	public SystemRename deepCopy(DeepCopy copier) throws PrismLangException
 	{
-		int i, n;
-		SystemRename ret = new SystemRename(getOperand().deepCopy());
-		n = getNumRenames();
-		for (i = 0; i < n; i++) {
-			ret.addRename(getFrom(i), getTo(i));
-		}
-		ret.setPosition(this);
-		return ret;
+		operand = copier.copy(operand);
+
+		return this;
+	}
+
+	@SuppressWarnings("unchecked")
+	@Override
+	public SystemRename clone()
+	{
+		SystemRename clone = (SystemRename) super.clone();
+
+		clone.from = (ArrayList<String>) from.clone();
+		clone.to   = (ArrayList<String>) to.clone();
+
+		return clone;
 	}
 }
 

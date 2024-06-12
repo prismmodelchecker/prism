@@ -1,0 +1,329 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html>
+<head>
+
+<title>PRISM Manual | RunningPRISM / DebuggingModelsWithTheSimulator </title>
+
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1"/>
+
+<!--HeaderText--><style type='text/css'><!--
+  ul, ol, pre, dl, p { margin-top:0px; margin-bottom:0px; }
+  code.escaped { white-space: pre; }
+  .vspace { margin-top:1.33em; }
+  .indent { margin-left:40px; }
+  .outdent { margin-left:40px; text-indent:-40px; }
+  a.createlinktext { text-decoration:none; border-bottom:1px dotted gray; }
+  a.createlink { text-decoration:none; position:relative; top:-0.5em;
+    font-weight:bold; font-size:smaller; border-bottom:none; }
+  img { border:0px; }
+  .editconflict { color:green; 
+  font-style:italic; margin-top:1.33em; margin-bottom:1.33em; }
+
+  table.markup { border:2px dotted #ccf; width:90%; }
+  td.markup1, td.markup2 { padding-left:10px; padding-right:10px; }
+  table.vert td.markup1 { border-bottom:1px solid #ccf; }
+  table.horiz td.markup1 { width:23em; border-right:1px solid #ccf; }
+  table.markup caption { text-align:left; }
+  div.faq p, div.faq pre { margin-left:2em; }
+  div.faq p.question { margin:1em 0 0.75em 0; font-weight:bold; }
+  div.faqtoc div.faq * { display:none; }
+  div.faqtoc div.faq p.question 
+    { display:block; font-weight:normal; margin:0.5em 0 0.5em 20px; line-height:normal; }
+  div.faqtoc div.faq p.question * { display:inline; }
+  td.markup1 pre { white-space: pre-wrap; }
+  .noPmTOC, .PmTOCdiv:empty {display:none;}
+.PmTOCdiv { display: inline-block; font-size: 13px; overflow: auto; max-height: 500px;}
+.PmTOCdiv a { text-decoration: none; display: block; line-height: 1;}
+.PmTOCdiv a.pmtoc-indent1 { margin-left: 1em; }
+.PmTOCdiv a.pmtoc-indent2 { margin-left: 2em; }
+.PmTOCdiv a.pmtoc-indent3 { margin-left: 3em; }
+.PmTOCdiv a.pmtoc-indent4 { margin-left: 4em; }
+.PmTOCdiv a.pmtoc-indent5 { margin-left: 5em; }
+.PmTOCdiv a.pmtoc-indent6 { margin-left: 6em; }
+.back-arrow {font-size: .8rem; text-decoration: none; vertical-align: text-top;}
+#PmTOCchk + label {cursor: pointer;}
+#PmTOCchk {display: none;}
+#PmTOCchk:not(:checked) + label > .pmtoc-show {display: none;}
+#PmTOCchk:checked + label > .pmtoc-hide {display: none;}
+#PmTOCchk:checked + label + div {display: none;}table.sortable th { cursor: pointer; }
+table.sortable th::after { color: transparent; content: "\00A0\025B8"; }
+table.sortable th:hover::after { color: inherit; content: "\00A0\025B8"; }
+table.sortable th.dir-u::after { color: inherit; content: "\00A0\025BE"; }
+table.sortable th.dir-d::after { color: inherit; content: "\00A0\025B4"; } 
+    .frame 
+      { border:1px solid #cccccc; padding:4px; background-color:#f9f9f9; }
+    .lfloat { float:left; margin-right:0.5em; }
+    .rfloat { float:right; margin-left:0.5em; }
+a.varlink { text-decoration:none;}
+
+.sourceblocklink {
+  text-align: right;
+  font-size: smaller;
+}
+.sourceblocktext {
+  padding: 0.5em;
+  border: 1px solid #808080;
+  color: #000000;
+  background-color: #f1f0ed;
+}
+.sourceblocktext div {
+  font-family: monospace;
+  font-size: small;
+  line-height: 1;
+  height: 1%;
+}
+.sourceblocktext div.head,
+.sourceblocktext div.foot {
+  font: italic medium serif;
+  padding: 0.5em;
+}
+
+--></style>  <meta name='robots' content='noindex,nofollow' />
+
+
+<link type="text/css" rel="stylesheet" href="http://www.prismmodelchecker.org/css/base.css"/>
+<link type="text/css" rel="stylesheet" href="http://www.prismmodelchecker.org/css/prism.css"/>
+<link type="text/css" rel="stylesheet" href="http://www.prismmodelchecker.org/css/print.css" media="print"/>
+<link type="text/css" rel="stylesheet" href="http://www.prismmodelchecker.org/css/bib.css"/>
+
+<link type="text/css" rel="stylesheet" href="http://www.prismmodelchecker.org/manual/pub/skins/prismprint/css/prismmanual.css"/>
+<link type="text/css" rel="stylesheet" href="http://www.prismmodelchecker.org/manual/pub/skins/prismprint/css/prismprint.css"/>
+</head>
+
+<body text="#000000" bgcolor="#ffffcc">
+
+<!--PageTitleFmt-->
+  <p><a class='wikilink' href='Main.html'>Running PRISM</a> /
+</p><h1>Debugging Models With The Simulator</h1>
+
+<!--PageText-->
+<div id='wikitext'>
+<p>PRISM includes a <em>simulator</em>, a tool which can be used to generate sample paths (executions) through a PRISM model. From the GUI, the simulator allows you to explore a model by interactively generating such paths. This is particularly useful for debugging models during development and for running sanity checks on completed models. Paths can also be generated from the command-line.
+</p>
+<p class='vspace'><a name='gui' id='gui'></a>
+</p><h3>Generating a path in the GUI</h3>
+<p>Once you have loaded a model into the PRISM GUI
+(note that it is not necessary to build the model),
+select the "Simulator" tab at the bottom of the main window.
+You can now start a new path by double-clicking in the bottom half of the window
+(or right-clicking and selecting "New path").
+If there are undefined constants in the
+model (or in any currently loaded properties files) you will be prompted to give values for these. You
+can also specify the state from which you wish to generate a path. By default, this is the initial state of
+the model.
+</p>
+<p class='vspace'>The main portion of the user interface (the bottom part) displays a path through the currently loaded model. Initially, this will comprise just a single state. The table above shows the list of available transitions from this state. Double-click one of these to extend the path with this transition. The process can be repeated to extend the path in an interactive fashion. Clicking on any state in the current path shows the transition which was taken at this stage. Click on the final state in the path to continue
+extending the path. Alternatively, clicking the "Simulate" button will select a transition randomly (according to the probabilities/rates of the available transitions). By changing the number in the box below this button, you can easily generate random paths of a given length with a single click.
+There are also options (in the accompanying drop-down menu) to allow generation of paths up until a particular length or, for CTMCs, in terms of the time taken.
+</p>
+<p class='vspace'>The figure shows the simulator in action.
+</p>
+<div class='vspace'></div><div class='img imgcaption'> <a class='urllink' href='../uploads/gui-sim.png'><img width='500' src='../uploads/gui-sim.png' alt='' /></a><br /><span class='caption'><strong>The PRISM GUI: exploring a model using the simulator</strong></span></div>
+<p class='vspace'>It is also possible to:
+</p>
+<div class='vspace'></div><ul><li>backtrack to an earlier point in a path
+</li><li>remove all of the states before some point in a path
+</li><li>restart a path from its first state
+</li><li>export a path to a text file
+</li></ul><p class='vspace'>Notice that the table containing the path displays not just the value of each variable in each
+state but also the time spent in that state and any rewards accumulated there. You can configure exactly which columns appear by right-clicking on the path and selecting "Configure view". For rewards (and for CTMC models, for the time-values), you can can opt to display the reward/time for each individual state and/or the cumulative total up until each point in the path.
+</p>
+<p class='vspace'>At the top-right of the interface, any labels contained in the currently loaded model/properties file are displayed, along with their value in the currently selected state of the path. In addition, the built-in <a class='wikilink' href='../PropertySpecification/PropertiesFiles.html#labels'>labels</a> <code>"init"</code> and <code>"deadlock"</code> are also included. Selecting a label from the list highlights all states in the current path which satisfy it.
+</p>
+<p class='vspace'>The other tabs in this panel allow the value of path operators (taken from properties in the current file) to be viewed for the current path, as well as various other statistics.
+</p>
+<p class='vspace'>Another very useful feature for some models is to use the "Plot new path" option from the simulator, which generates a plot of some/all of the variable/reward values for a particular randomly generated path through the model.
+</p>
+<p class='vspace'><a name='cl' id='cl'></a>
+</p><h3>Path generation from the command-line</h3>
+<p>It is also possible to generate random paths through a model using the command-line version of PRISM. This is achieved using the <code>-simpath</code> switch, which requires two arguments, the first describing the path to be generated and the second specifying the file to which the path should be output (as usual, specifying <code>stdout</code> sends output to the terminal). The following examples illustrate the various ways of generating paths in this way:
+</p>
+<div class='vspace'></div>
+<div class='sourceblock ' id='sourceblock1'>
+  <div class='sourceblocktext'><div class="shell"><span style="font-weight:bold;">prism model.pm -simpath 10 path.txt</span><br/>
+<span style="font-weight:bold;">prism model.pm -simpath time=7.5 path.txt</span><br/>
+<span style="font-weight:bold;">prism model.pm -simpath deadlock path.txt</span><br/>
+</div></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/RunningPRISM/DebuggingModelsWithTheSimulator?action=sourceblock&amp;num=1' type='text/plain'>[&#036;[Get Code]]</a></div>
+</div>
+
+<p class='vspace'>These generate a path of 10 steps, a path of at least 7.5 time units and a path ending in deadlock, respectively.
+</p>
+<p class='vspace'>Here's an example of the output:
+</p>
+<div class='vspace'></div>
+<div class='sourceblock ' id='sourceblock2'>
+  <div class='sourceblocktext'><div class="shell"><span style="font-weight:bold;">prism poll2.sm -simpath 10 stdout</span><br/>
+<span style="font-style:italic;">...</span><br/>
+<span style="font-style:italic;">action step time s a s1 s2</span><br/>
+<span style="font-style:italic;">- 0 0.0 1 0 0 0</span><br/>
+<span style="font-style:italic;">[loop1a] 1 0.007479539729154247 2 0 0 0</span><br/>
+<span style="font-style:italic;">[loop2a] 2 0.00782819795294666 1 0 0 0</span><br/>
+<span style="font-style:italic;">[loop1a] 3 0.01570585559933703 2 0 0 0</span><br/>
+<span style="font-style:italic;">[loop2a] 4 0.017061111948220263 1 0 0 0</span><br/>
+<span style="font-style:italic;">[loop1a] 5 0.026816317516034468 2 0 0 0</span><br/>
+<span style="font-style:italic;">[loop2a] 6 0.039878416276337814 1 0 0 0</span><br/>
+<span style="font-style:italic;">[loop1a] 7 0.04456566315999103 2 0 0 0</span><br/>
+<span style="font-style:italic;">[loop2a] 8 0.047368359683643765 1 0 0 0</span><br/>
+<span style="font-style:italic;">[loop1a] 9 0.04934857366557349 2 0 0 0</span><br/>
+<span style="font-style:italic;">[loop2a] 10 0.055031679365844674 1 0 0 0</span><br/>
+</div></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/RunningPRISM/DebuggingModelsWithTheSimulator?action=sourceblock&amp;num=2' type='text/plain'>[&#036;[Get Code]]</a></div>
+</div>
+
+<p class='vspace'>This shows the sequence of states in the path, i.e. the values of the variables in each state. In the example above, there are 4 variables: <code>s</code>, <code>a</code>, <code>s1</code> and <code>s2</code>.
+The first three columns show the type of transition taken to reach that state, its index within the path (starting from 0) and the time at which it was entered. The latter is only shown for continuous time models. The type of the transition is written as <em>[act]</em> if action label <code>act</code> was taken, and as <em>module1</em> if the module named <code>module1</code> takes an unlabelled transition). 
+</p>
+<p class='vspace'>Further options can also be appended to the first parameter. For example, option <code>probs=true</code> also displays the probability/rate associated with each transition. For example:
+</p>
+<div class='vspace'></div>
+<div class='sourceblock ' id='sourceblock3'>
+  <div class='sourceblocktext'><div class="shell"><span style="font-weight:bold;">prism poll2.sm -simpath '5,probs=true' stdout</span><br/>
+<span style="font-style:italic;">...</span><br/>
+<span style="font-style:italic;">action probability step time s a s1 s2</span><br/>
+<span style="font-style:italic;">- - 0 0.0 1 0 0 0</span><br/>
+<span style="font-style:italic;">[loop1a] 200.0 1 0.0011880118081395378 2 0 0 0</span><br/>
+<span style="font-style:italic;">[loop2a] 200.0 2 0.0037798355025401888 1 0 0 0</span><br/>
+<span style="font-style:italic;">[loop1a] 200.0 3 0.01029212322894221 2 0 0 0</span><br/>
+<span style="font-style:italic;">[loop2a] 200.0 4 0.023258883912578403 1 0 0 0</span><br/>
+<span style="font-style:italic;">[loop1a] 200.0 5 0.027402404026254504 2 0 0 0</span><br/>
+</div></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/RunningPRISM/DebuggingModelsWithTheSimulator?action=sourceblock&amp;num=3' type='text/plain'>[&#036;[Get Code]]</a></div>
+</div>
+
+<p class='vspace'>In this example, the rate is 200.0 for all transitions.
+To show the state/transition rewards for each step, use option <code>rewards=true</code>.
+</p>
+<p class='vspace'>If you are only interested in values of certain variables of your model, use the <code>vars=(...)</code> option. For example:
+</p>
+<div class='vspace'></div>
+<div class='sourceblock ' id='sourceblock4'>
+  <div class='sourceblocktext'><div class="shell"><span style="font-weight:bold;">prism poll2.sm -simpath '500,probs=true,vars=(a,s1,s2)' stdout</span><br/>
+<span style="font-style:italic;">...</span><br/>
+<span style="font-style:italic;">action probability step time a s1 s2</span><br/>
+<span style="font-style:italic;">- - 0 0.0 0 0 0</span><br/>
+<span style="font-style:italic;">station2 0.5 110 0.5025332771499665 0 0 1</span><br/>
+<span style="font-style:italic;">[loop2b] 200.0 111 0.5109407735244359 1 0 1</span><br/>
+<span style="font-style:italic;">[serve2] 1.0 112 0.9960642154887506 0 0 0</span><br/>
+<span style="font-style:italic;">station1 0.5 130 1.0645858553472822 0 1 0</span><br/>
+<span style="font-style:italic;">[loop1b] 200.0 132 1.0732572896618477 1 1 0</span><br/>
+<span style="font-style:italic;">[serve1] 1.0 133 2.939742026148121 0 0 0</span><br/>
+<span style="font-style:italic;">station2 0.5 225 3.4311507854807677 0 0 1</span><br/>
+<span style="font-style:italic;">[loop2b] 200.0 227 3.434285492243098 1 0 1</span><br/>
+<span style="font-style:italic;">[serve2] 1.0 228 3.553118276800078 0 0 0</span><br/>
+<span style="font-style:italic;">station2 0.5 250 3.6354431222941406 0 0 1</span><br/>
+<span style="font-style:italic;">[loop2b] 200.0 251 3.637552738997181 1 0 1</span><br/>
+<span style="font-style:italic;">[serve2] 1.0 252 3.7343375346150576 0 0 0</span><br/>
+</div></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/RunningPRISM/DebuggingModelsWithTheSimulator?action=sourceblock&amp;num=4' type='text/plain'>[&#036;[Get Code]]</a></div>
+</div>
+
+<p class='vspace'>Note the use of single quotes around the path description argument to prevent the shell from misinterpreting special characters such as "<code>(</code>".
+</p>
+<p class='vspace'>Notice also that the above only displays states in which the values of some variable of interest changes. This is achieved with the option <code>changes=true</code>, which is automatically enabled when you use <code>vars=(...)</code>. If you want to see all steps of the path, add the option <code>changes=false</code>.
+</p>
+<p class='vspace'>An alternative way of viewing paths is to only display paths at certain fixed points in time. This is achieved with the <code>snapshot=x</code> option, where <code>x</code> is the time step. For example:
+</p>
+<div class='vspace'></div>
+<div class='sourceblock ' id='sourceblock5'>
+  <div class='sourceblocktext'><div class="shell"><span style="font-weight:bold;">prism poll2.sm -simpath 'time=5.0,snapshot=0.5' stdout</span><br/>
+<span style="font-style:italic;">...</span><br/>
+<span style="font-style:italic;">step time s a s1 s2</span><br/>
+<span style="font-style:italic;">0 0.0 1 0 0 0</span><br/>
+<span style="font-style:italic;">94 0.5 1 0 0 0</span><br/>
+<span style="font-style:italic;">198 1.0 1 0 0 0</span><br/>
+<span style="font-style:italic;">314 1.5 1 0 0 0</span><br/>
+<span style="font-style:italic;">375 2.0 1 1 1 1</span><br/>
+<span style="font-style:italic;">376 2.5 2 0 0 1</span><br/>
+<span style="font-style:italic;">376 3.0 2 0 0 1</span><br/>
+<span style="font-style:italic;">378 3.5 1 0 0 0</span><br/>
+<span style="font-style:italic;">378 4.0 1 0 0 0</span><br/>
+<span style="font-style:italic;">478 4.5 1 0 0 0</span><br/>
+<span style="font-style:italic;">511 5.0 2 0 0 0</span><br/>
+</div></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/RunningPRISM/DebuggingModelsWithTheSimulator?action=sourceblock&amp;num=5' type='text/plain'>[&#036;[Get Code]]</a></div>
+</div>
+
+<p class='vspace'>You can also use the <code>sep=...</code> option to specify the column separator. Possible values are <code>space</code> (the default), <code>tab</code> and <code>comma</code>. For example:
+</p>
+<div class='vspace'></div>
+<div class='sourceblock ' id='sourceblock6'>
+  <div class='sourceblocktext'><div class="shell"><span style="font-weight:bold;">prism poll2.sm -simpath '10,vars=(a,b),sep=comma' stdout</span><br/>
+<span style="font-style:italic;">...</span><br/>
+<span style="font-style:italic;">step,a,b,time</span><br/>
+<span style="font-style:italic;">0,0,0,0.0</span><br/>
+<span style="font-style:italic;">2,1,0,0.058443536856580006</span><br/>
+<span style="font-style:italic;">3,1,1,0.09281024515535738</span><br/>
+<span style="font-style:italic;">6,1,2,0.2556555786269585</span><br/>
+<span style="font-style:italic;">7,1,3,0.284062896359802</span><br/>
+<span style="font-style:italic;">8,1,4,1.1792064236954896</span><br/>
+</div></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/RunningPRISM/DebuggingModelsWithTheSimulator?action=sourceblock&amp;num=6' type='text/plain'>[&#036;[Get Code]]</a></div>
+</div>
+
+<p class='vspace'>When generating paths to a deadlock state, additional <code>repeat=...</code> option is available which will construct multiple paths until a deadlock is found. For example:
+</p>
+<div class='vspace'></div>
+<div class='sourceblock ' id='sourceblock7'>
+  <div class='sourceblocktext'><div class="shell"><span style="font-weight:bold;">prism model.sm -simpath 'deadlock,repeat=100' stdout</span><br/>
+</div></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/RunningPRISM/DebuggingModelsWithTheSimulator?action=sourceblock&amp;num=7' type='text/plain'>[&#036;[Get Code]]</a></div>
+</div>
+
+<p class='vspace'>By default, the simulator detects deterministic loops in paths (e.g. if a path reaches a state from which there is a just a single self-loop leaving that state) and stops generating the path any further. You can disable this behaviour with the <code>loopcheck=false</code> option. For example:
+</p>
+<div class='vspace'></div>
+<div class='sourceblock ' id='sourceblock8'>
+  <div class='sourceblocktext'><div class="shell"><span style="font-weight:bold;">prism dice.pm -simpath 10 stdout</span><br/>
+<span style="font-style:italic;">...</span><br/>
+<span style="font-style:italic;">Warning: Deterministic loop detected after 6 steps (use loopcheck=false option to extend path).</span><br/>
+<span style="font-style:italic;">action step s d</span><br/>
+<span style="font-style:italic;">- 0 0 0</span><br/>
+<span style="font-style:italic;">die 1 1 0</span><br/>
+<span style="font-style:italic;">die 2 4 0</span><br/>
+<span style="font-style:italic;">die 3 7 3</span><br/>
+<span style="font-style:italic;">die 4 7 3</span><br/>
+</div></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/RunningPRISM/DebuggingModelsWithTheSimulator?action=sourceblock&amp;num=8' type='text/plain'>[&#036;[Get Code]]</a></div>
+</div>
+
+<div class='vspace'></div>
+<div class='sourceblock ' id='sourceblock9'>
+  <div class='sourceblocktext'><div class="shell"><span style="font-weight:bold;">prism dice.pm -simpath 10,loopcheck=false stdout</span><br/>
+<span style="font-style:italic;">...</span><br/>
+<span style="font-style:italic;">action step s d</span><br/>
+<span style="font-style:italic;">- 0 0 0</span><br/>
+<span style="font-style:italic;">die 1 1 0</span><br/>
+<span style="font-style:italic;">die 2 4 0</span><br/>
+<span style="font-style:italic;">die 3 7 2</span><br/>
+<span style="font-style:italic;">die 4 7 2</span><br/>
+<span style="font-style:italic;">die 5 7 2</span><br/>
+<span style="font-style:italic;">die 6 7 2</span><br/>
+<span style="font-style:italic;">die 7 7 2</span><br/>
+<span style="font-style:italic;">die 8 7 2</span><br/>
+<span style="font-style:italic;">die 9 7 2</span><br/>
+<span style="font-style:italic;">die 10 7 2</span><br/>
+</div></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/RunningPRISM/DebuggingModelsWithTheSimulator?action=sourceblock&amp;num=9' type='text/plain'>[&#036;[Get Code]]</a></div>
+</div>
+
+<p class='vspace'>One final note: the <code>-simpath</code> switch only generates paths up to the maximum path length setting of the simulator (the default is 10,000). If you want to generate longer paths, either change the
+<a class='wikilink' href='../ConfiguringPRISM/Main.html'>default setting</a> or override it temporarily from the command-line using the <code>-simpathlen</code> switch.
+You might also use the latter to decrease the setting,
+e.g. to look for a path leading to a deadlock state,
+but only within 100 steps:
+</p>
+<div class='vspace'></div>
+<div class='sourceblock ' id='sourceblock10'>
+  <div class='sourceblocktext'><div class="shell"><span style="font-weight:bold;">prism model.sm -simpath deadlock stdout -simpathlen 100</span><br/>
+</div></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/RunningPRISM/DebuggingModelsWithTheSimulator?action=sourceblock&amp;num=10' type='text/plain'>[&#036;[Get Code]]</a></div>
+</div>
+
+</div>
+
+
+</body>
+</html>

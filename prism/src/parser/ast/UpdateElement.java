@@ -26,12 +26,12 @@
 
 package parser.ast;
 
-import param.BigRational;
+import parser.EvaluateContext;
 import parser.State;
-import parser.Values;
 import parser.VarList;
 import parser.type.Type;
 import parser.visitor.ASTVisitor;
+import parser.visitor.DeepCopy;
 import prism.PrismLangException;
 
 /**
@@ -136,46 +136,16 @@ public class UpdateElement extends ASTElement
 	}
 
 	/**
-	 * Execute this update element, based on variable values specified as a Values object,
-	 * applying changes in variables to a second Values object. 
-	 * Values of any constants should also be provided.
-	 * @param constantValues Values for constants
-	 * @param oldValues Variable values in current state
-	 * @param newValues Values object to apply changes to
-	 */
-	public void update(Values constantValues, Values oldValues, Values newValues) throws PrismLangException
-	{
-		newValues.setValue(var, expr.evaluate(constantValues, oldValues));
-	}
-
-	/**
-	 * Execute this update element, based on variable values specified as a State object.
-	 * It is assumed that any constants have already been defined.
-	 * @param oldState Variable values in current state
+	 * Execute this update element, applying variable changes to a State object.
+	 * Current variable/constant values are specified as an EvaluateContext object.
+	 * The evaluation mode and values for any undefined constants are also taken from this object.
+	 * @param ec Context for evaluation of variables values etc.
 	 * @param newState State object to apply changes to
+	 * @param varList VarList for info about state variables
 	 */
-	public void update(State oldState, State newState) throws PrismLangException
+	public void update(EvaluateContext ec, State newState, VarList varList) throws PrismLangException
 	{
-		update(oldState, newState, false);
-	}
-
-	/**
-	 * Execute this update element, based on variable values specified as a State object.
-	 * It is assumed that any constants have already been defined.
-	 * @param oldState Variable values in current state
-	 * @param newState State object to apply changes to
-	 * @param exact evaluate arithmetic expressions exactly?
-	 */
-	public void update(State oldState, State newState, boolean exact) throws PrismLangException
-	{
-		Object newValue;
-		if (exact) {
-			BigRational r = expr.evaluateExact(oldState);
-			// cast to Java data type
-			newValue = expr.getType().castFromBigRational(r);
-		} else {
-			newValue = getType().castValueTo(expr.evaluate(oldState));
-		}
+		Object newValue = getType().castValueTo(expr.evaluate(ec));
 		newState.setValue(index, newValue);
 	}
 	
@@ -202,12 +172,18 @@ public class UpdateElement extends ASTElement
 	}
 
 	@Override
-	public UpdateElement deepCopy()
+	public UpdateElement deepCopy(DeepCopy copier) throws PrismLangException
 	{
-		UpdateElement result = new UpdateElement((ExpressionIdent)ident.deepCopy(), expr.deepCopy());
-		result.type = type;
-		result.index = index;
-		return result;
+		ident = copier.copy(ident);
+		expr = copier.copy(expr);
+
+		return this;
+	}
+
+	@Override
+	public UpdateElement clone()
+	{
+		return (UpdateElement) super.clone();
 	}
 	
 	// Other methods:

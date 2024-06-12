@@ -1,0 +1,24 @@
+-ex -const N=2 -const K=1 -const err=0.02 -const err2=0.01 -epsilon 1e-8
+-ex -const N=2 -const K=2 -const err=0.02 -const err2=0.01 -epsilon 1e-8
+-ex -const N=2 -const K=3 -const err=0.02 -const err2=0.01 -epsilon 1e-8
+-ex -const N=2 -const K=4 -const err=0.02 -const err2=0.01 -epsilon 1e-8
+-ex -const N=4 -const K=1 -const err=0.02 -const err2=0.01 -epsilon 1e-8
+-ex -const N=4 -const K=2 -const err=0.02 -const err2=0.01 -epsilon 1e-8
+-ex -const N=4 -const K=3 -const err=0.02 -const err2=0.01 -epsilon 1e-8
+-ex -const N=4 -const K=4 -const err=0.02 -const err2=0.01 -epsilon 1e-8
+-ex -const N=8 -const K=1 -const err=0.02 -const err2=0.01 -epsilon 1e-8
+-ex -const N=8 -const K=2 -const err=0.02 -const err2=0.01 -epsilon 1e-8
+-ex -const N=8 -const K=3 -const err=0.02 -const err2=0.01 -epsilon 1e-8
+-ex -const N=8 -const K=4 -const err=0.02 -const err2=0.01 -epsilon 1e-8
+# -ex -const N=2 -const K=1 -const err=0.02 -const err2=0.01 -convprog Gurobi
+# -ex -const N=2 -const K=2 -const err=0.02 -const err2=0.01 -convprog Gurobi
+# -ex -const N=2 -const K=3 -const err=0.02 -const err2=0.01 -convprog Gurobi
+# -ex -const N=2 -const K=4 -const err=0.02 -const err2=0.01 -convprog Gurobi
+# -ex -const N=4 -const K=1 -const err=0.02 -const err2=0.01 -convprog Gurobi
+# -ex -const N=4 -const K=2 -const err=0.02 -const err2=0.01 -convprog Gurobi
+# -ex -const N=4 -const K=3 -const err=0.02 -const err2=0.01 -convprog Gurobi
+# -ex -const N=4 -const K=4 -const err=0.02 -const err2=0.01 -convprog Gurobi
+# -ex -const N=8 -const K=1 -const err=0.02 -const err2=0.01 -convprog Gurobi
+# -ex -const N=8 -const K=2 -const err=0.02 -const err2=0.01 -convprog Gurobi
+# -ex -const N=8 -const K=3 -const err=0.02 -const err2=0.01 -convprog Gurobi
+# -ex -const N=8 -const K=4 -const err=0.02 -const err2=0.01 -convprog Gurobi

@@ -1,40 +1,17 @@
-/**CFile***********************************************************************
+/**
+  @file
 
-  FileName    [cuddSubsetSP.c]
+  @ingroup cudd
 
-  PackageName [cudd]
+  @brief Procedure to subset the given %BDD choosing the shortest paths
+  (largest cubes) in the %BDD.
 
-  Synopsis [Procedure to subset the given BDD choosing the shortest paths
-	    (largest cubes) in the BDD.]
+  @see cuddSubsetHB.c
 
+  @author Kavita Ravi
 
-  Description  [External procedures included in this module:
-		<ul>
-		<li> Cudd_SubsetShortPaths()
-		<li> Cudd_SupersetShortPaths()
-		</ul>
-		Internal procedures included in this module:
-		<ul>
-		<li> cuddSubsetShortPaths()
-		</ul>
-		Static procedures included in this module:
-		<ul>
-		<li> BuildSubsetBdd()
-		<li> CreatePathTable()
-		<li> AssessPathLength()
-		<li> CreateTopDist()
-		<li> CreateBotDist()
-		<li> ResizeNodeDistPages()
-		<li> ResizeQueuePages()
-		<li> stPathTableDdFree()
-		</ul>
-		]
-
-  SeeAlso     [cuddSubsetHB.c]
-
-  Author      [Kavita Ravi]
-
-  Copyright   [Copyright (c) 1995-2012, Regents of the University of Colorado
+  @copyright@parblock
+  Copyright (c) 1995-2015, Regents of the University of Colorado
 
   All rights reserved.
 
@@ -64,9 +41,10 @@
   CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
   LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
   ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-  POSSIBILITY OF SUCH DAMAGE.]
+  POSSIBILITY OF SUCH DAMAGE.
+  @endparblock
 
-******************************************************************************/
+*/
 
 #include "util.h"
 #include "cuddInt.h"
@@ -88,9 +66,12 @@
 /* Stucture declarations                                                     */
 /*---------------------------------------------------------------------------*/
 
-/* structure created to store subset results for each node and distances with
- * odd and even parity of the node from the root and sink. Main data structure
- * in this procedure.
+/**
+ * @brief structure created to store subset results for each node and
+ * distances with odd and even parity of the node from the root and
+ * sink.
+ *
+ * Main data structure in this procedure.
  */
 struct NodeDist {
     DdHalfWord oddTopDist;
@@ -101,7 +82,9 @@ struct NodeDist {
     DdNode *compResult;
 };
 
-/* assorted information needed by the BuildSubsetBdd procedure. */
+/**
+   @brief assorted information needed by the BuildSubsetBdd procedure.
+*/
 struct AssortedInfo {
     unsigned int maxpath;
     int findShortestPath;
@@ -110,19 +93,22 @@ struct AssortedInfo {
     int threshold;
 };
 
+/**
+ * @brief Bookkeeping data structure for subsetting algorithm.
+ */
 struct GlobalInfo {
-    struct NodeDist **nodeDistPages; /* pointers to the pages */
-    int		nodeDistPageIndex; /* index to next element */
-    int		nodeDistPage; /* index to current page */
-    int		nodeDistPageSize; /* page size */
-    int		maxNodeDistPages; /* number of page pointers */
-    struct NodeDist *currentNodeDistPage; /* current page */
-    DdNode      ***queuePages; /* pointers to the pages */
-    int		queuePageIndex;	/* index to next element */
-    int		queuePage; /* index to current page */
-    int		queuePageSize; /* page size */
-    int		maxQueuePages; /* number of page pointers */
-    DdNode      **currentQueuePage; /* current page */
+    struct NodeDist **nodeDistPages; /**< pointers to the pages */
+    int		nodeDistPageIndex; /**< index to next element */
+    int		nodeDistPage; /**< index to current page */
+    int		nodeDistPageSize; /**< page size */
+    int		maxNodeDistPages; /**< number of page pointers */
+    struct NodeDist *currentNodeDistPage; /**< current page */
+    DdNode      ***queuePages; /**< pointers to the pages */
+    int		queuePageIndex;	/**< index to next element */
+    int		queuePage; /**< index to current page */
+    int		queuePageSize; /**< page size */
+    int		maxQueuePages; /**< number of page pointers */
+    DdNode      **currentQueuePage; /**< current page */
 #ifdef DD_DEBUG
     int         numCalls;
     int         hits;
@@ -141,20 +127,12 @@ typedef struct GlobalInfo GlobalInfo_t;
 /* Variable declarations                                                     */
 /*---------------------------------------------------------------------------*/
 
-#ifndef lint
-static char rcsid[] DD_UNUSED = "$Id: cuddSubsetSP.c,v 1.36 2012/02/05 01:07:19 fabio Exp $";
-#endif
-
 
 /*---------------------------------------------------------------------------*/
 /* Macro declarations                                                        */
 /*---------------------------------------------------------------------------*/
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-/**AutomaticStart*************************************************************/
+/** \cond */
 
 /*---------------------------------------------------------------------------*/
 /* Static function prototypes                                                */
@@ -167,54 +145,50 @@ static int CreateBotDist (DdNode *node, st_table *pathTable, unsigned int *pathL
 static st_table * CreatePathTable (DdManager *dd, GlobalInfo_t *gInfo, DdNode *node, unsigned int *pathLengthArray, FILE *fp);
 static unsigned int AssessPathLength (unsigned int *pathLengthArray, int threshold, int numVars, unsigned int *excess, FILE *fp);
 static DdNode * BuildSubsetBdd (DdManager *dd, GlobalInfo_t *gInfo, st_table *pathTable, DdNode *node, struct AssortedInfo *info, st_table *subsetNodeTable);
-static enum st_retval stPathTableDdFree (char *key, char *value, char *arg);
+static enum st_retval stPathTableDdFree (void *key, void *value, void *arg);
 
-/**AutomaticEnd***************************************************************/
-
-#ifdef __cplusplus
-}
-#endif
+/** \endcond */
 
 /*---------------------------------------------------------------------------*/
 /* Definition of Exported functions                                          */
 /*---------------------------------------------------------------------------*/
 
 
-/**Function********************************************************************
+/**
+  @brief Extracts a dense subset from a %BDD with the shortest paths
+  heuristic.
 
-  Synopsis    [Extracts a dense subset from a BDD with the shortest paths
-  heuristic.]
-
-  Description [Extracts a dense subset from a BDD.  This procedure
-  tries to preserve the shortest paths of the input BDD, because they
-  give many minterms and contribute few nodes.  This procedure may
-  increase the number of nodes in trying to create the subset or
-  reduce the number of nodes due to recombination as compared to the
-  original BDD. Hence the threshold may not be strictly adhered to. In
-  practice, recombination overshadows the increase in the number of
-  nodes and results in small BDDs as compared to the threshold. The
-  hardlimit specifies whether threshold needs to be strictly adhered
-  to. If it is set to 1, the procedure ensures that result is never
-  larger than the specified limit but may be considerably less than
-  the threshold.  Returns a pointer to the BDD for the subset if
-  successful; NULL otherwise.  The value for numVars should be as
-  close as possible to the size of the support of f for better
-  efficiency. However, it is safe to pass the value returned by
+  @details This procedure tries to preserve the shortest paths of the
+  input %BDD, because they give many minterms and contribute few nodes.
+  This procedure may increase the number of nodes in trying to create
+  the subset or reduce the number of nodes due to recombination as
+  compared to the original %BDD. Hence the threshold may not be
+  strictly adhered to. In practice, recombination overshadows the
+  increase in the number of nodes and results in small BDDs as
+  compared to the threshold. The hardlimit specifies whether threshold
+  needs to be strictly adhered to. If it is set to 1, the procedure
+  ensures that result is never larger than the specified limit but may
+  be considerably less than the threshold.  The value for numVars
+  should be as close as possible to the size of the support of f for
+  better efficiency. However, it is safe to pass the value returned by
   Cudd_ReadSize for numVars. If 0 is passed, then the value returned
-  by Cudd_ReadSize is used.]
+  by Cudd_ReadSize is used.
 
-  SideEffects [None]
+  @return a pointer to the %BDD for the subset if successful; NULL
+  otherwise.
 
-  SeeAlso     [Cudd_SupersetShortPaths Cudd_SubsetHeavyBranch Cudd_ReadSize]
+  @sideeffect None
 
-******************************************************************************/
+  @see Cudd_SupersetShortPaths Cudd_SubsetHeavyBranch Cudd_ReadSize
+
+*/
 DdNode *
 Cudd_SubsetShortPaths(
-  DdManager * dd /* manager */,
-  DdNode * f /* function to be subset */,
-  int  numVars /* number of variables in the support of f */,
-  int  threshold /* maximum number of nodes in the subset */,
-  int  hardlimit /* flag: 1 if threshold is a hard limit */)
+  DdManager * dd /**< manager */,
+  DdNode * f /**< function to be subset */,
+  int  numVars /**< number of variables in the support of f */,
+  int  threshold /**< maximum number of nodes in the subset */,
+  int  hardlimit /**< flag: 1 if threshold is a hard limit */)
 {
     DdNode *subset;
 
@@ -228,44 +202,45 @@ Cudd_SubsetShortPaths(
 } /* end of Cudd_SubsetShortPaths */
 
 
-/**Function********************************************************************
+/**
+  @brief Extracts a dense superset from a %BDD with the shortest paths
+  heuristic.
 
-  Synopsis    [Extracts a dense superset from a BDD with the shortest paths
-  heuristic.]
-
-  Description [Extracts a dense superset from a BDD.  The procedure is
-  identical to the subset procedure except for the fact that it
-  receives the complement of the given function. Extracting the subset
-  of the complement function is equivalent to extracting the superset
-  of the function.  This procedure tries to preserve the shortest
-  paths of the complement BDD, because they give many minterms and
-  contribute few nodes.  This procedure may increase the number of
-  nodes in trying to create the superset or reduce the number of nodes
-  due to recombination as compared to the original BDD. Hence the
-  threshold may not be strictly adhered to. In practice, recombination
-  overshadows the increase in the number of nodes and results in small
-  BDDs as compared to the threshold.  The hardlimit specifies whether
+  @details The procedure is identical to the subset procedure except
+  for the fact that it receives the complement of the given
+  function. Extracting the subset of the complement function is
+  equivalent to extracting the superset of the function.  This
+  procedure tries to preserve the shortest paths of the complement
+  %BDD, because they give many minterms and contribute few nodes.  This
+  procedure may increase the number of nodes in trying to create the
+  superset or reduce the number of nodes due to recombination as
+  compared to the original %BDD. Hence the threshold may not be
+  strictly adhered to. In practice, recombination overshadows the
+  increase in the number of nodes and results in small BDDs as
+  compared to the threshold.  The hardlimit specifies whether
   threshold needs to be strictly adhered to. If it is set to 1, the
   procedure ensures that result is never larger than the specified
-  limit but may be considerably less than the threshold. Returns a
-  pointer to the BDD for the superset if successful; NULL
-  otherwise. The value for numVars should be as close as possible to
-  the size of the support of f for better efficiency.  However, it is
-  safe to pass the value returned by Cudd_ReadSize for numVar.  If 0
-  is passed, then the value returned by Cudd_ReadSize is used.]
+  limit but may be considerably less than the threshold.  The value
+  for numVars should be as close as possible to the size of the
+  support of f for better efficiency.  However, it is safe to pass the
+  value returned by Cudd_ReadSize for numVar.  If 0 is passed, then
+  the value returned by Cudd_ReadSize is used.
 
-  SideEffects [None]
+  @return a pointer to the %BDD for the superset if successful; NULL
+  otherwise.
+  
+  @sideeffect None
 
-  SeeAlso     [Cudd_SubsetShortPaths Cudd_SupersetHeavyBranch Cudd_ReadSize]
+  @see Cudd_SubsetShortPaths Cudd_SupersetHeavyBranch Cudd_ReadSize
 
-******************************************************************************/
+*/
 DdNode *
 Cudd_SupersetShortPaths(
-  DdManager * dd /* manager */,
-  DdNode * f /* function to be superset */,
-  int  numVars /* number of variables in the support of f */,
-  int  threshold /* maximum number of nodes in the subset */,
-  int  hardlimit /* flag: 1 if threshold is a hard limit */)
+  DdManager * dd /**< manager */,
+  DdNode * f /**< function to be superset */,
+  int  numVars /**< number of variables in the support of f */,
+  int  threshold /**< maximum number of nodes in the subset */,
+  int  hardlimit /**< flag: 1 if threshold is a hard limit */)
 {
     DdNode *subset, *g;
 
@@ -285,30 +260,27 @@ Cudd_SupersetShortPaths(
 /*---------------------------------------------------------------------------*/
 
 
-/**Function********************************************************************
+/**
+  @brief The outermost procedure to return a subset of the given %BDD
+  with the shortest path lengths.
 
-  Synopsis    [The outermost procedure to return a subset of the given BDD
-  with the shortest path lengths.]
+  @details The path lengths are calculated, the maximum allowable path
+  length is determined and the number of nodes of this path length
+  that can be used to build a subset. If the threshold is larger than
+  the size of the original %BDD, the original %BDD is returned.
 
-  Description [The outermost procedure to return a subset of the given
-  BDD with the largest cubes. The path lengths are calculated, the maximum
-  allowable path length is determined and the number of nodes of this
-  path length that can be used to build a subset. If the threshold is
-  larger than the size of the original BDD, the original BDD is
-  returned. ]
+  @sideeffect None
 
-  SideEffects [None]
+  @see Cudd_SubsetShortPaths
 
-  SeeAlso     [Cudd_SubsetShortPaths]
-
-******************************************************************************/
+*/
 DdNode *
 cuddSubsetShortPaths(
-  DdManager * dd /* DD manager */,
-  DdNode * f /* function to be subset */,
-  int  numVars /* total number of variables in consideration */,
-  int  threshold /* maximum number of nodes allowed in the subset */,
-  int  hardlimit /* flag determining whether threshold should be respected strictly */)
+  DdManager * dd /**< %DD manager */,
+  DdNode * f /**< function to be subset */,
+  int  numVars /**< total number of variables in consideration */,
+  int  threshold /**< maximum number of nodes allowed in the subset */,
+  int  hardlimit /**< flag determining whether threshold should be respected strictly */)
 {
     GlobalInfo_t gInfo;
     st_table *pathTable;
@@ -337,7 +309,7 @@ cuddSubsetShortPaths(
 	dd->errorCode = CUDD_INVALID_ARG;
 	return(NULL);
     }
-    if (Cudd_IsConstant(f))
+    if (Cudd_IsConstantInt(f))
 	return (f);
 
     pathLengthArray = ALLOC(unsigned int, numVars+1);
@@ -388,7 +360,7 @@ cuddSubsetShortPaths(
 #endif
 
 	N = Cudd_Regular(f);
-	if (!st_lookup(pathTable, N, &nodeStat)) {
+	if (!st_lookup(pathTable, N, (void **) &nodeStat)) {
 	    fprintf(dd->err, "Something wrong, root node must be in table\n");
 	    dd->errorCode = CUDD_INTERNAL_ERROR;
 	    FREE(excess);
@@ -441,7 +413,7 @@ cuddSubsetShortPaths(
 	    st_free_table(subsetNodeTable);
 	}
 	st_free_table(info->maxpathTable);
-	st_foreach(pathTable, stPathTableDdFree, (char *)dd);
+	st_foreach(pathTable, stPathTableDdFree, (void *)dd);
 
 	FREE(info);
 
@@ -481,26 +453,21 @@ cuddSubsetShortPaths(
 /*---------------------------------------------------------------------------*/
 
 
-/**Function********************************************************************
+/**
+  @brief Resize the number of pages allocated to store the distances
+  related to each node.
 
-  Synopsis    [Resize the number of pages allocated to store the distances
-  related to each node.]
+  @details The procedure moves the counter to the next page when the
+  end of the page is reached and allocates new pages when necessary.
 
-  Description [Resize the number of pages allocated to store the distances
-  related to each node. The procedure  moves the counter to the
-  next page when the end of the page is reached and allocates new
-  pages when necessary. ]
+  @sideeffect Changes the size of  pages, page, page index, maximum
+  number of pages freeing stuff in case of memory out. 
 
-  SideEffects [Changes the size of  pages, page, page index, maximum
-  number of pages freeing stuff in case of memory out. ]
-
-  SeeAlso     []
-
-******************************************************************************/
+*/
 static void
 ResizeNodeDistPages(
-  DdManager *dd /* DD manager */,
-  GlobalInfo_t *gInfo /* global information */)
+  DdManager *dd /**< %DD manager */,
+  GlobalInfo_t *gInfo /**< global information */)
 {
     int i;
     NodeDist_t **newNodeDistPages;
@@ -545,26 +512,21 @@ ResizeNodeDistPages(
 } /* end of ResizeNodeDistPages */
 
 
-/**Function********************************************************************
+/**
+  @brief Resize the number of pages allocated to store nodes in the BFS
+  traversal of the %BDD.
 
-  Synopsis    [Resize the number of pages allocated to store nodes in the BFS
-  traversal of the Bdd  .]
+  @details The procedure moves the counter to the next page when the
+  end of the page is reached and allocates new pages when necessary.
 
-  Description [Resize the number of pages allocated to store nodes in the BFS
-  traversal of the Bdd. The procedure  moves the counter to the
-  next page when the end of the page is reached and allocates new
-  pages when necessary.]
+  @sideeffect Changes the size of pages, page, page index, maximum
+  number of pages freeing stuff in case of memory out. 
 
-  SideEffects [Changes the size of pages, page, page index, maximum
-  number of pages freeing stuff in case of memory out. ]
-
-  SeeAlso     []
-
-******************************************************************************/
+*/
 static void
 ResizeQueuePages(
-  DdManager *dd /* DD manager */,
-  GlobalInfo_t *gInfo /* global information */)
+  DdManager *dd /**< %DD manager */,
+  GlobalInfo_t *gInfo /**< global information */)
 {
     int i;
     DdNode ***newQueuePages;
@@ -607,36 +569,33 @@ ResizeQueuePages(
 } /* end of ResizeQueuePages */
 
 
-/**Function********************************************************************
+/**
+  @brief Labels each node with its shortest distance from the root.
 
-  Synopsis    [ Labels each node with its shortest distance from the root]
+  @details This is done in a BFS search of the %BDD. The nodes are
+  processed in a queue implemented as pages(array) to reduce memory
+  fragmentation.  An entry is created for each node visited. The
+  distance from the root to the node with the corresponding parity is
+  updated. The procedure is called recursively each recusion level
+  handling nodes at a given level from the root.
 
-  Description [ Labels each node with its shortest distance from the root.
-  This is done in a BFS search of the BDD. The nodes are processed
-  in a queue implemented as pages(array) to reduce memory fragmentation.
-  An entry is created for each node visited. The distance from the root
-  to the node with the corresponding  parity is updated. The procedure
-  is called recursively each recusion level handling nodes at a given
-  level from the root.]
+  @sideeffect Creates entries in the pathTable
 
+  @see CreatePathTable CreateBotDist
 
-  SideEffects [Creates entries in the pathTable]
-
-  SeeAlso     [CreatePathTable CreateBotDist]
-
-******************************************************************************/
+*/
 static void
 CreateTopDist(
-  DdManager *dd /* DD manager */,
-  GlobalInfo_t *gInfo /* global information */,
-  st_table * pathTable /* hast table to store path lengths */,
-  int  parentPage /* the pointer to the page on which the first parent in the queue is to be found. */,
-  int  parentQueueIndex /* pointer to the first parent on the page */,
-  int  topLen /* current distance from the root */,
-  DdNode ** childPage /* pointer to the page on which the first child is to be added. */,
-  int  childQueueIndex /* pointer to the first child */,
-  int  numParents /* number of parents to process in this recursive call */,
-  FILE *fp /* where to write messages */)
+  DdManager *dd /**< %DD manager */,
+  GlobalInfo_t *gInfo /**< global information */,
+  st_table * pathTable /**< hash table to store path lengths */,
+  int  parentPage /**< the pointer to the page on which the first parent in the queue is to be found. */,
+  int  parentQueueIndex /**< pointer to the first parent on the page */,
+  int  topLen /**< current distance from the root */,
+  DdNode ** childPage /**< pointer to the page on which the first child is to be added. */,
+  int  childQueueIndex /**< pointer to the first child */,
+  int  numParents /**< number of parents to process in this recursive call */,
+  FILE *fp /**< where to write messages */)
 {
     NodeDist_t *nodeStat;
     DdNode *N, *Nv, *Nnv, *node, *child, *regChild;
@@ -691,11 +650,11 @@ CreateTopDist(
 
 	    regChild = Cudd_Regular(child);
 	    /* dont process if the child is a constant */
-	    if (!Cudd_IsConstant(child)) {
+	    if (!Cudd_IsConstantInt(child)) {
 		/* check is already visited, if not add a new entry in
 		 * the path Table
 		 */
-		if (!st_lookup(pathTable, regChild, &nodeStat)) {
+                if (!st_lookup(pathTable, regChild, (void **) &nodeStat)) {
 		    /* if not in table, has never been visited */
 		    /* create entry for table */
 		    if (gInfo->nodeDistPageIndex == gInfo->nodeDistPageSize)
@@ -809,25 +768,23 @@ CreateTopDist(
 } /* end of CreateTopDist */
 
 
-/**Function********************************************************************
+/**
+  @brief Labels each node with the shortest distance from the constant.
 
-  Synopsis    [ Labels each node with the shortest distance from the constant.]
+  @details This is done in a DFS search of the %BDD. Each node has an
+  odd and even parity distance from the sink (since there exists paths
+  to both zero and one) which is less than MAXSHORTINT. At each node
+  these distances are updated using the minimum distance of its
+  children from the constant.  SInce now both the length from the root
+  and child is known, the minimum path length(length of the shortest
+  path between the root and the constant that this node lies on) of
+  this node can be calculated and used to update the pathLengthArray.
 
-  Description [Labels each node with the shortest distance from the constant.
-  This is done in a DFS search of the BDD. Each node has an odd
-  and even parity distance from the sink (since there exists paths to both
-  zero and one) which is less than MAXSHORTINT. At each node these distances
-  are updated using the minimum distance of its children from the constant.
-  SInce now both the length from the root and child is known, the minimum path
-  length(length of the shortest path between the root and the constant that
-  this node lies on) of this node can be calculated and used to update the
-  pathLengthArray]
+  @sideeffect Updates Path Table and path length array
 
-  SideEffects [Updates Path Table and path length array]
+  @see CreatePathTable CreateTopDist AssessPathLength
 
-  SeeAlso     [CreatePathTable CreateTopDist AssessPathLength]
-
-******************************************************************************/
+*/
 static int
 CreateBotDist(
   DdNode * node /* current node */,
@@ -843,13 +800,13 @@ CreateBotDist(
     DdHalfWord botDist;
     int processingDone;
 
-    if (Cudd_IsConstant(node))
+    if (Cudd_IsConstantInt(node))
 	return(1);
     N = Cudd_Regular(node);
     /* each node has one table entry */
     /* update as you go down the min dist of each node from
        the root in each (odd and even) parity */
-    if (!st_lookup(pathTable, N, &nodeStat)) {
+    if (!st_lookup(pathTable, N, (void **) &nodeStat)) {
 	fprintf(fp, "Something wrong, the entry doesn't exist\n");
 	return(0);
     }
@@ -885,7 +842,7 @@ CreateBotDist(
 
 	realChild = Cudd_NotCond(child, Cudd_IsComplement(node));
 	regChild = Cudd_Regular(child);
-	if (Cudd_IsConstant(realChild)) {
+	if (Cudd_IsConstantInt(realChild)) {
 	    /* Found a minterm; count parity and shortest distance
 	    ** from the constant.
 	    */
@@ -895,7 +852,7 @@ CreateBotDist(
 		nodeStat->evenBotDist = 1;
 	} else {
 	    /* If node not in table, recur. */
-	    if (!st_lookup(pathTable, regChild, &nodeStatChild)) {
+            if (!st_lookup(pathTable, regChild, (void **) &nodeStatChild)) {
 		fprintf(fp, "Something wrong, node in table should have been created in top dist proc.\n");
 		return(0);
 	    }
@@ -993,33 +950,30 @@ CreateBotDist(
 } /*end of CreateBotDist */
 
 
-/**Function********************************************************************
+/**
+  @brief The outer procedure to label each node with its shortest
+  distance from the root and constant
 
-  Synopsis    [ The outer procedure to label each node with its shortest
-  distance from the root and constant]
+  @details Calls CreateTopDist and CreateBotDist.  The basis for
+  computing the distance between root and constant is that the
+  distance may be the sum of even distances from the node to the root
+  and constant or the sum of odd distances from the node to the root
+  and constant.  Both CreateTopDist and CreateBotDist create the odd
+  and even parity distances from the root and constant respectively.
 
-  Description [ The outer procedure to label each node with its shortest
-  distance from the root and constant. Calls CreateTopDist and CreateBotDist.
-  The basis for computing the distance between root and constant is that
-  the distance may be the sum of even distances from the node to the root
-  and constant or the sum of odd distances from the node to the root and
-  constant.  Both CreateTopDist and CreateBotDist create the odd and
-  even parity distances from the root and constant respectively.]
+  @sideeffect None
 
-  SideEffects [None]
+  @see CreateTopDist CreateBotDist
 
-  SeeAlso     [CreateTopDist CreateBotDist]
-
-******************************************************************************/
+*/
 static st_table *
 CreatePathTable(
-  DdManager *dd /* DD manager */,
-  GlobalInfo_t *gInfo /* global information */,
-  DdNode * node /* root of function */,
-  unsigned int * pathLengthArray /* array of path lengths to store nodes labeled with the various path lengths */,
-  FILE *fp /* where to write messages */)
+  DdManager *dd /**< %DD manager */,
+  GlobalInfo_t *gInfo /**< global information */,
+  DdNode * node /**< root of function */,
+  unsigned int * pathLengthArray /**< array of path lengths to store nodes labeled with the various path lengths */,
+  FILE *fp /**< where to write messages */)
 {
-
     st_table *pathTable;
     NodeDist_t *nodeStat;
     DdHalfWord topLen;
@@ -1030,15 +984,16 @@ CreatePathTable(
     int parentPage;
     int childQueueIndex, parentQueueIndex;
 
-    /* Creating path Table for storing data about nodes */
+    /* Creating path table for storing data about nodes */
     pathTable = st_init_table(st_ptrcmp,st_ptrhash);
 
-    /* initializing pages for info about each node */
+    /* Initializing pages for info about each node */
     gInfo->maxNodeDistPages = INITIAL_PAGES;
     gInfo->nodeDistPages = ALLOC(NodeDist_t *, gInfo->maxNodeDistPages);
     if (gInfo->nodeDistPages == NULL) {
 	goto OUT_OF_MEM;
     }
+    assert(gInfo->nodeDistPageSize > 0);
     gInfo->nodeDistPage = 0;
     gInfo->currentNodeDistPage = gInfo->nodeDistPages[gInfo->nodeDistPage] =
 	ALLOC(NodeDist_t, gInfo->nodeDistPageSize);
@@ -1055,6 +1010,7 @@ CreatePathTable(
     if (gInfo->queuePages == NULL) {
 	goto OUT_OF_MEM;
     }
+    assert(gInfo->queuePageSize > 0);
     gInfo->queuePage = 0;
     gInfo->currentQueuePage  = gInfo->queuePages[gInfo->queuePage] =
         ALLOC(DdNode *, gInfo->queuePageSize);
@@ -1076,10 +1032,14 @@ CreatePathTable(
 
     N = Cudd_Regular(node);
 
-    if (gInfo->nodeDistPageIndex == gInfo->nodeDistPageSize) ResizeNodeDistPages(dd, gInfo);
+    if (gInfo->nodeDistPageIndex == gInfo->nodeDistPageSize)
+        ResizeNodeDistPages(dd, gInfo);
     if (dd->errorCode == CUDD_MEMORY_OUT) {
-	for (i = 0; i <= gInfo->nodeDistPage; i++) FREE(gInfo->nodeDistPages[i]);
-	FREE(gInfo->nodeDistPages);
+        if (gInfo->nodeDistPages != NULL) {
+            for (i = 0; i <= gInfo->nodeDistPage; i++)
+                FREE(gInfo->nodeDistPages[i]);
+            FREE(gInfo->nodeDistPages);
+        }
 	for (i = 0; i <= gInfo->queuePage; i++) FREE(gInfo->queuePages[i]);
 	FREE(gInfo->queuePages);
 	st_free_table(pathTable);
@@ -1150,22 +1110,18 @@ OUT_OF_MEM:
 } /*end of CreatePathTable */
 
 
-/**Function********************************************************************
+/**
+  @brief Chooses the maximum allowable path length of nodes under the
+  threshold.
 
-  Synopsis    [Chooses the maximum allowable path length of nodes under the
-  threshold.]
+  @details The corner cases are when the threshold is larger than the
+  number of nodes in the %BDD iself, in which case 'numVars + 1' is
+  returned.  If all nodes of a particular path length are needed, then
+  the maxpath returned is the next one with excess nodes = 0.
 
-  Description [Chooses the maximum allowable path length under each node.
-  The corner cases are when the threshold is larger than the number
-  of nodes in the BDD iself, in which case 'numVars + 1' is returned.
-  If all nodes of a particular path length are needed, then the
-  maxpath returned is the next one with excess nodes = 0;]
+  @sideeffect None
 
-  SideEffects [None]
-
-  SeeAlso     []
-
-******************************************************************************/
+*/
 static unsigned int
 AssessPathLength(
   unsigned int * pathLengthArray /* array determining number of nodes belonging to the different path lengths */,
@@ -1208,11 +1164,11 @@ AssessPathLength(
 } /* end of AssessPathLength */
 
 
-/**Function********************************************************************
+/**
+  @brief Builds the %BDD with nodes labeled with path length less than
+  or equal to maxpath.
 
-  Synopsis    [Builds the BDD with nodes labeled with path length less than or equal to maxpath]
-
-  Description [Builds the BDD with nodes labeled with path length
+  @details Builds the %BDD with nodes labeled with path length
   under maxpath and as many nodes labeled maxpath as determined by the
   threshold. The procedure uses the path table to determine which nodes
   in the original bdd need to be retained. This procedure picks a
@@ -1243,44 +1199,43 @@ AssessPathLength(
   The subsetNodeTable is NIL when there is no hard limit on the number
   of nodes. Further efforts towards keeping the subset closer to the
   threshold number were abandoned in favour of keeping the procedure
-  simple and fast.]
+  simple and fast.
 
-  SideEffects [SubsetNodeTable is changed if it is not NIL.]
+  @sideeffect SubsetNodeTable is changed if it is not NIL.
 
-  SeeAlso     []
-
-******************************************************************************/
+*/
 static DdNode *
 BuildSubsetBdd(
-  DdManager * dd /* DD manager */,
-  GlobalInfo_t *gInfo /* global information */,
-  st_table * pathTable /* path table with path lengths and computed results */,
-  DdNode * node /* current node */,
-  struct AssortedInfo * info /* assorted information structure */,
-  st_table * subsetNodeTable /* table storing computed results */)
+  DdManager * dd /**< %DD manager */,
+  GlobalInfo_t *gInfo /**< global information */,
+  st_table * pathTable /**< path table with path lengths and computed results */,
+  DdNode * node /**< current node */,
+  struct AssortedInfo * info /**< assorted information structure */,
+  st_table * subsetNodeTable /**< table storing computed results */)
 {
     DdNode *N, *Nv, *Nnv;
     DdNode *ThenBranch, *ElseBranch, *childBranch;
-    DdNode *child, *regChild, *regNnv, *regNv;
+    DdNode *child = NULL, *regChild = NULL, *regNnv = NULL, *regNv = NULL;
     NodeDist_t *nodeStatNv, *nodeStat, *nodeStatNnv;
     DdNode *neW, *topv, *regNew;
     char *entry;
-    unsigned int topid;
-    unsigned int childPathLength, oddLen, evenLen, NnvPathLength, NvPathLength;
+    int topid;
+    unsigned int childPathLength, oddLen, evenLen;
+    unsigned int NnvPathLength = 0, NvPathLength = 0;
     unsigned int NvBotDist, NnvBotDist;
     int tiebreakChild;
-    int  processingDone, thenDone, elseDone;
+    int  processingDone, thenDone;
 
     DdNode *zero = Cudd_Not(DD_ONE(dd));
 #ifdef DD_DEBUG
     gInfo->numCalls++;
 #endif
-    if (Cudd_IsConstant(node))
+    if (Cudd_IsConstantInt(node))
 	return(node);
 
     N = Cudd_Regular(node);
     /* Find node in table. */
-    if (!st_lookup(pathTable, N, &nodeStat)) {
+    if (!st_lookup(pathTable, N, (void **) &nodeStat)) {
 	(void) fprintf(dd->err, "Something wrong, node must be in table \n");
 	dd->errorCode = CUDD_INTERNAL_ERROR;
 	return(NULL);
@@ -1327,10 +1282,9 @@ BuildSubsetBdd(
     thenDone = 0;
     ThenBranch = NULL;
     /* else child not processed */
-    elseDone = 0;
     ElseBranch = NULL;
     /* if then child constant, branch is the child */
-    if (Cudd_IsConstant(Nv)) {
+    if (Cudd_IsConstantInt(Nv)) {
 	/*shortest path found */
 	if ((Nv == DD_ONE(dd)) && (info->findShortestPath)) {
 	    info->findShortestPath = 0;
@@ -1349,7 +1303,7 @@ BuildSubsetBdd(
 	/* Derive regular child for table lookup. */
 	regNv = Cudd_Regular(Nv);
 	/* Get node data for shortest path length. */
-	if (!st_lookup(pathTable, regNv, &nodeStatNv) ) {
+	if (!st_lookup(pathTable, regNv, (void **) &nodeStatNv) ) {
 	    (void) fprintf(dd->err, "Something wrong, node must be in table\n");
 	    dd->errorCode = CUDD_INTERNAL_ERROR;
 	    return(NULL);
@@ -1374,7 +1328,7 @@ BuildSubsetBdd(
 						   nodeStatNv->evenBotDist;
     }
     /* if else child constant, branch is the child */
-    if (Cudd_IsConstant(Nnv)) {
+    if (Cudd_IsConstantInt(Nnv)) {
 	/*shortest path found */
 	if ((Nnv == DD_ONE(dd)) && (info->findShortestPath)) {
 	    info->findShortestPath = 0;
@@ -1386,14 +1340,13 @@ BuildSubsetBdd(
 	    return(NULL);
 	}
 
-	elseDone++;
 	processingDone++;
 	NnvBotDist = MAXSHORTINT;
     } else {
 	/* Derive regular child for table lookup. */
 	regNnv = Cudd_Regular(Nnv);
 	/* Get node data for shortest path length. */
-	if (!st_lookup(pathTable, regNnv, &nodeStatNnv) ) {
+	if (!st_lookup(pathTable, regNnv, (void **) &nodeStatNnv) ) {
 	    (void) fprintf(dd->err, "Something wrong, node must be in table\n");
 	    dd->errorCode = CUDD_INTERNAL_ERROR;
 	    return(NULL);
@@ -1435,7 +1388,6 @@ BuildSubsetBdd(
 	    } else {
 		child = Nnv;
 		regChild = regNnv;
-		elseDone = 1;
 		childPathLength = NnvPathLength;
 	    } /* then path length less than else path length */
 	} else {
@@ -1443,7 +1395,6 @@ BuildSubsetBdd(
 	    if (thenDone) {
 		child = Nnv;
 		regChild = regNnv;
-		elseDone = 1;
 		childPathLength = NnvPathLength;
 	    } else {
 		child = Nv;
@@ -1470,7 +1421,7 @@ BuildSubsetBdd(
 	    } else { /* Case: path length of node = maxpath */
 		/* If the node labeled with maxpath is found in the
 		** maxpathTable, use it to build the subset BDD.  */
-		if (st_lookup(info->maxpathTable, regChild, &entry)) {
+		if (st_lookup(info->maxpathTable, regChild, (void **) &entry)) {
 		    /* When a node that is already been chosen is hit,
 		    ** the quest for a complete path is over.  */
 		    if (info->findShortestPath) {
@@ -1558,31 +1509,32 @@ BuildSubsetBdd(
     Cudd_RecursiveDeref(dd, ElseBranch);
 
 
-    /* Hard Limit of threshold has been imposed */
-    if (subsetNodeTable != NIL(st_table)) {
-	/* check if a new node is created */
-	regNew = Cudd_Regular(neW);
-	/* subset node table keeps all new nodes that have been created to keep
-	 * a running count of how many nodes have been built in the subset.
-	 */
-	if (!st_lookup(subsetNodeTable, regNew, &entry)) {
-	    if (!Cudd_IsConstant(regNew)) {
-		if (st_insert(subsetNodeTable, regNew,
-			      NULL) == ST_OUT_OF_MEM) {
-		    (void) fprintf(dd->err, "Out of memory\n");
-		    return (NULL);
-		}
-		if (st_count(subsetNodeTable) > info->threshold) {
-		    info->thresholdReached = 0;
-		}
-	    }
-	}
-    }
-
-
     if (neW == NULL) {
 	return(NULL);
     } else {
+
+        /* Hard Limit of threshold has been imposed */
+        if (subsetNodeTable != NIL(st_table)) {
+            /* check if a new node is created */
+            regNew = Cudd_Regular(neW);
+            /* subset node table keeps all new nodes that have been created to
+             * keep a running count of how many nodes have been built in the
+             * subset.
+             */
+            if (!st_lookup(subsetNodeTable, regNew, (void **) &entry)) {
+                if (!Cudd_IsConstantInt(regNew)) {
+                    if (st_insert(subsetNodeTable, regNew,
+                                  NULL) == ST_OUT_OF_MEM) {
+                        (void) fprintf(dd->err, "Out of memory\n");
+                        return (NULL);
+                    }
+                    if (st_count(subsetNodeTable) > info->threshold) {
+                        info->thresholdReached = 0;
+                    }
+                }
+            }
+        }
+
 	/*store computed result in regular form*/
 	if (Cudd_IsComplement(node)) {
 	    nodeStat->compResult = neW;
@@ -1627,28 +1579,22 @@ BuildSubsetBdd(
 } /* end of BuildSubsetBdd */
 
 
-/**Function********************************************************************
+/**
+  @brief Procedure to free the result dds stored in the NodeDist pages.
 
-  Synopsis     [Procedure to free te result dds stored in the NodeDist pages.]
+  @sideeffect None
 
-  Description [None]
-
-  SideEffects [None]
-
-  SeeAlso     []
-
-******************************************************************************/
+*/
 static enum st_retval
 stPathTableDdFree(
-  char * key,
-  char * value,
-  char * arg)
+  void * key,
+  void * value,
+  void * arg)
 {
-    NodeDist_t *nodeStat;
-    DdManager *dd;
+    NodeDist_t *nodeStat = (NodeDist_t *) value;
+    DdManager *dd = (DdManager *) arg;
 
-    nodeStat = (NodeDist_t *)value;
-    dd = (DdManager *)arg;
+    (void) key; /* avoid warning */
     if (nodeStat->regResult != NULL) {
 	Cudd_RecursiveDeref(dd, nodeStat->regResult);
     }

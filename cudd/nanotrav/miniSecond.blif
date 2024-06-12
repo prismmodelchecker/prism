@@ -1,0 +1,8 @@
+.model second
+.inputs a b c
+.outputs B
+.names a b c B
+000 1
+-11 1
+101 1
+.end

@@ -2,7 +2,8 @@
 //	
 //	Copyright (c) 2019-
 //	Authors:
-//	* Dave Parker <d.a.parker@cs.bham.ac.uk> (University of Birmingham)
+//	* Dave Parker <david.parker@cs.ox.ac.uk> (University of Oxford)
+// 	* Ludwig Pauly <ludwigpauly@gmail.com> (TU Dresden)
 //	
 //------------------------------------------------------------------------------
 //	
@@ -26,43 +27,72 @@
 
 package prism;
 
+import static csv.BasicReader.LF;
+
 import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
-import java.util.Collections;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.function.BiConsumer;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
+import common.iterable.Reducible;
+import csv.BasicReader;
+import csv.CsvFormatException;
+import csv.CsvReader;
+import parser.ParseException;
+import parser.PrismParser;
 import parser.State;
 
-public class ExplicitFilesRewardGenerator extends PrismComponent implements RewardGenerator
+/**
+ * This abstract class implements the import and storage of state reward structures.
+ *
+ * It is possible to import the state rewards structure with a header.
+ * Header format with optional reward struct name:
+ * <pre>
+ *   # Reward structure &lt;double-quoted-name&gt;
+ *   # State rewards
+ * </pre>
+ * where &lt;double-quoted-name&gt; ("<name>") is omitted if the reward structure is not named.<br />
+ * We do not enforce the correct format right now.
+ */
+public abstract class ExplicitFilesRewardGenerator extends PrismComponent implements RewardGenerator<Double>
 {
 	// File(s) to read in rewards from
-	private File stateRewardsFile;
+	protected List<RewardFile> stateRewardsFiles = new ArrayList<>();
 	// Model info
-	private int numStates;
+	protected int numStates;
 	// State list (optionally)
-	private List<State> statesList = null;
-	// Local storage of rewards
-	private boolean stateRewardsLoaded = false; 
-	private double[] stateRewards;
-	
-	/**
-	 * Constructor
-	 */
-	public ExplicitFilesRewardGenerator(PrismComponent parent)
-	{
-		super(parent);
-	}
+	protected List<State> statesList = null;
+
+	// Regex for comments
+	protected static final Pattern COMMENT_PATTERN = Pattern.compile("#.*");
+	// Regex for reward name
+	protected static final Pattern REWARD_NAME_PATTERN = Pattern.compile("# Reward structure (\"([a-zA-Z0-9]*)\")$");
 
 	/**
 	 * Constructor
+	 *
+	 * @throws PrismException       if an I/O error occurs or the name is not a unique identifier
+	 * @throws NullPointerException if a file is null
 	 */
-	public ExplicitFilesRewardGenerator(PrismComponent parent, File stateRewardsFile, int numStates) throws PrismException
+	public ExplicitFilesRewardGenerator(PrismComponent parent, List<File> stateRewardsFiles, int numStates) throws PrismException
 	{
-		this(parent);
-		this.stateRewardsFile = stateRewardsFile;
+		super(parent);
+		if (numStates < 1) {
+			throw new PrismException("Expected number of states > 0");
+		}
 		this.numStates = numStates;
+		this.stateRewardsFiles = new ArrayList<>(stateRewardsFiles.size());
+		for (File file : stateRewardsFiles) {
+			this.stateRewardsFiles.add(new RewardFile(file));
+		}
 	}
 
 	/**
@@ -73,72 +103,49 @@ public class ExplicitFilesRewardGenerator extends PrismComponent implements Rewa
 	{
 		this.statesList = statesList;
 	}
-	
+
+	protected abstract void storeReward(int rewardStructIndex, int i, double d);
+
 	/**
-	 * Extract the state rewards from the file and store locally.
+	 * Extract the state rewards for a given reward structure index.
+	 *
+	 * @throws PrismException if an error occurs during reward extraction
 	 */
-	private void extractStateRewards() throws PrismException
+	protected void extractStateRewards(int rewardIndex) throws PrismException
 	{
-		int lineNum = -1;
-		stateRewards = new double[numStates];
-		// open file for reading, automatic close when done
-		try (BufferedReader in = new BufferedReader(new FileReader(stateRewardsFile))) {
-			// skip first line
-			in.readLine();
-			lineNum = 1;
-			// read remaining lines
-			String s = in.readLine();
-			lineNum++;
-			while (s != null) {
-				// skip blank lines
-				s = s.trim();
-				if (s.length() > 0) {
-					// split into two parts
-					String[] ss = s.split(" ");
-					// determine which state this line describes
-					int i = Integer.parseInt(ss[0]);
-					if (i < 0 || i >= numStates) {
-						throw new PrismException("Invalid state index " + i);
-					}
-					// determine which state this line describes
-					double d = Double.parseDouble(ss[1]);
-					// store
-					stateRewards[i] = d;
-				}
-				// read next line
-				s = in.readLine();
-				lineNum++;
-			}
-		} catch (IOException e) {
-			throw new PrismException("File I/O error reading from \"" + stateRewardsFile + "\"");
-		} catch (NumberFormatException e) {
-			throw new PrismException("Error detected " + e.getMessage() + "at line " + lineNum + " of states file \"" + stateRewardsFile + "\"");
-		}
+		RewardFile file = stateRewardsFiles.get(rewardIndex);
+		file.extractRewards((Integer state, Double reward) -> storeReward(rewardIndex, state, reward), numStates);
 	}
-	
+
+
 	// Methods to implement RewardGenerator
-	
+
 	@Override
 	public List<String> getRewardStructNames()
 	{
-		// Absence of a file implies no rewards
-		return stateRewardsFile == null ? Collections.emptyList() : Collections.singletonList("");
+		return Reducible.extend(stateRewardsFiles).map(f -> f.getName().orElse("")).collect(new ArrayList<>(stateRewardsFiles.size()));
 	}
-	
+
+	@Override
+	public int getNumRewardStructs()
+	{
+		return stateRewardsFiles.size();
+	}
+
 	@Override
 	public boolean rewardStructHasTransitionRewards(int r)
 	{
 		return false;
 	}
-	
+
 	@Override
 	public boolean isRewardLookupSupported(RewardLookup lookup)
 	{
 		return (lookup == RewardLookup.BY_STATE_INDEX) || (lookup == RewardLookup.BY_STATE && statesList != null);
 	}
-	
+
 	@Override
-	public double getStateReward(int r, State state) throws PrismException
+	public Double getStateReward(int r, State state) throws PrismException
 	{
 		if (statesList == null) {
 			throw new PrismException("Reward lookup by State not possible since state list is missing");
@@ -149,16 +156,154 @@ public class ExplicitFilesRewardGenerator extends PrismComponent implements Rewa
 		}
 		return getStateReward(r, s);
 	}
-	
-	@Override
-	public double getStateReward(int r, int s) throws PrismException
+
+
+	public static class RewardFile
 	{
-		if (r != 0) {
-			throw new PrismException("Only one reward structure has been imported");
+		protected final File file;
+		protected final Optional<String> name;
+
+		public RewardFile(File file) throws PrismException
+		{
+			this.file = Objects.requireNonNull(file);
+			this.name = extractRewardStructureName(file);
 		}
-		if (!stateRewardsLoaded) {
-			extractStateRewards();
+
+		public Optional<String> getName()
+		{
+			return name;
 		}
-		return stateRewards[s];
+
+		/**
+		 * Extract and store state rewards from the file.
+		 *
+		 * @param storeReward function to store a state reward
+		 * @param numStates number of model states
+		 * @throws PrismException if an I/O error occurs or the file is malformatted
+		 */
+		protected void extractRewards(BiConsumer<Integer, Double> storeReward, int numStates) throws PrismException
+		{
+			int lineNum = 0;
+			try (BufferedReader in = new BufferedReader(new FileReader(file))) {
+				lineNum += skipCommentAndFirstLine(in);
+				// init csv reader
+				BasicReader reader = BasicReader.wrap(in).normalizeLineEndings();
+				CsvReader csv = new CsvReader(reader, false, true, false, ' ', LF);
+				// read state rewards
+				for (String[] record : csv) {
+					lineNum++;
+					if ("".equals(record[0])) {
+						break;
+					}
+					int i = Objects.checkIndex(Integer.parseInt(record[0]), numStates);
+					double d = Double.parseDouble(record[1]);
+					storeReward.accept(i, d);
+				}
+			} catch (IOException e) {
+				throw new PrismException("File I/O error reading from \"" + file + "\"");
+			} catch (NumberFormatException | IndexOutOfBoundsException | CsvFormatException e) {
+				throw new PrismException("Error detected " + e.getMessage() + " at line " + lineNum + " of state rewards file \"" + file + "\"");
+			}
+		}
+
+		/**
+		 * Extract the name of the state rewards structure if present.
+		 *
+		 * @param file a state rewards file
+		 * @return name of the state rewards structure if present
+		 * @throws PrismException if an I/O error occurs or the name is not a unique identifier
+		 */
+		protected Optional<String> extractRewardStructureName(File rewardFile) throws PrismException
+		{
+			Optional<String> name = Optional.empty();
+			try (BufferedReader in = new BufferedReader(new FileReader(rewardFile))) {
+				int lineNum = 0;
+				for (String line = in.readLine(); line != null; line = in.readLine()) {
+					lineNum++;
+					// Process only initial comment block
+					if (!COMMENT_PATTERN.matcher(line).matches()) {
+						break;
+					}
+					// Look for reward name in header
+					Matcher headerMatcher = REWARD_NAME_PATTERN.matcher(line);
+					if (headerMatcher.matches()) {
+						if (name.isPresent()) {
+							throw new PrismException("Found second reward structure names" + printFileLocation(rewardFile, lineNum));
+						}
+						// check if reward struct name is an identifier
+						try {
+							name = Optional.of(checkRewardName(headerMatcher.group(2)));
+						} catch (PrismException e) {
+							throw new PrismException(e.getMessage() + printFileLocation(rewardFile, lineNum));
+						}
+					}
+				}
+			} catch (IOException e) {
+				throw new PrismException("File I/O error reading from \"" + file + "\"");
+			}
+			return name;
+		}
+
+		/**
+		 * Skip the next block of lines starting with # and the first line after.
+		 *
+		 * @param in reader
+		 * @return number of lines read
+		 * @throws IOException if an I/O error occurs
+		 */
+		protected int skipCommentAndFirstLine(BufferedReader in) throws IOException
+		{
+			int lineNum = 0;
+			String line;
+			do {
+				line = in.readLine();
+				lineNum++;
+			} while (line != null && COMMENT_PATTERN.matcher(line).matches());
+			return lineNum;
+		}
+
+		protected static String printFileLocation(File rewardFile, int linenum)
+		{
+			return ": line " + linenum + " in " + rewardFile;
+		}
+
+		/**
+		 * Verify that the imported reward struct name is not null and is an identifier.
+		 *
+		 * @param rewardStructName reward struct name to be checked
+		 * @throws PrismException if name is null or no identifier
+		 */
+		protected static String checkRewardName(String rewardStructName) throws PrismException
+		{
+			if (rewardStructName == null)
+				throw new PrismException("Expected identifier but got: null");
+
+			ByteArrayInputStream stream = new ByteArrayInputStream(rewardStructName.getBytes());
+			try {
+				// obtain exclusive access to the prism parser
+				// (don't forget to release it afterwards)
+				Prism.getPrismParser();
+				try {
+					// (Re)start parser
+					PrismParser.ReInit(stream);
+					// Parse
+					boolean success = true;
+					try {
+						success = rewardStructName.equals(PrismParser.Identifier());
+					} catch (ParseException e) {
+						success = false;
+					}
+					if (!success) {
+						throw new PrismLangException("Expected identifier but got: " + rewardStructName);
+					}
+				} finally {
+					// release prism parser
+					Prism.releasePrismParser();
+				}
+			} catch (InterruptedException ie) {
+				throw new PrismLangException("Concurrency error in parser");
+			}
+			return rewardStructName;
+		}
 	}
 }

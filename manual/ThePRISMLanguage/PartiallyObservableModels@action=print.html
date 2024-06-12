@@ -1,0 +1,162 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html>
+<head>
+
+<title>PRISM Manual | ThePRISMLanguage / PartiallyObservableModels </title>
+
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1"/>
+
+<!--HeaderText--><style type='text/css'><!--
+  ul, ol, pre, dl, p { margin-top:0px; margin-bottom:0px; }
+  code.escaped { white-space: pre; }
+  .vspace { margin-top:1.33em; }
+  .indent { margin-left:40px; }
+  .outdent { margin-left:40px; text-indent:-40px; }
+  a.createlinktext { text-decoration:none; border-bottom:1px dotted gray; }
+  a.createlink { text-decoration:none; position:relative; top:-0.5em;
+    font-weight:bold; font-size:smaller; border-bottom:none; }
+  img { border:0px; }
+  .editconflict { color:green; 
+  font-style:italic; margin-top:1.33em; margin-bottom:1.33em; }
+
+  table.markup { border:2px dotted #ccf; width:90%; }
+  td.markup1, td.markup2 { padding-left:10px; padding-right:10px; }
+  table.vert td.markup1 { border-bottom:1px solid #ccf; }
+  table.horiz td.markup1 { width:23em; border-right:1px solid #ccf; }
+  table.markup caption { text-align:left; }
+  div.faq p, div.faq pre { margin-left:2em; }
+  div.faq p.question { margin:1em 0 0.75em 0; font-weight:bold; }
+  div.faqtoc div.faq * { display:none; }
+  div.faqtoc div.faq p.question 
+    { display:block; font-weight:normal; margin:0.5em 0 0.5em 20px; line-height:normal; }
+  div.faqtoc div.faq p.question * { display:inline; }
+  td.markup1 pre { white-space: pre-wrap; }
+  .noPmTOC, .PmTOCdiv:empty {display:none;}
+.PmTOCdiv { display: inline-block; font-size: 13px; overflow: auto; max-height: 500px;}
+.PmTOCdiv a { text-decoration: none; display: block; line-height: 1;}
+.PmTOCdiv a.pmtoc-indent1 { margin-left: 1em; }
+.PmTOCdiv a.pmtoc-indent2 { margin-left: 2em; }
+.PmTOCdiv a.pmtoc-indent3 { margin-left: 3em; }
+.PmTOCdiv a.pmtoc-indent4 { margin-left: 4em; }
+.PmTOCdiv a.pmtoc-indent5 { margin-left: 5em; }
+.PmTOCdiv a.pmtoc-indent6 { margin-left: 6em; }
+.back-arrow {font-size: .8rem; text-decoration: none; vertical-align: text-top;}
+#PmTOCchk + label {cursor: pointer;}
+#PmTOCchk {display: none;}
+#PmTOCchk:not(:checked) + label > .pmtoc-show {display: none;}
+#PmTOCchk:checked + label > .pmtoc-hide {display: none;}
+#PmTOCchk:checked + label + div {display: none;}table.sortable th { cursor: pointer; }
+table.sortable th::after { color: transparent; content: "\00A0\025B8"; }
+table.sortable th:hover::after { color: inherit; content: "\00A0\025B8"; }
+table.sortable th.dir-u::after { color: inherit; content: "\00A0\025BE"; }
+table.sortable th.dir-d::after { color: inherit; content: "\00A0\025B4"; } 
+    .frame 
+      { border:1px solid #cccccc; padding:4px; background-color:#f9f9f9; }
+    .lfloat { float:left; margin-right:0.5em; }
+    .rfloat { float:right; margin-left:0.5em; }
+a.varlink { text-decoration:none;}
+
+.sourceblocklink {
+  text-align: right;
+  font-size: smaller;
+}
+.sourceblocktext {
+  padding: 0.5em;
+  border: 1px solid #808080;
+  color: #000000;
+  background-color: #f1f0ed;
+}
+.sourceblocktext div {
+  font-family: monospace;
+  font-size: small;
+  line-height: 1;
+  height: 1%;
+}
+.sourceblocktext div.head,
+.sourceblocktext div.foot {
+  font: italic medium serif;
+  padding: 0.5em;
+}
+
+--></style>  <meta name='robots' content='noindex,nofollow' />
+
+
+<link type="text/css" rel="stylesheet" href="http://www.prismmodelchecker.org/css/base.css"/>
+<link type="text/css" rel="stylesheet" href="http://www.prismmodelchecker.org/css/prism.css"/>
+<link type="text/css" rel="stylesheet" href="http://www.prismmodelchecker.org/css/print.css" media="print"/>
+<link type="text/css" rel="stylesheet" href="http://www.prismmodelchecker.org/css/bib.css"/>
+
+<link type="text/css" rel="stylesheet" href="http://www.prismmodelchecker.org/manual/pub/skins/prismprint/css/prismmanual.css"/>
+<link type="text/css" rel="stylesheet" href="http://www.prismmodelchecker.org/manual/pub/skins/prismprint/css/prismprint.css"/>
+</head>
+
+<body text="#000000" bgcolor="#ffffcc">
+
+<!--PageTitleFmt-->
+  <p><a class='wikilink' href='Main.html'>The PRISM Language</a> /
+</p><h1>Partially Observable Models</h1>
+
+<!--PageText-->
+<div id='wikitext'>
+<p>PRISM supports analysis of <em>partially observable</em> probabilistic models,
+most notably partially observable Markov decision processes (POMDPs),
+but also partially observable probabilistic timed automata (POPTAs).
+POMDPs are a variant of MDPs in which the strategy/policy
+which resolves nondeterministic choices in the model is unable to
+see the precise state of the model, but instead just <em>observations</em> of it.
+For background material on POMDPs and POPTAs, see for example [<a class='wikilink' href='../Main/References.html#NPZ17'>NPZ17</a>].
+You can also find several example models included in the PRISM distribution.
+Look in the <code>prism-examples/pomdps</code> and <code>prism-examples/poptas</code> directories.
+</p>
+<p class='vspace'>PRISM currently supports state-based observations:
+this means that, upon entering a new POMDP state,
+the observation is determined by that state.
+In the same way that a model state comprises the values or one or more variables,
+an observation comprises one or more <em>observables</em>.
+There are several way to define these observables.
+The simplest is to specify a subset of the model's variables
+that are designated as being observable. The rest are unobservable.
+</p>
+<p class='vspace'>For example, in a POMDP with 3 variables, <code>s</code>, <code>l</code> and <code>h</code>, the following:
+</p>
+<div class='vspace'></div>
+<div class='sourceblock ' id='sourceblock1'>
+  <div class='sourceblocktext'><div class="prism"> <span class="prismkeyword">observables</span> <span class="prismident">s</span>, <span class="prismident">l</span> <span class="prismkeyword">endobservables</span> <br/>
+</div></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/ThePRISMLanguage/PartiallyObservableModels?action=sourceblock&amp;num=1' type='text/plain'>[&#036;[Get Code]]</a></div>
+</div>
+
+<p class='vspace'>specifies that <code>s</code> and <code>l</code> are observable and <code>h</code> is not.
+</p>
+<p class='vspace'>Alternatively, observables can be specified as arbitrary expressions over variables.
+For example, assuming the same variables <code>s</code>, <code>l</code> and <code>h</code>, this specification:
+</p>
+<div class='vspace'></div>
+<div class='sourceblock ' id='sourceblock2'>
+  <div class='sourceblocktext'><div class="prism"><span class="prismkeyword">observable</span> "<span class="prismident">s</span>" = <span class="prismident">s</span>;<br/>
+<span class="prismkeyword">observable</span> "<span class="prismident">pos</span>" = <span class="prismident">l</span>&gt;<span class="prismnum">0</span>;<br/>
+</div></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/ThePRISMLanguage/PartiallyObservableModels?action=sourceblock&amp;num=2' type='text/plain'>[&#036;[Get Code]]</a></div>
+</div>
+
+<p class='vspace'>defines 2 observables. The first is, as above, the variable <code>s</code>.
+The second, named <code>"pos"</code>, determines if variable <code>l</code> is positive.
+Other than this, the values of <code>l</code> and <code>h</code> are unobservable.
+The named observables can then be used in properties
+in the same way that <a class='wikilink' href='FormulasAndLabels.html'>labels</a> can.
+</p>
+<p class='vspace'>The above two styles of definition can also be mixed
+to specify a combined set of observables.
+</p>
+<p class='vspace'>POPTAs (partially observable PTAs) combine the features of both PTAs and POMDPs.
+They are are currently analysed using the digital clocks engine,
+so inherit the <a class='wikilink' href='Real-timeModels.html'>restrictions for that engine</a>.
+Furthermore, for a POPTA, all clock variables must be observable.
+</p>
+</div>
+
+
+</body>
+</html>

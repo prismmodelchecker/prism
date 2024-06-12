@@ -47,10 +47,10 @@ import parser.VarList;
  * An MDPView that takes an existing MDP and
  * adds additional choices to certain states.
  */
-public class MDPAdditionalChoices extends MDPView
+public class MDPAdditionalChoices<Value> extends MDPView<Value>
 {
-	private MDP model;
-	private IntFunction<List<Iterator<Entry<Integer, Double>>>> choices;
+	private MDP<Value> model;
+	private IntFunction<List<Iterator<Entry<Integer, Value>>>> choices;
 	private IntFunction<List<Object>> actions;
 
 	/**
@@ -61,7 +61,7 @@ public class MDPAdditionalChoices extends MDPView
 	 * @param choices
 	 * @param actions
 	 */
-	public MDPAdditionalChoices(final MDP model, final IntFunction<List<Iterator<Entry<Integer, Double>>>> choices,
+	public MDPAdditionalChoices(final MDP<Value> model, final IntFunction<List<Iterator<Entry<Integer, Value>>>> choices,
 			IntFunction<List<Object>> actions)
 	{
 		this.model = model;
@@ -69,7 +69,7 @@ public class MDPAdditionalChoices extends MDPView
 		this.actions = actions;
 	}
 
-	public MDPAdditionalChoices(final MDPAdditionalChoices additional)
+	public MDPAdditionalChoices(final MDPAdditionalChoices<Value> additional)
 	{
 		super(additional);
 		model = additional.model;
@@ -82,9 +82,9 @@ public class MDPAdditionalChoices extends MDPView
 	//--- Cloneable ---
 
 	@Override
-	public MDPView clone()
+	public MDPView<Value> clone()
 	{
-		return new MDPAdditionalChoices(this);
+		return new MDPAdditionalChoices<>(this);
 	}
 
 
@@ -189,7 +189,7 @@ public class MDPAdditionalChoices extends MDPView
 	//--- MDP ---
 
 	@Override
-	public Iterator<Entry<Integer, Double>> getTransitionsIterator(final int state, final int choice)
+	public Iterator<Entry<Integer, Value>> getTransitionsIterator(final int state, final int choice)
 	{
 		final int numOriginalChoices = model.getNumChoices(state);
 		if (choice < numOriginalChoices) {
@@ -211,8 +211,8 @@ public class MDPAdditionalChoices extends MDPView
 	{
 		assert !fixedDeadlocks : "deadlocks already fixed";
 
-		model = fixDeadlocks((MDP) this.clone());
-		choices = (int element) -> {return (List<Iterator<Entry<Integer, Double>>>)null;};
+		model = fixDeadlocks((MDP<Value>) this.clone());
+		choices = (int element) -> {return (List<Iterator<Entry<Integer, Value>>>)null;};
 		actions = null;
 	}
 
@@ -222,7 +222,7 @@ public class MDPAdditionalChoices extends MDPView
 
 	private int getNumAdditionalChoices(final int state)
 	{
-		final List<Iterator<Entry<Integer, Double>>> additional = choices.apply(state);
+		final List<Iterator<Entry<Integer, Value>>> additional = choices.apply(state);
 		return (additional == null) ? 0 : additional.size();
 	}
 
@@ -230,35 +230,35 @@ public class MDPAdditionalChoices extends MDPView
 
 	//--- static methods ---
 
-	public static MDPView fixDeadlocks(final MDP model)
+	public static <Value> MDPView<Value> fixDeadlocks(final MDP<Value> model)
 	{
 		final BitSet deadlockStates = new BitSet();
 		model.getDeadlockStates().forEach(deadlockStates::set);
-		final MDPView fixed = addSelfLoops(model, deadlockStates);
+		final MDPView<Value> fixed = addSelfLoops(model, deadlockStates);
 		fixed.deadlockStates = deadlockStates;
 		fixed.fixedDeadlocks = true;
 		return fixed;
 	}
 
-	public static MDPView addSelfLoops(final MDP model, final BitSet states)
+	public static <Value> MDPView<Value> addSelfLoops(final MDP<Value> model, final BitSet states)
 	{
 		return addSelfLoops(model, states::get);
 	}
 
-	public static MDPView addSelfLoops(final MDP model, final IntPredicate states)
+	public static <Value> MDPView<Value> addSelfLoops(final MDP<Value> model, final IntPredicate states)
 	{
-		final IntFunction<List<Iterator<Entry<Integer, Double>>>> addSelfLoops = new IntFunction<List<Iterator<Entry<Integer, Double>>>>()
+		final IntFunction<List<Iterator<Entry<Integer, Value>>>> addSelfLoops = new IntFunction<List<Iterator<Entry<Integer, Value>>>>()
 		{
 			@Override
-			public List<Iterator<Entry<Integer, Double>>> apply(final int state)
+			public List<Iterator<Entry<Integer, Value>>> apply(final int state)
 			{
 				if (states.test(state)) {
-					Entry<Integer,Double> transition = new AbstractMap.SimpleImmutableEntry<>(state, 1.0);
+					Entry<Integer,Value> transition = new AbstractMap.SimpleImmutableEntry<>(state, model.getEvaluator().one());
 					return Collections.singletonList(new SingletonIterator.Of<>(transition));
 				}
 				return null;
 			}
 		};
-		return new MDPAdditionalChoices(model, addSelfLoops, null);
+		return new MDPAdditionalChoices<Value>(model, addSelfLoops, null);
 	}
 }

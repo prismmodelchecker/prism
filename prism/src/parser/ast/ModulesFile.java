@@ -29,16 +29,18 @@ package parser.ast;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Vector;
+import java.util.Objects;
 
-import param.BigRational;
+import parser.EvaluateContext;
 import parser.IdentUsage;
 import parser.State;
 import parser.Values;
 import parser.VarList;
 import parser.type.Type;
+import parser.type.TypeInterval;
 import parser.visitor.ASTTraverse;
 import parser.visitor.ASTVisitor;
+import parser.visitor.DeepCopy;
 import parser.visitor.ModulesFileSemanticCheck;
 import parser.visitor.ModulesFileSemanticCheckAfterConstants;
 import prism.ModelInfo;
@@ -61,15 +63,15 @@ public class ModulesFile extends ASTElement implements ModelInfo, RewardGenerato
 	private FormulaList formulaList;
 	private LabelList labelList;
 	private ConstantList constantList;
-	private Vector<Declaration> globals; // Global variables
-	private Vector<Object> modules; // Modules (includes renamed modules)
+	private ArrayList<Declaration> globals; // Global variables
+	private ArrayList<Object> modules; // Modules (includes renamed modules)
 	private ArrayList<SystemDefn> systemDefns; // System definitions (system...endsystem constructs)
 	private ArrayList<String> systemDefnNames; // System definition names (system...endsystem constructs)
 	private ArrayList<RewardStruct> rewardStructs; // Rewards structures
-	private List<String> rewardStructNames; // Names of reward structures
+	private ArrayList<String> rewardStructNames; // Names of reward structures
 	private Expression initStates; // Initial states specification
-	private List<ObservableVars> observableVarLists; // Observable variables lists
-	private List<Observable> observableDefns; // Standalone observable definitions
+	private ArrayList<ObservableVars> observableVarLists; // Observable variables lists
+	private ArrayList<Observable> observableDefns; // Standalone observable definitions
 	
 	// Info about all identifiers used
 	private IdentUsage identUsage;
@@ -77,22 +79,25 @@ public class ModulesFile extends ASTElement implements ModelInfo, RewardGenerato
 	// List of all module names
 	private String[] moduleNames;
 	// List of synchronising actions
-	private Vector<String> synchs;
+	private ArrayList<String> synchs;
 	// Lists of variable info (declaration, name, type, module index)
-	private Vector<Declaration> varDecls;
-	private Vector<String> varNames;
-	private Vector<Type> varTypes;
-	private Vector<Integer> varModules;
+	private ArrayList<Declaration> varDecls;
+	private ArrayList<String> varNames;
+	private ArrayList<Type> varTypes;
+	private ArrayList<Integer> varModules;
 	// Lists of observable info
-	private List<Observable> observables;
-	private List<String> observableNames;
-	private List<Type> observableTypes;
-	private List<String> observableVars;
+	private ArrayList<Observable> observables;
+	private ArrayList<String> observableNames;
+	private ArrayList<Type> observableTypes;
+	private ArrayList<String> observableVars;
 
-	// Values set for undefined constants (null if none)
-	private Values undefinedConstantValues;
+	// Copy of the evaluation context used to defined undefined constants (null if none)
+	private EvaluateContext ecUndefined;
+	
 	// Actual values of (some or all) constants
 	private Values constantValues;
+	// Evaluation context (all constant values + evaluation mode)
+	private EvaluateContext ec;
 
 	// Constructor
 
@@ -102,8 +107,8 @@ public class ModulesFile extends ASTElement implements ModelInfo, RewardGenerato
 		labelList = new LabelList();
 		constantList = new ConstantList();
 		modelTypeInFile = modelType = null; // Unspecified
-		globals = new Vector<Declaration>();
-		modules = new Vector<Object>();
+		globals = new ArrayList<>();
+		modules = new ArrayList<>();
 		systemDefns = new ArrayList<SystemDefn>();
 		systemDefnNames = new ArrayList<String>();
 		rewardStructs = new ArrayList<RewardStruct>();
@@ -113,16 +118,17 @@ public class ModulesFile extends ASTElement implements ModelInfo, RewardGenerato
 		observableDefns = new ArrayList<>();
 		identUsage = new IdentUsage();
 		quotedIdentUsage = new IdentUsage(true);
-		varDecls = new Vector<Declaration>();
-		varNames = new Vector<String>();
-		varTypes = new Vector<Type>();
-		varModules = new Vector<Integer>();
+		varDecls = new ArrayList<>();
+		varNames = new ArrayList<>();
+		varTypes = new ArrayList<>();
+		varModules = new ArrayList<>();
 		observables = new ArrayList<>();
 		observableNames = new ArrayList<>();
 		observableTypes = new ArrayList<>();
 		observableVars = new ArrayList<>();
-		undefinedConstantValues = null;
+		ecUndefined = null;
 		constantValues = null;
+		ec = EvaluateContext.create();
 	}
 
 	// Set methods
@@ -372,7 +378,7 @@ public class ModulesFile extends ASTElement implements ModelInfo, RewardGenerato
 
 	public Declaration getGlobal(int i)
 	{
-		return globals.elementAt(i);
+		return globals.get(i);
 	}
 	
 	public int getNumModules()
@@ -385,7 +391,7 @@ public class ModulesFile extends ASTElement implements ModelInfo, RewardGenerato
 	// these will have been replaced with Modules after tidyUp()
 	public Module getModule(int i)
 	{
-		Object o = modules.elementAt(i);
+		Object o = modules.get(i);
 		return (o instanceof Module) ? (Module) o : null;
 	}
 
@@ -705,7 +711,7 @@ public class ModulesFile extends ASTElement implements ModelInfo, RewardGenerato
 	/**
 	 * Get the list of action names.
 	 */
-	public Vector<String> getSynchs()
+	public List<String> getSynchs()
 	{
 		return synchs;
 	}
@@ -769,12 +775,12 @@ public class ModulesFile extends ASTElement implements ModelInfo, RewardGenerato
 		return varTypes.get(i);
 	}
 
-	public Vector<String> getVarNames()
+	public List<String> getVarNames()
 	{
 		return varNames;
 	}
 
-	public Vector<Type> getVarTypes()
+	public List<Type> getVarTypes()
 	{
 		return varTypes;
 	}
@@ -933,13 +939,13 @@ public class ModulesFile extends ASTElement implements ModelInfo, RewardGenerato
 		checkObservables();
 		
 		// If there are no undefined constants, set up values for constants
-		// (to avoid need for a later call to setUndefinedConstants).
-		// NB: Can't call setUndefinedConstants if there are undefined constants
+		// (to avoid need for a later call to setSomeUndefinedConstants).
+		// NB: Can't call setSomeUndefinedConstants now if there are undefined constants
 		// because semanticCheckAfterConstants may fail. 
 		if (getUndefinedConstants().isEmpty()) {
-			// we use non-exact constant evaluation by default,
+			// NB: we use non-exact constant evaluation by default,
 			// for exact mode constants will be reevaluated later on
-			setUndefinedConstants(null, false);
+			setSomeUndefinedConstants(EvaluateContext.create());
 		}
 	}
 
@@ -968,7 +974,7 @@ public class ModulesFile extends ASTElement implements ModelInfo, RewardGenerato
 		// Go through modules and find ones which are defined by renaming
 		n = modules.size();
 		for (i = 0; i < n; i++) {
-			o = modules.elementAt(i);
+			o = modules.get(i);
 			if (o instanceof Module)
 				continue;
 			module = (RenamedModule) o;
@@ -1046,12 +1052,12 @@ public class ModulesFile extends ASTElement implements ModelInfo, RewardGenerato
 
 	private void getSynchNames() throws PrismLangException
 	{
-		Vector<String> v;
+		List<String> v;
 		String s;
 		int i, j, n, m;
 
-		// create vector to store names
-		synchs = new Vector<String>();
+		// create list to store names
+		synchs = new ArrayList<>();
 
 		// go thru modules and extract names which appear in their commands
 		n = modules.size();
@@ -1059,7 +1065,7 @@ public class ModulesFile extends ASTElement implements ModelInfo, RewardGenerato
 			v = getModule(i).getAllSynchs();
 			m = v.size();
 			for (j = 0; j < m; j++) {
-				s = v.elementAt(j);
+				s = v.get(j);
 				if (!synchs.contains(s)) {
 					synchs.add(s);
 				}
@@ -1180,10 +1186,10 @@ public class ModulesFile extends ASTElement implements ModelInfo, RewardGenerato
 		boolean matrix[][] = new boolean[n][n];
 		for (int i = 0; i < n; i++) {
 			SystemDefn sys = systemDefns.get(i);
-			Vector<String> v = new Vector<String>();
+			List<String> v = new ArrayList<>();
 			sys.getReferences(v);
 			for (int j = 0; j < v.size(); j++) {
-				int k = getSystemDefnIndex(v.elementAt(j));
+				int k = getSystemDefnIndex(v.get(j));
 				if (k != -1) {
 					matrix[i][k] = true;
 				}
@@ -1288,56 +1294,30 @@ public class ModulesFile extends ASTElement implements ModelInfo, RewardGenerato
 	 * Get  a list of constants in the model that are undefined
 	 * ("const int x;" rather than "const int x = 1;") 
 	 */
-	public Vector<String> getUndefinedConstants()
+	public List<String> getUndefinedConstants()
 	{
 		return constantList.getUndefinedConstants();
 	}
 
-	/**
-	 * Set values for *all* undefined constants and then evaluate all constants.
-	 * If there are no undefined constants, {@code someValues} can be null.
-	 * Undefined constants can be subsequently redefined to different values with the same method.
-	 * The current constant values (if set) are available via {@link #getConstantValues()}. 
-	 * Calling this method also triggers some additional semantic checks
-	 * that can only be done once constant values have been specified.
-	 * <br>
-	 * Constant values are evaluated using standard (integer, floating-point) arithmetic.
-	 */
-	public void setUndefinedConstants(Values someValues) throws PrismLangException
+	@Override
+	public void setSomeUndefinedConstants(EvaluateContext ecUndefined) throws PrismLangException
 	{
-		setUndefinedConstants(someValues, false);
-	}
-
-	/**
-	 * Set values for *all* undefined constants and then evaluate all constants.
-	 * If there are no undefined constants, {@code someValues} can be null.
-	 * Undefined constants can be subsequently redefined to different values with the same method.
-	 * The current constant values (if set) are available via {@link #getConstantValues()}. 
-	 * Calling this method also triggers some additional semantic checks
-	 * that can only be done once constant values have been specified.
-	 * <br>
-	 * Constant values are evaluated using either standard (integer, floating-point) arithmetic
-	 * or exact arithmetic, depending on the value of the {@code exact} flag.
-	 */
-	public void setUndefinedConstants(Values someValues, boolean exact) throws PrismLangException
-	{
-		undefinedConstantValues = someValues == null ? null : new Values(someValues);
-		constantValues = constantList.evaluateConstants(someValues, null, exact);
+		this.ecUndefined = ecUndefined == null ? EvaluateContext.create() : EvaluateContext.create(ecUndefined);
+		constantValues = constantList.evaluateSomeConstants(ecUndefined);
+		ec = EvaluateContext.create(constantValues, ecUndefined.getEvaluationMode());
 		doSemanticChecksAfterConstants();
 	}
 
-	@Override
-	public void setSomeUndefinedConstants(Values someValues) throws PrismLangException
+	/**
+	 * Same as {@link #setSomeUndefinedConstants(Values)}.
+	 * Note: This method no longer throws an exception if some constants are undefined.
+	 * Deprecated: Just use {@link #setSomeUndefinedConstants(Values)}.
+	 * @deprecated
+	 */
+	@Deprecated
+	public void setUndefinedConstants(Values someValues) throws PrismException
 	{
-		setSomeUndefinedConstants(someValues, false);
-	}
-
-	@Override
-	public void setSomeUndefinedConstants(Values someValues, boolean exact) throws PrismLangException
-	{
-		undefinedConstantValues = someValues == null ? null : new Values(someValues);
-		constantValues = constantList.evaluateSomeConstants(someValues, null, exact);
-		doSemanticChecksAfterConstants();
+		setSomeUndefinedConstants(someValues);
 	}
 
 	/**
@@ -1350,90 +1330,55 @@ public class ModulesFile extends ASTElement implements ModelInfo, RewardGenerato
 	}
 	
 	/**
-	 * Get access to the values that have been provided for undefined constants in the model 
-	 * (e.g. via the method {@link #setUndefinedConstants(Values)}).
+	 * Get the evaluation context that was used to provide values for undefined constants in the model
+	 * (e.g. via the method {@link #setSomeUndefinedConstants(EvaluateContext)}).
 	 */
-	public Values getUndefinedConstantValues()
+	public EvaluateContext getUndefinedEvaluateContext()
 	{
-		return undefinedConstantValues;
+		return ecUndefined;
 	}
 
-	/**
-	 * Get access to the values for all constants in the model, including the 
-	 * undefined constants set previously via the method {@link #setUndefinedConstants(Values)}.
-	 * Until they are set for the first time, this method returns null.  
-	 */
+	@Override
 	public Values getConstantValues()
 	{
 		return constantValues;
 	}
 
-	/**
-	 * Create a State object representing the default initial state of this model.
-	 * If there are potentially multiple initial states (because the model has an 
-	 * init...endinit specification), this method returns null;
-	 * Assumes that values for constants have been provided for the model.
-	 * Note: This method replaces the old getInitialValues() method,
-	 * since State objects are now preferred to Values objects for efficiency.
-	 * <br>
-	 * The init expression is evaluated using the default evaluate, i.e.,
-	 * not using exact arithmetic.
-	 */
-	public State getDefaultInitialState() throws PrismLangException
+	@Override
+	public EvaluateContext getEvaluateContext()
 	{
-		return getDefaultInitialState(false);
+		return ec;
 	}
 
 	/**
 	 * Create a State object representing the default initial state of this model.
 	 * If there are potentially multiple initial states (because the model has an
-	 * init...endinit specification), this method returns null;
-	 * Assumes that values for constants have been provided for the model.
-	 * Note: This method replaces the old getInitialValues() method,
-	 * since State objects are now preferred to Values objects for efficiency.
-	 * @param exact use exact arithmetic in evaluation of init expression?
+	 * init...endinit specification), this method returns null.
+	 * Assumes that values for constants (and evaluation mode) have been set for the model.
 	 */
-	public State getDefaultInitialState(boolean exact) throws PrismLangException
+	public State getDefaultInitialState() throws PrismLangException
 	{
-		int i, j, count, n, n2;
-		Module module;
-		Declaration decl;
-		State initialState;
-		Object initialValue;
-
 		if (initStates != null) {
 			return null;
 		}
 
 		// Create State object
-		initialState = new State(getNumVars());
+		State initialState = new State(getNumVars());
 		// Then add values for all globals and all locals, in that order
-		count = 0;
-		n = getNumGlobals();
-		for (i = 0; i < n; i++) {
-			decl = getGlobal(i);
-			if (exact) {
-				BigRational r = decl.getStartOrDefault().evaluateExact(constantValues);
-				initialValue = getGlobal(i).getType().castFromBigRational(r);
-			} else {
-				initialValue = decl.getStartOrDefault().evaluate(constantValues);
-				initialValue = getGlobal(i).getType().castValueTo(initialValue);
-			}
+		int count = 0;
+		int n = getNumGlobals();
+		for (int i = 0; i < n; i++) {
+			Declaration decl = getGlobal(i);
+			Object initialValue = decl.getType().castValueTo(decl.getStartOrDefault().evaluate(ec));
 			initialState.setValue(count++, initialValue);
 		}
 		n = getNumModules();
-		for (i = 0; i < n; i++) {
-			module = getModule(i);
-			n2 = module.getNumDeclarations();
-			for (j = 0; j < n2; j++) {
-				decl = module.getDeclaration(j);
-				if (exact) {
-					BigRational r = decl.getStartOrDefault().evaluateExact(constantValues);
-					initialValue = module.getDeclaration(j).getType().castFromBigRational(r);
-				} else {
-					initialValue = decl.getStartOrDefault().evaluate(constantValues);
-					initialValue = module.getDeclaration(j).getType().castValueTo(initialValue);
-				}
+		for (int i = 0; i < n; i++) {
+			Module module = getModule(i);
+			int n2 = module.getNumDeclarations();
+			for (int j = 0; j < n2; j++) {
+				Declaration decl = module.getDeclaration(j);
+				Object initialValue = decl.getType().castValueTo(decl.getStartOrDefault().evaluate(ec));
 				initialState.setValue(count++, initialValue);
 			}
 		}
@@ -1463,10 +1408,10 @@ public class ModulesFile extends ASTElement implements ModelInfo, RewardGenerato
 		int i, n;
 
 		// Recompute lists of all variables and types
-		varDecls = new Vector<Declaration>();
-		varNames = new Vector<String>();
-		varTypes = new Vector<Type>();
-		varModules = new Vector<Integer>();
+		varDecls = new ArrayList<>();
+		varNames = new ArrayList<>();
+		varTypes = new ArrayList<>();
+		varModules = new ArrayList<>();
 		// Globals
 		for (Declaration decl : globals) {
 			varDecls.add(decl);
@@ -1502,7 +1447,7 @@ public class ModulesFile extends ASTElement implements ModelInfo, RewardGenerato
 	/**
 	 * Determine the actual model type
 	 */
-	private void finaliseModelType()
+	private void finaliseModelType() throws PrismLangException
 	{
 		// First, fix a "base" model type
 		// If unspecified, auto-detect
@@ -1518,6 +1463,7 @@ public class ModulesFile extends ASTElement implements ModelInfo, RewardGenerato
 		// based on the existence of certain features
 		boolean isRealTime = containsClockVariables();
 		boolean isPartObs = hasObservables();
+		boolean isInterval = probabilitiesContainIntervals();
 		if (isRealTime) {
 			if (modelType == ModelType.MDP || modelType == ModelType.LTS) {
 				modelType = ModelType.PTA;
@@ -1530,6 +1476,49 @@ public class ModulesFile extends ASTElement implements ModelInfo, RewardGenerato
 				modelType = ModelType.POPTA;
 			}
 		}
+		if (isInterval) {
+			if (modelType == ModelType.DTMC) {
+				modelType = ModelType.IDTMC;
+			} else if (modelType == ModelType.MDP) {
+				modelType = ModelType.IMDP;
+			} else {
+				throw new PrismLangException("Intervals only allowed in DTMCs and MDPs currently");
+			}
+		}
+	}
+	
+	/**
+	 * Returns true if one or more of the probabilities in a guarded command contains an interval.
+	 */
+	public boolean probabilitiesContainIntervals()
+	{
+		return findIntervalInProbabilities() != null;
+	}
+	
+	/**
+	 * If one or more of the probabilities in a guarded command contains an interval,
+	 * return it; otherwise return null.
+	 */
+	public ASTElement findIntervalInProbabilities()
+	{
+		try {
+			ASTTraverse astt = new ASTTraverse()
+			{
+				public void visitPost(Updates e) throws PrismLangException
+				{
+					int n = e.getNumUpdates();
+					for (int i = 0; i < n; i++) {
+						if (e.getProbability(i) != null && e.getProbability(i).getType() instanceof TypeInterval) {
+							throw new PrismLangException("Found one", e);
+						}
+					}
+				}
+			};
+			accept(astt);
+		} catch (PrismLangException e) {
+			return e.getASTElement();
+		}
+		return null;
 	}
 	
 	/**
@@ -1616,9 +1605,9 @@ public class ModulesFile extends ASTElement implements ModelInfo, RewardGenerato
 		}
 
 		for (i = 0; i < modules.size() - 1; i++) {
-			s += modules.elementAt(i) + "\n\n";
+			s += modules.get(i) + "\n\n";
 		}
-		s += modules.elementAt(modules.size() - 1) + "\n";
+		s += modules.get(modules.size() - 1) + "\n";
 
 		for (i = 0; i < systemDefns.size(); i++) {
 			s += "\nsystem ";
@@ -1639,67 +1628,69 @@ public class ModulesFile extends ASTElement implements ModelInfo, RewardGenerato
 		return s;
 	}
 
-	/**
-	 * Perform a deep copy.
-	 */
-	@SuppressWarnings("unchecked")
-	public ASTElement deepCopy()
+	@Override
+	public ModulesFile deepCopy(DeepCopy copier) throws PrismLangException
 	{
-		int i, n;
-		ModulesFile ret = new ModulesFile();
-		
-		// Copy ASTElement stuff
-		ret.setPosition(this);
-		// Copy type
-		ret.setModelTypeInFile(modelTypeInFile);
-		ret.setModelType(modelType);
 		// Deep copy main components
-		ret.setFormulaList((FormulaList) formulaList.deepCopy());
-		ret.setLabelList((LabelList) labelList.deepCopy());
-		ret.setConstantList((ConstantList) constantList.deepCopy());
-		n = getNumGlobals();
-		for (i = 0; i < n; i++) {
-			ret.addGlobal((Declaration) getGlobal(i).deepCopy());
+		labelList = copier.copy(labelList);
+		formulaList = copier.copy(formulaList);
+		constantList = copier.copy(constantList);
+		initStates = copier.copy(initStates);
+		identUsage = identUsage.deepCopy();
+		quotedIdentUsage = quotedIdentUsage.deepCopy();
+
+		copier.copyAll(globals);
+		copier.copyAll(varDecls);
+		copier.copyAll(systemDefns);
+		copier.copyAll(observables);
+		copier.copyAll(rewardStructs);
+		copier.copyAll(observableDefns);
+		copier.copyAll(observableVarLists);
+
+		for (int i = 0, n = getNumModules(); i < n; i++) {
+			Module mod = Objects.requireNonNull(getModule(i));
+			setModule(i, copier.copy(mod));
 		}
-		n = getNumModules();
-		for (i = 0; i < n; i++) {
-			ret.addModule((Module) getModule(i).deepCopy());
-		}
-		n = getNumSystemDefns();
-		for (i = 0; i < n; i++) {
-			ret.addSystemDefn(getSystemDefn(i).deepCopy(), getSystemDefnName(i));
-		}
-		n = getNumRewardStructs();
-		for (i = 0; i < n; i++) {
-			ret.addRewardStruct((RewardStruct) getRewardStruct(i).deepCopy());
-		}
-		if (initStates != null)
-			ret.setInitialStates(initStates.deepCopy());
-		for (ObservableVars obsVars : observableVarLists)
-			ret.observableVarLists.add(obsVars.deepCopy());
-		for (Observable obs : observableDefns)
-			ret.observableDefns.add(obs.deepCopy());
-		// Copy other (generated) info
-		ret.identUsage = (identUsage == null) ? null : identUsage.deepCopy();
-		ret.quotedIdentUsage = (quotedIdentUsage == null) ? null : quotedIdentUsage.deepCopy();
-		ret.moduleNames = (moduleNames == null) ? null : moduleNames.clone();
-		ret.synchs = (synchs == null) ? null : (Vector<String>)synchs.clone();
-		if (varDecls != null) {
-			ret.varDecls = new Vector<Declaration>();
-			for (Declaration d : varDecls)
-				ret.varDecls.add((Declaration) d.deepCopy());
-		}
-		ret.varNames = (varNames == null) ? null : (Vector<String>)varNames.clone();
-		ret.varTypes = (varTypes == null) ? null : (Vector<Type>)varTypes.clone();
-		ret.varModules = (varModules == null) ? null : (Vector<Integer>)varModules.clone();
-		for (Observable obs : observables)
-			ret.observables.add(obs.deepCopy());
-		ret.observableNames = (observableNames == null) ? null : new ArrayList<>(observableNames);
-		ret.observableTypes = (observableTypes == null) ? null : new ArrayList<>(observableTypes);
-		ret.observableVars = (observableVars == null) ? null : new ArrayList<>(observableVars);
-		ret.constantValues = (constantValues == null) ? null : new Values(constantValues);
-		
-		return ret;
+		return this;
+	}
+
+	@SuppressWarnings("unchecked")
+	@Override
+	public ModulesFile clone()
+	{
+		ModulesFile clone = (ModulesFile) super.clone();
+
+		// clone main components
+		clone.globals            = (ArrayList<Declaration>) globals.clone();
+		clone.modules            = (ArrayList<Object>) modules.clone();
+		clone.systemDefns        = (ArrayList<SystemDefn>) systemDefns.clone();
+		clone.systemDefnNames    = (ArrayList<String>) systemDefnNames.clone();
+		clone.rewardStructs      = (ArrayList<RewardStruct>) rewardStructs.clone();
+		clone.rewardStructNames  = (ArrayList<String>) rewardStructNames.clone();
+		clone.observableVarLists = (ArrayList<ObservableVars>) observableVarLists.clone();
+		clone.observableDefns    = (ArrayList<Observable>) observableDefns.clone();
+		clone.varDecls           = (ArrayList<Declaration>) varDecls.clone();
+		clone.varNames           = (ArrayList<String>) varNames.clone();
+		clone.varTypes           = (ArrayList<Type>) varTypes.clone();
+		clone.varModules         = (ArrayList<Integer>) varModules.clone();
+		clone.observables        = (ArrayList<Observable>) observables.clone();
+		clone.observableNames    = (ArrayList<String>) observableNames.clone();
+		clone.observableTypes    = (ArrayList<Type>) observableTypes.clone();
+		clone.observableVars     = (ArrayList<String>) observableVars.clone();
+
+		// clone other (generated) info
+		if (constantValues != null)
+			clone.constantValues = constantValues.clone();
+		if (moduleNames != null)
+			clone.moduleNames = moduleNames.clone();
+		if (synchs != null)
+			clone.synchs =  (ArrayList<String>) synchs.clone();
+		if (ecUndefined != null)
+			ecUndefined = EvaluateContext.create(ecUndefined);
+		if (ec != null)
+			ec = EvaluateContext.create(ec);
+
+		return clone;
 	}
 }
 

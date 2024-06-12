@@ -1,0 +1,192 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html>
+<head>
+
+<title>PRISM Manual | PropertySpecification / Introduction </title>
+
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1"/>
+
+<!--HeaderText--><style type='text/css'><!--
+  ul, ol, pre, dl, p { margin-top:0px; margin-bottom:0px; }
+  code.escaped { white-space: pre; }
+  .vspace { margin-top:1.33em; }
+  .indent { margin-left:40px; }
+  .outdent { margin-left:40px; text-indent:-40px; }
+  a.createlinktext { text-decoration:none; border-bottom:1px dotted gray; }
+  a.createlink { text-decoration:none; position:relative; top:-0.5em;
+    font-weight:bold; font-size:smaller; border-bottom:none; }
+  img { border:0px; }
+  .editconflict { color:green; 
+  font-style:italic; margin-top:1.33em; margin-bottom:1.33em; }
+
+  table.markup { border:2px dotted #ccf; width:90%; }
+  td.markup1, td.markup2 { padding-left:10px; padding-right:10px; }
+  table.vert td.markup1 { border-bottom:1px solid #ccf; }
+  table.horiz td.markup1 { width:23em; border-right:1px solid #ccf; }
+  table.markup caption { text-align:left; }
+  div.faq p, div.faq pre { margin-left:2em; }
+  div.faq p.question { margin:1em 0 0.75em 0; font-weight:bold; }
+  div.faqtoc div.faq * { display:none; }
+  div.faqtoc div.faq p.question 
+    { display:block; font-weight:normal; margin:0.5em 0 0.5em 20px; line-height:normal; }
+  div.faqtoc div.faq p.question * { display:inline; }
+  td.markup1 pre { white-space: pre-wrap; }
+  .noPmTOC, .PmTOCdiv:empty {display:none;}
+.PmTOCdiv { display: inline-block; font-size: 13px; overflow: auto; max-height: 500px;}
+.PmTOCdiv a { text-decoration: none; display: block; line-height: 1;}
+.PmTOCdiv a.pmtoc-indent1 { margin-left: 1em; }
+.PmTOCdiv a.pmtoc-indent2 { margin-left: 2em; }
+.PmTOCdiv a.pmtoc-indent3 { margin-left: 3em; }
+.PmTOCdiv a.pmtoc-indent4 { margin-left: 4em; }
+.PmTOCdiv a.pmtoc-indent5 { margin-left: 5em; }
+.PmTOCdiv a.pmtoc-indent6 { margin-left: 6em; }
+.back-arrow {font-size: .8rem; text-decoration: none; vertical-align: text-top;}
+#PmTOCchk + label {cursor: pointer;}
+#PmTOCchk {display: none;}
+#PmTOCchk:not(:checked) + label > .pmtoc-show {display: none;}
+#PmTOCchk:checked + label > .pmtoc-hide {display: none;}
+#PmTOCchk:checked + label + div {display: none;}table.sortable th { cursor: pointer; }
+table.sortable th::after { color: transparent; content: "\00A0\025B8"; }
+table.sortable th:hover::after { color: inherit; content: "\00A0\025B8"; }
+table.sortable th.dir-u::after { color: inherit; content: "\00A0\025BE"; }
+table.sortable th.dir-d::after { color: inherit; content: "\00A0\025B4"; } 
+    .frame 
+      { border:1px solid #cccccc; padding:4px; background-color:#f9f9f9; }
+    .lfloat { float:left; margin-right:0.5em; }
+    .rfloat { float:right; margin-left:0.5em; }
+a.varlink { text-decoration:none;}
+
+.sourceblocklink {
+  text-align: right;
+  font-size: smaller;
+}
+.sourceblocktext {
+  padding: 0.5em;
+  border: 1px solid #808080;
+  color: #000000;
+  background-color: #f1f0ed;
+}
+.sourceblocktext div {
+  font-family: monospace;
+  font-size: small;
+  line-height: 1;
+  height: 1%;
+}
+.sourceblocktext div.head,
+.sourceblocktext div.foot {
+  font: italic medium serif;
+  padding: 0.5em;
+}
+
+--></style>  <meta name='robots' content='noindex,nofollow' />
+
+
+<link type="text/css" rel="stylesheet" href="http://www.prismmodelchecker.org/css/base.css"/>
+<link type="text/css" rel="stylesheet" href="http://www.prismmodelchecker.org/css/prism.css"/>
+<link type="text/css" rel="stylesheet" href="http://www.prismmodelchecker.org/css/print.css" media="print"/>
+<link type="text/css" rel="stylesheet" href="http://www.prismmodelchecker.org/css/bib.css"/>
+
+<link type="text/css" rel="stylesheet" href="http://www.prismmodelchecker.org/manual/pub/skins/prismprint/css/prismmanual.css"/>
+<link type="text/css" rel="stylesheet" href="http://www.prismmodelchecker.org/manual/pub/skins/prismprint/css/prismprint.css"/>
+</head>
+
+<body text="#000000" bgcolor="#ffffcc">
+
+<!--PageTitleFmt-->
+  <p><a class='wikilink' href='Main.html'>Property Specification</a> /
+</p><h1>Introduction</h1>
+
+<!--PageText-->
+<div id='wikitext'>
+<p>In order to analyse a probabilistic model which has been specified and constructed in PRISM,
+it is necessary to identify one or more <em>properties</em> of the model
+which can be evaluated by the tool.
+PRISM's <em>property specification language</em> subsumes several well-known probabilistic temporal logics, including PCTL, CSL, probabilistic LTL and PCTL*.
+PCTL is used for specifying properties of discrete-time models such as DTMCs or PTAs,
+and also real-time models such as PTAs; CSL is an extension of PCTL for CTMCs;
+LTL and PCTL* can be used to specify properties of 
+discrete-time models (or untimed properties of CTMCs).
+PRISM also supports most of the (non-probabilistic) temporal logic CTL.
+</p>
+<p class='vspace'>In fact, PRISM also supports numerous additional customisations and extensions of these two logics.
+Full details of the property specifications permitted in PRISM are provided in the following sections. The presentation given here is relatively informal. For the precise syntax and semantics of the various logics, see [<a class='wikilink' href='../Main/References.html#HJ94'>HJ94</a>],[<a class='wikilink' href='../Main/References.html#BdA95'>BdA95</a>] for PCTL, [<a class='wikilink' href='../Main/References.html#ASSB96'>ASSB96</a>],[<a class='wikilink' href='../Main/References.html#BKH99'>BKH99</a>] for CSL and, for example, [<a class='wikilink' href='../Main/References.html#Bai98'>Bai98</a>] for LTL and PCTL*. You can also find various pointers to useful papers in the <a class='urllink' href='http://www.prismmodelchecker.org/about.php'>About</a> and <a class='urllink' href='http://www.prismmodelchecker.org/doc/'>Documentation</a> sections of the PRISM website.
+</p>
+<p class='vspace'>Before discussing property specifications in more detail,
+it is perhaps instructive to first illustrate some typical examples of properties which PRISM can handle.
+The following are a selection of such properties.
+In each case, we give both the PRISM syntax and a natural language translation:
+</p>
+<div class='vspace'></div>
+<div class='sourceblock ' id='sourceblock1'>
+  <div class='sourceblocktext'><div class="prism"> <span class="prismkeyword">P</span>&gt;=<span class="prismnum">1</span> [ <span class="prismkeyword">F</span> "<span class="prismident">terminate</span>" ] <br/>
+</div></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/PropertySpecification/Introduction?action=sourceblock&amp;num=1' type='text/plain'>[&#036;[Get Code]]</a></div>
+</div>
+
+<p>"the algorithm eventually terminates successfully with probability 1"
+</p>
+<div class='vspace'></div>
+<div class='sourceblock ' id='sourceblock2'>
+  <div class='sourceblocktext'><div class="prism"> "<span class="prismkeyword">P</span>&lt;<span class="prismnum">0.1</span> [ <span class="prismkeyword">F</span>&lt;=<span class="prismnum">100</span> <span class="prismident">num_errors</span> &gt; <span class="prismnum">5</span> ] <br/>
+</div></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/PropertySpecification/Introduction?action=sourceblock&amp;num=2' type='text/plain'>[&#036;[Get Code]]</a></div>
+</div>
+
+<p>"the probability that more than 5 errors occur within the first 100 time units is less than 0.1"
+</p>
+<div class='vspace'></div>
+<div class='sourceblock ' id='sourceblock3'>
+  <div class='sourceblocktext'><div class="prism"> <span class="prismkeyword">S</span>&lt;<span class="prismnum">0.01</span> [ <span class="prismident">num_sensors</span> &lt; <span class="prismident">min_sensors</span> ] <br/>
+</div></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/PropertySpecification/Introduction?action=sourceblock&amp;num=3' type='text/plain'>[&#036;[Get Code]]</a></div>
+</div>
+
+<p>"in the long-run, the probability that an inadequate number of sensors are operational is less than 0.01"
+</p>
+<p class='vspace'>Note that the above properties are all assertions,
+i.e. ones to which we would expect a "yes" or "no" answer.
+This is because all references to probabilities are associated with an upper or lower bound
+which can be checked to be either true or false.
+In PRISM, we can also directly specify properties which evaluate to a numerical value, e.g.:
+</p>
+<div class='vspace'></div>
+<div class='sourceblock ' id='sourceblock4'>
+  <div class='sourceblocktext'><div class="prism"> <span class="prismkeyword">P</span>=? [ !<span class="prismident">proc2_terminate</span> <span class="prismkeyword">U</span> <span class="prismident">proc1_terminate</span> ] <br/>
+</div></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/PropertySpecification/Introduction?action=sourceblock&amp;num=4' type='text/plain'>[&#036;[Get Code]]</a></div>
+</div>
+
+<p>"the probability that process 1 terminates before process 2 does"
+</p>
+<div class='vspace'></div>
+<div class='sourceblock ' id='sourceblock5'>
+  <div class='sourceblocktext'><div class="prism"> <span class="prismkeyword">Pmax</span>=? [ <span class="prismkeyword">F</span>&lt;=<span class="prismident">T</span> <span class="prismident">messages_lost</span> &gt; <span class="prismnum">10</span> ] <br/>
+</div></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/PropertySpecification/Introduction?action=sourceblock&amp;num=5' type='text/plain'>[&#036;[Get Code]]</a></div>
+</div>
+
+<p>"the maximum probability that more than 10 messages have been lost by time <code>T</code>" (for an MDP/PTA)
+</p>
+<div class='vspace'></div>
+<div class='sourceblock ' id='sourceblock6'>
+  <div class='sourceblocktext'><div class="prism"> <span class="prismkeyword">S</span>=? [ <span class="prismident">queue_size</span> / <span class="prismident">max_size</span> &gt; <span class="prismnum">0.75</span> ] <br/>
+</div></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/PropertySpecification/Introduction?action=sourceblock&amp;num=6' type='text/plain'>[&#036;[Get Code]]</a></div>
+</div>
+
+<p>"the long-run probability that the queue is more than 75% full"
+</p>
+<p class='vspace'>Furthermore, PRISM makes it easy to combine such properties into more complex expressions,
+compute their values for a range of parameters
+and plot graphs of the results using <a class='wikilink' href='../RunningPRISM/Experiments.html'>experiments</a>.
+This is often a very useful way of identifying interesting
+patterns or trends in the behaviour of a system.
+See the <a class='urllink' href='http://www.prismmodelchecker.org/casestudies/'>Case Studies</a> section of the <a class='urllink' href='http://www.prismmodelchecker.org/'>PRISM website</a> for many examples of this kind of analysis.
+</p>
+</div>
+
+
+</body>
+</html>

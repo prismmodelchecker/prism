@@ -90,24 +90,34 @@ public class ExplicitFiles2Model extends PrismComponent
 	 * @param numStates number of states
 	 * @return the constructed model
 	 */
-	public Model build(File statesFile, File transFile, File labelsFile, ModelInfo modelInfo, int numStates) throws PrismException
+	public Model<?> build(File statesFile, File transFile, File labelsFile, ModelInfo modelInfo, int numStates) throws PrismException
 	{
-		ModelExplicit model = null;
+		ModelExplicit<?> model = null;
 		switch (modelInfo.getModelType()) {
 		case DTMC:
-			DTMCSimple dtmc = new DTMCSimple();
+			DTMCSimple<?> dtmc = new DTMCSimple<>();
 			dtmc.buildFromPrismExplicit(transFile.getAbsolutePath());
 			model = dtmc;
 			break;
 		case CTMC:
-			CTMCSimple ctmc = new CTMCSimple();
+			CTMCSimple<?> ctmc = new CTMCSimple<>();
 			ctmc.buildFromPrismExplicit(transFile.getAbsolutePath());
 			model = ctmc;
 			break;
 		case MDP:
-			MDPSimple mdp = new MDPSimple();
+			MDPSimple<?> mdp = new MDPSimple<>();
 			mdp.buildFromPrismExplicit(transFile.getAbsolutePath());
 			model = mdp;
+			break;
+		case IDTMC:
+			IDTMCSimple<?> idtmc = new IDTMCSimple<>();
+			idtmc.buildFromPrismExplicit(transFile.getAbsolutePath());
+			model = idtmc;
+			break;
+		case IMDP:
+			IMDPSimple<?> imdp = new IMDPSimple<>();
+			imdp.buildFromPrismExplicit(transFile.getAbsolutePath());
+			model = imdp;
 			break;
 		case CTMDP:
 		case LTS:
@@ -160,7 +170,7 @@ public class ExplicitFiles2Model extends PrismComponent
 	 * The "init" label states become the initial states of the model.
 	 * The "deadlock" label is ignored - this info is recomputed.
 	 */
-	private void loadLabels(ModelExplicit model, File labelsFile) throws PrismException
+	private void loadLabels(ModelExplicit<?> model, File labelsFile) throws PrismException
 	{
 		Map<String, BitSet> labels = StateModelChecker.loadLabelsFile(labelsFile.getAbsolutePath());
 
@@ -178,7 +188,7 @@ public class ExplicitFiles2Model extends PrismComponent
 	}
 
 	/** Load the state information, construct the statesList and attach to model */
-	private void loadStates(ModelExplicit model, File statesFile, ModelInfo modelInfo) throws PrismException
+	private void loadStates(ModelExplicit<?> model, File statesFile, ModelInfo modelInfo) throws PrismException
 	{
 		int numStates = model.getNumStates();
 		List<State> statesList = new ArrayList<State>(numStates);

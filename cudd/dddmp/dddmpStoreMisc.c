@@ -100,6 +100,7 @@ Dddmp_cuddBddStorePrefix (
 {
   int retValue;
   DdNode *tmpArray[1];
+  (void) nRoots; /* avoid warning */
 
   tmpArray[0] = f;
 
@@ -226,6 +227,7 @@ Dddmp_cuddBddStoreBlif (
 {
   int retValue;
   DdNode *tmpArray[1];
+  (void) nRoots; /* avoid warning */
 
   tmpArray[0] = f;
 
@@ -352,6 +354,7 @@ Dddmp_cuddBddStoreSmv (
 {
   int retValue;
   DdNode *tmpArray[1];
+  (void) nRoots; /* avoid warning */
 
   tmpArray[0] = f;
 

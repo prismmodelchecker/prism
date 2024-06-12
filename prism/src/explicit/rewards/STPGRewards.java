@@ -32,21 +32,16 @@ import explicit.Product;
 
 /**
  * Classes that provide (read) access to explicit-state rewards for an STPG.
- * See the {@link explicit.STPG} interface for details of the accompanying model,
- * in particular, for an explanation of nested transitions. 
+ * Currently, this is actually identical to MDPRewards.
  */
-public interface STPGRewards extends MDPRewards
+public interface STPGRewards<Value> extends MDPRewards<Value>
 {
 	/**
-	 * Get the transition reward for the {@code i,j}th nested choice from state {@code s}.
+	 * Build a (new) MDPRewards object containing the same rewards.
+	 * Currently, this interface is the same as MDPRewards, so this is not needed.
 	 */
-	public abstract double getNestedTransitionReward(int s, int i, int j);
-
-	/**
-	 * Build an MDPRewards object containing all the same rewards except for the nested ones.
-	 */
-	public abstract MDPRewards buildMDPRewards();
+	public abstract MDPRewards<Value> buildMDPRewards();
 
 	@Override
-	public STPGRewards liftFromModel(Product<? extends Model> product);
+	public STPGRewards<Value> liftFromModel(Product<?> product);
 }

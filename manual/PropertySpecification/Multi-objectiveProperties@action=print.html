@@ -1,0 +1,212 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html>
+<head>
+
+<title>PRISM Manual | PropertySpecification / Multi-objectiveProperties </title>
+
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1"/>
+
+<!--HeaderText--><style type='text/css'><!--
+  ul, ol, pre, dl, p { margin-top:0px; margin-bottom:0px; }
+  code.escaped { white-space: pre; }
+  .vspace { margin-top:1.33em; }
+  .indent { margin-left:40px; }
+  .outdent { margin-left:40px; text-indent:-40px; }
+  a.createlinktext { text-decoration:none; border-bottom:1px dotted gray; }
+  a.createlink { text-decoration:none; position:relative; top:-0.5em;
+    font-weight:bold; font-size:smaller; border-bottom:none; }
+  img { border:0px; }
+  .editconflict { color:green; 
+  font-style:italic; margin-top:1.33em; margin-bottom:1.33em; }
+
+  table.markup { border:2px dotted #ccf; width:90%; }
+  td.markup1, td.markup2 { padding-left:10px; padding-right:10px; }
+  table.vert td.markup1 { border-bottom:1px solid #ccf; }
+  table.horiz td.markup1 { width:23em; border-right:1px solid #ccf; }
+  table.markup caption { text-align:left; }
+  div.faq p, div.faq pre { margin-left:2em; }
+  div.faq p.question { margin:1em 0 0.75em 0; font-weight:bold; }
+  div.faqtoc div.faq * { display:none; }
+  div.faqtoc div.faq p.question 
+    { display:block; font-weight:normal; margin:0.5em 0 0.5em 20px; line-height:normal; }
+  div.faqtoc div.faq p.question * { display:inline; }
+  td.markup1 pre { white-space: pre-wrap; }
+  .noPmTOC, .PmTOCdiv:empty {display:none;}
+.PmTOCdiv { display: inline-block; font-size: 13px; overflow: auto; max-height: 500px;}
+.PmTOCdiv a { text-decoration: none; display: block; line-height: 1;}
+.PmTOCdiv a.pmtoc-indent1 { margin-left: 1em; }
+.PmTOCdiv a.pmtoc-indent2 { margin-left: 2em; }
+.PmTOCdiv a.pmtoc-indent3 { margin-left: 3em; }
+.PmTOCdiv a.pmtoc-indent4 { margin-left: 4em; }
+.PmTOCdiv a.pmtoc-indent5 { margin-left: 5em; }
+.PmTOCdiv a.pmtoc-indent6 { margin-left: 6em; }
+.back-arrow {font-size: .8rem; text-decoration: none; vertical-align: text-top;}
+#PmTOCchk + label {cursor: pointer;}
+#PmTOCchk {display: none;}
+#PmTOCchk:not(:checked) + label > .pmtoc-show {display: none;}
+#PmTOCchk:checked + label > .pmtoc-hide {display: none;}
+#PmTOCchk:checked + label + div {display: none;}table.sortable th { cursor: pointer; }
+table.sortable th::after { color: transparent; content: "\00A0\025B8"; }
+table.sortable th:hover::after { color: inherit; content: "\00A0\025B8"; }
+table.sortable th.dir-u::after { color: inherit; content: "\00A0\025BE"; }
+table.sortable th.dir-d::after { color: inherit; content: "\00A0\025B4"; } 
+    .frame 
+      { border:1px solid #cccccc; padding:4px; background-color:#f9f9f9; }
+    .lfloat { float:left; margin-right:0.5em; }
+    .rfloat { float:right; margin-left:0.5em; }
+a.varlink { text-decoration:none;}
+
+.sourceblocklink {
+  text-align: right;
+  font-size: smaller;
+}
+.sourceblocktext {
+  padding: 0.5em;
+  border: 1px solid #808080;
+  color: #000000;
+  background-color: #f1f0ed;
+}
+.sourceblocktext div {
+  font-family: monospace;
+  font-size: small;
+  line-height: 1;
+  height: 1%;
+}
+.sourceblocktext div.head,
+.sourceblocktext div.foot {
+  font: italic medium serif;
+  padding: 0.5em;
+}
+
+--></style>  <meta name='robots' content='noindex,nofollow' />
+
+
+<link type="text/css" rel="stylesheet" href="http://www.prismmodelchecker.org/css/base.css"/>
+<link type="text/css" rel="stylesheet" href="http://www.prismmodelchecker.org/css/prism.css"/>
+<link type="text/css" rel="stylesheet" href="http://www.prismmodelchecker.org/css/print.css" media="print"/>
+<link type="text/css" rel="stylesheet" href="http://www.prismmodelchecker.org/css/bib.css"/>
+
+<link type="text/css" rel="stylesheet" href="http://www.prismmodelchecker.org/manual/pub/skins/prismprint/css/prismmanual.css"/>
+<link type="text/css" rel="stylesheet" href="http://www.prismmodelchecker.org/manual/pub/skins/prismprint/css/prismprint.css"/>
+</head>
+
+<body text="#000000" bgcolor="#ffffcc">
+
+<!--PageTitleFmt-->
+  <p><a class='wikilink' href='Main.html'>Property Specification</a> /
+</p><h1>Multi-objective Properties</h1>
+
+<!--PageText-->
+<div id='wikitext'>
+<p>For MDPs, PRISM supports <em>multi-objective</em> properties. Consider a property that uses the <code><strong>P</strong></code> operator. For example:
+</p>
+<div class='vspace'></div>
+<div class='sourceblock ' id='sourceblock1'>
+  <div class='sourceblocktext'><div class="prism"> <span class="prismkeyword">P</span>&lt;<span class="prismnum">0.01</span> [ <span class="prismkeyword">F</span> "<span class="prismident">error</span>" ] <br/>
+</div></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/PropertySpecification/Multi-objectiveProperties?action=sourceblock&amp;num=1' type='text/plain'>[&#036;[Get Code]]</a></div>
+</div>
+
+<p class='vspace'>This states that, <em>for all</em> strategies (or policies) of the MDP, the probability of reaching an <code>"error"</code> state is less than 0.01.
+</p>
+<p class='vspace'>Multi-objective queries differ in two important ways. Firstly, (by default) they ask about the <em>existence</em> of a strategy. Secondly they refer to <em>multiple</em> properties of a strategy. For example:
+</p>
+<div class='vspace'></div>
+<div class='sourceblock ' id='sourceblock2'>
+  <div class='sourceblocktext'><div class="prism"> <span class="prismident">multi</span>(<span class="prismkeyword">P</span>&lt;<span class="prismnum">0.01</span> [ <span class="prismkeyword">F</span> "<span class="prismident">error1</span>" ], <span class="prismkeyword">P</span>&lt;<span class="prismnum">0.02</span> [ <span class="prismkeyword">F</span> "<span class="prismident">error2</span>" ]) <br/>
+</div></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/PropertySpecification/Multi-objectiveProperties?action=sourceblock&amp;num=2' type='text/plain'>[&#036;[Get Code]]</a></div>
+</div>
+
+<p class='vspace'>means: "does there exist a strategy of the MDP under which the probability of reaching an <code>"error1"</code> state is less than 0.01 <em>and</em> the probability of reaching an <code>"error2"</code> state is less than 0.02?"
+</p>
+<p class='vspace'>To use the terminology from [<a class='wikilink' href='../Main/References.html#FKP12'>FKP12</a>], the above is an "achievability" query (i.e., is this combination of objectives achievable by some strategy?). PRISM also supports two other kinds of multi-objective query: "numerical" and "Pareto" queries.
+</p>
+<p class='vspace'>A "numerical" query looks like:
+</p>
+<div class='vspace'></div>
+<div class='sourceblock ' id='sourceblock3'>
+  <div class='sourceblocktext'><div class="prism"> <span class="prismident">multi</span>(<span class="prismkeyword">Pmin</span>=? [ <span class="prismkeyword">F</span> "<span class="prismident">error1</span>" ], <span class="prismkeyword">P</span>&lt;<span class="prismnum">0.02</span> [ <span class="prismkeyword">F</span> "<span class="prismident">error2</span>" ]) <br/>
+</div></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/PropertySpecification/Multi-objectiveProperties?action=sourceblock&amp;num=3' type='text/plain'>[&#036;[Get Code]]</a></div>
+</div>
+
+<p class='vspace'>meaning "what is the minimum possible probability of reaching <code>"error1"</code>, over all strategies of the MDP for which the probability of reaching <code>"error2"</code> is less than 0.02?".
+</p>
+<p class='vspace'>A "Pareto" queries leaves both of the objectives unbounded, e.g.:
+</p>
+<div class='vspace'></div>
+<div class='sourceblock ' id='sourceblock4'>
+  <div class='sourceblocktext'><div class="prism"> <span class="prismident">multi</span>(<span class="prismkeyword">Pmin</span>=? [ <span class="prismkeyword">F</span> "<span class="prismident">error1</span>" ], <span class="prismkeyword">Pmin</span>=? [ <span class="prismkeyword">F</span> "<span class="prismident">error2</span>" ]) <br/>
+</div></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/PropertySpecification/Multi-objectiveProperties?action=sourceblock&amp;num=4' type='text/plain'>[&#036;[Get Code]]</a></div>
+</div>
+
+<p class='vspace'>This asks PRISM to compute (approximately), the <em>Pareto curve</em> for this pair objectives. Intuitively, this is the set of pairs of probabilities (of reaching <code>"error1"</code>/<code>"error2"</code>) such that reducing one probability any more would necessitate an increase in the other probability.
+</p>
+<div class='vspace'></div><h3>Types of Objectives</h3>
+<p>For simplicity, the examples above all refer to the probability of reaching classes of states in the model. Other types of property (objective) are also possible.
+</p>
+<p class='vspace'>Firstly, we can extend the examples above by referring to the probability of any
+<a class='wikilink' href='ThePOperator.html#ltl'>LTL</a> property. For example:
+</p>
+<div class='vspace'></div>
+<div class='sourceblock ' id='sourceblock5'>
+  <div class='sourceblocktext'><div class="prism"> <span class="prismident">multi</span>(<span class="prismkeyword">Pmax</span>=? [ <span class="prismkeyword">G</span> "<span class="prismident">good1</span>" ], <span class="prismkeyword">P</span>&gt;=<span class="prismnum">0.9</span> [ <span class="prismkeyword">G</span> <span class="prismkeyword">F</span> "<span class="prismident">good2</span>" ]) <br/>
+</div></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/PropertySpecification/Multi-objectiveProperties?action=sourceblock&amp;num=5' type='text/plain'>[&#036;[Get Code]]</a></div>
+</div>
+
+<p class='vspace'>"What is the maximum probability of staying forever in <code>"good1"</code> states, such that the probability of visiting <code>"good2"</code> states infinitely often remains at least 0.9?".
+</p>
+<p class='vspace'>We can also use more than 2 objectives, e.g.:
+</p>
+<div class='vspace'></div>
+<div class='sourceblock ' id='sourceblock6'>
+  <div class='sourceblocktext'><div class="prism"> <span class="prismident">multi</span>(<span class="prismkeyword">Pmax</span>=? [ <span class="prismkeyword">G</span> "<span class="prismident">good1</span>" ], <span class="prismkeyword">P</span>&gt;=<span class="prismnum">0.9</span> [ <span class="prismkeyword">G</span> <span class="prismkeyword">F</span> "<span class="prismident">good2</span>" ], <span class="prismkeyword">P</span>&gt;=<span class="prismnum">0.95</span> [ <span class="prismkeyword">G</span> <span class="prismkeyword">F</span> "<span class="prismident">good3</span>" ]) <br/>
+</div></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/PropertySpecification/Multi-objectiveProperties?action=sourceblock&amp;num=6' type='text/plain'>[&#036;[Get Code]]</a></div>
+</div>
+
+<p class='vspace'>"What is the maximum probability of staying forever in <code>"good1"</code> states, such that the probability of visiting <code>"good2"</code> states infinitely often remains at least 0.9 and the probability of visiting <code>"good3"</code> states infinitely often remains at least 0.95?".
+</p>
+<p class='vspace'>Multi-objective queries can also refer to the expected total cumulative value of a reward structure. We write such properties in the form:
+</p>
+<div class='vspace'></div>
+<div class='sourceblock ' id='sourceblock7'>
+  <div class='sourceblocktext'><div class="prism"> <span class="prismident">multi</span>(<span class="prismkeyword">R</span>{"<span class="prismident">time</span>"}<span class="prismkeyword">min</span>=?[ <span class="prismkeyword">C</span> ], <span class="prismkeyword">R</span>{"<span class="prismident">energy</span>"}&lt;=<span class="prismnum">1.45</span> [ <span class="prismkeyword">C</span> ]) <br/>
+</div></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/PropertySpecification/Multi-objectiveProperties?action=sourceblock&amp;num=7' type='text/plain'>[&#036;[Get Code]]</a></div>
+</div>
+
+<p class='vspace'>"What is the minimum expected cumulative value of reward structure <code>"time"</code>, such that the expected cumulative value of reward structure <code>"energy"</code> is below 1.45.
+</p>
+<p class='vspace'>Note that this <code><strong>C</strong></code> reward operator differs from the <code><strong>F</strong> "target"</code> operator, usually used for standard (single-objective) MDP model checking. Whereas the <code><strong>F</strong> "target"</code> operator refers to the expected reward accumulated until a <code>"target"</code> state is reached the <code><strong>C</strong></code> operator refers to the expected <em>total</em> reward.
+</p>
+<p class='vspace'>A few important notes regarding rewards:
+</p>
+<div class='vspace'></div><ul><li>Currently only transition rewards are supported; state rewards are not.
+<div class='vspace'></div></li><li>Certain assumptions are made regarding the finiteness of rewards; see p.7 of [<a class='wikilink' href='../Main/References.html#FKP12'>FKP12</a>] for details.
+</li></ul><p class='vspace'>Finally, time-bounded variants of both probabilistic reachability and expected cumulative rewards objectives can be used. Here is an example that uses the latter:
+</p>
+<div class='vspace'></div>
+<div class='sourceblock ' id='sourceblock8'>
+  <div class='sourceblocktext'><div class="prism"> <span class="prismident">multi</span>(<span class="prismkeyword">R</span>{"<span class="prismident">power</span>"}<span class="prismkeyword">min</span>=? [ <span class="prismkeyword">C</span>&lt;=<span class="prismident">k</span> ], <span class="prismkeyword">R</span>{"<span class="prismident">queue</span>"}&lt;=<span class="prismident">r</span> [ <span class="prismkeyword">C</span>&lt;=<span class="prismident">k</span> ]) <br/>
+</div></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/PropertySpecification/Multi-objectiveProperties?action=sourceblock&amp;num=8' type='text/plain'>[&#036;[Get Code]]</a></div>
+</div>
+
+<div class='vspace'></div><h3>Solution Methods</h3>
+<p>PRISM can perform multi-objective model checking using two distinct solution methods, which are described in [<a class='wikilink' href='../Main/References.html#FKN+11'>FKN+11</a>] and [<a class='wikilink' href='../Main/References.html#FKP12'>FKP12</a>]. The former is based on the use of linear programming; the latter reduces multi-objective model checking to a series of simpler problems, solved using value iteration (or the Gauss-Seidel variant of value iteration). The default is "Value iteration". You can change this in the GUI using the option "MDP multi-objective solution methods", or using the command-line switches <code>-lp</code>, <code>-valiter</code>, <code>-gs</code>.
+</p>
+<p class='vspace'>There are some restrictions for the different methods, e.g.
+</p>
+<div class='vspace'></div><ul><li>Linear programming does not support time-bounded properties or Pareto queries
+</li></ul><div class='vspace'></div>
+</div>
+
+
+</body>
+</html>

@@ -1,0 +1,25 @@
+const int L=2;
+
+// Probability that a leader is eventually elected
+//RESULT (unc=0.1): 1.0
+Pmin=? [ F "elected" ]
+//RESULT (unc=0.1): 1.0
+Pmax=? [ F "elected" ]
+
+// Probability that a leader is elected within L rounds
+//RESULT (unc=0.1): 0.813376
+Pmin=? [ F<=(L*(N+1)) "elected" ]
+//RESULT (unc=0.1): 0.983616
+Pmax=? [ F<=(L*(N+1)) "elected" ]
+
+// Expected time (num. rounds) to elect a leader
+//RESULT (unc=0.1): 1.146788990825688
+R{"num_rounds"}min=? [ F "elected" ]
+//RESULT (unc=0.1): 1.76056338028169
+R{"num_rounds"}max=? [ F "elected" ]
+
+// Expected time (num. rounds) to elect a leader
+//RESULT (unc=0.1): 1.146788990825688
+R{"num_rounds_s"}min=? [ F "elected" ]
+//RESULT (unc=0.1): 1.76056338028169
+R{"num_rounds_s"}max=? [ F "elected" ]

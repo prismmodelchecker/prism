@@ -1,0 +1,231 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html>
+<head>
+
+<title>PRISM Manual | ThePRISMLanguage / ModulesAndVariables </title>
+
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1"/>
+
+<!--HeaderText--><style type='text/css'><!--
+  ul, ol, pre, dl, p { margin-top:0px; margin-bottom:0px; }
+  code.escaped { white-space: pre; }
+  .vspace { margin-top:1.33em; }
+  .indent { margin-left:40px; }
+  .outdent { margin-left:40px; text-indent:-40px; }
+  a.createlinktext { text-decoration:none; border-bottom:1px dotted gray; }
+  a.createlink { text-decoration:none; position:relative; top:-0.5em;
+    font-weight:bold; font-size:smaller; border-bottom:none; }
+  img { border:0px; }
+  .editconflict { color:green; 
+  font-style:italic; margin-top:1.33em; margin-bottom:1.33em; }
+
+  table.markup { border:2px dotted #ccf; width:90%; }
+  td.markup1, td.markup2 { padding-left:10px; padding-right:10px; }
+  table.vert td.markup1 { border-bottom:1px solid #ccf; }
+  table.horiz td.markup1 { width:23em; border-right:1px solid #ccf; }
+  table.markup caption { text-align:left; }
+  div.faq p, div.faq pre { margin-left:2em; }
+  div.faq p.question { margin:1em 0 0.75em 0; font-weight:bold; }
+  div.faqtoc div.faq * { display:none; }
+  div.faqtoc div.faq p.question 
+    { display:block; font-weight:normal; margin:0.5em 0 0.5em 20px; line-height:normal; }
+  div.faqtoc div.faq p.question * { display:inline; }
+  td.markup1 pre { white-space: pre-wrap; }
+  .noPmTOC, .PmTOCdiv:empty {display:none;}
+.PmTOCdiv { display: inline-block; font-size: 13px; overflow: auto; max-height: 500px;}
+.PmTOCdiv a { text-decoration: none; display: block; line-height: 1;}
+.PmTOCdiv a.pmtoc-indent1 { margin-left: 1em; }
+.PmTOCdiv a.pmtoc-indent2 { margin-left: 2em; }
+.PmTOCdiv a.pmtoc-indent3 { margin-left: 3em; }
+.PmTOCdiv a.pmtoc-indent4 { margin-left: 4em; }
+.PmTOCdiv a.pmtoc-indent5 { margin-left: 5em; }
+.PmTOCdiv a.pmtoc-indent6 { margin-left: 6em; }
+.back-arrow {font-size: .8rem; text-decoration: none; vertical-align: text-top;}
+#PmTOCchk + label {cursor: pointer;}
+#PmTOCchk {display: none;}
+#PmTOCchk:not(:checked) + label > .pmtoc-show {display: none;}
+#PmTOCchk:checked + label > .pmtoc-hide {display: none;}
+#PmTOCchk:checked + label + div {display: none;}table.sortable th { cursor: pointer; }
+table.sortable th::after { color: transparent; content: "\00A0\025B8"; }
+table.sortable th:hover::after { color: inherit; content: "\00A0\025B8"; }
+table.sortable th.dir-u::after { color: inherit; content: "\00A0\025BE"; }
+table.sortable th.dir-d::after { color: inherit; content: "\00A0\025B4"; } 
+    .frame 
+      { border:1px solid #cccccc; padding:4px; background-color:#f9f9f9; }
+    .lfloat { float:left; margin-right:0.5em; }
+    .rfloat { float:right; margin-left:0.5em; }
+a.varlink { text-decoration:none;}
+
+.sourceblocklink {
+  text-align: right;
+  font-size: smaller;
+}
+.sourceblocktext {
+  padding: 0.5em;
+  border: 1px solid #808080;
+  color: #000000;
+  background-color: #f1f0ed;
+}
+.sourceblocktext div {
+  font-family: monospace;
+  font-size: small;
+  line-height: 1;
+  height: 1%;
+}
+.sourceblocktext div.head,
+.sourceblocktext div.foot {
+  font: italic medium serif;
+  padding: 0.5em;
+}
+
+--></style>  <meta name='robots' content='noindex,nofollow' />
+
+
+<link type="text/css" rel="stylesheet" href="http://www.prismmodelchecker.org/css/base.css"/>
+<link type="text/css" rel="stylesheet" href="http://www.prismmodelchecker.org/css/prism.css"/>
+<link type="text/css" rel="stylesheet" href="http://www.prismmodelchecker.org/css/print.css" media="print"/>
+<link type="text/css" rel="stylesheet" href="http://www.prismmodelchecker.org/css/bib.css"/>
+
+<link type="text/css" rel="stylesheet" href="http://www.prismmodelchecker.org/manual/pub/skins/prismprint/css/prismmanual.css"/>
+<link type="text/css" rel="stylesheet" href="http://www.prismmodelchecker.org/manual/pub/skins/prismprint/css/prismprint.css"/>
+</head>
+
+<body text="#000000" bgcolor="#ffffcc">
+
+<!--PageTitleFmt-->
+  <p><a class='wikilink' href='Main.html'>The PRISM Language</a> /
+</p><h1>Modules And Variables</h1>
+
+<!--PageText-->
+<div id='wikitext'>
+<p>The <a class='wikilink' href='Example1.html'>previous example</a> uses two modules, <code>M1</code> and <code>M2</code>, one representing each process.
+A module is specified as:
+</p>
+<div class='vspace'></div>
+<div class='sourceblock ' id='sourceblock1'>
+  <div class='sourceblocktext'><div class="prism"> <span class="prismkeyword">module</span> <span class="prismident">name</span> ... <span class="prismkeyword">endmodule</span> <br/>
+</div></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/ThePRISMLanguage/ModulesAndVariables?action=sourceblock&amp;num=1' type='text/plain'>[&#036;[Get Code]]</a></div>
+</div>
+
+<p class='vspace'>The definition of a module contains two parts: its <em>variables</em> and its <em>commands</em>.
+The variables describe the possible states that the module can be in;
+the <a class='wikilink' href='Commands.html'>commands</a> describe its behaviour, i.e. the way in which the state changes over time.
+Currently, PRISM supports just a few simple types of variables:
+they can either be (finite ranges of) integers or Booleans
+(we ignore <a class='wikilink' href='Real-timeModels.html'>clocks</a> for now).
+</p>
+<p class='vspace'>In the example above, each module has one integer variable with range <code>[0..2]</code>.
+A variable declaration looks like:
+</p>
+<div class='vspace'></div>
+<div class='sourceblock ' id='sourceblock2'>
+  <div class='sourceblocktext'><div class="prism"> <span class="prismident">x</span> : [<span class="prismnum">0</span>..<span class="prismnum">2</span>] <span class="prismkeyword">init</span> <span class="prismnum">0</span>; <br/>
+</div></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/ThePRISMLanguage/ModulesAndVariables?action=sourceblock&amp;num=2' type='text/plain'>[&#036;[Get Code]]</a></div>
+</div>
+
+<p class='vspace'>Notice that the initial value of the variable is also specified.
+A Boolean variable is declared as follows:
+</p>
+<div class='vspace'></div>
+<div class='sourceblock ' id='sourceblock3'>
+  <div class='sourceblocktext'><div class="prism"> <span class="prismident">b</span> : <span class="prismkeyword">bool</span> <span class="prismkeyword">init</span> <span class="prismkeyword">false</span>; <br/>
+</div></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/ThePRISMLanguage/ModulesAndVariables?action=sourceblock&amp;num=3' type='text/plain'>[&#036;[Get Code]]</a></div>
+</div>
+
+<p class='vspace'>It is also possible to omit the initial value of a variable,
+in which case it is assumed to be the lowest value in the range (or <code>false</code> for a Boolean).
+Thus, the variable declarations shown below are equivalent to the ones above.
+As will be described later, it is also possible to specify
+<a class='wikilink' href='MultipleInitialStates.html'>multiple initial states</a> for a model.
+</p>
+<div class='vspace'></div>
+<div class='sourceblock ' id='sourceblock4'>
+  <div class='sourceblocktext'><div class="prism"><span class="prismident">x</span> : [<span class="prismnum">0</span>..<span class="prismnum">2</span>];<br/>
+<span class="prismident">b</span> : <span class="prismkeyword">bool</span>;<br/>
+</div></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/ThePRISMLanguage/ModulesAndVariables?action=sourceblock&amp;num=4' type='text/plain'>[&#036;[Get Code]]</a></div>
+</div>
+
+<p class='vspace'>We also mention that, for a few kinds of model analysis (typically those based on simulation, such as <a class='wikilink' href='../RunningPRISM/ApproximateModelChecking.html'>approximate model checking</a> or <a class='wikilink' href='../ConfiguringPRISM/SolutionMethodsAndOptions.html#fau'>fast adaptive simulation</a>, it is also permissable to use integer variables with unbounded ranges, denoted as:
+</p>
+<div class='vspace'></div>
+<div class='sourceblock ' id='sourceblock5'>
+  <div class='sourceblocktext'><div class="prism"><span class="prismident">x</span> : <span class="prismkeyword">int</span>;<br/>
+<span class="prismident">y</span> : <span class="prismkeyword">int</span> <span class="prismkeyword">init</span> <span class="prismnum">3</span>;<br/>
+</div></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/ThePRISMLanguage/ModulesAndVariables?action=sourceblock&amp;num=5' type='text/plain'>[&#036;[Get Code]]</a></div>
+</div>
+
+<p class='vspace'>Where the state space of the model remains finite, despite the presence of such unbounded variables, you can use the <a class='wikilink' href='../ConfiguringPRISM/ComputationEngines.html'>explicit engine</a> to build and analyse the model.
+</p>
+<div class='vspace'></div><h3>Identifiers</h3>
+<p>The names given to modules and variables are referred to as <em>identifiers</em>.
+Identifiers can be made up of letters, digits and the underscore character, but cannot begin with a digit,
+i.e. they must satisfy the regular expression [A-Za-z_][A-Za-z0-9_]*, and are case-sensitive.
+Furthermore, identifiers cannot be any of the following, which are all reserved keywords in PRISM:
+<code><strong>A</strong></code>,
+<code><strong>bool</strong></code>,
+<code><strong>clock</strong></code>,
+<code><strong>const</strong></code>,
+<code><strong>ctmc</strong></code>,
+<code><strong>C</strong></code>,
+<code><strong>double</strong></code>,
+<code><strong>dtmc</strong></code>,
+<code><strong>E</strong></code>,
+<code><strong>endinit</strong></code>,
+<code><strong>endinvariant</strong></code>,
+<code><strong>endmodule</strong></code>,
+<code><strong>endobservables</strong></code>,
+<code><strong>endrewards</strong></code>,
+<code><strong>endsystem</strong></code>,
+<code><strong>false</strong></code>,
+<code><strong>formula</strong></code>,
+<code><strong>filter</strong></code>,
+<code><strong>func</strong></code>,
+<code><strong>F</strong></code>,
+<code><strong>global</strong></code>,
+<code><strong>G</strong></code>,
+<code><strong>init</strong></code>,
+<code><strong>invariant</strong></code>,
+<code><strong>I</strong></code>,
+<code><strong>int</strong></code>,
+<code><strong>label</strong></code>,
+<code><strong>max</strong></code>,
+<code><strong>mdp</strong></code>,
+<code><strong>min</strong></code>,
+<code><strong>module</strong></code>,
+<code><strong>X</strong></code>,
+<code><strong>nondeterministic</strong></code>,
+<code><strong>observable</strong></code>,
+<code><strong>observables</strong></code>,
+<code><strong>of</strong></code>,
+<code><strong>Pmax</strong></code>,
+<code><strong>Pmin</strong></code>,
+<code><strong>P</strong></code>,
+<code><strong>pomdp</strong></code>,
+<code><strong>popta</strong></code>,
+<code><strong>probabilistic</strong></code>,
+<code><strong>prob</strong></code>,
+<code><strong>pta</strong></code>,
+<code><strong>rate</strong></code>,
+<code><strong>rewards</strong></code>,
+<code><strong>Rmax</strong></code>,
+<code><strong>Rmin</strong></code>,
+<code><strong>R</strong></code>,
+<code><strong>S</strong></code>,
+<code><strong>stochastic</strong></code>,
+<code><strong>system</strong></code>,
+<code><strong>true</strong></code>,
+<code><strong>U</strong></code>,
+<code><strong>W</strong></code>.
+</p>
+</div>
+
+
+</body>
+</html>

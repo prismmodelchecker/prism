@@ -38,9 +38,9 @@ import strat.MDStrategy;
 
 /**
  * Class giving access to the labelled transition system (LTS) underlying a deterministic automaton (DA).
- * This is not particularly efficiently; we assume the DA will probably be relatively small.
+ * This is not particularly efficient; we assume the DA will probably be relatively small.
  */
-public class LTSFromDA extends ModelExplicit implements LTS
+public class LTSFromDA<Value> extends ModelExplicit<Value> implements LTS<Value>
 {
 	/** Underlying DA */
 	private DA<?, ?> da;
@@ -189,7 +189,7 @@ public class LTSFromDA extends ModelExplicit implements LTS
 	}
 
 	@Override
-	public Model constructInducedModel(MDStrategy strat)
+	public Model<Value> constructInducedModel(MDStrategy<Value> strat)
 	{
 		throw new RuntimeException("Not implemented yet");
 	}

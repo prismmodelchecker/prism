@@ -45,10 +45,10 @@ import prism.PrismNotSupportedException;
  * Class that implements the ModelGenerator interface using an explicit model.
  * Allows e.g. simulation of a built model.
  */
-public class ModelModelGenerator implements ModelGenerator
+public class ModelModelGenerator<Value> implements ModelGenerator<Value>
 {
 	// Explicit model + info
-	private Model model;
+	private Model<Value> model;
 	private ModelInfo modelInfo;
 	
 	/** Index of the state current being explored */
@@ -60,7 +60,7 @@ public class ModelModelGenerator implements ModelGenerator
 	{
 		Object action;
 		List<Integer> succs;
-		List<Double> probs;
+		List<Value> probs;
 		
 		public Transitions()
 		{
@@ -72,7 +72,7 @@ public class ModelModelGenerator implements ModelGenerator
 	
 	private List<Transitions> trans = new ArrayList<>();
 	
-	public ModelModelGenerator(Model model, ModelInfo modelInfo)
+	public ModelModelGenerator(Model<Value> model, ModelInfo modelInfo)
 	{
 		this.model = model;
 		this.modelInfo = modelInfo; 
@@ -136,16 +136,16 @@ public class ModelModelGenerator implements ModelGenerator
 		trans.clear();
 		switch (model.getModelType()) {
 		case CTMC:
-			storeTransitions(null, ((CTMC) model).getTransitionsIterator(sExplore));
+			storeTransitions(null, ((CTMC<Value>) model).getTransitionsIterator(sExplore));
 			break;
 		case DTMC:
-			storeTransitions(null, ((DTMC) model).getTransitionsIterator(sExplore));
+			storeTransitions(null, ((DTMC<Value>) model).getTransitionsIterator(sExplore));
 			break;
 		case MDP:
-			int numChoices = ((MDP) model).getNumChoices(sExplore);
+			int numChoices = ((MDP<Value>) model).getNumChoices(sExplore);
 			for (int i = 0; i < numChoices; i++) {
-				Object action = ((MDP) model).getAction(sExplore, i);
-				storeTransitions(action, ((MDP) model).getTransitionsIterator(sExplore, i));
+				Object action = ((MDP<Value>) model).getAction(sExplore, i);
+				storeTransitions(action, ((MDP<Value>) model).getTransitionsIterator(sExplore, i));
 			}
 			break;
 		case CTMDP:
@@ -160,12 +160,12 @@ public class ModelModelGenerator implements ModelGenerator
 	/**
 	 * Store the transitions extracted from an action and Model-provided iterator.
 	 */
-	private void storeTransitions(Object action, Iterator<Map.Entry<Integer, Double>> transitionsIterator)
+	private void storeTransitions(Object action, Iterator<Map.Entry<Integer, Value>> transitionsIterator)
 	{
 		Transitions t = new Transitions();
 		t.action = action;
 		while (transitionsIterator.hasNext()) {
-			Map.Entry<Integer, Double> e = transitionsIterator.next();
+			Map.Entry<Integer, Value> e = transitionsIterator.next();
 			t.succs.add(e.getKey());
 			t.probs.add(e.getValue());
 		}
@@ -191,7 +191,7 @@ public class ModelModelGenerator implements ModelGenerator
 	}
 
 	@Override
-	public double getTransitionProbability(int i, int offset) throws PrismException
+	public Value getTransitionProbability(int i, int offset) throws PrismException
 	{
 		return trans.get(i).probs.get(offset);
 	}

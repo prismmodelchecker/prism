@@ -47,14 +47,14 @@ import strat.MDStrategy;
  * meta-data on the model have to be provided as well. For examples,
  * see the sub-classes contained in this package.
  */
-public abstract class MDPView extends ModelView implements MDP, Cloneable
+public abstract class MDPView<Value> extends ModelView<Value> implements MDP<Value>, Cloneable
 {
 	public MDPView()
 	{
 		super();
 	}
 
-	public MDPView(final MDPView model)
+	public MDPView(final MDPView<Value> model)
 	{
 		super(model);
 	}
@@ -78,7 +78,7 @@ public abstract class MDPView extends ModelView implements MDP, Cloneable
 				final Object action = getAction(state, choice);
 				if (action != null)
 					s += action + ":";
-				s += new Distribution(getTransitionsIterator(state, choice));
+				s += new Distribution<Value>(getTransitionsIterator(state, choice), getEvaluator());
 			}
 			s += "]";
 		}
@@ -91,7 +91,7 @@ public abstract class MDPView extends ModelView implements MDP, Cloneable
 	@Override
 	public SuccessorsIterator getSuccessors(final int state, final int choice)
 	{
-		final Iterator<Entry<Integer, Double>> transitions = getTransitionsIterator(state, choice);
+		final Iterator<Entry<Integer, Value>> transitions = getTransitionsIterator(state, choice);
 
 		return SuccessorsIterator.from(new PrimitiveIterator.OfInt() {
 			public boolean hasNext() {return transitions.hasNext();}
@@ -100,8 +100,8 @@ public abstract class MDPView extends ModelView implements MDP, Cloneable
 	}
 
 	@Override
-	public Model constructInducedModel(final MDStrategy strat)
+	public Model<Value> constructInducedModel(final MDStrategy<Value> strat)
 	{
-		return new DTMCFromMDPAndMDStrategy(this, strat);
+		return new DTMCFromMDPAndMDStrategy<>(this, strat);
 	}
 }

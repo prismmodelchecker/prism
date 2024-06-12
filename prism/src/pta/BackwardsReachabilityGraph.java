@@ -129,7 +129,7 @@ public class BackwardsReachabilityGraph
 			int tr = -1;
 			for (List<List<Integer>> list2 : list) {
 				tr++;
-				Distribution distr = new Distribution();
+				Distribution distr = Distribution.ofDouble();
 				double prob, rest = 0;
 				int j = -1;
 				for (List<Integer> dests : list2) {
@@ -139,7 +139,7 @@ public class BackwardsReachabilityGraph
 						int sNew = mdp.addState();
 						distr.add(sNew, prob);
 						for (int dest : dests) {
-							Distribution distr2 = new Distribution();
+							Distribution distr2 = Distribution.ofDouble();
 							distr2.add(dest, 1.0);
 							mdp.addChoice(sNew, distr2);
 						}
@@ -214,7 +214,7 @@ public class BackwardsReachabilityGraph
 	{
 		if (i == dests.length) {
 			//log.print(src + "/" + tr);
-			Distribution distr = new Distribution();
+			Distribution distr = Distribution.ofDouble();
 			double prob, rest = 0;
 			if (dests.length > 0) {
 				for (int j = 0; j < dests.length; j++) {

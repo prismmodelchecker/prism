@@ -1,0 +1,164 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html>
+<head>
+
+<title>PRISM Manual | ThePRISMLanguage / Real-time Models </title>
+
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1"/>
+
+<!--HeaderText--><style type='text/css'><!--
+  ul, ol, pre, dl, p { margin-top:0px; margin-bottom:0px; }
+  code.escaped { white-space: pre; }
+  .vspace { margin-top:1.33em; }
+  .indent { margin-left:40px; }
+  .outdent { margin-left:40px; text-indent:-40px; }
+  a.createlinktext { text-decoration:none; border-bottom:1px dotted gray; }
+  a.createlink { text-decoration:none; position:relative; top:-0.5em;
+    font-weight:bold; font-size:smaller; border-bottom:none; }
+  img { border:0px; }
+  .editconflict { color:green; 
+  font-style:italic; margin-top:1.33em; margin-bottom:1.33em; }
+
+  table.markup { border:2px dotted #ccf; width:90%; }
+  td.markup1, td.markup2 { padding-left:10px; padding-right:10px; }
+  table.vert td.markup1 { border-bottom:1px solid #ccf; }
+  table.horiz td.markup1 { width:23em; border-right:1px solid #ccf; }
+  table.markup caption { text-align:left; }
+  div.faq p, div.faq pre { margin-left:2em; }
+  div.faq p.question { margin:1em 0 0.75em 0; font-weight:bold; }
+  div.faqtoc div.faq * { display:none; }
+  div.faqtoc div.faq p.question 
+    { display:block; font-weight:normal; margin:0.5em 0 0.5em 20px; line-height:normal; }
+  div.faqtoc div.faq p.question * { display:inline; }
+  td.markup1 pre { white-space: pre-wrap; }
+  .noPmTOC, .PmTOCdiv:empty {display:none;}
+.PmTOCdiv { display: inline-block; font-size: 13px; overflow: auto; max-height: 500px;}
+.PmTOCdiv a { text-decoration: none; display: block; line-height: 1;}
+.PmTOCdiv a.pmtoc-indent1 { margin-left: 1em; }
+.PmTOCdiv a.pmtoc-indent2 { margin-left: 2em; }
+.PmTOCdiv a.pmtoc-indent3 { margin-left: 3em; }
+.PmTOCdiv a.pmtoc-indent4 { margin-left: 4em; }
+.PmTOCdiv a.pmtoc-indent5 { margin-left: 5em; }
+.PmTOCdiv a.pmtoc-indent6 { margin-left: 6em; }
+.back-arrow {font-size: .8rem; text-decoration: none; vertical-align: text-top;}
+#PmTOCchk + label {cursor: pointer;}
+#PmTOCchk {display: none;}
+#PmTOCchk:not(:checked) + label > .pmtoc-show {display: none;}
+#PmTOCchk:checked + label > .pmtoc-hide {display: none;}
+#PmTOCchk:checked + label + div {display: none;}table.sortable th { cursor: pointer; }
+table.sortable th::after { color: transparent; content: "\00A0\025B8"; }
+table.sortable th:hover::after { color: inherit; content: "\00A0\025B8"; }
+table.sortable th.dir-u::after { color: inherit; content: "\00A0\025BE"; }
+table.sortable th.dir-d::after { color: inherit; content: "\00A0\025B4"; } 
+    .frame 
+      { border:1px solid #cccccc; padding:4px; background-color:#f9f9f9; }
+    .lfloat { float:left; margin-right:0.5em; }
+    .rfloat { float:right; margin-left:0.5em; }
+a.varlink { text-decoration:none;}
+
+.sourceblocklink {
+  text-align: right;
+  font-size: smaller;
+}
+.sourceblocktext {
+  padding: 0.5em;
+  border: 1px solid #808080;
+  color: #000000;
+  background-color: #f1f0ed;
+}
+.sourceblocktext div {
+  font-family: monospace;
+  font-size: small;
+  line-height: 1;
+  height: 1%;
+}
+.sourceblocktext div.head,
+.sourceblocktext div.foot {
+  font: italic medium serif;
+  padding: 0.5em;
+}
+
+--></style>  <meta name='robots' content='noindex,nofollow' />
+
+
+<link type="text/css" rel="stylesheet" href="http://www.prismmodelchecker.org/css/base.css"/>
+<link type="text/css" rel="stylesheet" href="http://www.prismmodelchecker.org/css/prism.css"/>
+<link type="text/css" rel="stylesheet" href="http://www.prismmodelchecker.org/css/print.css" media="print"/>
+<link type="text/css" rel="stylesheet" href="http://www.prismmodelchecker.org/css/bib.css"/>
+
+<link type="text/css" rel="stylesheet" href="http://www.prismmodelchecker.org/manual/pub/skins/prismprint/css/prismmanual.css"/>
+<link type="text/css" rel="stylesheet" href="http://www.prismmodelchecker.org/manual/pub/skins/prismprint/css/prismprint.css"/>
+</head>
+
+<body text="#000000" bgcolor="#ffffcc">
+
+<!--PageTitleFmt-->
+  <p><a class='wikilink' href='Main.html'>The PRISM Language</a> /
+</p><h1>Real-time Models</h1>
+
+<!--PageText-->
+<div id='wikitext'>
+<p class='vspace'>So far in this section, we have mainly focused on three types of models: DTMCs, MDPs and CTMCs,
+in which all the variables making up their state are finite.
+PRISM also supports <em>real-time</em> models, in particular,
+<em>probabilistic timed automata</em> (PTAs), which extend MDPs with the ability to model real-time behaviour.
+This is done in the style of <em>timed automata</em> [<a class='wikilink' href='../Main/References.html#AD94'>AD94</a>], by adding <em>clocks</em>,
+real-valued variables which increase with time and can be reset. For background material on PTAs, see for example [<a class='wikilink' href='../Main/References.html#NPS13'>NPS13</a>].
+You can also find several example PTA models included in the PRISM distribution. Look in the <code>prism-examples/ptas</code> directory.
+</p>
+<p class='vspace'>Before describing how PTA features are incorporated into the PRISM modelling language, we give a simple example. Here is a small PTA:
+</p>
+<div class='vspace'></div><div class='img imgonly'><img src='../uploads/pta.png' alt='' /></div>
+<p class='vspace'>and here is a corresponding PRISM model:
+</p>
+<div class='vspace'></div>
+<div class='sourceblock ' id='sourceblock1'>
+  <div class='sourceblocktext'><div class="prism"><span class="prismkeyword">pta</span><br/>
+<br/>
+<span class="prismkeyword">module</span> <span class="prismident">M</span><br/>
+<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="prismident">s</span> : [<span class="prismnum">0</span>..<span class="prismnum">2</span>] <span class="prismkeyword">init</span> <span class="prismnum">0</span>;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="prismident">x</span> : <span class="prismkeyword">clock</span>;<br/>
+<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="prismkeyword">invariant</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="prismident">s</span>=<span class="prismnum">0</span> =&gt; <span class="prismident">x</span>&lt;=<span class="prismnum">2</span>) &amp;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="prismident">s</span>=<span class="prismnum">2</span> =&gt; <span class="prismident">x</span>&lt;=<span class="prismnum">3</span>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="prismkeyword">endinvariant</span><br/>
+<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;[<span class="prismident">send</span>] <span class="prismident">s</span>=<span class="prismnum">0</span> &amp; <span class="prismident">x</span>&gt;=<span class="prismnum">1</span> -&gt; <span class="prismnum">0.9</span>:(<span class="prismident">s</span>'=<span class="prismnum">1</span>)&amp;(<span class="prismident">x</span>'=<span class="prismnum">0</span>) + <span class="prismnum">0.1</span>:(<span class="prismident">s</span>'=<span class="prismnum">2</span>)&amp;(<span class="prismident">x</span>'=<span class="prismnum">0</span>);<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;[<span class="prismident">retry</span>] <span class="prismident">s</span>=<span class="prismnum">2</span> &amp; <span class="prismident">x</span>&gt;=<span class="prismnum">2</span> -&gt; <span class="prismnum">0.95</span>:(<span class="prismident">s</span>'=<span class="prismnum">1</span>) + <span class="prismnum">0.05</span>:(<span class="prismident">s</span>'=<span class="prismnum">2</span>)&amp;(<span class="prismident">x</span>'=<span class="prismnum">0</span>);<br/>
+<br/>
+<span class="prismkeyword">endmodule</span><br/>
+</div></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/ThePRISMLanguage/Real-timeModels?action=sourceblock&amp;num=1' type='text/plain'>[&#036;[Get Code]]</a></div>
+</div>
+
+<p class='vspace'>For modelling PTAs in PRISM, there is a new datatype, <strong><code>clock</code></strong>, used for variables that are clocks. Other types of PRISM variables can be defined in the usual way. In the example above, we use just a single integer variable <code>s</code> to represent the locations of the PTAs.
+</p>
+<p class='vspace'>In a PTA, transitions can include a <em>guard</em>, which constrains when it can occur based on the current value of clocks, and <em>resets</em>, which specify that a clock's values should be set to a new (integer) value. These are both specified in PRISM commands in the usual way: see, for example, the inclusion of <code>x&gt;=1</code> in the guard for the <code>send</code>-labelled command and the updates of the form <code>(x'=0)</code> which reset the clock <code>x</code> to 0.
+</p>
+<p class='vspace'>The other new addition is an <code>invariant</code> construct, which is used to specify an expression describing the clock <em>invariants</em> for each PRISM module. These impose restrictions on the allowable values of clock variables, depending on the values of the other non-clock variables. The <code>invariant</code> construct should appear between the variable declarations and the commands of the module. Often, clock invariants are described separately for each PTA location; hence, the invariant will often take the form of a conjunction of implications, as in the example model above, but more general expressions are also permitted. In the example, the clock <code>x</code> must satisfy <code>x&lt;=2</code> or <code>x&lt;=3</code> when local variables <code>s</code> is 0 or 2, respectively. If <code>s</code> is 1, there is no restriction (since the invariant is effectively <code>true</code> in this case).
+</p>
+<p class='vspace'>Expressions that include reference to clocks, whether in guards or invariants, must satisfy certain conditions to facilitate model checking. In particular, references to clocks must appear as conjunctions of <em>simple clock constraints</em>, i.e. conjunctions of expressions of the form <code>x~c</code> or <code>x~y</code> where <code>x</code> and <code>y</code> are clocks, <code>c</code> is an integer-valued expression and <code>~</code> is one of <code>&lt;</code>, <code>&lt;=</code>, <code>&gt;=</code>, <code>&gt;</code>, <code>=</code>).
+</p>
+<p class='vspace'>There are also some additional restrictions imposed on PTA models that are dependent on which of the PTA model checking <a class='wikilink' href='../ConfiguringPRISM/ComputationEngines.html#pta'>engines</a> is in use.
+</p>
+<p class='vspace'>For the <strong>stochastic games</strong> and <strong>backwards reachability</strong> engines:
+</p>
+<div class='vspace'></div><ul><li>The model must also have a single initial state (i.e. the <code>init...endinit</code> construct is not permitted).
+</li></ul><p class='vspace'>For the <strong>digital clocks</strong> engine:
+</p>
+<div class='vspace'></div><ul><li>Clock constraints cannot use strict comparison operators, e.g. <code>x&lt;=5</code> is allowed, but <code>x&lt;5</code> is not.
+<div class='vspace'></div></li><li>Diagonal clock constraints are not allowed, i.e. those containing references to two clocks, such as <code>x&lt;=y</code>.
+</li></ul><p class='vspace'>Finally, PRISM makes several assumptions about PTAs, regardless of the engine used.
+</p>
+<div class='vspace'></div><ul><li>Firstly PTAs should not exhibit <em>timelocks</em>, i.e. the possibility of reaching a state where no transitions are possible and time cannot elapse beyond a certain point (due to invariant conditions). PRISM checks for timelocks and reports an error if one is found.
+<div class='vspace'></div></li><li>Secondly, PTAs should be <em>well-formed</em> and <em>non-zeno</em> (see e.g. [<a class='wikilink' href='../Main/References.html#KNSW07'>KNSW07</a>] for details). Currently, PRISM does not check automatically that these assumptions are satisfied.
+</li></ul><div class='vspace'></div>
+</div>
+
+
+</body>
+</html>

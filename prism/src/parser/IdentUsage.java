@@ -34,7 +34,7 @@ import prism.PrismLangException;
 /**
  * Helper class to keep track of a set of identifiers that have been used.
  */
-public class IdentUsage
+public class IdentUsage implements Cloneable
 {
 	// Are these identifiers used in (double) quotes?
 	private boolean quoted = false;
@@ -125,11 +125,23 @@ public class IdentUsage
 		}
 	}
 
-	@SuppressWarnings("unchecked")
 	public IdentUsage deepCopy()
 	{
-		IdentUsage ret = new IdentUsage(quoted);
-		ret.identDecls = (HashMap<String, ASTElement>) identDecls.clone();
-		return ret;
+		return clone();
+	}
+
+	@SuppressWarnings("unchecked")
+	@Override
+	public IdentUsage clone()
+	{
+		try {
+			IdentUsage clone = (IdentUsage) super.clone();
+			clone.identDecls = (HashMap<String, ASTElement>) identDecls.clone();
+			clone.identUses = (HashMap<String, String>) identUses.clone();
+			clone.identLocs = (HashMap<String, String>) identLocs.clone();
+			return clone;
+		} catch (CloneNotSupportedException e) {
+			throw new InternalError("Object#clone is expected to work for Cloneable objects.", e);
+		}
 	}
 }

@@ -1,0 +1,17 @@
+// RESULT: 0.1
+Pmin=? [ F s=1 ]
+// RESULT: 0.2
+Pmax=? [ F s=1 ]
+// RESULT: 0.8
+Pmin=? [ F s=2 ]
+// RESULT: 0.9
+Pmax=? [ F s=2 ]
+
+// RESULT: 0.8
+Pmin=? [ (G! s=1) ]
+// RESULT: 0.9
+Pmax=? [ (G! s=1) ]
+// RESULT: 0.1
+Pmin=? [ (G! s=2) ]
+// RESULT: 0.2
+Pmax=? [ (G! s=2) ]

@@ -1,0 +1,199 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html>
+<head>
+
+<title>PRISM Manual | InstallingPRISM / CommonProblemsAndQuestions </title>
+
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1"/>
+
+<!--HeaderText--><style type='text/css'><!--
+  ul, ol, pre, dl, p { margin-top:0px; margin-bottom:0px; }
+  code.escaped { white-space: pre; }
+  .vspace { margin-top:1.33em; }
+  .indent { margin-left:40px; }
+  .outdent { margin-left:40px; text-indent:-40px; }
+  a.createlinktext { text-decoration:none; border-bottom:1px dotted gray; }
+  a.createlink { text-decoration:none; position:relative; top:-0.5em;
+    font-weight:bold; font-size:smaller; border-bottom:none; }
+  img { border:0px; }
+  .editconflict { color:green; 
+  font-style:italic; margin-top:1.33em; margin-bottom:1.33em; }
+
+  table.markup { border:2px dotted #ccf; width:90%; }
+  td.markup1, td.markup2 { padding-left:10px; padding-right:10px; }
+  table.vert td.markup1 { border-bottom:1px solid #ccf; }
+  table.horiz td.markup1 { width:23em; border-right:1px solid #ccf; }
+  table.markup caption { text-align:left; }
+  div.faq p, div.faq pre { margin-left:2em; }
+  div.faq p.question { margin:1em 0 0.75em 0; font-weight:bold; }
+  div.faqtoc div.faq * { display:none; }
+  div.faqtoc div.faq p.question 
+    { display:block; font-weight:normal; margin:0.5em 0 0.5em 20px; line-height:normal; }
+  div.faqtoc div.faq p.question * { display:inline; }
+  td.markup1 pre { white-space: pre-wrap; }
+  .noPmTOC, .PmTOCdiv:empty {display:none;}
+.PmTOCdiv { display: inline-block; font-size: 13px; overflow: auto; max-height: 500px;}
+.PmTOCdiv a { text-decoration: none; display: block; line-height: 1;}
+.PmTOCdiv a.pmtoc-indent1 { margin-left: 1em; }
+.PmTOCdiv a.pmtoc-indent2 { margin-left: 2em; }
+.PmTOCdiv a.pmtoc-indent3 { margin-left: 3em; }
+.PmTOCdiv a.pmtoc-indent4 { margin-left: 4em; }
+.PmTOCdiv a.pmtoc-indent5 { margin-left: 5em; }
+.PmTOCdiv a.pmtoc-indent6 { margin-left: 6em; }
+.back-arrow {font-size: .8rem; text-decoration: none; vertical-align: text-top;}
+#PmTOCchk + label {cursor: pointer;}
+#PmTOCchk {display: none;}
+#PmTOCchk:not(:checked) + label > .pmtoc-show {display: none;}
+#PmTOCchk:checked + label > .pmtoc-hide {display: none;}
+#PmTOCchk:checked + label + div {display: none;}table.sortable th { cursor: pointer; }
+table.sortable th::after { color: transparent; content: "\00A0\025B8"; }
+table.sortable th:hover::after { color: inherit; content: "\00A0\025B8"; }
+table.sortable th.dir-u::after { color: inherit; content: "\00A0\025BE"; }
+table.sortable th.dir-d::after { color: inherit; content: "\00A0\025B4"; } 
+    .frame 
+      { border:1px solid #cccccc; padding:4px; background-color:#f9f9f9; }
+    .lfloat { float:left; margin-right:0.5em; }
+    .rfloat { float:right; margin-left:0.5em; }
+a.varlink { text-decoration:none;}
+
+--></style>  <meta name='robots' content='noindex,nofollow' />
+
+
+<link type="text/css" rel="stylesheet" href="http://www.prismmodelchecker.org/css/base.css"/>
+<link type="text/css" rel="stylesheet" href="http://www.prismmodelchecker.org/css/prism.css"/>
+<link type="text/css" rel="stylesheet" href="http://www.prismmodelchecker.org/css/print.css" media="print"/>
+<link type="text/css" rel="stylesheet" href="http://www.prismmodelchecker.org/css/bib.css"/>
+
+<link type="text/css" rel="stylesheet" href="http://www.prismmodelchecker.org/manual/pub/skins/prismprint/css/prismmanual.css"/>
+<link type="text/css" rel="stylesheet" href="http://www.prismmodelchecker.org/manual/pub/skins/prismprint/css/prismprint.css"/>
+</head>
+
+<body text="#000000" bgcolor="#ffffcc">
+
+<!--PageTitleFmt-->
+  <p><a class='wikilink' href='Main.html'>Installing PRISM</a> /
+</p><h1>Common Problems And Questions</h1>
+
+<!--PageText-->
+<div id='wikitext'>
+<p>This section describes some of the most common problems and questions related to the installation and running of PRISM. These are grouped into the following categories:
+</p>
+<div class='vspace'></div><ul><li>Running PRISM on Windows
+</li><li>Running PRISM on non-Windows platforms
+</li><li>Compiling PRISM
+</li><li>Other issues
+</li></ul><div class='vspace'></div><hr />
+<div class='vspace'></div><h2>Running PRISM on Windows</h2>
+<p><strong>When I try to run PRISM on Windows, I double-click the PRISM shortcut but nothing happens.</strong>
+</p>
+<div class='vspace'></div><div class='answer' > 
+<p>The most common cause of this is that you either do not have Java installed or the <code>java</code> executable is not in your path. In any case, to determine the exact problem, launch a command shell and navigate to the <code>bin</code> directory inside the directory where you installed PRISM (you can use the "PRISM (console)" shortcut installed in the start menu to do this). Then, type <code>xprism.bat</code> and see what error message is displayed.
+</p></div>
+<div class='vspace'></div><hr />
+<div class='vspace'></div><h2>Running PRISM on non-Windows platforms</h2>
+<p><strong>When I try to run PRISM, I get one of these errors:</strong><br />
+</p><ul><li><strong><code>Exception in thread "main" java.lang.NoClassDefFoundError: ...</code></strong>
+</li><li><strong><code>java.lang.UnsatisfiedLinkError: no prism in java.library.path</code></strong>
+</li><li><strong><code>java.lang.UnsatisfiedLinkError: ...<br />Library not loaded: ../../lib/libdd.dylib</code></strong>
+</li></ul><div class='vspace'></div><div class='answer' > 
+<p>Things to check:
+</p>
+<p class='vspace'>(1) Did you run <code>install.sh</code> from the PRISM directory? (non-Windows platforms)
+</p>
+<p class='vspace'>(2) If you compiled PRISM from source code, are you sure no errors occurred during the process? To check, go into the PRISM directory, type <code>make clean_all</code> and then <code>make</code>, checking the output (especially at the end) carefully for any error messages.
+</p>
+<p class='vspace'>(3) Are you running on Mac OS (notably El Capitan)? This had some issues with PRISM calling <code>java</code>.
+A workaround is to specify the exact path to the <code>java</code> when running PRISM, e.g.:
+</p>
+<p class='vspace'><code>PRISM_JAVA=/Library/Java/JavaVirtualMachines/jdk1.9.jdk/Contents/Home/bin/java prism</code>
+</p>
+<p class='vspace'>or by replacing the value of PRISM_JAVA directly in the prism script
+directly.
+</p></div>
+<p class='vspace'><strong>When I try to run PRISM, I get an error of the form:<br /><code>Exception in thread "main" java.lang.UnsupportedClassVersionError: Bad version number in .class file</code></strong>
+</p>
+<div class='vspace'></div><div class='answer' > 
+<p>Your version of Java is too old. Update or install a newer version of Java, and then try again.
+</p></div>
+<div class='vspace'></div><hr />
+<div class='vspace'></div><h2>Compiling PRISM</h2>
+<p><strong>When I try to compile PRISM, <code>make</code> seems to get stuck in an infinite loop</strong>
+</p>
+<div class='vspace'></div><div class='answer' > 
+<p>This is probably due to the detection of Java failing. Specify the location of your Java directory by hand, e.g. <code>make JAVA_DIR=/usr/java/jdk1.9.0</code>. See the <a class='wikilink' href='Main.html'>Instructions</a> page for more on this.
+</p></div>
+<p class='vspace'><strong>When I try to compile PRISM, I get errors of the form:<br /><code>/usr/bin/libtool: for architecture: cputype (16777234) cpusubtype (0) file: -lSystem is not an object file (not allowed in a library)</code></strong>
+</p>
+<div class='vspace'></div><div class='answer' > 
+<p>Are you compiling PRISM on Max OS X? If so, the likely explanation is that you have upgraded to a new version of Mac OS X but have not upgraded the developer tools (eg. XCode). Upgrade and try again.
+</p></div>
+<p class='vspace'><strong>When I try to compile PRISM, nothing seems to happen</strong>
+</p>
+<div class='vspace'></div><div class='answer' > 
+<p>Perhaps you are not using the GNU version of <code>make</code>. Try typing <code>make -v</code> to find out. On some systems, GNU make is called <code>gmake</code>.
+</p></div>
+<p class='vspace'><strong>When I try to compile PRISM, I get errors of the form:<br /><code>Unexpected end of line seen...</code><br />or:<br /><code>make: Fatal error in reader: Makefile, line 58: Unexpected end of line seen...</code></strong>
+</p>
+<div class='vspace'></div><div class='answer' > 
+<p>Perhaps you are not using the GNU version of <code>make</code>. Try typing <code>make -v</code> to find out. On some systems, GNU make is called <code>gmake</code>.
+</p></div>
+<p class='vspace'><strong>When I try to compile PRISM, I get an error of the form:<br /><code>./setup.sh: line 33: syntax error: unexpected end of file</code></strong>
+</p>
+<div class='vspace'></div><div class='answer' > 
+<p>Are you building on Cygwin? And did you unpack PRISM using WinZip? If so, unpack from Cygwin, using <code>tar xfz</code> (or similar) instead.
+</p></div>
+<p class='vspace'><strong>When I try to compile PRISM, I get an error of the form:<br /><code>Assembler messages:  Fatal error: can't create ../../obj/dd/dd_abstr.o: No such file or directory</code></strong>
+</p>
+<div class='vspace'></div><div class='answer' > 
+<p>Did you unpack PRISM using a graphical tool or file manager? If so, unpack using <code>tar xfz</code> (or similar) instead.
+</p></div>
+<p class='vspace'><strong>Do I have to use GNU <code>make</code> to build PRISM?</strong>
+</p>
+<div class='vspace'></div><div class='answer' > 
+<p>Strictly speaking, no, but you will have to modify the various PRISM Makefiles manually to overcome this.
+</p></div>
+<p class='vspace'><strong>Can I build PRISM on operating systems other than those currently supported?</strong>
+</p>
+<div class='vspace'></div><div class='answer' > 
+<p>PRISM should be suitable for any Unix/Linux variant.
+</p>
+<p class='vspace'>The first thing you will need to do is compile CUDD (the BDD library used by and included in PRISM) on that platform.
+Fortunately, CUDD has already been successfully built on a large number of
+operating systems. Have a look at the sample Makefiles we provide (i.e. the
+files <code>cudd/Makefile.*</code>) which are slight variants of the original Makefile
+provided with CUDD (found here: <code>cudd/modified/orig/Makefile</code>). They contain
+instructions on how to modify it for various platforms. You can then call
+your new modified makefile something appropriate (<code>cudd/Makefile.$OSTYPE</code>) and
+proceed to build PRISM as usual. To just build CUDD, not PRISM, type
+<code>make cuddpackage</code> instead of <code>make</code>.
+</p>
+<p class='vspace'>Next, look at the main PRISM Makefile, in particular, each place where the
+variable <code>$OSTYPE</code> is referred to. Most lines include comments and further
+instructions. Once you have done this, proceed as usual.
+</p>
+<p class='vspace'>If you do successfully build PRISM on other platforms, please let us know
+so we can include this information in future releases. Thanks.
+</p></div>
+<div class='vspace'></div><hr />
+<div class='vspace'></div><h2>Other issues</h2>
+<p><strong>How do I uninstall PRISM?</strong>
+</p>
+<div class='vspace'></div><div class='answer' > 
+<p>If you installed PRISM on Windows using the self-extracting installer, you can uninstall it using the option on the start menu. If you didn't add these shortcuts, just run <code>uninstall.exe</code> from the directory where you installed PRISM.
+</p>
+<p class='vspace'>For older versions of PRISM on Windows or on any other platform, simply delete the directory containing it.
+</p>
+<p class='vspace'>The only thing that is not removed via either of these methods is the <code>.prism</code> file containing your PRISM settings which is in your home directory (see the section "<a class='wikilink' href='../ConfiguringPRISM/Main.html'>Configuring PRISM</a>"). You may wish to retain this when upgrading.
+</p></div>
+<p class='vspace'><strong>I still have a problem installing/running PRISM. What can I do?</strong>
+</p>
+<div class='vspace'></div><div class='answer' > 
+<p>Please post a message in the discussion group (see the <a class='urllink' href='http://www.prismmodelchecker.org/support.php'>support</a> section of the PRISM website).
+</p></div>
+</div>
+
+
+</body>
+</html>

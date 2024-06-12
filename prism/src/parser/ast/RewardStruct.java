@@ -26,15 +26,16 @@
 
 package parser.ast;
 
-import java.util.Vector;
+import java.util.ArrayList;
 
-import parser.visitor.*;
+import parser.visitor.ASTVisitor;
+import parser.visitor.DeepCopy;
 import prism.PrismLangException;
 
 public class RewardStruct extends ASTElement
 {
 	private String name;		// name (optional)
-	private Vector<RewardStructItem> items;		// list of items
+	private ArrayList<RewardStructItem> items;		// list of items
 	private int numStateItems;	// how may of the items are state rewards
 	private int numTransItems;	// how may of the items are transition rewards
 	
@@ -43,7 +44,7 @@ public class RewardStruct extends ASTElement
 	public RewardStruct()
 	{
 		name = "";
-		items = new Vector<RewardStructItem>();
+		items = new ArrayList<>();
 		numStateItems = 0;
 		numTransItems = 0;
 	}
@@ -97,7 +98,7 @@ public class RewardStruct extends ASTElement
 	
 	public RewardStructItem getRewardStructItem(int i)
 	{
-		return items.elementAt(i);
+		return items.get(i);
 	}
 	
 	public String getSynch(int i)
@@ -145,20 +146,23 @@ public class RewardStruct extends ASTElement
 		return s;
 	}
 	
-	/**
-	 * Perform a deep copy.
-	 */
-	public ASTElement deepCopy()
+	@Override
+	public RewardStruct deepCopy(DeepCopy copier) throws PrismLangException
 	{
-		int i, n;
-		RewardStruct ret = new RewardStruct();
-		ret.setName(name);
-		n = getNumItems();
-		for (i = 0; i < n; i++) {
-			ret.addItem((RewardStructItem)getRewardStructItem(i).deepCopy());
-		}
-		ret.setPosition(this);
-		return ret;
+		copier.copyAll(items);
+
+		return this;
+	}
+
+	@SuppressWarnings("unchecked")
+	@Override
+	public RewardStruct clone()
+	{
+		RewardStruct clone = (RewardStruct) super.clone();
+
+		clone.items = (ArrayList<RewardStructItem>) items.clone();
+
+		return clone;
 	}
 }
 

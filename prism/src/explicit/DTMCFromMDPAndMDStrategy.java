@@ -41,17 +41,17 @@ import strat.MDStrategy;
 * from an MDP and a memoryless deterministic (MD) adversary.
 * This class is read-only: most of the data is pointers to other model info.
 */
-public class DTMCFromMDPAndMDStrategy extends DTMCExplicit
+public class DTMCFromMDPAndMDStrategy<Value> extends DTMCExplicit<Value>
 {
 	// Parent MDP
-	protected MDP mdp;
+	protected MDP<Value> mdp;
 	// MD strategy
 	protected MDStrategy strat;
 
 	/**
 	 * Constructor: create from MDP and memoryless adversary.
 	 */
-	public DTMCFromMDPAndMDStrategy(MDP mdp, MDStrategy strat)
+	public DTMCFromMDPAndMDStrategy(MDP<Value> mdp, MDStrategy strat)
 	{
 		this.mdp = mdp;
 		this.numStates = mdp.getNumStates();
@@ -143,19 +143,19 @@ public class DTMCFromMDPAndMDStrategy extends DTMCExplicit
 
 	// Accessors (for DTMC)
 
-	public Iterator<Entry<Integer, Double>> getTransitionsIterator(int s)
+	public Iterator<Entry<Integer, Value>> getTransitionsIterator(int s)
 	{
 		if (strat.isChoiceDefined(s)) {
 			return mdp.getTransitionsIterator(s, strat.getChoiceIndex(s));
 		} else {
 			// Empty iterator
-			Map<Integer,Double> empty = Collections.emptyMap();
+			Map<Integer,Value> empty = Collections.emptyMap();
 			return empty.entrySet().iterator();
 		}
 	}
 
 	@Override
-	public void forEachTransition(int s, TransitionConsumer c)
+	public void forEachTransition(int s, TransitionConsumer<Value> c)
 	{
 		if (!strat.isChoiceDefined(s)) {
 			return;
@@ -176,7 +176,7 @@ public class DTMCFromMDPAndMDStrategy extends DTMCExplicit
 	}
 
 	@Override
-	public double mvMultRewSingle(int s, double vect[], MCRewards mcRewards)
+	public double mvMultRewSingle(int s, double vect[], MCRewards<Double> mcRewards)
 	{
 		return strat.isChoiceDefined(s) ? mdp.mvMultRewSingle(s, strat.getChoiceIndex(s), vect, mcRewards) : 0;
 	}

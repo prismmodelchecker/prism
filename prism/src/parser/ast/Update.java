@@ -30,12 +30,15 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.stream.Collectors;
 
+import parser.EvaluateContext;
+import parser.EvaluateContext.EvalMode;
+import parser.EvaluateContextState;
 import parser.EvaluateContextSubstate;
 import parser.State;
-import parser.Values;
 import parser.VarList;
 import parser.type.Type;
 import parser.visitor.ASTVisitor;
+import parser.visitor.DeepCopy;
 import prism.PrismLangException;
 
 /**
@@ -198,63 +201,6 @@ public class Update extends ASTElement implements Iterable<UpdateElement>
 	}
 
 	/**
-	 * Execute this update, based on variable values specified as a Values object,
-	 * returning the result as a new Values object copied from the existing one.
-	 * Values of any constants should also be provided.
-	 * @param constantValues Values for constants
-	 * @param oldValues Variable values in current state
-	 */
-	public Values update(Values constantValues, Values oldValues) throws PrismLangException
-	{
-		Values res = new Values(oldValues);
-		update(constantValues, oldValues, res);
-		return res;
-	}
-
-	/**
-	 * Execute this update, based on variable values specified as a Values object,
-	 * applying changes in variables to a second Values object. 
-	 * Values of any constants should also be provided.
-	 * @param constantValues Values for constants
-	 * @param oldValues Variable values in current state
-	 * @param newValues Values object to apply changes to
-	 */
-	public void update(Values constantValues, Values oldValues, Values newValues) throws PrismLangException
-	{
-		for (UpdateElement e : this) {
-			e.update(constantValues, oldValues, newValues);
-		}
-	}
-
-	/**
-	 * Execute this update, based on variable values specified as a State object,
-	 * returning the result as a new State object copied from the existing one.
-	 * It is assumed that any constants have already been defined.
-	 * @param oldState Variable values in current state
-	 */
-	public State update(State oldState) throws PrismLangException
-	{
-		State res = new State(oldState);
-		update(oldState, res);
-		return res;
-	}
-
-	/**
-	 * Execute this update, based on variable values specified as a State object.
-	 * Apply changes in variables to a provided copy of the State object.
-	 * (i.e. oldState and newState should be equal when passed in) 
-	 * It is assumed that any constants have already been defined.
-	 * <br>
-	 * Arithmetic expressions are evaluated using the default evaluate (i.e., not using exact arithmetic)
-	 * @param oldState Variable values in current state
-	 * @param newState State object to apply changes to
-	 */
-	public void update(State oldState, State newState) throws PrismLangException
-	{
-		update(oldState, newState, false);
-	}
-
-	/**
 	 * Execute this update, based on variable values specified as a State object.
 	 * Apply changes in variables to a provided copy of the State object.
 	 * (i.e. oldState and newState should be equal when passed in)
@@ -262,11 +208,14 @@ public class Update extends ASTElement implements Iterable<UpdateElement>
 	 * @param oldState Variable values in current state
 	 * @param newState State object to apply changes to
 	 * @param exact evaluate arithmetic expressions exactly?
+	 * @param varList VarList for info about state variables
 	 */
-	public void update(State oldState, State newState, boolean exact) throws PrismLangException
+	public void update(State oldState, State newState, boolean exact, VarList varList) throws PrismLangException
 	{
+		EvaluateContext ec = new EvaluateContextState(oldState);
+		ec.setEvaluationMode(exact ? EvalMode.EXACT : EvalMode.FP);
 		for (UpdateElement e : this) {
-			e.update(oldState, newState, exact);
+			e.update(ec, newState, varList);
 		}
 	}
 
@@ -319,14 +268,22 @@ public class Update extends ASTElement implements Iterable<UpdateElement>
 	}
 
 	@Override
-	public ASTElement deepCopy()
+	public Update deepCopy(DeepCopy copier) throws PrismLangException
 	{
-		Update ret = new Update();
-		for (UpdateElement e : this) {
-			ret.addElement(e.deepCopy());
-		}
-		ret.setPosition(this);
-		return ret;
+		copier.copyAll(elements);
+
+		return this;
+	}
+
+	@SuppressWarnings("unchecked")
+	@Override
+	public Update clone()
+	{
+		Update clone = (Update) super.clone();
+
+		clone.elements = (ArrayList<UpdateElement>) elements.clone();
+
+		return clone;
 	}
 	
 	// Other methods:

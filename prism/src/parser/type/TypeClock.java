@@ -68,9 +68,9 @@ public class TypeClock extends Type
 	}
 	
 	@Override
-	public boolean canAssign(Type type)
+	public boolean canCastTypeTo(Type type)
 	{
-		return (type instanceof TypeClock);
+		return (type instanceof TypeClock || TypeDouble.getInstance().canCastTypeTo(type));
 	}
 	
 	@Override

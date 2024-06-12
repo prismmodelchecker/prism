@@ -28,6 +28,7 @@ package parser.ast;
 
 import parser.EvaluateContext;
 import parser.visitor.ASTVisitor;
+import parser.visitor.DeepCopy;
 import prism.PrismLangException;
 
 public class ExpressionTemporal extends Expression
@@ -258,6 +259,27 @@ public class ExpressionTemporal extends Expression
 		return false;
 	}
 
+	@Override
+	public Precedence getPrecedence()
+	{
+		switch (op) {
+			case P_X:
+			case P_F:
+			case P_G:
+			case R_C:
+			case R_I:
+			case R_F:
+			case R_S:
+				return Precedence.TEMPORAL_UNARY;
+			case P_U:
+			case P_W:
+			case P_R:
+				return Precedence.TEMPORAL_BINARY;
+			default:
+				return null;
+		}
+	}
+
 	// Methods required for ASTElement:
 
 	@Override
@@ -267,20 +289,20 @@ public class ExpressionTemporal extends Expression
 	}
 
 	@Override
-	public Expression deepCopy()
+	public ExpressionTemporal deepCopy(DeepCopy copier) throws PrismLangException
 	{
-		ExpressionTemporal expr = new ExpressionTemporal();
-		expr.setOperator(op);
-		if (operand1 != null)
-			expr.setOperand1(operand1.deepCopy());
-		if (operand2 != null)
-			expr.setOperand2(operand2.deepCopy());
-		expr.setLowerBound(lBound == null ? null : lBound.deepCopy(), lBoundStrict);
-		expr.setUpperBound(uBound == null ? null : uBound.deepCopy(), uBoundStrict);
-		expr.equals = equals;
-		expr.setType(type);
-		expr.setPosition(this);
-		return expr;
+		operand1 = copier.copy(operand1);
+		operand2 = copier.copy(operand2);
+		lBound = copier.copy(lBound);
+		uBound = copier.copy(uBound);
+
+		return this;
+	}
+
+	@Override
+	public ExpressionTemporal clone()
+	{
+		return (ExpressionTemporal) super.clone();
 	}
 
 	// Standard methods
@@ -288,30 +310,52 @@ public class ExpressionTemporal extends Expression
 	@Override
 	public String toString()
 	{
-		String s = "";
-		if (operand1 != null)
-			s += operand1 + " ";
-		s += opSymbols[op];
+		StringBuilder builder = new StringBuilder();
+		if (operand1 != null) {
+			// Binary temporal operators are generally not assumed to be commutative
+			builder.append(Expression.toStringPrecLeq(operand1, this));
+			builder.append(" ");
+		}
+		builder.append(opSymbols[op]);
 		if (lBound == null) {
 			if (uBound != null) {
-				if (op != R_I)
-					s += "<" + (uBoundStrict ? "" : "=") + uBound;
-				else
-					s += "=" + uBound;
+				if (op != R_I) {
+					builder.append("<");
+					builder.append(uBoundStrict ? "" : "=");
+				} else {
+					builder.append("=");
+				}
+				builder.append(uBound);
 			}
 		} else {
 			if (uBound == null) {
-				s += ">" + (lBoundStrict ? "" : "=") + lBound;
+				builder.append(">");
+				builder.append(lBoundStrict ? "" : "=");
+				builder.append(lBound);
 			} else {
-				if (equals)
-					s += "=" + lBound;
-				else
-					s += "[" + lBound + "," + uBound + "]";
+				if (equals) {
+					builder.append("=");
+					builder.append(lBound);
+				} else {
+					builder.append("[");
+					builder.append(lBound);
+					builder.append(",");
+					builder.append(uBound);
+					builder.append("]");
+				}
 			}
 		}
-		if (operand2 != null)
-			s += " " + operand2;
-		return s;
+		if (operand2 != null) {
+			builder.append(" ");
+			if (operand1 != null) {
+				// Binary temporal operators are generally not assumed to be commutative
+				builder.append(Expression.toStringPrecLeq(operand2, this));
+			} else {
+				// Unary temporal operators can be nested without parenthesising
+				builder.append(Expression.toStringPrecLt(operand2, this));
+			}
+		}
+		return builder.toString();
 	}
 
 	@Override

@@ -1,0 +1,15 @@
+// Minimum probability of not using fresh IP address within deadline
+// RESULT (err=0.05,N=200,K=5,reset=false,deadline=15):0.6507680573
+"deadline_min1": Pminmin=? [ !(l=4 & ip=2) U t>=deadline ];
+
+// Minimum probability of not using fresh IP address within deadline
+// RESULT (err=0.05,N=200,K=5,reset=false,deadline=15):0.6840604592
+"deadline_min2": Pminmax=? [ !(l=4 & ip=2) U t>=deadline ];
+
+// Maximum probability of not using fresh IP address within deadline
+// RESULT (err=0.05,N=200,K=5,reset=false,deadline=15):0.6510765255905512
+"deadline_max1": Pmaxmin=? [ !(l=4 & ip=2) U t>=deadline ];
+
+// Maximum probability of not using fresh IP address within deadline
+// RESULT (err=0.05,N=200,K=5,reset=false,deadline=15):0.6843073326771654
+"deadline_max2": Pmaxmax=? [ !(l=4 & ip=2) U t>=deadline ];

@@ -111,6 +111,16 @@ ifeq ($(OSTYPE),cygwin)
     endif
 endif
 
+##################
+# Pre-processing #
+##################
+
+# Convert scripts needed for building, in case extracted with CRLF endings
+PRE_PROC := $(shell if [ "$(OSTYPE)" = "cygwin" ]; then \
+  dos2unix "$(PRISM_SRC_DIR)"/scripts/*.sh; \
+  dos2unix "$(CUDD_DIR)"/setup.sh; \
+fi 2> /dev/null)
+
 ########
 # Java #
 ########
@@ -128,11 +138,7 @@ DETECT_JAVAC = $(shell $(PRISM_SRC_DIR)/scripts/findjavac.sh 2> /dev/null)
 ifeq ("$(DETECT_JAVAC)","")
   JAVA_DIR =
 else
-  ifneq (darwin,$(OSTYPE))
-    JAVA_DIR = $(shell dirname "$(DETECT_JAVAC)" | sed 's/\/bin//')
-  else
-    JAVA_DIR = $(shell dirname "$(DETECT_JAVAC)" | sed 's/\/Commands//')
-  endif
+  JAVA_DIR = $(shell dirname "$(DETECT_JAVAC)" | sed -e 's/\/bin//' -e 's/\/Commands//')
 endif
 
 # As a backup way of detecting JAVA_DIR, run java_home
@@ -197,7 +203,7 @@ OPTIMISE = -O3
 
 # Compiler warnings to enable:
 # (WARNING: must not contain a % symbol!)
-WARNINGS = -Wformat
+WARNINGS = #-Wformat
 
 # Flags for compilation/linking
 # Flags to generate shared libraries
@@ -209,35 +215,39 @@ WARNINGS = -Wformat
 ifeq ($(OSTYPE),linux)
 	ifeq ($(ARCH),amd64)
 		# Position Independent Code required on AMD64/Itanium
-		CFLAGS = -m64 -fPIC -DPIC -DHAVE_IEEE_754 -DBSD -DSIZEOF_VOID_P=8 -DSIZEOF_LONG=8 $(DEBUG) $(OPTIMISE) $(WARNINGS)
+		CFLAGS = -m64 -fPIC -DPIC $(DEBUG) $(OPTIMISE) $(WARNINGS)
 		CXXFLAGS = --std=c++11 $(CFLAGS)
-		LDFLAGS = $(CFLAGS)
+		LDFLAGS =
 		BINDISTSUFFIX = linux64
+		BINDISTARCH = x86
 	else
 	ifeq ($(ARCH),ia64)
 		# Position Independent Code required on AMD64/Itanium
 		# Note: We omit the -m64 flag from here since it seems to be unsupported by gcc on IA64
-		CFLAGS = -fPIC -DPIC -DHAVE_IEEE_754 -DBSD -DSIZEOF_VOID_P=8 -DSIZEOF_LONG=8 $(DEBUG) $(OPTIMISE) $(WARNINGS)
+		CFLAGS = -fPIC -DPIC $(DEBUG) $(OPTIMISE) $(WARNINGS)
 		CXXFLAGS = --std=c++11 $(CFLAGS)
-		LDFLAGS = $(CFLAGS)
+		LDFLAGS =
 		BINDISTSUFFIX = linux64
+		BINDISTARCH = ia64
 	else
 	ifeq ($(ARCH),aarch64)
 		# Position Independent Code required on Aarch64
-		CFLAGS = -fPIC -DPIC -DHAVE_IEEE_754 -DBSD -DSIZEOF_VOID_P=8 -DSIZEOF_LONG=8 $(DEBUG) $(OPTIMISE) $(WARNINGS)
+		CFLAGS = -fPIC -DPIC $(DEBUG) $(OPTIMISE) $(WARNINGS)
 		CXXFLAGS = --std=c++11 $(CFLAGS)
-		LDFLAGS = $(CFLAGS)
+		LDFLAGS =
 		BINDISTSUFFIX = linux64
+		BINDISTARCH = arm
 	else
-		CFLAGS = -m32 -malign-double -DHAVE_IEEE_754 -DBSD $(DEBUG) $(OPTIMISE) $(WARNINGS)
+		CFLAGS = -m32 $(DEBUG) $(OPTIMISE) $(WARNINGS)
 		CXXFLAGS = --std=c++11 $(CFLAGS)
-		LDFLAGS = $(CFLAGS)
+		LDFLAGS =
 		BINDISTSUFFIX = linux32
+		BINDISTARCH = x86
 	endif
 	endif
 	endif
 	BIN_TARGETS=prism.linux xprism.linux
-	JFLAGS = -encoding UTF8
+	JFLAGS := -encoding UTF8
 	SHARED = -shared
 	#SHARED = -G
 	EXE =
@@ -248,12 +258,13 @@ ifeq ($(OSTYPE),linux)
 endif
 # Solaris
 ifeq ($(OSTYPE),solaris)
-	CFLAGS = -mcpu=ultrasparc -DHAVE_IEEE_754 -DUNIX100 -DEPD_BIG_ENDIAN $(DEBUG) $(OPTIMISE) $(WARNINGS)
+	CFLAGS = -mcpu=ultrasparc $(DEBUG) $(OPTIMISE) $(WARNINGS)
 	CXXFLAGS = --std=c++11 $(CFLAGS)
-	LDFLAGS = $(CFLAGS)
+	LDFLAGS =
 	BINDISTSUFFIX = solaris
+	BINDISTARCH = solaris
 	BIN_TARGETS=prism.linux xprism.linux
-	JFLAGS = -encoding UTF8
+	JFLAGS := -encoding UTF8
 	SHARED = -shared -mimpure-text
 	EXE =
 	LIBPREFIX = lib
@@ -263,21 +274,25 @@ ifeq ($(OSTYPE),solaris)
 endif
 # Cygwin
 ifeq ($(OSTYPE),cygwin)
+	# -DWIN32 needed for lpsolve (included e.g. in sparse) - WIN32 is only defined by mingw/gcc without --std=c++11
+	# -static-libgcc -static-libstdc+ needed to build binaries that don't rely on these libraries to be present
+	# -Wl,--add-stdcall-alias needed so shared libraries can be read from JNI
+	# -Wl ... -lpthread ... --no-whole-archive needed to statically include pthread in case missing
 	ifeq ($(ARCH),x86_64)
-		CFLAGS = -malign-double -DHAVE_IEEE_754 -DHAVE_GETRLIMIT=0 -DRLIMIT_DATA_DEFAULT=268435456 -DHAVE_SYS_RESOURCE_H=0 -DHAVE_SYS_WAIT_H=0 -DSIZEOF_VOID_P=8 -DSIZEOF_LONG=4 $(DEBUG) $(OPTIMISE) $(WARNINGS) -static-libgcc -static-libstdc++
-		# need -DWIN32 for lpsolve (WIN32 is only defined by mingw/gcc without --std=c++11)
+		CFLAGS = $(DEBUG) $(OPTIMISE) $(WARNINGS)
 		CXXFLAGS = --std=c++11 -DWIN32 $(CFLAGS)
-		LDFLAGS = $(CFLAGS) -Wl,--add-stdcall-alias -Wl,-Bstatic,--whole-archive -lpthread -Wl,-Bdynamic,--no-whole-archive
+		LDFLAGS = -static-libgcc -static-libstdc++ -Wl,--add-stdcall-alias -Wl,-Bstatic,--whole-archive -lpthread -Wl,-Bdynamic,--no-whole-archive
 		BINDISTSUFFIX = win64
+		BINDISTARCH = x86
 	else
-		CFLAGS = -march=i686 -malign-double -DHAVE_IEEE_754 -DHAVE_GETRLIMIT=0 -DRLIMIT_DATA_DEFAULT=268435456 -DHAVE_SYS_RESOURCE_H=0 -DHAVE_SYS_WAIT_H=0 $(DEBUG) $(OPTIMISE) $(WARNINGS) -static-libgcc -static-libstdc++
-		# need -DWIN32 for lpsolve (WIN32 is only defined by mingw/gcc without --std=c++11)
+		CFLAGS = -march=i686 $(DEBUG) $(OPTIMISE) $(WARNINGS)
 		CXXFLAGS = --std=c++11 -DWIN32 $(CFLAGS)
-		LDFLAGS = $(CFLAGS) -Wl,--add-stdcall-alias -Wl,-Bstatic,--whole-archive -lpthread -Wl,-Bdynamic,--no-whole-archive
+		LDFLAGS = -static-libgcc -static-libstdc++ -Wl,--add-stdcall-alias -Wl,-Bstatic,--whole-archive -lpthread -Wl,-Bdynamic,--no-whole-archive
 		BINDISTSUFFIX = win32
+		BINDISTARCH = x86
 	endif
 	BIN_TARGETS=prism.cygwin xprism.linux prism.bat.win xprism.bat.win
-	JFLAGS = -encoding UTF8
+	JFLAGS := -encoding UTF8
 	SHARED = -shared
 	#SHARED = -G
 	EXE = .exe
@@ -289,27 +304,30 @@ endif
 # Darwin
 ifeq ($(OSTYPE),darwin)
 	ifeq ($(ARCH),x86_64)
-		CFLAGS = -arch x86_64 -fPIC -DPIC -DHAVE_IEEE_754 -DBSD -DSIZEOF_VOID_P=8 -DSIZEOF_LONG=8 -fno-common $(DEBUG) $(OPTIMISE) $(WARNINGS)
+		CFLAGS = -arch x86_64 -fPIC -DPIC $(DEBUG) $(OPTIMISE) $(WARNINGS)
 		CXXFLAGS = --std=c++11 $(CFLAGS)
-		LDFLAGS = $(CFLAGS) -Wl,-search_paths_first
-		BINDISTSUFFIX = osx64
-		BIN_TARGETS=prism.darwin64 xprism.linux
+		LDFLAGS = -Wl,-search_paths_first
+		BINDISTSUFFIX = mac64
+		BINDISTARCH = x86
+		BIN_TARGETS=prism.darwin xprism.linux
 	else
 	ifeq ($(ARCH),arm64)
-		CFLAGS = -arch arm64 -fPIC -DPIC -DHAVE_IEEE_754 -DBSD -DSIZEOF_VOID_P=8 -DSIZEOF_LONG=8 -fno-common $(DEBUG) $(OPTIMISE) $(WARNINGS)
+		CFLAGS = -arch arm64 -fPIC -DPIC $(DEBUG) $(OPTIMISE) $(WARNINGS)
 		CXXFLAGS = --std=c++11 $(CFLAGS)
-		LDFLAGS = $(CFLAGS) -Wl,-search_paths_first
-		BINDISTSUFFIX = osx64
-		BIN_TARGETS=prism.darwin64 xprism.linux
+		LDFLAGS = -Wl,-search_paths_first
+		BINDISTSUFFIX = mac64
+		BINDISTARCH = arm
+		BIN_TARGETS=prism.darwin xprism.linux
 	else
-		CFLAGS = -arch i386 -DHAVE_IEEE_754 -DBSD -fno-common $(DEBUG) $(OPTIMISE) $(WARNINGS)
+		CFLAGS = -arch i386 $(DEBUG) $(OPTIMISE) $(WARNINGS)
 		CXXFLAGS = --std=c++11 $(CFLAGS)
-		LDFLAGS = $(CFLAGS) -Wl,-search_paths_first
-		BINDISTSUFFIX = osx32
-		BIN_TARGETS=prism.darwin32 xprism.linux
+		LDFLAGS = -Wl,-search_paths_first
+		BINDISTSUFFIX = mac32
+		BINDISTARCH = x86
+		BIN_TARGETS=prism.darwin xprism.linux
 	endif
 	endif
-	JFLAGS = -encoding UTF8
+	JFLAGS := -encoding UTF8
 	SHARED = -dynamiclib
 	EXE =
 	LIBPREFIX = lib
@@ -338,10 +356,12 @@ default: all
 all: cuddpackage extpackages prism
 
 # Build our customised version of CUDD
+# (let CUDD choose its own linker - problems on Cygwin if not)
+# (should be no need for linker options - we use static CUDD libraries)
+# (note CFLAGS/CXXFLAGS _are_ passed on, e.g. to preserve PIC consistency)
 cuddpackage: checks
-	@echo Making cudd ...; \
-	cd $(CUDD_DIR) && \
-	$(MAKE) ICFLAGS="$(DEBUG) $(OPTIMISE) $(WARNINGS)" XCFLAGS="$(filter-out $(DEBUG) $(OPTIMISE) $(WARNINGS),$(CFLAGS))"
+	@echo Making cudd ...; cd $(CUDD_DIR) && \
+	LD= LDFLAGS= ./install.sh
 
 # Use this to force a rebuild (with javacc) of the main parser
 parser:
@@ -362,6 +382,7 @@ extpackages: checks
 	  SHARED="$(SHARED)" \
 	  LIBMATH="$(LIBMATH)" \
 	  BINDISTSUFFIX="$(BINDISTSUFFIX)" \
+	  BINDISTARCH="$(BINDISTARCH)" \
 	  JAVA_DIR="$(JAVA_DIR)" \
 	  JAVA_JNI_H_DIR="$(JAVA_JNI_H_DIR)" \
 	  JAVA_JNI_MD_H_DIR="$(JAVA_JNI_MD_H_DIR)" \
@@ -395,9 +416,12 @@ make_dirs:
 	  for lib in `ls *$(LIBSUFFIX)`; do ln -fs $$lib `echo $$lib | sed s/$(LIBSUFFIX)/.jnilib/`; done;); \
 	fi
 # On Windows, convert the generated JNI headers using dos2unix
-	@if [ "$(LIBSUFFIX)" = ".dll" ]; then \
-		(dos2unix $(PRISM_INCLUDE_DIR)/jni/*.h) \
-	fi;
+# and any scripts to be run from Cywgin, in case extracted with CRLF endings.
+	@if [ "$(OSTYPE)" = "cygwin" ]; then \
+	  dos2unix $(PRISM_INCLUDE_DIR)/jni/*.h; \
+	  find .. -name '*.sh' -exec dos2unix {} \; ; \
+	  dos2unix "$(PRISM_SRC_DIR)"/bin/prism.cygwin; \
+	fi
 
 # Compile unit tests
 make_tests:
@@ -472,7 +496,8 @@ checks:
 	echo "OSTYPE/ARCH: $(OSTYPE) $(ARCH)"; \
 	echo "JAVA_DIR: $(JAVA_DIR)"; \
 	echo "JAVA_DIR_BACKUP: $(JAVA_DIR_BACKUP)"; \
-	echo "JAVAC: "`which $(JAVAC)` \
+	echo "JAVAC (which): "`which $(JAVAC)`; \
+	echo "JAVAC (version): "$(shell $(JAVAC) -version) \
 	)
 
 # Misc: count the number of lines of code
@@ -490,13 +515,17 @@ unittests: make_tests
 
 # Run a single test case from the test suite (useful quick check that the build was ok)
 test:
-	bin/prism ../prism-tests/functionality/verify/dtmcs/dtmc_pctl.pm ../prism-tests/functionality/verify/dtmcs/dtmc_pctl.pm.props -prop 2 -test
+	bin/prism etc/tests/dtmc_pctl.prism etc/tests/dtmc_pctl.prism.props -h -test
+
+# Run a single test case from the test suite that relies on lpsolve being properly installed
+testlpsolve:
+	bin/prism etc/tests/test_lpsolve_mdpmo.prism etc/tests/test_lpsolve_mdpmo.prism.props -lp -test
 
 # Run all tests from the test suite (in ../prism-tests and ./tests)
 # Optionally, extra arguments for prism-auto are picked up via variable TESTS_ARGS
 tests: testslocal
 	@if [ -d ../prism-tests ]; then \
-	  etc/scripts/prism-auto -t -m ../prism-tests -p bin/prism --nailgun --ngprism bin/ngprism $(TESTS_ARGS); \
+	  etc/scripts/prism-auto -t -m ../prism-tests -p bin/prism --print-failures --nailgun --ngprism bin/ngprism $(TESTS_ARGS); \
 	else \
 	  echo "Skipping tests"; \
 	fi
@@ -504,13 +533,13 @@ tests: testslocal
 # Just display the command to run the test suite on this version of PRISM
 # Optionally, extra arguments for prism-auto are picked up via variable TESTS_ARGS
 testsecho:
-	@echo etc/scripts/prism-auto -t -m ../prism-tests -p bin/prism --nailgun --ngprism bin/ngprism $(TESTS_ARGS)
+	@echo etc/scripts/prism-auto -t -m ../prism-tests -p bin/prism --print-failures --nailgun --ngprism bin/ngprism $(TESTS_ARGS)
 
 # Run local tests (in ./tests)
 # Optionally, extra arguments for prism-auto are picked up via variable TESTS_ARGS
 testslocal:
 	@if [ -d tests ]; then \
-	  etc/scripts/prism-auto -t -m tests -p bin/prism --nailgun --ngprism bin/ngprism $(TESTS_ARGS); \
+	  etc/scripts/prism-auto -t -m tests -p bin/prism --print-failures --nailgun --ngprism bin/ngprism $(TESTS_ARGS); \
 	else \
 	  echo "Skipping local tests"; \
 	fi
@@ -523,7 +552,7 @@ testslocal:
 testsfull:
 	etc/scripts/prism-auto -t -m ../prism-tests \
 	--skip-export-runs --skip-duplicate-runs --test-all -a ../prism-tests/all-engines.args --timeout 1m \
-	-p bin/prism --nailgun $(TESTS_ARGS);
+	-p bin/prism --print-failures --nailgun $(TESTS_ARGS);
 
 ##########################
 # Building distributions #
@@ -560,14 +589,16 @@ BRANCH = master
 # File/dir names for distribution
 SRC_DIST_DIR = prism-$(VERSION)-src
 SRC_DIST_FILE = $(SRC_DIST_DIR).tar.gz
-BIN_DIST_DIR = prism-$(VERSION)-$(BINDISTSUFFIX)
+BIN_DIST_DIR = prism-$(VERSION)-$(BINDISTSUFFIX)-$(BINDISTARCH)
 BIN_DIST_FILE = $(BIN_DIST_DIR).tar.gz
 BIN_DIST_INST = $(BIN_DIST_DIR)-installer.exe
 
 # Build a (binary) distribution in the release directory
 
-release: JFLAGS += --release 9
-release: clean_all all binary release_check_version build_release clean_binary
+release: release_config clean_all all binary release_check_version build_release clean_binary
+
+release_config:
+	$(eval JFLAGS := --release 9 $(JFLAGS))
 
 release_check_version:
 	@if [ "$(VERSION)" = "" ]; then echo "Usage: make release VERSION=4.5"; exit 1; fi
@@ -575,7 +606,7 @@ release_check_version:
 build_release:
 	@if [ "$(BINDISTSUFFIX)" = "win32" -o "$(BINDISTSUFFIX)" = "win64" ]; then \
 		echo Creating Windows installer in "release/$(BIN_DIST_INST)"... && \
-		makensis /NOCD /DPRISM_NAME="PRISM $(VERSION)" /DPRISM_BUILD="prism-$(VERSION)" /DPRISM_BINDISTSUFFIX="$(BINDISTSUFFIX)" /DPRISM_DIR=".." $(PRISM_SRC_DIR)/nsis_script.nsi && \
+		makensis /NOCD /DPRISM_NAME="PRISM $(VERSION)" /DPRISM_BUILD="prism-$(VERSION)" /DPRISM_BINDISTSUFFIX="$(BINDISTSUFFIX)" /DPRISM_BINDISTARCH="$(BINDISTARCH)" /DPRISM_DIR=".." $(PRISM_SRC_DIR)/nsis_script.nsi && \
 		mkdir -p release && \
 		mv ../"$(BIN_DIST_INST)" release; \
 	else \
@@ -630,7 +661,7 @@ celan: clean
 clean_all: checks clean_cudd clean_ext clean clean_tests
 
 clean_cudd:
-	@(cd $(CUDD_DIR) && $(MAKE) distclean)
+	@(cd $(CUDD_DIR) && ./clean.sh)
 
 clean_ext:
 	@(for ext in $(EXT_PACKAGES); do \

@@ -1,0 +1,44 @@
+const int k=100;
+
+// C1 (with probability 1, all N processes finish the protocol)
+//RESULT (K=2): true
+P>=1 [ F "finished" ]
+
+// C2 (minimum probability that the protocol finishes with all coins equal to v) (v=1,2)
+// Results are same for v=1 and v=2 by symmetry
+// Analytic bound is (K-1)/(2*K)
+//RESULT (K=2): 0.114195
+Pminmin=? [ F "finished"&"all_coins_equal_0" ]
+//RESULT (K=2): 0.418800
+Pminmax=? [ F "finished"&"all_coins_equal_1" ]
+//RESULT (K=2): false
+P>=0.12 [ F "finished" & "all_coins_equal_0" ]
+//RESULT (K=2): true
+P>=0.1 [ F "finished" & "all_coins_equal_0" ]
+
+// Max probability of finishing protocol with coins not all equal
+// RESULT (K=2): 0.101786
+Pmaxmin=? [ F "finished"&!"agree" ]
+// RESULT (K=2): 0.324995
+Pmaxmax=? [ F "finished"&!"agree" ]
+
+// Min/max probability of finishing within k steps
+//RESULT (K=2): 0.44490355232820333
+Pminmin=? [ F<=k "finished" ]
+//RESULT (K=2): 0.7649865690618753
+Pminmax=? [ F<=k "finished" ]
+//RESULT (K=2): 0.9041842818260193
+Pmaxmin=? [ F<=k "finished" ]
+//RESULT (K=2): 0.9852687856874977
+Pmaxmax=? [ F<=k "finished" ]
+
+// Min/max expected steps to finish
+//RESULT (K=2): 31.1111111111111
+R{"steps"}minmin=? [ F "finished" ]
+//RESULT (K=2): 48.0
+R{"steps"}minmax=? [ F "finished" ]
+
+//RESULT (K=2): 75.0
+R{"steps"}maxmin=? [ F "finished" ]
+//RESULT (K=2): 162.375
+R{"steps"}maxmax=? [ F "finished" ]

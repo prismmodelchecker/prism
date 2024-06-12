@@ -1,0 +1,14 @@
+// RESULT: max(p,0.1+0.1*p)
+Pmaxmin=? [ F "goal1" ];
+
+// RESULT: q
+Pmaxmax=? [ F "goal1" ];
+
+// RESULT: min(109/90,6/5+p/10)  //  = min(1+(0.1*1+0.1*(10/9)),1+(0.1*1+0.1*(1+p)))
+Rminmin=? [ F "goal1"|"goal2" ];
+
+// RESULT: 98/80  // = 1+(0.1*1+0.1*(10/8))
+Rminmax=? [ F "goal1"|"goal2" ];
+
+// RESULT: 31/24  // = 1+(0.1*(10/6)+0.1*(10/8))
+Rminmax=? [ F "goal2" ];

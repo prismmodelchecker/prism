@@ -38,7 +38,7 @@ import prism.PrismLangException;
  * (NAN)are provided. For them, the usual rules apply (INF * INF = INF,
  * MINF&INF=MINF, etc.), with the exception that INF+MINF=0, INF-INF=0, etc
  * rather than NAN.
- * 
+ *
  * @author Ernst Moritz Hahn <emhahn@cs.ox.ac.uk> (University of Oxford)
  */
 public final class BigRational extends Number implements Comparable<BigRational>
@@ -49,9 +49,9 @@ public final class BigRational extends Number implements Comparable<BigRational>
 	/** the BigInteger "-1" */
 	private final static BigInteger BMONE = BigInteger.ONE.negate();
 	/** the BigInteger "2" */
-	private final static BigInteger BITWO = new BigInteger("2");
+	private final static BigInteger BITWO = BigInteger.TWO;
 	/** the BigInteger "10" */
-	private final static BigInteger BITEN = new BigInteger("10");
+	private final static BigInteger BITEN = BigInteger.TEN;
 
 	/** the BigRational "1" */
 	public final static BigRational ONE = new BigRational(BigInteger.ONE);
@@ -88,7 +88,7 @@ public final class BigRational extends Number implements Comparable<BigRational>
 
 	/**
 	 * Creates a new BigRational with value {@code num}.
-	 * 
+	 *
 	 * @param num value of new rational as an integer value
 	 */
 	public BigRational(BigInteger num)
@@ -100,7 +100,7 @@ public final class BigRational extends Number implements Comparable<BigRational>
 	/**
 	 * Creates a new BigRational with value {@code num} / {@code den}.
 	 * Cancellation of {@code num} and {@code den} is applied.
-	 * 
+	 *
 	 * @param num numerator of this BigRational
 	 * @param den denominator of this BigRational
 	 */
@@ -113,7 +113,7 @@ public final class BigRational extends Number implements Comparable<BigRational>
 	 * Creates a new BigRational with value {@code num} / {@code den}.
 	 * Whether cancellation between {@code num} and {@code den} is applied depends
 	 * on {@code cancel}.
-	 * 
+	 *
 	 * @param num numerator of this BigRational
 	 * @param den denominator of this BigRational
 	 * @param cancel true to ensure resulting BigRational is coprime
@@ -164,18 +164,18 @@ public final class BigRational extends Number implements Comparable<BigRational>
 	/**
 	 * Creates a new BigRational with value {@code num} / {@code den}.
 	 * Cancellation of {@code num} and {@code den} is applied.
-	 * 
+	 *
 	 * @param num numerator of this BigRational
 	 * @param den denominator of this BigRational
 	 */
 	public BigRational(long num, long den)
 	{
-		this(new BigInteger(Long.toString(num)), new BigInteger(Long.toString(den)));
+		this(BigInteger.valueOf(num), BigInteger.valueOf(den));
 	}
 
 	/**
 	 * Creates a new BigRational with value {@code num}.
-	 * 
+	 *
 	 * @param num value of new rational as an integer value
 	 */
 	public BigRational(long num)
@@ -186,7 +186,7 @@ public final class BigRational extends Number implements Comparable<BigRational>
 	/**
 	 * Creates a new BigRational by converting {@code value} to a fraction.
 	 * The algorithm uses iterated multiplication with 2 to determine the exponent of the argument.
-	 * 
+	 *
 	 * @param num value of new rational as an integer value
 	 */
 	public  BigRational(double value)
@@ -200,7 +200,7 @@ public final class BigRational extends Number implements Comparable<BigRational>
 			this.den = BigInteger.ZERO;
 		}
 		if (value == java.lang.Double.NEGATIVE_INFINITY) {
-			this.num = BigInteger.ONE.negate();
+			this.num = BMONE;
 			this.den = BigInteger.ZERO;
 		}
 		// Test whether value must be an integer
@@ -233,22 +233,22 @@ public final class BigRational extends Number implements Comparable<BigRational>
 	 * Creates a new BigRational from string {@code string}.
 	 * Formats supported are num / den where num and den are integers,
 	 * and scientific notation.
-	 * 
+	 *
 	 * @param string string to create BigRational from
 	 */
 	public BigRational(String string)
 	{
 		if (string.equals("Infinity") || string.equals("+Infinity") || string.equals("Inf") || string.equals("+Inf")) {
-			this.num = new BigInteger("1");
-			this.den = new BigInteger("0");
+			this.num = BigInteger.ONE;
+			this.den = BigInteger.ZERO;
 			return;
 		} else if (string.equals("-Infinity") || string.equals("-Inf")) {
-			this.num = new BigInteger("-1");
-			this.den = new BigInteger("0");
+			this.num = BigInteger.ONE.negate();
+			this.den = BigInteger.ZERO;
 			return;
 		} else if (string.equals("NaN")) {
-			this.num = new BigInteger("0");
-			this.den = new BigInteger("0");
+			this.num = BigInteger.ZERO;
+			this.den = BigInteger.ZERO;
 			return;
 		}
 		string = string.trim();
@@ -343,7 +343,7 @@ public final class BigRational extends Number implements Comparable<BigRational>
 	/**
 	 * Negates this number.
 	 * Negation of INF, MINF are as usual, negation of NAN is NAN.
-	 * 
+	 *
 	 * @return negated BigRational
 	 */
 	public BigRational negate()
@@ -353,7 +353,7 @@ public final class BigRational extends Number implements Comparable<BigRational>
 
 	/**
 	 * Convert to coprime BigRational.
-	 * 
+	 *
 	 * @return coprime rational with the same value as this object
 	 */
 	public BigRational cancel()
@@ -414,7 +414,7 @@ public final class BigRational extends Number implements Comparable<BigRational>
 
 	/**
 	 * Multiply this BigRational with {@code other}.
-	 * 
+	 *
 	 * @param other BigRational to multiply with
 	 * @return result of the multiplication
 	 */
@@ -441,7 +441,7 @@ public final class BigRational extends Number implements Comparable<BigRational>
 
 	/**
 	 * Multiply this BigRational with {@code other}.
-	 * 
+	 *
 	 * @param other long to multiply with
 	 * @param cancel whether ensure result rational is comprime
 	 * @return result of the multiplication
@@ -454,7 +454,7 @@ public final class BigRational extends Number implements Comparable<BigRational>
 	/**
 	 * Multiply this BigRational with {@code other}.
 	 * Ensures result rational is coprime
-	 * 
+	 *
 	 * @param other long to multiply with
 	 * @return result of the multiplication
 	 */
@@ -495,7 +495,7 @@ public final class BigRational extends Number implements Comparable<BigRational>
 	/**
 	 * Divide this BigRational by {@code other}.
 	 * Ensures result rational is coprime
-	 * 
+	 *
 	 * @param other long to divide by
 	 * @return result of the division
 	 */
@@ -507,7 +507,7 @@ public final class BigRational extends Number implements Comparable<BigRational>
 	/**
 	 * Divide this BigRational by {@code other}.
 	 * Ensures result rational is coprime
-	 * 
+	 *
 	 * @param other long to divide by
 	 * @return result of the division
 	 */
@@ -518,7 +518,7 @@ public final class BigRational extends Number implements Comparable<BigRational>
 
 	/**
 	 * Returns the signum function of this BigRational.
-	 * 
+	 *
 	 * @return -1, 0 or 1 as the value of this BigRational is negative, zero or positive.
 	 */
 	public int signum()
@@ -530,7 +530,7 @@ public final class BigRational extends Number implements Comparable<BigRational>
 
 	/**
 	 * Returns a BigRational whose value is {@code this} to the {@code exponent}.
-	 * 
+	 *
 	 * @param exponent exponent to which this number is raised
 	 * @return {@code this} to the {@code exponent}
 	 */
@@ -555,7 +555,7 @@ public final class BigRational extends Number implements Comparable<BigRational>
 	 * Compares {@code this} to {@code obj}.
 	 * Returns true iff {@code obj} is a BigRational which represents
 	 * the same rational number as {@code this}.
-	 * 
+	 *
 	 * @param obj object to compare to
 	 * @return true iff {@code obj} is a BigRational which represents the same rational number as {@code this}.
 	 */
@@ -580,7 +580,7 @@ public final class BigRational extends Number implements Comparable<BigRational>
 
 	/**
 	 * Returns a hash code for this object.
-	 * 
+	 *
 	 * @return has code
 	 */
 	@Override
@@ -596,7 +596,7 @@ public final class BigRational extends Number implements Comparable<BigRational>
 	 * {@code Double.NaN}, {@code Double.POSITIVE_INFINITY},
 	 * {@code Double.NEGATIVE_INFINITY} in case this BigRational represents
 	 * not-a-number, positive infinity or negative infinitey respectively.
-	 * 
+	 *
 	 * @return a double approximation of the rational represented by this object
 	 */
 	public double doubleValue()
@@ -614,11 +614,11 @@ public final class BigRational extends Number implements Comparable<BigRational>
 		}
 		BigInteger shiftedNum;
 		int signum = num.signum() * den.signum();
-		BigInteger posNum = (num.signum() == 1) ? num : num.negate();
-		BigInteger posDen = (den.signum() == 1) ? den : den.negate();
+		BigInteger posNum = num.abs();
+		BigInteger posDen = den.abs();
 		shiftedNum = posNum.shiftLeft(55);
 		BigInteger div = shiftedNum.divide(posDen);
-		if (shiftedNum.mod(posDen).multiply(BITWO).compareTo(posDen) == 1) {
+		if (shiftedNum.remainder(posDen).multiply(BITWO).compareTo(posDen) == 1) {
 			div = div.add(BigInteger.ONE);
 		}
 		return signum * div.doubleValue() / Math.pow(2.0, 55);
@@ -655,7 +655,7 @@ public final class BigRational extends Number implements Comparable<BigRational>
 			throw new ArithmeticException("Can not convert fractional number to int");
 		}
 		int value = getNum().intValue();
-		if (!getNum().equals(new BigInteger(Integer.toString(value)))) {
+		if (!getNum().equals(BigInteger.valueOf(value))) {
 			throw new ArithmeticException("Can not convert BigInteger to int, value " + this + " out of range");
 		}
 		return value;
@@ -692,7 +692,7 @@ public final class BigRational extends Number implements Comparable<BigRational>
 			throw new ArithmeticException("Can not convert fractional number to long");
 		}
 		long value = getNum().longValue();
-		if (!getNum().equals(new BigInteger(Long.toString(value)))) {
+		if (!getNum().equals(BigInteger.valueOf(value))) {
 			throw new ArithmeticException("Can not convert BigInteger to long, value " + this + " out of range");
 		}
 		return value;
@@ -736,8 +736,8 @@ public final class BigRational extends Number implements Comparable<BigRational>
 
 	/**
 	 * Returns a string representation of this BigRational.
-	 * 
-	 * @return string representation of this rational number 
+	 *
+	 * @return string representation of this rational number
 	 */
 	@Override
 	public String toString()
@@ -757,7 +757,7 @@ public final class BigRational extends Number implements Comparable<BigRational>
 
 	/**
 	 * Compares this BigRational to another BigRational other.
-	 * 
+	 *
 	 * @return -1, 0 or 1 as this BigRational is numerically less than, equal to, or greater than {@code other}.
 	 */
 	@Override
@@ -782,7 +782,7 @@ public final class BigRational extends Number implements Comparable<BigRational>
 
 	/**
 	 * Compares this BigRational to the long other.
-	 * 
+	 *
 	 * @return -1, 0 or 1 as this BigRational is numerically less than, equal to, or greater than {@code other}.
 	 */
 	public int compareTo(long i)
@@ -816,27 +816,27 @@ public final class BigRational extends Number implements Comparable<BigRational>
 
 	/**
 	 * Return numerator of this BigRational as a BigInteger.
-	 * 
+	 *
 	 * @return numerator of this BigRational as a BigInteger
 	 */
-	public java.math.BigInteger getNum()
+	public BigInteger getNum()
 	{
 		return num;
 	}
 
 	/**
 	 * Return denominator of this BigRational as a BigInteger.
-	 * 
+	 *
 	 * @return denominator of this BigRational as a BigInteger
 	 */
-	public java.math.BigInteger getDen()
+	public BigInteger getDen()
 	{
 		return den;
 	}
 
 	/**
 	 * Return absolute value of this BigRational.
-	 * 
+	 *
 	 * @return absolute value of this BigRational
 	 */
 	public BigRational abs()
@@ -909,7 +909,7 @@ public final class BigRational extends Number implements Comparable<BigRational>
 
 	/**
 	 * Returns larger value of {@code this} and {@code other}.
-	 * 
+	 *
 	 * @param other rational number to compare to
 	 * @return {@code other} if {@code other} this is larger than {@code this} and {@code this} otherwise
 	 */
@@ -924,7 +924,7 @@ public final class BigRational extends Number implements Comparable<BigRational>
 
 	/**
 	 * Returns smaller value of {@code this} and {@code other}.
-	 * 
+	 *
 	 * @param other rational number to compare to
 	 * @return {@code other} if {@code other} this is smaller than {@code this} and {@code this} otherwise
 	 */
@@ -939,7 +939,7 @@ public final class BigRational extends Number implements Comparable<BigRational>
 
 	/**
 	 * Returns true iff this BigRational represents the number zero.
-	 * 
+	 *
 	 * @return true iff this BigRational represents the number zero
 	 */
 	public boolean isZero()
@@ -949,7 +949,7 @@ public final class BigRational extends Number implements Comparable<BigRational>
 
 	/**
 	 * Returns true iff this BigRational represents the number one.
-	 * 
+	 *
 	 * @return true iff this BigRational represents the number one
 	 */
 	public boolean isOne()
@@ -959,7 +959,7 @@ public final class BigRational extends Number implements Comparable<BigRational>
 
 	/**
 	 * Returns true iff this BigRational represents the special value not-a-number.
-	 * 
+	 *
 	 * @return true iff this BigRational represents the special value not-a-number"
 	 */
 	public boolean isNaN()
@@ -969,7 +969,7 @@ public final class BigRational extends Number implements Comparable<BigRational>
 
 	/**
 	 * Returns true iff this BigRational represents positive infinity.
-	 * 
+	 *
 	 * @return true iff this BigRational represents positive infinity
 	 */
 	public boolean isInf()
@@ -979,7 +979,7 @@ public final class BigRational extends Number implements Comparable<BigRational>
 
 	/**
 	 * Returns true iff this BigRational represents negative infinity.
-	 * 
+	 *
 	 * @return true iff this BigRational represents negative infinity
 	 */
 	public boolean isMInf()
@@ -991,7 +991,7 @@ public final class BigRational extends Number implements Comparable<BigRational>
 	 * Returns true iff this object represents a true rational number.
 	 * This excludes the values for not-a-number as well as positive
 	 * and negative infinity.
-	 * 
+	 *
 	 * @return true iff this object represents a true rational number
 	 */
 	public boolean isRational()
@@ -1015,7 +1015,7 @@ public final class BigRational extends Number implements Comparable<BigRational>
 	 * Returns true iff this value represents a special number.
 	 * This is the case if this is either not-a-number, positive or
 	 * negative infinity.
-	 * 
+	 *
 	 * @return true iff this object represents a special number
 	 */
 	public boolean isSpecial()
@@ -1064,7 +1064,7 @@ public final class BigRational extends Number implements Comparable<BigRational>
 			throw new PrismLangException("Can not convert fractional number to int");
 		}
 		int value = getNum().intValue();
-		if (!getNum().equals(new BigInteger(Integer.toString(value)))) {
+		if (!getNum().equals(BigInteger.valueOf(value))) {
 			throw new PrismLangException("Can not convert BigInteger to int, value out of range");
 		}
 		return value;

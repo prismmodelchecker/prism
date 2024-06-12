@@ -589,22 +589,22 @@ public class PrismMTBDD
 	//------------------------------------------------------------------------------
 
 	// export vector
-	private static native int PM_ExportVector(long vector, String name, long vars, int nv, long odd, int exportType, String filename);
-	public static void ExportVector(JDDNode vector, String name, JDDVars vars, ODDNode odd, int exportType, String filename, int precision) throws FileNotFoundException
+	private static native int PM_ExportVector(long vector, String name, long vars, int nv, long odd, int exportType, String filename, String rewardStructName, boolean noexportheaders);
+	public static void ExportVector(JDDNode vector, String name, JDDVars vars, ODDNode odd, int exportType, String filename, int precision, String rewardStructName, boolean noexportheaders) throws FileNotFoundException
 	{
 		PrismNative.setExportModelPrecision(precision);
-		int res = PM_ExportVector(vector.ptr(), name, vars.array(), vars.n(), odd.ptr(), exportType, filename);
+		int res = PM_ExportVector(vector.ptr(), name, vars.array(), vars.n(), odd.ptr(), exportType, filename, rewardStructName, noexportheaders);
 		if (res == -1) {
 			throw new FileNotFoundException();
 		}
 	}
 	
 	// export matrix
-	private static native int PM_ExportMatrix(long matrix, String name, long rv, int nrv, long cv, int ncv, long odd, int exportType, String filename);
-	public static void ExportMatrix(JDDNode matrix, String name, JDDVars rows, JDDVars cols, ODDNode odd, int exportType, String filename, int precision) throws FileNotFoundException
+	private static native int PM_ExportMatrix(long matrix, String name, long rv, int nrv, long cv, int ncv, long odd, int exportType, String filename, String rewardStructName, boolean noexportheaders);
+	public static void ExportMatrix(JDDNode matrix, String name, JDDVars rows, JDDVars cols, ODDNode odd, int exportType, String filename, int precision, String rewardStructName, boolean noexportheaders) throws FileNotFoundException
 	{
 		PrismNative.setExportModelPrecision(precision);
-		int res = PM_ExportMatrix(matrix.ptr(), name, rows.array(), rows.n(), cols.array(), cols.n(), odd.ptr(), exportType, filename);
+		int res = PM_ExportMatrix(matrix.ptr(), name, rows.array(), rows.n(), cols.array(), cols.n(), odd.ptr(), exportType, filename, rewardStructName, noexportheaders);
 		if (res == -1) {
 			throw new FileNotFoundException();
 		}

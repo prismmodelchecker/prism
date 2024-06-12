@@ -1,5 +1,5 @@
 // Bug fixed in trunk rev 3691
-// Explicit engine fails for adv gen on Pmin=? [ F s=3 ]
+// Explicit engine fails for strat gen on Pmin=? [ F s=3 ]
 
 mdp
 

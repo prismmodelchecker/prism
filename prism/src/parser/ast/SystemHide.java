@@ -26,9 +26,11 @@
 
 package parser.ast;
 
-import java.util.Vector;
+import java.util.ArrayList;
+import java.util.List;
 
-import parser.visitor.*;
+import parser.visitor.ASTVisitor;
+import parser.visitor.DeepCopy;
 import prism.PrismLangException;
 
 public class SystemHide extends SystemDefn
@@ -36,19 +38,19 @@ public class SystemHide extends SystemDefn
 	// Operand
 	private SystemDefn operand;
 	// Actions to be hidden
-	private Vector<String> actions;
+	private ArrayList<String> actions;
 	
 	// Constructors
 	
 	public SystemHide()
 	{
-		actions = new Vector<String>();
+		actions = new ArrayList<>();
 	}
 	
 	public SystemHide(SystemDefn s)
 	{
+		this();
 		operand = s;
-		actions = new Vector<String>();
 	}
 	
 	// Set methods
@@ -60,12 +62,12 @@ public class SystemHide extends SystemDefn
 	
 	public void addAction(String s)
 	{
-		actions.addElement(s);
+		actions.add(s);
 	}
 		
 	public void setAction(int i, String s)
 	{
-		actions.setElementAt(s, i);
+		actions.set(i, s);
 	}
 	
 	// Get methods
@@ -82,7 +84,7 @@ public class SystemHide extends SystemDefn
 	
 	public String getAction(int i)
 	{
-		return actions.elementAt(i);
+		return actions.get(i);
 	}
 		
 	public boolean containsAction(String s)
@@ -94,34 +96,34 @@ public class SystemHide extends SystemDefn
 	
 	@Override
 	@SuppressWarnings("deprecation")
-	public void getModules(Vector<String> v)
+	public void getModules(List<String> v)
 	{
 		operand.getModules(v);
 	}
 	
 	@Override
-	public void getModules(Vector<String> v, ModulesFile modulesFile)
+	public void getModules(List<String> v, ModulesFile modulesFile)
 	{
 		operand.getModules(v, modulesFile);
 	}
 	
 	@Override
 	@SuppressWarnings("deprecation")
-	public void getSynchs(Vector<String> v)
+	public void getSynchs(List<String> v)
 	{
 		// recurse
 		operand.getSynchs(v);
 	}
 	
 	@Override
-	public void getSynchs(Vector<String> v, ModulesFile modulesFile)
+	public void getSynchs(List<String> v, ModulesFile modulesFile)
 	{
 		// recurse
 		operand.getSynchs(v, modulesFile);
 	}
 	
 	@Override
-	public void getReferences(Vector<String> v)
+	public void getReferences(List<String> v)
 	{
 		operand.getReferences(v);
 	}
@@ -154,16 +156,22 @@ public class SystemHide extends SystemDefn
 	}
 	
 	@Override
-	public SystemDefn deepCopy()
+	public SystemHide deepCopy(DeepCopy copier) throws PrismLangException
 	{
-		int i, n;
-		SystemHide ret = new SystemHide(getOperand().deepCopy());
-		n = getNumActions();
-		for (i = 0; i < n; i++) {
-			ret.addAction(getAction(i));
-		}
-		ret.setPosition(this);
-		return ret;
+		operand = copier.copy(operand);
+
+		return this;
+	}
+
+	@SuppressWarnings("unchecked")
+	@Override
+	public SystemHide clone()
+	{
+		SystemHide clone = (SystemHide) super.clone();
+
+		clone.actions = (ArrayList<String>) actions.clone();
+
+		return clone;
 	}
 }
 

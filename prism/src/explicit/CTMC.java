@@ -33,7 +33,7 @@ import prism.ModelType;
 /**
  * Interface for classes that provide (read) access to an explicit-state CTMC.
  */
-public interface CTMC extends DTMC
+public interface CTMC<Value> extends DTMC<Value>
 {
 	// Accessors (for Model) - default implementations
 	
@@ -49,36 +49,36 @@ public interface CTMC extends DTMC
 	 * Get the exit rate for state {@code i}.
 	 * i.e. sum_j R(i,j)
 	 */
-	public double getExitRate(int i);
+	public Value getExitRate(int i);
 	
 	/**
 	 * Compute the maximum exit rate.
 	 * i.e. max_i { sum_j R(i,j) }
 	 */
-	public double getMaxExitRate();
+	public Value getMaxExitRate();
 	
 	/**
 	 * Compute the maximum exit rate over states in {@code subset}.
 	 * i.e. max_{i in subset} { sum_j R(i,j) }
 	 */
-	public double getMaxExitRate(BitSet subset);
+	public Value getMaxExitRate(BitSet subset);
 	
 	/**
 	 * Compute the default rate used to uniformise this CTMC. 
 	 */
-	public double getDefaultUniformisationRate();
+	public Value getDefaultUniformisationRate();
 	
 	/**
 	 * Compute the default rate used to uniformise this CTMC,
 	 * assuming that all states *not* in {@code nonAbs} have been made absorbing.
 	 */
-	public double getDefaultUniformisationRate(BitSet nonAbs);
+	public Value getDefaultUniformisationRate(BitSet nonAbs);
 	
 	/**
 	 * Build the embedded DTMC for this CTMC, in implicit form
 	 * (i.e. where the details are computed on the fly from this one).
 	 */
-	public DTMC buildImplicitEmbeddedDTMC();
+	public DTMC<Value> buildImplicitEmbeddedDTMC();
 
 	/**
 	 * Get the embedded DTMC for this CTMC, in implicit form
@@ -91,30 +91,30 @@ public interface CTMC extends DTMC
 	 * buildImplicitEmbeddedDTMC, which will update the cached embedded
 	 * DTMC.
 	 */
-	public DTMC getImplicitEmbeddedDTMC();
+	public DTMC<Value> getImplicitEmbeddedDTMC();
 
 	/**
 	 * Build (a new) embedded DTMC for this CTMC.
 	 */
-	public DTMCSimple buildEmbeddedDTMC();
+	public DTMCSimple<Value> buildEmbeddedDTMC();
 
 	/**
 	 * Convert this CTMC into a uniformised CTMC.
 	 * @param q Uniformisation rate
 	 */
-	public void uniformise(double q);
+	public void uniformise(Value q);
 
 	/**
 	 * Build the uniformised DTMC for this CTMC, in implicit form
 	 * (i.e. where the details are computed on the fly from this one).
 	 * @param q Uniformisation rate
 	 */
-	public DTMC buildImplicitUniformisedDTMC(double q);
+	public DTMC<Value> buildImplicitUniformisedDTMC(Value q);
 
 	/**
 	 * Build (a new) uniformised DTMC for this CTMC.
 	 * @param q Uniformisation rate
 	 */
-	public DTMCSimple buildUniformisedDTMC(double q);
+	public DTMCSimple<Value> buildUniformisedDTMC(Value q);
 
 }

@@ -41,7 +41,7 @@ public abstract class ECComputer extends PrismComponent
 	/**
 	 * Static method to create a new ECComputer object, depending on current settings.
 	 */
-	public static ECComputer createECComputer(PrismComponent parent, NondetModel model) throws PrismException
+	public static ECComputer createECComputer(PrismComponent parent, NondetModel<?> model) throws PrismException
 	{
 		// Only one algorithm implemented currently
 		return new ECComputerDefault(parent, model);

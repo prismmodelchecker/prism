@@ -48,7 +48,7 @@ class IterationMethodJacobi extends IterationMethod {
 	}
 
 	@Override
-	public IterationValIter forMvMult(DTMC dtmc)
+	public IterationValIter forMvMult(DTMC<Double> dtmc)
 	{
 		return new TwoVectorIteration(dtmc, null) {
 			@Override
@@ -60,7 +60,7 @@ class IterationMethodJacobi extends IterationMethod {
 	}
 
 	@Override
-	public IterationIntervalIter forMvMultInterval(DTMC dtmc, boolean fromBelow, boolean enforceMonotonicity, boolean checkMonotonicity)
+	public IterationIntervalIter forMvMultInterval(DTMC<Double> dtmc, boolean fromBelow, boolean enforceMonotonicity, boolean checkMonotonicity)
 	{
 		IterationPostProcessor post = (soln, soln2, states) -> {
 			twoVectorPostProcessing(soln, soln2, states, fromBelow, enforceMonotonicity, checkMonotonicity);
@@ -76,7 +76,7 @@ class IterationMethodJacobi extends IterationMethod {
 	}
 
 	@Override
-	public IterationValIter forMvMultRew(DTMC dtmc, MCRewards rew)
+	public IterationValIter forMvMultRew(DTMC<Double> dtmc, MCRewards<Double> rew)
 	{
 		return new TwoVectorIteration(dtmc, null) {
 			@Override
@@ -88,7 +88,7 @@ class IterationMethodJacobi extends IterationMethod {
 	}
 
 	@Override
-	public IterationIntervalIter forMvMultRewInterval(DTMC dtmc, MCRewards rew, boolean fromBelow, boolean enforceMonotonicity, boolean checkMonotonicity)
+	public IterationIntervalIter forMvMultRewInterval(DTMC<Double> dtmc, MCRewards<Double> rew, boolean fromBelow, boolean enforceMonotonicity, boolean checkMonotonicity)
 	{
 		IterationPostProcessor post = (soln, soln2, states) -> {
 			twoVectorPostProcessing(soln, soln2, states, fromBelow, enforceMonotonicity, checkMonotonicity);
@@ -104,29 +104,53 @@ class IterationMethodJacobi extends IterationMethod {
 	}
 
 	@Override
-	public IterationValIter forMvMultMinMax(MDP mdp, boolean min, int[] strat) throws PrismException
+	public IterationValIter forMvMultMinMax(MDP<Double> mdp, boolean min, int[] strat) throws PrismException
 	{
 		throw new PrismNotSupportedException("Jacobi not supported for MDPs");
 	}
 
 	@Override
-	public IterationIntervalIter forMvMultMinMaxInterval(MDP mdp, boolean min, int[] strat, boolean fromBelow, boolean enforceMonotonicity,
+	public IterationIntervalIter forMvMultMinMaxInterval(MDP<Double> mdp, boolean min, int[] strat, boolean fromBelow, boolean enforceMonotonicity,
 			boolean checkMonotonicity) throws PrismException
 	{
 		throw new PrismNotSupportedException("Jacobi not supported for MDPs");
 	}
 
 	@Override
-	public IterationValIter forMvMultRewMinMax(MDP mdp, MDPRewards rewards, boolean min, int[] strat) throws PrismException
+	public IterationValIter forMvMultRewMinMax(MDP<Double> mdp, MDPRewards<Double> rewards, boolean min, int[] strat) throws PrismException
 	{
 		throw new PrismNotSupportedException("Jacobi not supported for MDPs");
 	}
 
 	@Override
-	public IterationIntervalIter forMvMultRewMinMaxInterval(MDP mdp, MDPRewards rewards, boolean min, int[] strat, boolean fromBelow,
+	public IterationIntervalIter forMvMultRewMinMaxInterval(MDP<Double> mdp, MDPRewards<Double> rewards, boolean min, int[] strat, boolean fromBelow,
 			boolean enforceMonotonicity, boolean checkMonotonicity) throws PrismException
 	{
 		throw new PrismNotSupportedException("Jacobi not supported for MDPs");
+	}
+
+	@Override
+	public IterationValIter forMvMultMinMaxUnc(IDTMC<Double> idtmc, MinMax minMax) throws PrismException
+	{
+		throw new PrismNotSupportedException("Jacobi not supported for IDTMCs");
+	}
+
+	@Override
+	public IterationValIter forMvMultRewMinMaxUnc(IDTMC<Double> idtmc, MCRewards<Double> mcRewards, MinMax minMax) throws PrismException
+	{
+		throw new PrismNotSupportedException("Jacobi not supported for IDTMCs");
+	}
+
+	@Override
+	public IterationValIter forMvMultMinMaxUnc(IMDP<Double> idtmc, MinMax minMax, int[] strat) throws PrismException
+	{
+		throw new PrismNotSupportedException("Jacobi not supported for IMDPs");
+	}
+
+	@Override
+	public IterationValIter forMvMultRewMinMaxUnc(IMDP<Double> imdp, MDPRewards<Double> mdpRewards, MinMax minMax, int[] strat) throws PrismException
+	{
+		throw new PrismNotSupportedException("Jacobi not supported for IMDPs");
 	}
 
 	@Override

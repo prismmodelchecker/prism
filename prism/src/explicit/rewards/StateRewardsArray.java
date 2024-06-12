@@ -29,37 +29,33 @@ package explicit.rewards;
 import explicit.Model;
 import explicit.Product;
 
+import java.util.Arrays;
+
 /**
  * Explicit-state storage of just state rewards (as an array).
  */
-public class StateRewardsArray extends StateRewards
+public class StateRewardsArray extends StateRewards<Double>
 {
 	/** Array of state rewards **/
-	protected double stateRewards[] = null;
-	
+	protected double stateRewards[];
+
 	/**
 	 * Constructor: all zero rewards.
 	 * @param numStates Number of states
 	 */
 	public StateRewardsArray(int numStates)
 	{
+		// Default to all zero
 		stateRewards = new double[numStates];
-		for (int i = 0; i < numStates; i++) {
-			stateRewards[i] = 0.0;
-		}
 	}
-	
+
 	/**
 	 * Copy constructor
 	 * @param rews Rewards to copy
 	 */
 	public StateRewardsArray(StateRewardsArray rews)
 	{
-		int numStates= rews.stateRewards.length;
-		stateRewards = new double[numStates];
-		for (int i = 0; i < numStates; i++) {
-			stateRewards[i] = rews.stateRewards[i];
-		}
+		stateRewards = Arrays.copyOf(rews.stateRewards, rews.stateRewards.length);
 	}
 
 	// Mutators
@@ -83,7 +79,7 @@ public class StateRewardsArray extends StateRewards
 	// Accessors
 	
 	@Override
-	public double getStateReward(int s)
+	public Double getStateReward(int s)
 	{
 		return stateRewards[s];
 	}
@@ -91,9 +87,9 @@ public class StateRewardsArray extends StateRewards
 	// Converters
 	
 	@Override
-	public StateRewards liftFromModel(Product<? extends Model> product)
+	public StateRewards<Double> liftFromModel(Product<?> product)
 	{
-		Model modelProd = product.getProductModel();
+		Model<?> modelProd = product.getProductModel();
 		int numStatesProd = modelProd.getNumStates();
 		StateRewardsArray rewardsProd = new StateRewardsArray(numStatesProd);
 		for (int s = 0; s < numStatesProd; s++) {

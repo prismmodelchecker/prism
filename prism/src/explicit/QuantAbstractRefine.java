@@ -114,7 +114,7 @@ public abstract class QuantAbstractRefine extends PrismComponent
 	
 	// Abstract model info (updated by subclasses)
 	/** Abstract model */
-	protected NondetModelSimple abstraction;
+	protected NondetModelSimple<Double> abstraction;
 	/** BitSet of (abstract) target states for property to drive refinement */
 	protected BitSet target;
 	
@@ -1253,7 +1253,7 @@ public abstract class QuantAbstractRefine extends PrismComponent
 	private static void exportToDotFile(String filename, Model abstraction, BitSet known, double lbSoln[],
 			double ubSoln[]) throws PrismException
 	{
-		STPGAbstrSimple stpg;
+		STPGAbstrSimple<?> stpg;
 		int i, j, k;
 		String nij, nijk;
 		
@@ -1275,18 +1275,18 @@ public abstract class QuantAbstractRefine extends PrismComponent
 					out.write(i + " [label=\"" + i + " [" + (ubSoln[i] - lbSoln[i]) + "]" + "\"");
 				out.write("]\n");
 				j = -1;
-				for (DistributionSet distrs : stpg.getChoices(i)) {
+				for (DistributionSet<?> distrs : stpg.getChoices(i)) {
 					j++;
 					nij = "n" + i + "_" + j;
 					out.write(i + " -> " + nij + " [ arrowhead=none,label=\"" + j + "\" ];\n");
 					out.write(nij + " [ shape=circle,width=0.1,height=0.1,label=\"\" ];\n");
 					k = -1;
-					for (Distribution distr : distrs) {
+					for (Distribution<?> distr : distrs) {
 						k++;
 						nijk = "n" + i + "_" + j + "_" + k;
 						out.write(nij + " -> " + nijk + " [ arrowhead=none,label=\"" + k + "\" ];\n");
 						out.write(nijk + " [ shape=point,label=\"\" ];\n");
-						for (Map.Entry<Integer, Double> e : distr) {
+						for (Map.Entry<Integer, ?> e : distr) {
 							out.write(nijk + " -> " + e.getKey() + " [ label=\"" + e.getValue() + "\" ];\n");
 						}
 					}

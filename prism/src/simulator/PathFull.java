@@ -109,14 +109,14 @@ public class PathFull extends Path implements PathFullInfo
 	}
 
 	@Override
-	public void addStep(int choice, Object action, String actionString, double probability, double[] transitionRewards, State newState, State newObs, double[] newStateRewards,
+	public void addStep(int choice, Object action, String actionString, Object probability, double[] transitionRewards, State newState, State newObs, double[] newStateRewards,
 			ModelGenerator modelGen)
 	{
 		addStep(1.0, choice, action, actionString, probability, transitionRewards, newState, newObs, newStateRewards, modelGen);
 	}
 
 	@Override
-	public void addStep(double time, int choice, Object action, String actionString, double probability, double[] transitionRewards, State newState,
+	public void addStep(double time, int choice, Object action, String actionString, Object probability, double[] transitionRewards, State newState,
 			State newObs, double[] newStateRewards, ModelGenerator modelGen)
 	{
 		Step stepOld, stepNew;
@@ -151,6 +151,13 @@ public class PathFull extends Path implements PathFullInfo
 		loopDet.addStep(this, modelGen);
 	}
 
+	@Override
+	public void setStrategyInfoForCurrentState(int memory, Object decision)
+	{
+		steps.get(steps.size() - 1).stratMemory = memory;
+		steps.get(steps.size() - 1).stratDecision = decision;
+	}
+	
 	// MUTATORS (additional)
 
 	/**
@@ -274,7 +281,7 @@ public class PathFull extends Path implements PathFullInfo
 	}
 
 	@Override
-	public double getPreviousProbability()
+	public Object getPreviousProbability()
 	{
 		return steps.get(steps.size() - 2).probability;
 	}
@@ -333,6 +340,18 @@ public class PathFull extends Path implements PathFullInfo
 		return steps.get(steps.size() - 1).stateRewards;
 	}
 
+	@Override
+	public int getCurrentStrategyMemory()
+	{
+		return steps.get(steps.size() - 1).stratMemory;
+	}
+	
+	@Override
+	public Object getCurrentStrategyDecision()
+	{
+		return steps.get(steps.size() - 1).stratDecision;
+	}
+	
 	@Override
 	public boolean isLooping()
 	{
@@ -393,6 +412,18 @@ public class PathFull extends Path implements PathFullInfo
 	}
 
 	@Override
+	public int getStrategyMemory(int step)
+	{
+		return steps.get(step).stratMemory;
+	}
+	
+	@Override
+	public Object getStrategyDecision(int step)
+	{
+		return steps.get(step).stratDecision;
+	}
+	
+	@Override
 	public double getTime(int step)
 	{
 		return steps.get(step).time;
@@ -420,7 +451,7 @@ public class PathFull extends Path implements PathFullInfo
 	 * Get the probability or rate associated with a given step.
 	 * @param step Step index (0 = initial state/step of path)
 	 */
-	public double getProbability(int step)
+	public Object getProbability(int step)
 	{
 		return steps.get(steps.size() - 2).probability;
 	}
@@ -593,6 +624,10 @@ public class PathFull extends Path implements PathFullInfo
 		public double timeCumul;
 		// Cumulative rewards spent up until entering this state
 		public double rewardsCumul[];
+		// Current memory of strategy (if present) on entering this state
+		public int stratMemory;
+		// Next decision of strategy (if present) for current state
+		public Object stratDecision;
 		// Time spent in state
 		public double time;
 		// Index of the choice taken
@@ -602,7 +637,7 @@ public class PathFull extends Path implements PathFullInfo
 		// String describing the action taken
 		public String actionString;
 		// Probability or rate of step
-		public double probability;
+		public Object probability;
 		// Transition rewards associated with step
 		public double transitionRewards[];
 	}

@@ -63,7 +63,7 @@ public class ConstructPTA extends PrismComponent
 	 * are explored, ignoring possible clock values. Invariants, guards and resets
 	 * relating to clocks are extracted and stored in the PTA.
 	 */
-	public PTA constructPTA(ModelGenerator modelGen) throws PrismException
+	public PTA constructPTA(ModelGenerator<Double> modelGen) throws PrismException
 	{
 		// Do a few basic checks on the model
 		if (modelGen.getModelType() != ModelType.PTA) {

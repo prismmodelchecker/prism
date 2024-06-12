@@ -29,6 +29,6 @@ package explicit;
 /**
  * Base class for explicit-state representations of a DTMC.
  */
-public abstract class DTMCExplicit extends ModelExplicit implements DTMC
+public abstract class DTMCExplicit<Value> extends ModelExplicit<Value> implements DTMC<Value>
 {
 }

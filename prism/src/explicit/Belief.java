@@ -66,7 +66,7 @@ public class Belief implements Comparable<Belief>
 	 * @param model The (partially observable) model
 	 * If {@code dist} is a not a valid distribution, the resulting belief will be invalid too.
 	 */
-	protected Belief(double[] dist, PartiallyObservableModel model)
+	protected Belief(double[] dist, PartiallyObservableModel<?> model)
 	{
 		so = -1;
 		bu = new double[model.getNumUnobservations()];
@@ -83,7 +83,7 @@ public class Belief implements Comparable<Belief>
 	 * @param s A model state
 	 * @param model The (partially observable) model
 	 */
-	public static Belief pointDistribution(int s, PartiallyObservableModel model)
+	public static Belief pointDistribution(int s, PartiallyObservableModel<?> model)
 	{
 		int so = model.getObservation(s);
 		double[] bu = new double[model.getNumUnobservations()];
@@ -96,7 +96,7 @@ public class Belief implements Comparable<Belief>
 	 * (represented as an array of probabilities). 
 	 * @param model The (partially observable) model
 	 */
-	public double[] toDistributionOverStates(PartiallyObservableModel model)
+	public double[] toDistributionOverStates(PartiallyObservableModel<?> model)
 	{
 		double[] distributionOverStates = new double[model.getNumStates()];
 		int n = model.getNumStates();
@@ -173,14 +173,36 @@ public class Belief implements Comparable<Belief>
 	 * e.g. "(6),0.5:(8)+0.5:(9)" for an observable variable equal to 6
 	 * and an unobservable variable equally likely to be 8 or 9.
 	 */
-	public String toString(PartiallyObservableModel poModel)
+	public String toString(PartiallyObservableModel<?> poModel)
+	{
+		return toString(so, bu, poModel);
+	}
+
+	/**
+	 * Convert a belief, specified as an index to an observable and
+	 * a double array representing a distribution over unobservables,
+	 * to string representation, using observation info,
+	 * e.g. "(6),0.5:(8)+0.5:(9)" for an observable variable equal to 6
+	 * and an unobservable variable equally likely to be 8 or 9.
+	 */
+	public static String toString(int so, double bu[], PartiallyObservableModel<?> poModel)
+	{
+		return poModel.getObservationsList().get(so).toString() + "," + toStringUnobs(bu, poModel);
+	}
+
+	/**
+	 * Convert a double array representing a distribution over unobservables,
+	 * to string representation, using observation info,
+	 * e.g. "0.5:(8)+0.5:(9)" for an unobservable variable equally likely to be 8 or 9.
+	 */
+	public static String toStringUnobs(double bu[], PartiallyObservableModel<?> poModel)
 	{
 		List<State> unobs = poModel.getUnobservationsList();
-		String s = poModel.getObservationsList().get(so).toString();
+		String s = "";
 		boolean first = true;
 		for (int i = 0; i < bu.length; i++) {
 			if (bu[i] > 0) {
-				s += first ? "," : "+";
+				if (!first) s+= "+";
 				s += bu[i] + ":" + unobs.get(i).toString();
 				first = false;
 			}

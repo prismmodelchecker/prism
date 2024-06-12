@@ -2,7 +2,7 @@
 //	
 //	Copyright (c) 2002-
 //	Authors:
-//	* Dave Parker <david.parker@comlab.ox.ac.uk> (University of Oxford)
+//	* Dave Parker <d.a.parker@cs.bham.ac.uk> (University of Birmingham)
 //	
 //------------------------------------------------------------------------------
 //	
@@ -37,12 +37,12 @@ import prism.PrismLangException;
  * Representation of a single (nondeterministic) choice in a PRISM model,
  * i.e, a list of transitions, each specified by updates to variables.
  */
-public interface Choice
+public interface Choice<Value>
 {
 	/**
 	 * Scale probability/rate of all transitions, multiplying by d.
 	 */
-	public void scaleProbabilitiesBy(double d);
+	public void scaleProbabilitiesBy(Value d);
 	
 	/**
 	 * Get the module/action for this choice, as an integer index
@@ -93,31 +93,31 @@ public interface Choice
 	 * Compute the target for the ith transition, based on a current state,
 	 * returning the result as a new State object copied from the existing one.
 	 */
-	public State computeTarget(int i, State currentState) throws PrismLangException;
+	public State computeTarget(int i, State currentState, VarList varList) throws PrismLangException;
 	
 	/**
 	 * Compute the target for the ith transition, based on a current state.
 	 * Apply changes in variables to a provided copy of the State object.
 	 * (i.e. currentState and newState should be equal when passed in.) 
 	 */
-	public void computeTarget(int i, State currentState, State newState) throws PrismLangException;
+	public void computeTarget(int i, State currentState, State newState, VarList varList) throws PrismLangException;
 	
 	/**
 	 * Get the probability/rate for the ith transition.
 	 */
-	public double getProbability(int i);
+	public Value getProbability(int i);
 	
 	/**
 	 * Get the sum of probabilities/rates for all transitions.
 	 */
-	public double getProbabilitySum();
+	public Value getProbabilitySum();
 	
 	/**
 	 * Return the index of a transition according to a probability (or rate) sum, x.
 	 * i.e. return the index of the first transition in this choice for which the
 	 * sum of probabilities/rates for that and all prior transitions exceeds x.
 	 */
-	public int getIndexByProbabilitySum(double x);
+	public int getIndexByProbabilitySum(Value x);
 	
 	public void checkValid(ModelType modelType) throws PrismException;
 	

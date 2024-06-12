@@ -1,34 +1,14 @@
-/**CFile***********************************************************************
+/**
+  @file
 
-  FileName    [cuddAnneal.c]
+  @ingroup cudd
 
-  PackageName [cudd]
+  @brief Reordering of DDs based on simulated annealing
 
-  Synopsis    [Reordering of DDs based on simulated annealing]
+  @author Jae-Young Jang, Jorgen Sivesind
 
-  Description [Internal procedures included in this file:
-		<ul>
-		<li> cuddAnnealing()
-		</ul>
-	       Static procedures included in this file:
-		<ul>
-		<li> stopping_criterion()
-		<li> random_generator()
-		<li> ddExchange()
-		<li> ddJumpingAux()
-		<li> ddJumpingUp()
-		<li> ddJumpingDown()
-		<li> siftBackwardProb()
-		<li> copyOrder()
-		<li> restoreOrder()
-		</ul>
-		]
-
-  SeeAlso     []
-
-  Author      [Jae-Young Jang, Jorgen Sivesind]
-
-  Copyright   [Copyright (c) 1995-2012, Regents of the University of Colorado
+  @copyright@parblock
+  Copyright (c) 1995-2015, Regents of the University of Colorado
 
   All rights reserved.
 
@@ -58,9 +38,10 @@
   CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
   LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
   ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-  POSSIBILITY OF SUCH DAMAGE.]
+  POSSIBILITY OF SUCH DAMAGE.
+  @endparblock
 
-******************************************************************************/
+*/
 
 #include "util.h"
 #include "cuddInt.h"
@@ -81,40 +62,26 @@
 /* Stucture declarations                                                     */
 /*---------------------------------------------------------------------------*/
 
-
 /*---------------------------------------------------------------------------*/
 /* Type declarations                                                         */
 /*---------------------------------------------------------------------------*/
-
 
 /*---------------------------------------------------------------------------*/
 /* Variable declarations                                                     */
 /*---------------------------------------------------------------------------*/
 
-#ifndef lint
-static char rcsid[] DD_UNUSED = "$Id: cuddAnneal.c,v 1.15 2012/02/05 01:07:18 fabio Exp $";
-#endif
-
-#ifdef DD_STATS
-extern	int	ddTotalNumberSwapping;
-extern	int	ddTotalNISwaps;
-static	int	tosses;
-static	int	acceptances;
-#endif
-
 /*---------------------------------------------------------------------------*/
 /* Macro declarations                                                        */
 /*---------------------------------------------------------------------------*/
 
-
-/**AutomaticStart*************************************************************/
+/** \cond */
 
 /*---------------------------------------------------------------------------*/
 /* Static function prototypes                                                */
 /*---------------------------------------------------------------------------*/
 
 static int stopping_criterion (int c1, int c2, int c3, int c4, double temp);
-static double random_generator (void);
+static double random_generator (DdManager *dd);
 static int ddExchange (DdManager *table, int x, int y, double temp);
 static int ddJumpingAux (DdManager *table, int x, int x_low, int x_high, double temp);
 static Move * ddJumpingUp (DdManager *table, int x, int x_low, int initial_size);
@@ -123,8 +90,7 @@ static int siftBackwardProb (DdManager *table, Move *moves, int size, double tem
 static void copyOrder (DdManager *table, int *array, int lower, int upper);
 static int restoreOrder (DdManager *table, int *array, int lower, int upper);
 
-/**AutomaticEnd***************************************************************/
-
+/** \endcond */
 
 /*---------------------------------------------------------------------------*/
 /* Definition of exported functions                                          */
@@ -135,21 +101,20 @@ static int restoreOrder (DdManager *table, int *array, int lower, int upper);
 /*---------------------------------------------------------------------------*/
 
 
-/**Function********************************************************************
+/**
+  @brief Get new variable-order by simulated annealing algorithm.
 
-  Synopsis    [Get new variable-order by simulated annealing algorithm.]
-
-  Description [Get x, y by random selection. Choose either
+  @details Get x, y by random selection. Choose either
   exchange or jump randomly. In case of jump, choose between jump_up
   and jump_down randomly. Do exchange or jump and get optimal case.
   Loop until there is no improvement or temperature reaches
-  minimum. Returns 1 in case of success; 0 otherwise.]
+  minimum.
 
-  SideEffects [None]
+  @return 1 in case of success; 0 otherwise.
 
-  SeeAlso     []
+  @sideeffect None
 
-******************************************************************************/
+*/
 int
 cuddAnnealing(
   DdManager * table,
@@ -176,7 +141,7 @@ cuddAnnealing(
 #endif
     if (result == 0) return(0);
 
-    size = table->keys - table->isolated;
+    size = (int) (table->keys - table->isolated);
 
     /* Keep track of the best order. */
     BestCost = size;
@@ -200,13 +165,13 @@ cuddAnnealing(
 #ifdef DD_STATS
 	(void) fprintf(table->out,"temp=%f\tsize=%d\tgen=%d\t",
 		       temp,size,maxGen);
-	tosses = acceptances = 0;
+	table->tosses = table->acceptances = 0;
 #endif
 	for (innerloop = 0; innerloop < maxGen; innerloop++) {
 	    /* Choose x, y  randomly. */
-	    x = (int) Cudd_Random() % nvars;
+	    x = (int) Cudd_Random(table) % nvars;
 	    do {
-		y = (int) Cudd_Random() % nvars;
+		y = (int) Cudd_Random(table) % nvars;
 	    } while (x == y);
 	    x += lower;
 	    y += lower;
@@ -217,7 +182,7 @@ cuddAnnealing(
 	    }
 
 	    /* Choose move with roulette wheel. */
-	    rand1 = random_generator();
+	    rand1 = random_generator(table);
 	    if (rand1 < EXC_PROB) {
 		result = ddExchange(table,x,y,temp);       /* exchange */
 		ecount++;
@@ -249,7 +214,7 @@ cuddAnnealing(
 		return(0);
 	    }
 
-	    size = table->keys - table->isolated;	/* keep current size */
+	    size = (int) (table->keys - table->isolated); /* keep current size */
 	    if (size < BestCost) {			/* update best order */
 		BestCost = size;
 		copyOrder(table,BestOrder,lower,upper);
@@ -266,7 +231,7 @@ cuddAnnealing(
 	temp = NewTemp;	                /* control variable */
 #ifdef DD_STATS
 	(void) fprintf(table->out,"uphill = %d\taccepted = %d\n",
-		       tosses,acceptances);
+		       table->tosses,table->acceptances);
 	fflush(table->out);
 #endif
     }
@@ -288,19 +253,17 @@ cuddAnnealing(
 /* Definition of static functions                                            */
 /*---------------------------------------------------------------------------*/
 
-/**Function********************************************************************
+/**
+  @brief Checks termination condition.
 
-  Synopsis    [Checks termination condition.]
+  @details If temperature is STOP_TEMP or there is no improvement
+  then terminates.
 
-  Description [If temperature is STOP_TEMP or there is no improvement
-  then terminates. Returns 1 if the termination criterion is met; 0
-  otherwise.]
+  @return 1 if the termination criterion is met; 0 otherwise.
 
-  SideEffects [None]
+  @sideeffect None
 
-  SeeAlso     []
-
-******************************************************************************/
+*/
 static int
 stopping_criterion(
   int  c1,
@@ -320,37 +283,31 @@ stopping_criterion(
 } /* end of stopping_criterion */
 
 
-/**Function********************************************************************
+/**
+  @brief Random number generator.
 
-  Synopsis    [Random number generator.]
+  @return a double precision value between 0.0 and 1.0.
 
-  Description [Returns a double precision value between 0.0 and 1.0.]
+  @sideeffect None
 
-  SideEffects [None]
-
-  SeeAlso     []
-
-******************************************************************************/
+*/
 static double
-random_generator(void)
+random_generator(DdManager * dd)
 {
-    return((double)(Cudd_Random() / 2147483561.0));
+    return((double)(Cudd_Random(dd) / 2147483561.0));
 
 } /* end of random_generator */
 
 
-/**Function********************************************************************
+/**
+  @brief Exchanges two variables, x and y.
 
-  Synopsis    [This function is for exchanging two variables, x and y.]
+  @details This is the same funcion as ddSwapping except for the
+  comparison expression.  Use probability function, exp(-size_change/temp).
 
-  Description [This is the same funcion as ddSwapping except for
-  comparison expression.  Use probability function, exp(-size_change/temp).]
+  @sideeffect None
 
-  SideEffects [None]
-
-  SeeAlso     []
-
-******************************************************************************/
+*/
 static int
 ddExchange(
   DdManager * table,
@@ -371,7 +328,7 @@ ddExchange(
     x_next = cuddNextHigh(table,x);
     y_next = cuddNextLow(table,y);
     moves = NULL;
-    initial_size = limit_size = table->keys - table->isolated;
+    initial_size = limit_size = (int) (table->keys - table->isolated);
 
     for (;;) {
 	if (x_next == y_next) {
@@ -487,19 +444,17 @@ ddExchangeOutOfMem:
 } /* end of ddExchange */
 
 
-/**Function********************************************************************
+/**
+  @brief Moves a variable to a specified position.
 
-  Synopsis    [Moves a variable to a specified position.]
+  @details If x==x_low, it executes jumping_down. If x==x_high, it
+  executes jumping_up. This funcion is similar to ddSiftingAux.
 
-  Description [If x==x_low, it executes jumping_down. If x==x_high, it
-  executes jumping_up. This funcion is similar to ddSiftingAux. Returns
-  1 in case of success; 0 otherwise.]
+  @return 1 in case of success; 0 otherwise.
 
-  SideEffects [None]
+  @sideeffect None
 
-  SeeAlso     []
-
-******************************************************************************/
+*/
 static int
 ddJumpingAux(
   DdManager * table,
@@ -513,7 +468,7 @@ ddJumpingAux(
     int        initial_size;
     int        result;
 
-    initial_size = table->keys - table->isolated;
+    initial_size = (int) (table->keys - table->isolated);
 
 #ifdef DD_DEBUG
     assert(table->subtables[x].keys > 0);
@@ -558,19 +513,17 @@ ddJumpingAuxOutOfMem:
 } /* end of ddJumpingAux */
 
 
-/**Function********************************************************************
+/**
+  @brief This function is for jumping up.
 
-  Synopsis    [This function is for jumping up.]
+  @details This is a simplified version of ddSiftingUp. It does not
+  use lower bounding.
 
-  Description [This is a simplified version of ddSiftingUp. It does not
-  use lower bounding. Returns the set of moves in case of success; NULL
-  if memory is full.]
+  @return the set of moves in case of success; NULL if memory is full.
 
-  SideEffects [None]
+  @sideeffect None
 
-  SeeAlso     []
-
-******************************************************************************/
+*/
 static Move *
 ddJumpingUp(
   DdManager * table,
@@ -617,19 +570,17 @@ ddJumpingUpOutOfMem:
 } /* end of ddJumpingUp */
 
 
-/**Function********************************************************************
+/**
+  @brief This function is for jumping down.
 
-  Synopsis    [This function is for jumping down.]
+  @details This is a simplified version of ddSiftingDown. It does not
+  use lower bounding.
 
-  Description [This is a simplified version of ddSiftingDown. It does not
-  use lower bounding. Returns the set of moves in case of success; NULL
-  if memory is full.]
+  @return the set of moves in case of success; NULL if memory is full.
 
-  SideEffects [None]
+  @sideeffect None
 
-  SeeAlso     []
-
-******************************************************************************/
+*/
 static Move *
 ddJumpingDown(
   DdManager * table,
@@ -676,20 +627,19 @@ ddJumpingDownOutOfMem:
 } /* end of ddJumpingDown */
 
 
-/**Function********************************************************************
+/**
+  @brief Returns the %DD to the best position encountered during
+  sifting if there was improvement.
 
-  Synopsis [Returns the DD to the best position encountered during
-  sifting if there was improvement.]
+  @details Otherwise, "tosses a coin" to decide whether to keep
+  the current configuration or return the %DD to the original
+  one.
 
-  Description [Otherwise, "tosses a coin" to decide whether to keep
-  the current configuration or return the DD to the original
-  one. Returns 1 in case of success; 0 otherwise.]
+  @return 1 in case of success; 0 otherwise.
 
-  SideEffects [None]
+  @sideeffect None
 
-  SeeAlso     []
-
-******************************************************************************/
+*/
 static int
 siftBackwardProb(
   DdManager * table,
@@ -714,14 +664,15 @@ siftBackwardProb(
     ** this change or not.
     */
     if (best_size == size) {
-	coin = random_generator();
+	coin = random_generator(table);
 #ifdef DD_STATS
-	tosses++;
+	table->tosses++;
 #endif
-	threshold = exp(-((double)(table->keys - table->isolated - size))/temp);
+	threshold = exp(-((double)(table->keys - table->isolated -
+                                   (unsigned int) size))/temp);
 	if (coin < threshold) {
 #ifdef DD_STATS
-	    acceptances++;
+	    table->acceptances++;
 #endif
 	    return(1);
 	}
@@ -730,7 +681,7 @@ siftBackwardProb(
     /* Either there was improvement, or we have decided not to
     ** accept the uphill move. Go to best position.
     */
-    res = table->keys - table->isolated;
+    res = (int) (table->keys - table->isolated);
     for (move = moves; move != NULL; move = move->next) {
 	if (res == best_size) return(1);
 	res = cuddSwapInPlace(table,(int)move->x,(int)move->y);
@@ -742,18 +693,14 @@ siftBackwardProb(
 } /* end of sift_backward_prob */
 
 
-/**Function********************************************************************
+/**
+  @brief Copies the current variable order to array.
 
-  Synopsis    [Copies the current variable order to array.]
+  @details At the same time inverts the permutation.
 
-  Description [Copies the current variable order to array.
-  At the same time inverts the permutation.]
+  @sideeffect None
 
-  SideEffects [None]
-
-  SeeAlso     []
-
-******************************************************************************/
+*/
 static void
 copyOrder(
   DdManager * table,
@@ -772,18 +719,14 @@ copyOrder(
 } /* end of copyOrder */
 
 
-/**Function********************************************************************
+/**
+  @brief Restores the variable order in array by a series of sifts up.
 
-  Synopsis    [Restores the variable order in array by a series of sifts up.]
+  @return 1 in case of success; 0 otherwise.
 
-  Description [Restores the variable order in array by a series of sifts up.
-  Returns 1 in case of success; 0 otherwise.]
+  @sideeffect None
 
-  SideEffects [None]
-
-  SeeAlso     []
-
-******************************************************************************/
+*/
 static int
 restoreOrder(
   DdManager * table,

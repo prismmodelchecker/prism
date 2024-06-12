@@ -1,33 +1,15 @@
-/**CFile***********************************************************************
+/**
+  @file
 
-  FileName    [cuddLinear.c]
+  @ingroup cudd
 
-  PackageName [cudd]
+  @brief Functions for %BDD and %ADD reduction by linear
+  transformations.
 
-  Synopsis    [Functions for DD reduction by linear transformations.]
+  @author Fabio Somenzi
 
-  Description [ Internal procedures included in this module:
-		<ul>
-		<li> cuddLinearAndSifting()
-		<li> cuddLinearInPlace()
-		<li> cuddUpdateInteractionMatrix()
-		<li> cuddInitLinear()
-		<li> cuddResizeLinear()
-		</ul>
-	Static procedures included in this module:
-		<ul>
-		<li> ddLinearUniqueCompare()
-		<li> ddLinearAndSiftingAux()
-		<li> ddLinearAndSiftingUp()
-		<li> ddLinearAndSiftingDown()
-		<li> ddLinearAndSiftingBackward()
-		<li> ddUndoMoves()
-		<li> cuddXorLinear()
-		</ul>]
-
-  Author      [Fabio Somenzi]
-
-  Copyright   [Copyright (c) 1995-2012, Regents of the University of Colorado
+  @copyright@parblock
+  Copyright (c) 1995-2015, Regents of the University of Colorado
 
   All rights reserved.
 
@@ -57,9 +39,10 @@
   CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
   LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
   ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-  POSSIBILITY OF SUCH DAMAGE.]
+  POSSIBILITY OF SUCH DAMAGE.
+  @endparblock
 
-******************************************************************************/
+*/
 
 #include "util.h"
 #include "cuddInt.h"
@@ -71,7 +54,7 @@
 #define CUDD_SWAP_MOVE 0
 #define CUDD_LINEAR_TRANSFORM_MOVE 1
 #define CUDD_INVERSE_TRANSFORM_MOVE 2
-#if SIZEOF_LONG == 8
+#if SIZEOF_VOID_P == 8
 #define BPL 64
 #define LOGBPL 6
 #else
@@ -91,33 +74,17 @@
 /* Variable declarations                                                     */
 /*---------------------------------------------------------------------------*/
 
-#ifndef lint
-static char rcsid[] DD_UNUSED = "$Id: cuddLinear.c,v 1.29 2012/02/05 01:07:19 fabio Exp $";
-#endif
-
-static	int	*entry;
-
-#ifdef DD_STATS
-extern	int	ddTotalNumberSwapping;
-extern	int	ddTotalNISwaps;
-static	int	ddTotalNumberLinearTr;
-#endif
-
-#ifdef DD_DEBUG
-static	int	zero = 0;
-#endif
-
 /*---------------------------------------------------------------------------*/
 /* Macro declarations                                                        */
 /*---------------------------------------------------------------------------*/
 
-/**AutomaticStart*************************************************************/
+/** \cond */
 
 /*---------------------------------------------------------------------------*/
 /* Static function prototypes                                                */
 /*---------------------------------------------------------------------------*/
 
-static int ddLinearUniqueCompare (int *ptrX, int *ptrY);
+static int ddLinearUniqueCompare (void const *ptrX, void const *ptrY);
 static int ddLinearAndSiftingAux (DdManager *table, int x, int xLow, int xHigh);
 static Move * ddLinearAndSiftingUp (DdManager *table, int y, int xLow, Move *prevMoves);
 static Move * ddLinearAndSiftingDown (DdManager *table, int x, int xHigh, Move *prevMoves);
@@ -125,7 +92,7 @@ static int ddLinearAndSiftingBackward (DdManager *table, int size, Move *moves);
 static Move* ddUndoMoves (DdManager *table, Move *moves);
 static void cuddXorLinear (DdManager *table, int x, int y);
 
-/**AutomaticEnd***************************************************************/
+/** \endcond */
 
 
 /*---------------------------------------------------------------------------*/
@@ -133,18 +100,14 @@ static void cuddXorLinear (DdManager *table, int x, int y);
 /*---------------------------------------------------------------------------*/
 
 
-/**Function********************************************************************
+/**
+  @brief Prints the linear transform matrix.
 
-  Synopsis    [Prints the linear transform matrix.]
+  @return 1 in case of success; 0 otherwise.
 
-  Description [Prints the linear transform matrix. Returns 1 in case of
-  success; 0 otherwise.]
+  @sideeffect none
 
-  SideEffects [none]
-
-  SeeAlso     []
-
-******************************************************************************/
+*/
 int
 Cudd_PrintLinear(
   DdManager * table)
@@ -153,13 +116,13 @@ Cudd_PrintLinear(
     int retval;
     int nvars = table->linearSize;
     int wordsPerRow = ((nvars - 1) >> LOGBPL) + 1;
-    long word;
+    ptruint word;
 
     for (i = 0; i < nvars; i++) {
 	for (j = 0; j < wordsPerRow; j++) {
 	    word = table->linear[i*wordsPerRow + j];
 	    for (k = 0; k < BPL; k++) {
-		retval = fprintf(table->out,"%ld",word & 1);
+              retval = fprintf(table->out,"%" PRIuPTR,word & (ptruint) 1);
 		if (retval == 0) return(0);
 		word >>= 1;
 	    }
@@ -172,34 +135,29 @@ Cudd_PrintLinear(
 } /* end of Cudd_PrintLinear */
 
 
-/**Function********************************************************************
+/**
+  @brief Reads an entry of the linear transform matrix.
 
-  Synopsis    [Reads an entry of the linear transform matrix.]
+  @sideeffect none
 
-  Description [Reads an entry of the linear transform matrix.]
-
-  SideEffects [none]
-
-  SeeAlso     []
-
-******************************************************************************/
+*/
 int
 Cudd_ReadLinear(
-  DdManager * table /* CUDD manager */,
-  int  x /* row index */,
-  int  y /* column index */)
+  DdManager * table /**< CUDD manager */,
+  int  x /**< row index */,
+  int  y /**< column index */)
 {
     int nvars = table->size;
-    int wordsPerRow = ((nvars - 1) >> LOGBPL) + 1;
-    long word;
+    ptruint wordsPerRow = ((ptruint)(nvars - 1) >> LOGBPL) + 1;
+    ptruint word;
     int bit;
     int result;
 
     assert(table->size == table->linearSize);
 
-    word = wordsPerRow * x + (y >> LOGBPL);
+    word = wordsPerRow * (ptruint) x + ((ptruint) y >> LOGBPL);
     bit  = y & (BPL-1);
-    result = (int) ((table->linear[word] >> bit) & 1);
+    result = (int) ((table->linear[word] >> bit) & (ptruint) 1);
     return(result);
 
 } /* end of Cudd_ReadLinear */
@@ -210,28 +168,27 @@ Cudd_ReadLinear(
 /*---------------------------------------------------------------------------*/
 
 
-/**Function********************************************************************
+/**
+  @brief %BDD reduction based on combination of sifting and linear
+  transformations.
 
-  Synopsis    [BDD reduction based on combination of sifting and linear
-  transformations.]
-
-  Description [BDD reduction based on combination of sifting and linear
-  transformations.  Assumes that no dead nodes are present.
+  @details Assumes that no dead nodes are present.
     <ol>
     <li> Order all the variables according to the number of entries
     in each unique table.
     <li> Sift the variable up and down, remembering each time the
-    total size of the DD heap. At each position, linear transformation
+    total size of the %DD heap. At each position, linear transformation
     of the two adjacent variables is tried and is accepted if it reduces
-    the size of the DD.
+    the size of the %DD.
     <li> Select the best permutation.
     <li> Repeat 3 and 4 for all variables.
     </ol>
-  Returns 1 if successful; 0 otherwise.]
 
-  SideEffects [None]
+  @return 1 if successful; 0 otherwise.
 
-******************************************************************************/
+  @sideeffect None
+
+*/
 int
 cuddLinearAndSifting(
   DdManager * table,
@@ -239,7 +196,7 @@ cuddLinearAndSifting(
   int  upper)
 {
     int		i;
-    int		*var;
+    IndexKey	*var;
     int		size;
     int		x;
     int		result;
@@ -248,13 +205,12 @@ cuddLinearAndSifting(
 #endif
 
 #ifdef DD_STATS
-    ddTotalNumberLinearTr = 0;
+    table->totalNumberLinearTr = 0;
 #endif
 
     size = table->size;
 
     var = NULL;
-    entry = NULL;
     if (table->linear == NULL) {
 	result = cuddInitLinear(table);
 	if (result == 0) goto cuddLinearAndSiftingOutOfMem;
@@ -274,12 +230,7 @@ cuddLinearAndSifting(
     }
 
     /* Find order in which to sift variables. */
-    entry = ALLOC(int,size);
-    if (entry == NULL) {
-	table->errorCode = CUDD_MEMORY_OUT;
-	goto cuddLinearAndSiftingOutOfMem;
-    }
-    var = ALLOC(int,size);
+    var = ALLOC(IndexKey,size);
     if (var == NULL) {
 	table->errorCode = CUDD_MEMORY_OUT;
 	goto cuddLinearAndSiftingOutOfMem;
@@ -287,18 +238,18 @@ cuddLinearAndSifting(
 
     for (i = 0; i < size; i++) {
 	x = table->perm[i];
-	entry[i] = table->subtables[x].keys;
-	var[i] = i;
+	var[i].index = i;
+	var[i].keys = table->subtables[x].keys;
     }
 
-    qsort((void *)var,size,sizeof(int),(DD_QSFP)ddLinearUniqueCompare);
+    util_qsort(var,size,sizeof(IndexKey),ddLinearUniqueCompare);
 
     /* Now sift. */
     for (i = 0; i < ddMin(table->siftMaxVar,size); i++) {
-	x = table->perm[var[i]];
+	x = table->perm[var[i].index];
 	if (x < lower || x > upper) continue;
 #ifdef DD_STATS
-	previousSize = table->keys - table->isolated;
+	previousSize = (int) (table->keys - table->isolated);
 #endif
 	result = ddLinearAndSiftingAux(table,x,lower,upper);
 	if (!result) goto cuddLinearAndSiftingOutOfMem;
@@ -307,7 +258,7 @@ cuddLinearAndSifting(
 	    (void) fprintf(table->out,"-");
 	} else if (table->keys > (unsigned) previousSize + table->isolated) {
 	    (void) fprintf(table->out,"+");	/* should never happen */
-	    (void) fprintf(table->out,"\nSize increased from %d to %d while sifting variable %d\n", previousSize, table->keys - table->isolated, var[i]);
+	    (void) fprintf(table->out,"\nSize increased from %d to %u while sifting variable %d\n", previousSize, table->keys - table->isolated, var[i].index);
 	} else {
 	    (void) fprintf(table->out,"=");
 	}
@@ -319,18 +270,16 @@ cuddLinearAndSifting(
     }
 
     FREE(var);
-    FREE(entry);
 
 #ifdef DD_STATS
     (void) fprintf(table->out,"\n#:L_LINSIFT %8d: linear trans.",
-		   ddTotalNumberLinearTr);
+		   table->totalNumberLinearTr);
 #endif
 
     return(1);
 
 cuddLinearAndSiftingOutOfMem:
 
-    if (entry != NULL) FREE(entry);
     if (var != NULL) FREE(var);
 
     return(0);
@@ -338,24 +287,23 @@ cuddLinearAndSiftingOutOfMem:
 } /* end of cuddLinearAndSifting */
 
 
-/**Function********************************************************************
+/**
+  @brief Linearly combines two adjacent variables.
 
-  Synopsis    [Linearly combines two adjacent variables.]
+  @details Specifically, replaces the top variable with the exclusive
+  nor of the two variables.  It assumes that no dead nodes are present
+  on entry to this procedure.  The procedure then guarantees that no
+  dead nodes will be present when it terminates.  cuddLinearInPlace
+  assumes that x &lt; y.
 
-  Description [Linearly combines two adjacent variables. Specifically,
-  replaces the top variable with the exclusive nor of the two variables.
-  It assumes that no dead nodes are present on entry to this
-  procedure.  The procedure then guarantees that no dead nodes will be
-  present when it terminates.  cuddLinearInPlace assumes that x &lt;
-  y.  Returns the number of keys in the table if successful; 0
-  otherwise.]
+  @return the number of keys in the table if successful; 0 otherwise.
 
-  SideEffects [The two subtables corrresponding to variables x and y are
-  modified. The global counters of the unique table are also affected.]
+  @sideeffect The two subtables corrresponding to variables x and y are
+  modified. The global counters of the unique table are also affected.
 
-  SeeAlso     [cuddSwapInPlace]
+  @see cuddSwapInPlace
 
-******************************************************************************/
+*/
 int
 cuddLinearInPlace(
   DdManager * table,
@@ -366,14 +314,17 @@ cuddLinearInPlace(
     int    xindex, yindex;
     int    xslots, yslots;
     int    xshift, yshift;
-    int    oldxkeys, oldykeys;
+#if defined(DD_COUNT) || defined(DD_DEBUG)
+    int    oldxkeys;
+#endif
+    int oldykeys;
     int    newxkeys, newykeys;
     int    comple, newcomplement;
     int    i;
     int    posn;
     int    isolated;
     DdNode *f,*f0,*f1,*f01,*f00,*f11,*f10,*newf1,*newf0;
-    DdNode *g,*next,*last;
+    DdNode *g,*next,*last=NULL;
     DdNodePtr *previousP;
     DdNode *tmp;
     DdNode *sentinel = &(table->sentinel);
@@ -395,11 +346,13 @@ cuddLinearInPlace(
 
     if (cuddTestInteract(table,xindex,yindex)) {
 #ifdef DD_STATS
-	ddTotalNumberLinearTr++;
+	table->totalNumberLinearTr++;
 #endif
 	/* Get parameters of x subtable. */
 	xlist = table->subtables[x].nodelist;
+#if defined(DD_COUNT) || defined(DD_DEBUG)
 	oldxkeys = table->subtables[x].keys;
+#endif
 	xslots = table->subtables[x].slots;
 	xshift = table->subtables[x].shift;
 
@@ -668,7 +621,7 @@ cuddLinearInPlace(
 
 	isolated += (table->vars[xindex]->ref == 1) +
 		    (table->vars[yindex]->ref == 1);
-	table->isolated += isolated;
+	table->isolated += (unsigned int) isolated;
 
 	/* Set the appropriate fields in table. */
 	table->subtables[y].keys = newykeys;
@@ -684,12 +637,12 @@ cuddLinearInPlace(
     }
 
 #ifdef DD_DEBUG
-    if (zero) {
+    if (table->enableExtraDebug) {
 	(void) Cudd_DebugCheck(table);
     }
 #endif
 
-    return(table->keys - table->isolated);
+    return((int) (table->keys - table->isolated));
 
 cuddLinearOutOfMem:
     (void) fprintf(table->err,"Error: cuddLinearInPlace out of memory\n");
@@ -699,17 +652,12 @@ cuddLinearOutOfMem:
 } /* end of cuddLinearInPlace */
 
 
-/**Function********************************************************************
+/**
+  @brief Updates the interaction matrix.
 
-  Synopsis    [Updates the interaction matrix.]
+  @sideeffect none
 
-  Description []
-
-  SideEffects [none]
-
-  SeeAlso     []
-
-******************************************************************************/
+*/
 void
 cuddUpdateInteractionMatrix(
   DdManager * table,
@@ -739,18 +687,14 @@ cuddUpdateInteractionMatrix(
 } /* end of cuddUpdateInteractionMatrix */
 
 
-/**Function********************************************************************
+/**
+  @brief Initializes the linear transform matrix.
 
-  Synopsis    [Initializes the linear transform matrix.]
+  @return 1 if successful; 0 otherwise.
 
-  Description [Initializes the linear transform matrix.  Returns 1 if
-  successful; 0 otherwise.]
+  @sideeffect none
 
-  SideEffects [none]
-
-  SeeAlso     []
-
-******************************************************************************/
+*/
 int
 cuddInitLinear(
   DdManager * table)
@@ -761,41 +705,37 @@ cuddInitLinear(
     int word;
     int bit;
     int i;
-    long *linear;
+    ptruint *linear;
 
     nvars = table->size;
     wordsPerRow = ((nvars - 1) >> LOGBPL) + 1;
     words = wordsPerRow * nvars;
-    table->linear = linear = ALLOC(long,words);
+    table->linear = linear = ALLOC(ptruint,words);
     if (linear == NULL) {
 	table->errorCode = CUDD_MEMORY_OUT;
 	return(0);
     }
-    table->memused += words * sizeof(long);
+    table->memused += words * sizeof(ptruint);
     table->linearSize = nvars;
     for (i = 0; i < words; i++) linear[i] = 0;
     for (i = 0; i < nvars; i++) {
 	word = wordsPerRow * i + (i >> LOGBPL);
 	bit  = i & (BPL-1);
-	linear[word] = 1 << bit;
+	linear[word] = (ptruint) 1 << bit;
     }
     return(1);
 
 } /* end of cuddInitLinear */
 
 
-/**Function********************************************************************
+/**
+  @brief Resizes the linear transform matrix.
 
-  Synopsis    [Resizes the linear transform matrix.]
+  @return 1 if successful; 0 otherwise.
 
-  Description [Resizes the linear transform matrix.  Returns 1 if
-  successful; 0 otherwise.]
+  @sideeffect none
 
-  SideEffects [none]
-
-  SeeAlso     []
-
-******************************************************************************/
+*/
 int
 cuddResizeLinear(
   DdManager * table)
@@ -806,7 +746,7 @@ cuddResizeLinear(
     int word,oldWord;
     int bit;
     int i,j;
-    long *linear,*oldLinear;
+    ptruint *linear,*oldLinear;
 
     oldNvars = table->linearSize;
     oldWordsPerRow = ((oldNvars - 1) >> LOGBPL) + 1;
@@ -816,12 +756,12 @@ cuddResizeLinear(
     nvars = table->size;
     wordsPerRow = ((nvars - 1) >> LOGBPL) + 1;
     words = wordsPerRow * nvars;
-    table->linear = linear = ALLOC(long,words);
+    table->linear = linear = ALLOC(ptruint,words);
     if (linear == NULL) {
 	table->errorCode = CUDD_MEMORY_OUT;
 	return(0);
     }
-    table->memused += (words - oldWords) * sizeof(long);
+    table->memused += (words - oldWords) * sizeof(ptruint);
     for (i = 0; i < words; i++) linear[i] = 0;
 
     /* Copy old matrix. */
@@ -838,7 +778,7 @@ cuddResizeLinear(
     for (i = oldNvars; i < nvars; i++) {
 	word = wordsPerRow * i + (i >> LOGBPL);
 	bit  = i & (BPL-1);
-	linear[word] = 1 << bit;
+	linear[word] = (ptruint) 1 << bit;
     }
     table->linearSize = nvars;
 
@@ -852,46 +792,48 @@ cuddResizeLinear(
 /*---------------------------------------------------------------------------*/
 
 
-/**Function********************************************************************
+/**
+  @brief Comparison function used by qsort.
 
-  Synopsis    [Comparison function used by qsort.]
-
-  Description [Comparison function used by qsort to order the
+  @details Comparison function used by qsort to order the
   variables according to the number of keys in the subtables.
-  Returns the difference in number of keys between the two
-  variables being compared.]
 
-  SideEffects [None]
+  @return the difference in number of keys between the two variables
+  being compared.
 
-******************************************************************************/
+  @sideeffect None
+
+*/
 static int
 ddLinearUniqueCompare(
-  int * ptrX,
-  int * ptrY)
+  void const * ptrX,
+  void const * ptrY)
 {
+    IndexKey const * pX = (IndexKey const *) ptrX;
+    IndexKey const * pY = (IndexKey const *) ptrY;
 #if 0
-    if (entry[*ptrY] == entry[*ptrX]) {
-	return((*ptrX) - (*ptrY));
+    if (pY->keys == pX->keys) {
+	return(pX->index - pY->index);
     }
 #endif
-    return(entry[*ptrY] - entry[*ptrX]);
+    return(pY->keys - pX->keys);
 
 } /* end of ddLinearUniqueCompare */
 
 
-/**Function********************************************************************
+/**
+  @brief Given xLow <= x <= xHigh moves x up and down between the
+  boundaries.
 
-  Synopsis    [Given xLow <= x <= xHigh moves x up and down between the
-  boundaries.]
+  @details At each step a linear transformation is tried, and, if it
+  decreases the size of the %DD, it is accepted. Finds the best position
+  and does the required changes.
 
-  Description [Given xLow <= x <= xHigh moves x up and down between the
-  boundaries. At each step a linear transformation is tried, and, if it
-  decreases the size of the DD, it is accepted. Finds the best position
-  and does the required changes.  Returns 1 if successful; 0 otherwise.]
+  @return 1 if successful; 0 otherwise.
 
-  SideEffects [None]
+  @sideeffect None
 
-******************************************************************************/
+*/
 static int
 ddLinearAndSiftingAux(
   DdManager * table,
@@ -906,7 +848,7 @@ ddLinearAndSiftingAux(
     int		initialSize;
     int		result;
 
-    initialSize = table->keys - table->isolated;
+    initialSize = (int) (table->keys - table->isolated);
 
     moveDown = NULL;
     moveUp = NULL;
@@ -933,7 +875,7 @@ ddLinearAndSiftingAux(
 	if (moveDown == (Move *) CUDD_OUT_OF_MEM) goto ddLinearAndSiftingAuxOutOfMem;
 	moveUp = ddUndoMoves(table,moveDown);
 #ifdef DD_DEBUG
-	assert(moveUp == NULL || moveUp->x == x);
+	assert(moveUp == NULL || moveUp->x == (DdHalfWord) x);
 #endif
 	moveUp = ddLinearAndSiftingUp(table,x,xLow,moveUp);
 	if (moveUp == (Move *) CUDD_OUT_OF_MEM) goto ddLinearAndSiftingAuxOutOfMem;
@@ -947,7 +889,7 @@ ddLinearAndSiftingAux(
 	if (moveUp == (Move *) CUDD_OUT_OF_MEM) goto ddLinearAndSiftingAuxOutOfMem;
 	moveDown = ddUndoMoves(table,moveUp);
 #ifdef DD_DEBUG
-	assert(moveDown == NULL || moveDown->y == x);
+	assert(moveDown == NULL || moveDown->y == (DdHalfWord) x);
 #endif
 	moveDown = ddLinearAndSiftingDown(table,x,xHigh,moveDown);
 	if (moveDown == (Move *) CUDD_OUT_OF_MEM) goto ddLinearAndSiftingAuxOutOfMem;
@@ -986,18 +928,17 @@ ddLinearAndSiftingAuxOutOfMem:
 } /* end of ddLinearAndSiftingAux */
 
 
-/**Function********************************************************************
+/**
+  @brief Sifts a variable up and applies linear transformations.
 
-  Synopsis    [Sifts a variable up and applies linear transformations.]
+  @details Moves y up until either it reaches the bound (xLow) or the
+  size of the %DD heap increases too much.
 
-  Description [Sifts a variable up and applies linear transformations.
-  Moves y up until either it reaches the bound (xLow) or the size of
-  the DD heap increases too much.  Returns the set of moves in case of
-  success; NULL if memory is full.]
+  @return the set of moves in case of success; NULL if memory is full.
 
-  SideEffects [None]
+  @sideeffect None
 
-******************************************************************************/
+*/
 static Move *
 ddLinearAndSiftingUp(
   DdManager * table,
@@ -1028,16 +969,16 @@ ddLinearAndSiftingUp(
     ** change. The rest may vanish in the best case, except for
     ** the nodes at level xLow, which will not vanish, regardless.
     */
-    limitSize = L = table->keys - table->isolated;
+    limitSize = L = (int) (table->keys - table->isolated);
     for (x = xLow + 1; x < y; x++) {
 	xindex = table->invperm[x];
 	if (cuddTestInteract(table,xindex,yindex)) {
 	    isolated = table->vars[xindex]->ref == 1;
-	    L -= table->subtables[x].keys - isolated;
+	    L -= (int) table->subtables[x].keys - isolated;
 	}
     }
     isolated = table->vars[yindex]->ref == 1;
-    L -= table->subtables[y].keys - isolated;
+    L -= (int) table->subtables[y].keys - isolated;
 
     x = cuddNextLow(table,y);
     while (x >= xLow && L <= limitSize) {
@@ -1089,7 +1030,7 @@ ddLinearAndSiftingUp(
 	/* Update the lower bound. */
 	if (cuddTestInteract(table,xindex,yindex)) {
 	    isolated = table->vars[xindex]->ref == 1;
-	    L += table->subtables[y].keys - isolated;
+	    L += (int) table->subtables[y].keys - isolated;
 	}
 	if ((double) size > (double) limitSize * table->maxGrowth) break;
 	if (size < limitSize) limitSize = size;
@@ -1109,18 +1050,17 @@ ddLinearAndSiftingUpOutOfMem:
 } /* end of ddLinearAndSiftingUp */
 
 
-/**Function********************************************************************
+/**
+  @brief Sifts a variable down and applies linear transformations.
 
-  Synopsis    [Sifts a variable down and applies linear transformations.]
+  @details Moves x down until either it reaches the bound (xHigh) or
+  the size of the %DD heap increases too much.
 
-  Description [Sifts a variable down and applies linear
-  transformations. Moves x down until either it reaches the bound
-  (xHigh) or the size of the DD heap increases too much. Returns the
-  set of moves in case of success; NULL if memory is full.]
+  @return the set of moves in case of success; NULL if memory is full.
 
-  SideEffects [None]
+  @sideeffect None
 
-******************************************************************************/
+*/
 static Move *
 ddLinearAndSiftingDown(
   DdManager * table,
@@ -1163,7 +1103,7 @@ ddLinearAndSiftingDown(
 	    zindex = table->invperm[z];
 	    if (cuddTestInteract(table,xindex,zindex)) {
 		isolated = table->vars[zindex]->ref == 1;
-		checkR += table->subtables[z].keys - isolated;
+		checkR += (int) table->subtables[z].keys - isolated;
 	    }
 	}
 	if (R != checkR) {
@@ -1174,7 +1114,7 @@ ddLinearAndSiftingDown(
 	yindex = table->invperm[y];
 	if (cuddTestInteract(table,xindex,yindex)) {
 	    isolated = table->vars[yindex]->ref == 1;
-	    R -= table->subtables[y].keys - isolated;
+	    R -= (int) table->subtables[y].keys - isolated;
 	}
 	size = cuddSwapInPlace(table,x,y);
 	if (size == 0) goto ddLinearAndSiftingDownOutOfMem;
@@ -1221,19 +1161,18 @@ ddLinearAndSiftingDownOutOfMem:
 } /* end of ddLinearAndSiftingDown */
 
 
-/**Function********************************************************************
+/**
+  @brief Given a set of moves, returns the %DD heap to the order
+  giving the minimum size.
 
-  Synopsis    [Given a set of moves, returns the DD heap to the order
-  giving the minimum size.]
+  @details In case of ties, returns to the closest position giving the
+  minimum size.
 
-  Description [Given a set of moves, returns the DD heap to the
-  position giving the minimum size. In case of ties, returns to the
-  closest position giving the minimum size. Returns 1 in case of
-  success; 0 otherwise.]
+  @return 1 in case of success; 0 otherwise.
 
-  SideEffects [None]
+  @sideeffect None
 
-******************************************************************************/
+*/
 static int
 ddLinearAndSiftingBackward(
   DdManager * table,
@@ -1268,18 +1207,15 @@ ddLinearAndSiftingBackward(
 } /* end of ddLinearAndSiftingBackward */
 
 
-/**Function********************************************************************
+/**
+  @brief Given a set of moves, returns the %DD heap to the order
+  in effect before the moves.
 
-  Synopsis    [Given a set of moves, returns the DD heap to the order
-  in effect before the moves.]
+  @return 1 in case of success; 0 otherwise.
 
-  Description [Given a set of moves, returns the DD heap to the
-  order in effect before the moves.  Returns 1 in case of success;
-  0 otherwise.]
+  @sideeffect None
 
-  SideEffects [None]
-
-******************************************************************************/
+*/
 static Move*
 ddUndoMoves(
   DdManager * table,
@@ -1333,18 +1269,14 @@ ddUndoMovesOutOfMem:
 } /* end of ddUndoMoves */
 
 
-/**Function********************************************************************
+/**
+  @brief XORs two rows of the linear transform matrix.
 
-  Synopsis    [XORs two rows of the linear transform matrix.]
+  @details Replaces the first row with the result.
 
-  Description [XORs two rows of the linear transform matrix and replaces
-  the first row with the result.]
+  @sideeffect none
 
-  SideEffects [none]
-
-  SeeAlso     []
-
-******************************************************************************/
+*/
 static void
 cuddXorLinear(
   DdManager * table,
@@ -1356,7 +1288,7 @@ cuddXorLinear(
     int wordsPerRow = ((nvars - 1) >> LOGBPL) + 1;
     int xstart = wordsPerRow * x;
     int ystart = wordsPerRow * y;
-    long *linear = table->linear;
+    ptruint *linear = table->linear;
 
     for (i = 0; i < wordsPerRow; i++) {
 	linear[xstart+i] ^= linear[ystart+i];

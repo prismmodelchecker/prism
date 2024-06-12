@@ -1,34 +1,14 @@
-/**CFile***********************************************************************
+/**
+  @file
 
-  FileName    [cuddExport.c]
+  @ingroup cudd
 
-  PackageName [cudd]
+  @brief Export functions.
 
-  Synopsis    [Export functions.]
+  @author Fabio Somenzi
 
-  Description [External procedures included in this module:
-		<ul>
-		<li> Cudd_DumpBlif()
-		<li> Cudd_DumpBlifBody()
-		<li> Cudd_DumpDot()
-		<li> Cudd_DumpDaVinci()
-		<li> Cudd_DumpDDcal()
-		<li> Cudd_DumpFactoredForm()
-		</ul>
-	Internal procedures included in this module:
-		<ul>
-		</ul>
-	Static procedures included in this module:
-		<ul>
-		<li> ddDoDumpBlif()
-		<li> ddDoDumpDaVinci()
-		<li> ddDoDumpDDcal()
-		<li> ddDoDumpFactoredForm()
-		</ul>]
-
-  Author      [Fabio Somenzi]
-
-  Copyright   [Copyright (c) 1995-2012, Regents of the University of Colorado
+  @copyright@parblock
+  Copyright (c) 1995-2015, Regents of the University of Colorado
 
   All rights reserved.
 
@@ -58,11 +38,13 @@
   CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
   LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
   ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-  POSSIBILITY OF SUCH DAMAGE.]
+  POSSIBILITY OF SUCH DAMAGE.
+  @endparblock
 
-******************************************************************************/
+*/
 
 #include "util.h"
+#include "cstringstream.h"
 #include "cuddInt.h"
 
 /*---------------------------------------------------------------------------*/
@@ -81,26 +63,23 @@
 /* Variable declarations                                                     */
 /*---------------------------------------------------------------------------*/
 
-#ifndef lint
-static char rcsid[] DD_UNUSED = "$Id: cuddExport.c,v 1.23 2012/02/05 01:07:18 fabio Exp $";
-#endif
 
 /*---------------------------------------------------------------------------*/
 /* Macro declarations                                                        */
 /*---------------------------------------------------------------------------*/
 
-/**AutomaticStart*************************************************************/
+/** \cond */
 
 /*---------------------------------------------------------------------------*/
 /* Static function prototypes                                                */
 /*---------------------------------------------------------------------------*/
 
-static int ddDoDumpBlif (DdManager *dd, DdNode *f, FILE *fp, st_table *visited, char **names, int mv);
-static int ddDoDumpDaVinci (DdManager *dd, DdNode *f, FILE *fp, st_table *visited, char **names, ptruint mask);
-static int ddDoDumpDDcal (DdManager *dd, DdNode *f, FILE *fp, st_table *visited, char **names, ptruint mask);
-static int ddDoDumpFactoredForm (DdManager *dd, DdNode *f, FILE *fp, char **names);
-
-/**AutomaticEnd***************************************************************/
+static int ddDoDumpBlif (DdManager *dd, DdNode *f, FILE *fp, st_table *visited, char const * const *names, int mv);
+static int ddDoDumpDaVinci (DdManager *dd, DdNode *f, FILE *fp, st_table *visited, char const * const *names, ptruint mask);
+static int ddDoDumpDDcal (DdManager *dd, DdNode *f, FILE *fp, st_table *visited, char const * const *names, ptruint mask);
+static int ddDoDumpFactoredForm (DdManager *dd, DdNode *f, FILE *fp, char const * const *names);
+static int ddDoFactoredFormString(DdManager * dd, DdNode *f, cstringstream stream, char const * const * names);
+/** \endcond */
 
 
 /*---------------------------------------------------------------------------*/
@@ -108,36 +87,35 @@ static int ddDoDumpFactoredForm (DdManager *dd, DdNode *f, FILE *fp, char **name
 /*---------------------------------------------------------------------------*/
 
 
-/**Function********************************************************************
+/**
+  @brief Writes a blif file representing the argument BDDs.
 
-  Synopsis    [Writes a blif file representing the argument BDDs.]
-
-  Description [Writes a blif file representing the argument BDDs as a
-  network of multiplexers. One multiplexer is written for each BDD
-  node. It returns 1 in case of success; 0 otherwise (e.g.,
-  out-of-memory, file system full, or an ADD with constants different
-  from 0 and 1).  Cudd_DumpBlif does not close the file: This is the
-  caller responsibility. Cudd_DumpBlif uses a minimal unique subset of
-  the hexadecimal address of a node as name for it.  If the argument
+  @details Each %BDD is written as a network of multiplexers.
+  Cudd_DumpBlif does not close the file: This is the caller
+  responsibility. Cudd_DumpBlif uses a minimal unique subset of the
+  hexadecimal address of a node as name for it.  If the argument
   inames is non-null, it is assumed to hold the pointers to the names
-  of the inputs. Similarly for onames.]
+  of the inputs. Similarly for onames.
 
-  SideEffects [None]
+  @return 1 in case of success; 0 otherwise (e.g., out-of-memory, file
+  system full, or an %ADD with constants different from 0 and 1).
 
-  SeeAlso     [Cudd_DumpBlifBody Cudd_DumpDot Cudd_PrintDebug Cudd_DumpDDcal
-  Cudd_DumpDaVinci Cudd_DumpFactoredForm]
+  @sideeffect None
 
-******************************************************************************/
+  @see Cudd_DumpBlifBody Cudd_DumpDot Cudd_PrintDebug Cudd_DumpDDcal
+  Cudd_DumpDaVinci Cudd_DumpFactoredForm
+
+*/
 int
 Cudd_DumpBlif(
-  DdManager * dd /* manager */,
-  int  n /* number of output nodes to be dumped */,
-  DdNode ** f /* array of output nodes to be dumped */,
-  char ** inames /* array of input names (or NULL) */,
-  char ** onames /* array of output names (or NULL) */,
-  char * mname /* model name (or NULL) */,
-  FILE * fp /* pointer to the dump file */,
-  int mv /* 0: blif, 1: blif-MV */)
+  DdManager * dd /**< manager */,
+  int  n /**< number of output nodes to be dumped */,
+  DdNode ** f /**< array of output nodes to be dumped */,
+  char const * const * inames /**< array of input names (or NULL) */,
+  char const * const * onames /**< array of output names (or NULL) */,
+  char * mname /**< model name (or NULL) */,
+  FILE * fp /**< pointer to the dump file */,
+  int mv /**< 0: blif, 1: blif-MV */)
 {
     DdNode	*support = NULL;
     DdNode	*scan;
@@ -214,7 +192,7 @@ Cudd_DumpBlif(
 
     return(1);
 
-failure:
+ failure:
     if (sorted != NULL) FREE(sorted);
     if (support != NULL) Cudd_RecursiveDeref(dd,support);
     return(0);
@@ -222,37 +200,37 @@ failure:
 } /* end of Cudd_DumpBlif */
 
 
-/**Function********************************************************************
+/**
+  @brief Writes a blif body representing the argument BDDs.
 
-  Synopsis    [Writes a blif body representing the argument BDDs.]
-
-  Description [Writes a blif body representing the argument BDDs as a
-  network of multiplexers.  No header (.model, .inputs, and .outputs) and
-  footer (.end) are produced by this function.  One multiplexer is written
-  for each BDD node. It returns 1 in case of success; 0 otherwise (e.g.,
-  out-of-memory, file system full, or an ADD with constants different
-  from 0 and 1).  Cudd_DumpBlifBody does not close the file: This is the
-  caller responsibility. Cudd_DumpBlifBody uses a minimal unique subset of
+  @details Each %BDD is written as a network of multiplexers.  No
+  header (.model, .inputs, and .outputs) and footer (.end) are
+  produced by this function.  One multiplexer is written for each %BDD
+  node.  Cudd_DumpBlifBody does not close the file: This is the caller
+  responsibility. Cudd_DumpBlifBody uses a minimal unique subset of
   the hexadecimal address of a node as name for it.  If the argument
   inames is non-null, it is assumed to hold the pointers to the names
   of the inputs. Similarly for onames. This function prints out only
-  .names part.]
+  .names part.
 
-  SideEffects [None]
+  @return 1 in case of success; 0 otherwise (e.g., out-of-memory, file
+  system full, or an %ADD with constants different from 0 and 1).
 
-  SeeAlso     [Cudd_DumpBlif Cudd_DumpDot Cudd_PrintDebug Cudd_DumpDDcal
-  Cudd_DumpDaVinci Cudd_DumpFactoredForm]
+  @sideeffect None
 
-******************************************************************************/
+  @see Cudd_DumpBlif Cudd_DumpDot Cudd_PrintDebug Cudd_DumpDDcal
+  Cudd_DumpDaVinci Cudd_DumpFactoredForm
+
+*/
 int
 Cudd_DumpBlifBody(
-  DdManager * dd /* manager */,
-  int  n /* number of output nodes to be dumped */,
-  DdNode ** f /* array of output nodes to be dumped */,
-  char ** inames /* array of input names (or NULL) */,
-  char ** onames /* array of output names (or NULL) */,
-  FILE * fp /* pointer to the dump file */,
-  int mv /* 0: blif, 1: blif-MV */)
+  DdManager * dd /**< manager */,
+  int  n /**< number of output nodes to be dumped */,
+  DdNode ** f /**< array of output nodes to be dumped */,
+  char const * const * inames /**< array of input names (or NULL) */,
+  char const * const * onames /**< array of output names (or NULL) */,
+  FILE * fp /**< pointer to the dump file */,
+  int mv /**< 0: blif, 1: blif-MV */)
 {
     st_table	*visited = NULL;
     int		retval;
@@ -292,21 +270,18 @@ Cudd_DumpBlifBody(
     st_free_table(visited);
     return(1);
 
-failure:
+ failure:
     if (visited != NULL) st_free_table(visited);
     return(0);
 
 } /* end of Cudd_DumpBlifBody */
 
 
-/**Function********************************************************************
+/**
+  @brief Writes a dot file representing the argument DDs.
 
-  Synopsis    [Writes a dot file representing the argument DDs.]
-
-  Description [Writes a file representing the argument DDs in a format
+  @details Writes a file representing the argument DDs in a format
   suitable for the graph drawing program dot.
-  It returns 1 in case of success; 0 otherwise (e.g., out-of-memory,
-  file system full).
   Cudd_DumpDot does not close the file: This is the caller
   responsibility. Cudd_DumpDot uses a minimal unique subset of the
   hexadecimal address of a node as name for it.
@@ -320,22 +295,24 @@ failure:
     </ul>
   The dot options are chosen so that the drawing fits on a letter-size
   sheet.
-  ]
 
-  SideEffects [None]
+  @return 1 in case of success; 0 otherwise (e.g., out-of-memory, file
+  system full).
 
-  SeeAlso     [Cudd_DumpBlif Cudd_PrintDebug Cudd_DumpDDcal
-  Cudd_DumpDaVinci Cudd_DumpFactoredForm]
+  @sideeffect None
 
-******************************************************************************/
+  @see Cudd_DumpBlif Cudd_PrintDebug Cudd_DumpDDcal
+  Cudd_DumpDaVinci Cudd_DumpFactoredForm
+
+*/
 int
 Cudd_DumpDot(
-  DdManager * dd /* manager */,
-  int  n /* number of output nodes to be dumped */,
-  DdNode ** f /* array of output nodes to be dumped */,
-  char ** inames /* array of input names (or NULL) */,
-  char ** onames /* array of output names (or NULL) */,
-  FILE * fp /* pointer to the dump file */)
+  DdManager * dd /**< manager */,
+  int  n /**< number of output nodes to be dumped */,
+  DdNode ** f /**< array of output nodes to be dumped */,
+  char const * const * inames /**< array of input names (or NULL) */,
+  char const * const * onames /**< array of output names (or NULL) */,
+  FILE * fp /**< pointer to the dump file */)
 {
     DdNode	*support = NULL;
     DdNode	*scan;
@@ -395,7 +372,7 @@ Cudd_DumpDot(
     diff = 0;
     gen = st_init_gen(visited);
     if (gen == NULL) goto failure;
-    while (st_gen(gen, &scan, NULL)) {
+    while (st_gen(gen, (void **) &scan, NULL)) {
 	diff |= refAddr ^ (ptruint) scan;
     }
     st_free_gen(gen); gen = NULL;
@@ -470,7 +447,7 @@ Cudd_DumpDot(
 	    for (j = 0; j < slots; j++) {
 		scan = nodelist[j];
 		while (scan != NULL) {
-		    if (st_is_member(visited,(char *) scan)) {
+		    if (st_is_member(visited,scan)) {
 			retval = fprintf(fp,"\"%#" PRIxPTR "\";\n",
 			    ((mask & (ptruint) scan) / sizeof(DdNode)));
 			if (retval == EOF) goto failure;
@@ -492,7 +469,7 @@ Cudd_DumpDot(
     for (j = 0; j < slots; j++) {
 	scan = nodelist[j];
 	while (scan != NULL) {
-	    if (st_is_member(visited,(char *) scan)) {
+	    if (st_is_member(visited,scan)) {
 		if (scan != Cudd_ReadZero(dd)) {
 		retval = fprintf(fp,"\"%#" PRIxPTR "\";\n",
 		    ((mask & (ptruint) scan) / sizeof(DdNode)));
@@ -517,10 +494,10 @@ Cudd_DumpDot(
 	/* Account for the possible complement on the root. */
 	if (Cudd_IsComplement(f[i])) {
 	    retval = fprintf(fp," -> \"%#" PRIxPTR "\" [style = dashed];\n",
-		 ((mask & (ptruint) f[i]) / sizeof(DdNode)));
+		((mask & (ptruint) f[i]) / sizeof(DdNode)));
 	} else {
 	    retval = fprintf(fp," -> \"%#" PRIxPTR "\" [style = solid];\n",
-		 ((mask & (ptruint) f[i]) / sizeof(DdNode)));
+		((mask & (ptruint) f[i]) / sizeof(DdNode)));
 	}
 	if (retval == EOF) goto failure;
     }
@@ -533,40 +510,37 @@ Cudd_DumpDot(
 	    for (j = 0; j < slots; j++) {
 		scan = nodelist[j];
 		while (scan != NULL) {
-		    if (st_is_member(visited,(char *) scan)) {
+		    if (st_is_member(visited,scan)) {
 			/* print label (blank) */
 			retval = fprintf(fp,
 			    "\"%#" PRIxPTR "\" [label = \"\"];\n",
-			     ((mask & (ptruint) scan) /
-			    sizeof(DdNode)));
+			    ((mask & (ptruint) scan) / sizeof(DdNode)));
 			if (retval == EOF) goto failure;
 			if (cuddT(scan) != Cudd_ReadZero(dd)) {
 			retval = fprintf(fp,
 			    "\"%#" PRIxPTR "\" -> \"%#" PRIxPTR "\";\n",
-			     ((mask & (ptruint) scan) /
-			    sizeof(DdNode)),
-			     ((mask & (ptruint) cuddT(scan)) /
-			    sizeof(DdNode)));
+			    ((mask & (ptruint) scan) / sizeof(DdNode)),
+			    ((mask & (ptruint) cuddT(scan)) / sizeof(DdNode)));
 			if (retval == EOF) goto failure;
 			}
 			if (cuddE(scan) != Cudd_ReadZero(dd)) {
 			if (Cudd_IsComplement(cuddE(scan))) {
 			    retval = fprintf(fp,
-				"\"%#" PRIxPTR "\" -> \"%#" PRIxPTR "\" [style = dashed];\n",
-				 ((mask & (ptruint) scan) /
-				sizeof(DdNode)),
-				 ((mask & (ptruint) cuddE(scan)) /
+				"\"%#" PRIxPTR "\" -> \"%#" PRIxPTR
+                                             "\" [style = dashed];\n",
+				((mask & (ptruint) scan) / sizeof(DdNode)),
+				((mask & (ptruint) cuddE(scan)) /
 				sizeof(DdNode)));
 			} else {
 			    retval = fprintf(fp,
-				"\"%#" PRIxPTR "\" -> \"%#" PRIxPTR "\" [style = dotted];\n",
-				 ((mask & (ptruint) scan) /
-				sizeof(DdNode)),
-				 ((mask & (ptruint) cuddE(scan)) /
+				"\"%#" PRIxPTR "\" -> \"%#" PRIxPTR
+                                             "\" [style = dotted];\n",
+				((mask & (ptruint) scan) / sizeof(DdNode)),
+				((mask & (ptruint) cuddE(scan)) /
 				sizeof(DdNode)));
 			}
 			if (retval == EOF) goto failure;
-		    }
+			}
 		    }
 		    scan = scan->next;
 		}
@@ -580,11 +554,10 @@ Cudd_DumpDot(
     for (j = 0; j < slots; j++) {
 	scan = nodelist[j];
 	while (scan != NULL) {
-	    if (st_is_member(visited,(char *) scan)) {
+	    if (st_is_member(visited,scan)) {
 		if (scan != Cudd_ReadZero(dd)) {
 		retval = fprintf(fp,"\"%#" PRIxPTR "\" [label = \"%g\"];\n",
-		     ((mask & (ptruint) scan) / sizeof(DdNode)),
-		    cuddV(scan));
+		    ((mask & (ptruint) scan) / sizeof(DdNode)), cuddV(scan));
 		if (retval == EOF) goto failure;
 		}
 	    }
@@ -600,7 +573,7 @@ Cudd_DumpDot(
     FREE(sorted);
     return(1);
 
-failure:
+ failure:
     if (sorted != NULL) FREE(sorted);
     if (support != NULL) Cudd_RecursiveDeref(dd,support);
     if (visited != NULL) st_free_table(visited);
@@ -609,32 +582,33 @@ failure:
 } /* end of Cudd_DumpDot */
 
 
-/**Function********************************************************************
+/**
+  @brief Writes a daVinci file representing the argument BDDs.
 
-  Synopsis    [Writes a daVinci file representing the argument BDDs.]
+  @details Writes a daVinci file representing the argument BDDs.
+  Cudd_DumpDaVinci does not close the file: This is the caller
+  responsibility. Cudd_DumpDaVinci uses a minimal unique subset of the
+  hexadecimal address of a node as name for it.  If the argument
+  inames is non-null, it is assumed to hold the pointers to the names
+  of the inputs. Similarly for onames.
 
-  Description [Writes a daVinci file representing the argument BDDs.
-  It returns 1 in case of success; 0 otherwise (e.g., out-of-memory or
-  file system full).  Cudd_DumpDaVinci does not close the file: This
-  is the caller responsibility. Cudd_DumpDaVinci uses a minimal unique
-  subset of the hexadecimal address of a node as name for it.  If the
-  argument inames is non-null, it is assumed to hold the pointers to
-  the names of the inputs. Similarly for onames.]
+  @return 1 in case of success; 0 otherwise (e.g., out-of-memory or
+  file system full).
 
-  SideEffects [None]
+  @sideeffect None
 
-  SeeAlso     [Cudd_DumpDot Cudd_PrintDebug Cudd_DumpBlif Cudd_DumpDDcal
-  Cudd_DumpFactoredForm]
+  @see Cudd_DumpDot Cudd_PrintDebug Cudd_DumpBlif Cudd_DumpDDcal
+  Cudd_DumpFactoredForm
 
-******************************************************************************/
+*/
 int
 Cudd_DumpDaVinci(
-  DdManager * dd /* manager */,
-  int  n /* number of output nodes to be dumped */,
-  DdNode ** f /* array of output nodes to be dumped */,
-  char ** inames /* array of input names (or NULL) */,
-  char ** onames /* array of output names (or NULL) */,
-  FILE * fp /* pointer to the dump file */)
+  DdManager * dd /**< manager */,
+  int  n /**< number of output nodes to be dumped */,
+  DdNode ** f /**< array of output nodes to be dumped */,
+  char const * const * inames /**< array of input names (or NULL) */,
+  char const * const * onames /**< array of output names (or NULL) */,
+  FILE * fp /**< pointer to the dump file */)
 {
     DdNode	  *support = NULL;
     DdNode	  *scan;
@@ -669,7 +643,7 @@ Cudd_DumpDaVinci(
     refAddr = (ptruint) Cudd_Regular(f[0]);
     diff = 0;
     gen = st_init_gen(visited);
-    while (st_gen(gen, &scan, NULL)) {
+    while (st_gen(gen, (void **) &scan, NULL)) {
 	diff |= refAddr ^ (ptruint) scan;
     }
     st_free_gen(gen);
@@ -723,32 +697,33 @@ failure:
 } /* end of Cudd_DumpDaVinci */
 
 
-/**Function********************************************************************
+/**
+  @brief Writes a DDcal file representing the argument BDDs.
 
-  Synopsis    [Writes a DDcal file representing the argument BDDs.]
+  @details Writes a DDcal file representing the argument BDDs.
+  Cudd_DumpDDcal does not close the file: This is the caller
+  responsibility. Cudd_DumpDDcal uses a minimal unique subset of the
+  hexadecimal address of a node as name for it.  If the argument
+  inames is non-null, it is assumed to hold the pointers to the names
+  of the inputs. Similarly for onames.
 
-  Description [Writes a DDcal file representing the argument BDDs.
-  It returns 1 in case of success; 0 otherwise (e.g., out-of-memory or
-  file system full).  Cudd_DumpDDcal does not close the file: This
-  is the caller responsibility. Cudd_DumpDDcal uses a minimal unique
-  subset of the hexadecimal address of a node as name for it.  If the
-  argument inames is non-null, it is assumed to hold the pointers to
-  the names of the inputs. Similarly for onames.]
+  @return 1 in case of success; 0 otherwise (e.g., out-of-memory or
+  file system full).
 
-  SideEffects [None]
+  @sideeffect None
 
-  SeeAlso     [Cudd_DumpDot Cudd_PrintDebug Cudd_DumpBlif Cudd_DumpDaVinci
-  Cudd_DumpFactoredForm]
+  @see Cudd_DumpDot Cudd_PrintDebug Cudd_DumpBlif Cudd_DumpDaVinci
+  Cudd_DumpFactoredForm
 
-******************************************************************************/
+*/
 int
 Cudd_DumpDDcal(
-  DdManager * dd /* manager */,
-  int  n /* number of output nodes to be dumped */,
-  DdNode ** f /* array of output nodes to be dumped */,
-  char ** inames /* array of input names (or NULL) */,
-  char ** onames /* array of output names (or NULL) */,
-  FILE * fp /* pointer to the dump file */)
+  DdManager * dd /**< manager */,
+  int  n /**< number of output nodes to be dumped */,
+  DdNode ** f /**< array of output nodes to be dumped */,
+  char const * const * inames /**< array of input names (or NULL) */,
+  char const * const * onames /**< array of output names (or NULL) */,
+  FILE * fp /**< pointer to the dump file */)
 {
     DdNode	  *support = NULL;
     DdNode	  *scan;
@@ -785,7 +760,7 @@ Cudd_DumpDDcal(
     refAddr = (ptruint) Cudd_Regular(f[0]);
     diff = 0;
     gen = st_init_gen(visited);
-    while (st_gen(gen, &scan, NULL)) {
+    while (st_gen(gen, (void **) &scan, NULL)) {
 	diff |= refAddr ^ (ptruint) scan;
     }
     st_free_gen(gen);
@@ -860,6 +835,7 @@ Cudd_DumpDDcal(
 	} else {
 	    retval = fprintf(fp, "%s", onames[i]);
 	}
+	if (retval == EOF) goto failure;
 	retval = fprintf(fp, "%s", i == n-1 ? "" : " ");
 	if (retval == EOF) goto failure;
     }
@@ -878,45 +854,52 @@ failure:
 } /* end of Cudd_DumpDDcal */
 
 
-/**Function********************************************************************
+/**
+  @brief Writes factored forms representing the argument BDDs.
 
-  Synopsis    [Writes factored forms representing the argument BDDs.]
+  @details Writes factored forms representing the argument BDDs.  The
+  format of the factored form is the one used in the genlib files for
+  technology mapping in sis.  Cudd_DumpFactoredForm does not close the
+  file: This is the caller responsibility. Caution must be exercised
+  because a factored form may be exponentially larger than the
+  argument %BDD.  If the argument inames is non-null, it is assumed to
+  hold the pointers to the names of the inputs. Similarly for onames.
+  If the number of output nodes is 0, it is interpreted as 1, but no
+  output name followed by equal sign is printed before the factored
+  form.
 
-  Description [Writes factored forms representing the argument BDDs.
-  The format of the factored form is the one used in the genlib files
-  for technology mapping in sis.  It returns 1 in case of success; 0
-  otherwise (e.g., file system full).  Cudd_DumpFactoredForm does not
-  close the file: This is the caller responsibility. Caution must be
-  exercised because a factored form may be exponentially larger than
-  the argument BDD.  If the argument inames is non-null, it is assumed
-  to hold the pointers to the names of the inputs. Similarly for
-  onames.]
+  @return 1 in case of success; 0 otherwise (e.g., file system full).
 
-  SideEffects [None]
+  @sideeffect None
 
-  SeeAlso     [Cudd_DumpDot Cudd_PrintDebug Cudd_DumpBlif Cudd_DumpDaVinci
-  Cudd_DumpDDcal]
+  @see Cudd_DumpDot Cudd_PrintDebug Cudd_DumpBlif Cudd_DumpDaVinci
+  Cudd_DumpDDcal
 
-******************************************************************************/
+*/
 int
 Cudd_DumpFactoredForm(
-  DdManager * dd /* manager */,
-  int  n /* number of output nodes to be dumped */,
-  DdNode ** f /* array of output nodes to be dumped */,
-  char ** inames /* array of input names (or NULL) */,
-  char ** onames /* array of output names (or NULL) */,
-  FILE * fp /* pointer to the dump file */)
+  DdManager * dd /**< manager */,
+  int  n /**< number of output nodes to be dumped */,
+  DdNode ** f /**< array of output nodes to be dumped */,
+  char const * const * inames /**< array of input names (or NULL) */,
+  char const * const * onames /**< array of output names (or NULL) */,
+  FILE * fp /**< pointer to the dump file */)
 {
-    int		retval;
+    int		retval = 0;
     int		i;
+    int		printName = n != 0;
+
+    if (!printName) n = 1;
 
     /* Call the function that really gets the job done. */
     for (i = 0; i < n; i++) {
-	if (onames == NULL) {
-	    retval = fprintf(fp, "f%d = ", i);
-	} else {
-	    retval = fprintf(fp, "%s = ", onames[i]);
-	}
+        if (printName) {
+            if (onames == NULL) {
+		retval = fprintf(fp, "f%d = ", i);
+            } else {
+		retval = fprintf(fp, "%s = ", onames[i]);
+            }
+        }
 	if (retval == EOF) return(0);
 	if (f[i] == DD_ONE(dd)) {
 	    retval = fprintf(fp, "CONST1");
@@ -925,11 +908,11 @@ Cudd_DumpFactoredForm(
 	    retval = fprintf(fp, "CONST0");
 	    if (retval == EOF) return(0);
 	} else {
-	    retval = fprintf(fp, "%s", Cudd_IsComplement(f[i]) ? "!(" : "");
+	    retval = fprintf(fp, "%s", Cudd_IsComplement(f[i]) ? (Cudd_bddIsVar(dd, Cudd_Regular(f[i])) ? "!" : "!(") : "");
 	    if (retval == EOF) return(0);
 	    retval = ddDoDumpFactoredForm(dd,Cudd_Regular(f[i]),fp,inames);
 	    if (retval == 0) return(0);
-	    retval = fprintf(fp, "%s", Cudd_IsComplement(f[i]) ? ")" : "");
+	    retval = fprintf(fp, "%s", Cudd_IsComplement(f[i]) && !Cudd_bddIsVar(dd, Cudd_Regular(f[i])) ? ")" : "");
 	    if (retval == EOF) return(0);
 	}
 	retval = fprintf(fp, "%s", i == n-1 ? "" : "\n");
@@ -939,6 +922,77 @@ Cudd_DumpFactoredForm(
     return(1);
 
 } /* end of Cudd_DumpFactoredForm */
+
+
+/**
+  @brief Returns a string with the factored form of the argument BDDs
+
+  @details The factored form uses & for conjunction, | for disjunction
+  and ! for negation.  Caution must be exercised because a factored
+  form may be exponentially larger than the argument %BDD.  If the
+  argument inames is non-null, it is assumed to hold the pointers to
+  the names of the inputs.
+
+  @return a string in case of success; NULL otherwise.
+
+  @sideeffect None
+
+  @see Cudd_DumpDot Cudd_PrintDebug Cudd_DumpBlif Cudd_DumpDaVinci
+  Cudd_DumpDDcal Cudd_DumpFactoredForm
+
+*/
+char *
+Cudd_FactoredFormString(
+  DdManager *dd,
+  DdNode *f,
+  char const * const * inames)
+{
+    cstringstream stream = newStringStream();
+    int err, retval;
+    char * str;
+
+    if (!stream) {
+        return(0);
+    }
+    /* Call the function that really gets the job done. */
+    if (f == DD_ONE(dd)) {
+        err = appendStringStringStream(stream, "true");
+        if (err) {
+            deleteStringStream(stream);
+            return(0);
+        }
+    } else if (f == Cudd_Not(DD_ONE(dd)) || f == DD_ZERO(dd)) {
+        err = appendStringStringStream(stream, "false");
+        if (err) {
+            deleteStringStream(stream);
+            return(0);
+        }
+    } else {
+        err = appendStringStringStream(
+          stream, Cudd_IsComplement(f) ?
+          (Cudd_bddIsVar(dd, Cudd_Regular(f)) ? "!" : "!(") : "");
+        if (err) {
+            deleteStringStream(stream);
+            return(0);
+        }
+        retval = ddDoFactoredFormString(dd,Cudd_Regular(f),stream,inames);
+        if (retval == 0) {
+            deleteStringStream(stream);
+            return(0);
+        }
+        err = appendStringStringStream(
+          stream, Cudd_IsComplement(f) &&
+          !Cudd_bddIsVar(dd, Cudd_Regular(f)) ? ")" : "");
+        if (err) {
+            deleteStringStream(stream);
+            return(0);
+        }
+    }
+    str = stringFromStringStream(stream);
+    deleteStringStream(stream);
+    return(str);
+
+} /* end of Cudd_FactoredFormString */
 
 
 /*---------------------------------------------------------------------------*/
@@ -951,27 +1005,24 @@ Cudd_DumpFactoredForm(
 /*---------------------------------------------------------------------------*/
 
 
-/**Function********************************************************************
+/**
+  @brief Performs the recursive step of Cudd_DumpBlif.
 
-  Synopsis    [Performs the recursive step of Cudd_DumpBlif.]
+  @details Traverses the %BDD f and writes a multiplexer-network
+  description to the file pointed by fp in blif format. f is assumed
+  to be a regular pointer and ddDoDumpBlif guarantees this assumption
+  in the recursive calls.
 
-  Description [Performs the recursive step of Cudd_DumpBlif. Traverses
-  the BDD f and writes a multiplexer-network description to the file
-  pointed by fp in blif format. f is assumed to be a regular pointer
-  and ddDoDumpBlif guarantees this assumption in the recursive calls.]
+  @sideeffect None
 
-  SideEffects [None]
-
-  SeeAlso     []
-
-******************************************************************************/
+*/
 static int
 ddDoDumpBlif(
   DdManager * dd,
   DdNode * f,
   FILE * fp,
   st_table * visited,
-  char ** names,
+  char const * const * names,
   int mv)
 {
     DdNode	*T, *E;
@@ -982,7 +1033,7 @@ ddDoDumpBlif(
 #endif
 
     /* If already visited, nothing to do. */
-    if (st_is_member(visited, (char *) f) == 1)
+    if (st_is_member(visited, f) == 1)
 	return(1);
 
     /* Check for abnormal condition that should never happen. */
@@ -990,7 +1041,7 @@ ddDoDumpBlif(
 	return(0);
 
     /* Mark node as visited. */
-    if (st_insert(visited, (char *) f, NULL) == ST_OUT_OF_MEM)
+    if (st_insert(visited, f, NULL) == ST_OUT_OF_MEM)
 	return(0);
 
     /* Check for special case: If constant node, generate constant 1. */
@@ -1074,27 +1125,24 @@ ddDoDumpBlif(
 } /* end of ddDoDumpBlif */
 
 
-/**Function********************************************************************
+/**
+  @brief Performs the recursive step of Cudd_DumpDaVinci.
 
-  Synopsis    [Performs the recursive step of Cudd_DumpDaVinci.]
+  @details Traverses the %BDD f and writes a term expression to the
+  file pointed by fp in daVinci format. f is assumed to be a regular
+  pointer and ddDoDumpDaVinci guarantees this assumption in the
+  recursive calls.
 
-  Description [Performs the recursive step of Cudd_DumpDaVinci. Traverses
-  the BDD f and writes a term expression to the file
-  pointed by fp in daVinci format. f is assumed to be a regular pointer
-  and ddDoDumpDaVinci guarantees this assumption in the recursive calls.]
+  @sideeffect None
 
-  SideEffects [None]
-
-  SeeAlso     []
-
-******************************************************************************/
+*/
 static int
 ddDoDumpDaVinci(
   DdManager * dd,
   DdNode * f,
   FILE * fp,
   st_table * visited,
-  char ** names,
+  char const * const * names,
   ptruint mask)
 {
     DdNode  *T, *E;
@@ -1108,8 +1156,8 @@ ddDoDumpDaVinci(
     id = ((ptruint) f & mask) / sizeof(DdNode);
 
     /* If already visited, insert a reference. */
-    if (st_is_member(visited, (char *) f) == 1) {
-	retval = fprintf(fp,"r(\"%#" PRIxPTR "\")",  id);
+    if (st_is_member(visited, f) == 1) {
+	retval = fprintf(fp,"r(\"%#" PRIxPTR "\")", id);
 	if (retval == EOF) {
 	    return(0);
 	} else {
@@ -1122,11 +1170,11 @@ ddDoDumpDaVinci(
 	return(0);
 
     /* Mark node as visited. */
-    if (st_insert(visited, (char *) f, NULL) == ST_OUT_OF_MEM)
+    if (st_insert(visited, f, NULL) == ST_OUT_OF_MEM)
 	return(0);
 
     /* Check for special case: If constant node, generate constant 1. */
-    if (Cudd_IsConstant(f)) {
+    if (Cudd_IsConstantInt(f)) {
 	retval = fprintf(fp,
 			 "l(\"%#" PRIxPTR
                          "\",n(\"constant\",[a(\"OBJECT\",\"%g\")],[]))",
@@ -1140,18 +1188,21 @@ ddDoDumpDaVinci(
 
     /* Recursive calls. */
     if (names != NULL) {
-	retval = fprintf(fp,
-			 "l(\"%#" PRIxPTR "\",n(\"internal\",[a(\"OBJECT\",\"%s\"),",
-			  id, names[f->index]);
+	retval = fprintf(fp, "l(\"%#" PRIxPTR
+                         "\",n(\"internal\",[a(\"OBJECT\",\"%s\"),",
+			 id, names[f->index]);
     } else {
-	retval = fprintf(fp,
 #if SIZEOF_VOID_P == 8
-			 "l(\"%#" PRIxPTR "\",n(\"internal\",[a(\"OBJECT\",\"%u\"),",
+	retval = fprintf(fp, "l(\"%#" PRIxPTR
+                         "\",n(\"internal\",[a(\"OBJECT\",\"%u\"),",
+			 id, f->index);
 #else
-			 "l(\"%#" PRIxPTR "\",n(\"internal\",[a(\"OBJECT\",\"%hu\"),",
+	retval = fprintf(fp, "l(\"%#"PRIxPTR
+                         "\",n(\"internal\",[a(\"OBJECT\",\"%hu\"),",
+			 id, f->index);
 #endif
-			  id, f->index);
     }
+    if (retval == EOF) return(0);
     retval = fprintf(fp, "a(\"_GO\",\"ellipse\")],[e(\"then\",[a(\"EDGECOLOR\",\"blue\"),a(\"_DIR\",\"none\")],");
     if (retval == EOF) return(0);
     T = cuddT(f);
@@ -1174,27 +1225,24 @@ ddDoDumpDaVinci(
 } /* end of ddDoDumpDaVinci */
 
 
-/**Function********************************************************************
+/**
+  @brief Performs the recursive step of Cudd_DumpDDcal.
 
-  Synopsis    [Performs the recursive step of Cudd_DumpDDcal.]
+  @details Traverses the %BDD f and writes a line for each node to the
+  file pointed by fp in DDcal format. f is assumed to be a regular
+  pointer and ddDoDumpDDcal guarantees this assumption in the
+  recursive calls.
 
-  Description [Performs the recursive step of Cudd_DumpDDcal. Traverses
-  the BDD f and writes a line for each node to the file
-  pointed by fp in DDcal format. f is assumed to be a regular pointer
-  and ddDoDumpDDcal guarantees this assumption in the recursive calls.]
+  @sideeffect None
 
-  SideEffects [None]
-
-  SeeAlso     []
-
-******************************************************************************/
+*/
 static int
 ddDoDumpDDcal(
   DdManager * dd,
   DdNode * f,
   FILE * fp,
   st_table * visited,
-  char ** names,
+  char const * const * names,
   ptruint mask)
 {
     DdNode  *T, *E;
@@ -1208,7 +1256,7 @@ ddDoDumpDDcal(
     id = ((ptruint) f & mask) / sizeof(DdNode);
 
     /* If already visited, do nothing. */
-    if (st_is_member(visited, (char *) f) == 1) {
+    if (st_is_member(visited, f) == 1) {
 	return(1);
     }
 
@@ -1217,11 +1265,11 @@ ddDoDumpDDcal(
 	return(0);
 
     /* Mark node as visited. */
-    if (st_insert(visited, (char *) f, NULL) == ST_OUT_OF_MEM)
+    if (st_insert(visited, f, NULL) == ST_OUT_OF_MEM)
 	return(0);
 
     /* Check for special case: If constant node, assign constant. */
-    if (Cudd_IsConstant(f)) {
+    if (Cudd_IsConstantInt(f)) {
 	if (f != DD_ONE(dd) && f != DD_ZERO(dd))
 	    return(0);
 	retval = fprintf(fp, "n%#" PRIxPTR" = %g\n", id, cuddV(f));
@@ -1242,19 +1290,22 @@ ddDoDumpDDcal(
     idT = ((ptruint) T & mask) / sizeof(DdNode);
     idE = ((ptruint) E & mask) / sizeof(DdNode);
     if (names != NULL) {
-	retval = fprintf(fp, "n%#" PRIxPTR " = %s * n%#" PRIxPTR " + %s' * n%#" PRIxPTR "%s\n",
-			  id, names[f->index],
-			  idT, names[f->index],
-			  idE, Cudd_IsComplement(cuddE(f)) ? "'" : "");
+	retval = fprintf(fp, "n%#" PRIxPTR " = %s * n%#" PRIxPTR
+                         " + %s' * n%#" PRIxPTR "%s\n",
+			 id, names[f->index], idT, names[f->index],
+			 idE, Cudd_IsComplement(cuddE(f)) ? "'" : "");
     } else {
 #if SIZEOF_VOID_P == 8
-	retval = fprintf(fp, "n%#" PRIxPTR " = v%u * n%#" PRIxPTR " + v%u' * n%#" PRIxPTR "%s\n",
+	retval = fprintf(fp, "n%#" PRIxPTR " = v%u * n%#" PRIxPTR
+                         " + v%u' * n%#" PRIxPTR "%s\n",
+			 id, f->index, idT, f->index,
+			 idE, Cudd_IsComplement(cuddE(f)) ? "'" : "");
 #else
-	retval = fprintf(fp, "n%#" PRIxPTR " = v%hu * n%#" PRIxPTR " + v%hu' * n%#" PRIxPTR "%s\n",
+	retval = fprintf(fp, "n%#"PRIxPTR" = v%hu * n%#"PRIxPTR
+                         " + v%hu' * n%#"PRIxPTR"%s\n",
+			 id, f->index, idT, f->index,
+			 idE, Cudd_IsComplement(cuddE(f)) ? "'" : "");
 #endif
-			  id, f->index,
-			  idT, f->index,
-			  idE, Cudd_IsComplement(cuddE(f)) ? "'" : "");
     }
     if (retval == EOF) {
 	return(0);
@@ -1265,36 +1316,33 @@ ddDoDumpDDcal(
 } /* end of ddDoDumpDDcal */
 
 
-/**Function********************************************************************
+/**
+  @brief Performs the recursive step of Cudd_DumpFactoredForm.
 
-  Synopsis    [Performs the recursive step of Cudd_DumpFactoredForm.]
+  @details Traverses the %BDD f and writes a factored form for each
+  node to the file pointed by fp in terms of the factored forms of the
+  children. Constants are propagated, and absorption is applied.  f is
+  assumed to be a regular pointer and ddDoDumpFActoredForm guarantees
+  this assumption in the recursive calls.
 
-  Description [Performs the recursive step of
-  Cudd_DumpFactoredForm. Traverses the BDD f and writes a factored
-  form for each node to the file pointed by fp in terms of the
-  factored forms of the children. Constants are propagated, and
-  absorption is applied.  f is assumed to be a regular pointer and
-  ddDoDumpFActoredForm guarantees this assumption in the recursive
-  calls.]
+  @sideeffect None
 
-  SideEffects [None]
+  @see Cudd_DumpFactoredForm
 
-  SeeAlso     [Cudd_DumpFactoredForm]
-
-******************************************************************************/
+*/
 static int
 ddDoDumpFactoredForm(
   DdManager * dd,
   DdNode * f,
   FILE * fp,
-  char ** names)
+  char const * const * names)
 {
     DdNode	*T, *E;
     int		retval;
 
 #ifdef DD_DEBUG
     assert(!Cudd_IsComplement(f));
-    assert(!Cudd_IsConstant(f));
+    assert(!cuddIsConstant(f));
 #endif
 
     /* Check for abnormal condition that should never happen. */
@@ -1318,11 +1366,12 @@ ddDoDumpFactoredForm(
 	    if (retval == EOF) return(0);
 	}
 	if (T != DD_ONE(dd)) {
-	    retval = fprintf(fp, "%s(", E != DD_ONE(dd) ? " * " : "");
+            //	    retval = fprintf(fp, "%s(", E != DD_ONE(dd) ? " * " : "");
+            retval = fprintf(fp, "%s%s", E != DD_ONE(dd) ? " * " : "", Cudd_bddIsVar(dd, T) ? "" : "(");
 	    if (retval == EOF) return(0);
 	    retval = ddDoDumpFactoredForm(dd,T,fp,names);
 	    if (retval != 1) return(retval);
-	    retval = fprintf(fp, ")");
+	    retval = fprintf(fp, "%s", Cudd_bddIsVar(dd, T) ? "" : ")");
 	    if (retval == EOF) return(0);
 	}
 	if (E == Cudd_Not(DD_ONE(dd)) || E == DD_ZERO(dd)) return(1);
@@ -1343,14 +1392,105 @@ ddDoDumpFactoredForm(
 	if (retval == EOF) return(0);
     }
     if (E != DD_ONE(dd)) {
-	retval = fprintf(fp, "%s%s(", T != DD_ONE(dd) ? " * " : "",
-			 E != cuddE(f) ? "!" : "");
+	retval = fprintf(fp, "%s%s%s", T != DD_ONE(dd) ? " * " : "",
+			 E != cuddE(f) ? "!" : "", Cudd_bddIsVar(dd, E) ? "" : "(");
 	if (retval == EOF) return(0);
 	retval = ddDoDumpFactoredForm(dd,E,fp,names);
 	if (retval != 1) return(retval);
-	retval = fprintf(fp, ")");
+	retval = fprintf(fp, "%s", Cudd_bddIsVar(dd, E) ? "" : "(");
 	if (retval == EOF) return(0);
     }
     return(1);
 
 } /* end of ddDoDumpFactoredForm */
+
+
+/**
+  @brief Performs the recursive step of Cudd_DumpFactoredForm.
+
+  @details Traverses the %BDD f and writes a factored form for each
+  node to the file pointed by fp in terms of the factored forms of the
+  children. Constants are propagated, and absorption is applied.  f is
+  assumed to be a regular pointer and ddDoDumpFActoredForm guarantees
+  this assumption in the recursive calls.
+
+  @sideeffect None
+
+  @see Cudd_DumpFactoredForm
+
+*/
+static int
+ddDoFactoredFormString(
+  DdManager * dd,
+  DdNode * f,
+  cstringstream stream,
+  char const * const * names)
+{
+    DdNode	*T, *E;
+    int		retval, err;
+
+#ifdef DD_DEBUG
+    assert(!Cudd_IsComplement(f));
+    assert(!cuddIsConstant(f));
+#endif
+
+    /* Check for abnormal condition that should never happen. */
+    if (f == NULL)
+	return(0);
+
+    /* Recursive calls. */
+    T = cuddT(f);
+    E = cuddE(f);
+    if (T != DD_ZERO(dd)) {
+	if (E != DD_ONE(dd)) {
+	    if (names != NULL) {
+                err = appendStringStringStream(stream, names[f->index]);
+	    } else {
+                err = appendCharStringStream(stream, 'x');
+                if (err) return(0);
+                err = appendUnsignedStringStream(stream, (unsigned) f->index);
+	    }
+	    if (err) return(0);
+	}
+	if (T != DD_ONE(dd)) {
+            err = appendStringStringStream(stream, E != DD_ONE(dd) ? " & " : "");
+            if (err) return(0);
+            err = appendStringStringStream(stream, Cudd_bddIsVar(dd, T) ? "" : "(");
+	    if (err) return(0);
+	    retval = ddDoFactoredFormString(dd,T,stream,names);
+	    if (retval != 1) return(retval);
+            err = appendStringStringStream(stream, Cudd_bddIsVar(dd, T) ? "" : ")");
+	    if (err) return(0);
+	}
+	if (E == Cudd_Not(DD_ONE(dd)) || E == DD_ZERO(dd)) return(1);
+        err = appendStringStringStream(stream,  " | ");
+	if (err) return(0);
+    }
+    E = Cudd_Regular(E);
+    if (T != DD_ONE(dd)) {
+        err = appendCharStringStream(stream, '!');
+        if (err) return(0);
+	if (names != NULL) {
+            err = appendStringStringStream(stream, names[f->index]);
+	} else {
+            err = appendCharStringStream(stream, 'x');
+            if (err) return(0);
+            err = appendUnsignedStringStream(stream, (unsigned) f->index);
+	}
+	if (err) return(0);
+    }
+    if (E != DD_ONE(dd)) {
+        err = appendStringStringStream(stream, T != DD_ONE(dd) ? " & " : "");
+        if (err) return(0);
+        err = appendStringStringStream(stream, E != cuddE(f) ? "!" : "");
+        if (err) return(0);
+        err = appendStringStringStream(stream, Cudd_bddIsVar(dd, E) ? "" : "(");
+        if (err) return(0);
+	retval = ddDoFactoredFormString(dd,E,stream,names);
+	if (retval != 1) return(retval);
+        err = appendStringStringStream(stream, Cudd_bddIsVar(dd, E) ? "" : ")");
+	if (err) return(0);
+    }
+    return(1);
+
+} /* end of ddDoFactoredFormString */

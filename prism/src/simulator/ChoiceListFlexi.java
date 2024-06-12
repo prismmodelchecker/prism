@@ -2,7 +2,7 @@
 //	
 //	Copyright (c) 2002-
 //	Authors:
-//	* Dave Parker <david.parker@comlab.ox.ac.uk> (University of Oxford)
+//	* Dave Parker <d.a.parker@cs.bham.ac.uk> (University of Birmingham)
 //	
 //------------------------------------------------------------------------------
 //	
@@ -34,6 +34,7 @@ import parser.VarList;
 import parser.ast.Command;
 import parser.ast.Expression;
 import parser.ast.Update;
+import prism.Evaluator;
 import prism.ModelType;
 import prism.PrismException;
 import prism.PrismLangException;
@@ -43,8 +44,11 @@ import prism.PrismLangException;
  * i.e, a representation of a single (nondeterministic) choice in a PRISM model,
  * in the form of a list of transitions, each specified by updates to variables.
  */
-public class ChoiceListFlexi implements Choice
+public class ChoiceListFlexi<Value> implements Choice<Value>
 {
+	// Evaluator for values/states
+	protected Evaluator<Value> eval;
+	
 	// Module/action info, encoded as an integer.
 	// For an independent (non-synchronous) choice, this is -i,
 	// where i is the 1-indexed module index.
@@ -52,11 +56,10 @@ public class ChoiceListFlexi implements Choice
 	protected int moduleOrActionIndex;
 
 	// List of multiple updates and associated probabilities/rates
-	// Size of list is stored implicitly in target.length
-	// Probabilities/rates are already evaluated, target states are not
-	// but are just stored as lists of updates (for efficiency)
+	// Probabilities/rates are already (partially) evaluated,
+	// target states are just stored as lists of updates (for efficiency)
 	protected List<List<Update>> updates;
-	protected List<Double> probability;
+	protected List<Value> probability;
 	
 	// For real-time models, the clock guard,
 	// i.e., an expression over clock variables
@@ -66,19 +69,23 @@ public class ChoiceListFlexi implements Choice
 	/**
 	 * Create empty choice.
 	 */
-	public ChoiceListFlexi()
+	public ChoiceListFlexi(Evaluator<Value> eval)
 	{
+		// Store evaluator
+		this.eval = eval;
+		// Initialise
 		updates = new ArrayList<List<Update>>();
-		probability = new ArrayList<Double>();
+		probability = new ArrayList<Value>();
 		clockGuard = null;
 	}
 
 	/**
 	 * Copy constructor.
-	 * NB: Does a shallow, not deep, copy with respect to references to Update objects.
+	 * NB: Does a shallow, not deep, copy with respect to references to probability/update objects.
 	 */
-	public ChoiceListFlexi(ChoiceListFlexi ch)
+	public ChoiceListFlexi(ChoiceListFlexi<Value> ch)
 	{
+		eval = ch.eval;
 		moduleOrActionIndex = ch.moduleOrActionIndex;
 		updates = new ArrayList<List<Update>>(ch.updates.size());
 		for (List<Update> list : ch.updates) {
@@ -88,8 +95,8 @@ public class ChoiceListFlexi implements Choice
 				listNew.add(up);
 			}
 		}
-		probability = new ArrayList<Double>(ch.size());
-		for (double p : ch.probability) {
+		probability = new ArrayList<Value>(ch.size());
+		for (Value p : ch.probability) {
 			probability.add(p);
 		}
 		clockGuard = ch.clockGuard;
@@ -120,30 +127,30 @@ public class ChoiceListFlexi implements Choice
 	 * @param probability Probability (or rate) of the transition
 	 * @param ups List of Update objects defining transition
 	 */
-	public void add(double probability, List<Update> ups)
+	public void add(Value probability, List<Update> ups)
 	{
 		this.updates.add(ups);
 		this.probability.add(probability);
 	}
 
 	@Override
-	public void scaleProbabilitiesBy(double d)
+	public void scaleProbabilitiesBy(Value d)
 	{
 		int i, n;
 		n = size();
 		for (i = 0; i < n; i++) {
-			probability.set(i, probability.get(i) * d);
+			probability.set(i, eval.multiply(probability.get(i), d));
 		}
 	}
 
 	/**
 	 * Modify this choice, constructing product of it with another.
 	 */
-	public void productWith(ChoiceListFlexi ch)
+	public void productWith(ChoiceListFlexi<Value> ch)
 	{
 		List<Update> list;
 		int i, j, n, n2;
-		double pi;
+		Value pi;
 
 		n = ch.size();
 		n2 = size();
@@ -160,7 +167,7 @@ public class ChoiceListFlexi implements Choice
 				for (Update u : ch.updates.get(i)) {
 					list.add(u);
 				}
-				add(pi * getProbability(j), list);
+				add(eval.multiply(pi, getProbability(j)), list);
 			}
 		}
 		// Modify elements of current choice to get (0,j) elements of product
@@ -169,7 +176,7 @@ public class ChoiceListFlexi implements Choice
 			for (Update u : ch.updates.get(0)) {
 				updates.get(j).add(u);
 			}
-			probability.set(j, pi * probability.get(j));
+			probability.set(j, eval.multiply(pi, probability.get(j)));
 		}
 		if (ch.clockGuard != null) {
 			clockGuard = (clockGuard == null) ? ch.clockGuard : Expression.And(clockGuard, ch.clockGuard);
@@ -245,49 +252,49 @@ public class ChoiceListFlexi implements Choice
 	}
 
 	@Override
-	public State computeTarget(int i, State currentState) throws PrismLangException
+	public State computeTarget(int i, State currentState, VarList varList) throws PrismLangException
 	{
 		State newState = new State(currentState);
 		for (Update up : updates.get(i))
-			up.update(currentState, newState);
+			up.update(currentState, newState, eval.exact(), varList);
 		return newState;
 	}
 
 	@Override
-	public void computeTarget(int i, State currentState, State newState) throws PrismLangException
+	public void computeTarget(int i, State currentState, State newState, VarList varList) throws PrismLangException
 	{
 		for (Update up : updates.get(i))
-			up.update(currentState, newState);
+			up.update(currentState, newState, eval.exact(), varList);
 	}
 
 	@Override
-	public double getProbability(int i)
+	public Value getProbability(int i)
 	{
 		return probability.get(i);
 	}
 
 	@Override
-	public double getProbabilitySum()
+	public Value getProbabilitySum()
 	{
-		double sum = 0.0;
-		for (double d : probability)
-			sum += d;
+		Value sum = eval.zero();
+		for (Value p : probability) {
+			sum = eval.add(sum, p);
+		}
 		return sum;
 	}
 
 	@Override
-	public int getIndexByProbabilitySum(double x)
+	public int getIndexByProbabilitySum(Value x)
 	{
-		int i, n;
-		double d;
-		n = size();
-		d = 0.0;
-		for (i = 0; x >= d && i < n; i++) {
-			d += probability.get(i);
+		Value d = eval.zero();
+		int n = size();
+		int i;
+		for (i = 0; eval.geq(x, d) && i < n; i++) {
+			d = eval.add(d, probability.get(i));
 		}
 		return i - 1;
 	}
-
+	
 	@Override
 	public void checkValid(ModelType modelType) throws PrismException
 	{

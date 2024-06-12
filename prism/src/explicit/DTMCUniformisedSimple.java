@@ -47,26 +47,26 @@ import explicit.rewards.MCRewards;
 * all methods of a full DTMCExplicit model. See {@link CTMCSimple#buildUniformisedDTMC} for
 * a method to obtain an explicit uniformised DTMC.
 */
-public class DTMCUniformisedSimple extends DTMCExplicit
+public class DTMCUniformisedSimple<Value> extends DTMCExplicit<Value>
 {
 	// Parent CTMC
-	protected CTMCSimple ctmc;
+	protected CTMCSimple<Value> ctmc;
 	// Uniformisation rate
-	protected double q;
+	protected Value q;
 	// Number of extra transitions added (just for stats)
 	protected int numExtraTransitions;
 
 	/**
 	 * Constructor: create from CTMC and uniformisation rate q.
 	 */
-	public DTMCUniformisedSimple(CTMCSimple ctmc, double q)
+	public DTMCUniformisedSimple(CTMCSimple<Value> ctmc, Value q)
 	{
 		this.ctmc = ctmc;
 		this.numStates = ctmc.getNumStates();
 		this.q = q;
 		numExtraTransitions = 0;
 		for (int i = 0; i < numStates; i++) {
-			if (ctmc.getTransitions(i).get(i) == 0 && ctmc.getTransitions(i).sumAllBut(i) < q) {
+			if (!ctmc.getTransitions(i).contains(i) && !getEvaluator().geq(ctmc.getTransitions(i).sumAllBut(i), q)) {
 				numExtraTransitions++;
 			}
 		}
@@ -75,7 +75,7 @@ public class DTMCUniformisedSimple extends DTMCExplicit
 	/**
 	 * Constructor: create from CTMC and its default uniformisation rate.
 	 */
-	public DTMCUniformisedSimple(CTMCSimple ctmc)
+	public DTMCUniformisedSimple(CTMCSimple<Value> ctmc)
 	{
 		this(ctmc, ctmc.getDefaultUniformisationRate());
 	}
@@ -211,7 +211,7 @@ public class DTMCUniformisedSimple extends DTMCExplicit
 
 	// Accessors (for DTMC)
 
-	public Iterator<Entry<Integer,Double>> getTransitionsIterator(int s)
+	public Iterator<Entry<Integer,Value>> getTransitionsIterator(int s)
 	{
 		// TODO
 		throw new RuntimeException("Not implemented yet");
@@ -220,24 +220,21 @@ public class DTMCUniformisedSimple extends DTMCExplicit
 	@Override
 	public double mvMultSingle(int s, double vect[])
 	{
-		int k;
-		double sum, d, prob;
-		Distribution distr;
-
-		distr = ctmc.getTransitions(s);
-		sum = d = 0.0;
-		for (Map.Entry<Integer, Double> e : distr) {
-			k = (Integer) e.getKey();
-			prob = (Double) e.getValue();
+		double qDouble = getEvaluator().toDouble(q);
+		Distribution<Value> distr = ctmc.getTransitions(s);
+		double sum = 0.0, d = 0.0;
+		for (Map.Entry<Integer, Value> e : distr) {
+			int k = e.getKey();
+			double prob = getEvaluator().toDouble(e.getValue());
 			// Non-diagonal entries
 			if (k != s) {
 				sum += prob;
-				d += (prob / q) * vect[k];
+				d += (prob / qDouble) * vect[k];
 			}
 		}
 		// Diagonal entry
-		if (sum < q) {
-			d += (1 - sum/q) * vect[s];
+		if (sum < qDouble) {
+			d += (1 - sum/qDouble) * vect[s];
 		}
 
 		return d;
@@ -246,28 +243,25 @@ public class DTMCUniformisedSimple extends DTMCExplicit
 	@Override
 	public double mvMultJacSingle(int s, double vect[])
 	{
-		int k;
-		double sum, d, prob;
-		Distribution distr;
-
-		distr = ctmc.getTransitions(s);
-		sum = d = 0.0;
-		for (Map.Entry<Integer, Double> e : distr) {
-			k = (Integer) e.getKey();
-			prob = (Double) e.getValue();
+		double qDouble = getEvaluator().toDouble(q);
+		Distribution<Value> distr = ctmc.getTransitions(s);
+		double sum = 0.0, d = 0.0;
+		for (Map.Entry<Integer, Value> e : distr) {
+			int k = e.getKey();
+			double prob = (Double) e.getValue();
 			// Non-diagonal entries only
 			if (k != s) {
 				sum += prob;
-				d += (prob / q) * vect[k];
+				d += (prob / qDouble) * vect[k];
 			}
 		}
 		// Diagonal entry is 1 - sum/q
-		d /= (sum / q);
+		d /= (sum / qDouble);
 
 		return d;
 	}
 
-	public double mvMultRewSingle(int s, double vect[], MCRewards mcRewards)
+	public double mvMultRewSingle(int s, double vect[], MCRewards<Double> mcRewards)
 	{
 		// TODO
 		throw new Error("Not yet supported");
@@ -276,15 +270,16 @@ public class DTMCUniformisedSimple extends DTMCExplicit
 	@Override
 	public void vmMult(double vect[], double result[])
 	{
+		double qDouble = getEvaluator().toDouble(q);
 		// Initialise result to 0
 		Arrays.fill(result, 0);
 		// Go through matrix elements (by row)
 		for (int state = 0; state < numStates; state++) {
 			double sum = 0.0;
-			for (Iterator<Entry<Integer, Double>> transitions = ctmc.getTransitionsIterator(state); transitions.hasNext();) {
-				Entry<Integer, Double> trans = transitions.next();
+			for (Iterator<Entry<Integer, Value>> transitions = ctmc.getTransitionsIterator(state); transitions.hasNext();) {
+				Entry<Integer, Value> trans = transitions.next();
 				int target  = trans.getKey();
-				double prob = trans.getValue() / q;
+				double prob = getEvaluator().toDouble(trans.getValue()) / qDouble;
 				// Non-diagonal entries only
 				if (target != state) {
 					sum += prob;
@@ -310,7 +305,7 @@ public class DTMCUniformisedSimple extends DTMCExplicit
 	{
 		if (o == null || !(o instanceof DTMCUniformisedSimple))
 			return false;
-		DTMCUniformisedSimple dtmc = (DTMCUniformisedSimple) o;
+		DTMCUniformisedSimple<?> dtmc = (DTMCUniformisedSimple<?>) o;
 		if (!ctmc.equals(dtmc.ctmc))
 			return false;
 		if (q != dtmc.q)

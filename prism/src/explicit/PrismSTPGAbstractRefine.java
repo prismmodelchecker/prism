@@ -49,7 +49,7 @@ public class PrismSTPGAbstractRefine extends QuantAbstractRefine
 	protected boolean rebuildImmed = false; // Rebuild split states immediately
 
 	// Concrete model
-	protected ModelSimple modelConcrete;
+	protected ModelSimple<Double> modelConcrete;
 	protected int nConcrete; // Number of (concrete) states
 	protected BitSet initialConcrete; // Initial (concrete) states
 	protected BitSet targetConcrete; // Target (concrete) states
@@ -214,7 +214,7 @@ public class PrismSTPGAbstractRefine extends QuantAbstractRefine
 	/**
 	 * Abstract a concrete state c of a DTMC ready to add to an MDP state.
 	 */
-	protected Distribution buildAbstractDistribution(int c, DTMCSimple dtmc)
+	protected Distribution buildAbstractDistribution(int c, DTMCSimple<Double> dtmc)
 	{
 		return dtmc.getTransitions(c).map(concreteToAbstract);
 	}
@@ -222,10 +222,10 @@ public class PrismSTPGAbstractRefine extends QuantAbstractRefine
 	/**
 	 * Abstract a concrete state c of an MDP ready to add to an STPG state.
 	 */
-	protected DistributionSet buildAbstractDistributionSet(int c, MDPSimple mdp, STPG stpg)
+	protected DistributionSet buildAbstractDistributionSet(int c, MDPSimple<Double> mdp, STPG stpg)
 	{
 		DistributionSet set = ((STPGAbstrSimple) stpg).newDistributionSet(null);
-		for (Distribution distr : mdp.getChoices(c)) {
+		for (Distribution<Double> distr : mdp.getChoices(c)) {
 			set.add(distr.map(concreteToAbstract));
 		}
 		return set;

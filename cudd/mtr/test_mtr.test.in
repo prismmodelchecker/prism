@@ -1,0 +1,36 @@
+#! /bin/sh
+
+EXE=@EXEEXT@
+srcdir=@srcdir@
+
+file=test
+verbosity=2
+
+sed_command='-r:-e:2d:-e:s/0x[0-9a-f][0-9a-f]*//g:-e:/modifiable/,$d'
+
+echo TAP version 13
+echo 1..1
+
+mtr/testmtr$EXE -p $verbosity ${srcdir}/mtr/${file}.groups > ./mtr/${file}.tst
+failed=`expr $? != 0`
+if test x$failed = x0; then
+    echo "# comparing ./mtr/${file}.tst to ${srcdir}/mtr/${file}.out"
+    mkfifo ./mtr/tst_fifo ./mtr/out_fifo
+    OIFS=$IFS
+    IFS=:
+    `sed ${sed_command} ./mtr/${file}.tst > ./mtr/tst_fifo &\
+     sed ${sed_command} ${srcdir}/mtr/${file}.out > ./mtr/out_fifo &\
+     diff -b ./mtr/tst_fifo ./mtr/out_fifo > ./mtr/differences`
+    failed=`expr $? != 0`
+    rm ./mtr/tst_fifo ./mtr/out_fifo
+    IFS=$OIFS
+fi
+if test x$failed = x0; then
+    rm -rf ./mtr/differences
+    echo ok 1
+else
+    echo not ok 1
+    echo '# Check file "./mtr/differences"'
+fi
+
+exit 0

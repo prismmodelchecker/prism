@@ -1,0 +1,36 @@
+$Id: README,v 1.8 1997/01/23 07:33:22 fabio Exp fabio $
+
+WHAT IS NANOTRAV
+================
+
+This directory contains nanotrav, a simple reachability analysis program
+based on the CUDD package. Nanotrav uses a very naive approach and is
+only included to provide a sanity check for the installation of the
+CUDD package.
+
+Nanotrav reads a circuit written in a small subset of blif. This
+format is described in the comments in bnet.c. Nanotrav then creates
+BDDs for the primary outputs and the next state functions (if any) of
+the circuit.
+
+If, passed the -trav option, nanotrav builds a BDD for the
+characteristic function of the transition relation of the graph. It then
+builds a BDD for the initial state(s), and performs reachability
+analysis.  Reachability analysys is performed with either the method
+known as "monolithic transition relation method," whose main virtue is
+simplicity, or with an unsophisticated partitioned transition relation
+method.
+
+Once it has completed reachability analysis, nanotrav prints results and
+exits. The amount of information printed, as well as several other
+features are controlled by the options. For a complete list of the
+options, consult the man page. Here, we only mention that the options allow
+the user of nanotrav to select among different reordering options.
+
+TEST CIRCUITS
+=============
+
+Twelve test circuits are contained in this directory.  The results or running
+nanotrav on them with various options are also included.  These tests are run
+as part of "make check."  Notice that rcn25 requires approximately 30 s. All
+other tests take much less.

@@ -1,25 +1,15 @@
-/**CFile***********************************************************************
+/**
+  @file
 
-  FileName    [cuddAddWalsh.c]
+  @ingroup cudd
 
-  PackageName [cudd]
+  @brief Functions that generate Walsh matrices and residue
+  functions in %ADD form.
 
-  Synopsis    [Functions that generate Walsh matrices and residue
-  functions in ADD form.]
+  @author Fabio Somenzi
 
-  Description [External procedures included in this module:
-	    <ul>
-	    <li> Cudd_addWalsh()
-	    <li> Cudd_addResidue()
-	    </ul>
-	Static procedures included in this module:
-	    <ul>
-	    <li> addWalshInt()
-	    </ul>]
-
-  Author      [Fabio Somenzi]
-
-  Copyright   [Copyright (c) 1995-2012, Regents of the University of Colorado
+  @copyright@parblock
+  Copyright (c) 1995-2015, Regents of the University of Colorado
 
   All rights reserved.
 
@@ -49,9 +39,10 @@
   CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
   LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
   ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-  POSSIBILITY OF SUCH DAMAGE.]
+  POSSIBILITY OF SUCH DAMAGE.
+  @endparblock
 
-******************************************************************************/
+*/
 
 #include "util.h"
 #include "cuddInt.h"
@@ -76,17 +67,12 @@
 /* Variable declarations                                                     */
 /*---------------------------------------------------------------------------*/
 
-#ifndef lint
-static char rcsid[] DD_UNUSED = "$Id: cuddAddWalsh.c,v 1.11 2012/02/05 01:07:18 fabio Exp $";
-#endif
-
 
 /*---------------------------------------------------------------------------*/
 /* Macro declarations                                                        */
 /*---------------------------------------------------------------------------*/
 
-
-/**AutomaticStart*************************************************************/
+/** \cond */
 
 /*---------------------------------------------------------------------------*/
 /* Static function prototypes                                                */
@@ -94,7 +80,7 @@ static char rcsid[] DD_UNUSED = "$Id: cuddAddWalsh.c,v 1.11 2012/02/05 01:07:18 
 
 static DdNode * addWalshInt (DdManager *dd, DdNode **x, DdNode **y, int n);
 
-/**AutomaticEnd***************************************************************/
+/** \endcond */
 
 
 /*---------------------------------------------------------------------------*/
@@ -102,16 +88,14 @@ static DdNode * addWalshInt (DdManager *dd, DdNode **x, DdNode **y, int n);
 /*---------------------------------------------------------------------------*/
 
 
-/**Function********************************************************************
+/**
+  @brief Generates a Walsh matrix in %ADD form.
 
-  Synopsis    [Generates a Walsh matrix in ADD form.]
+  @return a pointer to the matrixi if successful; NULL otherwise.
 
-  Description [Generates a Walsh matrix in ADD form. Returns a pointer
-  to the matrixi if successful; NULL otherwise.]
+  @sideeffect None
 
-  SideEffects [None]
-
-******************************************************************************/
+*/
 DdNode *
 Cudd_addWalsh(
   DdManager * dd,
@@ -125,18 +109,19 @@ Cudd_addWalsh(
 	dd->reordered = 0;
 	res = addWalshInt(dd, x, y, n);
     } while (dd->reordered == 1);
+    if (dd->errorCode == CUDD_TIMEOUT_EXPIRED && dd->timeoutHandler) {
+        dd->timeoutHandler(dd, dd->tohArg);
+    }
     return(res);
 
 } /* end of Cudd_addWalsh */
 
 
-/**Function********************************************************************
+/**
+  @brief Builds an %ADD for the residue modulo m of an n-bit
+  number.
 
-  Synopsis    [Builds an ADD for the residue modulo m of an n-bit
-  number.]
-
-  Description [Builds an ADD for the residue modulo m of an n-bit
-  number. The modulus must be at least 2, and the number of bits at
+  @details The modulus must be at least 2, and the number of bits at
   least 1. Parameter options specifies whether the MSB should be on top
   or the LSB; and whther the number whose residue is computed is in
   two's complement notation or not. The macro CUDD_RESIDUE_DEFAULT
@@ -145,21 +130,20 @@ Cudd_addWalsh(
   complement residue. To request MSB on top and two's complement residue
   simultaneously, one can OR the two macros:
   CUDD_RESIDUE_MSB | CUDD_RESIDUE_TC.
-  Cudd_addResidue returns a pointer to the resulting ADD if successful;
-  NULL otherwise.]
 
-  SideEffects [None]
+  @return a pointer to the resulting %ADD if successful; NULL
+  otherwise.
 
-  SeeAlso     []
+  @sideeffect None
 
-******************************************************************************/
+*/
 DdNode *
 Cudd_addResidue(
-  DdManager * dd /* manager */,
-  int  n /* number of bits */,
-  int  m /* modulus */,
-  int  options /* options */,
-  int  top /* index of top variable */)
+  DdManager * dd /**< manager */,
+  int  n /**< number of bits */,
+  int  m /**< modulus */,
+  int  options /**< options */,
+  int  top /**< index of top variable */)
 {
     int msbLsb;	/* MSB on top (1) or LSB on top (0) */
     int tc;	/* two's complement (1) or unsigned (0) */
@@ -280,16 +264,16 @@ Cudd_addResidue(
 /*---------------------------------------------------------------------------*/
 
 
-/**Function********************************************************************
+/**
+  @brief Implements the recursive step of Cudd_addWalsh.
 
-  Synopsis    [Implements the recursive step of Cudd_addWalsh.]
+  @return a pointer to the matrixi if successful; NULL otherwise.
 
-  Description [Generates a Walsh matrix in ADD form. Returns a pointer
-  to the matrixi if successful; NULL otherwise.]
+  @sideeffect None
 
-  SideEffects [None]
+  @see Cudd_addWalsh
 
-******************************************************************************/
+*/
 static DdNode *
 addWalshInt(
   DdManager * dd,
@@ -298,7 +282,7 @@ addWalshInt(
   int  n)
 {
     DdNode *one, *minusone;
-    DdNode *t, *u, *t1, *u1, *v, *w;
+    DdNode *t = NULL, *u, *t1, *u1, *v, *w;
     int     i;
 
     one = DD_ONE(dd);
