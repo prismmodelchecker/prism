@@ -134,6 +134,7 @@ public class DA<Symbol, Acceptance extends AcceptanceOmega>
 	public int addState()
 	{
 		edges.add(new ArrayList<Edge>());
+		invertedEdges.add(new ArrayList<Edge>());
 		size++;
 		return size-1;
 	}
