@@ -201,7 +201,7 @@ public class MDPModelChecker extends ProbModelChecker
 		}
 
 		mainLog.println("\nComputing reachability probability, expected progression, and expected cost...");
-		ModelCheckerPartialSatResult res = mcProduct.computeNestedValIter(product, productMdp, acc, progRewards, prodCosts, progStates);
+		ModelCheckerPartialSatResult res = mcProduct.computeNestedValIter(productMdp, acc, progRewards, prodCosts, progStates);
 		probsProduct = StateValues.createFromDoubleArray(res.solnProb, productMdp);
 		// Mapping probabilities in the original model
 		probs = product.projectToOriginalModel(probsProduct);
@@ -215,6 +215,12 @@ public class MDPModelChecker extends ProbModelChecker
             probsProduct.print(out, false, false, false, false);
             out.close();
         }
+
+		// If a strategy was generated, lift it to the product and store
+		if (res.strat != null) {
+			Strategy<Double> stratProduct = new FMDStrategyProduct<>(product, (MDStrategy<Double>) res.strat);
+			result.setStrategy(stratProduct);
+		}
 
 		rewsProduct = StateValues.createFromDoubleArray(res.solnProg, productMdp);
 		rews = product.projectToOriginalModel(rewsProduct);
@@ -993,7 +999,7 @@ public class MDPModelChecker extends ProbModelChecker
 	 * @param strat Storage for (memoryless) strategy choice indices (ignored if null)
 	 * Note: if 'known' is specified (i.e. is non-null, 'init' must also be given and is used for the exact values.
 	 */
-	protected ModelCheckerPartialSatResult computeNestedValIter(Product<MDP<Double>> product, MDP<Double> trimProdMdp, BitSet target, MDPRewards<Double> progRewards, MDPRewards<Double> prodCosts, BitSet progStates)
+	protected ModelCheckerPartialSatResult computeNestedValIter(MDP<Double> trimProdMdp, BitSet target, MDPRewards<Double> progRewards, MDPRewards<Double> prodCosts, BitSet progStates)
 			throws PrismException
 	{
 		ModelCheckerPartialSatResult res;
@@ -1202,15 +1208,10 @@ public class MDPModelChecker extends ProbModelChecker
 		}
 
 		res = new ModelCheckerPartialSatResult();
-		// If a strategy was generated, lift it to the product and store
-		if (res.strat != null) {
-			Strategy<Double> stratProduct = new FMDStrategyProduct<>(product, (MDStrategy<Double>) res.strat);
-			result.setStrategy(stratProduct);
+		// Store strategy
+		if (genStrat) {
+			res.strat = new MDStrategyArray<Double>(trimProdMdp, strat);
 		}
-//		// Store strategy
-//		if (genStrat) {
-//			res.strat = new MDStrategyArray(trimProdMdp, strat);
-//		}
 //		// Export adversary
 //		if (exportAdv) {
 //			// Prune strategy
