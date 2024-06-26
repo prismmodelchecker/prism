@@ -37,6 +37,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Type;
 
 import parser.ast.*;
+import strat.StrategyExportOptions;
 
 /**
 * Example class demonstrating how to control PRISM programmatically,
@@ -78,7 +79,6 @@ public class PrismRapportTalker
 			mainLog = new PrismFileLog("stdout");
 			prism = new Prism(mainLog);
 			prism.initialise();
-			setExports();
 			prism.setEngine(Prism.EXPLICIT);
 			
 		} catch (PrismException e) {
@@ -105,29 +105,6 @@ public class PrismRapportTalker
 		return socketPort;
 	} 
 
-	/**
-	 * Function sets export locations for adversaries etc.
-	 */
-	public void setExports(){
-		try {
-			
-			String modelFileName = computeModelFileName("");
-			prism.getSettings().set(PrismSettings.PRISM_EXPORT_ADV, "DTMC");
-			prism.getSettings().set(PrismSettings.PRISM_EXPORT_ADV_FILENAME, directory + modelFileName + "_adv.tra");
-			prism.setExportProductStates(true);
-			prism.setExportProductStatesFilename(directory + modelFileName + "_prod.sta");
-			prism.setExportProductTrans(true);
-			prism.setExportProductTransFilename(directory + modelFileName + "_prod.tra");
-			prism.setExportTarget(true);
-			prism.setExportTargetFilename(directory + modelFileName + "_prod.lab");
-			prism.getSettings().setExportPropAut(true);
-			prism.getSettings().setExportPropAutFilename(directory + modelFileName + "_prod.aut");
-			prism.setExportProductVector(true);
-			prism.setExportProductVectorFilename(directory + modelFileName + "_guarantees.vect");
-		} catch (PrismException e) {
-			System.out.println("File not found Error: " + e.getMessage());
-		}
-	}
 
 	/**
 	 * Function loads a PRISM file into Prism so it can be model checked
@@ -180,7 +157,7 @@ public class PrismRapportTalker
 	 * @param getStateVector should the Result object store the state vector
 	 * @return An ArrayList of Result objects
 	 */
-	public ArrayList<Result> callPrism(ArrayList<String> propList, String modelPath, boolean exportInfoToFiles, boolean getStateVector, boolean doTransient)  {
+	public ArrayList<Result> callPrism(ArrayList<String> propList, String modelPath, boolean exportPolicy, boolean exportInfoToFiles, boolean getStateVector, boolean doTransient)  {
 		try {
 			prism.setStoreVector(getStateVector);
 			
@@ -188,12 +165,11 @@ public class PrismRapportTalker
 			if (directory.charAt(directory.length()-1) != '/') {
 				modelFileName = '/' + modelFileName;
 			}
+
+			prism.setGenStrat(exportPolicy);
 			
-			if(exportInfoToFiles){
-				
+			if(exportInfoToFiles){			
 				// settings for outputting state/policy information
-				prism.getSettings().set(PrismSettings.PRISM_EXPORT_ADV, "DTMC");
-				prism.getSettings().set(PrismSettings.PRISM_EXPORT_ADV_FILENAME, directory + modelFileName + "_adv.tra");
 				prism.setExportProductStates(true);
 				prism.setExportProductStatesFilename(directory + modelFileName + "_prod.sta");
 				prism.setExportProductTrans(true);
@@ -232,7 +208,16 @@ public class PrismRapportTalker
 				for(int i = 0; i < propList.size(); i++) {
 					String propString = propList.get(i);
 					PropertiesFile prismSpec = prism.parsePropertiesString(currentModel, propString);
-					resultArr.add(prism.modelCheck(prismSpec, prismSpec.getPropertyObject(0)));
+					Result res = prism.modelCheck(prismSpec, prismSpec.getPropertyObject(0));
+					resultArr.add(res);
+					if(exportPolicy) {
+						System.out.println(res.getStrategy());
+						StrategyExportOptions exportStratOptions = new StrategyExportOptions();
+						exportStratOptions.setType(StrategyExportOptions.StrategyExportType.INDUCED_MODEL);
+						exportStratOptions.setMode(StrategyExportOptions.InducedModelMode.RESTRICT);
+						prism.exportStrategy(res.getStrategy(), exportStratOptions, new File(directory + modelFileName + "_adv.tra"));
+					}
+					
 				}	
 			}
 
@@ -473,7 +458,7 @@ public class PrismRapportTalker
 				//do trasnsient probabilities. only works for Markov chains
 				if (command.contains("transient")) {
 					try {
-						result = talker.callPrism(propList, modelFile, true, false, true);
+						result = talker.callPrism(propList, modelFile, false, true, false, true);
 						if (result == null) {
 							out.println(PrismRapportTalker.FAILURE);
 						} else {
@@ -489,7 +474,7 @@ public class PrismRapportTalker
 				// or for partial satisfiability guarantees
 				if (command.equals("check")){
 					try {
-						result = talker.callPrism(propList, modelFile, false, false, false);
+						result = talker.callPrism(propList, modelFile, false, false, false, false);
 						if (result != null && result.get(0) != null){
 							out.println(result.get(0).getResult().toString());
 						} else {
@@ -504,7 +489,7 @@ public class PrismRapportTalker
 				// command for planning and storing policies
 				if (command.equals("plan")){
 					try {
-						result=talker.callPrism(propList, modelFile, true, false, false);
+						result=talker.callPrism(propList, modelFile, true, true, false, false);
 						if(result != null && result.get(0) != null) {
 							out.println(talker.computeModelFileName(modelFile));
 						} else {
@@ -520,7 +505,7 @@ public class PrismRapportTalker
 				// command for returning state vector after model checking
 				if (command.equals("get_vector")){
 					try {
-						result=talker.callPrism(propList, modelFile, true, true, false);
+						result=talker.callPrism(propList, modelFile, false, true, true, false);
 						StateVector vect = result.get(0).getVector();
 						formattedResult = new ArrayList<String>();
 						for (int i = 0; i < vect.getSize(); i++) {
@@ -549,7 +534,7 @@ public class PrismRapportTalker
 						}
 						
 						// make the initial call to prism
-						result = talker.callPrism(propList, modelFile, false, true, false);
+						result = talker.callPrism(propList, modelFile, false, false, true, false);
 						if(result == null || result.get(0) == null) {
 							out.println(PrismRapportTalker.FAILURE);
 						}
@@ -579,7 +564,7 @@ public class PrismRapportTalker
 						}
 						
 						// Make the calls to prism
-						result = talker.callPrism(propList, modelFile, false, useInit, false);
+						result = talker.callPrism(propList, modelFile, false, false, useInit, false);
 						if(result == null || result.contains(null)) {
 							out.println(PrismRapportTalker.FAILURE);
 						}
