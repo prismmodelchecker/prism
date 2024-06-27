@@ -166,7 +166,6 @@ public class PrismRapportTalker
 				modelFileName = '/' + modelFileName;
 			}
 
-			prism.setGenStrat(exportPolicy);
 			
 			if(exportInfoToFiles){			
 				// settings for outputting state/policy information
@@ -208,6 +207,11 @@ public class PrismRapportTalker
 				for(int i = 0; i < propList.size(); i++) {
 					String propString = propList.get(i);
 					PropertiesFile prismSpec = prism.parsePropertiesString(currentModel, propString);
+					Expression expr = prismSpec.getProperty(0);
+					if (!Expression.containsMultiObjective(expr) &&  !Expression.containsMaxReward(expr)) {
+						prism.setGenStrat(exportPolicy);
+					}
+
 					Result res = prism.modelCheck(prismSpec, prismSpec.getPropertyObject(0));
 					resultArr.add(res);
 					if(exportPolicy) {

@@ -215,7 +215,8 @@ public class ConstructInducedModel
 			// (for chosen strategy decision; if it is undefined, just pick the first choice)
 			int j = strat.getChoiceIndex(s);
 			if (j < 0) {
-				j = 0;
+				continue;
+				//j = 0;
 			}
 			Iterator<Map.Entry<Integer, Value>> iter;
 			switch (modelType) {
