@@ -169,6 +169,8 @@ public class PrismRapportTalker
 			
 			if(exportInfoToFiles){			
 				// settings for outputting state/policy information
+				prism.getSettings().set(PrismSettings.PRISM_EXPORT_ADV, "DTMC");
+				prism.getSettings().set(PrismSettings.PRISM_EXPORT_ADV_FILENAME, directory + modelFileName + "_adv.tra");
 				prism.setExportProductStates(true);
 				prism.setExportProductStatesFilename(directory + modelFileName + "_prod.sta");
 				prism.setExportProductTrans(true);
@@ -208,14 +210,11 @@ public class PrismRapportTalker
 					String propString = propList.get(i);
 					PropertiesFile prismSpec = prism.parsePropertiesString(currentModel, propString);
 					Expression expr = prismSpec.getProperty(0);
-					if (!Expression.containsMultiObjective(expr) &&  !Expression.containsMaxReward(expr)) {
-						prism.setGenStrat(exportPolicy);
-					}
-
+					boolean doExplicitPolicyExport = !Expression.containsMultiObjective(expr) &&  !Expression.containsMaxReward(expr);
+					prism.setGenStrat(exportPolicy && doExplicitPolicyExport);
 					Result res = prism.modelCheck(prismSpec, prismSpec.getPropertyObject(0));
 					resultArr.add(res);
-					if(exportPolicy) {
-						System.out.println(res.getStrategy());
+					if(exportPolicy && doExplicitPolicyExport) {
 						StrategyExportOptions exportStratOptions = new StrategyExportOptions();
 						exportStratOptions.setType(StrategyExportOptions.StrategyExportType.INDUCED_MODEL);
 						exportStratOptions.setMode(StrategyExportOptions.InducedModelMode.RESTRICT);
