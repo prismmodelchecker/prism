@@ -77,30 +77,6 @@ public interface STPG<Value> extends MDP<Value>
 		throw new UnsupportedOperationException();
 	}
 	
-	@Override
-	default String infoString()
-	{
-		final int numStates = getNumStates();
-		String s = "";
-		s += numStates + " states (" + getNumInitialStates() + " initial)";
-		s += ", " + getNumTransitions() + " transitions";
-		s += ", " + getNumChoices() + " choices";
-		s += ", dist max/avg = " + getMaxNumChoices() + "/" + PrismUtils.formatDouble2dp(((double) getNumChoices()) / numStates);
-		return s;
-	}
-
-	@Override
-	default String infoStringTable()
-	{
-		final int numStates = getNumStates();
-		String s = "";
-		s += "States:      " + numStates + " (" + getNumInitialStates() + " initial)\n";
-		s += "Transitions: " + getNumTransitions() + "\n";
-		s += "Choices:     " + getNumChoices() + "\n";
-		s += "Max/avg:     " + getMaxNumChoices() + "/" + PrismUtils.formatDouble2dp(((double) getNumChoices()) / numStates) + "\n";
-		return s;
-	}
-
 	// Accessors
 	
 	/**

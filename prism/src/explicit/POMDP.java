@@ -83,31 +83,6 @@ public interface POMDP<Value> extends MDP<Value>, PartiallyObservableModel<Value
 		}
 	}
 
-	@Override
-	default String infoString()
-	{
-		String s = "";
-		s += getNumStates() + " states (" + getNumInitialStates() + " initial)";
-		s += ", " + getNumTransitions() + " transitions";
-		s += ", " + getNumChoices() + " choices";
-		s += ", dist max/avg = " + getMaxNumChoices() + "/" + PrismUtils.formatDouble2dp(((double) getNumChoices()) / getNumStates());
-		s += ", " + getNumObservations() + " observables";
-		s += ", " + getNumUnobservations() + " unobservables";
-		return s;
-	}
-
-	@Override
-	default String infoStringTable()
-	{
-		String s = "";
-		s += "States:      " + getNumStates() + " (" + getNumInitialStates() + " initial)\n";
-		s += "Obs/unobs:   " + getNumObservations() + "/" + getNumUnobservations() + "\n";
-		s += "Transitions: " + getNumTransitions() + "\n";
-		s += "Choices:     " + getNumChoices() + "\n";
-		s += "Max/avg:     " + getMaxNumChoices() + "/" + PrismUtils.formatDouble2dp(((double) getNumChoices()) / getNumStates()) + "\n";
-		return s;
-	}
-
 	// Accessors
 	
 	/**

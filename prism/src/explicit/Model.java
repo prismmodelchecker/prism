@@ -48,6 +48,7 @@ import prism.ModelType;
 import prism.PrismException;
 import prism.PrismFileLog;
 import prism.PrismLog;
+import prism.PrismUtils;
 
 import static prism.PrismSettings.DEFAULT_EXPORT_MODEL_PRECISION;
 
@@ -640,12 +641,41 @@ public interface Model<Value>
 	/**
 	 * Report info/stats about the model as a string.
 	 */
-	public String infoString();
+	public default String infoString()
+	{
+		final int numStates = getNumStates();
+		String s = "";
+		s += numStates + " states (" + getNumInitialStates() + " initial)";
+		if (this instanceof PartiallyObservableModel) {
+			s += ", " + ((PartiallyObservableModel) this).getNumObservations() + " observables";
+			s += ", " + ((PartiallyObservableModel) this).getNumUnobservations() + " unobservables";
+		}
+		s += ", " + getNumTransitions() + " transitions";
+		if (this instanceof NondetModel) {
+			s += ", " + ((NondetModel) this).getNumChoices() + " choices";
+			s += ", dist max/avg = " + ((NondetModel) this).getMaxNumChoices() + "/" + PrismUtils.formatDouble2dp(((double) ((NondetModel) this).getNumChoices()) / numStates);
+		}
+		return s;
+	}
 
 	/**
 	 * Report info/stats about the model, tabulated, as a string.
 	 */
-	public String infoStringTable();
+	public default String infoStringTable()
+	{
+		final int numStates = getNumStates();
+		String s = "";
+		s += "States:      " + numStates + " (" + getNumInitialStates() + " initial)\n";
+		if (this instanceof PartiallyObservableModel) {
+			s += "Obs/unobs:   " + ((PartiallyObservableModel) this).getNumObservations() + "/" + ((PartiallyObservableModel) this).getNumUnobservations() + "\n";
+		}
+		s += "Transitions: " + getNumTransitions() + "\n";
+		if (this instanceof NondetModel) {
+			s += "Choices:     " + ((NondetModel) this).getNumChoices() + "\n";
+			s += "Max/avg:     " + ((NondetModel) this).getMaxNumChoices() + "/" + PrismUtils.formatDouble2dp(((double) ((NondetModel) this).getNumChoices()) / numStates) + "\n";
+		}
+		return s;
+	}
 
 	/** Has this model a stored PredecessorRelation? */
 	public boolean hasStoredPredecessorRelation();
