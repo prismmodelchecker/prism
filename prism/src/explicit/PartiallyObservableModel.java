@@ -96,7 +96,7 @@ public interface PartiallyObservableModel<Value> extends Model<Value>
 
 	/**
 	 * Get the unobservation of state {@code s} as a {@code State}.
-	 * Equivalent to calling {@link #getUnbservation(int)}
+	 * Equivalent to calling {@link #getUnobservation(int)}
 	 * and then looking up via {@link #getUnobservationsList()}.
 	 * Returns null if the unobservation is unavailable.
 	 */
@@ -119,7 +119,7 @@ public interface PartiallyObservableModel<Value> extends Model<Value>
 	}
 
 	/**
-	 * Get the number of choices for observation {@code 0}.
+	 * Get the number of choices for observation {@code o}.
 	 */
 	public int getNumChoicesForObservation(int o);
 
