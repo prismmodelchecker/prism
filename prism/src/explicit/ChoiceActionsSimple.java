@@ -158,6 +158,10 @@ public class ChoiceActionsSimple
 			if (list == null) {
 				return null;
 			}
+			// Undersized list means no action on this choice
+			if (i >= list.size()) {
+				return null;
+			}
 			return list.get(i);
 		}
 		// Lists may be under-sized, indicating no action added 
