@@ -33,6 +33,7 @@ import java.util.function.Function;
 
 import common.iterable.Reducible;
 import prism.Evaluator;
+import prism.Pair;
 import prism.PrismException;
 
 /**
@@ -44,6 +45,9 @@ public class DTMCSimple<Value> extends DTMCExplicit<Value> implements ModelSimpl
 	protected List<List<Integer>> succ;
 	// Transition probabilities
 	protected List<List<Value>> trans;
+	// Transition actions
+	// (stored for each state-"choice", where a "choice" is an index into the above lists)
+	protected ChoiceActionsSimple actions;
 
 	// Constructors
 
@@ -74,6 +78,7 @@ public class DTMCSimple<Value> extends DTMCExplicit<Value> implements ModelSimpl
 			succ.set(i, new ArrayList<>(dtmc.succ.get(i)));
 			trans.set(i, new ArrayList<>(dtmc.trans.get(i)));
 		}
+		actions = new ChoiceActionsSimple(dtmc.actions);
 	}
 
 	/**
@@ -92,6 +97,7 @@ public class DTMCSimple<Value> extends DTMCExplicit<Value> implements ModelSimpl
 				trans.get(permut[i]).add(dtmc.trans.get(i).get(j));
 			}
 		}
+		actions = new ChoiceActionsSimple(dtmc.actions, permut);
 	}
 
 	/**
@@ -125,10 +131,10 @@ public class DTMCSimple<Value> extends DTMCExplicit<Value> implements ModelSimpl
 		setEvaluator(eval);
 		int numStates = getNumStates();
 		for (int i = 0; i < numStates; i++) {
-			Iterator<Map.Entry<Integer, T>> iter = dtmc.getTransitionsIterator(i);
+			Iterator<Entry<Integer, Pair<T, Object>>> iter = dtmc.getTransitionsAndActionsIterator(i);
 			while (iter.hasNext()) {
-				Map.Entry<Integer, T> e = iter.next();
-				addToProbability(i, e.getKey(), probMap.apply(e.getValue()));
+				Map.Entry<Integer, Pair<T, Object>> e = iter.next();
+				addToProbability(i, e.getKey(), probMap.apply(e.getValue().first), e.getValue().second );
 			}
 		}
 	}
@@ -145,6 +151,7 @@ public class DTMCSimple<Value> extends DTMCExplicit<Value> implements ModelSimpl
 			succ.add(new ArrayList<>());
 			trans.add(new ArrayList<>());
 		}
+		actions = new ChoiceActionsSimple();
 	}
 
 	@Override
@@ -156,6 +163,7 @@ public class DTMCSimple<Value> extends DTMCExplicit<Value> implements ModelSimpl
 		// Clear data structures
 		succ.get(i).clear();
 		trans.get(i).clear();
+		actions.clearState(i);
 	}
 
 	@Override
@@ -181,6 +189,7 @@ public class DTMCSimple<Value> extends DTMCExplicit<Value> implements ModelSimpl
 		String s, ss[];
 		int i, j, n, lineNum = 0;
 		Value prob;
+		Object action;
 
 		// Open file for reading, automatic close when done
 		try (BufferedReader in = new BufferedReader(new FileReader(new File(filename)))) {
@@ -204,7 +213,8 @@ public class DTMCSimple<Value> extends DTMCExplicit<Value> implements ModelSimpl
 					i = Integer.parseInt(ss[0]);
 					j = Integer.parseInt(ss[1]);
 					prob = getEvaluator().fromString(ss[2]);
-					setProbability(i, j, prob);
+					action = ss.length < 4 ? null : ss[3];
+					setProbability(i, j, prob, action);
 				}
 				s = in.readLine();
 				lineNum++;
@@ -219,16 +229,24 @@ public class DTMCSimple<Value> extends DTMCExplicit<Value> implements ModelSimpl
 	// Mutators (other)
 
 	/**
-	 * Set the probability for a transition. 
+	 * Set the probability for a transition.
 	 */
 	public void setProbability(int i, int j, Value prob)
+	{
+		setProbability(i, j, prob, null);
+	}
+
+	/**
+	 * Set the probability for a transition.
+	 */
+	public void setProbability(int i, int j, Value prob, Object action)
 	{
 		List<Integer> iSucc = succ.get(i);
 		List<Value> iTrans = trans.get(i);
 		int numSucc = succ.get(i).size();
 		// Check for existing transition
 		for (int k = 0; k < numSucc; k++) {
-			if (iSucc.get(k) == j) {
+			if (iSucc.get(k) == j && actions.actionMatches(i, k, action)) {
 				if (getEvaluator().isZero(prob)) {
 					iSucc.remove(k);
 					iTrans.remove(k);
@@ -241,12 +259,21 @@ public class DTMCSimple<Value> extends DTMCExplicit<Value> implements ModelSimpl
 		// No existing transition
 		iSucc.add(j);
 		iTrans.add(prob);
+		actions.setAction(i, numSucc, action);
 	}
 
 	/**
-	 * Add to the probability for a transition. 
+	 * Add to the probability for a transition.
 	 */
 	public void addToProbability(int i, int j, Value prob)
+	{
+		addToProbability(i, j, prob, null);
+	}
+
+	/**
+	 * Add to the probability for a transition.
+	 */
+	public void addToProbability(int i, int j, Value prob, Object action)
 	{
 		if (getEvaluator().isZero(prob)) {
 			return;
@@ -256,7 +283,7 @@ public class DTMCSimple<Value> extends DTMCExplicit<Value> implements ModelSimpl
 		int numSucc = succ.get(i).size();
 		// Check for existing transition
 		for (int k = 0; k < numSucc; k++) {
-			if (iSucc.get(k) == j) {
+			if (iSucc.get(k) == j && actions.actionMatches(i, k, action)) {
 				iTrans.set(k, getEvaluator().add(iTrans.get(k), prob));
 				return;
 			}
@@ -264,6 +291,7 @@ public class DTMCSimple<Value> extends DTMCExplicit<Value> implements ModelSimpl
 		// No existing transition
 		iSucc.add(j);
 		iTrans.add(prob);
+		actions.setAction(i, numSucc, action);
 	}
 
 	// Accessors (for Model)
@@ -313,7 +341,7 @@ public class DTMCSimple<Value> extends DTMCExplicit<Value> implements ModelSimpl
 			if (succ.get(i).isEmpty()) {
 				addDeadlockState(i);
 				if (fix)
-					setProbability(i, i, getEvaluator().one());
+					setProbability(i, i, getEvaluator().one(), null);
 			}
 		}
 	}
@@ -334,13 +362,36 @@ public class DTMCSimple<Value> extends DTMCExplicit<Value> implements ModelSimpl
 	{
 		// Create iterator (no removal of duplicates)
 		return new Iterator<>() {
-			private int n = succ.get(s).size();
+			private final int n = succ.get(s).size();
 			private int i = 0;
 
 			@Override
 			public Entry<Integer, Value> next()
 			{
 				return new AbstractMap.SimpleImmutableEntry<>(succ.get(s).get(i), trans.get(s).get(i++));
+			}
+
+			@Override
+			public boolean hasNext()
+			{
+				return i < n;
+			}
+		};
+	}
+
+	@Override
+	public Iterator<Entry<Integer, Pair<Value, Object>>> getTransitionsAndActionsIterator(int s)
+	{
+		// Create iterator (no removal of duplicates)
+		return new Iterator<>() {
+			private final int n = succ.get(s).size();
+			private int i = 0;
+
+			@Override
+			public Entry<Integer, Pair<Value, Object>> next()
+			{
+				Pair<Value, Object> probAction = new Pair<>(trans.get(s).get(i), actions.getAction(s, i));
+				return new AbstractMap.SimpleImmutableEntry<>(succ.get(s).get(i++), probAction);
 			}
 
 			@Override
@@ -394,6 +445,10 @@ public class DTMCSimple<Value> extends DTMCExplicit<Value> implements ModelSimpl
 			else
 				s += ", ";
 			s += succ.get(i).get(j) + "=" + trans.get(i).get(j);
+			Object action = actions.getAction(i, j);
+			if (action != null) {
+				s += ":" + action;
+			}
 		}
 		s += "}";
 		return s;
@@ -410,6 +465,8 @@ public class DTMCSimple<Value> extends DTMCExplicit<Value> implements ModelSimpl
 		if (!succ.equals(dtmc.succ))
 			return false;
 		if (!trans.equals(dtmc.trans))
+			return false;
+		if (!actions.equals(dtmc.actions))
 			return false;
 		return true;
 	}

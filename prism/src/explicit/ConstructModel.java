@@ -296,17 +296,22 @@ public class ConstructModel extends PrismComponent
 					}
 					// Get index of state in state set
 					dest = states.getIndexOfLastAdd();
+					// Get transition action
+					Object action = null;
+					if (distinguishActions && !modelType.nondeterministic()) {
+						action = modelGen.getTransitionAction(i, j);
+					}
 					// Add transitions to model
 					if (!justReach) {
 						switch (modelType) {
 						case DTMC:
-							dtmc.addToProbability(src, dest, modelGen.getTransitionProbability(i, j));
+							dtmc.addToProbability(src, dest, modelGen.getTransitionProbability(i, j), action);
 							break;
 						case CTMC:
-							ctmc.addToProbability(src, dest, modelGen.getTransitionProbability(i, j));
+							ctmc.addToProbability(src, dest, modelGen.getTransitionProbability(i, j), action);
 							break;
 						case IDTMC:
-							idtmc.addToProbability(src, dest, modelGen.getTransitionProbabilityInterval(i, j));
+							idtmc.addToProbability(src, dest, modelGen.getTransitionProbabilityInterval(i, j), action);
 							break;
 						case MDP:
 						case POMDP:

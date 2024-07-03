@@ -253,9 +253,6 @@ public class ConstructStrategyProduct
 				}
 				Iterator<Map.Entry<Integer, Value>> iter;
 				switch (modelType) {
-				case DTMC:
-					iter = ((DTMC<Value>) model).getTransitionsIterator(s_1);
-					break;
 				case MDP:
 					iter = ((MDP<Value>) model).getTransitionsIterator(s_1, j);
 					break;
@@ -279,11 +276,11 @@ public class ConstructStrategyProduct
 					if (strat.isRandomised()) {
 						prob = model.getEvaluator().multiply(prob, stratChoiceProb);
 					}
-					int map_2 = newStateMap.apply(false, q_1, model.getAction(s_1, j), s_2);
+					int map_2 = newStateMap.apply(false, q_1, act, s_2);
 
 					switch (productModelType) {
 					case DTMC:
-						((DTMCSimple<Value>) prodModel).setProbability(map_1, map_2, prob);
+						((DTMCSimple<Value>) prodModel).setProbability(map_1, map_2, prob, act);
 						break;
 					case MDP:
 					case POMDP:
@@ -296,13 +293,13 @@ public class ConstructStrategyProduct
 				}
 				switch (productModelType) {
 				case MDP:
-					((MDPSimple<Value>) prodModel).addActionLabelledChoice(map_1, prodDistr, ((MDP<Value>) model).getAction(s_1, j));
+					((MDPSimple<Value>) prodModel).addActionLabelledChoice(map_1, prodDistr, act);
 					break;
 				case POMDP:
-					((POMDPSimple<Value>) prodModel).addActionLabelledChoice(map_1, prodDistr, ((POMDP<Value>) model).getAction(s_1, j));
+					((POMDPSimple<Value>) prodModel).addActionLabelledChoice(map_1, prodDistr, act);
 					break;
 				case STPG:
-					((STPGSimple<Value>) prodModel).addActionLabelledChoice(map_1, prodDistr, ((STPG<Value>) model).getAction(s_1, j));
+					((STPGSimple<Value>) prodModel).addActionLabelledChoice(map_1, prodDistr, act);
 					break;
 				default:
 					break;

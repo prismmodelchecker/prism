@@ -231,6 +231,7 @@ public class ConstructInducedModel
 				default:
 					throw new PrismNotSupportedException("Induced model construction not implemented for " + modelType + "s");
 			}
+			Object action = model.getAction(s, j);
 			Distribution<Value> prodDistr = null;
 			if (inducedModelType.nondeterministic()) {
 				prodDistr = new Distribution<>(model.getEvaluator());
@@ -242,7 +243,7 @@ public class ConstructInducedModel
 				// Add transition to model
 				switch (inducedModelType) {
 					case DTMC:
-						((DTMCSimple<Value>) inducedModel).setProbability(map[s], map[s_2], prob);
+						((DTMCSimple<Value>) inducedModel).setProbability(map[s], map[s_2], prob, action);
 						break;
 					case MDP:
 					case POMDP:
@@ -255,13 +256,13 @@ public class ConstructInducedModel
 			}
 			switch (inducedModelType) {
 				case MDP:
-					((MDPSimple<Value>) inducedModel).addActionLabelledChoice(map[s], prodDistr, ((MDP<Value>) model).getAction(s, j));
+					((MDPSimple<Value>) inducedModel).addActionLabelledChoice(map[s], prodDistr, action);
 					break;
 				case POMDP:
-					((POMDPSimple<Value>) inducedModel).addActionLabelledChoice(map[s], prodDistr, ((POMDP<Value>) model).getAction(s, j));
+					((POMDPSimple<Value>) inducedModel).addActionLabelledChoice(map[s], prodDistr, action);
 					break;
 				case STPG:
-					((STPGSimple<Value>) inducedModel).addActionLabelledChoice(map[s], prodDistr, ((STPG<Value>) model).getAction(s, j));
+					((STPGSimple<Value>) inducedModel).addActionLabelledChoice(map[s], prodDistr, action);
 					break;
 				default:
 					break;

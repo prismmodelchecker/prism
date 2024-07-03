@@ -190,11 +190,11 @@ public class CTMCSimple<Value> extends DTMCSimple<Value> implements CTMC<Value>
 		for (int i = 0; i < numStates; i++) {
 			Value d = getEvaluator().sum(trans.get(i));
 			if (getEvaluator().isZero(d)) {
-				dtmc.setProbability(i, i, getEvaluator().one());
+				dtmc.setProbability(i, i, getEvaluator().one(), null);
 			} else {
 				int numSucc = succ.get(i).size();
 				for (int j = 0; j < numSucc; j++) {
-					dtmc.setProbability(i, succ.get(i).get(j), getEvaluator().divide(trans.get(i).get(j), d));
+					dtmc.setProbability(i, succ.get(i).get(j), getEvaluator().divide(trans.get(i).get(j), d), actions.getAction(i, j));
 				}
 			}
 		}
@@ -224,7 +224,7 @@ public class CTMCSimple<Value> extends DTMCSimple<Value> implements CTMC<Value>
 			// Add scaled off-diagonal entries
 			int numSucc = succ.get(i).size();
 			for (int j = 0; j < numSucc; j++) {
-				dtmc.setProbability(i, succ.get(i).get(j), getEvaluator().divide(trans.get(i).get(j), q));
+				dtmc.setProbability(i, succ.get(i).get(j), getEvaluator().divide(trans.get(i).get(j), q), actions.getAction(i, j));
 			}
 			// Add diagonal, if needed
 			Value d = getEvaluator().zero();
@@ -235,7 +235,7 @@ public class CTMCSimple<Value> extends DTMCSimple<Value> implements CTMC<Value>
 			}
 			// if (d < q): P(i,i) = 1 - (d / q)
 			if (!getEvaluator().geq(d, q)) {
-				dtmc.setProbability(i, i, getEvaluator().subtract(getEvaluator().one(), getEvaluator().divide(d, q)));
+				dtmc.setProbability(i, i, getEvaluator().subtract(getEvaluator().one(), getEvaluator().divide(d, q)), null);
 			}
 		}
 		return dtmc;

@@ -153,7 +153,10 @@ public class ChoiceActionsSimple
 	}
 	
 	// Accessors
-	
+
+	/**
+	 * Get the action label for choice {@code i} of state {@code s}.
+	 */
 	public Object getAction(int s, int i)
 	{
 		// Null list means no (null) actions everywhere
@@ -180,6 +183,16 @@ public class ChoiceActionsSimple
 		catch (IndexOutOfBoundsException e) {
 			return null;
 		}
+	}
+
+	/**
+	 * Check whether the action label for choice {@code i} of state {@code s}
+	 * matches {@code action} (where {@code null} matches no action).
+	 */
+	public boolean actionMatches(int s, int i, Object action)
+	{
+		Object siAction = getAction(s, i);
+		return siAction == null ? (action == null) : siAction.equals(action);
 	}
 	
 	/**

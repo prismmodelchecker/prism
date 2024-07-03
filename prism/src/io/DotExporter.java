@@ -60,8 +60,7 @@ public class DotExporter<Value> extends Exporter<Value>
 		setEvaluator(model.getEvaluator());
 		ModelType modelType = model.getModelType();
 		int numStates = model.getNumStates();
-		// By default, we only show actions for nondeterministic models
-		boolean showActions = modelExportOptions.getShowActions(modelType.nondeterministic());
+		boolean showActions = modelExportOptions.getShowActions();
 
 		// Get default Dot formatting info
 		explicit.graphviz.Decoration defaults = new explicit.graphviz.Decoration();
@@ -112,7 +111,11 @@ public class DotExporter<Value> extends Exporter<Value>
 					d2.attributes().put("arrowhead", "none");
 					if (showActions) {
 						Object action = ((NondetModel<Value>) model).getAction(s, j);
-						d2.setLabel(j + (action != null ? ":" + action : ""));
+						if (showActions && action != null && !"".equals(action)) {
+							d2.setLabel(j + ":" + action);
+						} else {
+							d2.setLabel(Integer.toString(j));
+						}
 					}
 					// Apply any other decorators requested
 					if (decorators != null) {
@@ -127,16 +130,24 @@ public class DotExporter<Value> extends Exporter<Value>
 				}
 
 				// Print out (sorted) transitions
-				for (Transition<Value> transition : getSortedTransitionsIterator(model, s, j, showActions)) {
+				for (Transition<Value> transition : getSortedTransitionsIterator(model, s, j, showActions && !modelType.nondeterministic())) {
 					// Print a new Dot file line for the arrow for this transition
 					out.print(nodeMid + " -> " + transition.target);
 					// Annotate this arrow with the probability
 					explicit.graphviz.Decoration d3 = new explicit.graphviz.Decoration();
 					if (modelType.isProbabilistic()) {
-						d3.setLabel(formatValue(transition.value));
+						if (showActions && transition.action != null && !"".equals(transition.action)) {
+							d3.setLabel(formatValue(transition.value) + ":" + transition.action);
+						} else {
+							d3.setLabel(formatValue(transition.value));
+						}
 					} else {
 						Object action = ((NondetModel<Value>) model).getAction(s, j);
-						d3.setLabel(j + (action != null ? ":" + action : ""));
+						if (showActions && action != null && !"".equals(action)) {
+							d3.setLabel(j + ":" + action);
+						} else {
+							d3.setLabel(Integer.toString(j));
+						}
 					}
 					// Apply any other decorators requested
 					if (decorators != null) {

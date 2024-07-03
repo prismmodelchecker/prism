@@ -69,24 +69,20 @@ public interface DTMC<Value> extends Model<Value>
 		try (FileWriter out = new FileWriter(filename)) {
 			out.write(getModelType().keyword() + "\n");
 			out.write("module M\nx : [0.." + (getNumStates() - 1) + "];\n");
-			final TreeMap<Integer, Value> sorted = new TreeMap<Integer, Value>();
+			final TreeMap<Integer, Pair<Value, Object>> sorted = new TreeMap<>();
 			for (int state = 0, max = getNumStates(); state < max; state++) {
 				// Extract transitions and sort by destination state index (to match PRISM-exported files)
-				for (Iterator<Entry<Integer, Value>> transitions = getTransitionsIterator(state); transitions.hasNext();) {
-					final Entry<Integer, Value> transition = transitions.next();
+				for (Iterator<Entry<Integer, Pair<Value, Object>>> transitions = getTransitionsAndActionsIterator(state); transitions.hasNext();) {
+					final Entry<Integer, Pair<Value, Object>> transition = transitions.next();
 					sorted.put(transition.getKey(), transition.getValue());
 				}
 				// Print out (sorted) transitions
-				out.write("[]x=" + state + "->");
-				boolean first = true;
-				for (Entry<Integer, Value> transition : sorted.entrySet()) {
-					if (first)
-						first = false;
-					else
-						out.write("+");
-					out.write(getEvaluator().toStringPrism(transition.getValue(), precision) + ":(x'=" + transition.getKey() + ")");
+				for (Entry<Integer, Pair<Value, Object>> transition : sorted.entrySet()) {
+					String action = transition.getValue().second == null ? "" : transition.getValue().second.toString();
+					out.write("[" + action + "]x=" + state + "->");
+					out.write(getEvaluator().toStringPrism(transition.getValue().first, precision) + ":(x'=" + transition.getKey() + ")");
+					out.write(";\n");
 				}
-				out.write(";\n");
 				sorted.clear();
 			}
 			out.write("endmodule\n");

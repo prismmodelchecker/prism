@@ -29,9 +29,11 @@ package explicit;
 import java.util.*;
 import java.util.Map.Entry;
 
+import common.iterable.Reducible;
 import explicit.rewards.MCRewards;
 import parser.State;
 import parser.Values;
+import prism.Pair;
 import prism.PrismException;
 import prism.PrismNotSupportedException;
 import strat.MDStrategy;
@@ -151,6 +153,17 @@ public class DTMCFromMDPAndMDStrategy<Value> extends DTMCExplicit<Value>
 			// Empty iterator
 			Map<Integer,Value> empty = Collections.emptyMap();
 			return empty.entrySet().iterator();
+		}
+	}
+
+	public Iterator<Entry<Integer, Pair<Value, Object>>> getTransitionsAndActionsIterator(int s)
+	{
+		if (strat.isChoiceDefined(s)) {
+			final Iterator<Entry<Integer, Value>> transitions = mdp.getTransitionsIterator(s, strat.getChoiceIndex(s));
+			return Reducible.extend(transitions).map(transition -> DTMC.attachAction(transition, mdp.getAction(s, strat.getChoiceIndex(s))));
+		} else {
+			// Empty iterator
+			return Collections.<Entry<Integer,Pair<Value, Object>>>emptyIterator();
 		}
 	}
 

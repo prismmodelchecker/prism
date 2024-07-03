@@ -68,8 +68,7 @@ public class PrismExplicitExporter<Value> extends Exporter<Value>
 		// Get model info and exportOptions
 		setEvaluator(model.getEvaluator());
 		ModelType modelType = model.getModelType();
-		// By default, we only show actions for nondeterministic models
-		boolean showActions = modelExportOptions.getShowActions(modelType.nondeterministic());
+		boolean showActions = modelExportOptions.getShowActions();
 
 		// Output .tra file file header
 		int numStates = model.getNumStates();

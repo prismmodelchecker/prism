@@ -96,4 +96,15 @@ public class Pair<X,Y> implements Entry<X, Y>
 	{
 		return "(" + first + "," + second + ")"; 
 	}
+
+	// Utility functions
+
+	/**
+	 * Static method to compare two pairs containing the same Comparable objects.
+	 */
+	public static <A extends Comparable,B extends Comparable> int compare(Pair<A,B> c, Pair<A,B> d)
+	{
+		int comp = c.first.compareTo(d.first);
+		return (comp != 0) ? comp : c.second.compareTo(d.second);
+	}
 }

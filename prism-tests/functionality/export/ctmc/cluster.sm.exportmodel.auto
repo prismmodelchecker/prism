@@ -16,7 +16,7 @@
 
 # Export model info separately (for a few formats) - explicit
 
--exportmodel cluster.sm.tra -ex
+-exportmodel cluster.sm.tra:actions=false -ex
 -exportmodel cluster.sm.sta -ex
 -exportmodel cluster.sm.lab -ex
 #-exportmodel cluster.sm.srew -ex

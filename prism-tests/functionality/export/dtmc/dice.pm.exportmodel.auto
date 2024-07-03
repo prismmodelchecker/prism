@@ -14,7 +14,7 @@
 
 # Export model info separately (for a few formats) - explicit
 
--exportmodel dice.pm.tra -ex
+-exportmodel dice.pm.tra:actions=false -ex
 -exportmodel dice.pm.sta -ex
 -exportmodel dice.pm.lab -ex
 #-exportmodel dice.pm.srew -ex
