@@ -204,10 +204,7 @@ public class CTMCSimple<Value> extends DTMCSimple<Value> implements CTMC<Value>
 	@Override
 	public void uniformise(Value q)
 	{
-		for (int i = 0; i < numStates; i++) {
-			Distribution<Value> distr = trans.get(i);
-			distr.set(i, getEvaluator().subtract(q, distr.sumAllBut(i)));
-		}
+		throw new UnsupportedOperationException("Not implemented");
 	}
 
 	@Override
