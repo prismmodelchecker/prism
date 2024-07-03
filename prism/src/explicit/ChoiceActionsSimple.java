@@ -113,11 +113,17 @@ public class ChoiceActionsSimple
 	{
 		// Create main list if not done yet 
 		if (actions == null) {
+			if (action == null) {
+				return;
+			}
 			actions = new ArrayList<ArrayList<Object>>();
 		}
 		// Expand main list up to state s if needed,
 		// storing null for newly added items 
 		if (s >= actions.size()) {
+			if (action == null) {
+				return;
+			}
 			int n = s - actions.size() + 1;
 			for (int j = 0; j < n; j++) {
 				actions.add(null);
@@ -126,11 +132,17 @@ public class ChoiceActionsSimple
 		// Create action list for state s if needed
 		ArrayList<Object> list;
 		if ((list = actions.get(s)) == null) {
+			if (action == null) {
+				return;
+			}
 			actions.set(s, (list = new ArrayList<Object>()));
 		}
 		// Expand action list up to choice i if needed,
 		// storing null for newly added items 
 		if (i >= list.size()) {
+			if (action == null) {
+				return;
+			}
 			int n = i - list.size() + 1;
 			for (int j = 0; j < n; j++) {
 				list.add(null);
