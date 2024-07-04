@@ -1,0 +1,11 @@
+# Export all model info
+
+# -exportmodel lec9ctl1.prism.all
+
+# Export model info separately
+
+-exportmodel lec9ctl1.prism.tra
+-exportmodel lec9ctl1.prism.lab
+-exportmodel lec9ctl1.prism.sta
+# -exportmodel lec9ctl1.prism.srew
+# -exportmodel lec9ctl1.prism.trew
