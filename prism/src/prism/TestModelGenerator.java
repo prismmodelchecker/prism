@@ -33,6 +33,7 @@ import java.util.List;
 
 import explicit.ConstructModel;
 import explicit.DTMCModelChecker;
+import io.ModelExportOptions;
 import parser.State;
 import parser.ast.DeclarationInt;
 import parser.ast.DeclarationType;
@@ -170,7 +171,7 @@ public class TestModelGenerator implements ModelGenerator<Double>
 				// Perform model construction/checking via Prism
 				TestModelGenerator modelGen2 = new TestModelGenerator(10);
 				prism.loadModelGenerator(modelGen2);
-				prism.exportTransToFile(true, Prism.EXPORT_DOT_STATES, new File("test2.dot"));
+				prism.exportBuiltModelTransitions(new File("test2.dot"), new ModelExportOptions(ModelExportOptions.ModelExportFormat.DOT));
 				PropertiesFile pf = prism.parsePropertiesString(modelGen2, "P=? [F x=10]");
 				Expression expr = pf.getProperty(0);
 				Result res = prism.modelCheck(pf, expr);

@@ -40,6 +40,9 @@ import java.util.Set;
 import java.util.TreeSet;
 import java.util.Vector;
 
+import io.DotExporter;
+import io.ModelExportOptions;
+import io.PrismExplicitExporter;
 import parser.EvaluateContext.EvalMode;
 import parser.State;
 import parser.Values;
@@ -67,14 +70,12 @@ import parser.ast.PropertiesFile;
 import parser.ast.Property;
 import parser.type.TypeBool;
 import parser.type.TypeDouble;
-import parser.type.TypeInt;
 import parser.visitor.ASTTraverseModify;
 import parser.visitor.ReplaceLabels;
 import prism.Accuracy;
 import prism.Filter;
 import prism.ModelInfo;
 import prism.ModelType;
-import prism.OpRelOpBound;
 import prism.Prism;
 import prism.PrismComponent;
 import prism.PrismException;
@@ -84,7 +85,6 @@ import prism.PrismLog;
 import prism.PrismNotSupportedException;
 import prism.PrismSettings;
 import prism.Result;
-import prism.ResultTesting;
 import prism.RewardGenerator;
 
 /**
@@ -1531,6 +1531,26 @@ public class StateModelChecker extends PrismComponent
 			throw new PrismException("Error reading labels file \"" + filename + "\"");
 		} catch (NumberFormatException e) {
 			throw new PrismException("Error in labels file");
+		}
+	}
+
+	/**
+	 * Export the transition matrix of a model.
+	 * @param model The model
+	 * @param out Where to export
+	 * @param exportOptions The options for export
+	 */
+	public <Value> void exportTransitions(Model<Value> model, PrismLog out, ModelExportOptions exportOptions) throws PrismException
+	{
+		switch (exportOptions.getFormat()) {
+			case EXPLICIT:
+				new PrismExplicitExporter<Value>(exportOptions).exportTransitions(model, out);
+				break;
+			case MATLAB:
+				throw new PrismNotSupportedException("Export not yet supported");
+			case DOT:
+				new DotExporter<Value>(exportOptions).exportModel(model, out, null);
+				break;
 		}
 	}
 

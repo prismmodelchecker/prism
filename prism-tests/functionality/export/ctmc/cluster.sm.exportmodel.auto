@@ -3,7 +3,6 @@
 # Export all model info in different formats
 
 -exportmodelprecision 16 -exportmodel cluster.sm.all -noexportheaders
--exportmodelprecision 16 -exportmodel cluster.sm.mrmc.all:mrmc
 -exportmodelprecision 16 -exportmodel cluster.sm.matlab.all:matlab
 -exportmodelprecision 16 -exportmodel cluster.sm.rows.all:rows -noexportheaders
 
@@ -14,11 +13,6 @@
 -exportmodel cluster.sm.sta
 -exportmodel cluster.sm.srew -noexportheaders
 -exportmodel cluster.sm.trew -noexportheaders
--exportmodelprecision 16 -exportmodel cluster.sm.mrmc.tra:mrmc
--exportmodel cluster.sm.mrmc.lab:mrmc
--exportmodel cluster.sm.mrmc.sta:mrmc
--exportmodel cluster.sm.mrmc.srew:mrmc -noexportheaders
--exportmodel cluster.sm.mrmc.trew:mrmc -noexportheaders
 
 # Export model info separately (for a few formats) - explicit
 
@@ -27,9 +21,6 @@
 -exportmodel cluster.sm.lab -ex
 #-exportmodel cluster.sm.srew -ex
 #-exportmodel cluster.sm.trew -ex
-#-exportmodel cluster.sm.mrmc.tra:mrmc -ex
-#-exportmodel cluster.sm.mrmc.sta:mrmc -ex
--exportmodel cluster.sm.mrmc.lab:mrmc -ex
 #-exportmodel cluster.sm.matlab.tra:matlab -ex
 #-exportmodel cluster.sm.matlab.sta:matlab -ex
 -exportmodel cluster.sm.matlab.lab:matlab -ex

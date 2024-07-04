@@ -47,6 +47,8 @@ import explicit.FastAdaptiveUniformisationModelChecker;
 import explicit.ModelModelGenerator;
 import explicit.PartiallyObservableModel;
 import hybrid.PrismHybrid;
+import io.ModelExportOptions;
+import io.ModelExportOptions.ModelExportFormat;
 import jdd.JDD;
 import jdd.JDDNode;
 import jdd.JDDVars;
@@ -2265,6 +2267,50 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	}
 
 	/**
+	 * Export the transtion matrix for the current built model.
+	 * @param file File to export to
+	 * @param exportOptions The options for export
+	 */
+	public void exportBuiltModelTransitions(File file, ModelExportOptions exportOptions) throws PrismException, FileNotFoundException
+	{
+		// Build model, if necessary
+		buildModelIfRequired();
+
+		// Print message
+		mainLog.print("\nExporting transition matrix ");
+		mainLog.print(exportOptions.getFormat().description() + " ");
+		mainLog.println(getDestinationStringForFile(file));
+
+		// Merge export options with settings
+		exportOptions = newMergedModelExportOptions(exportOptions);
+
+		// do export
+		if (currentModelBuildType == ModelBuildType.SYMBOLIC) {
+			int precision = settings.getInteger(PrismSettings.PRISM_EXPORT_MODEL_PRECISION);
+			currentModel.exportToFile(convertExportTypeTrans(exportOptions), true, file, precision);
+		} else {
+			PrismLog tmpLog = getPrismLogForFile(file);
+			explicit.StateModelChecker mcExpl = createModelCheckerExplicit(null);
+			mcExpl.exportTransitions(currentModelExpl, tmpLog, exportOptions);
+			tmpLog.close();
+		}
+
+		// for export to dot with states, need to do a bit more
+		if (currentModelBuildType == ModelBuildType.SYMBOLIC && convertExportTypeTrans(exportOptions) == EXPORT_DOT_STATES) {
+			// open (appending to) existing new file log or use main log
+			PrismLog tmpLog = getPrismLogForFile(file, true);
+			// insert states info into dot file
+			currentModel.getReachableStates().printDot(tmpLog);
+			// print footer
+			tmpLog.println("}");
+			// tidy up
+			if (file != null) {
+				tmpLog.close();
+			}
+		}
+	}
+
+	/**
 	 * Export the currently loaded model's transition matrix to a Spy file.
 	 * @param file File to export to
 	 */
@@ -2320,87 +2366,6 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 		// Export to dot file
 		mainLog.println("\nExporting to dot file \"" + file + "\"...");
 		JDD.ExportDDToDotFileLabelled(currentModel.getTrans(), file.getPath(), currentModel.getDDVarNames());
-	}
-
-	/**
-	 * Export the currently loaded model's transition matrix to a file (or to the log)
-	 * @param ordered Ensure that (source) states are in ascending order?
-	 * @param exportType Type of export; one of: <ul>
-	 * <li> {@link #EXPORT_PLAIN} 
-	 * <li> {@link #EXPORT_MATLAB}
-	 * <li> {@link #EXPORT_DOT}
-	 * <li> {@link #EXPORT_MRMC}
-	 * <li> {@link #EXPORT_ROWS}
-	 * <li> {@link #EXPORT_DOT_STATES}
-	 * </ul>
-	 * @param file File to export to (if null, print to the log instead)
-	 */
-	public void exportTransToFile(boolean ordered, int exportType, File file) throws FileNotFoundException, PrismException
-	{
-		// can only do ordered version of export for MDPs
-		if (currentModelType == ModelType.MDP) {
-			if (!ordered)
-				mainLog.printWarning("Cannot export unordered transition matrix for MDPs; using ordered.");
-			ordered = true;
-		}
-		// can only do ordered version of export for MRMC
-		if (exportType == EXPORT_MRMC) {
-			if (!ordered)
-				mainLog.printWarning("Cannot export unordered transition matrix in MRMC format; using ordered.");
-			ordered = true;
-		}
-		// can only do ordered version of export for rows format
-		if (exportType == EXPORT_ROWS) {
-			if (!ordered)
-				mainLog.printWarning("Cannot export unordered transition matrix in rows format; using ordered.");
-			ordered = true;
-		}
-
-		// Build model, if necessary
-		buildModelIfRequired();
-
-		// print message
-		mainLog.print("\nExporting transition matrix ");
-		mainLog.print(getStringForExportType(exportType) + " ");
-		mainLog.println(getDestinationStringForFile(file));
-
-		// do export
-		int precision = settings.getInteger(PrismSettings.PRISM_EXPORT_MODEL_PRECISION);
-		if (currentModelBuildType == ModelBuildType.SYMBOLIC) {
-			currentModel.exportToFile(exportType, ordered, file, precision);
-		} else {
-			PrismLog tmpLog = getPrismLogForFile(file);
-			switch (exportType) {
-			case Prism.EXPORT_PLAIN:
-				currentModelExpl.exportToPrismExplicitTra(tmpLog, precision);
-				break;
-			case Prism.EXPORT_MATLAB:
-				throw new PrismNotSupportedException("Export not yet supported");
-			case Prism.EXPORT_DOT:
-				currentModelExpl.exportToDotFile(tmpLog, null, false, precision);
-				break;
-			case Prism.EXPORT_DOT_STATES:
-				currentModelExpl.exportToDotFile(tmpLog, null, true, precision);
-				break;
-			case Prism.EXPORT_MRMC:
-			case Prism.EXPORT_ROWS:
-				throw new PrismNotSupportedException("Export not yet supported");
-			}
-			tmpLog.close();
-		}
-
-		// for export to dot with states, need to do a bit more
-		if (currentModelBuildType == ModelBuildType.SYMBOLIC && exportType == EXPORT_DOT_STATES) {
-			// open (appending to) existing new file log or use main log
-			PrismLog tmpLog = getPrismLogForFile(file, true);
-			// insert states info into dot file
-			currentModel.getReachableStates().printDot(tmpLog);
-			// print footer
-			tmpLog.println("}");
-			// tidy up
-			if (file != null)
-				tmpLog.close();
-		}
 	}
 
 	/**
@@ -2988,6 +2953,19 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 		// Tidy up
 		if (file != null)
 			tmpLog.close();
+	}
+
+	/**
+	 * Return a new {@code ModelExportOptions} object with any relevant PRISM settings applied,
+	 * then merged with the passed ewxport options (which take precedence).
+	 */
+	private ModelExportOptions newMergedModelExportOptions(ModelExportOptions exportOptions)
+	{
+		ModelExportOptions newExportOptions = new ModelExportOptions();
+		newExportOptions.setModelPrecision(settings.getInteger(PrismSettings.PRISM_EXPORT_MODEL_PRECISION));
+		newExportOptions.setPrintHeaders(settings.getBoolean(PrismSettings.PRISM_EXPORT_MODEL_HEADERS));
+		newExportOptions.apply(exportOptions);
+		return newExportOptions;
 	}
 
 	/**
@@ -4188,6 +4166,87 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	//------------------------------------------------------------------------------
 	// Old API methods, supported via new one
 	//------------------------------------------------------------------------------
+
+	/**
+	 * @deprecated
+	 * Export the currently loaded model's transition matrix to a file (or to the log)
+	 * @param ordered Ignored (assumed to be true)
+	 * @param exportType Type of export; one of: <ul>
+	 * <li> {@link #EXPORT_PLAIN}
+	 * <li> {@link #EXPORT_MATLAB}
+	 * <li> {@link #EXPORT_DOT}
+	 * <li> {@link #EXPORT_MRMC}
+	 * <li> {@link #EXPORT_ROWS}
+	 * <li> {@link #EXPORT_DOT_STATES}
+	 * </ul>
+	 * @param file File to export to (if null, print to the log instead)
+	 */
+	@Deprecated
+	public void exportTransToFile(boolean ordered, int exportType, File file) throws FileNotFoundException, PrismException
+	{
+		exportBuiltModelTransitions(file, convertExportType(exportType));
+	}
+
+	/**
+	 * Convert a {@code ModelExportOptions} object to an {@code exportType} value.
+	 */
+	public static int convertExportType(ModelExportOptions exportOptions)
+	{
+		switch (exportOptions.getFormat()) {
+			case ModelExportFormat.EXPLICIT:
+				return Prism.EXPORT_PLAIN;
+			case ModelExportFormat.MATLAB:
+				return Prism.EXPORT_MATLAB;
+			case ModelExportFormat.DOT:
+				return Prism.EXPORT_DOT;
+		}
+		return Prism.EXPORT_PLAIN;
+	}
+
+	/**
+	 * Convert a {@code ModelExportOptions} object to an {@code exportType} value for a transition matrix.
+	 */
+	public static int convertExportTypeTrans(ModelExportOptions exportOptions)
+	{
+		switch (exportOptions.getFormat()) {
+			case ModelExportFormat.EXPLICIT:
+				return exportOptions.getExplicitRows() ? Prism.EXPORT_ROWS : Prism.EXPORT_PLAIN;
+			case ModelExportFormat.MATLAB:
+				return Prism.EXPORT_MATLAB;
+			case ModelExportFormat.DOT:
+				return exportOptions.getShowStates() ? Prism.EXPORT_DOT_STATES : Prism.EXPORT_DOT;
+		}
+		return Prism.EXPORT_PLAIN;
+	}
+
+	/**
+	 * Convert an {@code exportType} value to a {@code ModelExportOptions} object.
+	 */
+	public static ModelExportOptions convertExportType(int exportType)
+	{
+		ModelExportOptions exportOptions = new ModelExportOptions();
+		switch (exportType) {
+			case Prism.EXPORT_PLAIN:
+				exportOptions.setFormat(ModelExportFormat.EXPLICIT);
+				break;
+			case Prism.EXPORT_MATLAB:
+				exportOptions.setFormat(ModelExportFormat.MATLAB);
+				break;
+			case Prism.EXPORT_DOT:
+				exportOptions.setFormat(ModelExportFormat.DOT);
+				exportOptions.setShowStates(false);
+				break;
+			case Prism.EXPORT_DOT_STATES:
+				exportOptions.setFormat(ModelExportFormat.DOT);
+				exportOptions.setShowStates(true);
+				break;
+			case Prism.EXPORT_ROWS:
+				exportOptions.setFormat(ModelExportFormat.EXPLICIT);
+				exportOptions.setExplicitRows(true);
+				break;
+		}
+		return exportOptions;
+	}
 
 	/**
 	 * @deprecated
