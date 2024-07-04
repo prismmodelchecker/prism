@@ -103,6 +103,8 @@ public class PrismCL implements PrismModelListener
 	private int exportType = Prism.EXPORT_PLAIN;
 	private boolean exportstrat = false;
 	private ModelExportOptions exportTransOptions = new ModelExportOptions();
+	private ModelExportOptions exportStateRewardsOptions = new ModelExportOptions();
+	private ModelExportOptions exportTransRewardsOptions = new ModelExportOptions();
 	private ModelExportOptions exportTransDotOptions = new ModelExportOptions();
 	private ModelExportOptions exportTransDotStatesOptions = new ModelExportOptions();
 	private ModelExportOptions modelExportOptionsGlobal = new ModelExportOptions();
@@ -814,7 +816,8 @@ public class PrismCL implements PrismModelListener
 		if (exportstaterewards) {
 			try {
 				File f = (exportStateRewardsFilename.equals("stdout")) ? null : new File(exportStateRewardsFilename);
-				prism.exportStateRewardsToFile(exportType, f);
+				exportStateRewardsOptions.applyTo(modelExportOptionsGlobal);
+				prism.exportBuiltModelStateRewards(f, exportStateRewardsOptions);
 			}
 			// in case of error, report it and proceed
 			catch (FileNotFoundException e) {
@@ -828,7 +831,8 @@ public class PrismCL implements PrismModelListener
 		if (exporttransrewards) {
 			try {
 				File f = (exportTransRewardsFilename.equals("stdout")) ? null : new File(exportTransRewardsFilename);
-				prism.exportTransRewardsToFile(true, exportType, f);
+				exportTransRewardsOptions.applyTo(modelExportOptionsGlobal);
+				prism.exportBuiltModelTransRewards(f, exportTransRewardsOptions);
 			}
 			// in case of error, report it and proceed
 			catch (FileNotFoundException e) {
@@ -2272,9 +2276,12 @@ public class PrismCL implements PrismModelListener
 			else if (opt.equals("matlab")) {
 				exportType = Prism.EXPORT_MATLAB;
 				exportTransOptions.setFormat(ModelExportFormat.MATLAB);
+				exportStateRewardsOptions.setFormat(ModelExportFormat.MATLAB);
+				exportTransRewardsOptions.setFormat(ModelExportFormat.MATLAB);
 			} else if (opt.equals("rows")) {
 				exportType = Prism.EXPORT_ROWS;
 				exportTransOptions.setExplicitRows(true);
+				exportTransRewardsOptions.setExplicitRows(true);
 			} /*else if (opt.startsWith("type=")) {
 				String exportTypeString = opt.substring(5);
 				if (exportTypeString.equals("matlab")) {

@@ -2369,17 +2369,13 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	}
 
 	/**
-	 * Export the currently loaded model's state rewards to a file (or files, or stdout).
+	 * Export the state rewards for the current built model.
 	 * If there is more than 1 reward structure, then multiple files are generated
 	 * (e.g. "rew.sta" becomes "rew1.sta", "rew2.sta", ...)
-	 * @param exportType Type of export; one of: <ul>
-	 * <li> {@link #EXPORT_PLAIN} 
-	 * <li> {@link #EXPORT_MATLAB}
-	 * <li> {@link #EXPORT_MRMC}
-	 * </ul>
-	 * @param file File to export to (if null, print to the log instead)
+	 * @param file File to export to
+	 * @param exportOptions The options for export
 	 */
-	public void exportStateRewardsToFile(int exportType, File file) throws FileNotFoundException, PrismException
+	public void exportBuiltModelStateRewards(File file, ModelExportOptions exportOptions) throws PrismException, FileNotFoundException
 	{
 		int numRewardStructs = currentRewardGenerator.getNumRewardStructs();
 		if (numRewardStructs == 0) {
@@ -2387,20 +2383,18 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 			return;
 		}
 		
-		// Rows format does not apply to vectors
-		if (exportType == EXPORT_ROWS)
-			exportType = EXPORT_PLAIN;
-
 		// Build model, if necessary
 		buildModelIfRequired();
 
+		// Print message
 		mainLog.print("\nExporting state rewards ");
-		mainLog.print(getStringForExportType(exportType) + " ");
+		mainLog.print(exportOptions.getFormat().description() + " ");
 		mainLog.println(getDestinationStringForFile(file));
 
+		// Merge export options with settings
+		exportOptions = newMergedModelExportOptions(exportOptions);
+
 		// Do export, writing to multiple files if necessary
-		int precision = settings.getInteger(PrismSettings.PRISM_EXPORT_MODEL_PRECISION);
-		boolean noexportheaders = !settings.getBoolean(PrismSettings.PRISM_EXPORT_MODEL_HEADERS);
 		List <String> files = new ArrayList<>();
 		for (int r = 0; r < numRewardStructs; r++) {
 			String filename = (file != null) ? file.getPath() : null;
@@ -2410,11 +2404,13 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 			}
 			File fileToUse = (filename == null) ? null : new File(filename);
 			if (currentModelBuildType == ModelBuildType.SYMBOLIC) {
-				currentModel.exportStateRewardsToFile(r, exportType, fileToUse, precision, noexportheaders);
+				int precision = settings.getInteger(PrismSettings.PRISM_EXPORT_MODEL_PRECISION);
+				boolean noexportheaders = !settings.getBoolean(PrismSettings.PRISM_EXPORT_MODEL_HEADERS);
+				currentModel.exportStateRewardsToFile(r, convertExportType(exportOptions), fileToUse, precision, noexportheaders);
 			} else {
 				explicit.StateModelChecker mcExpl = createModelCheckerExplicit(null);
 				try (PrismLog out = getPrismLogForFile(fileToUse)){
-					((explicit.ProbModelChecker) mcExpl).exportStateRewardsToFile(currentModelExpl, r, exportType, out, noexportheaders, precision);
+					mcExpl.exportStateRewards(currentModelExpl, r, out, exportOptions);
 				} catch (PrismNotSupportedException e1) {
 					mainLog.println("\nReward export failed: " + e1.getMessage());
 					try {
@@ -2432,19 +2428,15 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 			mainLog.println("Rewards were exported to multiple files: " + PrismUtils.joinString(files, ","));
 		}
 	}
-	
+
 	/**
-	 * Export the currently loaded model's transition rewards to a file
-	 * @param ordered Ensure that (source) states are in ascending order?
-	 * @param exportType Type of export; one of: <ul>
-	 * <li> {@link #EXPORT_PLAIN} 
-	 * <li> {@link #EXPORT_MATLAB}
-	 * <li> {@link #EXPORT_MRMC}
-	 * <li> {@link #EXPORT_ROWS}
-	 * </ul>
-	 * @param file File to export to (if null, print to the log instead)
+	 * Export the transition rewards for the current built model.
+	 * If there is more than 1 reward structure, then multiple files are generated
+	 * (e.g. "rew.sta" becomes "rew1.sta", "rew2.sta", ...)
+	 * @param file File to export to
+	 * @param exportOptions The options for export
 	 */
-	public void exportTransRewardsToFile(boolean ordered, int exportType, File file) throws FileNotFoundException, PrismException
+	public void exportBuiltModelTransRewards(File file, ModelExportOptions exportOptions) throws FileNotFoundException, PrismException
 	{
 		int numRewardStructs = currentRewardGenerator.getNumRewardStructs();
 		if (numRewardStructs == 0) {
@@ -2452,35 +2444,18 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 			return;
 		}
 		
-		// Can only do ordered version of export for MDPs
-		if (currentModelType == ModelType.MDP) {
-			if (!ordered)
-				mainLog.printWarning("Cannot export unordered transition reward matrix for MDPs; using ordered.");
-			ordered = true;
-		}
-		// Can only do ordered version of export for MRMC
-		if (exportType == EXPORT_MRMC) {
-			if (!ordered)
-				mainLog.printWarning("Cannot export unordered transition reward matrix in MRMC format; using ordered.");
-			ordered = true;
-		}
-		// Can only do ordered version of export for rows format
-		if (exportType == EXPORT_ROWS) {
-			if (!ordered)
-				mainLog.printWarning("Cannot export unordered transition matrix in rows format; using ordered.");
-			ordered = true;
-		}
-
 		// Build model, if necessary
 		buildModelIfRequired();
 
+		// Print message
 		mainLog.print("\nExporting transition rewards ");
-		mainLog.print(getStringForExportType(exportType) + " ");
+		mainLog.print(exportOptions.getFormat().description() + " ");
 		mainLog.println(getDestinationStringForFile(file));
 
+		// Merge export options with settings
+		exportOptions = newMergedModelExportOptions(exportOptions);
+
 		// Do export, writing to multiple files if necessary
-		int precision = settings.getInteger(PrismSettings.PRISM_EXPORT_MODEL_PRECISION);
-		boolean noexportheaders = !settings.getBoolean(PrismSettings.PRISM_EXPORT_MODEL_HEADERS);
 		List <String> files = new ArrayList<>();
 		for (int r = 0; r < numRewardStructs; r++) {
 			String filename = (file != null) ? file.getPath() : null;
@@ -2490,11 +2465,13 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 			}
 			File fileToUse = (filename == null) ? null : new File(filename);
 			if (currentModelBuildType == ModelBuildType.SYMBOLIC) {
-				currentModel.exportTransRewardsToFile(r, exportType, ordered, fileToUse, precision, noexportheaders);
+				int precision = settings.getInteger(PrismSettings.PRISM_EXPORT_MODEL_PRECISION);
+				boolean noexportheaders = !settings.getBoolean(PrismSettings.PRISM_EXPORT_MODEL_HEADERS);
+				currentModel.exportTransRewardsToFile(r, convertExportTypeTrans(exportOptions), true, fileToUse, precision, noexportheaders);
 			} else {
 				explicit.StateModelChecker mcExpl = createModelCheckerExplicit(null);
 				try (PrismLog out = getPrismLogForFile(fileToUse)){
-					((explicit.ProbModelChecker) mcExpl).exportTransRewardsToFile(currentModelExpl, r, exportType, out, noexportheaders, precision);
+					mcExpl.exportTransRewards(currentModelExpl, r, out, exportOptions);
 				} catch (PrismNotSupportedException e1) {
 					mainLog.println("\nReward export failed: " + e1.getMessage());
 					try {
@@ -4185,6 +4162,40 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	public void exportTransToFile(boolean ordered, int exportType, File file) throws FileNotFoundException, PrismException
 	{
 		exportBuiltModelTransitions(file, convertExportType(exportType));
+	}
+
+	/**
+	 * @deprecated
+	 * Export the currently loaded model's state rewards to a file (or files, or stdout).
+	 * If there is more than 1 reward structure, then multiple files are generated
+	 * (e.g. "rew.sta" becomes "rew1.sta", "rew2.sta", ...)
+	 * @param exportType Type of export; one of: <ul>
+	 * <li> {@link #EXPORT_PLAIN}
+	 * <li> {@link #EXPORT_MATLAB}
+	 * <li> {@link #EXPORT_MRMC}
+	 * </ul>
+	 * @param file File to export to (if null, print to the log instead)
+	 */
+	@Deprecated
+	public void exportStateRewardsToFile(int exportType, File file) throws FileNotFoundException, PrismException
+	{
+		exportBuiltModelStateRewards(file, convertExportType(exportType));
+	}
+
+	/**
+	 * Export the currently loaded model's transition rewards to a file
+	 * @param ordered Ignored (assumed to be true)
+	 * @param exportType Type of export; one of: <ul>
+	 * <li> {@link #EXPORT_PLAIN}
+	 * <li> {@link #EXPORT_MATLAB}
+	 * <li> {@link #EXPORT_MRMC}
+	 * <li> {@link #EXPORT_ROWS}
+	 * </ul>
+	 * @param file File to export to (if null, print to the log instead)
+	 */
+	public void exportTransRewardsToFile(boolean ordered, int exportType, File file) throws FileNotFoundException, PrismException
+	{
+		exportBuiltModelTransRewards(file, convertExportType(exportType));
 	}
 
 	/**

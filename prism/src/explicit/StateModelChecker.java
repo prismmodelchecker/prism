@@ -40,6 +40,10 @@ import java.util.Set;
 import java.util.TreeSet;
 import java.util.Vector;
 
+import explicit.rewards.ConstructRewards;
+import explicit.rewards.MCRewards;
+import explicit.rewards.MDPRewards;
+import explicit.rewards.Rewards;
 import io.DotExporter;
 import io.ModelExportOptions;
 import io.PrismExplicitExporter;
@@ -1460,6 +1464,33 @@ public class StateModelChecker extends PrismComponent
 	}
 
 	/**
+	 * Construct rewards for the reward structure with index r of the reward generator and a model.
+	 * Ensures non-negative rewards.
+	 * <br>
+	 * Note: Relies on the stored RewardGenerator for constructing the reward structure.
+	 */
+	protected <Value> Rewards<Value> constructRewards(Model<Value> model, int r) throws PrismException
+	{
+		return constructRewards(model, r, false);
+	}
+
+	/**
+	 * Construct rewards for the reward structure with index r of the reward generator and a model.
+	 * <br>
+	 * If {@code allowNegativeRewards} is true, the rewards may be positive and negative, i.e., weights.
+	 * <br>
+	 * Note: Relies on the stored RewardGenerator for constructing the reward structure.
+	 */
+	@SuppressWarnings("unchecked")
+	protected <Value> Rewards<Value> constructRewards(Model<Value> model, int r, boolean allowNegativeRewards) throws PrismException
+	{
+		ConstructRewards constructRewards = new ConstructRewards(this);
+		if (allowNegativeRewards)
+			constructRewards.allowNegativeRewards();
+		return constructRewards.buildRewardStructure(model, (RewardGenerator<Value>) rewardGen, r);
+	}
+
+	/**
 	 * Loads labels from a PRISM labels file and stores them in BitSet objects.
 	 * (Actually, it returns a map from label name Strings to BitSets.)
 	 * (Note: the size of the BitSet may be smaller than the number of states.) 
@@ -1551,6 +1582,65 @@ public class StateModelChecker extends PrismComponent
 			case DOT:
 				new DotExporter<Value>(exportOptions).exportModel(model, out, null);
 				break;
+		}
+	}
+
+	/**
+	 * Export the state rewards for one reward structure of a model.
+	 * @param model The model
+	 * @param r Index of reward structure to export (0-indexed)
+	 * @param out Where to export
+	 * @param exportOptions The options for export
+	 */
+	public <Value> void exportStateRewards(Model<Value> model, int r, PrismLog out, ModelExportOptions exportOptions) throws PrismException
+	{
+		if (exportOptions.getFormat() != ModelExportOptions.ModelExportFormat.EXPLICIT) {
+			throw new PrismNotSupportedException("Exporting state rewards in the requested format is currently not supported by the explicit engine");
+		}
+
+		Rewards<Value> modelRewards = constructRewards(model, r);
+		PrismExplicitExporter exporter = new PrismExplicitExporter(exportOptions);
+		switch (model.getModelType()) {
+			case DTMC:
+			case CTMC:
+			case IDTMC:
+				exporter.exportMCStateRewards(model, (MCRewards<Value>) modelRewards, rewardGen.getRewardStructName(r), out);
+				break;
+			case MDP:
+			case POMDP:
+			case STPG:
+			case IMDP:
+				exporter.exportMDPStateRewards(model, (MDPRewards<Value>) modelRewards, rewardGen.getRewardStructName(r), out);
+				break;
+			default:
+				throw new PrismNotSupportedException("Explicit engine does not yet export state rewards for " + model.getModelType() + "s");
+		}
+	}
+
+	/**
+	 * Export the transition rewards for one reward structure of a model.
+	 * @param model The model
+	 * @param r Index of reward structure to export (0-indexed)
+	 * @param out Where to export
+	 * @param exportOptions The options for export
+	 */
+	public <Value> void exportTransRewards(Model<Value> model, int r, PrismLog out, ModelExportOptions exportOptions) throws PrismException
+	{
+		if (exportOptions.getFormat() != ModelExportOptions.ModelExportFormat.EXPLICIT) {
+			throw new PrismNotSupportedException("Exporting transition rewards in the requested format is currently not supported by the explicit engine");
+		}
+
+		Rewards<Value> modelRewards = constructRewards(model, r);
+		PrismExplicitExporter exporter = new PrismExplicitExporter(exportOptions);
+		switch (model.getModelType()) {
+			case MDP:
+			case POMDP:
+			case STPG:
+			case IMDP:
+				exporter.exportMDPTransRewards((NondetModel<Value>) model, (MDPRewards<Value>) modelRewards, rewardGen.getRewardStructName(r), out);
+				break;
+			default:
+				throw new PrismNotSupportedException("Explicit engine does not yet export transition rewards for " + model.getModelType() + "s");
 		}
 	}
 
