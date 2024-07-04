@@ -955,7 +955,7 @@ public class ProbModelChecker extends NonProbModelChecker
 		// Build rewards
 		int r = expr.getRewardStructIndexByIndexObject(rewardGen, constantValues);
 		mainLog.println("Building reward structure...");
-		Rewards<?> rewards = constructRewards(model, r);
+		Rewards<?> rewards = Expression.usesInstantaneousReward(expr.getExpression()) ? constructRewards(model, r) : constructExpectedRewards(model, r);
 
 		// Compute rewards
 		StateValues rews = checkRewardFormula(model, rewards, expr.getExpression(), minMax, statesOfInterest);

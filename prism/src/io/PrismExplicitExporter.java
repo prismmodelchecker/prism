@@ -26,6 +26,8 @@
 
 package io;
 
+import common.IteratorTools;
+import explicit.DTMC;
 import explicit.Model;
 import explicit.NondetModel;
 import explicit.PartiallyObservableModel;
@@ -200,6 +202,36 @@ public class PrismExplicitExporter<Value> extends Exporter<Value>
 			out.print(" \"" + rewardStructName + "\"");
 		}
 		out.println("\n# State rewards");
+	}
+
+	/**
+	 * Export (non-zero) transition rewards from an MDPRewards object.
+	 * @param model The model
+	 * @param mcRewards The rewards
+	 * @param rewardStructName The name of the reward structure
+	 * @param out Where to export
+	 */
+	public void exportMCTransRewards(Model<Value> model, MCRewards<Value> mcRewards, String rewardStructName, PrismLog out) throws PrismException
+	{
+		// Get model info and exportOptions
+		setEvaluator(model.getEvaluator());
+		Evaluator<Value> evalRewards = mcRewards.getEvaluator();
+		boolean noexportheaders = !getModelExportOptions().getPrintHeaders();
+
+		int numStates = model.getNumStates();
+		int nonZeroRews = 0;
+		for (int s = 0; s < numStates; s++) {
+			nonZeroRews += Math.toIntExact(IteratorTools.count(getSortedTransitionRewardsIterator(((DTMC<Value>) model), mcRewards, s,true), v -> !evalRewards.isZero(v.value)));
+		}
+		printTransRewardsHeader(out, rewardStructName, noexportheaders);
+		out.println(numStates + " " + nonZeroRews);
+		for (int s = 0; s < numStates; s++) {
+			for (Transition<Value> transition : getSortedTransitionRewardsIterator(((DTMC<Value>) model), mcRewards, s,true)) {
+				if (!evalRewards.isZero(transition.value)) {
+					out.println(s + " " + transition.target + " " + formatValue(transition.value, evalRewards));
+				}
+			}
+		}
 	}
 
 	/**

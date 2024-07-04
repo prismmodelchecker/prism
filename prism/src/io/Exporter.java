@@ -140,6 +140,31 @@ public class Exporter<Value>
 	}
 
 	/**
+	 * Get access to a sorted list of transitions rewards for a state of a (Markov chain) model.
+	 * Transitions are sorted by successor state and then (if present) action string.
+	 * Note that this means duplicate transitions are removed too.
+	 * @param model The model
+	 * @param s The state
+	 * @param includeActions Whether to include actions
+	 */
+	public Iterable<Transition<Value>> getSortedTransitionRewardsIterator(DTMC<Value> model, MCRewards<Value> mcRewards, int s, boolean includeActions)
+	{
+		TreeSet<Transition<Value>> sorted = new TreeSet<>(Transition::compareTo);
+		Object action = null;
+		Iterator<Map.Entry<Integer, Pair<Value, Object>>> iter = ((DTMC<Value>) model).getTransitionsAndActionsIterator(s);
+		int k = 0;
+		while (iter.hasNext()) {
+			Map.Entry<Integer, Pair<Value, Object>> e = iter.next();
+			if (includeActions) {
+				action = e.getValue().second;
+			}
+			sorted.add(new Transition<>(e.getKey(), mcRewards.getTransitionReward(s, k), action));
+			k++;
+		}
+		return sorted;
+	}
+
+	/**
 	 * Get a tuple comprising the state rewards for state {@code s}.
 	 * @param allRewards The list of rewards
 	 * @param s The state

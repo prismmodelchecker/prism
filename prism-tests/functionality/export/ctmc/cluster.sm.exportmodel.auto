@@ -19,8 +19,8 @@
 -exportmodel cluster.sm.tra:actions=false -ex
 -exportmodel cluster.sm.sta -ex
 -exportmodel cluster.sm.lab -ex
-#-exportmodel cluster.sm.srew -ex
-#-exportmodel cluster.sm.trew -ex
+-exportmodel cluster.sm.srew -ex -noexportheaders
+-exportmodel cluster.sm.trew -ex -noexportheaders
 #-exportmodel cluster.sm.matlab.tra:matlab -ex
 #-exportmodel cluster.sm.matlab.sta:matlab -ex
 -exportmodel cluster.sm.matlab.lab:matlab -ex

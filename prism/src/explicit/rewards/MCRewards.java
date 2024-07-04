@@ -37,7 +37,15 @@ public interface MCRewards<Value> extends Rewards<Value>
 	/**
 	 * Get the state reward for state {@code s}.
 	 */
-	public abstract Value getStateReward(int s); 
+	public abstract Value getStateReward(int s);
+
+	/**
+	 * Get the reward for the {@code j}th transition from state {@code s}.
+	 */
+	public default Value getTransitionReward(int s, int j)
+	{
+		return getEvaluator().zero();
+	}
 
 	@Override
 	public MCRewards<Value> liftFromModel(Product<?> product);

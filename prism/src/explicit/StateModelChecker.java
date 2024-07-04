@@ -1493,6 +1493,25 @@ public class StateModelChecker extends PrismComponent
 	}
 
 	/**
+	 * Construct expected rewards for the reward structure with index r of the reward generator and a model,
+	 * i.e., using probability-weighted sum for any rewards attached to transitions,
+	 * assigning them to states/choices.
+	 * Ensures non-negative rewards.
+	 * <br>
+	 * Note: Relies on the stored RewardGenerator for constructing the reward structure.
+	 */
+	protected <Value> Rewards<Value> constructExpectedRewards(Model<Value> model, int r) throws PrismException
+	{
+		if (model.getModelType() == ModelType.IDTMC && rewardGen.rewardStructHasTransitionRewards(r)) {
+			throw new PrismNotSupportedException("Transition rewards not supported for " + model.getModelType() + "s");
+
+		}
+		ConstructRewards constructRewards = new ConstructRewards(this);
+		constructRewards.setExpectedRewards(true);
+		return constructRewards.buildRewardStructure(model, (RewardGenerator<Value>) rewardGen, r);
+	}
+
+	/**
 	 * Loads labels from a PRISM labels file and stores them in BitSet objects.
 	 * (Actually, it returns a map from label name Strings to BitSets.)
 	 * (Note: the size of the BitSet may be smaller than the number of states.) 
@@ -1656,6 +1675,11 @@ public class StateModelChecker extends PrismComponent
 		Rewards<Value> modelRewards = constructRewards(model, r);
 		PrismExplicitExporter exporter = new PrismExplicitExporter(exportOptions);
 		switch (model.getModelType()) {
+			case DTMC:
+			case CTMC:
+			case IDTMC:
+				exporter.exportMCTransRewards(model, (MCRewards<Value>) modelRewards, rewardGen.getRewardStructName(r), out);
+				break;
 			case MDP:
 			case POMDP:
 			case STPG:

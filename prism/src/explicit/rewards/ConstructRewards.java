@@ -31,7 +31,9 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 import explicit.DTMC;
 import explicit.MDP;
@@ -42,6 +44,7 @@ import parser.ast.ASTElement;
 import parser.ast.Expression;
 import parser.ast.RewardStruct;
 import prism.Evaluator;
+import prism.Pair;
 import prism.PrismComponent;
 import prism.PrismException;
 import prism.PrismLangException;
@@ -63,6 +66,21 @@ public class ConstructRewards extends PrismComponent
 	public void allowNegativeRewards()
 	{
 		allowNegative = true;
+	}
+
+	/**
+	 * Construct expected reward, i.e., using probability-weighted sum for any rewards
+	 * attached to transitions, assigning them to states/choices. Defaults to false.
+	 */
+	protected boolean expectedRewards = false;
+
+	/**
+	 * Specify whether to construct expected reward, i.e., using probability-weighted sum for any rewards
+	 * attached to transitions, assigning them to states/choices. Defaults to false.
+	 */
+	public void setExpectedRewards(boolean expectedRewards)
+	{
+		this.expectedRewards = expectedRewards;
 	}
 
 	/**
@@ -100,30 +118,56 @@ public class ConstructRewards extends PrismComponent
 	@SuppressWarnings("unchecked")
 	public <Value> Rewards<Value> buildMCRewardStructure(DTMC<Value> mc, RewardGenerator<Value> rewardGen, int r) throws PrismException
 	{
-		if (rewardGen.rewardStructHasTransitionRewards(r)) {
-			throw new PrismNotSupportedException("Explicit engine does not yet handle transition rewards for D/CTMCs");
-		}
-		boolean dbl = rewardGen.getRewardEvaluator().one() instanceof Double;
 		int numStates = mc.getNumStates();
 		List<State> statesList = mc.getStatesList();
+		// Determine if we are building state rewards only over doubles
+		boolean dbl = rewardGen.getRewardEvaluator().one() instanceof Double;
+		boolean dblSR = dbl && !(rewardGen.rewardStructHasTransitionRewards(r) && !expectedRewards);
 		// Create reward structure object
-		RewardsExplicit<Value> rewards = null;
+		RewardsExplicit<Value> rewards;
 		StateRewardsArray rewSA = null;
-		StateRewardsSimple<Value> rewSimple = null;
-		if (dbl) {
+		RewardsSimple<Value> rewSimple = null;
+		if (dblSR) {
 			rewards = (RewardsExplicit<Value>) (rewSA = new StateRewardsArray(numStates));
 		} else {
-			rewards = rewSimple = new StateRewardsSimple<Value>();
+			rewards = rewSimple = new RewardsSimple<Value>(numStates);
 		}
 		rewards.setEvaluator(rewardGen.getRewardEvaluator());
 		// Add rewards to it
 		for (int s = 0; s < numStates; s++) {
 			if (rewardGen.rewardStructHasStateRewards(r)) {
 				Value rew = getAndCheckStateReward(s, rewardGen, r, statesList);
-				if (dbl) {
+				if (dblSR) {
 					rewSA.addToStateReward(s, (Double) rew);
 				} else {
 					rewSimple.addToStateReward(s, rew);
+				}
+			}
+			if (rewardGen.rewardStructHasTransitionRewards(r)) {
+				// Don't add rewards to transitions added to "fix" deadlock states
+				if (mc.isDeadlockState(s)) {
+					continue;
+				}
+				Iterator<Map.Entry<Integer, Pair<Value, Object>>> iter = mc.getTransitionsAndActionsIterator(s);
+				int i = 0;
+				while (iter.hasNext()) {
+					Map.Entry<Integer, Pair<Value, Object>> e = iter.next();
+					Value rew = getAndCheckStateActionReward(s, e.getValue().second, rewardGen, r, statesList);
+					if (rewardGen.getRewardEvaluator().isZero(rew)) {
+						i++;
+						continue;
+					}
+					if (expectedRewards) {
+						Value rewWeighted = rewardGen.getRewardEvaluator().multiply(e.getValue().first, rew);
+						if (dblSR) {
+							rewSA.addToStateReward(s, (Double) rewWeighted);
+						} else {
+							rewSimple.addToStateReward(s, rewWeighted);
+						}
+					} else {
+						rewSimple.addToTransitionReward(s, i, rew);
+					}
+					i++;
 				}
 			}
 		}
@@ -193,7 +237,7 @@ public class ConstructRewards extends PrismComponent
 	}
 
 	/**
-	 * Get a state reward for a specific state and reward structure from a RewardGenerator.
+	 * Get a state-action reward for a specific state and reward structure from a RewardGenerator.
 	 * Also check that the state reward is legal. Throw an exception if not.
 	 * @param s The index of the state
 	 * @param rewardGen The RewardGenerator defining the rewards
