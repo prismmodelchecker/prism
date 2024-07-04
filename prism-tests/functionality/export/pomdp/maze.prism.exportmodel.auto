@@ -1,0 +1,11 @@
+# Export all model info
+
+-exportmodel maze.prism.all
+
+# Export model info separately
+
+-exportmodel maze.prism.tra
+-exportmodel maze.prism.lab
+-exportmodel maze.prism.sta
+-exportmodel maze.prism.srew
+-exportmodel maze.prism.trew
