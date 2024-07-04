@@ -66,33 +66,6 @@ public interface MDP<Value> extends NondetModel<Value>
 	}
 
 	@Override
-	default void exportToPrismExplicitTra(PrismLog out, int precision)
-	{
-		// Output transitions to .tra file
-		int numStates = getNumStates();
-		out.print(numStates + " " + getNumChoices() + " " + getNumTransitions() + "\n");
-		TreeMap<Integer, Value> sorted = new TreeMap<Integer, Value>();
-		for (int i = 0; i < numStates; i++) {
-			int numChoices = getNumChoices(i);
-			for (int j = 0; j < numChoices; j++) {
-				// Extract transitions and sort by destination state index (to match PRISM-exported files)
-				Iterator<Map.Entry<Integer, Value>> iter = getTransitionsIterator(i, j);
-				while (iter.hasNext()) {
-					Map.Entry<Integer, Value> e = iter.next();
-					sorted.put(e.getKey(), e.getValue());
-				}
-				// Print out (sorted) transitions
-				for (Map.Entry<Integer, Value> e : sorted.entrySet()) {
-					out.print(i + " " + j + " " + e.getKey() + " " + getEvaluator().toStringExport(e.getValue(), precision));
-					Object action = getAction(i, j);
-					out.print(action == null ? "\n" : (" " + action + "\n"));
-				}
-				sorted.clear();
-			}
-		}
-	}
-
-	@Override
 	default void exportTransitionsToDotFile(int i, PrismLog out, Iterable<explicit.graphviz.Decorator> decorators, int precision)
 	{
 		// Iterate through outgoing choices for this state

@@ -64,33 +64,6 @@ public interface DTMC<Value> extends Model<Value>
 	}
 
 	@Override
-	default void exportToPrismExplicitTra(PrismLog out, int precision)
-	{
-		// Output transitions to .tra file
-		int numStates = getNumStates();
-		out.print(numStates + " " + getNumTransitions() + "\n");
-		TreeMap<Integer, Pair<Value, Object>> sorted = new TreeMap<Integer, Pair<Value, Object>>();
-		for (int i = 0; i < numStates; i++) {
-			// Extract transitions and sort by destination state index (to match PRISM-exported files)
-			Iterator<Map.Entry<Integer,Pair<Value, Object>>> iter = getTransitionsAndActionsIterator(i);
-			while (iter.hasNext()) {
-				Map.Entry<Integer, Pair<Value, Object>> e = iter.next();
-				sorted.put(e.getKey(), e.getValue());
-			}
-			// Print out (sorted) transitions
-			for (Map.Entry<Integer, Pair<Value, Object>> e : sorted.entrySet()) {
-				out.print(i + " " + e.getKey() + " " + getEvaluator().toStringExport(e.getValue().first, precision));
-				Object action = e.getValue().second; 
-				if (action != null && !"".equals(action)) {
-					out.print(" " + action);
-				}
-				out.print("\n");
-			}
-			sorted.clear();
-		}
-	}
-
-	@Override
 	default void exportTransitionsToDotFile(int i, PrismLog out, Iterable<explicit.graphviz.Decorator> decorators, int precision)
 	{
 		// Iterate through outgoing transitions for this state

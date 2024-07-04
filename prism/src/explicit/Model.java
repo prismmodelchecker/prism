@@ -40,6 +40,8 @@ import java.util.function.IntPredicate;
 
 import common.IteratorTools;
 import explicit.graphviz.Decorator;
+import io.ModelExportOptions;
+import io.PrismExplicitExporter;
 import parser.State;
 import parser.Values;
 import parser.VarList;
@@ -349,9 +351,36 @@ public interface Model<Value>
 	/**
 	 * Export transition matrix to explicit format readable by PRISM (i.e. a .tra file).
 	 */
+	default void exportToPrismExplicitTra(PrismLog out, ModelExportOptions exportOptions) throws PrismException
+	{
+		new PrismExplicitExporter<Value>(exportOptions).exportTransitions(this, out);
+	}
+
+	/**
+	 * Export transition matrix to explicit format readable by PRISM (i.e. a .tra file).
+	 * @param precision number of significant digits >= 1
+	 */
+	public default void exportToPrismExplicitTra(PrismLog out, int precision) throws PrismException
+	{
+		exportToPrismExplicitTra(out, new ModelExportOptions().setModelPrecision(precision));
+	}
+
+	/**
+	 * Export transition matrix to explicit format readable by PRISM (i.e. a .tra file).
+	 */
+	default void exportToPrismExplicitTra(PrismLog out) throws PrismException
+	{
+		exportToPrismExplicitTra(out, new ModelExportOptions());
+	}
+
+	/**
+	 * Export transition matrix to explicit format readable by PRISM (i.e. a .tra file).
+	 */
 	default void exportToPrismExplicitTra(String filename) throws PrismException
 	{
-		exportToPrismExplicitTra(filename, DEFAULT_EXPORT_MODEL_PRECISION);
+		try (PrismFileLog out = PrismFileLog.create(filename)) {
+			exportToPrismExplicitTra(out);
+		}
 	}
 
 	/**
@@ -360,8 +389,8 @@ public interface Model<Value>
 	 */
 	default void exportToPrismExplicitTra(String filename, int precision) throws PrismException
 	{
-		try (PrismFileLog log = PrismFileLog.create(filename)) {
-			exportToPrismExplicitTra(log, precision);
+		try (PrismFileLog out = PrismFileLog.create(filename)) {
+			exportToPrismExplicitTra(out, precision);
 		}
 	}
 
@@ -370,7 +399,9 @@ public interface Model<Value>
 	 */
 	default void exportToPrismExplicitTra(File file) throws PrismException
 	{
-		exportToPrismExplicitTra(file, DEFAULT_EXPORT_MODEL_PRECISION);
+		try (PrismFileLog out = PrismFileLog.create(file.getPath())) {
+			exportToPrismExplicitTra(out);
+		}
 	}
 
 	/**
@@ -379,24 +410,11 @@ public interface Model<Value>
 	 */
 	default void exportToPrismExplicitTra(File file, int precision) throws PrismException
 	{
-		exportToPrismExplicitTra(file.getPath(), precision);
+		try (PrismFileLog out = PrismFileLog.create(file.getPath())) {
+			exportToPrismExplicitTra(out, precision);
+		}
 	}
 
-
-	/**
-	 * Export transition matrix to explicit format readable by PRISM (i.e. a .tra file).
-	 */
-	default void exportToPrismExplicitTra(PrismLog log)
-	{
-		exportToPrismExplicitTra(log, DEFAULT_EXPORT_MODEL_PRECISION);
-	}
-
-	/**
-	 * Export transition matrix to explicit format readable by PRISM (i.e. a .tra file).
-	 * @param precision number of significant digits >= 1
-	 */
-	public void exportToPrismExplicitTra(PrismLog log, int precision);
-	
 	// Export methods (dot files)
 
 	/**

@@ -47,22 +47,6 @@ public interface LTS<Value> extends NondetModel<Value>
 	}
 
 	@Override
-	default void exportToPrismExplicitTra(PrismLog out, int precision)
-	{
-		// Output transitions to .tra file
-		int numStates = getNumStates();
-		out.print(numStates + " " + getNumChoices() + "\n");
-		for (int i = 0; i < numStates; i++) {
-			int numChoices = getNumChoices(i);
-			for (int j = 0; j < numChoices; j++) {
-				out.print(i + " " + j + " " + getSuccessor(i, j));
-				Object action = getAction(i, j);
-				out.print(action == null ? "\n" : (" " + action + "\n"));
-			}
-		}
-	}
-
-	@Override
 	default void exportTransitionsToDotFile(int i, PrismLog out, Iterable<explicit.graphviz.Decorator> decorators, int precision)
 	{
 		// Iterate through outgoing transitions (i.e. choices) for this state
