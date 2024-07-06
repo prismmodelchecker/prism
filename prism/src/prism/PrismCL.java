@@ -88,6 +88,7 @@ public class PrismCL implements PrismModelListener
 	private boolean exportmodellabels = false;
 	private boolean exportmodelproplabels = false;
 	private boolean exportproplabels = false;
+	private boolean exportmodelcombined = false;
 	private boolean exportspy = false;
 	private boolean exportdot = false;
 	private boolean exporttransdot = false;
@@ -110,6 +111,7 @@ public class PrismCL implements PrismModelListener
 	private ModelExportOptions exportLabelsOptions = new ModelExportOptions();
 	private ModelExportOptions exportTransDotOptions = new ModelExportOptions();
 	private ModelExportOptions exportTransDotStatesOptions = new ModelExportOptions();
+	private ModelExportOptions exportModelCombinedOptions = new ModelExportOptions();
 	private ModelExportOptions modelExportOptionsGlobal = new ModelExportOptions();
 	private boolean simulate = false;
 	private boolean simpath = false;
@@ -160,6 +162,7 @@ public class PrismCL implements PrismModelListener
 	private String exportDotFilename = null;
 	private String exportTransDotFilename = null;
 	private String exportTransDotStatesFilename = null;
+	private String exportModelCombinedFilename = null;
 	private String exportSCCsFilename = null;
 	private String exportBSCCsFilename = null;
 	private String exportMECsFilename = null;
@@ -789,6 +792,7 @@ public class PrismCL implements PrismModelListener
 			    exportdot ||
 			    exporttransdot ||
 			    exporttransdotstates ||
+				exportmodelcombined ||
 			    exportmodeldotview ||
 				exportmodellabels ||
 				exportproplabels ||
@@ -988,6 +992,21 @@ public class PrismCL implements PrismModelListener
 				mainLog.println("Couldn't open file \"" + exportModelLabelsFilename + "\" for output");
 			} catch (PrismException e) {
 				mainLog.println("\nError: " + e.getMessage() + ".");
+			}
+		}
+
+		// export combined aspects of model
+		if (exportmodelcombined) {
+			try {
+				File f = (exportModelCombinedFilename.equals("stdout")) ? null : new File(exportModelCombinedFilename);
+				exportModelCombinedOptions.applyTo(modelExportOptionsGlobal);
+				prism.exportBuiltModelCombined(f, exportModelCombinedOptions);
+			}
+			// in case of error, report it and proceed
+			catch (FileNotFoundException e) {
+				error("Couldn't open file \"" + exportModelCombinedFilename + "\" for output");
+			} catch (PrismException e) {
+				error(e);
 			}
 		}
 
@@ -2269,6 +2288,10 @@ public class PrismCL implements PrismModelListener
 				exportTransDotStatesFilename = basename.equals("stdout") ? "stdout" : basename + ".dot";
 				exportTransDotStatesOptions = new ModelExportOptions(ModelExportFormat.DOT);
 				exportTransDotStatesOptions.setShowStates(true);
+			} else if (ext.equals("drn")) {
+				exportmodelcombined = true;
+				exportModelCombinedFilename = basename.equals("stdout") ? "stdout" : basename + ".drn";
+				exportModelCombinedOptions = new ModelExportOptions(ModelExportFormat.DRN);
 			}
 			// Unknown extension
 			else {
@@ -2858,8 +2881,8 @@ public class PrismCL implements PrismModelListener
 			mainLog.println("Export the built model to file(s) (or to the screen if <file>=\"stdout\").");
 			mainLog.println("Use a list of file extensions to indicate which files should be generated, e.g.:");
 			mainLog.println("\n -exportmodel out.tra,sta\n");
-			mainLog.println("Possible extensions are: .tra, .srew, .trew, .sta, .lab, .obs, .dot");
-			mainLog.println("Use extension .all to export all (except .dot) and .rew to export both .srew/.trew, e.g.:");
+			mainLog.println("Possible extensions are: .tra, .srew, .trew, .sta, .lab, .obs, .dot, .drn");
+			mainLog.println("Use extension .all to export all (except .dot/.drn) and .rew to export both .srew/.trew, e.g.:");
 			mainLog.println("\n -exportmodel out.all\n");
 			mainLog.println("Omit the file basename to use the basename of the model file, e.g.:");
 			mainLog.println("\n -exportmodel .all\n");

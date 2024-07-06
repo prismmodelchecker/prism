@@ -2266,6 +2266,40 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	}
 
 	/**
+	 * Export various aspects, combined, the current built model.
+	 * @param file File to export to
+	 * @param exportOptions The options for export
+	 */
+	public void exportBuiltModelCombined(File file, ModelExportOptions exportOptions) throws PrismException, FileNotFoundException
+	{
+		// Build model, if necessary
+		buildModelIfRequired();
+
+		if (currentModelBuildType == ModelBuildType.SYMBOLIC) {
+			mainLog.println("\nDRN export currently only supported by explicit engine");
+			return;
+		}
+
+		// Print message
+		mainLog.print("\nExporting model ");
+		mainLog.print(exportOptions.getFormat().description() + " ");
+		mainLog.println(getDestinationStringForFile(file));
+
+		// Merge export options with settings
+		exportOptions = newMergedModelExportOptions(exportOptions);
+
+		// Export (explicit engine only)
+		try (PrismLog out = getPrismLogForFile(file)) {
+			List<String> labelNames = new ArrayList<String>();
+			labelNames.add("init");
+			labelNames.add("deadlock");
+			labelNames.addAll(currentModelInfo.getLabelNames());
+			explicit.StateModelChecker mcExpl = createModelCheckerExplicit(null);
+			mcExpl.exportModelCombined(currentModelExpl, labelNames, out, exportOptions);
+		}
+	}
+
+	/**
 	 * Export the transtion matrix for the current built model.
 	 * @param file File to export to
 	 * @param exportOptions The options for export

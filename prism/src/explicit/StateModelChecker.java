@@ -45,6 +45,7 @@ import explicit.rewards.MCRewards;
 import explicit.rewards.MDPRewards;
 import explicit.rewards.Rewards;
 import io.DotExporter;
+import io.DRNExporter;
 import io.MatlabExporter;
 import io.ModelExportOptions;
 import io.PrismExplicitExporter;
@@ -1564,6 +1565,27 @@ public class StateModelChecker extends PrismComponent
 		} catch (NumberFormatException e) {
 			throw new PrismException("Error in labels file");
 		}
+	}
+
+	/**
+	 * Export various aspects of a model, combined.
+	 * @param model The model
+	 * @param labelNames Names of labels to include in export
+	 * @param out Where to export
+	 * @param exportOptions The options for export
+	 */
+	public <Value> void exportModelCombined(Model<Value> model, List<String> labelNames, PrismLog out, ModelExportOptions exportOptions) throws PrismException
+	{
+		if (exportOptions.getFormat() != ModelExportOptions.ModelExportFormat.DRN) {
+			return;
+		}
+		List<Rewards<Value>> rewards = new ArrayList<>();
+		for (int r = 0; r < rewardGen.getNumRewardStructs(); r++) {
+			rewards.add(constructRewards(model, r));
+		}
+		List<BitSet> labelStates = checkLabels(model, labelNames);
+		DRNExporter<Value> exporter = new DRNExporter<>(exportOptions);
+		exporter.exportModel(model, (RewardGenerator<Value>) rewardGen, rewards, labelNames, labelStates, out);
 	}
 
 	/**

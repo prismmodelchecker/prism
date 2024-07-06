@@ -39,7 +39,7 @@ public class ModelExportOptions implements Cloneable
 	 * Model export formats
 	 */
 	public enum ModelExportFormat {
-		EXPLICIT, MATLAB, DOT;
+		EXPLICIT, MATLAB, DOT, DRN;
 		public String description()
 		{
 			switch (this) {
@@ -49,6 +49,8 @@ public class ModelExportOptions implements Cloneable
 					return "in Matlab format";
 				case DOT:
 					return "in Dot format";
+				case DRN:
+					return "in DRN format";
 				default:
 					return this.toString();
 			}

@@ -31,10 +31,14 @@ import explicit.LTS;
 import explicit.MDP;
 import explicit.Model;
 import explicit.NondetModel;
+import explicit.rewards.MCRewards;
+import explicit.rewards.MDPRewards;
+import explicit.rewards.Rewards;
 import prism.Evaluator;
 import prism.Pair;
 
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.TreeSet;
 
@@ -79,7 +83,7 @@ public class Exporter<Value>
 		return modelExportOptions;
 	}
 
-// Utility functions
+	// Utility functions
 
 	/**
 	 * Format a {@code Value} as a string, based on the {@link Evaluator} and {@link ModelExportOptions}.
@@ -132,5 +136,44 @@ public class Exporter<Value>
 			}
 		}
 		return sorted;
+	}
+
+	/**
+	 * Get a tuple comprising the state rewards for state {@code s}.
+	 * @param allRewards The list of rewards
+	 * @param s The state
+	 */
+	protected <Value> RewardTuple<Value> getStateRewardTuple(List<Rewards<Value>> allRewards, int s)
+	{
+		int numRewards = allRewards.size();
+		RewardTuple tuple = new RewardTuple<>(numRewards);
+		for (int r = 0; r < numRewards; r++) {
+			Rewards rewards = allRewards.get(r);
+			if (rewards instanceof MCRewards) {
+				tuple.add(((MCRewards<Value>) rewards).getStateReward(s));
+			} else if (rewards instanceof MDPRewards) {
+				tuple.add(((MDPRewards<Value>) rewards).getStateReward(s));
+			}
+		}
+		return tuple;
+	}
+
+	/**
+	 * Get a tuple comprising the transition rewards for choice {@code j} of state {@code s}.
+	 * @param allRewards The list of rewards
+	 * @param s The state
+	 * @param j The choice
+	 */
+	protected <Value> RewardTuple<Value> getTransitionRewardTuple(List<Rewards<Value>> allRewards, int s, int j)
+	{
+		int numRewards = allRewards.size();
+		RewardTuple tuple = new RewardTuple<>(numRewards);
+		for (int r = 0; r < numRewards; r++) {
+			Rewards rewards = allRewards.get(r);
+			if (rewards instanceof MDPRewards) {
+				tuple.add(((MDPRewards<Value>) rewards).getTransitionReward(s, j));
+			}
+		}
+		return tuple;
 	}
 }

@@ -1,0 +1,156 @@
+//==============================================================================
+//
+//	Copyright (c) 2024-
+//	Authors:
+//	* Dave Parker <david.parker@cs.ox.ac.uk> (University of Oxford)
+//
+//------------------------------------------------------------------------------
+//
+//	This file is part of PRISM.
+//
+//	PRISM is free software; you can redistribute it and/or modify
+//	it under the terms of the GNU General Public License as published by
+//	the Free Software Foundation; either version 2 of the License, or
+//	(at your option) any later version.
+//
+//	PRISM is distributed in the hope that it will be useful,
+//	but WITHOUT ANY WARRANTY; without even the implied warranty of
+//	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+//	GNU General Public License for more details.
+//
+//	You should have received a copy of the GNU General Public License
+//	along with PRISM; if not, write to the Free Software Foundation,
+//	Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+//
+//==============================================================================
+
+package io;
+
+import explicit.CTMC;
+import explicit.Model;
+import explicit.NondetModel;
+import explicit.PartiallyObservableModel;
+import explicit.rewards.MCRewards;
+import explicit.rewards.MDPRewards;
+import explicit.rewards.Rewards;
+import io.Exporter;
+import io.ModelExportOptions;
+import io.Transition;
+import prism.Evaluator;
+import prism.ModelType;
+import prism.Pair;
+import prism.PrismException;
+import prism.PrismLog;
+import prism.RewardGenerator;
+
+import java.util.ArrayList;
+import java.util.BitSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.TreeSet;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+
+/**
+ * Class to manage export of built models to Storm's DRN file format.
+ */
+public class DRNExporter<Value> extends Exporter<Value>
+{
+	public DRNExporter()
+	{
+		super();
+	}
+
+	public DRNExporter(ModelExportOptions modelExportOptions)
+	{
+		super(modelExportOptions);
+	}
+
+	/**
+	 * Export a model.
+	 * @param model The model
+	 * @param out Where to export
+	 * @param exportOptions The options for export
+	 */
+	public void exportModel(Model<Value> model, RewardGenerator<Value> rewardGen, List<Rewards<Value>> allRewards, List<String> labelNames, List<BitSet> labelStates, PrismLog out) throws PrismException
+	{
+		// Get model info and options
+		setEvaluator(model.getEvaluator());
+		Evaluator<Value> evalRewards = rewardGen.getRewardEvaluator();
+		ModelType modelType = model.getModelType();
+		int numRewardStructs = rewardGen.getNumRewardStructs();
+		int numLabels = labelNames.size();
+		int numStates = model.getNumStates();
+		boolean exportActions = true;
+
+		// Output header
+		out.println("// Exported by prism");
+		out.println("// Original model type: " + modelType);
+		out.println("@type: " + modelType);
+
+		// No parameters
+		out.println("@parameters");
+		out.println();
+
+		// Output reward structure info
+		out.println("@reward_models");
+		out.println(String.join(" ", rewardGen.getRewardStructNames().reversed()));
+
+		// Output model stats
+		out.println("@nr_states");
+		out.println(model.getNumStates());
+		out.println("@nr_choices");
+		if (modelType.nondeterministic()) {
+			out.println(((NondetModel<Value>) model).getNumChoices());
+		} else {
+			out.println(model.getNumStates());
+		}
+
+		// Output states and transitions
+		out.println("@model");
+
+		// Iterate through states
+		for (int s = 0; s < numStates; s++) {
+
+			// Output state info
+			out.print("state " + s);
+			if (modelType.partiallyObservable()) {
+				out.print(" {" + ((PartiallyObservableModel) model).getObservation(s) +"}");
+			}
+			if (modelType.continuousTime()) {
+				out.print(" !" + ((CTMC<Value>) model).getExitRate(s));
+			}
+			if (numRewardStructs > 0) {
+				out.print(" " + getStateRewardTuple(allRewards, s).toStringReversed(e -> formatValue(e, evalRewards), ", "));
+			}
+			for (int i = 0; i < numLabels; i++) {
+				if (labelStates.get(i).get(s)) {
+					out.print(" " + labelNames.get(i));
+				}
+			}
+			out.println();
+
+			// Iterate through choices
+			int numChoices = 1;
+			if (modelType.nondeterministic()) {
+				numChoices = ((NondetModel<Value>) model).getNumChoices(s);
+			}
+			for (int j = 0; j < numChoices; j++) {
+				out.print("\taction ");
+				if (modelType.nondeterministic() && exportActions) {
+					Object action = ((NondetModel) model).getAction(s, j);
+					out.print(action != null ? action : "__NOLABEL__");
+				} else {
+					out.print(j);
+				}
+				out.println(" " + getTransitionRewardTuple(allRewards, s, j).toStringReversed(e -> formatValue(e, evalRewards), ", "));
+				// Print out (sorted) transitions
+				for (Transition<Value> transition : getSortedTransitionsIterator(model, s, j, exportActions)) {
+					out.println("\t\t" + transition.target + " : " + formatValue(transition.probability));
+				}
+			}
+		}
+	}
+}
