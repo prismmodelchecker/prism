@@ -46,6 +46,7 @@ import explicit.modelviews.MDPFromDTMC;
 import explicit.rewards.MCRewards;
 import explicit.rewards.MDPRewards;
 import explicit.rewards.Rewards;
+import io.ModelExportOptions;
 import parser.ast.Expression;
 import prism.AccuracyFactory;
 import prism.ModelType;
@@ -596,7 +597,7 @@ public class DTMCModelChecker extends ProbModelChecker
 			List<String> labelNames = Arrays.asList("init", "target");
 			mainLog.println("\nExporting target states info to file \"" + getExportTargetFilename() + "\"...");
 			PrismLog out = new PrismFileLog(getExportTargetFilename());
-			exportLabels(dtmc, labels, labelNames, Prism.EXPORT_PLAIN, out);
+			exportLabels(dtmc, labelNames, labels, out, ModelExportOptions.ModelExportFormat.EXPLICIT);
 			out.close();
 		}
 

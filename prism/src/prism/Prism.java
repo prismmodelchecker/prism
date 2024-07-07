@@ -2491,6 +2491,79 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	}
 
 	/**
+	 * Export the states satisfying labels from the currently loaded model and (optionally) a properties file to a file.
+	 * The PropertiesFile should correspond to the currently loaded model.
+	 * @param propertiesFile The properties file, for further labels (ignored if null)
+	 * @param file File to export to (if null, print to the log instead)
+	 * @param exportOptions The options for export
+	 */
+	public void exportBuiltModelLabels(PropertiesFile propertiesFile, File file, ModelExportOptions exportOptions) throws FileNotFoundException, PrismException
+	{
+		// Collect names of labels to export from model
+		List<String> labelNames = new ArrayList<String>();
+		labelNames.add("init");
+		labelNames.add("deadlock");
+		labelNames.addAll(currentModelInfo.getLabelNames());
+		// Collect names of labels to export from properties file
+		if (propertiesFile != null) {
+			LabelList ll = propertiesFile.getLabelList();
+			new Range(ll.size()).map((int i) -> ll.getLabelName(i)).collect(labelNames);
+		}
+		doExportBuiltModelLabels(propertiesFile, labelNames, file, exportOptions);
+	}
+
+	/**
+	 * Export the states satisfying labels from the properties file to a file.
+	 * The PropertiesFile should correspond to the currently loaded model.
+	 * @param propertiesFile The properties file (for further labels)
+	 * @param file File to export to (if null, print to the log instead)
+	 * @param exportOptions The options for export
+	 */
+	public void exportBuiltModelPropLabels(PropertiesFile propertiesFile, File file, ModelExportOptions exportOptions) throws FileNotFoundException, PrismException
+	{
+		// Collect names of labels to export from properties file
+		List<String> labelNames = new ArrayList<String>();
+		if (propertiesFile != null) {
+			LabelList ll = propertiesFile.getLabelList();
+			new Range(ll.size()).map((int i) -> ll.getLabelName(i)).collect(labelNames);
+		}
+		doExportBuiltModelLabels(propertiesFile, labelNames, file, exportOptions);
+	}
+
+	/**
+	 * Export the states satisfying labels from the currently loaded model and/or a properties file to a file.
+	 * The PropertiesFile should correspond to the currently loaded model.
+	 * @param propertiesFile The properties file, for further labels (ignored if null)
+	 * @param labelNames The list of label names to export
+	 * @param file File to export to
+	 * @param exportOptions The options for export
+	 */
+	private void doExportBuiltModelLabels(PropertiesFile propertiesFile, List<String> labelNames, File file, ModelExportOptions exportOptions) throws FileNotFoundException, PrismException
+	{
+		// Build model, if necessary
+		buildModelIfRequired();
+
+		// Print message
+		mainLog.print("\nExporting labels and satisfying states ");
+		mainLog.print(exportOptions.getFormat().description() + " ");
+		mainLog.println(getDestinationStringForFile(file));
+
+		// Merge export options with settings
+		exportOptions = newMergedModelExportOptions(exportOptions);
+
+		// Export
+		if (currentModelBuildType != ModelBuildType.SYMBOLIC) {
+			PrismLog out = getPrismLogForFile(file);
+			explicit.StateModelChecker mcExpl = createModelCheckerExplicit(propertiesFile);
+			mcExpl.exportLabels(currentModelExpl, labelNames, out, exportOptions);
+			out.close();
+		} else {
+			StateModelChecker mc = createModelChecker(propertiesFile);
+			mc.exportLabels(labelNames, convertExportType(exportOptions), file);
+		}
+	}
+
+	/**
 	 * Export the currently loaded model's bottom strongly connected components (BSCCs) to a file
 	 * @param exportType Type of export; one of: <ul>
 	 * <li> {@link #EXPORT_PLAIN} 
@@ -2766,87 +2839,6 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 		// tidy up
 		if (file != null)
 			tmpLog.close();
-	}
-
-	/**
-	 * Export the states satisfying labels from the properties file to a file.
-	 * The PropertiesFile should correspond to the currently loaded model.
-	 * @param propertiesFile The properties file (for further labels)
-	 * @param exportType Type of export; one of: <ul>
-	 * <li> {@link #EXPORT_PLAIN}
-	 * <li> {@link #EXPORT_MATLAB}
-	 * </ul>
-	 * @param file File to export to (if null, print to the log instead)
-	 */
-	public void exportPropLabelsToFile(PropertiesFile propertiesFile, int exportType, File file) throws FileNotFoundException, PrismException
-	{
-		Objects.requireNonNull(propertiesFile);
-
-		// Collect names of labels to export from properties file
-		List<String> labelNames = new ArrayList<String>();
-		LabelList ll = propertiesFile.getLabelList();
-		new Range(ll.size()).map((int i) -> ll.getLabelName(i)).collect(labelNames);
-
-		doExportLabelsToFile(propertiesFile, exportType, file, labelNames);
-	}
-
-	/**
-	 * Export the states satisfying labels from the currently loaded model and (optionally) a properties file to a file.
-	 * The PropertiesFile should correspond to the currently loaded model. 
-	 * @param propertiesFile The properties file, for further labels (ignored if null)
-	 * @param exportType Type of export; one of: <ul>
-	 * <li> {@link #EXPORT_PLAIN} 
-	 * <li> {@link #EXPORT_MATLAB}
-	 * </ul>
-	 * @param file File to export to (if null, print to the log instead)
-	 */
-	public void exportLabelsToFile(PropertiesFile propertiesFile, int exportType, File file) throws FileNotFoundException, PrismException
-	{
-		// Collect names of labels to export from model
-		List<String> labelNames = new ArrayList<String>();
-		labelNames.add("init");
-		labelNames.add("deadlock");
-		labelNames.addAll(currentModelInfo.getLabelNames());
-		// Collect names of labels to export from properties file
-		if (propertiesFile != null) {
-			LabelList ll = propertiesFile.getLabelList();
-			new Range(ll.size()).map((int i) -> ll.getLabelName(i)).collect(labelNames);
-		}
-
-		doExportLabelsToFile(propertiesFile, exportType, file, labelNames);
-	}
-
-	/**
-	 * Export the states satisfying labels from the currently loaded model and/or a properties file to a file.
-	 * The PropertiesFile should correspond to the currently loaded model.
-	 * @param propertiesFile The properties file, for further labels (ignored if null)
-	 * @param exportType Type of export; one of: <ul>
-	 * <li> {@link #EXPORT_PLAIN}
-	 * <li> {@link #EXPORT_MATLAB}
-	 * </ul>
-	 * @param file File to export to (if null, print to the log instead)
-	 * @param labelNames The list of label names to export
-	 */
-	private void doExportLabelsToFile(PropertiesFile propertiesFile, int exportType, File file, List<String> labelNames) throws PrismException, FileNotFoundException
-	{
-		// Build model, if necessary
-		buildModelIfRequired();
-
-		// Print message
-		mainLog.print("\nExporting labels and satisfying states ");
-		mainLog.print(getStringForExportType(exportType) + " ");
-		mainLog.println(getDestinationStringForFile(file));
-
-		// Export
-		if (currentModelBuildType != ModelBuildType.SYMBOLIC) {
-			PrismLog out = getPrismLogForFile(file);
-			explicit.StateModelChecker mcExpl = createModelCheckerExplicit(propertiesFile);
-			mcExpl.exportLabels(currentModelExpl, labelNames, exportType, out);
-			out.close();
-		} else {
-			StateModelChecker mc = createModelChecker(propertiesFile);
-			mc.exportLabels(labelNames, exportType, file);
-		}
 	}
 
 	/**
@@ -4183,6 +4175,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	}
 
 	/**
+	 * @deprecated
 	 * Export the currently loaded model's transition rewards to a file
 	 * @param ordered Ignored (assumed to be true)
 	 * @param exportType Type of export; one of: <ul>
@@ -4193,9 +4186,42 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	 * </ul>
 	 * @param file File to export to (if null, print to the log instead)
 	 */
+	@Deprecated
 	public void exportTransRewardsToFile(boolean ordered, int exportType, File file) throws FileNotFoundException, PrismException
 	{
 		exportBuiltModelTransRewards(file, convertExportType(exportType));
+	}
+
+	/**
+	 * @deprecated
+	 * Export the states satisfying labels from the currently loaded model and (optionally) a properties file to a file.
+	 * The PropertiesFile should correspond to the currently loaded model.
+	 * @param propertiesFile The properties file, for further labels (ignored if null)
+	 * @param exportType Type of export; one of: <ul>
+	 * <li> {@link #EXPORT_PLAIN}
+	 * <li> {@link #EXPORT_MATLAB}
+	 * </ul>
+	 * @param file File to export to (if null, print to the log instead)
+	 */
+	@Deprecated
+	public void exportLabelsToFile(PropertiesFile propertiesFile, int exportType, File file) throws FileNotFoundException, PrismException
+	{
+		exportBuiltModelLabels(propertiesFile, file, convertExportType(exportType));
+	}
+
+	/**
+	 * Export the states satisfying labels from the properties file to a file.
+	 * The PropertiesFile should correspond to the currently loaded model.
+	 * @param propertiesFile The properties file (for further labels)
+	 * @param exportType Type of export; one of: <ul>
+	 * <li> {@link #EXPORT_PLAIN}
+	 * <li> {@link #EXPORT_MATLAB}
+	 * </ul>
+	 * @param file File to export to (if null, print to the log instead)
+	 */
+	public void exportPropLabelsToFile(PropertiesFile propertiesFile, int exportType, File file) throws FileNotFoundException, PrismException
+	{
+		exportBuiltModelPropLabels(propertiesFile, file, convertExportType(exportType));
 	}
 
 	/**

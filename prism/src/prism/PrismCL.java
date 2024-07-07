@@ -105,6 +105,7 @@ public class PrismCL implements PrismModelListener
 	private ModelExportOptions exportTransOptions = new ModelExportOptions();
 	private ModelExportOptions exportStateRewardsOptions = new ModelExportOptions();
 	private ModelExportOptions exportTransRewardsOptions = new ModelExportOptions();
+	private ModelExportOptions exportLabelsOptions = new ModelExportOptions();
 	private ModelExportOptions exportTransDotOptions = new ModelExportOptions();
 	private ModelExportOptions exportTransDotStatesOptions = new ModelExportOptions();
 	private ModelExportOptions modelExportOptionsGlobal = new ModelExportOptions();
@@ -949,10 +950,12 @@ public class PrismCL implements PrismModelListener
 					// export labels from model and properties to same file
 					definedPFConstants = undefinedMFConstants.getPFConstantValues();
 					propertiesFile.setSomeUndefinedConstants(definedPFConstants, exactConstants);
-					prism.exportLabelsToFile(propertiesFile, exportType, f);
+					exportLabelsOptions.applyTo(modelExportOptionsGlobal);
+					prism.exportBuiltModelLabels(propertiesFile, f, exportLabelsOptions);
 				} else {
 					// export labels from model only
-					prism.exportLabelsToFile(null, exportType, f);
+					exportLabelsOptions.applyTo(modelExportOptionsGlobal);
+					prism.exportBuiltModelLabels(null, f, exportLabelsOptions);
 				}
 			}
 			// in case of error, report it and proceed
@@ -973,7 +976,8 @@ public class PrismCL implements PrismModelListener
 				// export labels from properties file
 				definedPFConstants = undefinedMFConstants.getPFConstantValues();
 				propertiesFile.setSomeUndefinedConstants(definedPFConstants, exactConstants);
-				prism.exportPropLabelsToFile(propertiesFile, exportType, f);
+				exportLabelsOptions.applyTo(modelExportOptionsGlobal);
+				prism.exportBuiltModelPropLabels(propertiesFile, f, exportLabelsOptions);
 			}
 			// in case of error, report it and proceed
 			catch (FileNotFoundException e) {
@@ -2181,6 +2185,7 @@ public class PrismCL implements PrismModelListener
 			// Export type
 			else if (opt.equals("matlab")) {
 				exportType = Prism.EXPORT_MATLAB;
+				exportLabelsOptions.setFormat(ModelExportFormat.MATLAB);
 			} else if (opt.equals("proplabels")) {
 				exportmodelproplabels = true;
 			}
@@ -2278,6 +2283,7 @@ public class PrismCL implements PrismModelListener
 				exportTransOptions.setFormat(ModelExportFormat.MATLAB);
 				exportStateRewardsOptions.setFormat(ModelExportFormat.MATLAB);
 				exportTransRewardsOptions.setFormat(ModelExportFormat.MATLAB);
+				exportLabelsOptions.setFormat(ModelExportFormat.MATLAB);
 			} else if (opt.equals("rows")) {
 				exportType = Prism.EXPORT_ROWS;
 				exportTransOptions.setExplicitRows(true);

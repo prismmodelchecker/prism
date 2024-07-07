@@ -39,10 +39,13 @@ import prism.Evaluator;
 import io.ModelExportOptions;
 import prism.ModelType;
 import prism.Pair;
+import prism.Prism;
 import prism.PrismException;
 import prism.PrismLog;
 
+import java.util.BitSet;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.TreeSet;
@@ -275,5 +278,43 @@ public class PrismExplicitExporter<Value> extends Exporter<Value>
 			out.print(" \"" + rewardStructName + "\"");
 		}
 		out.println("\n# Transition rewards");
+	}
+
+	/**
+	 * Export a set of labels and the states that satisfy them.
+	 * @param model The model
+	 * @param labelNames The names of the labels to export
+	 * @param labelStates The states that satisfy each label, specified as a BitSet
+	 * @param out Where to export
+	 */
+	public void exportLabels(Model<Value> model, List<String> labelNames, List<BitSet> labelStates, PrismLog out) throws PrismException
+	{
+		// Get model info and exportOptions
+		setEvaluator(model.getEvaluator());
+		int numStates = model.getNumStates();
+
+		// Print list of labels
+		int numLabels = labelNames.size();
+		for (int s = 0; s < numLabels; s++) {
+			out.print((s > 0 ? " " : "") + s + "=\"" + labelNames.get(s) + "\"");
+		}
+		out.println();
+
+		// Go through states and print satisfying label indices for each one
+		for (int s = 0; s < numStates; s++) {
+			boolean first = true;
+			for (int i = 0; i < numLabels; i++) {
+				if (labelStates.get(i).get(s)) {
+					if (first) {
+						out.print(s + ":");
+						first = false;
+					}
+					out.print(" " + i);
+				}
+			}
+			if (!first) {
+				out.println();
+			}
+		}
 	}
 }

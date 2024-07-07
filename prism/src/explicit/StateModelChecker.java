@@ -45,6 +45,7 @@ import explicit.rewards.MCRewards;
 import explicit.rewards.MDPRewards;
 import explicit.rewards.Rewards;
 import io.DotExporter;
+import io.MatlabExporter;
 import io.ModelExportOptions;
 import io.PrismExplicitExporter;
 import parser.EvaluateContext.EvalMode;
@@ -1647,94 +1648,65 @@ public class StateModelChecker extends PrismComponent
 	/**
 	 * Export a set of labels and the states that satisfy them.
 	 * @param model The model
-	 * @param labels The states that satisfy each label, specified as a BitSet
-	 * @param labelNames The name of each label
-	 * @param exportType The format in which to export
+	 * @param labelNames The names of the labels to export
 	 * @param out Where to export
+	 * @param exportOptions The options for export
 	 */
-	public void exportLabels(Model<?> model, List<String> labelNames, int exportType, PrismLog out) throws PrismException
+	public <Value> void exportLabels(Model<Value> model, List<String> labelNames, PrismLog out, ModelExportOptions exportOptions) throws PrismException
 	{
-		List<BitSet> labels = new ArrayList<BitSet>();
+		List<BitSet> labelStates = checkLabels(model, labelNames);
+		exportLabels(model, labelNames, labelStates, out, exportOptions);
+	}
+
+	/**
+	 * Determine the set of states that satisfy a specified list of labels,
+	 * and return the states sets as a corresponding list of BitSets.
+	 * @param model The model
+	 * @param labelNames The names of the labels to export
+	 */
+	private List<BitSet> checkLabels(Model<?> model, List<String> labelNames) throws PrismException
+	{
+		List<BitSet> labelStates = new ArrayList<BitSet>();
 		for (String labelName : labelNames) {
 			StateValues sv = checkExpression(model, new ExpressionLabel(labelName), null);
-			labels.add(sv.getBitSet());
+			labelStates.add(sv.getBitSet());
 		}
-		exportLabels(model, labels, labelNames, exportType, out);
+		return labelStates;
 	}
-	
+
 	/**
 	 * Export a set of labels and the states that satisfy them.
 	 * @param model The model
-	 * @param labels The states that satisfy each label, specified as a BitSet
-	 * @param labelNames The name of each label
-	 * @param exportType The format in which to export
+	 * @param labelNames The names of the labels to export
+	 * @param labelStates The states that satisfy each label, specified as a BitSet
 	 * @param out Where to export
+	 * @param format The format in which to export
 	 */
-	public void exportLabels(Model<?> model, List<BitSet> labels, List<String> labelNames, int exportType, PrismLog out)
+	public <Value> void exportLabels(Model<Value> model, List<String> labelNames, List<BitSet> labelStates, PrismLog out, ModelExportOptions.ModelExportFormat format) throws PrismException
 	{
-		String matlabVarName = "l";
-		int numStates = model.getNumStates();
-		
-		// Print list of labels
-		int numLabels = labels.size();
-		if (exportType == Prism.EXPORT_MRMC) {
-			out.println("#DECLARATION");
-		}
-		for (int i = 0; i < numLabels; i++) {
-			switch (exportType) {
-			case Prism.EXPORT_PLAIN:
-				out.print((i > 0 ? " " : "") + i + "=\"" + labelNames.get(i) + "\"");
+		exportLabels(model, labelNames, labelStates, out, new ModelExportOptions(format));
+	}
+
+	/**
+	 * Export a set of labels and the states that satisfy them.
+	 * @param model The model
+	 * @param labelNames The names of the labels to export
+	 * @param labelStates The states that satisfy each label, specified as a BitSet
+	 * @param out Where to export
+	 * @param exportOptions The options for export
+	 */
+	public <Value> void exportLabels(Model<Value> model, List<String> labelNames, List<BitSet> labelStates, PrismLog out, ModelExportOptions exportOptions) throws PrismException
+	{
+		switch (exportOptions.getFormat()) {
+			case EXPLICIT:
+				new PrismExplicitExporter<Value>(exportOptions).exportLabels(model, labelNames, labelStates, out);
 				break;
-			case Prism.EXPORT_MATLAB:
-				out.println(matlabVarName + "_" + labelNames.get(i) + "=sparse(" + numStates + ",1);");
+			case MATLAB:
+				new MatlabExporter<Value>(exportOptions).exportLabels(model, labelNames, labelStates, out);
 				break;
-			case Prism.EXPORT_MRMC:
-				out.print((i > 0 ? " " : "") + labelNames.get(i));
-				break;
-			}
-		}
-		out.println();
-		if (exportType == Prism.EXPORT_MRMC) {
-			out.println("#END");
-		}
-		
-		// Go through states and print satisfying label indices for each one
-		for (int s = 0; s < numStates; s++) {
-			boolean first = true;
-			for (int i = 0; i < numLabels; i++) {
-				if (labels.get(i).get(s)) {
-					if (first) {
-						switch (exportType) {
-						case Prism.EXPORT_PLAIN:
-							out.print(s + ":");
-							break;
-						case Prism.EXPORT_MATLAB:
-							break;
-						case Prism.EXPORT_MRMC:
-							out.print(s + 1);
-							break;
-						}
-						first = false;
-					}
-					switch (exportType) {
-						case Prism.EXPORT_PLAIN:
-							out.print(" " + i);
-							break;
-						case Prism.EXPORT_MATLAB:
-							out.println(matlabVarName + "_" + labelNames.get(i) + "(" + (s + 1) + ")=1;");
-							break;
-						case Prism.EXPORT_MRMC:
-							out.print(" " + labelNames.get(i));
-							break;
-					}
-				}
-			}
-			if (!first && exportType != Prism.EXPORT_MATLAB) {
-				out.println();
-			}
 		}
 	}
-	
+
 	/**
 	 * Do any exports after a model-automaton product construction, if requested
 	 */
