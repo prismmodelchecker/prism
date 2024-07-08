@@ -29,6 +29,8 @@ package explicit;
 
 import java.util.List;
 
+import io.ModelExportOptions;
+import io.PrismExplicitExporter;
 import parser.State;
 import prism.ModelInfo;
 import prism.Prism;
@@ -126,34 +128,18 @@ public interface PartiallyObservableModel<Value> extends Model<Value>
 	/**
 	 * Export observations list.
 	 */
-	public default void exportObservations(int exportType, ModelInfo modelInfo, PrismLog log) throws PrismException
+	public default void exportObservations(ModelInfo modelInfo, PrismLog out, ModelExportOptions exportOptions) throws PrismException
 	{
-		// Print header: list of observables
-		if (exportType == Prism.EXPORT_MATLAB)
-			log.print("% ");
-		log.print("(");
-		int numObservables = modelInfo.getNumObservables();
-		for (int i = 0; i < numObservables; i++) {
-			log.print(modelInfo.getObservableName(i));
-			if (i < numObservables - 1)
-				log.print(",");
-		}
-		log.println(")");
-		if (exportType == Prism.EXPORT_MATLAB)
-			log.println("obs=[");
+		new PrismExplicitExporter<Value>(exportOptions).exportObservations(this, modelInfo, out);
+	}
 
-		// Print states + observations
-		int numObservations = getNumObservations();
-		List<State> observationsList = getObservationsList();
-		for (int i = 0; i < numObservations; i++) {
-			if (exportType != Prism.EXPORT_MATLAB)
-				log.println(i + ":" + observationsList.get(i).toString());
-			else
-				log.println(observationsList.get(i).toStringNoParentheses());
-		}
-
-		// Print footer
-		if (exportType == Prism.EXPORT_MATLAB)
-			log.println("];");
+	/**
+	 * @deprecated
+	 * Export observations list.
+	 */
+	@Deprecated
+	public default void exportObservations(int exportType, ModelInfo modelInfo, PrismLog out) throws PrismException
+	{
+		exportObservations(modelInfo, out, Prism.convertExportType(exportType));
 	}
 }

@@ -106,6 +106,7 @@ public class PrismCL implements PrismModelListener
 	private ModelExportOptions exportStateRewardsOptions = new ModelExportOptions();
 	private ModelExportOptions exportTransRewardsOptions = new ModelExportOptions();
 	private ModelExportOptions exportStatesOptions = new ModelExportOptions();
+	private ModelExportOptions exportObservationsOptions = new ModelExportOptions();
 	private ModelExportOptions exportLabelsOptions = new ModelExportOptions();
 	private ModelExportOptions exportTransDotOptions = new ModelExportOptions();
 	private ModelExportOptions exportTransDotStatesOptions = new ModelExportOptions();
@@ -863,7 +864,8 @@ public class PrismCL implements PrismModelListener
 		if (exportobservations) {
 			try {
 				File f = (exportObservationsFilename.equals("stdout")) ? null : new File(exportObservationsFilename);
-				prism.exportObservationsToFile(exportType, f);
+				exportObservationsOptions.applyTo(modelExportOptionsGlobal);
+				prism.exportBuiltModelObservations(f, exportStatesOptions);
 			}
 			// in case of error, report it and proceed
 			catch (FileNotFoundException e) {
@@ -2286,6 +2288,7 @@ public class PrismCL implements PrismModelListener
 				exportStateRewardsOptions.setFormat(ModelExportFormat.MATLAB);
 				exportTransRewardsOptions.setFormat(ModelExportFormat.MATLAB);
 				exportStatesOptions.setFormat(ModelExportFormat.MATLAB);
+				exportObservationsOptions.setFormat(ModelExportFormat.MATLAB);
 				exportLabelsOptions.setFormat(ModelExportFormat.MATLAB);
 			} else if (opt.equals("rows")) {
 				exportType = Prism.EXPORT_ROWS;

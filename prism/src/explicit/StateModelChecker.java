@@ -1664,6 +1664,24 @@ public class StateModelChecker extends PrismComponent
 	}
 
 	/**
+	 * Export the observations for a (partially observable) model.
+	 * @param model The model
+	 * @param out Where to export
+	 * @param exportOptions The options for export
+	 */
+	public <Value> void exportObservations(Model<Value> model, PrismLog out, ModelExportOptions exportOptions) throws PrismException
+	{
+		switch (exportOptions.getFormat()) {
+			case EXPLICIT:
+				new PrismExplicitExporter<Value>(exportOptions).exportObservations((PartiallyObservableModel<Value>) model, modelInfo, out);
+				break;
+			case MATLAB:
+				new MatlabExporter<Value>(exportOptions).exportObservations((PartiallyObservableModel<Value>) model, modelInfo, out);
+				break;
+		}
+	}
+
+	/**
 	 * Export a set of labels and the states that satisfy them.
 	 * @param model The model
 	 * @param labelNames The names of the labels to export

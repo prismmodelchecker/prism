@@ -39,6 +39,7 @@ import parser.State;
 import parser.VarList;
 import prism.Evaluator;
 import io.ModelExportOptions;
+import prism.ModelInfo;
 import prism.ModelType;
 import prism.Pair;
 import prism.Prism;
@@ -308,6 +309,33 @@ public class PrismExplicitExporter<Value> extends Exporter<Value>
 		int numStates = statesList.size();
 		for (int i = 0; i < numStates; i++) {
 			out.println(i + ":" + statesList.get(i).toString());
+		}
+	}
+
+	/**
+	 * Export the observations for a (partially observable) model.
+	 * @param model The model
+	 * @param modelInfo The ModelInfo for the model
+	 * @param out Where to export
+	 */
+	public void exportObservations(PartiallyObservableModel<Value> model, ModelInfo modelInfo, PrismLog out) throws PrismException
+	{
+		List<State> observationsList =  model.getObservationsList();
+
+		// Print header: list of observables
+		out.print("(");
+		int numObservables = modelInfo.getNumObservables();
+		for (int i = 0; i < numObservables; i++) {
+			out.print(modelInfo.getObservableName(i));
+			if (i < numObservables - 1)
+				out.print(",");
+		}
+		out.println(")");
+
+		// Print states + observations
+		int numObservations = model.getNumObservations();
+		for (int i = 0; i < numObservations; i++) {
+			out.println(i + ":" + observationsList.get(i).toString());
 		}
 	}
 
