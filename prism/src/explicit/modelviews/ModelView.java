@@ -137,41 +137,6 @@ public abstract class ModelView<Value> implements Model<Value>
 	}
 
 	@Override
-	public void exportStates(final int exportType, final VarList varList, final PrismLog log) throws PrismException
-	{
-		final List<State> statesList = getStatesList();
-		if (statesList == null)
-			return;
-
-		// Print header: list of model vars
-		if (exportType == Prism.EXPORT_MATLAB)
-			log.print("% ");
-		log.print("(");
-		final int numVars = varList.getNumVars();
-		for (int i = 0; i < numVars; i++) {
-			log.print(varList.getName(i));
-			if (i < numVars - 1)
-				log.print(",");
-		}
-		log.println(")");
-		if (exportType == Prism.EXPORT_MATLAB)
-			log.println("states=[");
-
-		// Print states
-		for (int state = 0, max = getNumStates(); state < max; state++) {
-			final State stateDescription = statesList.get(state);
-			if (exportType != Prism.EXPORT_MATLAB)
-				log.println(state + ":" + stateDescription.toString());
-			else
-				log.println(stateDescription.toStringNoParentheses());
-		}
-
-		// Print footer
-		if (exportType == Prism.EXPORT_MATLAB)
-			log.println("];");
-	}
-
-	@Override
 	public boolean hasStoredPredecessorRelation()
 	{
 		return (predecessorRelation != null);

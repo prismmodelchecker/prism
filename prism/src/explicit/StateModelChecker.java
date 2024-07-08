@@ -1646,6 +1646,24 @@ public class StateModelChecker extends PrismComponent
 	}
 
 	/**
+	 * Export the set of states for a model.
+	 * @param model The model
+	 * @param out Where to export
+	 * @param exportOptions The options for export
+	 */
+	public <Value> void exportStates(Model<Value> model, PrismLog out, ModelExportOptions exportOptions) throws PrismException
+	{
+		switch (exportOptions.getFormat()) {
+			case EXPLICIT:
+				new PrismExplicitExporter<Value>(exportOptions).exportStates(model, modelInfo.createVarList(), out);
+				break;
+			case MATLAB:
+				new MatlabExporter<Value>(exportOptions).exportStates(model, modelInfo.createVarList(), out);
+				break;
+		}
+	}
+
+	/**
 	 * Export a set of labels and the states that satisfy them.
 	 * @param model The model
 	 * @param labelNames The names of the labels to export

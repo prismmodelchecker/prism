@@ -2491,6 +2491,40 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	}
 
 	/**
+	 * Export the states of the currently loaded model.
+	 * @param file File to export to (if null, print to the log instead)
+	 * @param exportOptions The options for export
+	 */
+	public void exportBuiltModelStates(File file, ModelExportOptions exportOptions) throws FileNotFoundException, PrismException
+	{
+		// Build model, if necessary
+		buildModelIfRequired();
+
+		// Print message
+		mainLog.print("\nExporting list of reachable states ");
+		mainLog.print(exportOptions.getFormat().description() + " ");
+		mainLog.println(getDestinationStringForFile(file));
+
+		// Merge export options with settings
+		exportOptions = newMergedModelExportOptions(exportOptions);
+
+		// Create new file log or use main log
+		PrismLog out = getPrismLogForFile(file);
+
+		// Export
+		if (currentModelBuildType == ModelBuildType.SYMBOLIC) {
+			currentModel.exportStates(convertExportType(exportOptions), out);
+		} else {
+			explicit.StateModelChecker mcExpl = createModelCheckerExplicit(null);
+			mcExpl.exportStates(currentModelExpl, out, exportOptions);
+		}
+
+		// Tidy up
+		if (file != null)
+			out.close();
+	}
+
+	/**
 	 * Export the states satisfying labels from the currently loaded model and (optionally) a properties file to a file.
 	 * The PropertiesFile should correspond to the currently loaded model.
 	 * @param propertiesFile The properties file, for further labels (ignored if null)
@@ -2837,48 +2871,6 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 		}
 
 		// tidy up
-		if (file != null)
-			tmpLog.close();
-	}
-
-	/**
-	 * Export the currently loaded model's states to a file
-	 * @param exportType Type of export; one of: <ul>
-	 * <li> {@link #EXPORT_PLAIN} 
-	 * <li> {@link #EXPORT_MATLAB}
-	 * </ul>
-	 * @param file File to export to (if null, print to the log instead)
-	 */
-	public void exportStatesToFile(int exportType, File file) throws FileNotFoundException, PrismException
-	{
-		PrismLog tmpLog;
-
-		// No specific states format for MRMC
-		if (exportType == EXPORT_MRMC)
-			exportType = EXPORT_PLAIN;
-		// Rows format does not apply to states output
-		if (exportType == EXPORT_ROWS)
-			exportType = EXPORT_PLAIN;
-
-		// Build model, if necessary
-		buildModelIfRequired();
-
-		// Print message
-		mainLog.print("\nExporting list of reachable states ");
-		mainLog.print(getStringForExportType(exportType) + " ");
-		mainLog.println(getDestinationStringForFile(file));
-
-		// Create new file log or use main log
-		tmpLog = getPrismLogForFile(file);
-
-		// Export
-		if (currentModelBuildType == ModelBuildType.SYMBOLIC) {
-			currentModel.exportStates(exportType, tmpLog);
-		} else {
-			currentModelExpl.exportStates(exportType, currentModelInfo.createVarList(), tmpLog);
-		}
-
-		// Tidy up
 		if (file != null)
 			tmpLog.close();
 	}
@@ -4190,6 +4182,19 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	public void exportTransRewardsToFile(boolean ordered, int exportType, File file) throws FileNotFoundException, PrismException
 	{
 		exportBuiltModelTransRewards(file, convertExportType(exportType));
+	}
+
+	/**
+	 * Export the currently loaded model's states to a file
+	 * @param exportType Type of export; one of: <ul>
+	 * <li> {@link #EXPORT_PLAIN}
+	 * <li> {@link #EXPORT_MATLAB}
+	 * </ul>
+	 * @param file File to export to (if null, print to the log instead)
+	 */
+	public void exportStatesToFile(int exportType, File file) throws FileNotFoundException, PrismException
+	{
+		exportBuiltModelStates(file, convertExportType(exportType));
 	}
 
 	/**

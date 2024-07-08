@@ -48,6 +48,7 @@ import parser.Values;
 import parser.VarList;
 import prism.Evaluator;
 import prism.ModelType;
+import prism.Prism;
 import prism.PrismException;
 import prism.PrismFileLog;
 import prism.PrismLog;
@@ -625,8 +626,21 @@ public interface Model<Value>
 	/**
 	 * Export states list.
 	 */
-	public void exportStates(int exportType, VarList varList, PrismLog log) throws PrismException;
-	
+	public default void exportStates(VarList varList, PrismLog out, ModelExportOptions exportOptions) throws PrismException
+	{
+		new PrismExplicitExporter<Value>(exportOptions).exportStates(this, varList, out);
+	}
+
+	/**
+	 * @deprecated
+	 * Export states list.
+	 */
+	@Deprecated
+	public default void exportStates(int exportType, VarList varList, PrismLog out) throws PrismException
+	{
+		exportStates(varList, out, Prism.convertExportType(exportType));
+	}
+
 	/**
 	 * Report info/stats about the model as a string.
 	 */

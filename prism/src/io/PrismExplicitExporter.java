@@ -35,6 +35,8 @@ import explicit.PartiallyObservableModel;
 import explicit.SuccessorsIterator;
 import explicit.rewards.MCRewards;
 import explicit.rewards.MDPRewards;
+import parser.State;
+import parser.VarList;
 import prism.Evaluator;
 import io.ModelExportOptions;
 import prism.ModelType;
@@ -278,6 +280,35 @@ public class PrismExplicitExporter<Value> extends Exporter<Value>
 			out.print(" \"" + rewardStructName + "\"");
 		}
 		out.println("\n# Transition rewards");
+	}
+
+	/**
+	 * Export the states for a model.
+	 * @param model The model
+	 * @param varList The VarList for the model
+	 * @param out Where to export
+	 */
+	public void exportStates(Model<Value> model, VarList varList, PrismLog out) throws PrismException
+	{
+		List<State> statesList = model.getStatesList();
+		if (statesList == null)
+			return;
+
+		// Print header: list of model vars
+		out.print("(");
+		int numVars = varList.getNumVars();
+		for (int i = 0; i < numVars; i++) {
+			out.print(varList.getName(i));
+			if (i < numVars - 1)
+				out.print(",");
+		}
+		out.println(")");
+
+		// Print states
+		int numStates = statesList.size();
+		for (int i = 0; i < numStates; i++) {
+			out.println(i + ":" + statesList.get(i).toString());
+		}
 	}
 
 	/**
