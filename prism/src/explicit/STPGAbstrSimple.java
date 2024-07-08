@@ -371,7 +371,7 @@ public class STPGAbstrSimple<Value> extends ModelExplicit<Value> implements STPG
 		// TODO: Check for empty distributions sets too?
 	}
 
-	@Override
+	/*@Override
 	public void exportTransitionsToDotFile(int i, PrismLog out, Iterable<explicit.graphviz.Decorator> decorators, int precision)
 	{
 		// Custom dot format for game abstractions
@@ -393,7 +393,7 @@ public class STPGAbstrSimple<Value> extends ModelExplicit<Value> implements STPG
 				}
 			}
 		}
-	}
+	}*/
 
 	@Override
 	public void exportToDotFileWithStrat(PrismLog out, BitSet mark, int strat[], int precision)

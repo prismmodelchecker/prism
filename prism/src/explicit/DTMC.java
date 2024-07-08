@@ -64,29 +64,6 @@ public interface DTMC<Value> extends Model<Value>
 	}
 
 	@Override
-	default void exportTransitionsToDotFile(int i, PrismLog out, Iterable<explicit.graphviz.Decorator> decorators, int precision)
-	{
-		// Iterate through outgoing transitions for this state
-		Iterator<Map.Entry<Integer, Value>> iter = getTransitionsIterator(i);
-		while (iter.hasNext()) {
-			Map.Entry<Integer, Value> e = iter.next();
-			// Print a new dot file line for the arrow for this transition
-			out.print(i + " -> " + e.getKey());
-			// Annotate this arrow with the probability 
-			explicit.graphviz.Decoration d = new explicit.graphviz.Decoration();
-			d.setLabel(getEvaluator().toStringExport(e.getValue(), precision));
-			// Apply any other decorators requested
-			if (decorators != null) {
-				for (Decorator decorator : decorators) {
-					d = decorator.decorateProbability(i, e.getKey(), e.getValue(), d);
-				}
-			}
-			// Append to the dot file line for this transition
-			out.println(" " + d.toString() + ";");
-		}
-	}
-
-	@Override
 	default void exportToPrismLanguage(final String filename, int precision) throws PrismException
 	{
 		try (FileWriter out = new FileWriter(filename)) {

@@ -1,4 +1,2 @@
-# Reduce precision for some tests due to minor differences between the engines
-
--exportmodelprecision 16 -exporttransdot robot.prism.dot
--exportmodelprecision 16 -exporttransdotstates robot.prism.sta.dot
+-exporttransdot robot.prism.dot -ex
+-exporttransdotstates robot.prism.sta.dot -ex

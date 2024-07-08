@@ -1,2 +1,2 @@
--exporttransdot dice.pm.dot
--exporttransdotstates dice.pm.sta.dot
+-exporttransdot dice.pm.dot -ex
+-exporttransdotstates dice.pm.sta.dot -ex

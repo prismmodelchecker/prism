@@ -66,51 +66,6 @@ public interface MDP<Value> extends NondetModel<Value>
 	}
 
 	@Override
-	default void exportTransitionsToDotFile(int i, PrismLog out, Iterable<explicit.graphviz.Decorator> decorators, int precision)
-	{
-		// Iterate through outgoing choices for this state
-		int numChoices = getNumChoices(i);
-		for (int j = 0; j < numChoices; j++) {
-			Object action = getAction(i, j);
-			// Print a new dot file line for the initial line fragment for this choice
-			String nij = "n" + i + "_" + j;
-			out.print(i + " -> " + nij + " ");
-			// Annotate this with the choice index/action 
-			explicit.graphviz.Decoration d = new explicit.graphviz.Decoration();
-			d.attributes().put("arrowhead", "none");
-			d.setLabel(j + (action != null ? ":" + action : ""));
-			// Apply any other decorators requested
-			if (decorators != null) {
-				for (Decorator decorator : decorators) {
-					d = decorator.decorateTransition(i, j, d);
-				}
-			}
-			// Append to the dot file line
-			out.println(" " + d.toString() + ";");
-			// Print a new dot file line for the point where this choice branches
-			out.print(nij + " [ shape=point,width=0.1,height=0.1,label=\"\" ];\n");
-			// Iterate through outgoing transitions for this choice
-			Iterator<Map.Entry<Integer, Value>> iter = getTransitionsIterator(i, j);
-			while (iter.hasNext()) {
-				Map.Entry<Integer, Value> e = iter.next();
-				// Print a new dot file line for the arrow for this transition
-				out.print(nij + " -> " + e.getKey() + " ");
-				// Annotate this arrow with the probability 
-				d = new explicit.graphviz.Decoration();
-				d.setLabel(getEvaluator().toStringExport(e.getValue(), precision));
-				// Apply any other decorators requested
-				if (decorators != null) {
-					for (Decorator decorator : decorators) {
-						d = decorator.decorateProbability(i, e.getKey(), j, e.getValue(), d);
-					}
-				}
-				// Append to the dot file line for this transition
-				out.println(" " + d.toString() + ";");
-			}
-		}
-	}
-
-	@Override
 	default void exportToPrismLanguage(final String filename, int precision) throws PrismException
 	{
 		try (FileWriter out = new FileWriter(filename)) {

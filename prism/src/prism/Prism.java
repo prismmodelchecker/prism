@@ -2377,7 +2377,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 			case Prism.EXPORT_MATLAB:
 				throw new PrismNotSupportedException("Export not yet supported");
 			case Prism.EXPORT_DOT:
-				currentModelExpl.exportToDotFile(tmpLog, precision);
+				currentModelExpl.exportToDotFile(tmpLog, null, false, precision);
 				break;
 			case Prism.EXPORT_DOT_STATES:
 				currentModelExpl.exportToDotFile(tmpLog, null, true, precision);
