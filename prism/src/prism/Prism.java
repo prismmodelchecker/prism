@@ -138,7 +138,6 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	public static final int EXPORT_PLAIN = 1;
 	public static final int EXPORT_MATLAB = 2;
 	public static final int EXPORT_DOT = 3;
-	public static final int EXPORT_MRMC = 4;
 	public static final int EXPORT_ROWS = 5;
 	public static final int EXPORT_DOT_STATES = 6;
 
@@ -2650,9 +2649,6 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 		//Vector<JDDNode> bsccs;
 		//JDDNode not, bscc;
 
-		// no specific states format for MRMC
-		if (exportType == EXPORT_MRMC)
-			exportType = EXPORT_PLAIN;
 		// rows format does not apply to states output
 		if (exportType == EXPORT_ROWS)
 			exportType = EXPORT_PLAIN;
@@ -2743,9 +2739,6 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 		ECComputer ecComputer = null;
 		explicit.ECComputer ecComputerExpl = null;
 
-		// no specific states format for MRMC
-		if (exportType == EXPORT_MRMC)
-			exportType = EXPORT_PLAIN;
 		// rows format does not apply to states output
 		if (exportType == EXPORT_ROWS)
 			exportType = EXPORT_PLAIN;
@@ -2833,9 +2826,6 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 		SCCComputer sccComputer = null;
 		explicit.SCCConsumerStore sccConsumerExpl = null;
 
-		// no specific states format for MRMC
-		if (exportType == EXPORT_MRMC)
-			exportType = EXPORT_PLAIN;
 		// rows format does not apply to states output
 		if (exportType == EXPORT_ROWS)
 			exportType = EXPORT_PLAIN;
@@ -3571,8 +3561,6 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 		// Do some checks
 		if (!(currentModelType == ModelType.CTMC || currentModelType == ModelType.DTMC))
 			throw new PrismException("Steady-state probabilities only computed for DTMCs/CTMCs");
-		if (exportType == EXPORT_MRMC)
-			exportType = EXPORT_PLAIN; // no specific states format for MRMC
 		if (exportType == EXPORT_ROWS)
 			exportType = EXPORT_PLAIN; // rows format does not apply to states output
 
@@ -3692,8 +3680,6 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 			throw new PrismException("Steady-state probabilities only computed for DTMCs/CTMCs");
 		if (time < 0)
 			throw new PrismException("Cannot compute transient probabilities for negative time value");
-		if (exportType == EXPORT_MRMC)
-			exportType = EXPORT_PLAIN; // no specific states format for MRMC
 		if (exportType == EXPORT_ROWS)
 			exportType = EXPORT_PLAIN; // rows format does not apply to states output
 
@@ -3793,8 +3779,6 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 		// Do some checks
 		if (!(currentModelType == ModelType.CTMC || currentModelType == ModelType.DTMC))
 			throw new PrismException("Steady-state probabilities only computed for DTMCs/CTMCs");
-		if (exportType == EXPORT_MRMC)
-			exportType = EXPORT_PLAIN; // no specific states format for MRMC
 		if (exportType == EXPORT_ROWS)
 			exportType = EXPORT_PLAIN; // rows format does not apply to states output
 
@@ -4098,8 +4082,6 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 			return "in Matlab format";
 		case EXPORT_DOT:
 			return "in Dot format";
-		case EXPORT_MRMC:
-			return "in MRMC format";
 		case EXPORT_ROWS:
 			return "in rows format";
 		case EXPORT_DOT_STATES:
@@ -4130,7 +4112,6 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	 * <li> {@link #EXPORT_PLAIN}
 	 * <li> {@link #EXPORT_MATLAB}
 	 * <li> {@link #EXPORT_DOT}
-	 * <li> {@link #EXPORT_MRMC}
 	 * <li> {@link #EXPORT_ROWS}
 	 * <li> {@link #EXPORT_DOT_STATES}
 	 * </ul>
@@ -4150,7 +4131,6 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	 * @param exportType Type of export; one of: <ul>
 	 * <li> {@link #EXPORT_PLAIN}
 	 * <li> {@link #EXPORT_MATLAB}
-	 * <li> {@link #EXPORT_MRMC}
 	 * </ul>
 	 * @param file File to export to (if null, print to the log instead)
 	 */
@@ -4167,7 +4147,6 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	 * @param exportType Type of export; one of: <ul>
 	 * <li> {@link #EXPORT_PLAIN}
 	 * <li> {@link #EXPORT_MATLAB}
-	 * <li> {@link #EXPORT_MRMC}
 	 * <li> {@link #EXPORT_ROWS}
 	 * </ul>
 	 * @param file File to export to (if null, print to the log instead)
@@ -4347,7 +4326,6 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	 * <li> {@link #EXPORT_PLAIN} 
 	 * <li> {@link #EXPORT_MATLAB}
 	 * <li> {@link #EXPORT_DOT}
-	 * <li> {@link #EXPORT_MRMC}
 	 * <li> {@link #EXPORT_ROWS}
 	 * <li> {@link #EXPORT_DOT_STATES}
 	 * </ul>
