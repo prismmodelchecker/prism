@@ -71,8 +71,11 @@ public class DRNExporter<Value> extends Exporter<Value>
 	/**
 	 * Export a model.
 	 * @param model The model
+	 * @param rewardGen The RewardGenerator for reward info
+	 * @param allRewards All the rewards
+	 * @param labelNames The names of the labels to export
+	 * @param labelStates The states that satisfy each label, specified as a BitSet
 	 * @param out Where to export
-	 * @param exportOptions The options for export
 	 */
 	public void exportModel(Model<Value> model, RewardGenerator<Value> rewardGen, List<Rewards<Value>> allRewards, List<String> labelNames, List<BitSet> labelStates, PrismLog out) throws PrismException
 	{

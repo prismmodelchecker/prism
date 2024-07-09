@@ -128,9 +128,8 @@ public class PrismExplicitExporter<Value> extends Exporter<Value>
 	 * Export (non-zero) state rewards from an MCRewards object.
 	 * @param model The model
 	 * @param mcRewards The rewards
-	 * @param exportType The format in which to export
+	 * @param rewardStructName The name of the reward structure
 	 * @param out Where to export
-	 * @param precision number of significant digits >= 1
 	 */
 	public void exportMCStateRewards(Model<Value> model, MCRewards<Value> mcRewards, String rewardStructName, PrismLog out) throws PrismException
 	{
@@ -161,9 +160,8 @@ public class PrismExplicitExporter<Value> extends Exporter<Value>
 	 * Export (non-zero) state rewards from an MDPRewards object.
 	 * @param model The model
 	 * @param mdpRewards The rewards
-	 * @param exportType The format in which to export
+	 * @param rewardStructName The name of the reward structure
 	 * @param out Where to export
-	 * @param precision number of significant digits >= 1
 	 */
 	public void exportMDPStateRewards(Model<Value> model, MDPRewards<Value> mdpRewards, String rewardStructName, PrismLog out) throws PrismException
 	{
@@ -199,9 +197,9 @@ public class PrismExplicitExporter<Value> extends Exporter<Value>
 	 * </pre>
 	 * where &lt;double-quoted-name&gt; ("<name>") is omitted if the reward structure is not named.
 	 *
-	 * @param r index of the reward structure
-	 * @param out print target
-	 * @param noexportheaders disable export of the header
+	 * @param out Where to export
+	 * @param rewardStructName The name of the reward structure
+	 * @param noexportheaders Disable export of the header?
 	 */
 	public void printStateRewardsHeader(PrismLog out, String rewardStructName, boolean noexportheaders)
 	{
@@ -219,9 +217,8 @@ public class PrismExplicitExporter<Value> extends Exporter<Value>
 	 * Export (non-zero) transition rewards from an MDPRewards object.
 	 * @param model The model
 	 * @param mdpRewards The rewards
-	 * @param exportType The format in which to export
+	 * @param rewardStructName The name of the reward structure
 	 * @param out Where to export
-	 * @param precision number of significant digits >= 1
 	 */
 	public void exportMDPTransRewards(NondetModel<Value> model, MDPRewards<Value> mdpRewards, String rewardStructName, PrismLog out) throws PrismException
 	{
@@ -268,9 +265,9 @@ public class PrismExplicitExporter<Value> extends Exporter<Value>
 	 * </pre>
 	 * where &lt;double-quoted-name&gt; ("<name>") is omitted if the reward structure is not named.
 	 *
-	 * @param r index of the reward structure
-	 * @param out print target
-	 * @param noexportheaders disable export of the header
+	 * @param out Where to export
+	 * @param rewardStructName The name of the reward structure
+	 * @param noexportheaders Disable export of the header?
 	 */
 	public void printTransRewardsHeader(PrismLog out, String rewardStructName, boolean noexportheaders)
 	{
