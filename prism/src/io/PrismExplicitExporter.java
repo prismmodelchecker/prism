@@ -78,7 +78,8 @@ public class PrismExplicitExporter<Value> extends Exporter<Value>
 		// Get model info and exportOptions
 		setEvaluator(model.getEvaluator());
 		ModelType modelType = model.getModelType();
-		boolean exportActions = modelType.nondeterministic();
+		// By default, we only show actions for nondeterministic models
+		boolean showActions = modelExportOptions.getShowActions(modelType.nondeterministic());
 
 		// Output .tra file file header
 		int numStates = model.getNumStates();
@@ -102,7 +103,7 @@ public class PrismExplicitExporter<Value> extends Exporter<Value>
 			// Iterate through choices
 			for (int j = 0; j < numChoices; j++) {
 				// Print out (sorted) transitions
-				for (Transition<Value> transition : getSortedTransitionsIterator(model, s, j, exportActions)) {
+				for (Transition<Value> transition : getSortedTransitionsIterator(model, s, j, showActions)) {
 					out.print(s);
 					if (modelType.nondeterministic()) {
 						out.print(" " + j);
@@ -114,7 +115,7 @@ public class PrismExplicitExporter<Value> extends Exporter<Value>
 					if (modelType.partiallyObservable()) {
 						out.print(" " + ((PartiallyObservableModel) model).getObservation(transition.target));
 					}
-					if (transition.action != null && !"".equals(transition.action)) {
+					if (showActions && transition.action != null && !"".equals(transition.action)) {
 						out.print(" " + transition.action);
 					}
 					out.print("\n");

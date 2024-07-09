@@ -70,8 +70,9 @@ public class DotExporter<Value> extends Exporter<Value>
 		// Get model info and exportOptions
 		setEvaluator(model.getEvaluator());
 		ModelType modelType = model.getModelType();
-		boolean exportActions = modelType.nondeterministic();
 		int numStates = model.getNumStates();
+		// By default, we only show actions for nondeterministic models
+		boolean showActions = modelExportOptions.getShowActions(modelType.nondeterministic());
 
 		// Get default Dot formatting info
 		explicit.graphviz.Decoration defaults = new explicit.graphviz.Decoration();
@@ -120,8 +121,10 @@ public class DotExporter<Value> extends Exporter<Value>
 					// Annotate this with the choice index/action
 					explicit.graphviz.Decoration d2 = new explicit.graphviz.Decoration();
 					d2.attributes().put("arrowhead", "none");
-					Object action = ((NondetModel) model).getAction(s, j);
-					d2.setLabel(j + (action != null ? ":" + action : ""));
+					if (showActions) {
+						Object action = ((NondetModel) model).getAction(s, j);
+						d2.setLabel(j + (action != null ? ":" + action : ""));
+					}
 					// Apply any other decorators requested
 					if (decorators != null) {
 						for (Decorator decorator : decorators) {
@@ -135,7 +138,7 @@ public class DotExporter<Value> extends Exporter<Value>
 				}
 
 				// Print out (sorted) transitions
-				for (Transition<Value> transition : getSortedTransitionsIterator(model, s, j, exportActions)) {
+				for (Transition<Value> transition : getSortedTransitionsIterator(model, s, j, showActions)) {
 					// Print a new Dot file line for the arrow for this transition
 					out.print(nodeMid + " -> " + transition.target);
 					// Annotate this arrow with the probability

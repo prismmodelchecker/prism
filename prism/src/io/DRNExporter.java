@@ -83,7 +83,8 @@ public class DRNExporter<Value> extends Exporter<Value>
 		int numRewardStructs = rewardGen.getNumRewardStructs();
 		int numLabels = labelNames.size();
 		int numStates = model.getNumStates();
-		boolean exportActions = true;
+		// By default, we only show actions for nondeterministic models
+		boolean showActions = modelExportOptions.getShowActions(modelType.nondeterministic());
 
 		// Output header
 		out.println("// Exported by prism");
@@ -139,7 +140,7 @@ public class DRNExporter<Value> extends Exporter<Value>
 			}
 			for (int j = 0; j < numChoices; j++) {
 				out.print("\taction ");
-				if (modelType.nondeterministic() && exportActions) {
+				if (modelType.nondeterministic() && showActions) {
 					Object action = ((NondetModel) model).getAction(s, j);
 					out.print(action != null ? action : "__NOLABEL__");
 				} else {
@@ -147,7 +148,7 @@ public class DRNExporter<Value> extends Exporter<Value>
 				}
 				out.println(" " + getTransitionRewardTuple(allRewards, s, j).toStringReversed(e -> formatValue(e, evalRewards), ", "));
 				// Print out (sorted) transitions
-				for (Transition<Value> transition : getSortedTransitionsIterator(model, s, j, exportActions)) {
+				for (Transition<Value> transition : getSortedTransitionsIterator(model, s, j, showActions)) {
 					out.println("\t\t" + transition.target + " : " + formatValue(transition.probability));
 				}
 			}

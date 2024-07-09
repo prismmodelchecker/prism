@@ -73,6 +73,11 @@ public class ModelExportOptions implements Cloneable
 	private Optional<Boolean> showStates = Optional.empty();
 
 	/**
+	 * Whether to show actions
+	 */
+	private Optional<Boolean> showActions = Optional.empty();
+
+	/**
 	 * Whether to print (optional, commented) headers
 	 */
 	private Optional<Boolean> printHeaders = Optional.empty();
@@ -129,6 +134,15 @@ public class ModelExportOptions implements Cloneable
 	}
 
 	/**
+	 * Set whether to show actions.
+	 */
+	public ModelExportOptions setShowActions(boolean showActions)
+	{
+		this.showActions = Optional.of(showActions);
+		return this;
+	}
+
+	/**
 	 * Set whether to print (optional, commented) headers.
 	 */
 	public ModelExportOptions setPrintHeaders(boolean printHeaders)
@@ -159,6 +173,9 @@ public class ModelExportOptions implements Cloneable
 		}
 		if (other.showStates.isPresent()) {
 			setShowStates(other.getShowStates());
+		}
+		if (other.showActions.isPresent()) {
+			setShowActions(other.getShowActions());
 		}
 		if (other.explicitRows.isPresent()) {
 			setExplicitRows(other.getExplicitRows());
@@ -200,6 +217,23 @@ public class ModelExportOptions implements Cloneable
 	public boolean getShowStates()
 	{
 		return showStates.orElse(true);
+	}
+
+	/**
+	 * Whether to show actions.
+	 */
+	public boolean getShowActions()
+	{
+		return showActions.orElse(true);
+	}
+
+	/**
+	 * Whether to show actions.
+	 * If has not been set, returned {@code orElse} as a default.
+	 */
+	public boolean getShowActions(boolean orElse)
+	{
+		return showActions.orElse(orElse);
 	}
 
 	/**

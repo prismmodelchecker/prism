@@ -2330,6 +2330,20 @@ public class PrismCL implements PrismModelListener
 			else if (opt.equals("proplabels")) {
 				exportmodelproplabels = true;
 			}
+			else if (opt.startsWith("actions")) {
+				if (!opt.startsWith("actions="))
+					throw new PrismException("No value provided for \"actions\" option of -exportmodel");
+				String optVal = opt.substring(8);
+				if (optVal.equals("true")) {
+					exportTransOptions.setShowActions(true);
+					exportTransRewardsOptions.setShowActions(true);
+				} else if (optVal.equals("false")) {
+					exportTransOptions.setShowActions(false);
+					exportTransRewardsOptions.setShowActions(false);
+				}
+				else
+					throw new PrismException("Unknown value \"" + optVal + "\" provided for \"reach\" option of -exportstrat");
+			}
 			// Unknown option
 			else {
 				throw new PrismException("Unknown option \"" + opt + "\" for -exportmodel switch");
@@ -2890,6 +2904,7 @@ public class PrismCL implements PrismModelListener
 			mainLog.println(" * matlab - export data in Matlab format");
 			mainLog.println(" * rows - export matrices with one row/distribution on each line");
 			mainLog.println(" * proplabels - export labels from a properties file into the same file, too");
+			mainLog.println(" * actions (=true/false) - shows actions on choices/transitions");
 		}
 		// -exportstrat
 		else if (sw.equals("exportstrat")) {
