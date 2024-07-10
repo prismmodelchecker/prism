@@ -4255,11 +4255,11 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	public static int convertExportType(ModelExportOptions exportOptions)
 	{
 		switch (exportOptions.getFormat()) {
-			case ModelExportFormat.EXPLICIT:
+			case EXPLICIT:
 				return Prism.EXPORT_PLAIN;
-			case ModelExportFormat.MATLAB:
+			case MATLAB:
 				return Prism.EXPORT_MATLAB;
-			case ModelExportFormat.DOT:
+			case DOT:
 				return Prism.EXPORT_DOT;
 		}
 		return Prism.EXPORT_PLAIN;
@@ -4271,11 +4271,11 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	public static int convertExportTypeTrans(ModelExportOptions exportOptions)
 	{
 		switch (exportOptions.getFormat()) {
-			case ModelExportFormat.EXPLICIT:
+			case EXPLICIT:
 				return exportOptions.getExplicitRows() ? Prism.EXPORT_ROWS : Prism.EXPORT_PLAIN;
-			case ModelExportFormat.MATLAB:
+			case MATLAB:
 				return Prism.EXPORT_MATLAB;
-			case ModelExportFormat.DOT:
+			case DOT:
 				return exportOptions.getShowStates() ? Prism.EXPORT_DOT_STATES : Prism.EXPORT_DOT;
 		}
 		return Prism.EXPORT_PLAIN;

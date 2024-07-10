@@ -45,6 +45,7 @@ import prism.RewardGenerator;
 
 import java.util.ArrayList;
 import java.util.BitSet;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -100,7 +101,8 @@ public class DRNExporter<Value> extends Exporter<Value>
 
 		// Output reward structure info
 		out.println("@reward_models");
-		out.println(String.join(" ", rewardGen.getRewardStructNames().reversed()));
+		//out.println(String.join(" ", rewardGen.getRewardStructNames().reversed()));
+		out.println(rewardGen.getRewardStructNames().stream().sorted(Collections.reverseOrder()).collect(Collectors.joining(" ")));
 
 		// Output model stats
 		out.println("@nr_states");

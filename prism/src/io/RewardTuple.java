@@ -27,6 +27,7 @@
 package io;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -65,7 +66,8 @@ public class RewardTuple<Value>
 
 	public String toStringReversed(Function<Value, String> valueFormatter, String sep)
 	{
-		return "[" + values.reversed().stream().map(e -> valueFormatter.apply(e)).collect(Collectors.joining(sep)) + "]";
+		return "[" + values.stream().sorted(Collections.reverseOrder()).map(e -> valueFormatter.apply(e)).collect(Collectors.joining(sep)) + "]";
+		//return "[" + values.reversed().stream().map(e -> valueFormatter.apply(e)).collect(Collectors.joining(sep)) + "]";
 	}
 
 	@Override
