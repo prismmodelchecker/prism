@@ -26,23 +26,12 @@
 
 package io;
 
-import explicit.DTMC;
-import explicit.LTS;
-import explicit.MDP;
 import explicit.Model;
 import explicit.NondetModel;
 import explicit.PartiallyObservableModel;
 import explicit.graphviz.Decorator;
-import prism.Evaluator;
-import io.ModelExportOptions;
 import prism.ModelType;
-import prism.Pair;
 import prism.PrismLog;
-
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Objects;
-import java.util.TreeSet;
 
 /**
  * Class to manage export of built models to Dot format.
@@ -80,7 +69,7 @@ public class DotExporter<Value> extends Exporter<Value>
 
 		// Output header
 		out.println("digraph " + modelType + " {");
-		out.println("node " + defaults.toString() + ";");
+		out.println("node " + defaults + ";");
 
 		// Output transitions in Dot format
 		// Iterate through states
@@ -90,7 +79,7 @@ public class DotExporter<Value> extends Exporter<Value>
 			d.setLabel(Integer.toString(s));
 			if (modelExportOptions.getShowStates()) {
 				if (modelType.partiallyObservable()) {
-					d = new explicit.graphviz.ShowStatesDecorator(model.getStatesList(), ((PartiallyObservableModel) model)::getObservationAsState).decorateState(s, d);
+					d = new explicit.graphviz.ShowStatesDecorator(model.getStatesList(), ((PartiallyObservableModel<Value>) model)::getObservationAsState).decorateState(s, d);
 				} else {
 					d = new explicit.graphviz.ShowStatesDecorator(model.getStatesList()).decorateState(s, d);
 				}
@@ -122,7 +111,7 @@ public class DotExporter<Value> extends Exporter<Value>
 					explicit.graphviz.Decoration d2 = new explicit.graphviz.Decoration();
 					d2.attributes().put("arrowhead", "none");
 					if (showActions) {
-						Object action = ((NondetModel) model).getAction(s, j);
+						Object action = ((NondetModel<Value>) model).getAction(s, j);
 						d2.setLabel(j + (action != null ? ":" + action : ""));
 					}
 					// Apply any other decorators requested
@@ -144,15 +133,15 @@ public class DotExporter<Value> extends Exporter<Value>
 					// Annotate this arrow with the probability
 					explicit.graphviz.Decoration d3 = new explicit.graphviz.Decoration();
 					if (modelType.isProbabilistic()) {
-						d3.setLabel(formatValue(transition.probability));
+						d3.setLabel(formatValue(transition.value));
 					} else {
-						Object action = ((NondetModel) model).getAction(s, j);
+						Object action = ((NondetModel<Value>) model).getAction(s, j);
 						d3.setLabel(j + (action != null ? ":" + action : ""));
 					}
 					// Apply any other decorators requested
 					if (decorators != null) {
 						for (Decorator decorator : decorators) {
-							d3 = decorator.decorateProbability(s, transition.target, transition.probability, d3);
+							d3 = decorator.decorateProbability(s, transition.target, transition.value, d3);
 						}
 					}
 					// Append to the Dot file line for this transition

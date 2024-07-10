@@ -26,9 +26,6 @@
 
 package io;
 
-import explicit.DTMC;
-import explicit.LTS;
-import explicit.MDP;
 import explicit.Model;
 import explicit.NondetModel;
 import explicit.PartiallyObservableModel;
@@ -38,20 +35,13 @@ import explicit.rewards.MDPRewards;
 import parser.State;
 import parser.VarList;
 import prism.Evaluator;
-import io.ModelExportOptions;
 import prism.ModelInfo;
 import prism.ModelType;
-import prism.Pair;
-import prism.Prism;
 import prism.PrismException;
 import prism.PrismLog;
 
 import java.util.BitSet;
-import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.TreeSet;
 
 /**
  * Class to manage export of built models to PRISM's explicit file formats.
@@ -85,11 +75,11 @@ public class PrismExplicitExporter<Value> extends Exporter<Value>
 		int numStates = model.getNumStates();
 		out.print(numStates);
 		if (modelType.nondeterministic()) {
-			out.print(" " + ((NondetModel) model).getNumChoices());
+			out.print(" " + ((NondetModel<Value>) model).getNumChoices());
 		}
 		out.print(" " + model.getNumTransitions());
 		if (modelType.partiallyObservable()) {
-			out.print(" " + ((PartiallyObservableModel) model).getNumObservations());
+			out.print(" " + ((PartiallyObservableModel<Value>) model).getNumObservations());
 		}
 		out.print("\n");
 
@@ -110,10 +100,10 @@ public class PrismExplicitExporter<Value> extends Exporter<Value>
 					}
 					out.print(" " + transition.target);
 					if (modelType.isProbabilistic()) {
-						out.print(" " + formatValue(transition.probability));
+						out.print(" " + formatValue(transition.value));
 					}
 					if (modelType.partiallyObservable()) {
-						out.print(" " + ((PartiallyObservableModel) model).getObservation(transition.target));
+						out.print(" " + ((PartiallyObservableModel<Value>) model).getObservation(transition.target));
 					}
 					if (showActions && transition.action != null && !"".equals(transition.action)) {
 						out.print(" " + transition.action);
@@ -232,10 +222,10 @@ public class PrismExplicitExporter<Value> extends Exporter<Value>
 		int nonZeroRews = 0;
 		for (int s = 0; s < numStates; s++) {
 			int numChoices = model.getNumChoices();
-			for (int i = 0; i < numChoices; i++) {
-				Value d = mdpRewards.getTransitionReward(s, i);
+			for (int j = 0; j < numChoices; j++) {
+				Value d = mdpRewards.getTransitionReward(s, j);
 				if (!evalRewards.isZero(d)) {
-					nonZeroRews += model.getNumTransitions(s, i);;
+					nonZeroRews += model.getNumTransitions(s, j);
 				}
 			}
 		}
@@ -243,13 +233,12 @@ public class PrismExplicitExporter<Value> extends Exporter<Value>
 		out.println(numStates + " " + numChoicesAll + " " + nonZeroRews);
 		for (int s = 0; s < numStates; s++) {
 			int numChoices = model.getNumChoices();
-			for (int i = 0; i < numChoices; i++) {
-				Value d = mdpRewards.getTransitionReward(s, i);
+			for (int j = 0; j < numChoices; j++) {
+				Value d = mdpRewards.getTransitionReward(s, j);
 				if (!evalRewards.isZero(d)) {
-					int numTransitions = model.getNumTransitions(s, i);
-					for (SuccessorsIterator succ = model.getSuccessors(s, i); succ.hasNext();) {
-						int j = succ.nextInt();
-						out.println(s + " " + i + " " + j + " " + formatValue(d, evalRewards));
+					for (SuccessorsIterator succ = model.getSuccessors(s, j); succ.hasNext();) {
+						int s2 = succ.nextInt();
+						out.println(s + " " + j + " " + s2 + " " + formatValue(d, evalRewards));
 					}
 				}
 			}

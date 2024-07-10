@@ -103,6 +103,7 @@ public class Exporter<Value>
 
 	/**
 	 * Get access to a sorted list of transitions for a choice of a state of a model.
+	 * Transitions are sorted by successor state and then (if present) action string.
 	 * Note that this means duplicate transitions are removed too.
 	 * @param model The model
 	 * @param s The state
@@ -143,12 +144,12 @@ public class Exporter<Value>
 	 * @param allRewards The list of rewards
 	 * @param s The state
 	 */
-	protected <Value> RewardTuple<Value> getStateRewardTuple(List<Rewards<Value>> allRewards, int s)
+	protected RewardTuple<Value> getStateRewardTuple(List<Rewards<Value>> allRewards, int s)
 	{
 		int numRewards = allRewards.size();
-		RewardTuple tuple = new RewardTuple<>(numRewards);
+		RewardTuple<Value> tuple = new RewardTuple<>(numRewards);
 		for (int r = 0; r < numRewards; r++) {
-			Rewards rewards = allRewards.get(r);
+			Rewards<Value> rewards = allRewards.get(r);
 			if (rewards instanceof MCRewards) {
 				tuple.add(((MCRewards<Value>) rewards).getStateReward(s));
 			} else if (rewards instanceof MDPRewards) {
@@ -164,12 +165,12 @@ public class Exporter<Value>
 	 * @param s The state
 	 * @param j The choice
 	 */
-	protected <Value> RewardTuple<Value> getTransitionRewardTuple(List<Rewards<Value>> allRewards, int s, int j)
+	protected RewardTuple<Value> getTransitionRewardTuple(List<Rewards<Value>> allRewards, int s, int j)
 	{
 		int numRewards = allRewards.size();
-		RewardTuple tuple = new RewardTuple<>(numRewards);
+		RewardTuple<Value> tuple = new RewardTuple<>(numRewards);
 		for (int r = 0; r < numRewards; r++) {
-			Rewards rewards = allRewards.get(r);
+			Rewards<Value> rewards = allRewards.get(r);
 			if (rewards instanceof MDPRewards) {
 				tuple.add(((MDPRewards<Value>) rewards).getTransitionReward(s, j));
 			}
