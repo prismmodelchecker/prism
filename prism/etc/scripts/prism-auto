@@ -333,7 +333,7 @@ def addExtraArgs(argLists):
 
 def possibleNameClash(fullName):
     withoutExt = fullName.rsplit('.', 1)[0]
-    exts = ['lab','tra','stat','srew','trew']
+    exts = ['lab','tra','sta','srew','trew','obs']
 
     return any(map (os.path.exists, [fullName] + [withoutExt + '.' + ext for ext in exts] +  [withoutExt + '1.' + ext for ext in exts]))
 
@@ -412,7 +412,7 @@ def getExpectedOutFilesFromArgs(args):
         if (len(split) == 1): split = split + [""]
         # Determine relevant extensions
         if split[1] == 'all':
-            exts = ['lab','tra','sta','srew','trew']
+            exts = ['lab','tra','sta','srew','trew','obs']
         else:
             exts = [split[1]]
         if (moreExts): exts = exts + moreExts;
