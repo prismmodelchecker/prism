@@ -27,9 +27,6 @@
 
 package explicit.rewards;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import explicit.Model;
 import explicit.Product;
 
@@ -65,18 +62,12 @@ public class STPGRewardsSimple<Value> extends MDPRewardsSimple<Value> implements
 		rewardsProd.setEvaluator(getEvaluator());
 		if (stateRewards != null) {
 			for (int s = 0; s < numStatesProd; s++) {
-				rewardsProd.setStateReward(s, stateRewards.get(product.getModelState(s)));
+				rewardsProd.setStateReward(s, stateRewards.getValue(product.getModelState(s)));
 			}
 		}
-		if (transRewards != null) {
+		if (!transRewards.allZero()) {
 			for (int s = 0; s < numStatesProd; s++) {
-				List<Value> list = transRewards.get(product.getModelState(s));
-				if (list != null) {
-					int numChoices = list.size();
-					for (int i = 0; i < numChoices; i++) {
-						rewardsProd.setTransitionReward(s, i, list.get(i));
-					}
-				}
+				rewardsProd.transRewards.copyFrom(s, transRewards, product.getModelState(s));
 			}
 		}
 		return rewardsProd;

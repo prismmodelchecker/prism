@@ -26,10 +26,10 @@
 
 package explicit.rewards;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.function.Function;
 
+import explicit.ListNestedSimple;
+import explicit.ListSimple;
 import explicit.Model;
 import explicit.NondetModel;
 import explicit.Product;
@@ -44,9 +44,9 @@ public class MDPRewardsSimple<Value> extends RewardsExplicit<Value> implements M
 	/** Number of states */
 	protected int numStates;
 	/** State rewards */
-	protected List<Value> stateRewards;
+	protected ListSimple<Value> stateRewards;
 	/** Transition rewards */
-	protected List<List<Value>> transRewards;
+	protected ListNestedSimple<Value> transRewards;
 
 	/**
 	 * Constructor: all zero rewards.
@@ -55,9 +55,8 @@ public class MDPRewardsSimple<Value> extends RewardsExplicit<Value> implements M
 	public MDPRewardsSimple(int numStates)
 	{
 		this.numStates = numStates;
-		// Initially lists are just null (denoting all 0)
-		stateRewards = null;
-		transRewards = null;
+		stateRewards = new ListSimple<>(getEvaluator().zero(), getEvaluator()::isZero);
+		transRewards = new ListNestedSimple<>(getEvaluator().zero(), getEvaluator()::isZero);
 	}
 
 	/**
@@ -68,32 +67,8 @@ public class MDPRewardsSimple<Value> extends RewardsExplicit<Value> implements M
 	{
 		setEvaluator(rews.getEvaluator());
 		numStates = rews.numStates;
-		if (rews.stateRewards == null) {
-			stateRewards = null;
-		} else {
-			stateRewards = new ArrayList<Value>(numStates);
-			for (int i = 0; i < numStates; i++) {
-				stateRewards.add(rews.stateRewards.get(i));
-			}
-		}
-		if (rews.transRewards == null) {
-			transRewards = null;
-		} else {
-			transRewards = new ArrayList<List<Value>>(numStates);
-			for (int i = 0; i < numStates; i++) {
-				List<Value> list = rews.transRewards.get(i);
-				if (list == null) {
-					transRewards.add(null);
-				} else {
-					int n = list.size();
-					List<Value> list2 = new ArrayList<>(n);
-					transRewards.add(list2);
-					for (int j = 0; j < n; j++) {
-						list2.add(list.get(j));
-					}
-				}
-			}
-		}
+		stateRewards = new ListSimple<>(rews.stateRewards);
+		transRewards = new ListNestedSimple<>(rews.transRewards);
 	}
 
 	/**
@@ -130,20 +105,18 @@ public class MDPRewardsSimple<Value> extends RewardsExplicit<Value> implements M
 	{
 		setEvaluator(eval);
 		numStates = model.getNumStates();
+		stateRewards = new ListSimple<>(eval.zero(), eval::isZero);
 		if (rews.hasStateRewards()) {
-			stateRewards = new ArrayList<Value>(numStates);
-			for (int i = 0; i < numStates; i++) {
-				stateRewards.add(rewMap.apply(rews.getStateReward(i)));
+			for (int s = numStates; s >= 0; s--) {
+				stateRewards.setValue(s, rewMap.apply(rews.getStateReward(s)));
 			}
 		}
+		transRewards = new ListNestedSimple<>(eval.zero(), eval::isZero);
 		if (rews.hasTransitionRewards()) {
-			transRewards = new ArrayList<>(numStates);
-			for (int i = 0; i < numStates; i++) {
-				int numChoices = model.getNumChoices(i);
-				List<Value> list = new ArrayList<>(numChoices);
-				transRewards.add(list);
-				for (int j = 0; j < numChoices; j++) {
-					list.add(rewMap.apply(rews.getTransitionReward(i, j)));
+			for (int s = numStates; s >= 0; s--) {
+				int numChoices = model.getNumChoices(s);
+				for (int j = numChoices; j >= 0; j--) {
+					transRewards.setValue(s, j, rewMap.apply(rews.getTransitionReward(s, j)));
 				}
 			}
 		}
@@ -156,14 +129,7 @@ public class MDPRewardsSimple<Value> extends RewardsExplicit<Value> implements M
 	 */
 	public void setStateReward(int s, Value r)
 	{
-		// If no rewards array created yet, create it
-		if (stateRewards == null) {
-			stateRewards = new ArrayList<Value>(numStates);
-			for (int j = 0; j < numStates; j++)
-				stateRewards.add(getEvaluator().zero());
-		}
-		// Set reward
-		stateRewards.set(s, r);
+		stateRewards.setValue(s, r);
 	}
 
 	/**
@@ -179,29 +145,7 @@ public class MDPRewardsSimple<Value> extends RewardsExplicit<Value> implements M
 	 */
 	public void setTransitionReward(int s, int i, Value r)
 	{
-		List<Value> list;
-		// If no rewards array created yet, create it
-		if (transRewards == null) {
-			transRewards = new ArrayList<List<Value>>(numStates);
-			for (int j = 0; j < numStates; j++)
-				transRewards.add(null);
-		}
-		// If no rewards for state s yet, create list
-		if (transRewards.get(s) == null) {
-			list = new ArrayList<Value>();
-			transRewards.set(s, list);
-		} else {
-			list = transRewards.get(s);
-		}
-		// If list not big enough, extend
-		int n = i - list.size() + 1;
-		if (n > 0) {
-			for (int j = 0; j < n; j++) {
-				list.add(getEvaluator().zero());
-			}
-		}
-		// Set reward
-		list.set(i, r);
+		transRewards.setValue(s, i, r);
 	}
 
 	/**
@@ -218,9 +162,7 @@ public class MDPRewardsSimple<Value> extends RewardsExplicit<Value> implements M
 	public void clearRewards(int s)
 	{
 		setStateReward(s, getEvaluator().zero());
-		if (transRewards != null && transRewards.size() > s) {
-			transRewards.set(s, null);
-		}
+		transRewards.clear(s);
 	}
 
 	// Accessors
@@ -228,20 +170,13 @@ public class MDPRewardsSimple<Value> extends RewardsExplicit<Value> implements M
 	@Override
 	public Value getStateReward(int s)
 	{
-		if (stateRewards == null)
-			return getEvaluator().zero();
-		return stateRewards.get(s);
+		return stateRewards.getValue(s);
 	}
 
 	@Override
 	public Value getTransitionReward(int s, int i)
 	{
-		List<Value> list;
-		if (transRewards == null || (list = transRewards.get(s)) == null)
-			return getEvaluator().zero();
-		if (list.size() <= i)
-			return getEvaluator().zero();
-		return list.get(i);
+		return transRewards.getValue(s, i);
 	}
 
 	// Converters
@@ -253,20 +188,14 @@ public class MDPRewardsSimple<Value> extends RewardsExplicit<Value> implements M
 		int numStatesProd = modelProd.getNumStates();		
 		MDPRewardsSimple<Value> rewardsProd = new MDPRewardsSimple<>(numStatesProd);
 		rewardsProd.setEvaluator(getEvaluator());
-		if (stateRewards != null) {
+		if (!stateRewards.allZero()) {
 			for (int s = 0; s < numStatesProd; s++) {
-				rewardsProd.setStateReward(s, stateRewards.get(product.getModelState(s)));
+				rewardsProd.setStateReward(s, stateRewards.getValue(product.getModelState(s)));
 			}
 		}
-		if (transRewards != null) {
+		if (!transRewards.allZero()) {
 			for (int s = 0; s < numStatesProd; s++) {
-				List<Value> list = transRewards.get(product.getModelState(s));
-				if (list != null) {
-					int numChoices = list.size();
-					for (int i = 0; i < numChoices; i++) {
-						rewardsProd.setTransitionReward(s, i, list.get(i));
-					}
-				}
+				rewardsProd.transRewards.copyFrom(s, transRewards, product.getModelState(s));
 			}
 		}
 		return rewardsProd;
@@ -281,12 +210,12 @@ public class MDPRewardsSimple<Value> extends RewardsExplicit<Value> implements M
 	@Override
 	public boolean hasStateRewards()
 	{
-		return stateRewards != null;
+		return !stateRewards.allZero();
 	}
 
 	@Override
 	public boolean hasTransitionRewards()
 	{
-		return transRewards != null;
+		return !transRewards.allZero();
 	}
 }
