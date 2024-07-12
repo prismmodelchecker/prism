@@ -44,7 +44,7 @@ public interface Rewards<Value>
 
 	/**
 	 * Returns true if this reward structure has state rewards.
-	 * This method can sometimes return true even if there are some,
+	 * This method can sometimes return true even if there are none,
 	 * but a value of false always indicates that none are present.
 	 */
 	public default boolean hasStateRewards()
@@ -55,7 +55,7 @@ public interface Rewards<Value>
 
 	/**
 	 * Returns true if this reward structure has transition rewards.
-	 * This method can sometimes return true even if there are some,
+	 * This method can sometimes return true even if there are none,
 	 * but a value of false always indicates that none are present.
 	 */
 	public default boolean hasTransitionRewards()
