@@ -29,13 +29,17 @@ package explicit.rewards;
 import explicit.ListNestedSimple;
 import explicit.ListSimple;
 import explicit.Model;
+import explicit.NondetModel;
 import explicit.Product;
+import prism.Evaluator;
+
+import java.util.function.Function;
 
 /**
  * Simple explicit-state storage of rewards for a model.
  * Like the related class *Simple classes, this is not especially efficient, but mutable.
  */
-public class RewardsSimple<Value> extends RewardsExplicit<Value> implements MDPRewards<Value>, MCRewards<Value>
+public class RewardsSimple<Value> extends RewardsExplicit<Value>
 {
 	/** Number of states */
 	protected int numStates;
@@ -67,6 +71,40 @@ public class RewardsSimple<Value> extends RewardsExplicit<Value> implements MDPR
 		transRewards = new ListNestedSimple<>(rews.transRewards);
 	}
 
+	/**
+	 * Copy constructor, mapping reward values using the provided function.
+	 * Since the type changes (T -> Value), an Evaluator for Value must be given.
+	 * @param rews Rewards to copy
+	 * @param model Associated model (needed for sizes)
+	 * @param rewMap Reward value map
+	 * @param eval Evaluator for Value
+	 */
+	public <T> RewardsSimple(Rewards<T> rews, Model<?> model, Function<? super T, ? extends Value> rewMap, Evaluator<Value> eval)
+	{
+		setEvaluator(eval);
+		numStates = model.getNumStates();
+		stateRewards = new ListSimple<>(eval.zero(), eval::isZero);
+		if (rews.hasStateRewards()) {
+			for (int s = numStates; s >= 0; s--) {
+				stateRewards.setValue(s, rewMap.apply(rews.getStateReward(s)));
+			}
+		}
+		transRewards = new ListNestedSimple<>(eval.zero(), eval::isZero);
+		if (rews.hasTransitionRewards()) {
+			for (int s = numStates; s >= 0; s--) {
+				int n;
+				if (model.getModelType().nondeterministic()) {
+					n = ((NondetModel<?>) model).getNumChoices(s);
+				} else {
+					n = model.getNumTransitions(s);
+				}
+				for (int j = n; j >= 0; j--) {
+					transRewards.setValue(s, j, rewMap.apply(rews.getTransitionReward(s, j)));
+				}
+			}
+		}
+	}
+
 	// Mutators
 
 	/**
@@ -78,27 +116,11 @@ public class RewardsSimple<Value> extends RewardsExplicit<Value> implements MDPR
 	}
 
 	/**
-	 * Add {@code r} to the state reward for state {@code s}.
-	 */
-	public void addToStateReward(int s, Value r)
-	{
-		setStateReward(s, getEvaluator().add(getStateReward(s), r));
-	}
-
-	/**
 	 * Set the transition reward with index {@code i} of state {@code s} to {@code r}.
 	 */
 	public void setTransitionReward(int s, int i, Value r)
 	{
 		transRewards.setValue(s, i, r);
-	}
-
-	/**
-	 * Add {@code r} to the transition reward with index {@code i} of state {@code s}.
-	 */
-	public void addToTransitionReward(int s, int i, Value r)
-	{
-		setTransitionReward(s, i, getEvaluator().add(getTransitionReward(s, i), r));
 	}
 
 	/**

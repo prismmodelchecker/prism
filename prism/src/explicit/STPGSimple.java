@@ -289,22 +289,21 @@ public class STPGSimple<Value> extends MDPSimple<Value> implements STPG<Value>
 	{
 		int s;
 		boolean min = false;
-		MDPRewards<Double> mdpRewards = rewards.buildMDPRewards();
 		// Loop depends on subset/complement arguments
 		if (subset == null) {
 			for (s = 0; s < numStates; s++) {
 				min = (getPlayer(s) == 0) ? min1 : min2;
-				result[s] = mvMultRewMinMaxSingle(s, vect, mdpRewards, min, adv, 1.0);
+				result[s] = mvMultRewMinMaxSingle(s, vect, rewards, min, adv, 1.0);
 			}
 		} else if (complement) {
 			for (s = subset.nextClearBit(0); s < numStates; s = subset.nextClearBit(s + 1)) {
 				min = (getPlayer(s) == 0) ? min1 : min2;
-				result[s] = mvMultRewMinMaxSingle(s, vect, mdpRewards, min, adv, 1.0);
+				result[s] = mvMultRewMinMaxSingle(s, vect, rewards, min, adv, 1.0);
 			}
 		} else {
 			for (s = subset.nextSetBit(0); s >= 0; s = subset.nextSetBit(s + 1)) {
 				min = (getPlayer(s) == 0) ? min1 : min2;
-				result[s] = mvMultRewMinMaxSingle(s, vect, mdpRewards, min, adv, 1.0);
+				result[s] = mvMultRewMinMaxSingle(s, vect, rewards, min, adv, 1.0);
 			}
 		}
 	}
@@ -312,17 +311,15 @@ public class STPGSimple<Value> extends MDPSimple<Value> implements STPG<Value>
 	@Override
 	public double mvMultRewMinMaxSingle(int s, double vect[], STPGRewards<Double> rewards, boolean min1, boolean min2, int adv[])
 	{
-		MDPRewards<Double> mdpRewards = rewards.buildMDPRewards();
 		boolean min = (getPlayer(s) == 0) ? min1 : min2;
-		return mvMultRewMinMaxSingle(s, vect, mdpRewards, min, adv);
+		return mvMultRewMinMaxSingle(s, vect, rewards, min, adv);
 	}
 
 	@Override
 	public List<Integer> mvMultRewMinMaxSingleChoices(int s, double vect[], STPGRewards<Double> rewards, boolean min1, boolean min2, double val)
 	{
-		MDPRewards<Double> mdpRewards = rewards.buildMDPRewards();
 		boolean min = (getPlayer(s) == 0) ? min1 : min2;
-		return mvMultRewMinMaxSingleChoices(s, vect, mdpRewards, min, val);
+		return mvMultRewMinMaxSingleChoices(s, vect, rewards, min, val);
 	}
 
 	@Override
@@ -330,23 +327,22 @@ public class STPGSimple<Value> extends MDPSimple<Value> implements STPG<Value>
 	{
 		int s;
 		boolean min = false;
-		MDPRewards<Double> mdpRewards = rewards.buildMDPRewards();
 		// Loop depends on subset/complement arguments
 		if (subset == null) {
 			for (s = 0; s < numStates; s++) {
 				min = (getPlayer(s) == 0) ? min1 : min2;
-				result[s] = mvMultRewMinMaxSingle(s, vect, mdpRewards, min, adv, disc);
+				result[s] = mvMultRewMinMaxSingle(s, vect, rewards, min, adv, disc);
 			}
 		} else if (complement) {
 			for (s = subset.nextClearBit(0); s < numStates; s = subset.nextClearBit(s + 1)) {
 				min = (getPlayer(s) == 0) ? min1 : min2;
-				result[s] = mvMultRewMinMaxSingle(s, vect, mdpRewards, min, adv, disc);
+				result[s] = mvMultRewMinMaxSingle(s, vect, rewards, min, adv, disc);
 			}
 		} else {
 			for (s = subset.nextSetBit(0); s >= 0; s = subset.nextSetBit(s + 1)) {
 				min = (getPlayer(s) == 0) ? min1 : min2;
 				//System.out.printf("s: %s, min1: %s, min2: %s, min: %s, player: %d\n", s, min1, min2, min, getPlayer(s));
-				result[s] = mvMultRewMinMaxSingle(s, vect, mdpRewards, min, adv, disc);
+				result[s] = mvMultRewMinMaxSingle(s, vect, rewards, min, adv, disc);
 			}
 		}
 	}

@@ -26,12 +26,13 @@
 
 package explicit.rewards;
 
+import explicit.Product;
 import prism.Evaluator;
 
 /**
- * Base class for reward classes.
+ * Base class for mutable reward classes.
  */
-public abstract class RewardsExplicit<Value> implements Rewards<Value>
+public abstract class RewardsExplicit<Value> implements Rewards<Value>, MCRewards<Value>, MDPRewards<Value>, STPGRewards<Value>
 {
 	/** Evaluator for manipulating reward values stored here (of type {@code Value}) */
 	@SuppressWarnings("unchecked")
@@ -47,6 +48,38 @@ public abstract class RewardsExplicit<Value> implements Rewards<Value>
 		this.eval = eval;
 	}
 
+	/**
+	 * Set the state reward for state {@code s} to {@code r}.
+	 */
+	public void setStateReward(int s, Value r)
+	{
+		throw new UnsupportedOperationException("Setting of state rewards not supported");
+	}
+
+	/**
+	 * Add {@code r} to the state reward for state {@code s}.
+	 */
+	public void addToStateReward(int s, Value r)
+	{
+		setStateReward(s, getEvaluator().add(getStateReward(s), r));
+	}
+
+	/**
+	 * Set the transition reward with index {@code i} of state {@code s} to {@code r}.
+	 */
+	public void setTransitionReward(int s, int i, Value r)
+	{
+		throw new UnsupportedOperationException("Setting of transition rewards not supported");
+	}
+
+	/**
+	 * Add {@code r} to the transition reward with index {@code i} of state {@code s}.
+	 */
+	public void addToTransitionReward(int s, int i, Value r)
+	{
+		setTransitionReward(s, i, getEvaluator().add(getTransitionReward(s, i), r));
+	}
+
 	// Accessors
 
 	@Override
@@ -54,4 +87,7 @@ public abstract class RewardsExplicit<Value> implements Rewards<Value>
 	{
 		return eval;
 	}
+
+	@Override
+	public abstract RewardsExplicit<Value> liftFromModel(Product<?> product);
 }

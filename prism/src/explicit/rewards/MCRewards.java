@@ -26,27 +26,14 @@
 
 package explicit.rewards;
 
-import explicit.Model;
 import explicit.Product;
 
 /**
  * Classes that provide (read) access to explicit-state rewards for a Markov chain (DTMC/CTMC).
+ * This is no longer needed - just use {@link Rewards}.
  */
 public interface MCRewards<Value> extends Rewards<Value>
 {
-	/**
-	 * Get the state reward for state {@code s}.
-	 */
-	public abstract Value getStateReward(int s);
-
-	/**
-	 * Get the reward for the {@code j}th transition from state {@code s}.
-	 */
-	public default Value getTransitionReward(int s, int j)
-	{
-		return getEvaluator().zero();
-	}
-
 	@Override
-	public MCRewards<Value> liftFromModel(Product<?> product);
+	MCRewards<Value> liftFromModel(Product<?> product);
 }
