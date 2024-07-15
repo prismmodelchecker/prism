@@ -1,0 +1,5 @@
+# Reward structure "r2"
+# Transition rewards
+4 6 2
+2 0 1 2
+3 0 3 3

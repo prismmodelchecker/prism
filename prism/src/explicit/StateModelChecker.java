@@ -41,8 +41,6 @@ import java.util.TreeSet;
 import java.util.Vector;
 
 import explicit.rewards.ConstructRewards;
-import explicit.rewards.MCRewards;
-import explicit.rewards.MDPRewards;
 import explicit.rewards.Rewards;
 import io.DotExporter;
 import io.DRNExporter;
@@ -1641,22 +1639,8 @@ public class StateModelChecker extends PrismComponent
 		}
 
 		Rewards<Value> modelRewards = constructRewards(model, r);
-		PrismExplicitExporter exporter = new PrismExplicitExporter(exportOptions);
-		switch (model.getModelType()) {
-			case DTMC:
-			case CTMC:
-			case IDTMC:
-				exporter.exportMCStateRewards(model, (MCRewards<Value>) modelRewards, rewardGen.getRewardStructName(r), out);
-				break;
-			case MDP:
-			case POMDP:
-			case STPG:
-			case IMDP:
-				exporter.exportMDPStateRewards(model, (MDPRewards<Value>) modelRewards, rewardGen.getRewardStructName(r), out);
-				break;
-			default:
-				throw new PrismNotSupportedException("Explicit engine does not yet export state rewards for " + model.getModelType() + "s");
-		}
+		PrismExplicitExporter<Value> exporter = new PrismExplicitExporter<>(exportOptions);
+		exporter.exportStateRewards(model, modelRewards, rewardGen.getRewardStructName(r), out);
 	}
 
 	/**
@@ -1673,22 +1657,8 @@ public class StateModelChecker extends PrismComponent
 		}
 
 		Rewards<Value> modelRewards = constructRewards(model, r);
-		PrismExplicitExporter exporter = new PrismExplicitExporter(exportOptions);
-		switch (model.getModelType()) {
-			case DTMC:
-			case CTMC:
-			case IDTMC:
-				exporter.exportMCTransRewards(model, (MCRewards<Value>) modelRewards, rewardGen.getRewardStructName(r), out);
-				break;
-			case MDP:
-			case POMDP:
-			case STPG:
-			case IMDP:
-				exporter.exportMDPTransRewards((NondetModel<Value>) model, (MDPRewards<Value>) modelRewards, rewardGen.getRewardStructName(r), out);
-				break;
-			default:
-				throw new PrismNotSupportedException("Explicit engine does not yet export transition rewards for " + model.getModelType() + "s");
-		}
+		PrismExplicitExporter<Value> exporter = new PrismExplicitExporter<>(exportOptions);
+		exporter.exportTransRewards(model, modelRewards, rewardGen.getRewardStructName(r), out);
 	}
 
 	/**

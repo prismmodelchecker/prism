@@ -26,32 +26,16 @@
 
 package io;
 
-import explicit.DTMC;
-import explicit.LTS;
-import explicit.MDP;
 import explicit.Model;
-import explicit.NondetModel;
 import explicit.PartiallyObservableModel;
-import explicit.SuccessorsIterator;
-import explicit.rewards.MCRewards;
-import explicit.rewards.MDPRewards;
 import parser.State;
 import parser.VarList;
-import prism.Evaluator;
-import io.ModelExportOptions;
 import prism.ModelInfo;
-import prism.ModelType;
-import prism.Pair;
-import prism.Prism;
 import prism.PrismException;
 import prism.PrismLog;
 
 import java.util.BitSet;
-import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.TreeSet;
 
 /**
  * Class to manage export of built models to Matlab format.

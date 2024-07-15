@@ -32,8 +32,7 @@ import explicit.Model;
 import explicit.NondetModel;
 import explicit.PartiallyObservableModel;
 import explicit.SuccessorsIterator;
-import explicit.rewards.MCRewards;
-import explicit.rewards.MDPRewards;
+import explicit.rewards.Rewards;
 import parser.State;
 import parser.VarList;
 import prism.Evaluator;
@@ -116,63 +115,32 @@ public class PrismExplicitExporter<Value> extends Exporter<Value>
 	}
 
 	/**
-	 * Export (non-zero) state rewards from an MCRewards object.
+	 * Export (non-zero) state rewards from a Rewards object.
 	 * @param model The model
-	 * @param mcRewards The rewards
+	 * @param rewards The rewards
 	 * @param rewardStructName The name of the reward structure
 	 * @param out Where to export
 	 */
-	public void exportMCStateRewards(Model<Value> model, MCRewards<Value> mcRewards, String rewardStructName, PrismLog out) throws PrismException
+	public void exportStateRewards(Model<Value> model, Rewards<Value> rewards, String rewardStructName, PrismLog out) throws PrismException
 	{
 		// Get model info and exportOptions
 		setEvaluator(model.getEvaluator());
-		Evaluator<Value> evalRewards = mcRewards.getEvaluator();
+		Evaluator<Value> evalRewards = rewards.getEvaluator();
 		boolean noexportheaders = !getModelExportOptions().getPrintHeaders();
-
 		int numStates = model.getNumStates();
+		// Count non-zero rewards
 		int nonZeroRews = 0;
 		for (int s = 0; s < numStates; s++) {
-			Value d = mcRewards.getStateReward(s);
+			Value d = rewards.getStateReward(s);
 			if (!evalRewards.isZero(d)) {
 				nonZeroRews++;
 			}
 		}
+		// Output non-zero rewards
 		printStateRewardsHeader(out, rewardStructName, noexportheaders);
 		out.println(numStates + " " + nonZeroRews);
 		for (int s = 0; s < numStates; s++) {
-			Value d = mcRewards.getStateReward(s);
-			if (!evalRewards.isZero(d)) {
-				out.println(s + " " + formatValue(d, evalRewards));
-			}
-		}
-	}
-
-	/**
-	 * Export (non-zero) state rewards from an MDPRewards object.
-	 * @param model The model
-	 * @param mdpRewards The rewards
-	 * @param rewardStructName The name of the reward structure
-	 * @param out Where to export
-	 */
-	public void exportMDPStateRewards(Model<Value> model, MDPRewards<Value> mdpRewards, String rewardStructName, PrismLog out) throws PrismException
-	{
-		// Get model info and exportOptions
-		setEvaluator(model.getEvaluator());
-		Evaluator<Value> evalRewards = mdpRewards.getEvaluator();
-		boolean noexportheaders = !getModelExportOptions().getPrintHeaders();
-
-		int numStates = model.getNumStates();
-		int nonZeroRews = 0;
-		for (int s = 0; s < numStates; s++) {
-			Value d = mdpRewards.getStateReward(s);
-			if (!evalRewards.isZero(d)) {
-				nonZeroRews++;
-			}
-		}
-		printStateRewardsHeader(out, rewardStructName, noexportheaders);
-		out.println(numStates + " " + nonZeroRews);
-		for (int s = 0; s < numStates; s++) {
-			Value d = mdpRewards.getStateReward(s);
+			Value d = rewards.getStateReward(s);
 			if (!evalRewards.isZero(d)) {
 				out.println(s + " " + formatValue(d, evalRewards));
 			}
@@ -205,71 +173,58 @@ public class PrismExplicitExporter<Value> extends Exporter<Value>
 	}
 
 	/**
-	 * Export (non-zero) transition rewards from an MDPRewards object.
+	 * Export (non-zero) transition rewards from a Rewards object.
 	 * @param model The model
-	 * @param mcRewards The rewards
+	 * @param rewards The rewards
 	 * @param rewardStructName The name of the reward structure
 	 * @param out Where to export
 	 */
-	public void exportMCTransRewards(Model<Value> model, MCRewards<Value> mcRewards, String rewardStructName, PrismLog out) throws PrismException
+	public void exportTransRewards(Model<Value> model, Rewards<Value> rewards, String rewardStructName, PrismLog out) throws PrismException
 	{
 		// Get model info and exportOptions
 		setEvaluator(model.getEvaluator());
-		Evaluator<Value> evalRewards = mcRewards.getEvaluator();
+		Evaluator<Value> evalRewards = rewards.getEvaluator();
 		boolean noexportheaders = !getModelExportOptions().getPrintHeaders();
-
+		boolean nondet = model.getModelType().nondeterministic();
 		int numStates = model.getNumStates();
+		// Count non-zero rewards
 		int nonZeroRews = 0;
 		for (int s = 0; s < numStates; s++) {
-			nonZeroRews += Math.toIntExact(IteratorTools.count(getSortedTransitionRewardsIterator(((DTMC<Value>) model), mcRewards, s,true), v -> !evalRewards.isZero(v.value)));
-		}
-		printTransRewardsHeader(out, rewardStructName, noexportheaders);
-		out.println(numStates + " " + nonZeroRews);
-		for (int s = 0; s < numStates; s++) {
-			for (Transition<Value> transition : getSortedTransitionRewardsIterator(((DTMC<Value>) model), mcRewards, s,true)) {
-				if (!evalRewards.isZero(transition.value)) {
-					out.println(s + " " + transition.target + " " + formatValue(transition.value, evalRewards));
+			if (nondet) {
+				int numChoices = ((NondetModel<Value>) model).getNumChoices();
+				for (int j = 0; j < numChoices; j++) {
+					Value d = rewards.getTransitionReward(s, j);
+					if (!evalRewards.isZero(d)) {
+						nonZeroRews += ((NondetModel<Value>) model).getNumTransitions(s, j);
+					}
 				}
+			} else {
+				nonZeroRews += Math.toIntExact(IteratorTools.count(getSortedTransitionRewardsIterator(((DTMC<Value>) model), rewards, s,true), v -> !evalRewards.isZero(v.value)));
 			}
 		}
-	}
-
-	/**
-	 * Export (non-zero) transition rewards from an MDPRewards object.
-	 * @param model The model
-	 * @param mdpRewards The rewards
-	 * @param rewardStructName The name of the reward structure
-	 * @param out Where to export
-	 */
-	public void exportMDPTransRewards(NondetModel<Value> model, MDPRewards<Value> mdpRewards, String rewardStructName, PrismLog out) throws PrismException
-	{
-		// Get model info and exportOptions
-		setEvaluator(model.getEvaluator());
-		Evaluator<Value> evalRewards = mdpRewards.getEvaluator();
-		boolean noexportheaders = !getModelExportOptions().getPrintHeaders();
-
-		int numStates = model.getNumStates();
-		int numChoicesAll = model.getNumChoices();
-		int nonZeroRews = 0;
-		for (int s = 0; s < numStates; s++) {
-			int numChoices = model.getNumChoices();
-			for (int j = 0; j < numChoices; j++) {
-				Value d = mdpRewards.getTransitionReward(s, j);
-				if (!evalRewards.isZero(d)) {
-					nonZeroRews += model.getNumTransitions(s, j);
-				}
-			}
-		}
+		// Output non-zero rewards
 		printTransRewardsHeader(out, rewardStructName, noexportheaders);
-		out.println(numStates + " " + numChoicesAll + " " + nonZeroRews);
+		out.print(numStates);
+		if (nondet) {
+			out.print(" " + ((NondetModel<Value>) model).getNumChoices());
+		}
+		out.println(" " + nonZeroRews);
 		for (int s = 0; s < numStates; s++) {
-			int numChoices = model.getNumChoices();
-			for (int j = 0; j < numChoices; j++) {
-				Value d = mdpRewards.getTransitionReward(s, j);
-				if (!evalRewards.isZero(d)) {
-					for (SuccessorsIterator succ = model.getSuccessors(s, j); succ.hasNext();) {
-						int s2 = succ.nextInt();
-						out.println(s + " " + j + " " + s2 + " " + formatValue(d, evalRewards));
+			if (nondet) {
+				int numChoices = ((NondetModel<Value>) model).getNumChoices();
+				for (int j = 0; j < numChoices; j++) {
+					Value d = rewards.getTransitionReward(s, j);
+					if (!evalRewards.isZero(d)) {
+						for (SuccessorsIterator succ = ((NondetModel<Value>) model).getSuccessors(s, j); succ.hasNext();) {
+							int s2 = succ.nextInt();
+							out.println(s + " " + j + " " + s2 + " " + formatValue(d, evalRewards));
+						}
+					}
+				}
+			} else {
+				for (Transition<Value> transition : getSortedTransitionRewardsIterator(((DTMC<Value>) model), rewards, s, true)) {
+					if (!evalRewards.isZero(transition.value)) {
+						out.println(s + " " + transition.target + " " + formatValue(transition.value, evalRewards));
 					}
 				}
 			}

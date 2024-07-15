@@ -31,8 +31,6 @@ import explicit.LTS;
 import explicit.MDP;
 import explicit.Model;
 import explicit.NondetModel;
-import explicit.rewards.MCRewards;
-import explicit.rewards.MDPRewards;
 import explicit.rewards.Rewards;
 import prism.Evaluator;
 import prism.Pair;
@@ -147,7 +145,7 @@ public class Exporter<Value>
 	 * @param s The state
 	 * @param includeActions Whether to include actions
 	 */
-	public Iterable<Transition<Value>> getSortedTransitionRewardsIterator(DTMC<Value> model, MCRewards<Value> mcRewards, int s, boolean includeActions)
+	public Iterable<Transition<Value>> getSortedTransitionRewardsIterator(DTMC<Value> model, Rewards<Value> rewards, int s, boolean includeActions)
 	{
 		TreeSet<Transition<Value>> sorted = new TreeSet<>(Transition::compareTo);
 		Object action = null;
@@ -158,7 +156,7 @@ public class Exporter<Value>
 			if (includeActions) {
 				action = e.getValue().second;
 			}
-			sorted.add(new Transition<>(e.getKey(), mcRewards.getTransitionReward(s, k), action));
+			sorted.add(new Transition<>(e.getKey(), rewards.getTransitionReward(s, k), action));
 			k++;
 		}
 		return sorted;
@@ -173,32 +171,24 @@ public class Exporter<Value>
 	{
 		int numRewards = allRewards.size();
 		RewardTuple<Value> tuple = new RewardTuple<>(numRewards);
-		for (int r = 0; r < numRewards; r++) {
-			Rewards<Value> rewards = allRewards.get(r);
-			if (rewards instanceof MCRewards) {
-				tuple.add(((MCRewards<Value>) rewards).getStateReward(s));
-			} else if (rewards instanceof MDPRewards) {
-				tuple.add(((MDPRewards<Value>) rewards).getStateReward(s));
-			}
+		for (Rewards<Value> rewards : allRewards) {
+			tuple.add(rewards.getStateReward(s));
 		}
 		return tuple;
 	}
 
 	/**
-	 * Get a tuple comprising the transition rewards for choice {@code j} of state {@code s}.
+	 * Get a tuple comprising the transition rewards for index {@code j} of state {@code s}.
 	 * @param allRewards The list of rewards
 	 * @param s The state
-	 * @param j The choice
+	 * @param j The choice/transition index
 	 */
 	protected RewardTuple<Value> getTransitionRewardTuple(List<Rewards<Value>> allRewards, int s, int j)
 	{
 		int numRewards = allRewards.size();
 		RewardTuple<Value> tuple = new RewardTuple<>(numRewards);
-		for (int r = 0; r < numRewards; r++) {
-			Rewards<Value> rewards = allRewards.get(r);
-			if (rewards instanceof MDPRewards) {
-				tuple.add(((MDPRewards<Value>) rewards).getTransitionReward(s, j));
-			}
+		for (Rewards<Value> rewards : allRewards) {
+			tuple.add(rewards.getTransitionReward(s, j));
 		}
 		return tuple;
 	}
