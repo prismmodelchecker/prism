@@ -1,0 +1,2 @@
+-exporttransdot dtmc_pctl.prism.dot -ex
+-exporttransdotstates dtmc_pctl.prism.sta.dot -ex
