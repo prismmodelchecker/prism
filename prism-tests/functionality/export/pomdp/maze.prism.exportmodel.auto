@@ -9,3 +9,4 @@
 -exportmodel maze.prism.sta
 -exportmodel maze.prism.srew
 -exportmodel maze.prism.trew
+-exportmodel maze.prism.obs

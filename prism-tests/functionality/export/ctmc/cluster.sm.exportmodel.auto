@@ -2,25 +2,24 @@
 
 # Export all model info in different formats
 
--exportmodelprecision 16 -exportmodel cluster.sm.all -noexportheaders
--exportmodelprecision 16 -exportmodel cluster.sm.matlab.all:matlab
--exportmodelprecision 16 -exportmodel cluster.sm.rows.all:rows -noexportheaders
+-exportmodel cluster.sm.all
+-exportmodel cluster.sm.matlab.all:matlab
+-exportmodel cluster.sm.rows.all:rows
 
 # Export model info separately (for a few formats)
 
--exportmodelprecision 16 -exportmodel cluster.sm.tra
+-exportmodel cluster.sm.tra
 -exportmodel cluster.sm.lab
 -exportmodel cluster.sm.sta
--exportmodel cluster.sm.srew -noexportheaders
--exportmodel cluster.sm.trew -noexportheaders
+-exportmodel cluster.sm.srew
+-exportmodel cluster.sm.trew
 
-# Export model info separately (for a few formats) - explicit
+# Export model info - explicit engine
+
+-exportmodel cluster.sm.all:actions=false -ex
 
 -exportmodel cluster.sm.tra:actions=false -ex
 -exportmodel cluster.sm.sta -ex
 -exportmodel cluster.sm.lab -ex
--exportmodel cluster.sm.srew -ex -noexportheaders
--exportmodel cluster.sm.trew -ex -noexportheaders
-#-exportmodel cluster.sm.matlab.tra:matlab -ex
-#-exportmodel cluster.sm.matlab.sta:matlab -ex
--exportmodel cluster.sm.matlab.lab:matlab -ex
+-exportmodel cluster.sm.srew -ex
+-exportmodel cluster.sm.trew -ex

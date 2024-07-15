@@ -1,14 +1,11 @@
-# Reduce precision for some tests due to minor differences between the engines
-
 # Export all model info in different formats
 
--exportmodelprecision 16 -exportmodel robot.prism.all -noexportheaders
+-exportmodel robot.prism.all
 
-# Export model info separately (for a few formats) -explicit
+# Export model info separately (for a few formats)
 
 -exportmodel robot.prism.tra
 -exportmodel robot.prism.sta
 -exportmodel robot.prism.lab
--exportmodelprecision 16 -exportmodel robot.prism.srew -noexportheaders
--exportmodelprecision 16 -exportmodel robot.prism.header.srew
-#-exportmodel robot.prism.trew
+-exportmodel robot.prism.srew
+-exportmodel robot.prism.trew
