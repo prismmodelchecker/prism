@@ -301,6 +301,6 @@ public class ListNestedSimple<E>
 	@Override
 	public String toString()
 	{
-		return values.toString();
+		return values == null ? "[]" : values.toString();
 	}
 }

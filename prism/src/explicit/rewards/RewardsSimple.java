@@ -189,6 +189,6 @@ public class RewardsSimple<Value> extends RewardsExplicit<Value>
 	@Override
 	public String toString()
 	{
-		return "st: " + this.stateRewards + "; tr:" + this.transRewards;
+		return "st: " + this.stateRewards + "; tr: " + this.transRewards;
 	}
 }
