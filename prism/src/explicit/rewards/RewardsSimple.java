@@ -65,10 +65,10 @@ public class RewardsSimple<Value> extends RewardsExplicit<Value>
 	 */
 	public RewardsSimple(RewardsSimple<Value> rews)
 	{
-		setEvaluator(rews.getEvaluator());
 		numStates = rews.numStates;
 		stateRewards = new ListSimple<>(rews.stateRewards);
 		transRewards = new ListNestedSimple<>(rews.transRewards);
+		setEvaluator(rews.getEvaluator());
 	}
 
 	/**
@@ -81,7 +81,6 @@ public class RewardsSimple<Value> extends RewardsExplicit<Value>
 	 */
 	public <T> RewardsSimple(Rewards<T> rews, Model<?> model, Function<? super T, ? extends Value> rewMap, Evaluator<Value> eval)
 	{
-		setEvaluator(eval);
 		numStates = model.getNumStates();
 		stateRewards = new ListSimple<>(eval.zero(), eval::isZero);
 		if (rews.hasStateRewards()) {
@@ -103,9 +102,18 @@ public class RewardsSimple<Value> extends RewardsExplicit<Value>
 				}
 			}
 		}
+		setEvaluator(eval);
 	}
 
 	// Mutators
+
+	@Override
+	public void setEvaluator(Evaluator<Value> eval)
+	{
+		super.setEvaluator(eval);
+		stateRewards.setZero(getEvaluator().zero(), getEvaluator()::isZero);
+		transRewards.setZero(getEvaluator().zero(), getEvaluator()::isZero);
+	}
 
 	/**
 	 * Set the state reward for state {@code s} to {@code r}.
