@@ -47,6 +47,7 @@ import prism.PrismLog;
 import prism.PrismNotSupportedException;
 import prism.RewardGenerator;
 import symbolic.model.Model;
+import symbolic.model.ModelSymbolic;
 import symbolic.model.ModelVariablesDD;
 import symbolic.model.NondetModel;
 import symbolic.model.ProbModel;
@@ -142,7 +143,7 @@ public class ModelGenerator2MTBDD
 	/** build model */
 	private Model buildModel() throws PrismException
 	{
-		Model model = null;
+		ModelSymbolic model = null;
 		JDDNode tmp, tmp2;
 		JDDVars ddv;
 		int i;
@@ -210,9 +211,9 @@ public class ModelGenerator2MTBDD
 		// TODO: disable if not required?
 		model.setSynchs(synchs);
 		if (modelType != ModelType.MDP) {
-			model.setTransPerAction((JDDNode[]) transPerAction.toArray(new JDDNode[0]));
+			((ProbModel) model).setTransPerAction((JDDNode[]) transPerAction.toArray(new JDDNode[0]));
 		} else {
-			model.setTransActions(transActions);
+			((NondetModel) model).setTransActions(transActions);
 		}
 
 		// no need to do reachability

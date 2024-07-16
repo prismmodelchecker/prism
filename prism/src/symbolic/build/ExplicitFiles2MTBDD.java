@@ -49,6 +49,7 @@ import prism.PrismException;
 import prism.PrismLog;
 import prism.PrismNotSupportedException;
 import symbolic.model.Model;
+import symbolic.model.ModelSymbolic;
 import symbolic.model.ModelVariablesDD;
 import symbolic.model.NondetModel;
 import symbolic.model.ProbModel;
@@ -207,7 +208,7 @@ public class ExplicitFiles2MTBDD
 	/** build model */
 	private Model buildModel() throws PrismException
 	{
-		Model model = null;
+		ModelSymbolic model = null;
 		JDDNode tmp, tmp2;
 		JDDVars ddv;
 		int i;
@@ -291,9 +292,9 @@ public class ExplicitFiles2MTBDD
 		// TODO: disable if not required?
 		model.setSynchs(synchs);
 		if (modelType != ModelType.MDP) {
-			model.setTransPerAction((JDDNode[]) transPerAction.toArray(new JDDNode[0]));
+			((ProbModel) model).setTransPerAction((JDDNode[]) transPerAction.toArray(new JDDNode[0]));
 		} else {
-			model.setTransActions(transActions);
+			((NondetModel) model).setTransActions(transActions);
 		}
 
 		// do reachability (or not)
@@ -735,7 +736,7 @@ public class ExplicitFiles2MTBDD
 	}
 
 	/** Attach the computed label information to the model */
-	private void attachLabels(Model model) throws PrismNotSupportedException
+	private void attachLabels(ModelSymbolic model) throws PrismNotSupportedException
 	{
 		if (labelsDD == null)
 			return;

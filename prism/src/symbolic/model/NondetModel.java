@@ -26,14 +26,13 @@
 
 package symbolic.model;
 
-import java.io.*;
-import java.util.ArrayList;
-import java.util.Map.Entry;
-
-import jdd.*;
-import odd.*;
-import mtbdd.*;
-import parser.*;
+import jdd.JDD;
+import jdd.JDDNode;
+import jdd.JDDVars;
+import jdd.SanityJDD;
+import mtbdd.PrismMTBDD;
+import parser.Values;
+import parser.VarList;
 import parser.ast.Declaration;
 import parser.ast.DeclarationInt;
 import parser.ast.Expression;
@@ -41,153 +40,49 @@ import prism.ModelType;
 import prism.PrismException;
 import prism.PrismLog;
 import prism.PrismUtils;
-import sparse.*;
+import sparse.PrismSparse;
 
-/*
- * Class for MTBDD-based storage of a PRISM model that is an MDP.
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.util.ArrayList;
+import java.util.Map.Entry;
+
+/**
+ * Class for symbolic (BDD-based) representation of an MDP.
  */
-public class NondetModel extends ProbModel
+public class NondetModel extends ModelSymbolic
 {
-	// Extra info
-	protected double numChoices; // number of choices
+	// Extra (MT)BDDs and variables
 
-	// Extra dd stuff
-	protected JDDNode nondetMask; // mask for nondeterministic choices
-	protected JDDVars allDDSynchVars; // synch actions dd vars
-	protected JDDVars allDDSchedVars; // scheduler dd vars
-	protected JDDVars allDDChoiceVars; // local nondet choice dd vars
-	protected JDDVars allDDNondetVars; // all nondet dd vars (union of two above)
-	protected JDDNode transInd; // BDD for independent part of trans
-	protected JDDNode transSynch[]; // BDD for parts of trans from each action
-	protected JDDNode transReln; // BDD for the transition relation (no action encoding)
+	/** BDD (over row and nondet variables) representing a "mask"
+	 * for the nondeterministic choices, with a 0 where there is a
+	 * choice present, and a 1 where there is none.
+	 * Used for minimising over nondeterminism. */
+	protected JDDNode nondetMask;
+	/** The subset of nondeterminism DD variables encoding actions */
+	protected JDDVars allDDSynchVars;
+	/** The subset of nondeterminism DD variables encoding mddule scheduling */
+	protected JDDVars allDDSchedVars;
+	/** The subset of nondeterminism DD variables encoding local nondeterminism */
+	protected JDDVars allDDChoiceVars;
+	/** All the DD variables used to represent nondeterminism */
+	protected JDDVars allDDNondetVars;
+	/** BDD (over row and nondet variables) for choices that not action-labelled */
+	protected JDDNode transInd;
+	/** BDD (over row and nondet variables) for choices labelled with each action */
+	protected JDDNode transSynch[];
+	/** BDD for the transition relation (just state pairs) */
+	protected JDDNode transReln;
+	/** MTBDDs (over row and nondet DD variables) used to store the action
+	 * for each choice, as a 1-indexed action index for each state-choice pair. */
+	protected JDDNode transActions;
 
-	// accessor methods
+	// Extra statistics
 
-	@Override
-	public JDDNode getTransReln()
-	{
-		// First, compute the transition relation if it is not there
-		if (transReln == null) {
-			JDD.Ref(trans01);
-			transReln = JDD.ThereExists(trans01, allDDNondetVars);
-		}
-		return transReln;
-	}
+	/** Total number of choices */
+	protected double numChoices;
 
-	// type
-	public ModelType getModelType()
-	{
-		return ModelType.MDP;
-	}
-
-	public long getNumChoices()
-	{
-		return (numChoices > Long.MAX_VALUE) ? -1 : Math.round(numChoices);
-	}
-
-	public String getNumChoicesString()
-	{
-		return PrismUtils.bigIntToString(numChoices);
-	}
-
-	public JDDNode getNondetMask()
-	{
-		return nondetMask;
-	}
-
-	public JDDVars getAllDDSynchVars()
-	{
-		return allDDSynchVars;
-	}
-
-	public JDDVars getAllDDSchedVars()
-	{
-		return allDDSchedVars;
-	}
-
-	public JDDVars getAllDDChoiceVars()
-	{
-		return allDDChoiceVars;
-	}
-
-	public JDDVars getAllDDNondetVars()
-	{
-		return allDDNondetVars;
-	}
-
-	public JDDNode getTransInd()
-	{
-		return transInd;
-	}
-
-	public JDDNode[] getTransSynch()
-	{
-		return transSynch;
-	}
-
-	// additional useful methods to do with dd vars
-	public int getNumDDNondetVars()
-	{
-		return allDDNondetVars.n();
-	}
-
-	public int getNumDDVarsInTrans()
-	{
-		return allDDRowVars.n() * 2 + allDDNondetVars.n();
-	}
-
-	public String getTransName()
-	{
-		return "Transition matrix";
-	}
-
-	public String getTransSymbol()
-	{
-		return "S";
-	}
-
-	/**
-	 * Do all choices in in each state have a unique action label?
-	 */
-	public boolean areAllChoiceActionsUnique()
-	{
-		// Action labels
-		for (int i = 0; i < numSynchs; i++) {
-			JDD.Ref(transActions);
-			JDDNode tmp = JDD.Equals(transActions, i + 1);
-			tmp = JDD.SumAbstract(tmp, allDDNondetVars);
-			double max = JDD.FindMax(tmp);
-			JDD.Deref(tmp);
-			if (max > 1)
-				return false;
-		}
-		// Unlabelled choices
-		JDD.Ref(reach);
-		JDD.Ref(transActions);
-		JDD.Ref(nondetMask);
-		JDDNode tmp = JDD.And(reach, JDD.And(JDD.LessThanEquals(transActions, 0), JDD.Not(nondetMask)));
-		tmp = JDD.SumAbstract(tmp, allDDNondetVars);
-		double max = JDD.FindMax(tmp); 
-		JDD.Deref(tmp);
-		if (max > 1)
-			return false;
-		
-		return true;
-	}
-	
-	// set methods for things not set up in constructor
-
-	public void setTransInd(JDDNode transInd)
-	{
-		this.transInd = transInd;
-	}
-
-	public void setTransSynch(JDDNode[] transSynch)
-	{
-		this.transSynch = transSynch;
-	}
-
-	// constructor
+	// Constructor
 
 	public NondetModel(JDDNode tr, JDDNode s, JDDNode sr[], JDDNode trr[], String rsn[], JDDVars arv, JDDVars acv, JDDVars asyv, JDDVars asv, JDDVars achv,
 					   JDDVars andv, ModelVariablesDD mvdd, int nm, String[] mn, JDDVars[] mrv, JDDVars[] mcv, int nv, VarList vl, JDDVars[] vrv, JDDVars[] vcv, Values cv)
@@ -202,10 +97,39 @@ public class NondetModel extends ProbModel
 		transInd = null;
 		transSynch = null;
 		transReln = null;
+
+		// action label info (optional) is initially null
+		transActions = null;
 	}
 
-	// do reachability
+	// Mutators
 
+	/**
+	 * Set the MTBDDs (over row and nondet DD variables) used to store the action
+	 * for each choice, as a 1-indexed action index for each state-choice pair.
+	 */
+	public void setTransActions(JDDNode transActions)
+	{
+		this.transActions = transActions;
+	}
+
+	/**
+	 * Set the BDD (over row and nondet variables) for choices that not action-labelled
+	 */
+	public void setTransInd(JDDNode transInd)
+	{
+		this.transInd = transInd;
+	}
+
+	/**
+	 * Set the BDDs (over row and nondet variables) for choices labelled with each action
+	 */
+	public void setTransSynch(JDDNode[] transSynch)
+	{
+		this.transSynch = transSynch;
+	}
+
+	@Override
 	public void doReachability() throws PrismException
 	{
 		JDDNode tmp;
@@ -222,15 +146,7 @@ public class NondetModel extends ProbModel
 		setReach(reachable);
 	}
 
-	/**
-	 * Compute and store the set of reachable states,
-	 * where the parameter {@seed} provides an initial set of states
-	 * known to be reachable.
-	 * <br/>
-	 * Starts reachability computation from the union of {@code seed} and {@start}.
-	 * <br/>[ REFS: <i>result</i>, DEREFS: seed ]
-	 * @param seed set of states (over ddRowVars) that is known to be reachable
-	 */
+	@Override
 	public void doReachability(JDDNode seed) throws PrismException
 	{
 		JDDNode tmp;
@@ -255,14 +171,14 @@ public class NondetModel extends ProbModel
 		setReach(reachable);
 	}
 
-	// remove non-reachable states from various dds
-	// (and calculate num transitions, etc.)
-	// (and build mask)
-
+	@Override
 	public void filterReachableStates()
 	{
-		super.filterReachableStates();
+		// remove non-reachable states from various dds
+		// (and calculate num transitions, etc.)
+		// (and build mask)
 
+		super.filterReachableStates();
 		// also filter transInd/tranSynch DDs (if necessary)
 		if (transInd != null) {
 			JDD.Ref(reach);
@@ -277,7 +193,7 @@ public class NondetModel extends ProbModel
 			JDD.Ref(reach);
 			transReln = JDD.Apply(JDD.TIMES, reach, transReln);
 		}
-		
+
 		// build mask for nondeterminstic choices
 		// (and work out number of choices)
 		JDD.Ref(trans01);
@@ -289,6 +205,12 @@ public class NondetModel extends ProbModel
 		numChoices = JDD.GetNumMinterms(nondetMask, getNumDDRowVars() + getNumDDNondetVars());
 		JDD.Ref(reach);
 		nondetMask = JDD.And(JDD.Not(nondetMask), reach);
+		// Action label index info
+		if (transActions != null) {
+			// transActions just stored per state so only filter rows
+			JDD.Ref(reach);
+			transActions = JDD.Apply(JDD.TIMES, reach, transActions);
+		}
 	}
 
 	@Override
@@ -302,7 +224,7 @@ public class NondetModel extends ProbModel
 		// find reachable states with no transitions
 		JDD.Ref(reach);
 		deadlocks = JDD.And(reach, JDD.Not(deadlocks));
-		
+
 		if (fix && !deadlocks.equals(JDD.ZERO)) {
 			// remove deadlocks by adding self-loops to trans
 			// (also update transInd (if necessary) at same time)
@@ -345,75 +267,42 @@ public class NondetModel extends ProbModel
 		}
 	}
 
-	public void printTransInfo(PrismLog log, boolean extra)
+	// Accessors (for Model)
+
+	@Override
+	public ModelType getModelType()
 	{
-		int i, j, n;
-
-		log.print("States:      " + getNumStatesString() + " (" + getNumInitialStatesString() + " initial)" + "\n");
-		log.print("Transitions: " + getNumTransitionsString() + "\n");
-		log.print("Choices:     " + getNumChoicesString() + "\n");
-
-		log.println();
-
-		log.print(getTransName() + ": " + JDD.GetInfoString(trans, getNumDDVarsInTrans()));
-		log.print(", vars: " + getNumDDRowVars() + "r/" + getNumDDColVars() + "c/" + getNumDDNondetVars() + "nd\n");
-		if (extra) {
-			log.print("DD vars (nd):");
-			n = allDDNondetVars.getNumVars();
-			for (i = 0; i < n; i++) {
-				j = allDDNondetVars.getVarIndex(i);
-				log.print(" " + j + ":" + getDDVarNames().get(j));
-			}
-			log.println();
-			log.print("DD vars (r/c):");
-			n = allDDRowVars.getNumVars();
-			for (i = 0; i < n; i++) {
-				j = allDDRowVars.getVarIndex(i);
-				log.print(" " + j + ":" + getDDVarNames().get(j));
-				j = allDDColVars.getVarIndex(i);
-				log.print(" " + j + ":" + getDDVarNames().get(j));
-			}
-			log.println();
-			log.print(getTransName() + " terminals: " + JDD.GetTerminalsAndNumbersString(trans, getNumDDVarsInTrans()) + "\n");
-			log.print("Reach: " + JDD.GetNumNodes(reach) + " nodes\n");
-			log.print("ODD: " + ODDUtils.GetNumODDNodes() + " nodes\n");
-			log.print("Mask: " + JDD.GetNumNodes(nondetMask) + " nodes, ");
-			log.print(JDD.GetNumMintermsString(nondetMask, getNumDDRowVars() + getNumDDNondetVars()) + " minterms\n");
-
-			for (i = 0; i < numRewardStructs; i++) {
-				if (stateRewards[i] != null && !stateRewards[i].equals(JDD.ZERO)) {
-					log.print("State rewards (" + (i + 1) + (("".equals(rewardStructNames[i])) ? "" : (":\"" + rewardStructNames[i] + "\"")) + "): ");
-					log.print(JDD.GetNumNodes(stateRewards[i]) + " nodes (");
-					log.print(JDD.GetNumTerminals(stateRewards[i]) + " terminal), ");
-					log.print(JDD.GetNumMintermsString(stateRewards[i], getNumDDRowVars()) + " minterms\n");
-					if (extra) {
-						log.print("State rewards terminals (" + (i + 1) + (("".equals(rewardStructNames[i])) ? "" : (":\"" + rewardStructNames[i] + "\""))
-								+ "): ");
-						log.print(JDD.GetTerminalsAndNumbersString(stateRewards[i], getNumDDRowVars()) + "\n");
-					}
-				}
-				if (transRewards[i] != null && !transRewards[i].equals(JDD.ZERO)) {
-					log.print("Transition rewards (" + (i + 1) + (("".equals(rewardStructNames[i])) ? "" : (":\"" + rewardStructNames[i] + "\"")) + "): ");
-					log.print(JDD.GetNumNodes(transRewards[i]) + " nodes (");
-					log.print(JDD.GetNumTerminals(transRewards[i]) + " terminal), ");
-					log.print(JDD.GetNumMintermsString(transRewards[i], getNumDDVarsInTrans()) + " minterms\n");
-					if (extra) {
-						log.print("Transition rewards terminals (" + (i + 1) + (("".equals(rewardStructNames[i])) ? "" : (":\"" + rewardStructNames[i] + "\""))
-								+ "): ");
-						log.print(JDD.GetTerminalsAndNumbersString(transRewards[i], getNumDDVarsInTrans()) + "\n");
-					}
-				}
-			}
-			if (transActions != null && !transActions.equals(JDD.ZERO)) {
-				log.print("Action label indices: ");
-				log.print(JDD.GetNumNodes(transActions) + " nodes (");
-				log.print(JDD.GetNumTerminals(transActions) + " terminal)\n");
-			}
-			// Don't need to print info for transPerAction (not stored for MDPs)
-		}
+		return ModelType.MDP;
 	}
 
-	// export transition matrix to a file
+	@Override
+	public JDDNode getTransReln()
+	{
+		// First, compute the transition relation if it is not there
+		if (transReln == null) {
+			JDD.Ref(trans01);
+			transReln = JDD.ThereExists(trans01, allDDNondetVars);
+		}
+		return transReln;
+	}
+
+	@Override
+	public int getNumDDVarsInTrans()
+	{
+		return allDDRowVars.n() * 2 + allDDNondetVars.n();
+	}
+
+	@Override
+	public void printTransInfo(PrismLog log, boolean extra)
+	{
+		super.printTransInfo(log, extra);
+		if (extra) {
+			if (transActions != null) {
+				log.print("Action label info (");
+				log.println(JDD.GetInfoString(transActions, getNumDDVarsInTrans()));
+			}
+		}
+	}
 
 	@Override
 	public void exportToFile(int exportType, boolean explicit, File file, int precision) throws FileNotFoundException, PrismException
@@ -436,33 +325,19 @@ public class NondetModel extends ProbModel
 		}
 	}
 
-	@Deprecated
-	public String exportTransRewardsToFile(int exportType, boolean explicit, File file, int precision) throws FileNotFoundException, PrismException
+	@Override
+	public String getTransName()
 	{
-		// export transition rewards matrix to a file
-		// returns string containing files used if there were more than 1, null otherwise
-
-		if (numRewardStructs == 0)
-			throw new PrismException("There are no transition rewards to export");
-		int i;
-		String filename, allFilenames = "";
-		for (i = 0; i < numRewardStructs; i++) {
-			filename = (file != null) ? file.getPath() : null;
-			if (filename != null && numRewardStructs > 1) {
-				filename = PrismUtils.addCounterSuffixToFilename(filename, i + 1);
-				allFilenames += ((i > 0) ? ", " : "") + filename;
-			}
-			if (!explicit) {
-				// can only do explicit (sparse matrix based) export for mdps
-			} else {
-				PrismSparse.ExportSubMDP(trans, transRewards[i], "C" + (i + 1), allDDRowVars, allDDColVars, allDDNondetVars, odd, exportType, filename, precision, rewardStructNames[i], false);
-			}
-		}
-		return (allFilenames.length() > 0) ? allFilenames : null;
+		return "Transition matrix";
 	}
 
-	// clear up (deref all dds, dd vars)
+	@Override
+	public String getTransSymbol()
+	{
+		return "S";
+	}
 
+	@Override
 	public void clear()
 	{
 		super.clear();
@@ -479,6 +354,132 @@ public class NondetModel extends ProbModel
 			}
 		if (transReln != null)
 			JDD.Deref(transReln);
+		if (transActions != null) {
+			JDD.Deref(transActions);
+		}
+	}
+
+	// Accessors (for MDPs)
+
+	/**
+	 * Get the total number of choices.
+	 */
+	public long getNumChoices()
+	{
+		return (numChoices > Long.MAX_VALUE) ? -1 : Math.round(numChoices);
+	}
+
+	/**
+	 * Get the total number of choices as a string.
+	 */
+	public String getNumChoicesString()
+	{
+		return PrismUtils.bigIntToString(numChoices);
+	}
+
+	/**
+	 * Get a BDD (over row and nondet variables) representing a "mask"
+	 * for the nondeterministic choices, with a 0 where there is a
+	 * choice present, and a 1 where there is none.
+	 * Used for minimising over nondeterminism.
+	 */
+	public JDDNode getNondetMask()
+	{
+		return nondetMask;
+	}
+
+	/**
+	 * Get (all) the DD variables used to represent nondeterminism.
+	 */
+	public JDDVars getAllDDNondetVars()
+	{
+		return allDDNondetVars;
+	}
+
+	/**
+	 * Get the total number of DD variables used to represent nondeterminism.
+	 */
+	public int getNumDDNondetVars()
+	{
+		return allDDNondetVars.n();
+	}
+
+	/**
+	 * Get the subset of nondeterminism DD variables encoding actions.
+	 */
+	public JDDVars getAllDDSynchVars()
+	{
+		return allDDSynchVars;
+	}
+
+	/**
+	 * Get the subset of nondeterminism DD variables encoding model scheduling.
+	 */
+	public JDDVars getAllDDSchedVars()
+	{
+		return allDDSchedVars;
+	}
+
+	/**
+	 * Get the subset of nondeterminism DD variables encoding local nondeterminism.
+	 */
+	public JDDVars getAllDDChoiceVars()
+	{
+		return allDDChoiceVars;
+	}
+
+	/**
+	 * Get the BDD (over row and nondet variables) for choices that not action-labelled
+	 */
+	public JDDNode getTransInd()
+	{
+		return transInd;
+	}
+
+	/**
+	 * Set the BDDs (over row and nondet variables) for choices labelled with each action
+	 */
+	public JDDNode[] getTransSynch()
+	{
+		return transSynch;
+	}
+
+	/**
+	 * Get the MTBDDs (over row and nondet DD variables) used to store the action
+	 * for each choice, as a 1-indexed action index for each state-choice pair.
+	 */
+	public JDDNode getTransActions()
+	{
+		return transActions;
+	}
+
+	/**
+	 * Do all choices in each state have a unique action label?
+	 */
+	public boolean areAllChoiceActionsUnique()
+	{
+		// Action labels
+		for (int i = 0; i < numSynchs; i++) {
+			JDD.Ref(transActions);
+			JDDNode tmp = JDD.Equals(transActions, i + 1);
+			tmp = JDD.SumAbstract(tmp, allDDNondetVars);
+			double max = JDD.FindMax(tmp);
+			JDD.Deref(tmp);
+			if (max > 1)
+				return false;
+		}
+		// Unlabelled choices
+		JDD.Ref(reach);
+		JDD.Ref(transActions);
+		JDD.Ref(nondetMask);
+		JDDNode tmp = JDD.And(reach, JDD.And(JDD.LessThanEquals(transActions, 0), JDD.Not(nondetMask)));
+		tmp = JDD.SumAbstract(tmp, allDDNondetVars);
+		double max = JDD.FindMax(tmp);
+		JDD.Deref(tmp);
+		if (max > 1)
+			return false;
+
+		return true;
 	}
 
 	/**
@@ -783,7 +784,5 @@ public class NondetModel extends ProbModel
 		// do transformation with the NondetModelTransformationOperator
 		return getTransformed(ndTransformation);
 	}
-
 }
 
-//------------------------------------------------------------------------------

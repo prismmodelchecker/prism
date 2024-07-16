@@ -121,7 +121,7 @@ public class ExplicitModel2MTBDD
 	 */
 	public symbolic.model.Model buildModel(explicit.Model<Double> modelExpl, List<State> statesList, ModulesFile modulesFile, boolean doReach) throws PrismException
 	{
-		symbolic.model.Model model = null;
+		symbolic.model.ModelSymbolic model = null;
 		JDDNode tmp, tmp2;
 		JDDVars ddv;
 		int i;
@@ -212,9 +212,9 @@ public class ExplicitModel2MTBDD
 		// TODO: disable if not required?
 		model.setSynchs(synchs);
 		if (modelType != ModelType.MDP) {
-			model.setTransPerAction((JDDNode[]) transPerAction.toArray(new JDDNode[0]));
+			((ProbModel) model).setTransPerAction((JDDNode[]) transPerAction.toArray(new JDDNode[0]));
 		} else {
-			model.setTransActions(transActions);
+			((symbolic.model.NondetModel) model).setTransActions(transActions);
 		}
 
 		// Do reachability (if required)

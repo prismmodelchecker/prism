@@ -26,20 +26,32 @@
 
 package symbolic.model;
 
-import java.util.Map.Entry;
-
-import jdd.*;
-import parser.*;
+import jdd.JDD;
+import jdd.JDDNode;
+import jdd.JDDVars;
+import parser.Values;
+import parser.VarList;
 import prism.ModelType;
 import prism.PrismException;
 import prism.PrismLog;
 
-/*
- * Class for MTBDD-based storage of a PRISM model that is a CTMC.
+import java.util.Map.Entry;
+
+/**
+ * Class for symbolic (BDD-based) representation of a CTMC.
  */
 public class StochModel extends ProbModel
 {
-	// accessor methods
+	// Constructor
+
+	public StochModel(JDDNode tr, JDDNode s, JDDNode sr[], JDDNode trr[], String rsn[], JDDVars arv, JDDVars acv,
+					  ModelVariablesDD mvdd, int nm, String[] mn, JDDVars[] mrv, JDDVars[] mcv, int nv, VarList vl, JDDVars[] vrv,
+					  JDDVars[] vcv, Values cv)
+	{
+		super(tr, s, sr, trr, rsn, arv, acv, mvdd, nm, mn, mrv, mcv, nv, vl, vrv, vcv, cv);
+	}
+
+	// Accessors (for Model)
 
 	public ModelType getModelType()
 	{
@@ -56,14 +68,7 @@ public class StochModel extends ProbModel
 		return "R";
 	}
 
-	// constructor
-
-	public StochModel(JDDNode tr, JDDNode s, JDDNode sr[], JDDNode trr[], String rsn[], JDDVars arv, JDDVars acv,
-					  ModelVariablesDD mvdd, int nm, String[] mn, JDDVars[] mrv, JDDVars[] mcv, int nv, VarList vl, JDDVars[] vrv,
-					  JDDVars[] vcv, Values cv)
-	{
-		super(tr, s, sr, trr, rsn, arv, acv, mvdd, nm, mn, mrv, mcv, nv, vl, vrv, vcv, cv);
-	}
+	// Accessors (for CTMCs)
 
 	/**
 	 * Get the embedded DTMC for this CTMC.

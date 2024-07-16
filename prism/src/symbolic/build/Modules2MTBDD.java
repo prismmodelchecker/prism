@@ -36,6 +36,7 @@ import parser.*;
 import parser.ast.*;
 import prism.*;
 import symbolic.comp.StateModelChecker;
+import symbolic.model.ModelSymbolic;
 import symbolic.model.ModelVariablesDD;
 import symbolic.model.Model;
 import symbolic.model.NondetModel;
@@ -246,7 +247,7 @@ public class Modules2MTBDD
 	// main method - translate
 	public Model translate() throws PrismException
 	{
-		Model model = null;
+		ModelSymbolic model = null;
 		JDDNode tmp, tmp2;
 		JDDVars ddv;
 		int i;
@@ -362,8 +363,11 @@ public class Modules2MTBDD
 			if (storeTransActions) {
 				// Note: one of these will be null, depending on model type
 				// but this is fine: null = none stored.
-				model.setTransActions(transActions);
-				model.setTransPerAction(transPerAction);
+				if (modelType != ModelType.MDP) {
+					((ProbModel) model).setTransPerAction(transPerAction);
+				} else {
+					((NondetModel) model).setTransActions(transActions);
+				}
 			}
 
 			// do reachability (or not)
@@ -2199,7 +2203,7 @@ public class Modules2MTBDD
 	
 	// symmetrification
 	
-	private void doSymmetry(Model model) throws PrismException
+	private void doSymmetry(ModelSymbolic model) throws PrismException
 	{
 		JDDNode tmp, transNew, reach, trans, transRewards[];
 		int i, j, k, numSwaps;
