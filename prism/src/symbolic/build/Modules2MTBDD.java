@@ -333,18 +333,15 @@ public class Modules2MTBDD
 			// create new Model object to be returned
 			if (modelType == ModelType.DTMC) {
 				model = new ProbModel(trans, start, stateRewards, transRewards, rewardStructNames, allDDRowVars, allDDColVars, modelVariables,
-				                      numModules, moduleNames, moduleDDRowVars, moduleDDColVars,
 				                      numVars, varList, varDDRowVars, varDDColVars, constantValues);
 			}
 			else if (modelType == ModelType.MDP) {
 				model = new NondetModel(trans, start, stateRewards, transRewards, rewardStructNames, allDDRowVars, allDDColVars,
 				                        allDDSynchVars, allDDSchedVars, allDDChoiceVars, allDDNondetVars, modelVariables,
-				                        numModules, moduleNames, moduleDDRowVars, moduleDDColVars,
 				                        numVars, varList, varDDRowVars, varDDColVars, constantValues);
 			}
 			else if (modelType == ModelType.CTMC) {
 				model = new StochModel(trans, start, stateRewards, transRewards, rewardStructNames, allDDRowVars, allDDColVars, modelVariables,
-				                       numModules, moduleNames, moduleDDRowVars, moduleDDColVars,
 				                       numVars, varList, varDDRowVars, varDDColVars, constantValues);
 			}
 			modelWasBuilt = true;

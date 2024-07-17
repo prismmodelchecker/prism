@@ -45,10 +45,10 @@ public class StochModel extends ProbModel
 	// Constructor
 
 	public StochModel(JDDNode tr, JDDNode s, JDDNode sr[], JDDNode trr[], String rsn[], JDDVars arv, JDDVars acv,
-					  ModelVariablesDD mvdd, int nm, String[] mn, JDDVars[] mrv, JDDVars[] mcv, int nv, VarList vl, JDDVars[] vrv,
+					  ModelVariablesDD mvdd, int nv, VarList vl, JDDVars[] vrv,
 					  JDDVars[] vcv, Values cv)
 	{
-		super(tr, s, sr, trr, rsn, arv, acv, mvdd, nm, mn, mrv, mcv, nv, vl, vrv, vcv, cv);
+		super(tr, s, sr, trr, rsn, arv, acv, mvdd, nv, vl, vrv, vcv, cv);
 	}
 
 	// Accessors (for Model)
@@ -121,14 +121,10 @@ public class StochModel extends ProbModel
 		                                 allDDRowVars.copy(),
 		                                 allDDColVars.copy(),
 		                                 modelVariables.copy(),
-		                                 numModules,
-		                                 moduleNames,  // pass by reference, will not be changed
-		                                 JDDVars.copyArray(moduleDDRowVars),
-		                                 JDDVars.copyArray(moduleDDColVars),
-		                                 numModules,
+		                                 numVars,
 		                                 varList, // pass by reference, will not be changed
-		                                 JDDVars.copyArray(moduleDDColVars),
-		                                 JDDVars.copyArray(moduleDDColVars),
+		                                 JDDVars.copyArray(varDDRowVars),
+		                                 JDDVars.copyArray(varDDColVars),
 		                                 constantValues // pass by reference, will not be changed
 		                                );
 

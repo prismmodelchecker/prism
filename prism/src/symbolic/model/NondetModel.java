@@ -85,9 +85,9 @@ public class NondetModel extends ModelSymbolic
 	// Constructor
 
 	public NondetModel(JDDNode tr, JDDNode s, JDDNode sr[], JDDNode trr[], String rsn[], JDDVars arv, JDDVars acv, JDDVars asyv, JDDVars asv, JDDVars achv,
-					   JDDVars andv, ModelVariablesDD mvdd, int nm, String[] mn, JDDVars[] mrv, JDDVars[] mcv, int nv, VarList vl, JDDVars[] vrv, JDDVars[] vcv, Values cv)
+					   JDDVars andv, ModelVariablesDD mvdd, int nv, VarList vl, JDDVars[] vrv, JDDVars[] vcv, Values cv)
 	{
-		super(tr, s, sr, trr, rsn, arv, acv, mvdd, nm, mn, mrv, mcv, nv, vl, vrv, vcv, cv);
+		super(tr, s, sr, trr, rsn, arv, acv, mvdd, nv, vl, vrv, vcv, cv);
 
 		allDDSynchVars = asyv;
 		allDDSchedVars = asv;
@@ -642,11 +642,6 @@ public class NondetModel extends ModelSymbolic
 				newAllDDNondetVars,
 				// New model variables
 				newModelVariables,
-				// Module info (unchanged)
-				this.getNumModules(),
-				this.getModuleNames(),
-				JDDVars.copyArray(this.getModuleDDRowVars()),
-				JDDVars.copyArray(this.getModuleDDColVars()),
 				// New var info
 				newVarList.getNumVars(), newVarList, newVarDDRowVars, newVarDDColVars,
 				// Constants (no change)

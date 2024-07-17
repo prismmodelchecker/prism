@@ -55,18 +55,11 @@ public abstract class ModelSymbolic implements Model
 {
 	// Model info
 
-	// Modules
-	/** Number of modules */
-	protected int numModules;
-	/** Module names */
-	protected String[] moduleNames;
 	// Vars/consts
 	/** Total number of model variables */
 	protected int numVars;
 	/** Model variable info */
 	protected VarList varList;
-	/** Numbers for use by globalToLocal */
-	protected long[] gtol;
 	/** Values of constants */
 	protected Values constantValues;
 	// Actions
@@ -110,10 +103,6 @@ public abstract class ModelSymbolic implements Model
 	protected JDDVars[] varDDRowVars;
 	/** DD vars for each model variable (columns) */
 	protected JDDVars[] varDDColVars;
-	/** DD vars for each module (rows) */
-	protected JDDVars[] moduleDDRowVars;
-	/** DD vars for each module (columns) */
-	protected JDDVars[] moduleDDColVars;
 	/** All DD vars for rows */
 	protected JDDVars allDDRowVars;
 	/** All DD vars for columns */
@@ -127,8 +116,8 @@ public abstract class ModelSymbolic implements Model
 
 	// Constructor
 
-	public ModelSymbolic(JDDNode tr, JDDNode s, JDDNode sr[], JDDNode trr[], String rsn[], JDDVars arv, JDDVars acv, ModelVariablesDD mvdd, int nm, String[] mn,
-						 JDDVars[] mrv, JDDVars[] mcv, int nv, VarList vl, JDDVars[] vrv, JDDVars[] vcv, Values cv)
+	public ModelSymbolic(JDDNode tr, JDDNode s, JDDNode sr[], JDDNode trr[], String rsn[], JDDVars arv, JDDVars acv, ModelVariablesDD mvdd,
+						 int nv, VarList vl, JDDVars[] vrv, JDDVars[] vcv, Values cv)
 	{
 		trans = tr;
 		start = s;
@@ -140,24 +129,11 @@ public abstract class ModelSymbolic implements Model
 		allDDRowVars = arv;
 		allDDColVars = acv;
 		modelVariables = mvdd;
-		numModules = nm;
-		moduleNames = mn;
-		moduleDDRowVars = mrv;
-		moduleDDColVars = mcv;
 		numVars = nv;
 		varList = vl;
 		varDDRowVars = vrv;
 		varDDColVars = vcv;
 		constantValues = cv;
-
-		// compute numbers for globalToLocal converter
-		gtol = new long[numVars];
-		for (int i = 0; i < numVars; i++) {
-			gtol[i] = 1l << (varDDRowVars[i].getNumVars());
-		}
-		for (int i = numVars - 2; i >= 0; i--) {
-			gtol[i] = gtol[i] * gtol[i + 1];
-		}
 
 		// calculate 0-1 version of trans
 		JDD.Ref(trans);
@@ -743,11 +719,6 @@ public abstract class ModelSymbolic implements Model
 		if (varDDColVars != null)
 			JDDVars.derefAllArray(varDDColVars);
 
-		if (moduleDDRowVars != null)
-			JDDVars.derefAllArray(moduleDDRowVars);
-		if (moduleDDColVars != null)
-			JDDVars.derefAllArray(moduleDDColVars);
-
 		allDDRowVars.derefAll();
 		allDDColVars.derefAll();
 		JDD.Deref(trans);
@@ -796,83 +767,5 @@ public abstract class ModelSymbolic implements Model
 	public long getNumTransitionsLong()
 	{
 		return (numTransitions > Long.MAX_VALUE) ? -1 : Math.round(numTransitions);
-	}
-
-	// UN-NEEDED STUFF
-
-	@Override
-	public int getNumModules()
-	{
-		return numModules;
-	}
-
-	@Override
-	public String[] getModuleNames()
-	{
-		return moduleNames;
-	}
-
-	@Override
-	public String getModuleName(int i)
-	{
-		return moduleNames[i];
-	}
-
-	@Override
-	public JDDVars[] getModuleDDRowVars()
-	{
-		return moduleDDRowVars;
-	}
-
-	@Override
-	public JDDVars[] getModuleDDColVars()
-	{
-		return moduleDDColVars;
-	}
-
-	@Override
-	public JDDVars getModuleDDRowVars(int i)
-	{
-		return moduleDDRowVars[i];
-	}
-
-	@Override
-	public JDDVars getModuleDDColVars(int i)
-	{
-		return moduleDDColVars[i];
-	}
-
-	// convert global state index to local indices
-
-	public String globalToLocal(long x)
-	{
-		int i;
-		String s = "";
-
-		s += "(";
-		for (i = 0; i < numVars - 1; i++) {
-			s += ((x / gtol[i + 1]) + varList.getLow(i)) + ",";
-			x = x % gtol[i + 1];
-		}
-		s += (x + varList.getLow(numVars - 1)) + ")";
-
-		return s;
-	}
-
-	// convert global state index to local index
-
-	public int globalToLocal(long x, int l)
-	{
-		int i;
-
-		for (i = 0; i < numVars - 1; i++) {
-			if (i == l) {
-				return (int) ((x / gtol[i + 1]) + varList.getLow(i));
-			} else {
-				x = x % gtol[i + 1];
-			}
-		}
-
-		return (int) (x + varList.getLow(numVars - 1));
 	}
 }

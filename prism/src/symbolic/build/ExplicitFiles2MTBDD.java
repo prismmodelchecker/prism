@@ -278,15 +278,15 @@ public class ExplicitFiles2MTBDD
 		int numModules = 1;
 		String moduleNames[] = new String[] { "M" };
 		if (modelType == ModelType.DTMC) {
-			model = new ProbModel(trans, start, stateRewards, transRewardsArray, rewardStructNames, allDDRowVars, allDDColVars, modelVariables, numModules,
-					moduleNames, moduleDDRowVars, moduleDDColVars, numVars, varList, varDDRowVars, varDDColVars, constantValues);
+			model = new ProbModel(trans, start, stateRewards, transRewardsArray, rewardStructNames, allDDRowVars, allDDColVars, modelVariables,
+					numVars, varList, varDDRowVars, varDDColVars, constantValues);
 		} else if (modelType == ModelType.MDP) {
 			model = new NondetModel(trans, start, stateRewards, transRewardsArray, rewardStructNames, allDDRowVars, allDDColVars, allDDSynchVars,
-					allDDSchedVars, allDDChoiceVars, allDDNondetVars, modelVariables, numModules, moduleNames, moduleDDRowVars, moduleDDColVars, numVars, varList,
+					allDDSchedVars, allDDChoiceVars, allDDNondetVars, modelVariables, numVars, varList,
 					varDDRowVars, varDDColVars, constantValues);
 		} else if (modelType == ModelType.CTMC) {
-			model = new StochModel(trans, start, stateRewards, transRewardsArray, rewardStructNames, allDDRowVars, allDDColVars, modelVariables, numModules,
-					moduleNames, moduleDDRowVars, moduleDDColVars, numVars, varList, varDDRowVars, varDDColVars, constantValues);
+			model = new StochModel(trans, start, stateRewards, transRewardsArray, rewardStructNames, allDDRowVars, allDDColVars, modelVariables,
+					numVars, varList, varDDRowVars, varDDColVars, constantValues);
 		}
 		// set action info
 		// TODO: disable if not required?

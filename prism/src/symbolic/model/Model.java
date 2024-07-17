@@ -483,22 +483,6 @@ public interface Model extends prism.Model<Double>
 	{
 		return getVarList().getRange(i);
 	}
-
-	// UN-NEEDED STUFF
-
-	int getNumModules();
-	String[] getModuleNames();
-	String getModuleName(int i);
-	JDDVars[] getModuleDDRowVars();
-	JDDVars[] getModuleDDColVars();
-	JDDVars getModuleDDRowVars(int i);
-	JDDVars getModuleDDColVars(int i);
-	default int getVarModule(int i)
-	{
-		return getVarList().getModule(i);
-	}
-	String globalToLocal(long x);
-	int globalToLocal(long x, int l);
 }
 
 //------------------------------------------------------------------------------
