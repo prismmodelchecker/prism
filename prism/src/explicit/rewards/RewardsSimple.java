@@ -84,13 +84,13 @@ public class RewardsSimple<Value> extends RewardsExplicit<Value>
 		numStates = model.getNumStates();
 		stateRewards = new ListSimple<>(eval.zero(), eval::isZero);
 		if (rews.hasStateRewards()) {
-			for (int s = numStates; s >= 0; s--) {
+			for (int s = numStates - 1; s >= 0; s--) {
 				stateRewards.setValue(s, rewMap.apply(rews.getStateReward(s)));
 			}
 		}
 		transRewards = new ListNestedSimple<>(eval.zero(), eval::isZero);
 		if (rews.hasTransitionRewards()) {
-			for (int s = numStates; s >= 0; s--) {
+			for (int s = numStates - 1; s >= 0; s--) {
 				int n;
 				if (model.getModelType().nondeterministic()) {
 					n = ((NondetModel<?>) model).getNumChoices(s);
