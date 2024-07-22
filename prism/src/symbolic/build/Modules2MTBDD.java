@@ -413,6 +413,10 @@ public class Modules2MTBDD
 			globalDDRowVars.derefAll();
 		if (globalDDColVars != null)
 			globalDDColVars.derefAll();
+		if (moduleDDRowVars != null)
+			JDDVars.derefAllArray(moduleDDRowVars);
+		if (moduleDDColVars != null)
+			JDDVars.derefAllArray(moduleDDColVars);
 		JDD.DerefArrayNonNull(moduleIdentities, numModules);
 		JDD.DerefArrayNonNull(moduleRangeDDs, numModules);
 		JDD.DerefArrayNonNull(varIdentities, numVars);
@@ -451,11 +455,6 @@ public class Modules2MTBDD
 				allDDChoiceVars.derefAll();
 			if (allDDNondetVars != null)
 				allDDNondetVars.derefAll();
-
-			if (moduleDDRowVars != null)
-				JDDVars.derefAllArray(moduleDDRowVars);
-			if (moduleDDColVars != null)
-				JDDVars.derefAllArray(moduleDDColVars);
 
 			JDDVars.derefAllArray(varDDRowVars);
 			JDDVars.derefAllArray(varDDColVars);
