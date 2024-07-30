@@ -1551,6 +1551,22 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	}
 
 	/**
+	 * Check if a string is a keyword in the PRISM language.
+	 */
+	public static boolean isKeyword(String s)
+	{
+		return PrismParser.isKeyword(s);
+	}
+
+	/**
+	 * Check if a string is a valid identifier in the PRISM language.
+	 */
+	public static boolean isValidIdentifier(String s)
+	{
+		return s.matches("[_a-zA-Z][_a-zA-Z0-9]*") && !PrismParser.isKeyword(s);
+	}
+
+	/**
 	 * Clear storage of the current model, if any.
 	 */
 	public void clearModel() throws PrismException
