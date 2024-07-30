@@ -44,6 +44,7 @@ import io.DRNExporter;
 import io.MatlabExporter;
 import io.ModelExportFormat;
 import io.ModelExportOptions;
+import io.ModelExportTask;
 import io.PrismExplicitExporter;
 import io.PrismExplicitImporter;
 import parser.EvaluateContext.EvalMode;
@@ -1521,34 +1522,14 @@ public class StateModelChecker extends PrismComponent
 	}
 
 	/**
-	 * Export various aspects of a model, combined.
+	 * Export a model.
 	 * @param model The model
-	 * @param labelNames Names of labels to include in export
-	 * @param out Where to export
-	 * @param exportOptions The options for export
+	 * @param exportTask Export task (destination, which parts of the model to export, options)
 	 */
-	public <Value> void exportModelCombined(Model<Value> model, List<String> labelNames, PrismLog out, ModelExportOptions exportOptions) throws PrismException
+	public <Value> void exportModel(Model<Value> model, ModelExportTask exportTask) throws PrismException
 	{
-		if (exportOptions.getFormat() != ModelExportFormat.DRN) {
-			return;
-		}
-		List<Rewards<Value>> rewards = new ArrayList<>();
-		for (int r = 0; r < rewardGen.getNumRewardStructs(); r++) {
-			rewards.add(constructRewards(model, r));
-		}
-		List<BitSet> labelStates = checkLabels(model, labelNames);
-		DRNExporter<Value> exporter = new DRNExporter<>(exportOptions);
-		exporter.exportModel(model, (RewardGenerator<Value>) rewardGen, rewards, labelNames, labelStates, out);
-	}
-
-	/**
-	 * Export the transition matrix of a model.
-	 * @param model The model
-	 * @param file File to export to (if null, print to the log instead)
-	 * @param exportOptions The options for export
-	 */
-	public <Value> void exportTransitions(Model<Value> model, File file, ModelExportOptions exportOptions) throws PrismException
-	{
+		File file = exportTask.getFile();
+		ModelExportOptions exportOptions = exportTask.getExportOptions();
 		try (PrismLog out = getPrismLogForFile(file)) {
 			switch (exportOptions.getFormat()) {
 				case EXPLICIT:
@@ -1560,10 +1541,33 @@ public class StateModelChecker extends PrismComponent
 				case DOT:
 					new DotExporter<Value>(exportOptions).exportModel(model, out, null);
 					break;
+				case DRN:
+					List<String> labelNames = new ArrayList<String>();
+					labelNames.add("init");
+					labelNames.add("deadlock");
+					labelNames.addAll(modelInfo.getLabelNames());
+					List<Rewards<Value>> rewards = new ArrayList<>();
+					for (int r = 0; r < rewardGen.getNumRewardStructs(); r++) {
+						rewards.add(constructRewards(model, r));
+					}
+					List<BitSet> labelStates = checkLabels(model, labelNames);
+					DRNExporter<Value> exporter = new DRNExporter<>(exportOptions);
+					exporter.exportModel(model, (RewardGenerator<Value>) rewardGen, rewards, labelNames, labelStates, out);
+					break;
 				default:
 					throw new PrismNotSupportedException("Export " + exportOptions.getFormat().description() + " not supported by explicit engine");
 			}
 		}
+	}
+
+	/**
+	 * Export the transition function/matrix of a model.
+	 * @param file File to export to (if null, print to the log instead)
+	 * @param exportOptions The options for export
+	 */
+	public <Value> void exportTransitions(Model<Value> model, File file, ModelExportOptions exportOptions) throws PrismException
+	{
+		exportModel(model, ModelExportTask.fromOptions(file, exportOptions));
 	}
 
 	/**

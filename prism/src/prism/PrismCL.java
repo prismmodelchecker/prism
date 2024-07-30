@@ -1017,7 +1017,7 @@ public class PrismCL implements PrismModelListener
 			try {
 				File f = (exportModelCombinedFilename.equals("stdout")) ? null : new File(exportModelCombinedFilename);
 				exportModelCombinedOptions.apply(modelExportOptionsGlobal);
-				prism.exportBuiltModelCombined(f, exportModelCombinedOptions);
+				prism.exportBuiltModel(f, exportModelCombinedOptions);
 			}
 			// in case of error, report it and proceed
 			catch (FileNotFoundException e) {

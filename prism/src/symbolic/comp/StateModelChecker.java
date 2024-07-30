@@ -36,6 +36,7 @@ import java.util.Vector;
 
 import io.ModelExportFormat;
 import io.ModelExportOptions;
+import io.ModelExportTask;
 import mtbdd.PrismMTBDD;
 import dv.DoubleVector;
 import jdd.*;
@@ -1694,15 +1695,19 @@ public class StateModelChecker extends PrismComponent implements ModelChecker
 	}
 
 	/**
-	 * Export the transition matrix.
-	 * @param file File to export to (if null, print to the log instead)
-	 * @param exportOptions The options for export
+	 * Export the model.
+	 * @param exportTask Export task (destination, which parts of the model to export, options)
 	 */
-	public void exportTransitions(File file, ModelExportOptions exportOptions) throws PrismException
+	public void exportModel(ModelExportTask exportTask) throws PrismException
 	{
+		ModelExportOptions exportOptions = exportTask.getExportOptions();
+		File file = exportTask.getFile();
 		if (exportOptions.getFormat() == ModelExportFormat.DD_DOT) {
 			JDD.ExportDDToDotFileLabelled(model.getTrans(), file.getPath(), model.getDDVarNames());
 			return;
+		}
+		if (exportOptions.getFormat() == ModelExportFormat.DRN) {
+			throw new PrismException("DRN export not yet supported by the symbolic engine");
 		}
 
 		int precision = exportOptions.getModelPrecision();
@@ -1720,6 +1725,16 @@ public class StateModelChecker extends PrismComponent implements ModelChecker
 				out.println("}");
 			}
 		}
+	}
+
+	/**
+	 * Export the transition function/matrix.
+	 * @param file File to export to (if null, print to the log instead)
+	 * @param exportOptions The options for export
+	 */
+	public void exportTransitions(File file, ModelExportOptions exportOptions) throws PrismException
+	{
+		exportModel(ModelExportTask.fromOptions(file, exportOptions));
 	}
 
 	/**

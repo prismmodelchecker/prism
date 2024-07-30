@@ -82,6 +82,14 @@ public class ModelExportOptions implements Cloneable
 		setFormat(format);
 	}
 
+	/**
+	 * Copy constructor.
+	 */
+	public ModelExportOptions(ModelExportOptions exportOptions)
+	{
+		apply(exportOptions);
+	}
+
 	// Set methods
 
 	/**

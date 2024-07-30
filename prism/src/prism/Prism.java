@@ -48,6 +48,7 @@ import explicit.ModelModelGenerator;
 import hybrid.PrismHybrid;
 import io.ExplicitModelImporter;
 import io.ModelExportOptions;
+import io.ModelExportTask;
 import io.ModelExportFormat;
 import jdd.JDD;
 import jdd.JDDNode;
@@ -2465,69 +2466,78 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	}
 
 	/**
-	 * Export various aspects of the current built model together.
-	 * @param file File to export to (if null, print to the log instead)
-	 * @param exportOptions The options for export
+	 * Perform an export task for the current model, building it first if needed.
+	 * @param exportTask Export task
 	 */
-	public void exportBuiltModelCombined(File file, ModelExportOptions exportOptions) throws PrismException, FileNotFoundException
+	public void exportBuiltModelTask(ModelExportTask exportTask) throws PrismException, FileNotFoundException
 	{
-		// Build model, if necessary
-		buildModelIfRequired();
-
-		if (getBuiltModelType() == ModelBuildType.SYMBOLIC) {
-			mainLog.println("\nDRN export currently only supported by explicit engine");
+		// Skip non-applicable tasks
+		if (!exportTask.isApplicable(getModelInfo())) {
 			return;
 		}
-
-		// Print message
-		mainLog.print("\nExporting model ");
-		mainLog.print(exportOptions.getFormat().description() + " ");
-		mainLog.println(getDestinationStringForFile(file));
-
-		// Merge export options with settings
-		exportOptions = newMergedModelExportOptions(exportOptions);
-
-		// Export (explicit engine only)
-		try (PrismLog out = getPrismLogForFile(file)) {
-			List<String> labelNames = new ArrayList<String>();
-			labelNames.add("init");
-			labelNames.add("deadlock");
-			labelNames.addAll(getModelInfo().getLabelNames());
-			explicit.StateModelChecker mcExpl = createModelCheckerExplicit(null);
-			mcExpl.exportModelCombined(getBuiltModelExplicit(), labelNames, out, exportOptions);
+		// Build model, if necessary
+		buildModelIfRequired();
+		// Merge export options with PRISM settings and do export
+		mainLog.println("\n" + exportTask.getMessage());
+		ModelExportOptions exportOptions = newMergedModelExportOptions(exportTask.getExportOptions());
+		switch (exportTask.getEntity()) {
+			case MODEL:
+				doExportBuiltModel(new ModelExportTask(exportTask, exportOptions));
+				break;
+			case STATE_REWARDS:
+				doExportBuiltModelStateRewards(exportTask.getFile(), exportOptions);
+				break;
+			case TRANSITION_REWARDS:
+				doExportBuiltModelTransRewards(exportTask.getFile(), exportOptions);
+				break;
+			case STATES:
+				doExportBuiltModelStates(exportTask.getFile(), exportOptions);
+				break;
+			case OBSERVATIONS:
+				doExportBuiltModelObservations(exportTask.getFile(), exportOptions);
+				break;
+			case LABELS:
+				doExportBuiltModelLabels(new ModelExportTask(exportTask, exportOptions));
+				break;
 		}
 	}
 
 	/**
-	 * Export the transition matrix for the current built model.
+	 * Export the current model, building it first if needed.
+	 * To configure which model parts are exported, use {@link #exportBuiltModelTask(ModelExportTask)}.
+	 * @param file File to export to (if null, print to the log instead)
+	 * @param exportFormat The format to use for export
+	 */
+	public void exportBuiltModel(File file, ModelExportFormat exportFormat) throws PrismException, FileNotFoundException
+	{
+		exportBuiltModelTask(ModelExportTask.fromFormat(file, exportFormat));
+	}
+
+	/**
+	 * Export the current model, building it first if needed.
+	 * The format to use is specified within {@code exportOptions}.
+	 * To configure which model parts are exported, use {@link #exportBuiltModelTask(ModelExportTask)}
+	 * @param file File to export to (if null, print to the log instead)
+	 * @param exportOptions The options for export
+	 */
+	public void exportBuiltModel(File file, ModelExportOptions exportOptions) throws PrismException, FileNotFoundException
+	{
+		exportBuiltModelTask(ModelExportTask.fromOptions(file, exportOptions));
+	}
+
+	/**
+	 * Export the transition matrix/function for the current model, building it first if needed.
 	 * @param file File to export to (if null, print to the log instead)
 	 * @param exportOptions The options for export
 	 */
 	public void exportBuiltModelTransitions(File file, ModelExportOptions exportOptions) throws PrismException, FileNotFoundException
 	{
-		// Build model, if necessary
-		buildModelIfRequired();
-
-		// Print message
-		mainLog.print("\nExporting transition matrix ");
-		mainLog.print(exportOptions.getFormat().description() + " ");
-		mainLog.println(getDestinationStringForFile(file));
-
-		// Merge export options with settings
-		exportOptions = newMergedModelExportOptions(exportOptions);
-
-		// do export
-		if (getBuiltModelType() == ModelBuildType.SYMBOLIC) {
-			symbolic.comp.StateModelChecker mcSymb = createModelChecker(null);
-			mcSymb.exportTransitions(file, exportOptions);
-		} else {
-			explicit.StateModelChecker mcExpl = createModelCheckerExplicit(null);
-			mcExpl.exportTransitions(getBuiltModelExplicit(), file, exportOptions);
-		}
+		// This is equivalent to exportBuiltModel
+		exportBuiltModel(file, exportOptions);
 	}
 
 	/**
-	 * Export the state rewards for the current built model.
+	 * Export the state rewards for the current model, building it first if needed.
 	 * If there is more than 1 reward structure, then multiple files are generated
 	 * (e.g. "rew.sta" becomes "rew1.sta", "rew2.sta", ...)
 	 * @param file File to export to (if null, print to the log instead)
@@ -2535,25 +2545,45 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	 */
 	public void exportBuiltModelStateRewards(File file, ModelExportOptions exportOptions) throws PrismException, FileNotFoundException
 	{
-		int numRewardStructs = getRewardInfo().getNumRewardStructs();
-		if (numRewardStructs == 0) {
+		if (getRewardInfo().getNumRewardStructs() == 0) {
 			mainLog.println("\nOmitting state reward export as there are no reward structures");
 			return;
 		}
+		exportBuiltModelTask(new ModelExportTask(ModelExportTask.ModelExportEntity.STATE_REWARDS, file, exportOptions));
+	}
 
-		// Build model, if necessary
-		buildModelIfRequired();
+	/**
+	 * Export the transition matrix/function for the current built model.
+	 * This assumes that the model has already been built.
+	 * Various other parts/annotations of the model may also be exported,
+	 * as specified by the {@code exportTask} object.
+	 * @param exportTask Export task (destination, which parts of the model to export, options)
+	 */
+	private void doExportBuiltModel(ModelExportTask exportTask) throws PrismException, FileNotFoundException
+	{
+		// Export via either symbolic/explicit model checker
+		if (getBuiltModelType() == ModelBuildType.SYMBOLIC) {
+			symbolic.comp.StateModelChecker mcSymb = createModelChecker(null);
+			mcSymb.exportModel(exportTask);
+		} else {
+			explicit.StateModelChecker mcExpl = createModelCheckerExplicit(null);
+			mcExpl.exportModel(getBuiltModelExplicit(), exportTask);
+		}
+	}
 
-		// Print message
-		mainLog.print("\nExporting state rewards ");
-		mainLog.print(exportOptions.getFormat().description() + " ");
-		mainLog.println(getDestinationStringForFile(file));
-
-		// Merge export options with settings
-		exportOptions = newMergedModelExportOptions(exportOptions);
-
-		// Do export, writing to multiple files if necessary
+	/**
+	 * Export the state rewards for the current built model.
+	 * This assumes that the model has already been built.
+	 * If there is more than 1 reward structure, then multiple files are generated
+	 * (e.g. "rew.sta" becomes "rew1.sta", "rew2.sta", ...)
+	 * @param file File to export to (if null, print to the log instead)
+	 * @param exportOptions The options for export
+	 */
+	private void doExportBuiltModelStateRewards(File file, ModelExportOptions exportOptions) throws PrismException, FileNotFoundException
+	{
+		// Export to multiple files if necessary
 		List <String> files = new ArrayList<>();
+		int numRewardStructs = getRewardInfo().getNumRewardStructs();
 		for (int r = 0; r < numRewardStructs; r++) {
 			String filename = (file != null) ? file.getPath() : null;
 			if (filename != null && numRewardStructs > 1) {
@@ -2561,6 +2591,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 				files.add(filename);
 			}
 			File fileToUse = (filename == null) ? null : new File(filename);
+			// Export via either symbolic/explicit model checker
 			if (getBuiltModelType() == ModelBuildType.SYMBOLIC) {
 				symbolic.comp.StateModelChecker mcSymb = createModelChecker(null);
 				mcSymb.exportStateRewards(r, fileToUse, exportOptions);
@@ -2569,14 +2600,13 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 				mcExpl.exportStateRewards(getBuiltModelExplicit(), r, fileToUse, exportOptions);
 			}
 		}
-		
 		if (files.size() > 1) {
 			mainLog.println("Rewards were exported to multiple files: " + PrismUtils.joinString(files, ","));
 		}
 	}
 
 	/**
-	 * Export the transition rewards for the current built model.
+	 * Export the transition rewards for the current model, building it first if needed.
 	 * If there is more than 1 reward structure, then multiple files are generated
 	 * (e.g. "rew.sta" becomes "rew1.sta", "rew2.sta", ...)
 	 * @param file File to export to (if null, print to the log instead)
@@ -2584,25 +2614,26 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	 */
 	public void exportBuiltModelTransRewards(File file, ModelExportOptions exportOptions) throws FileNotFoundException, PrismException
 	{
-		int numRewardStructs = getRewardInfo().getNumRewardStructs();
-		if (numRewardStructs == 0) {
+		if (getRewardInfo().getNumRewardStructs() == 0) {
 			mainLog.println("\nOmitting transition reward export as there are no reward structures");
 			return;
 		}
+		exportBuiltModelTask(new ModelExportTask(ModelExportTask.ModelExportEntity.TRANSITION_REWARDS, file, exportOptions));
+	}
 
-		// Build model, if necessary
-		buildModelIfRequired();
-
-		// Print message
-		mainLog.print("\nExporting transition rewards ");
-		mainLog.print(exportOptions.getFormat().description() + " ");
-		mainLog.println(getDestinationStringForFile(file));
-
-		// Merge export options with settings
-		exportOptions = newMergedModelExportOptions(exportOptions);
-
-		// Do export, writing to multiple files if necessary
+	/**
+	 * Export the transition rewards for the current built model.
+	 * This assumes that the model has already been built.
+	 * If there is more than 1 reward structure, then multiple files are generated
+	 * (e.g. "rew.sta" becomes "rew1.sta", "rew2.sta", ...)
+	 * @param file File to export to (if null, print to the log instead)
+	 * @param exportOptions The options for export
+	 */
+	private void doExportBuiltModelTransRewards(File file, ModelExportOptions exportOptions) throws FileNotFoundException, PrismException
+	{
+		// Export to multiple files if necessary
 		List <String> files = new ArrayList<>();
+		int numRewardStructs = getRewardInfo().getNumRewardStructs();
 		for (int r = 0; r < numRewardStructs; r++) {
 			String filename = (file != null) ? file.getPath() : null;
 			if (filename != null && numRewardStructs > 1) {
@@ -2610,6 +2641,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 				files.add(filename);
 			}
 			File fileToUse = (filename == null) ? null : new File(filename);
+			// Export via either symbolic/explicit model checker
 			if (getBuiltModelType() == ModelBuildType.SYMBOLIC) {
 				symbolic.comp.StateModelChecker mcSymb = createModelChecker(null);
 				mcSymb.exportTransRewards(r, fileToUse, exportOptions);
@@ -2618,31 +2650,30 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 				mcExpl.exportTransRewards(getBuiltModelExplicit(), r, fileToUse, exportOptions);
 			}
 		}
-		
 		if (files.size() > 1) {
 			mainLog.println("Rewards were exported to multiple files: " + PrismUtils.joinString(files, ","));
 		}
 	}
 
 	/**
-	 * Export the states of the currently loaded model.
+	 * Export the states of the currently loaded model, building it first if needed.
 	 * @param file File to export to (if null, print to the log instead)
 	 * @param exportOptions The options for export
 	 */
 	public void exportBuiltModelStates(File file, ModelExportOptions exportOptions) throws FileNotFoundException, PrismException
 	{
-		// Build model, if necessary
-		buildModelIfRequired();
+		exportBuiltModelTask(new ModelExportTask(ModelExportTask.ModelExportEntity.STATES, file, exportOptions));
+	}
 
-		// Print message
-		mainLog.print("\nExporting list of reachable states ");
-		mainLog.print(exportOptions.getFormat().description() + " ");
-		mainLog.println(getDestinationStringForFile(file));
-
-		// Merge export options with settings
-		exportOptions = newMergedModelExportOptions(exportOptions);
-
-		// Export
+	/**
+	 * Export the states of the currently built model.
+	 * This assumes that the model has already been built.
+	 * @param file File to export to (if null, print to the log instead)
+	 * @param exportOptions The options for export
+	 */
+	private void doExportBuiltModelStates(File file, ModelExportOptions exportOptions) throws FileNotFoundException, PrismException
+	{
+		// Export via either symbolic/explicit model checker
 		if (getBuiltModelType() == ModelBuildType.SYMBOLIC) {
 			symbolic.comp.StateModelChecker mcSymb = createModelChecker(null);
 			mcSymb.exportStates(file, exportOptions);
@@ -2653,7 +2684,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	}
 
 	/**
-	 * Export the observations of the currently loaded (partially observable) model.
+	 * Export the observations of the currently loaded (partially observable) loaded model, building it first if needed.
 	 * @param file File to export to (if null, print to the log instead)
 	 * @param exportOptions The options for export
 	 */
@@ -2663,47 +2694,53 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 			mainLog.println("\nOmitting observations export as the model is not partially observable");
 			return;
 		}
+		exportBuiltModelTask(new ModelExportTask(ModelExportTask.ModelExportEntity.OBSERVATIONS, file, exportOptions));
+	}
 
-		// Build model, if necessary
-		buildModelIfRequired();
-
-		// Print message
-		mainLog.print("\nExporting list of observations ");
-		mainLog.print(exportOptions.getFormat().description() + " ");
-		mainLog.println(getDestinationStringForFile(file));
-
-		// Merge export options with settings
-		exportOptions = newMergedModelExportOptions(exportOptions);
-
+	/**
+	 * Export the observations of the current built (partially observable) model.
+	 * This assumes that the model has already been built.
+	 * @param file File to export to (if null, print to the log instead)
+	 * @param exportOptions The options for export
+	 */
+	private void doExportBuiltModelObservations(File file, ModelExportOptions exportOptions) throws FileNotFoundException, PrismException
+	{
 		// Export (explicit engine only)
 		explicit.StateModelChecker mcExpl = createModelCheckerExplicit(null);
 		mcExpl.exportObservations(getBuiltModelExplicit(), file, exportOptions);
 	}
 
 	/**
-	 * Export the states satisfying labels from the currently loaded model and (optionally) a properties file to a file.
-	 * The PropertiesFile should correspond to the currently loaded model.
+	 * Export the labels and satisfying states of the currently loaded model, building it first if needed.
+	 * @param file File to export to (if null, print to the log instead)
+	 * @param exportOptions The options for export
+	 */
+	public void exportBuiltModelLabels(File file, ModelExportOptions exportOptions) throws FileNotFoundException, PrismException
+	{
+		exportBuiltModelLabels(null, file, exportOptions);
+	}
+
+	/**
+	 * Export model, and optionally property file, labels and the satisfying states
+	 * of the currently loaded model, building it first if needed.
+	 * The PropertiesFile (if non-null) should correspond to the currently loaded model.
 	 * @param propertiesFile The properties file, for further labels (ignored if null)
 	 * @param file File to export to (if null, print to the log instead)
 	 * @param exportOptions The options for export
 	 */
 	public void exportBuiltModelLabels(PropertiesFile propertiesFile, File file, ModelExportOptions exportOptions) throws FileNotFoundException, PrismException
 	{
-		// Collect names of labels to export from model
-		List<String> labelNames = new ArrayList<String>();
-		labelNames.add("init");
-		labelNames.add("deadlock");
-		labelNames.addAll(getModelInfo().getLabelNames());
-		// Collect names of labels to export from properties file
+		ModelExportTask exportTask = new ModelExportTask(ModelExportTask.ModelExportEntity.LABELS, file, exportOptions);
 		if (propertiesFile != null) {
-			LabelList ll = propertiesFile.getLabelList();
-			new Range(ll.size()).map((int i) -> ll.getLabelName(i)).collect(labelNames);
+			exportTask.setLabelExportSet(ModelExportTask.LabelExportSet.ALL);
+			exportTask.setExtraLabelsSource(propertiesFile);
 		}
-		doExportBuiltModelLabels(propertiesFile, labelNames, file, exportOptions);
+		exportBuiltModelTask(exportTask);
 	}
 
 	/**
-	 * Export the states satisfying labels from the properties file to a file.
+	 * Export labels from a properties file and the satisfying states
+	 * of the currently loaded model, building it first if needed.
 	 * The PropertiesFile should correspond to the currently loaded model.
 	 * @param propertiesFile The properties file (for further labels)
 	 * @param file File to export to (if null, print to the log instead)
@@ -2711,37 +2748,33 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	 */
 	public void exportBuiltModelPropLabels(PropertiesFile propertiesFile, File file, ModelExportOptions exportOptions) throws FileNotFoundException, PrismException
 	{
-		// Collect names of labels to export from properties file
-		List<String> labelNames = new ArrayList<String>();
-		if (propertiesFile != null) {
-			LabelList ll = propertiesFile.getLabelList();
-			new Range(ll.size()).map((int i) -> ll.getLabelName(i)).collect(labelNames);
-		}
-		doExportBuiltModelLabels(propertiesFile, labelNames, file, exportOptions);
+		ModelExportTask exportTask = new ModelExportTask(ModelExportTask.ModelExportEntity.LABELS, file, exportOptions);
+		exportTask.setLabelExportSet(ModelExportTask.LabelExportSet.EXTRA);
+		exportTask.setExtraLabelsSource(propertiesFile);
+		exportBuiltModelTask(exportTask);
 	}
 
 	/**
-	 * Export the states satisfying labels from the currently loaded model and/or a properties file to a file.
-	 * The PropertiesFile should correspond to the currently loaded model.
-	 * @param propertiesFile The properties file, for further labels (ignored if null)
-	 * @param labelNames The list of label names to export
-	 * @param file File to export to (if null, print to the log instead)
-	 * @param exportOptions The options for export
+	 * Export the states satisfying a set of labels, as specified in a ModelExportTask.
+	 * @param exportTask Export task (destination, which labels to export, options)
 	 */
-	private void doExportBuiltModelLabels(PropertiesFile propertiesFile, List<String> labelNames, File file, ModelExportOptions exportOptions) throws FileNotFoundException, PrismException
+	private void doExportBuiltModelLabels(ModelExportTask exportTask) throws FileNotFoundException, PrismException
 	{
-		// Build model, if necessary
-		buildModelIfRequired();
-
-		// Print message
-		mainLog.print("\nExporting labels and satisfying states ");
-		mainLog.print(exportOptions.getFormat().description() + " ");
-		mainLog.println(getDestinationStringForFile(file));
-
-		// Merge export options with settings
-		exportOptions = newMergedModelExportOptions(exportOptions);
-
-		// Export
+		// Collect names of labels to export from model and/or properties file
+		List<String> labelNames = new ArrayList<>();
+		if (exportTask.getLabelExportSet() == ModelExportTask.LabelExportSet.MODEL || exportTask.getLabelExportSet() == ModelExportTask.LabelExportSet.ALL) {
+			labelNames.add("init");
+			labelNames.add("deadlock");
+			labelNames.addAll(getModelInfo().getLabelNames());
+		}
+		if (exportTask.getLabelExportSet() == ModelExportTask.LabelExportSet.EXTRA || exportTask.getLabelExportSet() == ModelExportTask.LabelExportSet.ALL) {
+			LabelList ll = exportTask.getExtraLabelsSource().getLabelList();
+			new Range(ll.size()).map((int i) -> ll.getLabelName(i)).collect(labelNames);
+		}
+		// Export via either symbolic/explicit model checker
+		PropertiesFile propertiesFile = exportTask.getExtraLabelsSource();
+		File file = exportTask.getFile();
+		ModelExportOptions exportOptions = exportTask.getExportOptions();
 		if (getBuiltModelType() != ModelBuildType.SYMBOLIC) {
 			explicit.StateModelChecker mcExpl = createModelCheckerExplicit(propertiesFile);
 			mcExpl.exportLabels(getBuiltModelExplicit(), labelNames, file, exportOptions);
@@ -4346,6 +4379,18 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	public void exportToDotFile(File file) throws FileNotFoundException, PrismException
 	{
 		exportBuiltModelTransitions(file, new ModelExportOptions(ModelExportFormat.DD_DOT));
+	}
+
+	/**
+	 * @deprecated
+	 * Export various aspects of the current built model together.
+	 * @param file File to export to
+	 * @param exportOptions The options for export
+	 */
+	@Deprecated
+	public void exportBuiltModelCombined(File file, ModelExportOptions exportOptions) throws PrismException, FileNotFoundException
+	{
+		exportBuiltModel(file, exportOptions);
 	}
 
 	/**
