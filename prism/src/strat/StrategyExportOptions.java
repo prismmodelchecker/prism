@@ -26,12 +26,13 @@
 
 package strat;
 
-import javax.swing.text.html.Option;
-
 import static prism.PrismSettings.DEFAULT_EXPORT_MODEL_PRECISION;
 
 import java.util.Optional;
 
+/**
+ * Class to represent options for exporting strategies.
+ */
 public class StrategyExportOptions implements Cloneable
 {
 	/**
@@ -79,7 +80,7 @@ public class StrategyExportOptions implements Cloneable
 					return this.toString();
 			}
 		}
-	};
+	}
 
 	/**
 	 * Mode of construction for an induced model.

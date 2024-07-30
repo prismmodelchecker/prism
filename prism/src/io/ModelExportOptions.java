@@ -31,7 +31,7 @@ import java.util.Optional;
 import static prism.PrismSettings.DEFAULT_EXPORT_MODEL_PRECISION;
 
 /**
- * Class to represented options for exporting models.
+ * Class to represent options for exporting models.
  */
 public class ModelExportOptions implements Cloneable
 {
