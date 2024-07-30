@@ -78,7 +78,6 @@ public class ModelGenerator2MTBDD
 
 	// dds/dd vars - whole system
 	private JDDNode trans; // transition matrix dd
-	private JDDNode range; // dd giving range for system
 	private JDDNode start; // dd for start state
 	private JDDNode reach; // dd for reachable states
 	private JDDVars allDDRowVars; // all dd vars (rows)
@@ -87,17 +86,9 @@ public class ModelGenerator2MTBDD
 	private JDDVars allDDSchedVars; // all dd vars (scheduling)
 	private JDDVars allDDChoiceVars; // all dd vars (internal non-det.)
 	private JDDVars allDDNondetVars; // all dd vars (all non-det.)
-	// dds/dd vars - modules
-	private JDDVars[] moduleDDRowVars; // dd vars for each module (rows)
-	private JDDVars[] moduleDDColVars; // dd vars for each module (cols)
-	private JDDNode[] moduleRangeDDs; // dd giving range for each module
-	private JDDNode[] moduleIdentities; // identity matrix for each module
 	// dds/dd vars - variables
 	private JDDVars[] varDDRowVars; // dd vars (row/col) for each module variable
 	private JDDVars[] varDDColVars;
-	private JDDNode[] varRangeDDs; // dd giving range for each module variable
-	private JDDNode[] varColRangeDDs; // dd giving range for each module variable (in col vars)
-	private JDDNode[] varIdentities; // identity matrix for each module variable
 	// dds/dd vars - nondeterminism
 	private JDDNode[] ddSynchVars; // individual dd vars for synchronising actions
 	private JDDNode[] ddSchedVars; // individual dd vars for scheduling non-det.
@@ -155,8 +146,6 @@ public class ModelGenerator2MTBDD
 		// allocate dd variables
 		allocateDDVars();
 		sortDDVars();
-		sortIdentities();
-		sortRanges();
 
 		// construct transition matrix and rewards
 		buildTransAndRewards();
@@ -234,12 +223,6 @@ public class ModelGenerator2MTBDD
 		}
 		
 		// deref spare dds
-		JDD.Deref(moduleIdentities[0]);
-		JDD.Deref(moduleRangeDDs[0]);
-		JDD.DerefArray(varIdentities, numVars);
-		JDD.DerefArray(varRangeDDs, numVars);
-		JDD.DerefArray(varColRangeDDs, numVars);
-		JDD.Deref(range);
 		if (modelType == ModelType.MDP) {
 			JDD.DerefArray(ddSynchVars, ddSynchVars.length);
 			JDD.DerefArray(ddSchedVars, ddSchedVars.length);
@@ -314,18 +297,6 @@ public class ModelGenerator2MTBDD
 	{
 		int i;
 
-		// put refs for all vars in each module together
-		// create arrays
-		moduleDDRowVars = new JDDVars[1];
-		moduleDDColVars = new JDDVars[1];
-		moduleDDRowVars[0] = new JDDVars();
-		moduleDDColVars[0] = new JDDVars();
-		// go thru all variables
-		for (i = 0; i < numVars; i++) {
-			moduleDDRowVars[0].copyVarsFrom(varDDRowVars[i]);
-			moduleDDColVars[0].copyVarsFrom(varDDColVars[i]);
-		}
-
 		// put refs for all vars in whole system together
 		// create arrays
 		allDDRowVars = new JDDVars();
@@ -349,59 +320,6 @@ public class ModelGenerator2MTBDD
 				allDDNondetVars.addVar(ddChoiceVars[i].copy());
 			}
 		}
-	}
-
-	/** sort DDs for identities */
-	private void sortIdentities()
-	{
-		int i, j;
-		JDDNode id;
-
-		// variable identities
-		varIdentities = new JDDNode[numVars];
-		for (i = 0; i < numVars; i++) {
-			// set each element of the identity matrix
-			id = JDD.Constant(0);
-			for (j = 0; j < varList.getRange(i); j++) {
-				id = JDD.SetMatrixElement(id, varDDRowVars[i], varDDColVars[i], j, j, 1);
-			}
-			varIdentities[i] = id;
-		}
-		// module identities
-		moduleIdentities = new JDDNode[1];
-		// product of identities for vars in module
-		id = JDD.Constant(1);
-		for (j = 0; j < numVars; j++) {
-			if (varList.getModule(j) == 0) {
-				id = JDD.Apply(JDD.TIMES, id, varIdentities[j].copy());
-			}
-		}
-		moduleIdentities[0] = id;
-	}
-
-	/** Sort DDs for ranges */
-	private void sortRanges()
-	{
-		int i;
-
-		// initialise range for whole system
-		range = JDD.Constant(1);
-
-		// variable ranges		
-		varRangeDDs = new JDDNode[numVars];
-		varColRangeDDs = new JDDNode[numVars];
-		for (i = 0; i < numVars; i++) {
-			// obtain range dd by abstracting from identity matrix
-			varRangeDDs[i] = JDD.SumAbstract(varIdentities[i].copy(), varDDColVars[i]);
-			// obtain range dd by abstracting from identity matrix
-			varColRangeDDs[i] = JDD.SumAbstract(varIdentities[i].copy(), varDDRowVars[i]);
-			// build up range for whole system as we go
-			range = JDD.Apply(JDD.TIMES, range, varRangeDDs[i].copy());
-		}
-		// module ranges
-		moduleRangeDDs = new JDDNode[1];
-		// obtain range dd by abstracting from identity matrix
-		moduleRangeDDs[0] = JDD.SumAbstract(moduleIdentities[0].copy(), moduleDDColVars[0]);
 	}
 
 	/** Construct transition matrix and rewards */

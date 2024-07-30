@@ -83,9 +83,6 @@ public class ExplicitModel2MTBDD
 	private JDDVars allDDSchedVars; // all dd vars (scheduling)
 	private JDDVars allDDChoiceVars; // all dd vars (internal non-det.)
 	private JDDVars allDDNondetVars; // all dd vars (all non-det.)
-	// dds/dd vars - modules
-	private JDDVars[] moduleDDRowVars; // dd vars for each module (rows)
-	private JDDVars[] moduleDDColVars; // dd vars for each module (cols)
 	// dds/dd vars - variables
 	private JDDVars[] varDDRowVars; // dd vars (row/col) for each module variable
 	private JDDVars[] varDDColVars;
@@ -318,18 +315,6 @@ public class ExplicitModel2MTBDD
 	private void sortDDVars()
 	{
 		int i;
-
-		// put refs for all vars in each module together
-		// create arrays
-		moduleDDRowVars = new JDDVars[1];
-		moduleDDColVars = new JDDVars[1];
-		moduleDDRowVars[0] = new JDDVars();
-		moduleDDColVars[0] = new JDDVars();
-		// go thru all variables
-		for (i = 0; i < numVars; i++) {
-			moduleDDRowVars[0].copyVarsFrom(varDDRowVars[i]);
-			moduleDDColVars[0].copyVarsFrom(varDDColVars[i]);
-		}
 
 		// put refs for all vars in whole system together
 		// create arrays
