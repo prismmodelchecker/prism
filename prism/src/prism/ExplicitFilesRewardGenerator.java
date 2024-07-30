@@ -30,7 +30,6 @@ package prism;
 import static csv.BasicReader.LF;
 
 import java.io.BufferedReader;
-import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
@@ -46,8 +45,6 @@ import common.iterable.Reducible;
 import csv.BasicReader;
 import csv.CsvFormatException;
 import csv.CsvReader;
-import parser.ParseException;
-import parser.PrismParser;
 import parser.State;
 
 /**
@@ -275,33 +272,11 @@ public abstract class ExplicitFilesRewardGenerator extends PrismComponent implem
 		 */
 		protected static String checkRewardName(String rewardStructName) throws PrismException
 		{
-			if (rewardStructName == null)
-				throw new PrismException("Expected identifier but got: null");
-
-			ByteArrayInputStream stream = new ByteArrayInputStream(rewardStructName.getBytes());
-			try {
-				// obtain exclusive access to the prism parser
-				// (don't forget to release it afterwards)
-				Prism.getPrismParser();
-				try {
-					// (Re)start parser
-					PrismParser.ReInit(stream);
-					// Parse
-					boolean success = true;
-					try {
-						success = rewardStructName.equals(PrismParser.Identifier());
-					} catch (ParseException e) {
-						success = false;
-					}
-					if (!success) {
-						throw new PrismLangException("Expected identifier but got: " + rewardStructName);
-					}
-				} finally {
-					// release prism parser
-					Prism.releasePrismParser();
-				}
-			} catch (InterruptedException ie) {
-				throw new PrismLangException("Concurrency error in parser");
+			if (rewardStructName == null) {
+				throw new PrismException("Missing reward name");
+			}
+			if (!Prism.isValidIdentifier(rewardStructName)) {
+				throw new PrismLangException("Reward name \"" + rewardStructName + "\" is not valid");
 			}
 			return rewardStructName;
 		}
