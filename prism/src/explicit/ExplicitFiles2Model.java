@@ -38,6 +38,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import common.IterableStateSet;
+import io.PrismExplicitImporter;
 import parser.State;
 import prism.ModelInfo;
 import prism.PrismComponent;
@@ -79,44 +80,36 @@ public class ExplicitFiles2Model extends PrismComponent
 	}
 	
 	/**
-	 * Build a Model corresponding to the passed in states/transitions/labels files.
-	 * Variable info and model type is taken from a {@code ModelInfo} object.
-	 * The number of states should also be passed in as {@code numStates}.
-	 *
-	 * @param statesFile .sta file (optional, may be {@code null})
-	 * @param transFile .tra file
-	 * @param labelsFile .lab file (optional, may be {@code null})
-	 * @param modelInfo model info (normally created with ExplicitFiles2ModelInfo)
-	 * @param numStates number of states
-	 * @return the constructed model
+	 * Build a Model corresponding to the passed in explicit files importer.
 	 */
-	public Model<?> build(File statesFile, File transFile, File labelsFile, ModelInfo modelInfo, int numStates) throws PrismException
+	public Model<?> build(PrismExplicitImporter modelImporter) throws PrismException
 	{
 		ModelExplicit<?> model = null;
+		ModelInfo modelInfo = modelImporter.getModelInfo();
 		switch (modelInfo.getModelType()) {
 		case DTMC:
 			DTMCSimple<?> dtmc = new DTMCSimple<>();
-			dtmc.buildFromPrismExplicit(transFile.getAbsolutePath());
+			dtmc.buildFromPrismExplicit(modelImporter.getTransFile().getAbsolutePath());
 			model = dtmc;
 			break;
 		case CTMC:
 			CTMCSimple<?> ctmc = new CTMCSimple<>();
-			ctmc.buildFromPrismExplicit(transFile.getAbsolutePath());
+			ctmc.buildFromPrismExplicit(modelImporter.getTransFile().getAbsolutePath());
 			model = ctmc;
 			break;
 		case MDP:
 			MDPSimple<?> mdp = new MDPSimple<>();
-			mdp.buildFromPrismExplicit(transFile.getAbsolutePath());
+			mdp.buildFromPrismExplicit(modelImporter.getTransFile().getAbsolutePath());
 			model = mdp;
 			break;
 		case IDTMC:
 			IDTMCSimple<?> idtmc = new IDTMCSimple<>();
-			idtmc.buildFromPrismExplicit(transFile.getAbsolutePath());
+			idtmc.buildFromPrismExplicit(modelImporter.getTransFile().getAbsolutePath());
 			model = idtmc;
 			break;
 		case IMDP:
 			IMDPSimple<?> imdp = new IMDPSimple<>();
-			imdp.buildFromPrismExplicit(transFile.getAbsolutePath());
+			imdp.buildFromPrismExplicit(modelImporter.getTransFile().getAbsolutePath());
 			model = imdp;
 			break;
 		case CTMDP:
@@ -134,9 +127,9 @@ public class ExplicitFiles2Model extends PrismComponent
 			throw new PrismNotSupportedException("Imported model has no states, not supported");
 		}
 
-		if (labelsFile != null) {
+		if (modelImporter.hasLabelsFile()) {
 			// load labels
-			loadLabels(model, labelsFile);
+			loadLabels(model, modelImporter.getLabelsFile());
 		} else {
 			// no init label, we choose the first state
 			model.addInitialState(0);
@@ -148,8 +141,8 @@ public class ExplicitFiles2Model extends PrismComponent
 
 		model.findDeadlocks(fixdl);
 		
-		if (statesFile != null) {
-			loadStates(model, statesFile, modelInfo);
+		if (modelImporter.hasStatesFile()) {
+			loadStates(model, modelImporter.getStatesFile(), modelInfo);
 		} else {
 			// in absence of a statesFile, there is a single variable x
 			// in the model, with value corresponding to the state index

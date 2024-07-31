@@ -38,18 +38,19 @@ import java.util.Vector;
 import java.util.Map.Entry;
 
 import common.IterableStateSet;
+import io.PrismExplicitImporter;
 import jdd.JDD;
 import jdd.JDDNode;
 import jdd.JDDVars;
 import parser.Values;
 import parser.VarList;
-import prism.ExplicitFilesRewardGenerator;
 import prism.ModelInfo;
 import prism.ModelType;
 import prism.Prism;
 import prism.PrismException;
 import prism.PrismLog;
 import prism.PrismNotSupportedException;
+import prism.RewardGenerator;
 import symbolic.model.Model;
 import symbolic.model.ModelSymbolic;
 import symbolic.model.ModelVariablesDD;
@@ -67,7 +68,8 @@ public class ExplicitFiles2MTBDD
 	private Prism prism;
 	private PrismLog mainLog;
 
-	// Files to read in from
+	// Importer / files to read in from
+	private PrismExplicitImporter importer;
 	private File statesFile;
 	private File transFile;
 	private File labelsFile;
@@ -81,6 +83,9 @@ public class ExplicitFiles2MTBDD
 
 	// Explicit storage of states
 	private int statesArray[][] = null;
+
+	// Reward info
+	private RewardGenerator rewardInfo;
 
 	// mtbdd stuff
 
@@ -107,8 +112,6 @@ public class ExplicitFiles2MTBDD
 	private int maxNumChoices = 0;
 	private LinkedHashMap<String, JDDNode> labelsDD;
 
-	protected ExplicitFilesRewardGenerator efrg; // reward generator
-
 	public ExplicitFiles2MTBDD(Prism prism)
 	{
 		this.prism = prism;
@@ -120,23 +123,23 @@ public class ExplicitFiles2MTBDD
 	 * Variable info and model type is taken from a {@code ModelInfo} object.
 	 * The number of states should also be passed in as {@code numStates}.
 	 */
-	public Model build(File statesFile, File transFile, File labelsFile, ModelInfo modelInfo, int numStates,
-					   ExplicitFilesRewardGenerator efrg) throws PrismException
+	public Model build(PrismExplicitImporter importer) throws PrismException
 	{
-		this.statesFile = statesFile;
-		this.transFile = transFile;
-		this.labelsFile = labelsFile;
-		this.modelInfo = modelInfo;
+		this.importer = importer;
+		this.statesFile = importer.getStatesFile();
+		this.transFile = importer.getTransFile();
+		this.labelsFile = importer.getLabelsFile();
+		this.modelInfo = importer.getModelInfo();
 		modelType = modelInfo.getModelType();
 		varList = modelInfo.createVarList();
 		numVars = varList.getNumVars();
-		this.numStates = numStates;
+		this.numStates = importer.getNumStates();
 		modelVariables = new ModelVariablesDD();
 
-		this.efrg = efrg;
-		
+		rewardInfo = importer.getRewardInfo();
+
 		// Build states list, if info is available
-		if (statesFile != null) {
+		if (importer.hasStatesFile()) {
 			readStatesFromFile();
 		}
 
@@ -254,7 +257,7 @@ public class ExplicitFiles2MTBDD
 		// they need a module name list, so we fake that
 		int numModules = 1;
 		String moduleNames[] = new String[] { "M" };
-		String rewardStructNames[] = efrg.getRewardStructNames().toArray(new String[0]);
+		String rewardStructNames[] = (String[]) rewardInfo.getRewardStructNames().toArray(new String[0]);
 
 		if (modelType == ModelType.DTMC) {
 			model = new ProbModel(trans, start, allDDRowVars, allDDColVars, modelVariables,
@@ -613,12 +616,12 @@ public class ExplicitFiles2MTBDD
 	 */
 	private void buildStateRewards() throws PrismException
 	{
-		int numRewardStructs = efrg.getNumRewardStructs();
+		int numRewardStructs = rewardInfo.getNumRewardStructs();
 		stateRewards = new JDDNode[numRewardStructs];
 		for (int r = 0; r < numRewardStructs; r++) {
 			stateRewards[r] = JDD.Constant(0);
 			int finalR = r;
-			efrg.extractStateRewards(r, (i, d) -> storeStateReward(finalR, i, d));
+			importer.extractStateRewards(r, (i, d) -> storeStateReward(finalR, i, d));
 		}
 	}
 
@@ -627,15 +630,15 @@ public class ExplicitFiles2MTBDD
 	 */
 	private void buildTransitionRewards() throws PrismException
 	{
-		int numRewardStructs = efrg.getNumRewardStructs();
+		int numRewardStructs = rewardInfo.getNumRewardStructs();
 		transRewards = new JDDNode[numRewardStructs];
 		for (int r = 0; r < numRewardStructs; r++) {
 			transRewards[r] = JDD.Constant(0);
 			int finalR = r;
 			if (!modelType.nondeterministic()) {
-				efrg.extractMCTransitionRewards(r, (s, s2, d) -> storeMCTransitionReward(finalR, s, s2, d));
+				importer.extractMCTransitionRewards(r, (s, s2, d) -> storeMCTransitionReward(finalR, s, s2, d));
 			} else {
-				efrg.extractMDPTransitionRewards(r, (s, i, s2, d) -> storeMDPTransitionReward(finalR, s, i, s2, d));
+				importer.extractMDPTransitionRewards(r, (s, i, s2, d) -> storeMDPTransitionReward(finalR, s, i, s2, d));
 			}
 		}
 	}
