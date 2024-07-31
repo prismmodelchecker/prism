@@ -336,9 +336,8 @@ public class Modules2MTBDD
 				                      numVars, varList, varDDRowVars, varDDColVars, constantValues);
 			}
 			else if (modelType == ModelType.MDP) {
-				model = new NondetModel(trans, start, stateRewards, transRewards, rewardStructNames, allDDRowVars, allDDColVars,
-				                        allDDSynchVars, allDDSchedVars, allDDChoiceVars, allDDNondetVars, modelVariables,
-				                        numVars, varList, varDDRowVars, varDDColVars, constantValues);
+				model = new NondetModel(trans, start, stateRewards, transRewards, rewardStructNames, allDDRowVars, allDDColVars, allDDNondetVars, modelVariables,
+									    numVars, varList, varDDRowVars, varDDColVars, constantValues);
 			}
 			else if (modelType == ModelType.CTMC) {
 				model = new StochModel(trans, start, stateRewards, transRewards, rewardStructNames, allDDRowVars, allDDColVars, modelVariables,
@@ -426,6 +425,12 @@ public class Modules2MTBDD
 		JDD.DerefArrayNonNull(ddSynchVars);
 		JDD.DerefArrayNonNull(ddSchedVars);
 		JDD.DerefArrayNonNull(ddChoiceVars);
+		if (allDDSynchVars != null)
+			allDDSynchVars.derefAll();
+		if (allDDSchedVars != null)
+			allDDSchedVars.derefAll();
+		if (allDDChoiceVars != null)
+			allDDChoiceVars.derefAll();
 
 		if (doSymmetry) {
 			JDD.Deref(symm);

@@ -79,17 +79,10 @@ public class ExplicitModel2MTBDD
 	private JDDNode transRewards; // dd of transition rewards
 	private JDDVars allDDRowVars; // all dd vars (rows)
 	private JDDVars allDDColVars; // all dd vars (cols)
-	private JDDVars allDDSynchVars; // all dd vars (synchronising actions)
-	private JDDVars allDDSchedVars; // all dd vars (scheduling)
-	private JDDVars allDDChoiceVars; // all dd vars (internal non-det.)
 	private JDDVars allDDNondetVars; // all dd vars (all non-det.)
 	// dds/dd vars - variables
 	private JDDVars[] varDDRowVars; // dd vars (row/col) for each module variable
 	private JDDVars[] varDDColVars;
-	// dds/dd vars - nondeterminism
-	private JDDNode[] ddSynchVars; // individual dd vars for synchronising actions
-	private JDDNode[] ddSchedVars; // individual dd vars for scheduling non-det.
-	private JDDNode[] ddChoiceVars; // individual dd vars for local non-det.
 
 	private ModelVariablesDD modelVariables;
 	
@@ -152,7 +145,6 @@ public class ExplicitModel2MTBDD
 
 		// Allocate dd variables
 		allocateDDVars();
-		sortDDVars();
 
 		// Construct transition matrix from file
 		buildTrans(modelExpl);
@@ -198,8 +190,8 @@ public class ExplicitModel2MTBDD
 			model = new ProbModel(trans, start, stateRewardsArray, transRewardsArray, rewardStructNames, allDDRowVars, allDDColVars, modelVariables,
 					numVars, varList, varDDRowVars, varDDColVars, constantValues);
 		} else if (modelType == ModelType.MDP) {
-			model = new symbolic.model.NondetModel(trans, start, stateRewardsArray, transRewardsArray, rewardStructNames, allDDRowVars, allDDColVars, allDDSynchVars,
-					allDDSchedVars, allDDChoiceVars, allDDNondetVars, modelVariables, numVars, varList,
+			model = new symbolic.model.NondetModel(trans, start, stateRewardsArray, transRewardsArray, rewardStructNames, allDDRowVars, allDDColVars,
+					allDDNondetVars, modelVariables, numVars, varList,
 					varDDRowVars, varDDColVars, constantValues);
 		} else if (modelType == ModelType.CTMC) {
 			model = new StochModel(trans, start, stateRewardsArray, transRewardsArray, rewardStructNames, allDDRowVars, allDDColVars, modelVariables,
@@ -242,19 +234,6 @@ public class ExplicitModel2MTBDD
 		// Find any deadlocks
 		model.findDeadlocks(prism.getFixDeadlocks());
 
-		// Deref spare dds
-		if (modelType == ModelType.MDP) {
-			for (i = 0; i < ddSynchVars.length; i++) {
-				JDD.Deref(ddSynchVars[i]);
-			}
-			for (i = 0; i < ddSchedVars.length; i++) {
-				JDD.Deref(ddSchedVars[i]);
-			}
-			for (i = 0; i < ddChoiceVars.length; i++) {
-				JDD.Deref(ddChoiceVars[i]);
-			}
-		}
-
 		return model;
 	}
 
@@ -269,12 +248,6 @@ public class ExplicitModel2MTBDD
 		
 		// create arrays/etc. first
 
-		// nondeterministic variables
-		if (modelType == ModelType.MDP) {
-			ddSynchVars = new JDDNode[0];
-			ddSchedVars = new JDDNode[0];
-			ddChoiceVars = new JDDNode[maxNumChoices];
-		}
 		// module variable (row/col) vars
 		varDDRowVars = new JDDVars[numVars];
 		varDDColVars = new JDDVars[numVars];
@@ -287,14 +260,17 @@ public class ExplicitModel2MTBDD
 
 		// allocate nondeterministic variables
 		if (modelType == ModelType.MDP) {
+			allDDNondetVars = new JDDVars();
 			for (i = 0; i < maxNumChoices; i++) {
-				ddChoiceVars[i] = modelVariables.allocateVariable("l" + i);
+				allDDNondetVars.addVar(modelVariables.allocateVariable("l" + i));
 			}
 		}
 
 		// allocate dd variables for module variables (i.e. rows/cols)
 		// go through all vars in order (incl. global variables)
 		// so overall ordering can be specified by ordering in the input file
+		allDDRowVars = new JDDVars();
+		allDDColVars = new JDDVars();
 		for (i = 0; i < numVars; i++) {
 			// get number of dd variables needed
 			// (ceiling of log2 of range of variable)
@@ -306,40 +282,8 @@ public class ExplicitModel2MTBDD
 				// new dd col variable
 				varDDColVars[i].addVar(modelVariables.allocateVariable(varList.getName(i) + "'." + j));
 			}
-		}
-	}
-
-	// sort out DD variables and the arrays they are stored in
-	// (more than one copy of most variables is stored)
-
-	private void sortDDVars()
-	{
-		int i;
-
-		// put refs for all vars in whole system together
-		// create arrays
-		allDDRowVars = new JDDVars();
-		allDDColVars = new JDDVars();
-		if (modelType == ModelType.MDP) {
-			allDDSynchVars = new JDDVars();
-			allDDSchedVars = new JDDVars();
-			allDDChoiceVars = new JDDVars();
-			allDDNondetVars = new JDDVars();
-		}
-		// go thru all variables
-		for (i = 0; i < numVars; i++) {
-			// add to list
 			allDDRowVars.copyVarsFrom(varDDRowVars[i]);
 			allDDColVars.copyVarsFrom(varDDColVars[i]);
-		}
-		if (modelType == ModelType.MDP) {
-			for (i = 0; i < ddChoiceVars.length; i++) {
-				// add to list
-				JDD.Ref(ddChoiceVars[i]);
-				JDD.Ref(ddChoiceVars[i]);
-				allDDChoiceVars.addVar(ddChoiceVars[i]);
-				allDDNondetVars.addVar(ddChoiceVars[i]);
-			}
 		}
 	}
 
@@ -432,7 +376,7 @@ public class ExplicitModel2MTBDD
 						d = (Double) e.getValue();
 						a = "";
 						// construct element of matrix mtbdd
-						elem = JDD.SetVectorElement(JDD.Constant(0), allDDChoiceVars, k, 1.0);
+						elem = JDD.SetVectorElement(JDD.Constant(0), allDDNondetVars, k, 1.0);
 						elem = JDD.Apply(JDD.TIMES, elem, encodeStatePair(r, c));
 						// add it into mtbdds for transition matrix and transition rewards
 						JDD.Ref(elem);

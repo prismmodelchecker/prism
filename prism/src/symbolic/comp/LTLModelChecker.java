@@ -868,9 +868,6 @@ public class LTLModelChecker extends PrismComponent
 				// New list of all row/col vars
 				newAllDDRowVars, newAllDDColVars,
 				// Nondet variables (unchanged)
-				model.getAllDDSchedVars().copy(),
-				model.getAllDDSynchVars().copy(),
-				model.getAllDDChoiceVars().copy(),
 				model.getAllDDNondetVars().copy(),
 				// New model variables
 				newModelVariables,

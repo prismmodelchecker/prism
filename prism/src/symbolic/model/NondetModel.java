@@ -59,13 +59,7 @@ public class NondetModel extends ModelSymbolic
 	 * choice present, and a 1 where there is none.
 	 * Used for minimising over nondeterminism. */
 	protected JDDNode nondetMask;
-	/** The subset of nondeterminism DD variables encoding actions */
-	protected JDDVars allDDSynchVars;
-	/** The subset of nondeterminism DD variables encoding mddule scheduling */
-	protected JDDVars allDDSchedVars;
-	/** The subset of nondeterminism DD variables encoding local nondeterminism */
-	protected JDDVars allDDChoiceVars;
-	/** All the DD variables used to represent nondeterminism */
+	/** DD variables used to represent nondeterminism */
 	protected JDDVars allDDNondetVars;
 	/** BDD (over row and nondet variables) for choices that not action-labelled */
 	protected JDDNode transInd;
@@ -84,14 +78,11 @@ public class NondetModel extends ModelSymbolic
 
 	// Constructor
 
-	public NondetModel(JDDNode tr, JDDNode s, JDDNode sr[], JDDNode trr[], String rsn[], JDDVars arv, JDDVars acv, JDDVars asyv, JDDVars asv, JDDVars achv,
+	public NondetModel(JDDNode tr, JDDNode s, JDDNode sr[], JDDNode trr[], String rsn[], JDDVars arv, JDDVars acv,
 					   JDDVars andv, ModelVariablesDD mvdd, int nv, VarList vl, JDDVars[] vrv, JDDVars[] vcv, Values cv)
 	{
 		super(tr, s, sr, trr, rsn, arv, acv, mvdd, nv, vl, vrv, vcv, cv);
 
-		allDDSynchVars = asyv;
-		allDDSchedVars = asv;
-		allDDChoiceVars = achv;
 		allDDNondetVars = andv;
 
 		transInd = null;
@@ -341,9 +332,6 @@ public class NondetModel extends ModelSymbolic
 	public void clear()
 	{
 		super.clear();
-		allDDSynchVars.derefAll();
-		allDDSchedVars.derefAll();
-		allDDChoiceVars.derefAll();
 		allDDNondetVars.derefAll();
 		JDD.Deref(nondetMask);
 		if (transInd != null)
@@ -402,30 +390,6 @@ public class NondetModel extends ModelSymbolic
 	public int getNumDDNondetVars()
 	{
 		return allDDNondetVars.n();
-	}
-
-	/**
-	 * Get the subset of nondeterminism DD variables encoding actions.
-	 */
-	public JDDVars getAllDDSynchVars()
-	{
-		return allDDSynchVars;
-	}
-
-	/**
-	 * Get the subset of nondeterminism DD variables encoding model scheduling.
-	 */
-	public JDDVars getAllDDSchedVars()
-	{
-		return allDDSchedVars;
-	}
-
-	/**
-	 * Get the subset of nondeterminism DD variables encoding local nondeterminism.
-	 */
-	public JDDVars getAllDDChoiceVars()
-	{
-		return allDDChoiceVars;
 	}
 
 	/**
@@ -494,7 +458,7 @@ public class NondetModel extends ModelSymbolic
 		JDDNode newTrans, newStart;
 		JDDVars newVarDDRowVars[], newVarDDColVars[];
 		JDDVars newAllDDRowVars, newAllDDColVars;
-		JDDVars newAllDDChoiceVars, newAllDDNondetVars;
+		JDDVars newAllDDNondetVars;
 		JDDNode newStateRewards[], newTransRewards[];
 		ModelVariablesDD newModelVariables;
 		VarList newVarList;
@@ -544,15 +508,10 @@ public class NondetModel extends ModelSymbolic
 		// notify the transformation about the allocated action variables
 		transformation.hookExtraActionVariableAllocation(extraActionVars.copy());
 
-		// Generate new allDDChoiceVars and newAllDDNondetVars
-		newAllDDChoiceVars = new JDDVars();
-		newAllDDChoiceVars.copyVarsFrom(extraActionVars);
-		newAllDDChoiceVars.copyVarsFrom(this.allDDChoiceVars);
-
+		// Generate new newAllDDNondetVars
 		newAllDDNondetVars = new JDDVars();
 		newAllDDNondetVars.copyVarsFrom(extraActionVars);
 		newAllDDNondetVars.copyVarsFrom(this.allDDNondetVars);
-
 
 		// Create/populate new state variable lists
 		if (nStateVars == 0) {
@@ -636,9 +595,6 @@ public class NondetModel extends ModelSymbolic
 				// New list of all row/col vars
 				newAllDDRowVars, newAllDDColVars,
 				// Nondet variables (unchanged)
-				this.getAllDDSchedVars().copy(),
-				this.getAllDDSynchVars().copy(),
-				newAllDDChoiceVars,
 				newAllDDNondetVars,
 				// New model variables
 				newModelVariables,
