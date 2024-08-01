@@ -23,15 +23,15 @@ label "goal2" = s=2|s=3;
 
 rewards "time" true : 1; endrewards
 
-//rewards "energy"
-//	true : 0.1;
-//	s<2 | s>3 : 2.2;
+rewards "energy"
+	true : 0.1;
+	s<2 | s>3 : 2.2;
 //	[stuck] true : 3.5;
-//endrewards
+endrewards
 
-//rewards "move"
+rewards "move"
 //	[north] true : 1;
 //	[south] true : 1;
 //	[east] true : 1;
 //	[west] true : 1;
-//endrewards
+endrewards
