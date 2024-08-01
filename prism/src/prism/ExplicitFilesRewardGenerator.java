@@ -71,7 +71,7 @@ public abstract class ExplicitFilesRewardGenerator extends PrismComponent implem
 	// Regex for comments
 	protected static final Pattern COMMENT_PATTERN = Pattern.compile("#.*");
 	// Regex for reward name
-	protected static final Pattern REWARD_NAME_PATTERN = Pattern.compile("# Reward structure (\"([a-zA-Z0-9]*)\")$");
+	protected static final Pattern REWARD_NAME_PATTERN = Pattern.compile("# Reward structure (\"([_a-zA-Z0-9]*)\")$");
 
 	/**
 	 * Constructor
