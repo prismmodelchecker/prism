@@ -82,7 +82,6 @@ import strat.StrategyExportOptions.StrategyExportType;
 import strat.StrategyGenerator;
 import symbolic.build.ExplicitFiles2MTBDD;
 import symbolic.build.ExplicitFiles2ModelInfo;
-import symbolic.build.ExplicitFilesRewardGenerator4MTBDD;
 import symbolic.build.ExplicitModel2MTBDD;
 import symbolic.build.ModelGenerator2MTBDD;
 import symbolic.build.Modules2MTBDD;
@@ -2097,12 +2096,12 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 					break;
 				case EXPLICIT_FILES:
 					ExplicitFiles2MTBDD expf2mtbdd = new ExplicitFiles2MTBDD(this);
-					ExplicitFilesRewardGenerator4MTBDD erfg4m = new ExplicitFilesRewardGenerator4MTBDD(this, explicitFilesStateRewardsFiles, explicitFilesNumStates);
-					newModelSymb = expf2mtbdd.build(explicitFilesStatesFile, explicitFilesTransFile, explicitFilesLabelsFile, getModelInfo(), explicitFilesNumStates, erfg4m);
+					ExplicitFilesRewardGenerator efrg = new ExplicitFilesRewardGenerator(this, explicitFilesStateRewardsFiles, explicitFilesNumStates);
+					newModelSymb = expf2mtbdd.build(explicitFilesStatesFile, explicitFilesTransFile, explicitFilesLabelsFile, getModelInfo(), explicitFilesNumStates, efrg);
 					setBuiltModel(ModelBuildType.SYMBOLIC, newModelSymb);
 					// Also build a RewardGenerator
 					// (needed e.g. when (multiple) reward files are later exported)
-					setRewardGenerator(erfg4m);
+					setRewardGenerator(efrg);
 					// No current support for building a ModelGenerator
 					// (e.g. for simulation)
 					break;

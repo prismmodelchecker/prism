@@ -2,7 +2,8 @@
 //	
 //	Copyright (c) 2002-
 //	Authors:
-//	* Dave Parker <david.parker@comlab.ox.ac.uk> (University of Oxford, formerly University of Birmingham)
+//	* Dave Parker <david.parker@cs.ox.ac.uk> (University of Oxford)
+//	* Ludwig Pauly <ludwigpauly@gmail.com> (TU Dresden)
 //	
 //------------------------------------------------------------------------------
 //	
@@ -42,6 +43,7 @@ import jdd.JDDNode;
 import jdd.JDDVars;
 import parser.Values;
 import parser.VarList;
+import prism.ExplicitFilesRewardGenerator;
 import prism.ModelInfo;
 import prism.ModelType;
 import prism.Prism;
@@ -80,8 +82,6 @@ public class ExplicitFiles2MTBDD
 	// Explicit storage of states
 	private int statesArray[][] = null;
 
-	private String rewardStructNames[];
-
 	// mtbdd stuff
 
 	// dds/dd vars - whole system
@@ -107,7 +107,7 @@ public class ExplicitFiles2MTBDD
 	private int maxNumChoices = 0;
 	private LinkedHashMap<String, JDDNode> labelsDD;
 
-	protected ExplicitFilesRewardGenerator4MTBDD efrg4m; // reward generator
+	protected ExplicitFilesRewardGenerator efrg; // reward generator
 
 	public ExplicitFiles2MTBDD(Prism prism)
 	{
@@ -121,7 +121,7 @@ public class ExplicitFiles2MTBDD
 	 * The number of states should also be passed in as {@code numStates}.
 	 */
 	public Model build(File statesFile, File transFile, File labelsFile, ModelInfo modelInfo, int numStates,
-					   ExplicitFilesRewardGenerator4MTBDD efrg4m) throws PrismException
+					   ExplicitFilesRewardGenerator efrg) throws PrismException
 	{
 		this.statesFile = statesFile;
 		this.transFile = transFile;
@@ -133,7 +133,7 @@ public class ExplicitFiles2MTBDD
 		this.numStates = numStates;
 		modelVariables = new ModelVariablesDD();
 
-		this.efrg4m = efrg4m;
+		this.efrg = efrg;
 		
 		// Build states list, if info is available
 		if (statesFile != null) {
@@ -245,13 +245,13 @@ public class ExplicitFiles2MTBDD
 		buildInit();
 
 		// compute state rewards
-		computeStateRewards();
+		buildStateRewards();
 
 		Values constantValues = new Values(); // no constants
 
 		// transition reward not yet supported - just make 0
-		JDDNode transRewardsArray[] = new JDDNode[rewardStructNames.length];
-		for (int k = 0; k < rewardStructNames.length; k++) {
+		JDDNode transRewardsArray[] = new JDDNode[stateRewards.length];
+		for (int k = 0; k < stateRewards.length; k++) {
 			transRewardsArray[k] = JDD.Constant(0);
 		}
 
@@ -259,6 +259,8 @@ public class ExplicitFiles2MTBDD
 		// they need a module name list, so we fake that
 		int numModules = 1;
 		String moduleNames[] = new String[] { "M" };
+		String rewardStructNames[] = efrg.getRewardStructNames().toArray(new String[0]);
+
 		if (modelType == ModelType.DTMC) {
 			model = new ProbModel(trans, start, allDDRowVars, allDDColVars, modelVariables,
 					varList, varDDRowVars, varDDColVars);
@@ -612,16 +614,43 @@ public class ExplicitFiles2MTBDD
 	}
 
 	/**
-	 * Method gets state rewards from files with ExplicitFilesRewardGenerator4MTBDD.
-	 *
-	 * @throws PrismException can be thrown from reward generator
-	 * @throws NullPointerException if a file is null
+	 * Load state rewards from the ExplicitFilesRewardGenerator.
 	 */
-	private void computeStateRewards() throws PrismException
+	private void buildStateRewards() throws PrismException
 	{
-		efrg4m.initRewardGenerator(statesArray, varDDColVars, varDDRowVars, numVars);
-		stateRewards = efrg4m.getRewardStructs();
-		this.rewardStructNames = efrg4m.getRewardStructNames().toArray(new String[0]);
+		int numRewardStructs = efrg.getNumRewardStructs();
+		stateRewards = new JDDNode[numRewardStructs];
+		for (int r = 0; r < numRewardStructs; r++) {
+			stateRewards[r] = JDD.Constant(0);
+			int finalR = r;
+			efrg.extractStateRewards(r, (i, d) -> storeReward(finalR, i, d));
+		}
+	}
+
+	/**
+	 * Stores stateRewards in the required format for mtbdd.
+	 *
+	 * @param rewardStructIndex reward structure index
+	 * @param i state index
+	 * @param d reward value
+	 */
+	protected void storeReward(int rewardStructIndex, int i, double d)
+	{
+		// construct element of vector mtbdd
+		// case where we don't have a state list...
+		JDDNode tmp;
+		if (statesArray == null) {
+			tmp = JDD.SetVectorElement(JDD.Constant(0), varDDRowVars[0], i, 1.0);
+		}
+		// case where we do have a state list...
+		else {
+			tmp = JDD.Constant(1);
+			for (int j = 0; j < numVars; j++) {
+				tmp = JDD.Times(tmp, JDD.SetVectorElement(JDD.Constant(0), varDDRowVars[j], statesArray[i][j], 1));
+			}
+		}
+		// add it into mtbdd for state rewards
+		stateRewards[rewardStructIndex] = JDD.Plus(stateRewards[rewardStructIndex], JDD.Times(JDD.Constant(d), tmp));
 	}
 }
 

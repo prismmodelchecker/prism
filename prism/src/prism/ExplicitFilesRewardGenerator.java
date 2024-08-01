@@ -59,7 +59,7 @@ import parser.State;
  * where &lt;double-quoted-name&gt; ("<name>") is omitted if the reward structure is not named.<br />
  * We do not enforce the correct format right now.
  */
-public abstract class ExplicitFilesRewardGenerator extends PrismComponent implements RewardGenerator<Double>
+public class ExplicitFilesRewardGenerator extends PrismComponent implements RewardGenerator<Double>
 {
 	// File(s) to read in rewards from
 	protected List<RewardFile> stateRewardsFiles = new ArrayList<>();
@@ -101,17 +101,15 @@ public abstract class ExplicitFilesRewardGenerator extends PrismComponent implem
 		this.statesList = statesList;
 	}
 
-	protected abstract void storeReward(int rewardStructIndex, int i, double d);
-
 	/**
 	 * Extract the state rewards for a given reward structure index.
 	 *
 	 * @throws PrismException if an error occurs during reward extraction
 	 */
-	protected void extractStateRewards(int rewardIndex) throws PrismException
+	public void extractStateRewards(int rewardIndex, BiConsumer<Integer, Double> storeReward) throws PrismException
 	{
 		RewardFile file = stateRewardsFiles.get(rewardIndex);
-		file.extractRewards((Integer state, Double reward) -> storeReward(rewardIndex, state, reward), numStates);
+		file.extractRewards(storeReward, numStates);
 	}
 
 

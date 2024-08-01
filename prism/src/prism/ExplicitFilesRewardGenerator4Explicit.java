@@ -74,7 +74,7 @@ public class ExplicitFilesRewardGenerator4Explicit extends ExplicitFilesRewardGe
 	{
 		if (stateRewards[r] == null) {
 			stateRewards[r] = new double[numStates];
-			extractStateRewards(r);
+			extractStateRewards(r, (i, d) -> storeReward(r, i, d));
 		}
 		return stateRewards[r][s];
 	}
