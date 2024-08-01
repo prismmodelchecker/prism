@@ -1016,7 +1016,10 @@ def benchmarkAutoFile(autoFile):
     if dir == "": dir = "."
     if options.matching:
         matchingModelFiles = getMatchingModelsInDir(dir, autoFile)
-        modelFiles = map(lambda file: [file,[]], matchingModelFiles)
+        if matchingModelFiles:
+            modelFiles = map(lambda file: [file,[]], matchingModelFiles)
+        else:
+            modelFiles = []
     else:
         modelFiles = getModelsInDir(dir)
     logging.debug("Model files: " + str(modelFiles))
