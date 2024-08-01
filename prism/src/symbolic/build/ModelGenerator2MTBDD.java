@@ -178,15 +178,16 @@ public class ModelGenerator2MTBDD
 
 		// create new Model object to be returned
 		if (modelType == ModelType.DTMC) {
-			model = new ProbModel(trans, start, stateRewardsArray, transRewardsArray, rewardStructNames, allDDRowVars, allDDColVars, modelVariables,
+			model = new ProbModel(trans, start, allDDRowVars, allDDColVars, modelVariables,
 					numVars, varList, varDDRowVars, varDDColVars, constantValues);
 		} else if (modelType == ModelType.MDP) {
-			model = new NondetModel(trans, start, stateRewardsArray, transRewardsArray, rewardStructNames, allDDRowVars, allDDColVars, allDDNondetVars, modelVariables,
+			model = new NondetModel(trans, start, allDDRowVars, allDDColVars, allDDNondetVars, modelVariables,
 					numVars, varList, varDDRowVars, varDDColVars, constantValues);
 		} else if (modelType == ModelType.CTMC) {
-			model = new StochModel(trans, start, stateRewardsArray, transRewardsArray, rewardStructNames, allDDRowVars, allDDColVars, modelVariables,
+			model = new StochModel(trans, start, allDDRowVars, allDDColVars, modelVariables,
 					numVars, varList, varDDRowVars, varDDColVars, constantValues);
 		}
+		model.setRewards(stateRewardsArray, transRewardsArray, rewardStructNames);
 		// set action info
 		// TODO: disable if not required?
 		model.setSynchs(synchs);

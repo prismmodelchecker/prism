@@ -573,8 +573,6 @@ public class LTLModelChecker extends PrismComponent
 		ProbModel modelProd = new ProbModel(
 		// New transition matrix/start state
 				newTrans, newStart,
-				// Don't pass in any rewards info
-				new JDDNode[0], new JDDNode[0], new String[0],
 				// New list of all row/col vars
 				newAllDDRowVars, newAllDDColVars,
 				// New model variables
@@ -863,8 +861,6 @@ public class LTLModelChecker extends PrismComponent
 		NondetModel modelProd = new NondetModel(
 		// New transition matrix/start state
 				newTrans, newStart,
-				// Don't pass in any rewards info
-				new JDDNode[0], new JDDNode[0], new String[0],
 				// New list of all row/col vars
 				newAllDDRowVars, newAllDDColVars,
 				// Nondet variables (unchanged)

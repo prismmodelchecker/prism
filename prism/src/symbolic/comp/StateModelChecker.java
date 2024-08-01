@@ -173,9 +173,6 @@ public class StateModelChecker extends PrismComponent implements ModelChecker
 		reach = null;
 		model = new ProbModel(JDD.Constant(0),  // trans
 		                      JDD.Constant(0),  // start
-		                      new JDDNode[] {}, // state-rew
-		                      new JDDNode[] {}, // trans-rew
-		                      null,             // rewardStructNames
 		                      allDDRowVars.copy(), // allDDRowVars
 		                      new JDDVars(),    // allDDColVars
 		                      null,             // ddVarNames
