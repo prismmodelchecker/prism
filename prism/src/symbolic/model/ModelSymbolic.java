@@ -56,8 +56,6 @@ public abstract class ModelSymbolic implements Model
 	// Model info
 
 	// Vars/consts
-	/** Total number of model variables */
-	protected int numVars;
 	/** Model variable info */
 	protected VarList varList;
 	/** Values of constants */
@@ -116,19 +114,17 @@ public abstract class ModelSymbolic implements Model
 
 	// Constructor
 
-	public ModelSymbolic(JDDNode tr, JDDNode s, JDDVars arv, JDDVars acv, ModelVariablesDD mvdd,
-						 int nv, VarList vl, JDDVars[] vrv, JDDVars[] vcv, Values cv)
+	public ModelSymbolic(JDDNode trans, JDDNode start, JDDVars allDDRowVars, JDDVars allDDColVars, ModelVariablesDD modelVariables,
+						 VarList varList, JDDVars[] varDDRowVars, JDDVars[] varDDColVars, Values cv)
 	{
-		trans = tr;
-		start = s;
-		deadlocks = null;
-		allDDRowVars = arv;
-		allDDColVars = acv;
-		modelVariables = mvdd;
-		numVars = nv;
-		varList = vl;
-		varDDRowVars = vrv;
-		varDDColVars = vcv;
+		this.trans = trans;
+		this.start = start;
+		this.allDDRowVars = allDDRowVars;
+		this.allDDColVars = allDDColVars;
+		this.modelVariables = modelVariables;
+		this.varList = varList;
+		this.varDDRowVars = varDDRowVars;
+		this.varDDColVars = varDDColVars;
 		constantValues = cv;
 
 		// calculate 0-1 version of trans

@@ -176,7 +176,6 @@ public class StateModelChecker extends PrismComponent implements ModelChecker
 		                      allDDRowVars.copy(), // allDDRowVars
 		                      new JDDVars(),    // allDDColVars
 		                      null,             // ddVarNames
-		                      varDDRowVars.length, // numVars
 		                      varList,          // varList
 		                      JDDVars.copyArray(varDDRowVars), // varDDRowVars
 		                      null,             // varDDColVars

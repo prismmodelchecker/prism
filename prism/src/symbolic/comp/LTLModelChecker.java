@@ -578,7 +578,7 @@ public class LTLModelChecker extends PrismComponent
 				// New model variables
 				newModelVariables,
 				// New var info
-				model.getNumVars() + 1, newVarList, newVarDDRowVars, newVarDDColVars,
+				newVarList, newVarDDRowVars, newVarDDColVars,
 				// Constants (no change)
 				model.getConstantValues());
 
@@ -868,7 +868,7 @@ public class LTLModelChecker extends PrismComponent
 				// New model variables
 				newModelVariables,
 				// New var info
-				model.getNumVars() + 1, newVarList, newVarDDRowVars, newVarDDColVars,
+				newVarList, newVarDDRowVars, newVarDDColVars,
 				// Constants (no change)
 				model.getConstantValues());
 

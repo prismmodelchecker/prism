@@ -78,19 +78,11 @@ public class NondetModel extends ModelSymbolic
 
 	// Constructor
 
-	public NondetModel(JDDNode tr, JDDNode s, JDDVars arv, JDDVars acv,
-					   JDDVars andv, ModelVariablesDD mvdd, int nv, VarList vl, JDDVars[] vrv, JDDVars[] vcv, Values cv)
+	public NondetModel(JDDNode trans, JDDNode start, JDDVars allDDRowVars, JDDVars allDDColVars, JDDVars allDDNondetVars, ModelVariablesDD modelVariables,
+					 VarList varList, JDDVars[] varDDRowVars, JDDVars[] varDDColVars, Values cv)
 	{
-		super(tr, s, arv, acv, mvdd, nv, vl, vrv, vcv, cv);
-
-		allDDNondetVars = andv;
-
-		transInd = null;
-		transSynch = null;
-		transReln = null;
-
-		// action label info (optional) is initially null
-		transActions = null;
+		super(trans, start, allDDRowVars, allDDColVars, modelVariables, varList, varDDRowVars, varDDColVars, cv);
+		this.allDDNondetVars = allDDNondetVars;
 	}
 
 	// Mutators
@@ -595,7 +587,7 @@ public class NondetModel extends ModelSymbolic
 				// New model variables
 				newModelVariables,
 				// New var info
-				newVarList.getNumVars(), newVarList, newVarDDRowVars, newVarDDColVars,
+				newVarList, newVarDDRowVars, newVarDDColVars,
 				// Constants (no change)
 				this.getConstantValues());
 		// New reward information
