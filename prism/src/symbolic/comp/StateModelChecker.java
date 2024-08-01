@@ -171,16 +171,17 @@ public class StateModelChecker extends PrismComponent implements ModelChecker
 		this.constantValues = constantValues;
 		// Create dummy model
 		reach = null;
-		model = new ProbModel(JDD.Constant(0),  // trans
+		ProbModel probModel = new ProbModel(JDD.Constant(0),  // trans
 		                      JDD.Constant(0),  // start
 		                      allDDRowVars.copy(), // allDDRowVars
 		                      new JDDVars(),    // allDDColVars
 		                      null,             // ddVarNames
 		                      varList,          // varList
 		                      JDDVars.copyArray(varDDRowVars), // varDDRowVars
-		                      null,             // varDDColVars
-		                      constantValues    // constantValues
+		                      null              // varDDColVars
 		                     );
+		probModel.setConstantValues(constantValues);
+		model = probModel;
 	}
 
 	/**

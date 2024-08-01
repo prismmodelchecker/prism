@@ -333,17 +333,18 @@ public class Modules2MTBDD
 			// create new Model object to be returned
 			if (modelType == ModelType.DTMC) {
 				model = new ProbModel(trans, start, allDDRowVars, allDDColVars, modelVariables,
-				                      varList, varDDRowVars, varDDColVars, constantValues);
+				                      varList, varDDRowVars, varDDColVars);
 			}
 			else if (modelType == ModelType.MDP) {
 				model = new NondetModel(trans, start, allDDRowVars, allDDColVars, allDDNondetVars, modelVariables,
-									    varList, varDDRowVars, varDDColVars, constantValues);
+									    varList, varDDRowVars, varDDColVars);
 			}
 			else if (modelType == ModelType.CTMC) {
 				model = new StochModel(trans, start, allDDRowVars, allDDColVars, modelVariables,
-				                       varList, varDDRowVars, varDDColVars, constantValues);
+				                       varList, varDDRowVars, varDDColVars);
 			}
 			model.setRewards(stateRewards, transRewards, rewardStructNames);
+			model.setConstantValues(constantValues);
 			modelWasBuilt = true;
 
 			// We also store a copy of the list of action label names

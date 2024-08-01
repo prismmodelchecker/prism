@@ -79,9 +79,9 @@ public class NondetModel extends ModelSymbolic
 	// Constructor
 
 	public NondetModel(JDDNode trans, JDDNode start, JDDVars allDDRowVars, JDDVars allDDColVars, JDDVars allDDNondetVars, ModelVariablesDD modelVariables,
-					 VarList varList, JDDVars[] varDDRowVars, JDDVars[] varDDColVars, Values cv)
+					 VarList varList, JDDVars[] varDDRowVars, JDDVars[] varDDColVars)
 	{
-		super(trans, start, allDDRowVars, allDDColVars, modelVariables, varList, varDDRowVars, varDDColVars, cv);
+		super(trans, start, allDDRowVars, allDDColVars, modelVariables, varList, varDDRowVars, varDDColVars);
 		this.allDDNondetVars = allDDNondetVars;
 	}
 
@@ -587,11 +587,11 @@ public class NondetModel extends ModelSymbolic
 				// New model variables
 				newModelVariables,
 				// New var info
-				newVarList, newVarDDRowVars, newVarDDColVars,
-				// Constants (no change)
-				this.getConstantValues());
+				newVarList, newVarDDRowVars, newVarDDColVars);
 		// New reward information
 		result.setRewards(newStateRewards, newTransRewards, this.rewardStructNames.clone());
+		// Constants (no change)
+		result.setConstantValues(this.getConstantValues());
 
 		// Set new transActions
 		result.setTransActions(transformation.getTransformedTransActions());

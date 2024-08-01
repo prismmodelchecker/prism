@@ -45,9 +45,9 @@ public class StochModel extends ProbModel
 	// Constructor
 
 	public StochModel(JDDNode trans, JDDNode start, JDDVars allDDRowVars, JDDVars allDDColVars, ModelVariablesDD modelVariables,
-					  VarList varList, JDDVars[] varDDRowVars, JDDVars[] varDDColVars, Values cv)
+					  VarList varList, JDDVars[] varDDRowVars, JDDVars[] varDDColVars)
 	{
-		super(trans, start, allDDRowVars, allDDColVars, modelVariables, varList, varDDRowVars, varDDColVars, cv);
+		super(trans, start, allDDRowVars, allDDColVars, modelVariables, varList, varDDRowVars, varDDColVars);
 	}
 
 	// Accessors (for Model)
@@ -119,10 +119,11 @@ public class StochModel extends ProbModel
 		                                 modelVariables.copy(),
 		                                 varList, // pass by reference, will not be changed
 		                                 JDDVars.copyArray(varDDRowVars),
-		                                 JDDVars.copyArray(varDDColVars),
-		                                 constantValues // pass by reference, will not be changed
+		                                 JDDVars.copyArray(varDDColVars)
 		                                );
 		result.setRewards(embStateRewards, embTransRewards, embRewardStructNames);
+		// Constants (no change)
+		result.setConstantValues(constantValues);
 
 		// set reachable states to be the same as for the CTMC
 		result.setReach(getReach().copy());

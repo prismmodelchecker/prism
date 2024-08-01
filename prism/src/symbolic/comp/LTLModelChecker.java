@@ -578,9 +578,9 @@ public class LTLModelChecker extends PrismComponent
 				// New model variables
 				newModelVariables,
 				// New var info
-				newVarList, newVarDDRowVars, newVarDDColVars,
-				// Constants (no change)
-				model.getConstantValues());
+				newVarList, newVarDDRowVars, newVarDDColVars);
+		// Constants (no change)
+		modelProd.setConstantValues(model.getConstantValues());
 
 		// Do reachability/etc. for the new model
 		modelProd.doReachability();
@@ -868,9 +868,9 @@ public class LTLModelChecker extends PrismComponent
 				// New model variables
 				newModelVariables,
 				// New var info
-				newVarList, newVarDDRowVars, newVarDDColVars,
-				// Constants (no change)
-				model.getConstantValues());
+				newVarList, newVarDDRowVars, newVarDDColVars);
+		// Constants (no change)
+		modelProd.setConstantValues(model.getConstantValues());
 
 		// Copy action info MTBDD across directly
 		// If present, just needs filtering to reachable states,

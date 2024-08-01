@@ -58,7 +58,7 @@ public abstract class ModelSymbolic implements Model
 	// Vars/consts
 	/** Model variable info */
 	protected VarList varList;
-	/** Values of constants */
+	/** Values of constants (optional) */
 	protected Values constantValues;
 	// Actions
 	/** Number of action labels */
@@ -115,7 +115,7 @@ public abstract class ModelSymbolic implements Model
 	// Constructor
 
 	public ModelSymbolic(JDDNode trans, JDDNode start, JDDVars allDDRowVars, JDDVars allDDColVars, ModelVariablesDD modelVariables,
-						 VarList varList, JDDVars[] varDDRowVars, JDDVars[] varDDColVars, Values cv)
+						 VarList varList, JDDVars[] varDDRowVars, JDDVars[] varDDColVars)
 	{
 		this.trans = trans;
 		this.start = start;
@@ -125,7 +125,6 @@ public abstract class ModelSymbolic implements Model
 		this.varList = varList;
 		this.varDDRowVars = varDDRowVars;
 		this.varDDColVars = varDDColVars;
-		constantValues = cv;
 
 		// calculate 0-1 version of trans
 		JDD.Ref(trans);
@@ -311,6 +310,14 @@ public abstract class ModelSymbolic implements Model
 			JDD.Deref(this.stateRewards[i]);
 		}
 		this.stateRewards[i] = stateRewards;
+	}
+
+	/**
+	 * Set the associated (read-only) constant values.
+	 */
+	public void setConstantValues(Values constantValues)
+	{
+		this.constantValues = constantValues;
 	}
 
 	/**

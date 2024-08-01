@@ -261,15 +261,16 @@ public class ExplicitFiles2MTBDD
 		String moduleNames[] = new String[] { "M" };
 		if (modelType == ModelType.DTMC) {
 			model = new ProbModel(trans, start, allDDRowVars, allDDColVars, modelVariables,
-					varList, varDDRowVars, varDDColVars, constantValues);
+					varList, varDDRowVars, varDDColVars);
 		} else if (modelType == ModelType.MDP) {
 			model = new NondetModel(trans, start, allDDRowVars, allDDColVars, allDDNondetVars, modelVariables,
-					varList, varDDRowVars, varDDColVars, constantValues);
+					varList, varDDRowVars, varDDColVars);
 		} else if (modelType == ModelType.CTMC) {
 			model = new StochModel(trans, start, allDDRowVars, allDDColVars, modelVariables,
-					varList, varDDRowVars, varDDColVars, constantValues);
+					varList, varDDRowVars, varDDColVars);
 		}
 		model.setRewards(stateRewards, transRewardsArray, rewardStructNames);
+		model.setConstantValues(constantValues);
 		// set action info
 		// TODO: disable if not required?
 		model.setSynchs(synchs);

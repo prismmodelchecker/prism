@@ -188,16 +188,17 @@ public class ExplicitModel2MTBDD
 		// Create new Model object to be returned
 		if (modelType == ModelType.DTMC) {
 			model = new ProbModel(trans, start, allDDRowVars, allDDColVars, modelVariables,
-					varList, varDDRowVars, varDDColVars, constantValues);
+					varList, varDDRowVars, varDDColVars);
 		} else if (modelType == ModelType.MDP) {
 			model = new symbolic.model.NondetModel(trans, start, allDDRowVars, allDDColVars,
 					allDDNondetVars, modelVariables, varList,
-					varDDRowVars, varDDColVars, constantValues);
+					varDDRowVars, varDDColVars);
 		} else if (modelType == ModelType.CTMC) {
 			model = new StochModel(trans, start, allDDRowVars, allDDColVars, modelVariables,
-					varList, varDDRowVars, varDDColVars, constantValues);
+					varList, varDDRowVars, varDDColVars);
 		}
 		model.setRewards(stateRewardsArray, transRewardsArray, rewardStructNames);
+		model.setConstantValues(constantValues);
 		// Set action info
 		// TODO: disable if not required?
 		model.setSynchs(synchs);
