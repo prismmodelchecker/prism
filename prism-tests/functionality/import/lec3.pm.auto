@@ -1,4 +1,3 @@
--importmodel lec3.all -dtmc -exportmodel lec3.all -ex
+# -importmodel lec3.all -dtmc -exportmodel lec3.all -ex
 -importmodel lec3.all -dtmc -exportmodel lec3.all
--importmodel lec3.tra,sta,lab,srew -dtmc -exportmodel lec3.all -ex
--importmodel lec3.tra,sta,lab,srew -dtmc -exportmodel lec3.all
+-importmodel lec3.tra,sta,lab,srew -dtmc -exportmodel lec3.tra,sta,lab,srew -ex

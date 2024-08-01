@@ -76,6 +76,7 @@ public class PrismCL implements PrismModelListener
 	private boolean importstates = false;
 	private boolean importlabels = false;
 	private boolean importstaterewards = false;
+	private boolean importtransrewards = false;
 	private boolean importinitdist = false;
 	private boolean importresults = false;
 	private boolean steadystate = false;
@@ -149,6 +150,7 @@ public class PrismCL implements PrismModelListener
 	private String importStatesFilename = null;
 	private String importLabelsFilename = null;
 	private List<String> importStateRewardsFilenames = new ArrayList<>();
+	private List<String> importTransRewardsFilenames = new ArrayList<>();
 	private String importInitDistFilename = null;
 	private String importResultsFilename = null;
 	private String importModelWarning = null;
@@ -664,6 +666,7 @@ public class PrismCL implements PrismModelListener
 		int i;
 		File sf = null, lf = null;
 		List<File> srf = new ArrayList<>();
+		List<File> trf = new ArrayList<>();
 
 		// parse model
 
@@ -696,8 +699,14 @@ public class PrismCL implements PrismModelListener
 						srf.add(new File(importStateRewardsFilenames.get(k)));
 					}
 				}
+				if (importtransrewards) {
+					for (int k = 0; k < importTransRewardsFilenames.size(); k++) {
+						mainLog.print(", \"" + (String) importTransRewardsFilenames.get(k) + "\"");
+						trf.add(new File(importTransRewardsFilenames.get(k)));
+					}
+				}
 				mainLog.println("...");
-				prism.loadModelFromExplicitFiles(sf, new File(modelFilename), lf, srf, typeOverride);
+				prism.loadModelFromExplicitFiles(sf, new File(modelFilename), lf, srf, trf, typeOverride);
 			} else {
 				mainLog.print("\nParsing model file \"" + modelFilename + "\"...\n");
 				modulesFile = prism.parseModelFile(new File(modelFilename), typeOverride);
@@ -1521,6 +1530,15 @@ public class PrismCL implements PrismModelListener
 						errorAndExit("No file specified for -" + sw + " switch");
 					}
 				}
+				// import trans rewards for explicit model import
+				else if (sw.equals("importtransrewards")) {
+					if (i < args.length - 1) {
+						importtransrewards = true;
+						importTransRewardsFilenames.add(args[++i]);
+					} else {
+						errorAndExit("No file specified for -" + sw + " switch");
+					}
+				}
 				// import initial distribution e.g. for transient probability distribution
 				else if (sw.equals("importinitdist")) {
 					if (i < args.length - 1) {
@@ -2152,9 +2170,7 @@ public class PrismCL implements PrismModelListener
 				importlabels = true;
 				importLabelsFilename = basename + ".lab";
 				getStateRewardsFilenames(basename, false);
-				if (new File(basename + ".trew").exists()) {
-					importModelWarning = "Import of transition rewards is not yet supported so " + basename + ".trew is being ignored";
-				}
+				getTransRewardsFilenames(basename, false);
 			} else if (ext.equals("tra")) {
 				importtrans = true;
 				modelFilename = basename + ".tra";
@@ -2166,6 +2182,8 @@ public class PrismCL implements PrismModelListener
 				importLabelsFilename = basename + ".lab";
 			} else if (ext.equals("srew")) {
 				getStateRewardsFilenames(basename, true);
+			} else if (ext.equals("trew")) {
+				getTransRewardsFilenames(basename, true);
 			}
 			// Unknown extension
 			else {
@@ -2225,7 +2243,43 @@ public class PrismCL implements PrismModelListener
 			importStateRewardsFilenames.add(basename + ".srew");
 		}
 	}
-	
+
+	/**
+	 * Given a file basename, find corresponding .trew files
+	 * and add them to the {@code importTransRewardsFilenames} list.
+	 * "corresponding" means basename.srew, or a set basename1.srew, ...
+	 * If any are present, {@code importtransrewards} is set to true.
+	 *
+	 * If {@code assumeExists} is true, then we add basename.srew
+	 * to {@code importTransRewardsFilenames} regardless, typically
+	 * because the user has told us it should be there.
+	 */
+	private void getTransRewardsFilenames(String basename, boolean assumeExists)
+	{
+		boolean found = false;
+		if (new File(basename + ".trew").exists()) {
+			importtransrewards = true;
+			importTransRewardsFilenames.add(basename + ".trew");
+			found = true;
+		} else {
+			int index = 1;
+			while (true) {
+				if (new File(basename + String.valueOf(index) + ".trew").exists()) {
+					importtransrewards = true;
+					importTransRewardsFilenames.add(basename + String.valueOf(index) + ".trew");
+					found = true;
+					index++;
+				} else {
+					break;
+				}
+			}
+		}
+		if (assumeExists && !found) {
+			importtransrewards = true;
+			importTransRewardsFilenames.add(basename + ".trew");
+		}
+	}
+
 	/**
 	 * Process the arguments (file, options) to the -export(prop)labels switch.
 	 * Currently, only one option is supported: proplabels, cf.
@@ -2802,6 +2856,7 @@ public class PrismCL implements PrismModelListener
 		mainLog.println("-importstates <file>............ Import the list of states directly from a text file");
 		mainLog.println("-importlabels <file>............ Import the list of labels directly from a text file");
 		mainLog.println("-importstaterewards <file>...... Import the state rewards directly from a text file");
+		mainLog.println("-importtransrewards <file>...... Import the transition rewards directly from a text file");
 		mainLog.println("-importinitdist <file>.......... Specify initial probability distribution for transient/steady-state analysis");
 		mainLog.println("-dtmc .......................... Force imported/built model to be a DTMC");
 		mainLog.println("-ctmc .......................... Force imported/built model to be a CTMC");
@@ -2888,7 +2943,7 @@ public class PrismCL implements PrismModelListener
 			mainLog.println("Import the model directly from text file(s).");
 			mainLog.println("Use a list of file extensions to indicate which files should be read, e.g.:");
 			mainLog.println("\n -importmodel in.tra,sta\n");
-			mainLog.println("Possible extensions are: .tra, .sta, .lab, .srew");
+			mainLog.println("Possible extensions are: .tra, .sta, .lab, .srew, .trew");
 			mainLog.println("Use extension .all to import all, e.g.:");
 			mainLog.println("\n -importmodel in.all\n");
 		}

@@ -45,6 +45,8 @@ import common.iterable.Reducible;
 import csv.BasicReader;
 import csv.CsvFormatException;
 import csv.CsvReader;
+import io.IOUtils.TransitionRewardConsumer;
+import io.IOUtils.TransitionStateRewardConsumer;
 import parser.State;
 
 /**
@@ -63,6 +65,9 @@ public class ExplicitFilesRewardGenerator extends PrismComponent implements Rewa
 {
 	// File(s) to read in rewards from
 	protected List<RewardFile> stateRewardsFiles = new ArrayList<>();
+	protected List<RewardFile> transRewardsFiles = new ArrayList<>();
+	// Num reward structs (max of sizes of rewards file lists)
+	protected int numRewardStructs;
 	// Model info
 	protected int numStates;
 	// State list (optionally)
@@ -79,7 +84,7 @@ public class ExplicitFilesRewardGenerator extends PrismComponent implements Rewa
 	 * @throws PrismException       if an I/O error occurs or the name is not a unique identifier
 	 * @throws NullPointerException if a file is null
 	 */
-	public ExplicitFilesRewardGenerator(PrismComponent parent, List<File> stateRewardsFiles, int numStates) throws PrismException
+	public ExplicitFilesRewardGenerator(PrismComponent parent, List<File> stateRewardsFiles, List<File> transRewardsFiles, int numStates) throws PrismException
 	{
 		super(parent);
 		if (numStates < 1) {
@@ -90,6 +95,11 @@ public class ExplicitFilesRewardGenerator extends PrismComponent implements Rewa
 		for (File file : stateRewardsFiles) {
 			this.stateRewardsFiles.add(new RewardFile(file));
 		}
+		this.transRewardsFiles = new ArrayList<>(transRewardsFiles.size());
+		for (File file : transRewardsFiles) {
+			this.transRewardsFiles.add(new RewardFile(file));
+		}
+		numRewardStructs = Math.max(stateRewardsFiles.size(), transRewardsFiles.size());
 	}
 
 	/**
@@ -108,10 +118,37 @@ public class ExplicitFilesRewardGenerator extends PrismComponent implements Rewa
 	 */
 	public void extractStateRewards(int rewardIndex, BiConsumer<Integer, Double> storeReward) throws PrismException
 	{
-		RewardFile file = stateRewardsFiles.get(rewardIndex);
-		file.extractRewards(storeReward, numStates);
+		if (rewardIndex < stateRewardsFiles.size()) {
+			RewardFile file = stateRewardsFiles.get(rewardIndex);
+			file.extractStateRewards(storeReward, numStates);
+		}
 	}
 
+	/**
+	 * Extract the (Markov chain) transition rewards for a given reward structure index.
+	 *
+	 * @throws PrismException if an error occurs during reward extraction
+	 */
+	public void extractMCTransitionRewards(int rewardIndex, TransitionRewardConsumer<Double> storeReward) throws PrismException
+	{
+		if (rewardIndex < transRewardsFiles.size()) {
+			RewardFile file = transRewardsFiles.get(rewardIndex);
+			file.extractMCTransitionRewards(storeReward, numStates);
+		}
+	}
+
+	/**
+	 * Extract the (MDP) transition rewards for a given reward structure index.
+	 *
+	 * @throws PrismException if an error occurs during reward extraction
+	 */
+	public void extractMDPTransitionRewards(int rewardIndex, TransitionStateRewardConsumer<Double> storeReward) throws PrismException
+	{
+		if (rewardIndex < transRewardsFiles.size()) {
+			RewardFile file = transRewardsFiles.get(rewardIndex);
+			file.extractMDPTransitionRewards(storeReward, numStates);
+		}
+	}
 
 	// Methods to implement RewardGenerator
 
@@ -124,7 +161,7 @@ public class ExplicitFilesRewardGenerator extends PrismComponent implements Rewa
 	@Override
 	public int getNumRewardStructs()
 	{
-		return stateRewardsFiles.size();
+		return numRewardStructs;
 	}
 
 	@Override
@@ -176,7 +213,7 @@ public class ExplicitFilesRewardGenerator extends PrismComponent implements Rewa
 		 * @param numStates number of model states
 		 * @throws PrismException if an I/O error occurs or the file is malformatted
 		 */
-		protected void extractRewards(BiConsumer<Integer, Double> storeReward, int numStates) throws PrismException
+		protected void extractStateRewards(BiConsumer<Integer, Double> storeReward, int numStates) throws PrismException
 		{
 			int lineNum = 0;
 			try (BufferedReader in = new BufferedReader(new FileReader(file))) {
@@ -193,6 +230,73 @@ public class ExplicitFilesRewardGenerator extends PrismComponent implements Rewa
 					int i = Objects.checkIndex(Integer.parseInt(record[0]), numStates);
 					double d = Double.parseDouble(record[1]);
 					storeReward.accept(i, d);
+				}
+			} catch (IOException e) {
+				throw new PrismException("File I/O error reading from \"" + file + "\"");
+			} catch (NumberFormatException | IndexOutOfBoundsException | CsvFormatException e) {
+				throw new PrismException("Error detected " + e.getMessage() + " at line " + lineNum + " of state rewards file \"" + file + "\"");
+			}
+		}
+
+		/**
+		 * Extract and store (Markov chain) transition rewards from the file.
+		 *
+		 * @param storeReward function to store a state reward
+		 * @param numStates number of model states
+		 * @throws PrismException if an I/O error occurs or the file is malformatted
+		 */
+		protected void extractMCTransitionRewards(TransitionRewardConsumer<Double> storeReward, int numStates) throws PrismException
+		{
+			int lineNum = 0;
+			try (BufferedReader in = new BufferedReader(new FileReader(file))) {
+				lineNum += skipCommentAndFirstLine(in);
+				// init csv reader
+				BasicReader reader = BasicReader.wrap(in).normalizeLineEndings();
+				CsvReader csv = new CsvReader(reader, false, true, false, ' ', LF);
+				// read state rewards
+				for (String[] record : csv) {
+					lineNum++;
+					if ("".equals(record[0])) {
+						break;
+					}
+					int s = Objects.checkIndex(Integer.parseInt(record[0]), numStates);
+					int s2 = Objects.checkIndex(Integer.parseInt(record[1]), numStates);
+					double d = Double.parseDouble(record[2]);
+					storeReward.accept(s, s2, d);
+				}
+			} catch (IOException e) {
+				throw new PrismException("File I/O error reading from \"" + file + "\"");
+			} catch (NumberFormatException | IndexOutOfBoundsException | CsvFormatException e) {
+				throw new PrismException("Error detected " + e.getMessage() + " at line " + lineNum + " of state rewards file \"" + file + "\"");
+			}
+		}
+
+		/**
+		 * Extract and store (MDP) transition rewards from the file.
+		 *
+		 * @param storeReward function to store a state reward
+		 * @param numStates number of model states
+		 * @throws PrismException if an I/O error occurs or the file is malformatted
+		 */
+		protected void extractMDPTransitionRewards(TransitionStateRewardConsumer<Double> storeReward, int numStates) throws PrismException
+		{
+			int lineNum = 0;
+			try (BufferedReader in = new BufferedReader(new FileReader(file))) {
+				lineNum += skipCommentAndFirstLine(in);
+				// init csv reader
+				BasicReader reader = BasicReader.wrap(in).normalizeLineEndings();
+				CsvReader csv = new CsvReader(reader, false, true, false, ' ', LF);
+				// read state rewards
+				for (String[] record : csv) {
+					lineNum++;
+					if ("".equals(record[0])) {
+						break;
+					}
+					int s = Objects.checkIndex(Integer.parseInt(record[0]), numStates);
+					int i = Objects.checkIndex(Integer.parseInt(record[1]), numStates);
+					int s2 = Objects.checkIndex(Integer.parseInt(record[2]), numStates);
+					double d = Double.parseDouble(record[3]);
+					storeReward.accept(s, i, s2, d);
 				}
 			} catch (IOException e) {
 				throw new PrismException("File I/O error reading from \"" + file + "\"");

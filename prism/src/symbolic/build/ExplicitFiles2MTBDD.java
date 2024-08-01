@@ -244,16 +244,11 @@ public class ExplicitFiles2MTBDD
 		// calculate dd for initial state
 		buildInit();
 
-		// compute state rewards
+		// compute rewards
 		buildStateRewards();
+		buildTransitionRewards();
 
 		Values constantValues = new Values(); // no constants
-
-		// transition reward not yet supported - just make 0
-		JDDNode transRewardsArray[] = new JDDNode[stateRewards.length];
-		for (int k = 0; k < stateRewards.length; k++) {
-			transRewardsArray[k] = JDD.Constant(0);
-		}
 
 		// create new Model object to be returned
 		// they need a module name list, so we fake that
@@ -271,7 +266,7 @@ public class ExplicitFiles2MTBDD
 			model = new StochModel(trans, start, allDDRowVars, allDDColVars, modelVariables,
 					varList, varDDRowVars, varDDColVars);
 		}
-		model.setRewards(stateRewards, transRewardsArray, rewardStructNames);
+		model.setRewards(stateRewards, transRewards, rewardStructNames);
 		model.setConstantValues(constantValues);
 		// set action info
 		// TODO: disable if not required?
@@ -623,7 +618,25 @@ public class ExplicitFiles2MTBDD
 		for (int r = 0; r < numRewardStructs; r++) {
 			stateRewards[r] = JDD.Constant(0);
 			int finalR = r;
-			efrg.extractStateRewards(r, (i, d) -> storeReward(finalR, i, d));
+			efrg.extractStateRewards(r, (i, d) -> storeStateReward(finalR, i, d));
+		}
+	}
+
+	/**
+	 * Load transition rewards from the ExplicitFilesRewardGenerator.
+	 */
+	private void buildTransitionRewards() throws PrismException
+	{
+		int numRewardStructs = efrg.getNumRewardStructs();
+		transRewards = new JDDNode[numRewardStructs];
+		for (int r = 0; r < numRewardStructs; r++) {
+			transRewards[r] = JDD.Constant(0);
+			int finalR = r;
+			if (!modelType.nondeterministic()) {
+				efrg.extractMCTransitionRewards(r, (s, s2, d) -> storeMCTransitionReward(finalR, s, s2, d));
+			} else {
+				efrg.extractMDPTransitionRewards(r, (s, i, s2, d) -> storeMDPTransitionReward(finalR, s, i, s2, d));
+			}
 		}
 	}
 
@@ -631,26 +644,88 @@ public class ExplicitFiles2MTBDD
 	 * Stores stateRewards in the required format for mtbdd.
 	 *
 	 * @param rewardStructIndex reward structure index
-	 * @param i state index
+	 * @param s state index
 	 * @param d reward value
 	 */
-	protected void storeReward(int rewardStructIndex, int i, double d)
+	protected void storeStateReward(int rewardStructIndex, int s, double d)
 	{
 		// construct element of vector mtbdd
 		// case where we don't have a state list...
 		JDDNode tmp;
 		if (statesArray == null) {
-			tmp = JDD.SetVectorElement(JDD.Constant(0), varDDRowVars[0], i, 1.0);
+			tmp = JDD.SetVectorElement(JDD.Constant(0), varDDRowVars[0], s, 1.0);
 		}
 		// case where we do have a state list...
 		else {
 			tmp = JDD.Constant(1);
 			for (int j = 0; j < numVars; j++) {
-				tmp = JDD.Times(tmp, JDD.SetVectorElement(JDD.Constant(0), varDDRowVars[j], statesArray[i][j], 1));
+				tmp = JDD.Times(tmp, JDD.SetVectorElement(JDD.Constant(0), varDDRowVars[j], statesArray[s][j], 1));
 			}
 		}
 		// add it into mtbdd for state rewards
 		stateRewards[rewardStructIndex] = JDD.Plus(stateRewards[rewardStructIndex], JDD.Times(JDD.Constant(d), tmp));
+	}
+
+	/**
+	 * Stores transRewards in the required format for mtbdd.
+	 *
+	 * @param rewardStructIndex reward structure index
+	 * @param s source state index
+	 * @param s2 target state index
+	 * @param d reward value
+	 */
+	protected void storeMCTransitionReward(int rewardStructIndex, int s, int s2, double d)
+	{
+		// construct element of vector mtbdd
+		JDDNode tmp = encodeStatePair(s, s2);
+
+		// add it into mtbdd for state rewards
+		transRewards[rewardStructIndex] = JDD.Plus(transRewards[rewardStructIndex], JDD.Times(JDD.Constant(d), tmp));
+	}
+
+	/**
+	 * Stores transRewards in the required format for mtbdd.
+	 *
+	 * @param rewardStructIndex reward structure index
+	 * @param s source state index
+	 * @param i choice index
+	 * @param s2 target state index
+	 * @param d reward value
+	 */
+	protected void storeMDPTransitionReward(int rewardStructIndex, int s, int i, int s2, double d)
+	{
+		// construct element of vector mtbdd
+		JDDNode tmp = encodeStatePair(s, s2);
+		tmp = JDD.Apply(JDD.TIMES, tmp, JDD.SetVectorElement(JDD.Constant(0), allDDNondetVars, i, 1));
+
+		// add it into mtbdd for state rewards
+		transRewards[rewardStructIndex] = JDD.Plus(transRewards[rewardStructIndex], JDD.Times(JDD.Constant(d), tmp));
+	}
+
+	/**
+	 * Encode a state index pair into BDD vars (referencing the result).
+	 * @param s source state index
+	 * @param s2 target state index
+	 */
+	private JDDNode encodeStatePair(int s, int s2)
+	{
+		// Note: could do this with a conjunction of BDDs from two
+		// calls to encodeState but this way should be more efficient
+
+		JDDNode res;
+		// Case where there is no state list...
+		if (statesArray == null) {
+			res = JDD.SetMatrixElement(JDD.Constant(0), varDDRowVars[0], varDDColVars[0], s, s2, 1.0);
+		}
+		// Case where there is a state list...
+		else {
+			res = JDD.Constant(1);
+			for (int i = 0; i < numVars; i++) {
+				res = JDD.Apply(JDD.TIMES, res, JDD.SetVectorElement(JDD.Constant(0), varDDRowVars[i], statesArray[s][i], 1.0));
+				res = JDD.Apply(JDD.TIMES, res, JDD.SetVectorElement(JDD.Constant(0), varDDColVars[i], statesArray[s2][i], 1.0));
+			}
+		}
+		return res;
 	}
 }
 

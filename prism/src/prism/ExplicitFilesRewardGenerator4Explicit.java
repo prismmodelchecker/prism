@@ -28,6 +28,7 @@
 package prism;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -40,7 +41,7 @@ public class ExplicitFilesRewardGenerator4Explicit extends ExplicitFilesRewardGe
 
 	public ExplicitFilesRewardGenerator4Explicit(PrismComponent parent, List<File> stateRewardsFiles, int numStates) throws PrismException
 	{
-		super(parent, stateRewardsFiles, numStates);
+		super(parent, stateRewardsFiles, new ArrayList<>(), numStates);
 		stateRewards = new double[getNumRewardStructs()][];
 	}
 
