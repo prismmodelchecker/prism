@@ -454,12 +454,6 @@ public class Modules2MTBDD
 				allDDRowVars.derefAll();
 			if (allDDColVars != null)
 				allDDColVars.derefAll();
-			if (allDDSynchVars != null)
-				allDDSynchVars.derefAll();
-			if (allDDSchedVars != null)
-				allDDSchedVars.derefAll();
-			if (allDDChoiceVars != null)
-				allDDChoiceVars.derefAll();
 			if (allDDNondetVars != null)
 				allDDNondetVars.derefAll();
 
