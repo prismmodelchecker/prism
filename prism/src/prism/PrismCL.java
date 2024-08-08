@@ -814,24 +814,32 @@ public class PrismCL implements PrismModelListener
 			}
 		}
 
-		if (param) {
-			if (exporttrans ||
-			    exportstaterewards ||
-			    exporttransrewards ||
-			    exportstates ||
-			    exportobservations ||
-			    exportspy ||
-			    exportdot ||
-			    exporttransdot ||
-			    exporttransdotstates ||
-				exportmodelcombined ||
-			    exportmodeldotview ||
-				exportmodellabels ||
-				exportproplabels ||
-			    exportsccs ||
-			    exportbsccs ||
-			    exportmecs) {
-				mainLog.printWarning("Skipping exports in parametric / exact model checking mode, currently not supported.");
+		if (exporttrans ||
+			exportstaterewards ||
+			exporttransrewards ||
+			exportstates ||
+			exportobservations ||
+			exportspy ||
+			exportdot ||
+			exporttransdot ||
+			exporttransdotstates ||
+			exportmodelcombined ||
+			exportmodeldotview ||
+			exportmodellabels ||
+			exportproplabels ||
+			exportsccs ||
+			exportbsccs ||
+			exportmecs) {
+			if (param) {
+				mainLog.printWarning("Skipping exports in parametric model checking mode, currently not supported.");
+				return;
+			}
+			// if there are any exports to do,
+			// force model construction to catch errors during build
+			try {
+				prism.buildModel();
+			} catch (PrismException e) {
+				error(e);
 				return;
 			}
 		}
