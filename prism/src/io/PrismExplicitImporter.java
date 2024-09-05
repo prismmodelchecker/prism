@@ -456,23 +456,21 @@ public class PrismExplicitImporter
 	 */
 	private ModelType autodetectModelType(File transFile)
 	{
-		String s, ss[];
-		boolean nondet;
-
-		// Open file for reading, automatic close when done
 		try (BufferedReader in = new BufferedReader(new FileReader(transFile))) {
-			// Look at first line
-			s = in.readLine();
-			if (s == null) {
-				return null;
-			}
-			ss = s.trim().split(" ");
+			BasicReader reader = BasicReader.wrap(in).normalizeLineEndings();
+			CsvReader csv = new CsvReader(reader, false, false, false, ' ', LF);
+			boolean nondet;
+			// Examine first line
 			// 3 numbers should indicate a nondeterministic model, e.g., MDP
 			// 2 numbers should indicate a probabilistic model, e.g., DTMC
 			// Anything else, give up
-			if (ss.length == 3) {
+			if (!csv.hasNextRecord()) {
+				return null;
+			}
+			String[] recordFirst = csv.nextRecord();
+			if (recordFirst.length == 3) {
 				nondet = true;
-			} else if (ss.length == 2) {
+			} else if (recordFirst.length == 2) {
 				nondet = false;
 			} else {
 				return null;
@@ -480,17 +478,21 @@ public class PrismExplicitImporter
 			// Read up to max remaining lines
 			int lines = 0;
 			int max = 5;
-			s = in.readLine();
-			while (s != null && lines < max) {
+			for (String[] record : csv) {
+				if (lines > max) {
+					break;
+				}
+				if ("".equals(record[0])) {
+					continue;
+				}
 				lines++;
-				ss = s.trim().split(" ");
 				// Look at probability/rate
 				// (give up if line is in unexpected format)
 				String probOrRate;
-				if (nondet && ss.length >= 4) {
-					probOrRate = ss[3];
-				} else if (!nondet && ss.length >= 3) {
-					probOrRate = ss[2];
+				if (nondet && record.length >= 4) {
+					probOrRate = record[3];
+				} else if (!nondet && record.length >= 3) {
+					probOrRate = record[2];
 				} else {
 					return null;
 				}
@@ -507,14 +509,101 @@ public class PrismExplicitImporter
 				if (lines == max) {
 					return nondet ? ModelType.MDP : ModelType.DTMC;
 				}
-				// Read next line
-				s = in.readLine();
 			}
 			return null;
-		} catch (NumberFormatException e) {
+		} catch (NumberFormatException | CsvFormatException | IOException e) {
 			return null;
+		}
+	}
+
+	/**
+	 * Compute the maximum number of choices (in a nondeterministic model).
+	 */
+	public int computeMaxNumChoices() throws PrismException
+	{
+		int lineNum = 0;
+		try (BufferedReader in = new BufferedReader(new FileReader(transFile))) {
+			lineNum += skipCommentAndFirstLine(in);
+			BasicReader reader = BasicReader.wrap(in).normalizeLineEndings();
+			CsvReader csv = new CsvReader(reader, false, false, false, ' ', LF);
+			int maxNumChoices = 0;
+			for (String[] record : csv) {
+				lineNum++;
+				if ("".equals(record[0])) {
+					continue;
+				}
+				if (record.length < 4 || record.length > 5) {
+					throw new PrismException("");
+				}
+				int j = Integer.parseInt(record[1]);
+				if (j + 1 > maxNumChoices) {
+					maxNumChoices = j + 1;
+				}
+			}
+			return maxNumChoices;
 		} catch (IOException e) {
-			return null;
+			throw new PrismException("File I/O error reading from \"" + transFile + "\": " + e.getMessage());
+		} catch (NumberFormatException | IndexOutOfBoundsException | CsvFormatException e) {
+			throw new PrismException("Error detected at line " + lineNum + " of transition matrix file \"" + transFile + "\"");
+		} catch (PrismException e) {
+			throw new PrismException("Error detected " + e.getMessage() + "at line " + lineNum + " of transition matrix file \"" + transFile + "\"");
+		}
+	}
+
+	public void extractMCTransitions(IOUtils.MCTransitionConsumer<Double> storeTransition) throws PrismException
+	{
+		int lineNum = 0;
+		try (BufferedReader in = new BufferedReader(new FileReader(transFile))) {
+			lineNum += skipCommentAndFirstLine(in);
+			BasicReader reader = BasicReader.wrap(in).normalizeLineEndings();
+			CsvReader csv = new CsvReader(reader, false, false, false, ' ', LF);
+			for (String[] record : csv) {
+				lineNum++;
+				if ("".equals(record[0])) {
+					continue;
+				}
+				int s = Objects.checkIndex(Integer.parseInt(record[0]), numStates);
+				int s2 = Objects.checkIndex(Integer.parseInt(record[1]), numStates);
+				double d = Double.parseDouble(record[2]);
+				Object a = null;
+				if (record.length > 3) {
+					a = record[3];
+				}
+				storeTransition.accept(s, s2, d, a);
+			}
+		} catch (IOException e) {
+			throw new PrismException("File I/O error reading from \"" + transFile + "\"");
+		} catch (NumberFormatException | IndexOutOfBoundsException | CsvFormatException e) {
+			throw new PrismException("Error detected " + e.getMessage() + " at line " + lineNum + " of state rewards file \"" + transFile + "\"");
+		}
+	}
+
+	public void extractMDPTransitions(IOUtils.MDPTransitionConsumer<Double> storeTransition) throws PrismException
+	{
+		int lineNum = 0;
+		try (BufferedReader in = new BufferedReader(new FileReader(transFile))) {
+			lineNum += skipCommentAndFirstLine(in);
+			BasicReader reader = BasicReader.wrap(in).normalizeLineEndings();
+			CsvReader csv = new CsvReader(reader, false, false, false, ' ', LF);
+			for (String[] record : csv) {
+				lineNum++;
+				if ("".equals(record[0])) {
+					continue;
+				}
+				int s = Objects.checkIndex(Integer.parseInt(record[0]), numStates);
+				int i = Objects.checkIndex(Integer.parseInt(record[1]), numStates);
+				int s2 = Objects.checkIndex(Integer.parseInt(record[2]), numStates);
+				double d = Double.parseDouble(record[3]);
+				Object a = null;
+				if (record.length > 4) {
+					a = record[4];
+				}
+				storeTransition.accept(s, i, s2, d, a);
+			}
+		} catch (IOException e) {
+			throw new PrismException("File I/O error reading from \"" + transFile + "\"");
+		} catch (NumberFormatException | IndexOutOfBoundsException | CsvFormatException e) {
+			throw new PrismException("Error detected " + e.getMessage() + " at line " + lineNum + " of state rewards file \"" + transFile + "\"");
 		}
 	}
 
@@ -615,12 +704,12 @@ public class PrismExplicitImporter
 				lineNum += skipCommentAndFirstLine(in);
 				// init csv reader
 				BasicReader reader = BasicReader.wrap(in).normalizeLineEndings();
-				CsvReader csv = new CsvReader(reader, false, true, false, ' ', LF);
+				CsvReader csv = new CsvReader(reader, false, false, false, ' ', LF);
 				// read state rewards
 				for (String[] record : csv) {
 					lineNum++;
 					if ("".equals(record[0])) {
-						break;
+						continue;
 					}
 					int i = Objects.checkIndex(Integer.parseInt(record[0]), numStates);
 					double d = Double.parseDouble(record[1]);
@@ -647,12 +736,12 @@ public class PrismExplicitImporter
 				lineNum += skipCommentAndFirstLine(in);
 				// init csv reader
 				BasicReader reader = BasicReader.wrap(in).normalizeLineEndings();
-				CsvReader csv = new CsvReader(reader, false, true, false, ' ', LF);
+				CsvReader csv = new CsvReader(reader, false, false, false, ' ', LF);
 				// read state rewards
 				for (String[] record : csv) {
 					lineNum++;
 					if ("".equals(record[0])) {
-						break;
+						continue;
 					}
 					int s = Objects.checkIndex(Integer.parseInt(record[0]), numStates);
 					int s2 = Objects.checkIndex(Integer.parseInt(record[1]), numStates);
@@ -680,12 +769,12 @@ public class PrismExplicitImporter
 				lineNum += skipCommentAndFirstLine(in);
 				// init csv reader
 				BasicReader reader = BasicReader.wrap(in).normalizeLineEndings();
-				CsvReader csv = new CsvReader(reader, false, true, false, ' ', LF);
+				CsvReader csv = new CsvReader(reader, false, false, false, ' ', LF);
 				// read state rewards
 				for (String[] record : csv) {
 					lineNum++;
 					if ("".equals(record[0])) {
-						break;
+						continue;
 					}
 					int s = Objects.checkIndex(Integer.parseInt(record[0]), numStates);
 					int i = Objects.checkIndex(Integer.parseInt(record[1]), numStates);
@@ -738,24 +827,6 @@ public class PrismExplicitImporter
 			return name;
 		}
 
-		/**
-		 * Skip the next block of lines starting with # and the first line after.
-		 *
-		 * @param in reader
-		 * @return number of lines read
-		 * @throws IOException if an I/O error occurs
-		 */
-		protected int skipCommentAndFirstLine(BufferedReader in) throws IOException
-		{
-			int lineNum = 0;
-			String line;
-			do {
-				line = in.readLine();
-				lineNum++;
-			} while (line != null && COMMENT_PATTERN.matcher(line).matches());
-			return lineNum;
-		}
-
 		protected static String printFileLocation(File rewardFile, int linenum)
 		{
 			return ": line " + linenum + " in " + rewardFile;
@@ -779,4 +850,21 @@ public class PrismExplicitImporter
 		}
 	}
 
+	/**
+	 * Skip the next block of lines starting with # and the first line after.
+	 *
+	 * @param in reader
+	 * @return number of lines read
+	 * @throws IOException if an I/O error occurs
+	 */
+	protected static int skipCommentAndFirstLine(BufferedReader in) throws IOException
+	{
+		int lineNum = 0;
+		String line;
+		do {
+			line = in.readLine();
+			lineNum++;
+		} while (line != null && COMMENT_PATTERN.matcher(line).matches());
+		return lineNum;
+	}
 }

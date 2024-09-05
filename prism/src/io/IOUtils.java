@@ -32,12 +32,30 @@ package io;
 public class IOUtils
 {
 	/**
+	 * Functional interface for a consumer accepting Markov chain like transitions (s,s2,v,a),
+	 * i.e., source state s, target state s2, probability v, (optional) action a.
+	 */
+	@FunctionalInterface
+	public interface MCTransitionConsumer<V> {
+		void accept(int s, int s2, V v, Object a);
+	}
+
+	/**
+	 * Functional interface for a consumer accepting MDP-like transitions (s,i,s2,v,a),
+	 * i.e., source state s, index i, target state s2, probability v, (optional) action a.
+	 */
+	@FunctionalInterface
+	public interface MDPTransitionConsumer<V> {
+		void accept(int s, int i, int s2, V v, Object a);
+	}
+
+	/**
 	 * Functional interface for a consumer accepting transition rewards (s,i,v),
 	 * i.e., source state s, index i, value v.
 	 */
 	@FunctionalInterface
 	public interface TransitionRewardConsumer<V> {
-		void accept(int s, int s2, V v);
+		void accept(int s, int i, V v);
 	}
 
 	/**

@@ -58,7 +58,6 @@ import symbolic.model.NondetModel;
 import symbolic.model.ProbModel;
 import symbolic.model.StochModel;
 
-
 /**
  * Class to convert explicit-state file storage of a model to symbolic representation.
  */
@@ -202,8 +201,9 @@ public class ExplicitFiles2MTBDD
 		int i;
 
 		// for an mdp, compute the max number of choices in a state
-		if (modelType == ModelType.MDP)
-			computeMaxChoicesFromFile();
+		if (modelType == ModelType.MDP) {
+			maxNumChoices = importer.computeMaxNumChoices();
+		}
 
 		// allocate dd variables
 		allocateDDVars();
@@ -312,43 +312,6 @@ public class ExplicitFiles2MTBDD
 		return model;
 	}
 
-	/** for an mdp, compute max number of choices in a state (from transitions file) */
-	private void computeMaxChoicesFromFile() throws PrismException
-	{
-		String s, ss[];
-		int j, lineNum = 0;
-
-		// open file for reading, automatic close when done
-		try (BufferedReader in = new BufferedReader(new FileReader(transFile))) {
-			// skip first line
-			in.readLine();
-			lineNum = 1;
-			// read remaining lines
-			s = in.readLine();
-			lineNum++;
-			maxNumChoices = 0;
-			while (s != null) {
-				s = s.trim();
-				if (s.length() > 0) {
-					ss = s.split(" ");
-					if (ss.length < 4 || ss.length > 5)
-						throw new PrismException("");
-					j = Integer.parseInt(ss[1]);
-					if (j + 1 > maxNumChoices)
-						maxNumChoices = j + 1;
-				}
-				s = in.readLine();
-				lineNum++;
-			}
-		} catch (IOException e) {
-			throw new PrismException("File I/O error reading from \"" + transFile + "\": " + e.getMessage());
-		} catch (NumberFormatException e) {
-			throw new PrismException("Error detected at line " + lineNum + " of transition matrix file \"" + transFile + "\"");
-		} catch (PrismException e) {
-			throw new PrismException("Error detected " + e.getMessage() + "at line " + lineNum + " of transition matrix file \"" + transFile + "\"");
-		}
-	}
-
 	/**
 	 * allocate DD vars for system
 	 * i.e. decide on variable ordering and request variables from CUDD
@@ -403,11 +366,6 @@ public class ExplicitFiles2MTBDD
 	/** Construct transition matrix from file */
 	private void buildTrans() throws PrismException
 	{
-		String s, ss[], a;
-		int i, j, r, c, k = 0, lineNum = 0;
-		double d;
-		JDDNode elem, tmp;
-
 		// initialise action list
 		synchs = new Vector<String>();
 
@@ -420,117 +378,93 @@ public class ExplicitFiles2MTBDD
 			transActions = JDD.Constant(0);
 		}
 
-		// open file for reading, automatic close when done
-		try (BufferedReader in = new BufferedReader(new FileReader(transFile))) {
-			// skip first line
-			in.readLine();
-			lineNum = 1;
-			// read remaining lines
-			s = in.readLine();
-			lineNum++;
-			while (s != null) {
-				// skip blank lines
-				s = s.trim();
-				if (s.length() > 0) {
-					a = "";
-					// parse line, split into parts
-					ss = s.split(" ");
-					// case for dtmcs/ctmcs...
-					if (modelType != ModelType.MDP) {
-						if (ss.length < 3 || ss.length > 4)
-							throw new PrismException("");
-						r = Integer.parseInt(ss[0]);
-						c = Integer.parseInt(ss[1]);
-						d = Double.parseDouble(ss[2]);
-						if (ss.length == 4) {
-							a = ss[3];
-						}
-					}
-					// case for mdps...
-					else {
-						if (ss.length < 4 || ss.length > 5)
-							throw new PrismException("");
-						r = Integer.parseInt(ss[0]);
-						k = Integer.parseInt(ss[1]);
-						c = Integer.parseInt(ss[2]);
-						d = Double.parseDouble(ss[3]);
-						if (ss.length == 5) {
-							a = ss[4];
-						}
-					}
-					// construct element of matrix mtbdd
-					// case where we don't have a state list...
-					if (statesFile == null) {
-						/// ...for dtmcs/ctmcs...
-						if (modelType != ModelType.MDP) {
-							elem = JDD.SetMatrixElement(JDD.Constant(0), varDDRowVars[0], varDDColVars[0], r, c, 1.0);
-						}
-						/// ...for mdps...
-						else {
-							elem = JDD.Set3DMatrixElement(JDD.Constant(0), varDDRowVars[0], varDDColVars[0], allDDNondetVars, r, c, k, 1.0);
-						}
-					}
-					// case where we do have a state list...
-					else {
-						elem = JDD.Constant(1);
-						for (i = 0; i < numVars; i++) {
-							elem = JDD.Apply(JDD.TIMES, elem, JDD.SetVectorElement(JDD.Constant(0), varDDRowVars[i], statesArray[r][i], 1));
-							elem = JDD.Apply(JDD.TIMES, elem, JDD.SetVectorElement(JDD.Constant(0), varDDColVars[i], statesArray[c][i], 1));
-						}
-						if (modelType == ModelType.MDP) {
-							elem = JDD.Apply(JDD.TIMES, elem, JDD.SetVectorElement(JDD.Constant(0), allDDNondetVars, k, 1));
-						}
-					}
-					// add it into mtbdds for transition matrix and transition rewards
-					JDD.Ref(elem);
-					trans = JDD.Apply(JDD.PLUS, trans, JDD.Apply(JDD.TIMES, JDD.Constant(d), elem));
-					// look up action name
-					if (!("".equals(a))) {
-						j = synchs.indexOf(a);
-						// add to list if first time seen 
-						if (j == -1) {
-							synchs.add(a);
-							j = synchs.size() - 1;
-						}
-						j++;
-					} else {
-						j = 0;
-					}
-					/// ...for dtmcs/ctmcs...
-					if (modelType != ModelType.MDP) {
-						// get (or create) dd for action j
-						if (j < transPerAction.size()) {
-							tmp = transPerAction.get(j);
-						} else {
-							tmp = JDD.Constant(0);
-							transPerAction.add(tmp);
-						}
-						// add element to matrix
-						JDD.Ref(elem);
-						tmp = JDD.Apply(JDD.PLUS, tmp, JDD.Apply(JDD.TIMES, JDD.Constant(d), elem));
-						transPerAction.set(j, tmp);
-					}
-					/// ...for mdps...
-					else {
-						JDD.Ref(elem);
-						tmp = JDD.ThereExists(elem, allDDColVars);
-						// use max here because we see multiple transitions for a sinlge choice
-						transActions = JDD.Apply(JDD.MAX, transActions, JDD.Apply(JDD.TIMES, JDD.Constant(j), tmp));
-					}
-					// deref element dd
-					JDD.Deref(elem);
-				}
-				// read next line
-				s = in.readLine();
-				lineNum++;
-			}
-		} catch (IOException e) {
-			throw new PrismException("File I/O error reading from \"" + transFile + "\": " + e.getMessage());
-		} catch (NumberFormatException e) {
-			throw new PrismException("Error detected at line " + lineNum + " of transition matrix file \"" + transFile + "\"");
-		} catch (PrismException e) {
-			throw new PrismException("Error detected " + e.getMessage() + "at line " + lineNum + " of transition matrix file \"" + transFile + "\"");
+		if (modelType != ModelType.MDP) {
+			importer.extractMCTransitions((s, s2, d, a) -> storeMCTransition(s, s2, d, a));
+		} else {
+			importer.extractMDPTransitions((s, i, s2, d, a) -> storeMDPTransition(s, i, s2, d, a));
 		}
+	}
+
+	/**
+	 * Stores transRewards in the required format for mtbdd.
+	 *
+	 * @param s source state index
+	 * @param s2 target state index
+	 * @param d probability value
+	 * @param a action (optional)
+	 */
+	protected void storeMCTransition(int s, int s2, double d, Object a)
+	{
+		// construct element of vector mtbdd
+		JDDNode elem = encodeStatePair(s, s2);
+
+		// add it into mtbdds for transition matrix
+		JDD.Ref(elem);
+		trans = JDD.Apply(JDD.PLUS, trans, JDD.Apply(JDD.TIMES, JDD.Constant(d), elem));
+		// look up action name
+		String aStr = a == null ? "" : a.toString();
+		int j = 0;
+		if (!("".equals(a))) {
+			j = synchs.indexOf(a);
+			// add to list if first time seen
+			if (j == -1) {
+				synchs.add(aStr);
+				j = synchs.size() - 1;
+			}
+			j++;
+		}
+		// get (or create) dd for action j
+		JDDNode tmp;
+		if (j < transPerAction.size()) {
+			tmp = transPerAction.get(j);
+		} else {
+			tmp = JDD.Constant(0);
+			transPerAction.add(tmp);
+		}
+		// add element to matrix
+		JDD.Ref(elem);
+		tmp = JDD.Apply(JDD.PLUS, tmp, JDD.Apply(JDD.TIMES, JDD.Constant(d), elem));
+		transPerAction.set(j, tmp);
+		// deref element dd
+		JDD.Deref(elem);
+	}
+
+	/**
+	 * Stores transRewards in the required format for mtbdd.
+	 *
+	 * @param s source state index
+	 * @param i choice index
+	 * @param s2 target state index
+	 * @param d probability value
+	 * @param a action (optional)
+	 */
+	protected void storeMDPTransition(int s, int i, int s2, double d, Object a)
+	{
+		// construct element of vector mtbdd
+		JDDNode elem = encodeStatePair(s, s2);
+		elem = JDD.Apply(JDD.TIMES, elem, JDD.SetVectorElement(JDD.Constant(0), allDDNondetVars, i, 1));
+
+		// add it into mtbdds for transition matrix
+		JDD.Ref(elem);
+		trans = JDD.Apply(JDD.PLUS, trans, JDD.Apply(JDD.TIMES, JDD.Constant(d), elem));
+		// look up action name
+		String aStr = a == null ? "" : a.toString();
+		int j = 0;
+		if (!("".equals(a))) {
+			j = synchs.indexOf(a);
+			// add to list if first time seen
+			if (j == -1) {
+				synchs.add(aStr);
+				j = synchs.size() - 1;
+			}
+			j++;
+		}
+		JDD.Ref(elem);
+		JDDNode tmp = JDD.ThereExists(elem, allDDColVars);
+		// use max here because we see multiple transitions for a sinlge choice
+		transActions = JDD.Apply(JDD.MAX, transActions, JDD.Apply(JDD.TIMES, JDD.Constant(j), tmp));
+		// deref element dd
+		JDD.Deref(elem);
 	}
 
 	/** calculate dd for initial state */
