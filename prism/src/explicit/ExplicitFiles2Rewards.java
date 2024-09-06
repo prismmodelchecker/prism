@@ -27,6 +27,8 @@
 
 package explicit;
 
+import explicit.rewards.Rewards;
+import explicit.rewards.RewardsSimple;
 import io.PrismExplicitImporter;
 import parser.State;
 import prism.PrismComponent;
@@ -38,17 +40,19 @@ import java.util.List;
 /**
  * Class to import rewards from explicit files and expose them via a RewardGenerator.
  */
-public class ExplicitFiles2Rewards extends PrismComponent implements RewardGenerator
+public class ExplicitFiles2Rewards extends PrismComponent implements RewardGenerator<Double>
 {
 	// Importer from files
 	protected PrismExplicitImporter importer;
 	// Reward info (stored as RewardGenerator) from importer
-	protected RewardGenerator rewardInfo;
+	protected RewardGenerator<Double> rewardInfo;
+	// Model that rewards are for
+	protected Model<Double> model;
 	// State list (optionally)
 	protected List<State> statesList;
 
 	// Local reward storage
-	protected double[][] stateRewards;
+	protected RewardsSimple<Double>[] rewards;
 
 	/**
 	 * Construct a ExplicitFiles2Rewards object for a specified importer.
@@ -60,7 +64,18 @@ public class ExplicitFiles2Rewards extends PrismComponent implements RewardGener
 		this.importer = importer;
 		rewardInfo = importer.getRewardInfo();
 		// Initialise storage
-		stateRewards = new double[rewardInfo.getNumRewardStructs()][];
+		rewards = new RewardsSimple[rewardInfo.getNumRewardStructs()];
+	}
+
+	/**
+	 * Provide access to the model for which the rewards are to be defined.
+	 * Needed to look up information when storing transition rewards.
+	 * The model's attached states list is also stored.
+	 */
+	public void setModel(Model<Double> model)
+	{
+		this.model = model;
+		setStatesList(model.getStatesList());
 	}
 
 	/**
@@ -80,7 +95,7 @@ public class ExplicitFiles2Rewards extends PrismComponent implements RewardGener
 	 */
 	protected void storeReward(int r, int s, double d)
 	{
-		stateRewards[r][s] = d;
+		rewards[r].setStateReward(s, d);
 	}
 
 	// Methods to implement RewardGenerator
@@ -106,7 +121,7 @@ public class ExplicitFiles2Rewards extends PrismComponent implements RewardGener
 	@Override
 	public boolean isRewardLookupSupported(RewardLookup lookup)
 	{
-		return (lookup == RewardLookup.BY_STATE_INDEX) || (lookup == RewardLookup.BY_STATE && statesList != null);
+		return (lookup == RewardLookup.BY_STATE_INDEX) || (lookup == RewardLookup.BY_STATE && statesList != null) || (lookup == RewardLookup.BY_REWARD_OBJECT);
 	}
 
 	@Override
@@ -125,12 +140,23 @@ public class ExplicitFiles2Rewards extends PrismComponent implements RewardGener
 	@Override
 	public Double getStateReward(int r, int s) throws PrismException
 	{
-	 	// Lazily load rewards from file when requested
-		int numStates = importer.getNumStates();
-		if (stateRewards[r] == null) {
-			stateRewards[r] = new double[numStates];
+		return getRewardObject(r).getStateReward(s);
+	}
+
+	@Override
+	public Rewards<Double> getRewardObject(int r) throws PrismException
+	{
+		// Lazily load rewards from file when requested
+		if (rewards[r] == null) {
+			rewards[r] = new RewardsSimple<>(importer.getNumStates());
 			importer.extractStateRewards(r, (i, d) -> storeReward(r, i, d));
 		}
-		return stateRewards[r][s];
+		return rewards[r];
+	}
+
+	@Override
+	public Model<Double> getRewardObjectModel() throws PrismException
+	{
+		return model;
 	}
 }

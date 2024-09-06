@@ -2144,7 +2144,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 						throw new PrismNotSupportedException("Transition reward import not yet supported for explicit engine");
 					}
 					ExplicitFiles2Rewards expf2rews = new ExplicitFiles2Rewards(this, modelImporter);
-					expf2rews.setStatesList(getBuiltModelExplicit().getStatesList());
+					expf2rews.setModel((explicit.Model<Double>) getBuiltModelExplicit());
 					setRewardGenerator(expf2rews);
 					break;
 				default:
