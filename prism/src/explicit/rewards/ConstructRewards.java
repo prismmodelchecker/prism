@@ -93,6 +93,12 @@ public class ConstructRewards extends PrismComponent
 	@SuppressWarnings("unchecked")
 	public <Value> Rewards<Value> buildRewardStructure(Model<Value> model, RewardGenerator<Value> rewardGen, int r) throws PrismException
 	{
+		// If the RewardGenerator already has the rewards built, use this (after checking)
+		if (rewardGen.isRewardLookupSupported(RewardLookup.BY_REWARD_OBJECT)) {
+			Rewards<Value> rewardsObj = rewardGen.getRewardObject(r);
+			checkRewardObject(rewardsObj, rewardGen.getRewardObjectModel(), rewardGen.getRewardEvaluator());
+			return rewardsObj;
+		}
 		// Extract some model info
 		int numStates = model.getNumStates();
 		List<State> statesList = model.getStatesList();
@@ -486,6 +492,41 @@ public class ConstructRewards extends PrismComponent
 				throw new PrismLangException(error, ast);
 			} else {
 				throw new PrismException(error);
+			}
+		}
+	}
+
+	/**
+	 * Check that all state/transition rewards in a Rewards object are legal. Throw an exception if not.
+	 * Optionally, provide a state where the error occurs (as an Object),
+	 * and/or a pointer to where the error occurs syntactically (as an ASTElement)
+	 * @param rewards The rewards
+	 * @param model The model for the rewards
+	 * @param eval Evaluator matching the type {@code Value} of the reward value
+	 */
+	private <Value> void checkRewardObject(Rewards<Value> rewards, Model<Value> model, Evaluator<Value> eval) throws PrismException
+	{
+		int numStates = model.getNumStates();
+		// State rewards
+		for (int s = 0; s < numStates; s++) {
+			checkStateReward(rewards.getStateReward(s), eval, s, null);
+		}
+		// Transition rewards (nondet models)
+		if (model.getModelType().nondeterministic()) {
+			for (int s = 0; s < numStates; s++) {
+				int numChoices = ((NondetModel<?>) model).getNumChoices(s);
+				for (int i = 0; i < numChoices; i++) {
+					checkTransitionReward(rewards.getTransitionReward(s, i), eval, s, null);
+				}
+			}
+		}
+		// Transition rewards (Markov chain like models)
+		else {
+			for (int s = 0; s < numStates; s++) {
+				int numTrans = model.getNumTransitions(s);
+				for (int i = 0; i < numTrans; i++) {
+					checkTransitionReward(rewards.getTransitionReward(s, i), eval, s, null);
+				}
 			}
 		}
 	}
