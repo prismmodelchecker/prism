@@ -66,6 +66,8 @@ public abstract class RewardsExplicit<Value> implements Rewards<Value>, MCReward
 
 	/**
 	 * Set the transition reward with index {@code i} of state {@code s} to {@code r}.
+	 * For a nondeterministic model, this refers to the {@code i}th choice,
+	 * for a Markov chain like model, it refers to the {@code i}th transition.
 	 */
 	public void setTransitionReward(int s, int i, Value r)
 	{
@@ -74,6 +76,8 @@ public abstract class RewardsExplicit<Value> implements Rewards<Value>, MCReward
 
 	/**
 	 * Add {@code r} to the transition reward with index {@code i} of state {@code s}.
+	 * For a nondeterministic model, this refers to the {@code i}th choice,
+	 * for a Markov chain like model, it refers to the {@code i}th transition.
 	 */
 	public void addToTransitionReward(int s, int i, Value r)
 	{

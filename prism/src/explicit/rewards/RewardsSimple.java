@@ -115,17 +115,13 @@ public class RewardsSimple<Value> extends RewardsExplicit<Value>
 		transRewards.setZero(getEvaluator().zero(), getEvaluator()::isZero);
 	}
 
-	/**
-	 * Set the state reward for state {@code s} to {@code r}.
-	 */
+	@Override
 	public void setStateReward(int s, Value r)
 	{
 		stateRewards.setValue(s, r);
 	}
 
-	/**
-	 * Set the transition reward with index {@code i} of state {@code s} to {@code r}.
-	 */
+	@Override
 	public void setTransitionReward(int s, int i, Value r)
 	{
 		transRewards.setValue(s, i, r);

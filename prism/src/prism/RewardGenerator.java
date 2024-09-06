@@ -43,7 +43,7 @@ import parser.ast.RewardStruct;
  * Secondly it provides access to the rewards themselves.
  * Implementations of {@link RewardGenerator} can allow rewards to be queried in one or more ways:
  * by State object; by (integer) state index; or syntactically by providing a RewardStruct.
- * The method {@link RewardGenerator#isRewardLookupSupported()} should return true or false accordingly. 
+ * The method {@link RewardGenerator#isRewardLookupSupported(RewardLookup)} should return true or false accordingly.
  * <br><br>
  * Default implementations of all methods are provided which assume that rewards are
  * looked up by State object and there are no rewards defined (zero reward structs).
@@ -147,7 +147,7 @@ public interface RewardGenerator<Value>
 	/**
 	 * Get the state reward of the {@code r}th reward structure for state {@code state}
 	 * ({@code r} is indexed from 0, not from 1 like at the user (property language) level).
-	 * Only available if {@link #isRewardLookupSupported(RewardLookup.BY_STATE)} returns true.
+	 * Only available if {@link #isRewardLookupSupported(RewardLookup)} returns true for {@code RewardLookup.BY_STATE)}.
 	 * If a reward structure has no state rewards, you can indicate this by implementing
 	 * the method {@link #rewardStructHasStateRewards(int)}, which may improve efficiency
 	 * and/or allow use of algorithms/implementations that do not support state rewards rewards.
@@ -170,7 +170,7 @@ public interface RewardGenerator<Value>
 	/**
 	 * Get the state-action reward of the {@code r}th reward structure for state {@code state} and action {@code action}
 	 * ({@code r} is indexed from 0, not from 1 like at the user (property language) level).
-	 * Only available if {@link #isRewardLookupSupported(RewardLookup.BY_STATE)} returns true.
+	 * Only available if {@link #isRewardLookupSupported(RewardLookup)} returns true for {@code RewardLookup.BY_STATE)}.
 	 * If a reward structure has no transition rewards, you can indicate this by implementing
 	 * the method {@link #rewardStructHasTransitionRewards(int)}, which may improve efficiency
 	 * and/or allow use of algorithms/implementations that do not support transition rewards rewards.
@@ -194,7 +194,7 @@ public interface RewardGenerator<Value>
 	/**
 	 * Get the state reward of the {@code r}th reward structure for state {@code s}
 	 * ({@code r} is indexed from 0, not from 1 like at the user (property language) level).
-	 * Only available if {@link #isRewardLookupSupported(RewardLookup.BY_STATE_INDEX)} returns true.
+	 * Only available if {@link #isRewardLookupSupported(RewardLookup)} returns true for {@code RewardLookup.BY_STATE_INDEX)}.
 	 * If a reward structure has no state rewards, you can indicate this by implementing
 	 * the method {@link #rewardStructHasStateRewards(int)}, which may improve efficiency
 	 * and/or allow use of algorithms/implementations that do not support state rewards rewards.
@@ -217,9 +217,9 @@ public interface RewardGenerator<Value>
 	/**
 	 * Get the state-action reward of the {@code r}th reward structure for state {@code s} and action {@code action}
 	 * ({@code r} is indexed from 0, not from 1 like at the user (property language) level).
-	 * Only available if {@link #isRewardLookupSupported(RewardLookup.BY_STATE_INDEX)} returns true.
+	 * Only available if {@link #isRewardLookupSupported(RewardLookup)} returns true for {@code RewardLookup.BY_STATE_INDEX)}.
 	 * If a reward structure has no transition rewards, you can indicate this by implementing
-	 * the method {@link #hasTransitionRewards(int)}, which may improve efficiency
+	 * the method {@link #rewardStructHasTransitionRewards(int)}, which may improve efficiency
 	 * and/or allow use of algorithms/implementations that do not support transition rewards rewards.
 	 * @param r The index of the reward structure to use
 	 * @param s The index of the state in which to evaluate the rewards
@@ -241,10 +241,10 @@ public interface RewardGenerator<Value>
 	/**
 	 * Get a RewardStruct object representing the {@code r}th reward structure
 	 * ({@code r} is indexed from 0, not from 1 like at the user (property language) level).
-	 * Only available if {@link #isRewardLookupSupported(RewardLookup.BY_REWARD_STRUCT)} returns true.
+	 * Only available if {@link #isRewardLookupSupported(RewardLookup)} returns true for {@code RewardLookup.BY_REWARD_STRUCT)}.
 	 * Throws an exception if {@code r} is out of range or the information is not available.
 	 * If a reward structure has no transition rewards, you can indicate this by implementing
-	 * the method {@link #hasTransitionRewards(int)}, which may improve efficiency
+	 * the method {@link #rewardStructHasTransitionRewards(int)}, which may improve efficiency
 	 * and/or allow use of algorithms/implementations that do not support transition rewards rewards.
 	 */
 	public default RewardStruct getRewardStruct(int r) throws PrismException
