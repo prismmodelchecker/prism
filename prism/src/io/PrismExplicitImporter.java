@@ -44,6 +44,7 @@ import common.iterable.Reducible;
 import csv.BasicReader;
 import csv.CsvFormatException;
 import csv.CsvReader;
+import param.BigRational;
 import parser.ast.DeclarationBool;
 import parser.ast.DeclarationInt;
 import parser.ast.DeclarationType;
@@ -501,7 +502,13 @@ public class PrismExplicitImporter
 				if (probOrRate.matches("\\[.+,.+\\]")) {
 					return nondet ? ModelType.IMDP : ModelType.IDTMC;
 				}
-				double d = Double.parseDouble(probOrRate);
+				// Get value as double
+				double d;
+				if (probOrRate.matches("[0-9]+/[0-9]+")) {
+					d = new BigRational(probOrRate).doubleValue();
+				} else {
+					d = Double.parseDouble(probOrRate);
+				}
 				// Looks like a rate: guess CTMC
 				if (d > 1) {
 					return ModelType.CTMC;

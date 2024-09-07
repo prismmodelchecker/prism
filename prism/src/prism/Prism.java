@@ -2135,8 +2135,9 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 					break;
 				case EXPLICIT_FILES:
 					ExplicitFiles2Model expf2model = new ExplicitFiles2Model(this);
-					newModelExpl = expf2model.build(modelImporter);
-					setBuiltModel(ModelBuildType.EXPLICIT, newModelExpl);
+					Evaluator<?> eval = (getCurrentEngine() == PrismEngine.EXACT) ? Evaluator.forBigRational() : Evaluator.forDouble();
+					newModelExpl = expf2model.build(modelImporter, eval);
+					setBuiltModel(getModelBuildTypeForEngine(getCurrentEngine()), newModelExpl);
 					// Also build a Model/RewardGenerator
 					// (the latter since rewards are built later, the former e.g. for simulation)
 					setModelGenerator(new ModelModelGenerator<>(getBuiltModelExplicit(), getModelInfo()));
