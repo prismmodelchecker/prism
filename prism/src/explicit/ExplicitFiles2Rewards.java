@@ -93,9 +93,46 @@ public class ExplicitFiles2Rewards extends PrismComponent implements RewardGener
 	 * @param s State index
 	 * @param d Reward value
 	 */
-	protected void storeReward(int r, int s, double d)
+	protected void storeStateReward(int r, int s, double d)
 	{
 		rewards[r].setStateReward(s, d);
+	}
+
+	/**
+	 * Store a (Markov chain) transition reward.
+	 * @param r Reward structure index
+	 * @param s State index (source)
+	 * @param s2 State index (destination)
+	 * @param d Reward value
+	 */
+	protected void storeMCTransitionReward(int r, int s, int s2, double d)
+	{
+		// Find successor index for state s2 (from state s)
+		SuccessorsIterator it = model.getSuccessors(s);
+		int i = 0;
+		while (it.hasNext()) {
+			if (it.nextInt() == s2) {
+				rewards[r].setTransitionReward(s, i, d);
+				return;
+			}
+			i++;
+		}
+		// No matching transition found
+	}
+
+	/**
+	 * Store a (MDP) transition reward.
+	 * @param r Reward structure index
+	 * @param s State index (source)
+	 * @param i Choice index
+	 * @param s2 State index (destination)
+	 * @param d Reward value
+	 */
+	protected void storeMDPTransitionReward(int r, int s, int i, int s2, double d)
+	{
+		// For now, don't bother to check that the reward is the same for all s2
+		// for a given state s and index i (so the last one in the file will define it)
+		rewards[r].setTransitionReward(s, i, d);
 	}
 
 	// Methods to implement RewardGenerator
@@ -149,7 +186,12 @@ public class ExplicitFiles2Rewards extends PrismComponent implements RewardGener
 		// Lazily load rewards from file when requested
 		if (rewards[r] == null) {
 			rewards[r] = new RewardsSimple<>(importer.getNumStates());
-			importer.extractStateRewards(r, (i, d) -> storeReward(r, i, d));
+			importer.extractStateRewards(r, (i, d) -> storeStateReward(r, i, d));
+			if (!model.getModelType().nondeterministic()) {
+				importer.extractMCTransitionRewards(r, (s, s2, d) -> storeMCTransitionReward(r, s, s2, d));
+			} else {
+				importer.extractMDPTransitionRewards(r, (s, i, s2, d) -> storeMDPTransitionReward(r, s, i, s2, d));
+			}
 		}
 		return rewards[r];
 	}
