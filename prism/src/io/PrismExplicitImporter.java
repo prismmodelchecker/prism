@@ -117,15 +117,15 @@ public class PrismExplicitImporter
 		this.statesFile = statesFile;
 		this.transFile = transFile;
 		this.labelsFile = labelsFile;
-		this.stateRewardsFiles = stateRewardsFiles;
-		this.transRewardsFiles = transRewardsFiles;
+		this.stateRewardsFiles = stateRewardsFiles == null ? new ArrayList<>() : stateRewardsFiles;
+		this.transRewardsFiles = transRewardsFiles == null ? new ArrayList<>() : transRewardsFiles;
 		this.typeOverride = typeOverride;
-		this.stateRewardsReaders = new ArrayList<>(stateRewardsFiles.size());
-		for (File file : stateRewardsFiles) {
+		this.stateRewardsReaders = new ArrayList<>(this.stateRewardsFiles.size());
+		for (File file : this.stateRewardsFiles) {
 			this.stateRewardsReaders.add(new PrismExplicitImporter.RewardFile(file));
 		}
-		this.transRewardsRewaders = new ArrayList<>(transRewardsFiles.size());
-		for (File file : transRewardsFiles) {
+		this.transRewardsRewaders = new ArrayList<>(this.transRewardsFiles.size());
+		for (File file : this.transRewardsFiles) {
 			this.transRewardsRewaders.add(new PrismExplicitImporter.RewardFile(file));
 		}
 	}
