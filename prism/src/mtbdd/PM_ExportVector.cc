@@ -70,16 +70,17 @@ jboolean neh    // noexportheaders
 	// print file header
 	switch (export_type) {
 	case EXPORT_PLAIN:  // add header to srew file, when not disabled
-                        if (!neh) {
-                            export_string("# Reward structure");
-                            if (env->GetStringUTFLength(rsn) > 0) {
-                                const char *header = env->GetStringUTFChars(rsn,0);
-                                export_string(" \"%s\"", header);
-                                env->ReleaseStringUTFChars(rsn, header);
-                            }
-                            export_string("\n# State rewards\n");
-                        }
-                        export_string("%" PRId64 " %.0f\n", odd->eoff+odd->toff, DD_GetNumMinterms(ddman, vector, num_vars));
+	if (!neh) {
+		export_string("# Reward structure");
+		if (env->GetStringUTFLength(rsn) > 0) {
+			const char *header = env->GetStringUTFChars(rsn,0);
+			export_string(" \"%s\"", header);
+			env->ReleaseStringUTFChars(rsn, header);
+		}
+		export_string("\n");
+		export_string("# State rewards\n");
+	}
+	export_string("%" PRId64 " %.0f\n", odd->eoff+odd->toff, DD_GetNumMinterms(ddman, vector, num_vars));
                         break;
 	case EXPORT_MATLAB: export_string("%s = sparse(%" PRId64 ",1);\n", export_name, odd->eoff+odd->toff); break;
 	}

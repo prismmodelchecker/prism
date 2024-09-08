@@ -1,0 +1,22 @@
+# Export all model info
+
+-exportmodel lec3.pm.all -h
+-exportmodel lec3.pm.all -m
+
+# Export model info separately
+
+-exportmodel lec3.pm.tra
+-exportmodel lec3.pm.lab
+-exportmodel lec3.pm.sta
+-exportmodel lec3.pm.srew
+-exportmodel lec3.pm.trew
+
+# Export model info - explicit engine
+
+-exportmodel lec3.pm.all -ex
+
+-exportmodel lec3.pm.tra -ex
+-exportmodel lec3.pm.sta -ex
+-exportmodel lec3.pm.lab -ex
+-exportmodel lec3.pm.srew -ex
+-exportmodel lec3.pm.trew -ex
