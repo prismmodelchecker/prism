@@ -2140,8 +2140,8 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 					// Also build a Model/RewardGenerator
 					// (the latter since rewards are built later, the former e.g. for simulation)
 					setModelGenerator(new ModelModelGenerator<>(getBuiltModelExplicit(), getModelInfo()));
-					ExplicitFiles2Rewards expf2rews = new ExplicitFiles2Rewards(this, modelImporter);
-					expf2rews.setModel((explicit.Model<Double>) getBuiltModelExplicit());
+					ExplicitFiles2Rewards expf2rews = new ExplicitFiles2Rewards<>(this, modelImporter);
+					expf2rews.setModel(getBuiltModelExplicit());
 					setRewardGenerator(expf2rews);
 					break;
 				default:

@@ -31,6 +31,7 @@ import explicit.rewards.Rewards;
 import explicit.rewards.RewardsSimple;
 import io.PrismExplicitImporter;
 import parser.State;
+import prism.Evaluator;
 import prism.PrismComponent;
 import prism.PrismException;
 import prism.RewardGenerator;
@@ -40,19 +41,21 @@ import java.util.List;
 /**
  * Class to import rewards from explicit files and expose them via a RewardGenerator.
  */
-public class ExplicitFiles2Rewards extends PrismComponent implements RewardGenerator<Double>
+public class ExplicitFiles2Rewards<Value> extends PrismComponent implements RewardGenerator<Value>
 {
 	// Importer from files
 	protected PrismExplicitImporter importer;
 	// Reward info (stored as RewardGenerator) from importer
-	protected RewardGenerator<Double> rewardInfo;
+	protected RewardGenerator<?> rewardInfo;
 	// Model that rewards are for
-	protected Model<Double> model;
+	protected Model<Value> model;
+	// Evaluator for reward values
+	protected Evaluator<Value> eval;
 	// State list (optionally)
 	protected List<State> statesList;
 
 	// Local reward storage
-	protected RewardsSimple<Double>[] rewards;
+	protected RewardsSimple<Value>[] rewards;
 
 	/**
 	 * Construct a ExplicitFiles2Rewards object for a specified importer.
@@ -70,11 +73,12 @@ public class ExplicitFiles2Rewards extends PrismComponent implements RewardGener
 	/**
 	 * Provide access to the model for which the rewards are to be defined.
 	 * Needed to look up information when storing transition rewards.
-	 * The model's attached states list is also stored.
+	 * The model's evaluator and attached states list is also stored.
 	 */
-	public void setModel(Model<Double> model)
+	public void setModel(Model<Value> model)
 	{
 		this.model = model;
+		eval = model.getEvaluator();
 		setStatesList(model.getStatesList());
 	}
 
@@ -91,11 +95,11 @@ public class ExplicitFiles2Rewards extends PrismComponent implements RewardGener
 	 * Store a state reward.
 	 * @param r Reward structure index
 	 * @param s State index
-	 * @param d Reward value
+	 * @param v Reward value
 	 */
-	protected void storeStateReward(int r, int s, double d)
+	protected void storeStateReward(int r, int s, Value v)
 	{
-		rewards[r].setStateReward(s, d);
+		rewards[r].setStateReward(s, v);
 	}
 
 	/**
@@ -103,16 +107,16 @@ public class ExplicitFiles2Rewards extends PrismComponent implements RewardGener
 	 * @param r Reward structure index
 	 * @param s State index (source)
 	 * @param s2 State index (destination)
-	 * @param d Reward value
+	 * @param v Reward value
 	 */
-	protected void storeMCTransitionReward(int r, int s, int s2, double d)
+	protected void storeMCTransitionReward(int r, int s, int s2, Value v)
 	{
 		// Find successor index for state s2 (from state s)
 		SuccessorsIterator it = model.getSuccessors(s);
 		int i = 0;
 		while (it.hasNext()) {
 			if (it.nextInt() == s2) {
-				rewards[r].setTransitionReward(s, i, d);
+				rewards[r].setTransitionReward(s, i, v);
 				return;
 			}
 			i++;
@@ -126,16 +130,22 @@ public class ExplicitFiles2Rewards extends PrismComponent implements RewardGener
 	 * @param s State index (source)
 	 * @param i Choice index
 	 * @param s2 State index (destination)
-	 * @param d Reward value
+	 * @param v Reward value
 	 */
-	protected void storeMDPTransitionReward(int r, int s, int i, int s2, double d)
+	protected void storeMDPTransitionReward(int r, int s, int i, int s2, Value v)
 	{
 		// For now, don't bother to check that the reward is the same for all s2
 		// for a given state s and index i (so the last one in the file will define it)
-		rewards[r].setTransitionReward(s, i, d);
+		rewards[r].setTransitionReward(s, i, v);
 	}
 
 	// Methods to implement RewardGenerator
+
+	@Override
+	public Evaluator<Value> getRewardEvaluator()
+	{
+		return eval;
+	}
 
 	@Override
 	public List<String> getRewardStructNames()
@@ -162,7 +172,7 @@ public class ExplicitFiles2Rewards extends PrismComponent implements RewardGener
 	}
 
 	@Override
-	public Double getStateReward(int r, State state) throws PrismException
+	public Value getStateReward(int r, State state) throws PrismException
 	{
 		if (statesList == null) {
 			throw new PrismException("Reward lookup by State not possible since state list is missing");
@@ -175,29 +185,30 @@ public class ExplicitFiles2Rewards extends PrismComponent implements RewardGener
 	}
 
 	@Override
-	public Double getStateReward(int r, int s) throws PrismException
+	public Value getStateReward(int r, int s) throws PrismException
 	{
 		return getRewardObject(r).getStateReward(s);
 	}
 
 	@Override
-	public Rewards<Double> getRewardObject(int r) throws PrismException
+	public Rewards<Value> getRewardObject(int r) throws PrismException
 	{
 		// Lazily load rewards from file when requested
 		if (rewards[r] == null) {
 			rewards[r] = new RewardsSimple<>(importer.getNumStates());
-			importer.extractStateRewards(r, (i, d) -> storeStateReward(r, i, d));
+			rewards[r].setEvaluator(eval);
+			importer.extractStateRewards(r, (i, v) -> storeStateReward(r, i, v), eval);
 			if (!model.getModelType().nondeterministic()) {
-				importer.extractMCTransitionRewards(r, (s, s2, d) -> storeMCTransitionReward(r, s, s2, d));
+				importer.extractMCTransitionRewards(r, (s, s2, v) -> storeMCTransitionReward(r, s, s2, v), eval);
 			} else {
-				importer.extractMDPTransitionRewards(r, (s, i, s2, d) -> storeMDPTransitionReward(r, s, i, s2, d));
+				importer.extractMDPTransitionRewards(r, (s, i, s2, v) -> storeMDPTransitionReward(r, s, i, s2, v), eval);
 			}
 		}
 		return rewards[r];
 	}
 
 	@Override
-	public Model<Double> getRewardObjectModel() throws PrismException
+	public Model<Value> getRewardObjectModel() throws PrismException
 	{
 		return model;
 	}

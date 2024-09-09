@@ -52,6 +52,7 @@ import parser.ast.ExpressionIdent;
 import parser.type.Type;
 import parser.type.TypeBool;
 import parser.type.TypeInt;
+import prism.Evaluator;
 import prism.ModelInfo;
 import prism.ModelType;
 import prism.Prism;
@@ -91,7 +92,7 @@ public class PrismExplicitImporter
 	private int numStates = 0;
 
 	// Reward info extracted from files and then stored in a RewardGenerator object
-	private RewardGenerator rewardInfo;
+	private RewardGenerator<?> rewardInfo;
 
 	// File(s) to read in rewards from
 	private List<PrismExplicitImporter.RewardFile> stateRewardsReaders = new ArrayList<>();
@@ -213,7 +214,7 @@ public class PrismExplicitImporter
 	/**
 	 * Get info about the rewards, extracted from relevant files.
 	 */
-	public RewardGenerator getRewardInfo() throws PrismException
+	public RewardGenerator<?> getRewardInfo() throws PrismException
 	{
 		// Construct lazily, as needed
 		if (rewardInfo == null) {
@@ -550,7 +551,23 @@ public class PrismExplicitImporter
 		}
 	}
 
+	/**
+	 * Extract the (Markov chain) transitions from a .tra file.
+	 * The transition probabilities/rates are assumed to be of type double.
+	 * @param storeTransition Function to be called for each transition
+	 */
 	public void extractMCTransitions(IOUtils.MCTransitionConsumer<Double> storeTransition) throws PrismException
+	{
+		extractMCTransitions(storeTransition, Evaluator.forDouble());
+	}
+
+	/**
+	 * Extract the (Markov chain) transitions from a .tra file.
+	 * The transition probabilities/rates are assumed to be of type Value.
+	 * @param storeTransition Function to be called for each transition
+	 * @param eval Evaluator for Value objects
+	 */
+	public <Value> void extractMCTransitions(IOUtils.MCTransitionConsumer<Value> storeTransition, Evaluator<Value> eval) throws PrismException
 	{
 		int lineNum = 0;
 		try (BufferedReader in = new BufferedReader(new FileReader(transFile))) {
@@ -564,12 +581,12 @@ public class PrismExplicitImporter
 				}
 				int s = Objects.checkIndex(Integer.parseInt(record[0]), numStates);
 				int s2 = Objects.checkIndex(Integer.parseInt(record[1]), numStates);
-				double d = Double.parseDouble(record[2]);
+				Value v = eval.fromString(record[2]);
 				Object a = null;
 				if (record.length > 3) {
 					a = record[3];
 				}
-				storeTransition.accept(s, s2, d, a);
+				storeTransition.accept(s, s2, v, a);
 			}
 		} catch (IOException e) {
 			throw new PrismException("File I/O error reading from \"" + transFile + "\"");
@@ -578,7 +595,23 @@ public class PrismExplicitImporter
 		}
 	}
 
+	/**
+	 * Extract the (Markov decision process) transitions from a .tra file.
+	 * The transition probabilities/rates are assumed to be of type double.
+	 * @param storeTransition Function to be called for each transition
+	 */
 	public void extractMDPTransitions(IOUtils.MDPTransitionConsumer<Double> storeTransition) throws PrismException
+	{
+		extractMDPTransitions(storeTransition, Evaluator.forDouble());
+	}
+
+	/**
+	 * Extract the (Markov decision process) transitions from a .tra file.
+	 * The transition probabilities/rates are assumed to be of type Value.
+	 * @param storeTransition Function to be called for each transition
+	 * @param eval Evaluator for Value objects
+	 */
+	public <Value> void extractMDPTransitions(IOUtils.MDPTransitionConsumer<Value> storeTransition, Evaluator<Value> eval) throws PrismException
 	{
 		int lineNum = 0;
 		try (BufferedReader in = new BufferedReader(new FileReader(transFile))) {
@@ -593,12 +626,12 @@ public class PrismExplicitImporter
 				int s = Objects.checkIndex(Integer.parseInt(record[0]), numStates);
 				int i = Objects.checkIndex(Integer.parseInt(record[1]), numStates);
 				int s2 = Objects.checkIndex(Integer.parseInt(record[2]), numStates);
-				double d = Double.parseDouble(record[3]);
+				Value v = eval.fromString(record[3]);
 				Object a = null;
 				if (record.length > 4) {
 					a = record[4];
 				}
-				storeTransition.accept(s, i, s2, d, a);
+				storeTransition.accept(s, i, s2, v, a);
 			}
 		} catch (IOException e) {
 			throw new PrismException("File I/O error reading from \"" + transFile + "\"");
@@ -613,7 +646,7 @@ public class PrismExplicitImporter
 	 */
 	public void buildRewardInfo() throws PrismException
 	{
-		rewardInfo = new RewardGenerator()
+		rewardInfo = new RewardGenerator<>()
 		{
 			@Override
 			public List<String> getRewardStructNames()
@@ -637,40 +670,79 @@ public class PrismExplicitImporter
 
 	/**
 	 * Extract the state rewards for a given reward structure index.
-	 *
-	 * @throws PrismException if an error occurs during reward extraction
+	 * The transition probabilities/rates are assumed to be of type double.
+	 * @param rewardIndex Index of reward structure to extract (0-indexed)
+	 * @param storeReward Function to be called for each reward
 	 */
 	public void extractStateRewards(int rewardIndex, BiConsumer<Integer, Double> storeReward) throws PrismException
 	{
+		extractStateRewards(rewardIndex, storeReward, Evaluator.forDouble());
+	}
+
+	/**
+	 * Extract the state rewards for a given reward structure index.
+	 * The transition probabilities/rates are assumed to be of type Value.
+	 * @param rewardIndex Index of reward structure to extract (0-indexed)
+	 * @param storeReward Function to be called for each reward
+	 * @param eval Evaluator for Value objects
+	 */
+	public <Value> void extractStateRewards(int rewardIndex, BiConsumer<Integer, Value> storeReward, Evaluator<Value> eval) throws PrismException
+	{
 		if (rewardIndex < stateRewardsReaders.size()) {
 			RewardFile file = stateRewardsReaders.get(rewardIndex);
-			file.extractStateRewards(storeReward, numStates);
+			file.extractStateRewards(storeReward, eval, numStates);
 		}
 	}
 
 	/**
 	 * Extract the (Markov chain) transition rewards for a given reward structure index.
-	 *
-	 * @throws PrismException if an error occurs during reward extraction
+	 * The transition probabilities/rates are assumed to be of type double.
+	 * @param rewardIndex Index of reward structure to extract (0-indexed)
+	 * @param storeReward Function to be called for each reward
 	 */
 	public void extractMCTransitionRewards(int rewardIndex, IOUtils.TransitionRewardConsumer<Double> storeReward) throws PrismException
 	{
+		extractMCTransitionRewards(rewardIndex, storeReward, Evaluator.forDouble());
+	}
+
+	/**
+	 * Extract the (Markov chain) transition rewards for a given reward structure index.
+	 * The transition probabilities/rates are assumed to be of type Value.
+	 * @param rewardIndex Index of reward structure to extract (0-indexed)
+	 * @param storeReward Function to be called for each reward
+	 * @param eval Evaluator for Value objects
+	 */
+	public <Value> void extractMCTransitionRewards(int rewardIndex, IOUtils.TransitionRewardConsumer<Value> storeReward, Evaluator<Value> eval) throws PrismException
+	{
 		if (rewardIndex < transRewardsRewaders.size()) {
 			RewardFile file = transRewardsRewaders.get(rewardIndex);
-			file.extractMCTransitionRewards(storeReward, numStates);
+			file.extractMCTransitionRewards(storeReward, eval, numStates);
 		}
 	}
 
 	/**
-	 * Extract the (MDP) transition rewards for a given reward structure index.
-	 *
-	 * @throws PrismException if an error occurs during reward extraction
+	 * Extract the (Markov decision process) transition rewards for a given reward structure index.
+	 * The transition probabilities/rates are assumed to be of type double.
+	 * @param rewardIndex Index of reward structure to extract (0-indexed)
+	 * @param storeReward Function to be called for each reward
 	 */
 	public void extractMDPTransitionRewards(int rewardIndex, IOUtils.TransitionStateRewardConsumer<Double> storeReward) throws PrismException
 	{
+		extractMDPTransitionRewards(rewardIndex, storeReward, Evaluator.forDouble());
+	}
+
+	/**
+	 * Extract the (Markov decision process) transition rewards for a given reward structure index.
+	 * The transition probabilities/rates are assumed to be of type Value.
+	 * @param rewardIndex Index of reward structure to extract (0-indexed)
+	 * @param storeReward Function to be called for each reward
+	 * @param eval Evaluator for Value objects
+	 */
+	public <Value> void extractMDPTransitionRewards(int rewardIndex, IOUtils.TransitionStateRewardConsumer<Value> storeReward, Evaluator<Value> eval) throws PrismException
+	{
 		if (rewardIndex < transRewardsRewaders.size()) {
 			RewardFile file = transRewardsRewaders.get(rewardIndex);
-			file.extractMDPTransitionRewards(storeReward, numStates);
+			file.extractMDPTransitionRewards(storeReward, eval, numStates);
 		}
 	}
 
@@ -691,13 +763,24 @@ public class PrismExplicitImporter
 		}
 
 		/**
-		 * Extract and store state rewards from the file.
-		 *
-		 * @param storeReward function to store a state reward
-		 * @param numStates number of model states
-		 * @throws PrismException if an I/O error occurs or the file is malformatted
+		 * Extract the state rewards from a .srew file.
+		 * The rewards are assumed to be of type double.
+		 * @param storeReward Function to be called for each reward
+		 * @param numStates Number of states in the associated model
 		 */
 		protected void extractStateRewards(BiConsumer<Integer, Double> storeReward, int numStates) throws PrismException
+		{
+			extractStateRewards(storeReward, Evaluator.forDouble(), numStates);
+		}
+
+		/**
+		 * Extract the state rewards from a .srew file.
+		 * The rewards are assumed to be of type Value.
+		 * @param storeReward Function to be called for each reward
+		 * @param eval Evaluator for Value objects
+		 * @param numStates Number of states in the associated model
+		 */
+		protected <Value> void extractStateRewards(BiConsumer<Integer, Value> storeReward, Evaluator<Value> eval, int numStates) throws PrismException
 		{
 			int lineNum = 0;
 			try (BufferedReader in = new BufferedReader(new FileReader(file))) {
@@ -712,8 +795,8 @@ public class PrismExplicitImporter
 						continue;
 					}
 					int i = Objects.checkIndex(Integer.parseInt(record[0]), numStates);
-					double d = Double.parseDouble(record[1]);
-					storeReward.accept(i, d);
+					Value v = eval.fromString(record[1]);
+					storeReward.accept(i, v);
 				}
 			} catch (IOException e) {
 				throw new PrismException("File I/O error reading from \"" + file + "\"");
@@ -723,13 +806,24 @@ public class PrismExplicitImporter
 		}
 
 		/**
-		 * Extract and store (Markov chain) transition rewards from the file.
-		 *
-		 * @param storeReward function to store a state reward
-		 * @param numStates number of model states
-		 * @throws PrismException if an I/O error occurs or the file is malformatted
+		 * Extract the (Markov chain) transition rewards from a .trew file.
+		 * The rewards are assumed to be of type double.
+		 * @param storeReward Function to be called for each reward
+		 * @param numStates Number of states in the associated model
 		 */
 		protected void extractMCTransitionRewards(IOUtils.TransitionRewardConsumer<Double> storeReward, int numStates) throws PrismException
+		{
+			extractMCTransitionRewards(storeReward, Evaluator.forDouble(), numStates);
+		}
+
+		/**
+		 * Extract the (Markov chain) transition rewards from a .trew file.
+		 * The rewards are assumed to be of type Value.
+		 * @param storeReward Function to be called for each reward
+		 * @param eval Evaluator for Value objects
+		 * @param numStates Number of states in the associated model
+		 */
+		protected <Value> void extractMCTransitionRewards(IOUtils.TransitionRewardConsumer<Value> storeReward, Evaluator<Value> eval, int numStates) throws PrismException
 		{
 			int lineNum = 0;
 			try (BufferedReader in = new BufferedReader(new FileReader(file))) {
@@ -745,8 +839,8 @@ public class PrismExplicitImporter
 					}
 					int s = Objects.checkIndex(Integer.parseInt(record[0]), numStates);
 					int s2 = Objects.checkIndex(Integer.parseInt(record[1]), numStates);
-					double d = Double.parseDouble(record[2]);
-					storeReward.accept(s, s2, d);
+					Value v = eval.fromString(record[2]);
+					storeReward.accept(s, s2, v);
 				}
 			} catch (IOException e) {
 				throw new PrismException("File I/O error reading from \"" + file + "\"");
@@ -756,13 +850,24 @@ public class PrismExplicitImporter
 		}
 
 		/**
-		 * Extract and store (MDP) transition rewards from the file.
-		 *
-		 * @param storeReward function to store a state reward
-		 * @param numStates number of model states
-		 * @throws PrismException if an I/O error occurs or the file is malformatted
+		 * Extract the (Markov decision process) transition rewards from a .trew file.
+		 * The rewards are assumed to be of type double.
+		 * @param storeReward Function to be called for each reward
+		 * @param numStates Number of states in the associated model
 		 */
 		protected void extractMDPTransitionRewards(IOUtils.TransitionStateRewardConsumer<Double> storeReward, int numStates) throws PrismException
+		{
+			extractMDPTransitionRewards(storeReward, Evaluator.forDouble(), numStates);
+		}
+
+		/**
+		 * Extract the (Markov decision process) transition rewards from a .trew file.
+		 * The rewards are assumed to be of type Value.
+		 * @param storeReward Function to be called for each reward
+		 * @param eval Evaluator for Value objects
+		 * @param numStates Number of states in the associated model
+		 */
+		protected <Value> void extractMDPTransitionRewards(IOUtils.TransitionStateRewardConsumer<Value> storeReward, Evaluator<Value> eval, int numStates) throws PrismException
 		{
 			int lineNum = 0;
 			try (BufferedReader in = new BufferedReader(new FileReader(file))) {
@@ -779,8 +884,8 @@ public class PrismExplicitImporter
 					int s = Objects.checkIndex(Integer.parseInt(record[0]), numStates);
 					int i = Objects.checkIndex(Integer.parseInt(record[1]), numStates);
 					int s2 = Objects.checkIndex(Integer.parseInt(record[2]), numStates);
-					double d = Double.parseDouble(record[3]);
-					storeReward.accept(s, i, s2, d);
+					Value v = eval.fromString(record[3]);
+					storeReward.accept(s, i, s2, v);
 				}
 			} catch (IOException e) {
 				throw new PrismException("File I/O error reading from \"" + file + "\"");
