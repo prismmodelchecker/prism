@@ -138,7 +138,7 @@ public class ExplicitFiles2Model extends PrismComponent
 		} else {
 			((ModelExplicit<Interval<Value>>) model).setEvaluator(eval.createIntervalEvaluator());
 		}
-		model.buildFromPrismExplicit(modelImporter.getTransFile().getAbsolutePath());
+		model.buildFromExplicitImport(modelImporter);
 
 		if (model.getNumStates() == 0) {
 			throw new PrismNotSupportedException("Imported model has no states, not supported");

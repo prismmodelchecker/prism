@@ -149,12 +149,6 @@ public class LTSSimple<Value> extends ModelExplicit<Value> implements LTS<Value>
 		}
 	}
 
-	@Override
-	public void buildFromPrismExplicit(String filename) throws PrismException
-	{
-		throw new UnsupportedOperationException();
-	}
-
 	// Mutators (other)
 	
 	/**

@@ -26,9 +26,12 @@
 
 package explicit;
 
+import java.io.File;
 import java.util.BitSet;
 import java.util.List;
 
+import io.ExplicitModelImporter;
+import io.PrismExplicitImporter;
 import parser.State;
 import prism.ModelType;
 import prism.PrismException;
@@ -45,11 +48,26 @@ public interface ModelSimple<Value> extends Model<Value>
 	public abstract void addInitialState(int i);
 
 	/**
+	 * Build (anew) from a list of transitions provided by an explicit model importer.
+	 * Note that initial states are not configured
+	 * so this needs to be done separately (using {@link #addInitialState(int)}.
+	 */
+	default void buildFromExplicitImport(ExplicitModelImporter modelImporter) throws PrismException
+	{
+		// Not implemented by default
+		throw new PrismException("Explicit model not yet supported for this model");
+	}
+
+	/**
 	 * Build (anew) from a list of transitions exported explicitly by PRISM (i.e. a .tra file).
 	 * Note that initial states are not configured (since this info is not in the file),
 	 * so this needs to be done separately (using {@link #addInitialState(int)}.
 	 */
-	public abstract void buildFromPrismExplicit(String filename) throws PrismException;
+	default void buildFromPrismExplicit(String filename) throws PrismException
+	{
+		ExplicitModelImporter modelImporter = new PrismExplicitImporter(null, new File(filename), null, null, null, ModelType.DTMC);
+		buildFromExplicitImport(modelImporter);
+	}
 
 	/**
 	 * Clear all information for a state (i.e. remove all transitions).

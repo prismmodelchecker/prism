@@ -28,10 +28,10 @@ package explicit;
 
 import java.util.*;
 import java.util.Map.Entry;
-import java.io.*;
 import java.util.function.Function;
 
 import common.iterable.Reducible;
+import io.ExplicitModelImporter;
 import prism.Evaluator;
 import prism.Pair;
 import prism.PrismException;
@@ -184,46 +184,10 @@ public class DTMCSimple<Value> extends DTMCExplicit<Value> implements ModelSimpl
 	}
 
 	@Override
-	public void buildFromPrismExplicit(String filename) throws PrismException
+	public void buildFromExplicitImport(ExplicitModelImporter modelImporter) throws PrismException
 	{
-		String s, ss[];
-		int i, j, n, lineNum = 0;
-		Value prob;
-		Object action;
-
-		// Open file for reading, automatic close when done
-		try (BufferedReader in = new BufferedReader(new FileReader(new File(filename)))) {
-			// Parse first line to get num states
-			s = in.readLine();
-			lineNum = 1;
-			if (s == null) {
-				throw new PrismException("Missing first line of .tra file");
-			}
-			ss = s.split(" ");
-			n = Integer.parseInt(ss[0]);
-			// Initialise
-			initialise(n);
-			// Go though list of transitions in file
-			s = in.readLine();
-			lineNum++;
-			while (s != null) {
-				s = s.trim();
-				if (s.length() > 0) {
-					ss = s.split(" ");
-					i = Integer.parseInt(ss[0]);
-					j = Integer.parseInt(ss[1]);
-					prob = getEvaluator().fromString(ss[2]);
-					action = ss.length < 4 ? null : ss[3];
-					setProbability(i, j, prob, action);
-				}
-				s = in.readLine();
-				lineNum++;
-			}
-		} catch (IOException e) {
-			throw new PrismException("File I/O error reading from \"" + filename + "\": " + e.getMessage());
-		} catch (NumberFormatException e) {
-			throw new PrismException("Problem in .tra file (line " + lineNum + ") for " + getModelType());
-		}
+		initialise(modelImporter.getNumStates());
+		modelImporter.extractMCTransitions(this::setProbability, getEvaluator());
 	}
 
 	// Mutators (other)
