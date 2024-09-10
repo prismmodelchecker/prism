@@ -384,20 +384,19 @@ public class PrismExplicitImporter implements ExplicitModelImporter
 	 */
 	private void extractVarInfoFromTransFile(File transFile) throws PrismException
 	{
-		// Open file for reading, automatic close when done
+		// Extract number of states from the first line
 		try (BufferedReader in = new BufferedReader(new FileReader(transFile))) {
-			// Read first line and extract num states
-			String s = in.readLine();
-			if (s == null)
+			BasicReader reader = BasicReader.wrap(in).normalizeLineEndings();
+			CsvReader csv = new CsvReader(reader, false, false, false, ' ', LF);
+			if (!csv.hasNextRecord()) {
 				throw new PrismException("empty transitions file");
-			s = s.trim();
-			String[] ss = s.split(" ");
-			if (ss.length < 2)
-				throw new PrismException("");
-			numStates = Integer.parseInt(ss[0]);
+			}
+			String[] record = csv.nextRecord();
+			checkLineSize(record, 2);
+			numStates = Integer.parseInt(record[0]);
 		} catch (IOException e) {
 			throw new PrismException("File I/O error reading from \"" + transFile + "\"");
-		} catch (NumberFormatException e) {
+		} catch (NumberFormatException | CsvFormatException e) {
 			throw new PrismException("Error detected at line 1 of transitions file \"" + transFile + "\"");
 		}
 		// Store dummy variable info
@@ -417,6 +416,7 @@ public class PrismExplicitImporter implements ExplicitModelImporter
 	 */
 	private void extractLabelNamesFromLabelsFile(File labelsFile) throws PrismException
 	{
+		int lineNum = 1;
 		try (BufferedReader in = new BufferedReader(new FileReader(labelsFile))) {
 			// Read/parse first line (label names)
 			// Looks like, e.g.: 0="init" 1="deadlock" 2="heads" 3="tails" 4="end"
@@ -432,15 +432,18 @@ public class PrismExplicitImporter implements ExplicitModelImporter
 				}
 				// Check legal and non-dupe
 				if (!ExpressionIdent.isLegalIdentifierName(labelName)) {
-					throw new PrismException("Illegal label name \"" + labelName + "\"");
+					throw new PrismException("illegal label name \"" + labelName + "\"");
 				}
 				if (labelNames.contains(labelName)) {
-					throw new PrismException("Duplicate label \"" + labelName + "\"");
+					throw new PrismException("duplicate label name \"" + labelName + "\"");
 				}
 				labelNames.add(labelName);
 			}
 		} catch (IOException e) {
 			throw new PrismException("File I/O error reading from \"" + labelsFile + "\"");
+		} catch (PrismException e) {
+			String expl = (e.getMessage() == null || e.getMessage().isEmpty()) ? "" : (" (" + e.getMessage() + ")");
+			throw new PrismException("Error detected" + expl + " at line " + lineNum + " of labels file \"" + labelsFile + "\"");
 		}
 	}
 
@@ -529,12 +532,11 @@ public class PrismExplicitImporter implements ExplicitModelImporter
 			for (String[] record : csv) {
 				lineNum++;
 				if ("".equals(record[0])) {
+					// Skip blank lines
 					continue;
 				}
-				if (record.length < 4 || record.length > 5) {
-					throw new PrismException("");
-				}
-				int j = Integer.parseInt(record[1]);
+				checkLineSize(record, 4, 5);
+				int j = checkChoiceIndex(Integer.parseInt(record[1]));
 				if (j + 1 > maxNumChoices) {
 					maxNumChoices = j + 1;
 				}
@@ -542,10 +544,9 @@ public class PrismExplicitImporter implements ExplicitModelImporter
 			return maxNumChoices;
 		} catch (IOException e) {
 			throw new PrismException("File I/O error reading from \"" + transFile + "\": " + e.getMessage());
-		} catch (NumberFormatException | IndexOutOfBoundsException | CsvFormatException e) {
-			throw new PrismException("Error detected at line " + lineNum + " of transitions file \"" + transFile + "\"");
-		} catch (PrismException e) {
-			throw new PrismException("Error detected " + e.getMessage() + "at line " + lineNum + " of transitions file \"" + transFile + "\"");
+		} catch (PrismException | NumberFormatException | CsvFormatException e) {
+			String expl = (e.getMessage() == null || e.getMessage().isEmpty()) ? "" : (" (" + e.getMessage() + ")");
+			throw new PrismException("Error detected" + expl + " at line " + lineNum + " of transitions file \"" + transFile + "\"");
 		}
 	}
 
@@ -564,8 +565,8 @@ public class PrismExplicitImporter implements ExplicitModelImporter
 					continue;
 				}
 				checkLineSize(record, 3, 4);
-				int s = checkStateIndex(Integer.parseInt(record[0]));
-				int s2 = checkStateIndex(Integer.parseInt(record[1]));
+				int s = checkStateIndex(Integer.parseInt(record[0]), numStates);
+				int s2 = checkStateIndex(Integer.parseInt(record[1]), numStates);
 				Value v = checkValue(record[2], eval);
 				Object a = (record.length > 3) ? checkAction(record[3]) : null;
 				storeTransition.accept(s, s2, v, a);
@@ -593,9 +594,9 @@ public class PrismExplicitImporter implements ExplicitModelImporter
 					continue;
 				}
 				checkLineSize(record, 4, 5);
-				int s = checkStateIndex(Integer.parseInt(record[0]));
+				int s = checkStateIndex(Integer.parseInt(record[0]), numStates);
 				int i = checkChoiceIndex(Integer.parseInt(record[1]));
-				int s2 = checkStateIndex(Integer.parseInt(record[2]));
+				int s2 = checkStateIndex(Integer.parseInt(record[2]), numStates);
 				Value v = checkValue(record[3], eval);
 				Object a = (record.length > 4) ? checkAction(record[4]) : null;
 				storeTransition.accept(s, i, s2, v, a);
@@ -702,23 +703,24 @@ public class PrismExplicitImporter implements ExplicitModelImporter
 			int lineNum = 0;
 			try (BufferedReader in = new BufferedReader(new FileReader(file))) {
 				lineNum += skipCommentAndFirstLine(in);
-				// init csv reader
 				BasicReader reader = BasicReader.wrap(in).normalizeLineEndings();
 				CsvReader csv = new CsvReader(reader, false, false, false, ' ', LF);
-				// read state rewards
 				for (String[] record : csv) {
 					lineNum++;
 					if ("".equals(record[0])) {
+						// Skip blank lines
 						continue;
 					}
-					int i = Objects.checkIndex(Integer.parseInt(record[0]), numStates);
-					Value v = eval.fromString(record[1]);
-					storeReward.accept(i, v);
+					checkLineSize(record, 2, 2);
+					int s = checkStateIndex(Integer.parseInt(record[0]), numStates);
+					Value v = checkValue(record[1], eval);
+					storeReward.accept(s, v);
 				}
 			} catch (IOException e) {
 				throw new PrismException("File I/O error reading from \"" + file + "\"");
-			} catch (NumberFormatException | IndexOutOfBoundsException | CsvFormatException e) {
-				throw new PrismException("Error detected " + e.getMessage() + " at line " + lineNum + " of state rewards file \"" + file + "\"");
+			} catch (PrismException | NumberFormatException | CsvFormatException e) {
+				String expl = (e.getMessage() == null || e.getMessage().isEmpty()) ? "" : (" (" + e.getMessage() + ")");
+				throw new PrismException("Error detected" + expl + " at line " + lineNum + " of state rewards file \"" + file + "\"");
 			}
 		}
 
@@ -745,24 +747,25 @@ public class PrismExplicitImporter implements ExplicitModelImporter
 			int lineNum = 0;
 			try (BufferedReader in = new BufferedReader(new FileReader(file))) {
 				lineNum += skipCommentAndFirstLine(in);
-				// init csv reader
 				BasicReader reader = BasicReader.wrap(in).normalizeLineEndings();
 				CsvReader csv = new CsvReader(reader, false, false, false, ' ', LF);
-				// read state rewards
 				for (String[] record : csv) {
 					lineNum++;
 					if ("".equals(record[0])) {
+						// Skip blank lines
 						continue;
 					}
-					int s = Objects.checkIndex(Integer.parseInt(record[0]), numStates);
-					int s2 = Objects.checkIndex(Integer.parseInt(record[1]), numStates);
-					Value v = eval.fromString(record[2]);
+					checkLineSize(record, 3, 3);
+					int s = checkStateIndex(Integer.parseInt(record[0]), numStates);
+					int s2 = checkStateIndex(Integer.parseInt(record[1]), numStates);
+					Value v = checkValue(record[2], eval);
 					storeReward.accept(s, s2, v);
 				}
 			} catch (IOException e) {
 				throw new PrismException("File I/O error reading from \"" + file + "\"");
-			} catch (NumberFormatException | IndexOutOfBoundsException | CsvFormatException e) {
-				throw new PrismException("Error detected " + e.getMessage() + " at line " + lineNum + " of state rewards file \"" + file + "\"");
+			} catch (PrismException | NumberFormatException | CsvFormatException e) {
+				String expl = (e.getMessage() == null || e.getMessage().isEmpty()) ? "" : (" (" + e.getMessage() + ")");
+				throw new PrismException("Error detected" + expl + " at line " + lineNum + " of transition rewards file \"" + file + "\"");
 			}
 		}
 
@@ -789,25 +792,26 @@ public class PrismExplicitImporter implements ExplicitModelImporter
 			int lineNum = 0;
 			try (BufferedReader in = new BufferedReader(new FileReader(file))) {
 				lineNum += skipCommentAndFirstLine(in);
-				// init csv reader
 				BasicReader reader = BasicReader.wrap(in).normalizeLineEndings();
 				CsvReader csv = new CsvReader(reader, false, false, false, ' ', LF);
-				// read state rewards
 				for (String[] record : csv) {
 					lineNum++;
 					if ("".equals(record[0])) {
+						// Skip blank lines
 						continue;
 					}
-					int s = Objects.checkIndex(Integer.parseInt(record[0]), numStates);
-					int i = Objects.checkIndex(Integer.parseInt(record[1]), numStates);
-					int s2 = Objects.checkIndex(Integer.parseInt(record[2]), numStates);
-					Value v = eval.fromString(record[3]);
+					checkLineSize(record, 4, 4);
+					int s = checkStateIndex(Integer.parseInt(record[0]), numStates);
+					int i = checkChoiceIndex(Integer.parseInt(record[1]));
+					int s2 = checkStateIndex(Integer.parseInt(record[2]), numStates);
+					Value v = checkValue(record[3], eval);
 					storeReward.accept(s, i, s2, v);
 				}
 			} catch (IOException e) {
 				throw new PrismException("File I/O error reading from \"" + file + "\"");
-			} catch (NumberFormatException | IndexOutOfBoundsException | CsvFormatException e) {
-				throw new PrismException("Error detected " + e.getMessage() + " at line " + lineNum + " of state rewards file \"" + file + "\"");
+			} catch (PrismException | NumberFormatException | CsvFormatException e) {
+				String expl = (e.getMessage() == null || e.getMessage().isEmpty()) ? "" : (" (" + e.getMessage() + ")");
+				throw new PrismException("Error detected" + expl + " at line " + lineNum + " of transition rewards file \"" + file + "\"");
 			}
 		}
 
@@ -820,9 +824,9 @@ public class PrismExplicitImporter implements ExplicitModelImporter
 		 */
 		protected Optional<String> extractRewardStructureName(File rewardFile) throws PrismException
 		{
+			int lineNum = 0;
 			Optional<String> name = Optional.empty();
 			try (BufferedReader in = new BufferedReader(new FileReader(rewardFile))) {
-				int lineNum = 0;
 				for (String line = in.readLine(); line != null; line = in.readLine()) {
 					lineNum++;
 					// Process only initial comment block
@@ -833,42 +837,19 @@ public class PrismExplicitImporter implements ExplicitModelImporter
 					Matcher headerMatcher = REWARD_NAME_PATTERN.matcher(line);
 					if (headerMatcher.matches()) {
 						if (name.isPresent()) {
-							throw new PrismException("Found second reward structure names" + printFileLocation(rewardFile, lineNum));
+							throw new PrismException("multiple reward structure names");
 						}
 						// check if reward struct name is an identifier
-						try {
-							name = Optional.of(checkRewardName(headerMatcher.group(2)));
-						} catch (PrismException e) {
-							throw new PrismException(e.getMessage() + printFileLocation(rewardFile, lineNum));
-						}
+						name = Optional.of(checkRewardName(headerMatcher.group(2)));
 					}
 				}
 			} catch (IOException e) {
 				throw new PrismException("File I/O error reading from \"" + file + "\"");
+			} catch (PrismException e) {
+				String expl = (e.getMessage() == null || e.getMessage().isEmpty()) ? "" : (" (" + e.getMessage() + ")");
+				throw new PrismException("Error detected" + expl + " at line " + lineNum + " of rewards file \"" + file + "\"");
 			}
 			return name;
-		}
-
-		protected static String printFileLocation(File rewardFile, int linenum)
-		{
-			return ": line " + linenum + " in " + rewardFile;
-		}
-
-		/**
-		 * Verify that the imported reward struct name is not null and is an identifier.
-		 *
-		 * @param rewardStructName reward struct name to be checked
-		 * @throws PrismException if name is null or no identifier
-		 */
-		protected static String checkRewardName(String rewardStructName) throws PrismException
-		{
-			if (rewardStructName == null) {
-				throw new PrismException("Missing reward name");
-			}
-			if (!Prism.isValidIdentifier(rewardStructName)) {
-				throw new PrismLangException("Reward name \"" + rewardStructName + "\" is not valid");
-			}
-			return rewardStructName;
 		}
 	}
 
@@ -892,7 +873,7 @@ public class PrismExplicitImporter implements ExplicitModelImporter
 
 	// Utility method to check inputs and generate errors
 
-	private void checkLineSize(String[] record, int min, int max) throws PrismException
+	protected static void checkLineSize(String[] record, int min, int max) throws PrismException
 	{
 		if (record.length < min) {
 			throw new PrismException("too few entries");
@@ -902,7 +883,14 @@ public class PrismExplicitImporter implements ExplicitModelImporter
 		}
 	}
 
-	private int checkStateIndex(int s) throws PrismException
+	protected static void checkLineSize(String[] record, int min) throws PrismException
+	{
+		if (record.length < min) {
+			throw new PrismException("too few entries");
+		}
+	}
+
+	protected static int checkStateIndex(int s, int numStates) throws PrismException
 	{
 		if (s < 0) {
 			throw new PrismException("state index " + s + " is invalid");
@@ -913,7 +901,7 @@ public class PrismExplicitImporter implements ExplicitModelImporter
 		return s;
 	}
 
-	private int checkChoiceIndex(int i) throws PrismException
+	protected static int checkChoiceIndex(int i) throws PrismException
 	{
 		if (i < 0) {
 			throw new PrismException("choice index " + i + " is invalid");
@@ -921,7 +909,7 @@ public class PrismExplicitImporter implements ExplicitModelImporter
 		return i;
 	}
 
-	private <Value> Value checkValue(String v, Evaluator<Value> eval) throws PrismException
+	protected static <Value> Value checkValue(String v, Evaluator<Value> eval) throws PrismException
 	{
 		try {
 			return eval.fromString(v);
@@ -930,11 +918,22 @@ public class PrismExplicitImporter implements ExplicitModelImporter
 		}
 	}
 
-	private String checkAction(String a) throws PrismException
+	protected static String checkAction(String a) throws PrismException
 	{
 		if (!Prism.isValidIdentifier(a)) {
 			throw new PrismException("invalid action name \"" + a + "\"");
 		}
 		return a;
+	}
+
+	protected static String checkRewardName(String rewardStructName) throws PrismException
+	{
+		if (rewardStructName == null) {
+			throw new PrismException("missing reward name");
+		}
+		if (!Prism.isValidIdentifier(rewardStructName)) {
+			throw new PrismLangException("invalid reward name \"" + rewardStructName + "\"");
+		}
+		return rewardStructName;
 	}
 }
