@@ -33,7 +33,6 @@ import java.util.List;
 
 import common.Interval;
 import io.ExplicitModelImporter;
-import io.PrismExplicitImporter;
 import parser.State;
 import prism.Evaluator;
 import prism.ModelInfo;
@@ -83,7 +82,7 @@ public class ExplicitFiles2Model extends PrismComponent
 	 * The transition probabilities/rates are assumed to be of type double.
 	 * @param  modelImporter Importer from files
 	 */
-	public Model<Double> build(PrismExplicitImporter modelImporter) throws PrismException
+	public Model<Double> build(ExplicitModelImporter modelImporter) throws PrismException
 	{
 		return build(modelImporter, Evaluator.forDouble());
 	}
@@ -94,7 +93,7 @@ public class ExplicitFiles2Model extends PrismComponent
 	 * @param  modelImporter Importer from files
 	 * @param eval Evaluator for Value objects
 	 */
-	public <Value> Model<Value> build(PrismExplicitImporter modelImporter, Evaluator<Value> eval) throws PrismException
+	public <Value> Model<Value> build(ExplicitModelImporter modelImporter, Evaluator<Value> eval) throws PrismException
 	{
 		ModelExplicit<Value> model = null;
 		ModelInfo modelInfo = modelImporter.getModelInfo();

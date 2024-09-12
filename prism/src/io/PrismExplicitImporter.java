@@ -164,28 +164,16 @@ public class PrismExplicitImporter implements ExplicitModelImporter
 		return labelsFile;
 	}
 
-	/**
-	 * Is there a states file?
-	 */
-	public boolean hasStatesFile()
+	@Override
+	public boolean providesStates()
 	{
 		return getStatesFile() != null;
 	}
 
-	/**
-	 * Is there a labels file?
-	 */
-	public boolean hasLabelsFile()
+	@Override
+	public boolean providesLabels()
 	{
 		return getLabelsFile() != null;
-	}
-
-	/**
-	 * Are there any transition rewards files?
-	 */
-	public boolean hasTransitionRewardsFiles()
-	{
-		return transRewardsFiles != null && transRewardsFiles.size() > 0;
 	}
 
 	@Override
@@ -545,7 +533,7 @@ public class PrismExplicitImporter implements ExplicitModelImporter
 	{
 		int numVars = modelInfo.getNumVars();
 		// If there is no info, just assume that states comprise a single integer value
-		if (!hasStatesFile()) {
+		if (getStatesFile() == null) {
 			for (int s = 0; s < numStates; s++) {
 				storeStateDefn.accept(s, 0, s);
 			}
@@ -684,7 +672,7 @@ public class PrismExplicitImporter implements ExplicitModelImporter
 	public void extractLabelsAndInitialStates(BiConsumer<Integer, Integer> storeLabel, Consumer<Integer> storeInit) throws PrismException
 	{
 		// If there is no info, just assume that 0 is the initial state
-		if (!hasLabelsFile()) {
+		if (getLabelsFile() == null) {
 			storeInit.accept(0);
 			return;
 		}
@@ -736,7 +724,7 @@ public class PrismExplicitImporter implements ExplicitModelImporter
 	public Map<String, BitSet> extractAllLabels() throws PrismException
 	{
 		// This method only needs the label file
-		if (!hasLabelsFile()) {
+		if (getLabelsFile() == null) {
 			throw new PrismException("No labels information available");
 		}
 		// Extract names first

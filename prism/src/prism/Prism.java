@@ -46,6 +46,7 @@ import explicit.FastAdaptiveUniformisation;
 import explicit.FastAdaptiveUniformisationModelChecker;
 import explicit.ModelModelGenerator;
 import hybrid.PrismHybrid;
+import io.ExplicitModelImporter;
 import io.ModelExportOptions;
 import io.ModelExportOptions.ModelExportFormat;
 import jdd.JDD;
@@ -302,7 +303,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	private Strategy<?> strategy = null;
 	
 	// Info for explicit files load
-	private PrismExplicitImporter modelImporter;
+	private ExplicitModelImporter modelImporter;
 
 	// Has the CUDD library been initialised yet?
 	private boolean cuddStarted = false;
@@ -1765,14 +1766,14 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	 */
 	public void loadModelFromExplicitFiles(File statesFile, File transFile, File labelsFile, List<File> stateRewardsFiles, List<File> transRewardsFiles, ModelType typeOverride) throws PrismException
 	{
-		PrismExplicitImporter importer = new PrismExplicitImporter(statesFile, transFile, labelsFile, stateRewardsFiles, transRewardsFiles, typeOverride);
+		ExplicitModelImporter importer = new PrismExplicitImporter(statesFile, transFile, labelsFile, stateRewardsFiles, transRewardsFiles, typeOverride);
 		loadModelFromExplicitFiles(importer);
 	}
 
 	/**
 	 * Load an explicit file model importer for subsequent model building.
 	 */
-	public void loadModelFromExplicitFiles(PrismExplicitImporter importer) throws PrismException
+	public void loadModelFromExplicitFiles(ExplicitModelImporter importer) throws PrismException
 	{
 		// Update model source info
 		setModelSource(ModelSource.EXPLICIT_FILES);

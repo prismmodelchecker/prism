@@ -29,7 +29,7 @@ package explicit;
 
 import explicit.rewards.Rewards;
 import explicit.rewards.RewardsSimple;
-import io.PrismExplicitImporter;
+import io.ExplicitModelImporter;
 import parser.State;
 import prism.Evaluator;
 import prism.PrismComponent;
@@ -44,7 +44,7 @@ import java.util.List;
 public class ExplicitFiles2Rewards<Value> extends PrismComponent implements RewardGenerator<Value>
 {
 	// Importer from files
-	protected PrismExplicitImporter importer;
+	protected ExplicitModelImporter importer;
 	// Reward info (stored as RewardGenerator) from importer
 	protected RewardGenerator<?> rewardInfo;
 	// Model that rewards are for
@@ -61,7 +61,7 @@ public class ExplicitFiles2Rewards<Value> extends PrismComponent implements Rewa
 	 * Construct a ExplicitFiles2Rewards object for a specified importer.
 	 * The rewards are actually imported/stored later, on demand.
 	 */
-	public ExplicitFiles2Rewards(PrismComponent parent, PrismExplicitImporter importer) throws PrismException
+	public ExplicitFiles2Rewards(PrismComponent parent, ExplicitModelImporter importer) throws PrismException
 	{
 		super(parent);
 		this.importer = importer;

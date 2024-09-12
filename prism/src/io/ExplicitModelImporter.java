@@ -37,6 +37,16 @@ import java.util.function.Consumer;
 public interface ExplicitModelImporter
 {
 	/**
+	 * Does this importer provide info about state definitions?
+	 */
+	boolean providesStates();
+
+	/**
+	 * Does this importer provide info about labels?
+	 */
+	boolean providesLabels();
+
+	/**
 	 * Get info about the model.
 	 */
 	ModelInfo getModelInfo() throws PrismException;

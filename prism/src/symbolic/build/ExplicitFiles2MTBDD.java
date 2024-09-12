@@ -27,12 +27,11 @@
 
 package symbolic.build;
 
-import java.io.File;
 import java.util.LinkedHashMap;
 import java.util.Vector;
 import java.util.Map.Entry;
 
-import io.PrismExplicitImporter;
+import io.ExplicitModelImporter;
 import jdd.JDD;
 import jdd.JDDNode;
 import jdd.JDDVars;
@@ -61,10 +60,7 @@ public class ExplicitFiles2MTBDD
 	private PrismLog mainLog;
 
 	// Importer / files to read in from
-	private PrismExplicitImporter importer;
-	private File statesFile;
-	private File transFile;
-	private File labelsFile;
+	private ExplicitModelImporter importer;
 
 	// Model info
 	private ModelInfo modelInfo;
@@ -115,12 +111,9 @@ public class ExplicitFiles2MTBDD
 	 * Variable info and model type is taken from a {@code ModelInfo} object.
 	 * The number of states should also be passed in as {@code numStates}.
 	 */
-	public Model build(PrismExplicitImporter importer) throws PrismException
+	public Model build(ExplicitModelImporter importer) throws PrismException
 	{
 		this.importer = importer;
-		this.statesFile = importer.getStatesFile();
-		this.transFile = importer.getTransFile();
-		this.labelsFile = importer.getLabelsFile();
 		this.modelInfo = importer.getModelInfo();
 		modelType = modelInfo.getModelType();
 		varList = modelInfo.createVarList();
@@ -132,7 +125,7 @@ public class ExplicitFiles2MTBDD
 
 		// Build states list, if info is available
 		// (importer can handle case where it is unavailable, but we bypass this)
-		if (importer.hasStatesFile()) {
+		if (importer.providesStates()) {
 			readStatesFromFile();
 		}
 
