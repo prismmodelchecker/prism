@@ -27,10 +27,6 @@
 
 package explicit;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
-import java.io.IOException;
 import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.BitSet;
@@ -43,6 +39,8 @@ import java.util.TreeMap;
 import common.IterableStateSet;
 import explicit.rewards.MCRewards;
 import explicit.rewards.MDPRewards;
+import io.ExplicitModelImporter;
+import io.IOUtils;
 import parser.State;
 import prism.PrismException;
 import prism.PrismUtils;
@@ -368,6 +366,13 @@ public class MDPSparse extends MDPExplicit<Double>
 		rowStarts[numStates] = numDistrs;
 	}
 
+	/**
+	 * Construct an empty MDP (e.g. for subsequent explicit import)
+	 */
+	public MDPSparse()
+	{
+	}
+
 	// Mutators (other)
 
 	@Override
@@ -379,86 +384,47 @@ public class MDPSparse extends MDPExplicit<Double>
 	}
 
 	@Override
-	public void buildFromPrismExplicit(String filename) throws PrismException
+	public void buildFromExplicitImport(ExplicitModelImporter modelImporter) throws PrismException
 	{
-		BufferedReader in;
-		String s, ss[];
-		int i, j, k, iLast, kLast, jCount, kCount, n, lineNum = 0;
-		double prob;
-
-		try {
-			// Open file
-			in = new BufferedReader(new FileReader(new File(filename)));
-			// Parse first line to get num states
-			s = in.readLine();
-			lineNum = 1;
-			if (s == null) {
-				in.close();
-				throw new PrismException("Missing first line of .tra file");
-			}
-			ss = s.split(" ");
-			n = Integer.parseInt(ss[0]);
-			// Initialise
-			initialise(n);
-			// Set initial state (assume 0)
-			initialStates.add(0);
-			// Store stats
-			numDistrs = Integer.parseInt(ss[1]);
-			numTransitions = Integer.parseInt(ss[2]);
-			// Go though list of transitions in file
-			iLast = -1;
-			kLast = -1;
-			jCount = kCount = 0;
-			s = in.readLine();
-			lineNum++;
-			while (s != null) {
-				s = s.trim();
-				if (s.length() > 0) {
-					ss = s.split(" ");
-					i = Integer.parseInt(ss[0]);
-					k = Integer.parseInt(ss[1]);
-					j = Integer.parseInt(ss[2]);
-					prob = Double.parseDouble(ss[3]);
-					// For a new state
-					if (i != iLast) {
-						rowStarts[i] = kCount;
-					}
-					// For a new state or distribution
-					if (i != iLast || k != kLast) {
-						choiceStarts[kCount] = jCount;
-						kCount++;
-					}
-					// Store transition
-					cols[jCount] = j;
-					nonZeros[jCount] = prob;
-					// Prepare for next iter
-					iLast = i;
-					kLast = k;
-					jCount++;
+		initialise(modelImporter.getNumStates());
+		numDistrs = modelImporter.getNumChoices();
+		numTransitions = modelImporter.getNumTransitions();
+		rowStarts = new int[numStates + 1];
+		choiceStarts = new int[numDistrs + 1];
+		cols = new int[numTransitions];
+		nonZeros = new double[numTransitions];
+		actions = new Object[numDistrs];
+		IOUtils.MDPTransitionConsumer<Double> cons = new IOUtils.MDPTransitionConsumer<Double>() {
+			int sLast = -1;
+			int iLast = -1;
+			int count = 0;
+			int countCh = 0;
+			@Override
+			public void accept(int s, int i, int s2, Double d, Object a)
+			{
+				if (s != sLast) {
+					rowStarts[s] = countCh;
+					sLast = s;
+					iLast = -1;
 				}
-				s = in.readLine();
-				lineNum++;
+				if (i != iLast) {
+					choiceStarts[countCh] = count;
+					actions[countCh] = a;
+					countCh++;
+					iLast = i;
+				}
+				cols[count] = s2;
+				nonZeros[count] = d;
+				count++;
 			}
-			choiceStarts[numDistrs] = numTransitions;
-			rowStarts[numStates] = numDistrs;
-			// Compute maxNumDistrs
-			maxNumDistrs = 0;
-			for (i = 0; i < numStates; i++) {
-				maxNumDistrs = Math.max(maxNumDistrs, getNumChoices(i));
-			}
-			// Close file
-			in.close();
-			// Sanity checks
-			if (kCount != numDistrs) {
-				throw new PrismException("Choice count is wrong in tra file (" + kCount + "!=" + numTransitions + ")");
-			}
-			if (jCount != numTransitions) {
-				throw new PrismException("Transition count is wrong in tra file (" + kCount + "!=" + numTransitions + ")");
-			}
-		} catch (IOException e) {
-			System.exit(1);
-		} catch (NumberFormatException e) {
-			throw new PrismException("Problem in .tra file (line " + lineNum + ") for " + getModelType());
+		};
+		rowStarts[numStates] = numDistrs;
+		choiceStarts[numDistrs] = numTransitions;
+		modelImporter.extractMDPTransitions(cons);
+		// Compute maxNumDistrs
+		maxNumDistrs = 0;
+		for (int s = 0; s < numStates; s++) {
+			maxNumDistrs = Math.max(maxNumDistrs, getNumChoices(s));
 		}
 	}
 

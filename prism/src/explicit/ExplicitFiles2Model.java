@@ -97,18 +97,19 @@ public class ExplicitFiles2Model extends PrismComponent
 	{
 		ModelExplicit<Value> model = null;
 		ModelInfo modelInfo = modelImporter.getModelInfo();
+		boolean isDbl = eval.one() instanceof Double;
 		switch (modelInfo.getModelType()) {
 		case DTMC:
-			DTMCSimple<Value> dtmc = new DTMCSimple<>();
-			model = dtmc;
+			DTMC<Value> dtmc = isDbl ? (DTMC<Value>) new DTMCSparse() : new DTMCSimple<>();
+			model = (ModelExplicit<Value>) dtmc;
 			break;
 		case CTMC:
 			CTMCSimple<Value> ctmc = new CTMCSimple<>();
 			model = ctmc;
 			break;
 		case MDP:
-			MDPSimple<Value> mdp = new MDPSimple<>();
-			model = mdp;
+			MDP<Value> mdp = isDbl ? (MDP<Value>) new MDPSparse() : new MDPSimple<>();
+			model = (ModelExplicit<Value>) mdp;
 			break;
 		case IDTMC:
 			IDTMCSimple<Value> idtmc = new IDTMCSimple<>();

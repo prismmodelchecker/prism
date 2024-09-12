@@ -40,6 +40,8 @@ import java.util.function.Function;
 import common.IterableStateSet;
 import common.iterable.PrimitiveIterable;
 import explicit.rewards.MCRewards;
+import io.ExplicitModelImporter;
+import io.IOUtils;
 import prism.Pair;
 import prism.PrismException;
 import prism.PrismNotSupportedException;
@@ -62,7 +64,8 @@ public class DTMCSparse extends DTMCExplicit<Double>
 	/** Optionally, action labels for each transition (array of size numTransitions or null) */
 	private Object actions[];
 
-	public DTMCSparse(final DTMC<Double> dtmc) {
+	public DTMCSparse(final DTMC<Double> dtmc)
+	{
 		initialise(dtmc.getNumStates());
 		for (Integer state : dtmc.getDeadlockStates()) {
 			deadlocks.add(state);
@@ -104,7 +107,8 @@ public class DTMCSparse extends DTMCExplicit<Double>
 		predecessorRelation = dtmc.hasStoredPredecessorRelation() ? dtmc.getPredecessorRelation(null, false) : null;
 	}
 
-	public DTMCSparse(final DTMC<Double> dtmc, int[] permut) {
+	public DTMCSparse(final DTMC<Double> dtmc, int[] permut)
+	{
 		initialise(dtmc.getNumStates());
 		for (Integer state : dtmc.getDeadlockStates()) {
 			deadlocks.add(permut[state]);
@@ -149,7 +153,12 @@ public class DTMCSparse extends DTMCExplicit<Double>
 		}
 	}
 
-
+	/**
+	 * Construct an empty DTMC (e.g. for subsequent explicit import)
+	 */
+	public DTMCSparse()
+	{
+	}
 
 	//--- Model ---
 
@@ -238,9 +247,32 @@ public class DTMCSparse extends DTMCExplicit<Double>
 	//--- ModelExplicit ---
 
 	@Override
-	public void buildFromPrismExplicit(String filename) throws PrismException
+	public void buildFromExplicitImport(ExplicitModelImporter modelImporter) throws PrismException
 	{
-		throw new PrismNotSupportedException("Building sparse DTMC currently not supported from PrismExplicit");
+		initialise(modelImporter.getNumStates());
+		int numTransitions = modelImporter.getNumTransitions();
+		rows = new int[numStates + 1];
+		columns = new int[numTransitions];
+		probabilities = new double[numTransitions];
+		actions = new Object[numTransitions];
+		IOUtils.MCTransitionConsumer<Double> cons = new IOUtils.MCTransitionConsumer<Double>() {
+			int sLast = -1;
+			int count = 0;
+			@Override
+			public void accept(int s, int s2, Double d, Object a)
+			{
+				if (s != sLast) {
+					rows[s] = count;
+					sLast = s;
+				}
+				columns[count] = s2;
+				probabilities[count] = d;
+				actions[count] = a;
+				count++;
+			}
+		};
+		rows[numStates] = numTransitions;
+		modelImporter.extractMCTransitions(cons);
 	}
 
 

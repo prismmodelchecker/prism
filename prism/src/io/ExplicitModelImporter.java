@@ -57,6 +57,16 @@ public interface ExplicitModelImporter
 	int getNumStates() throws PrismException;
 
 	/**
+	 * Get the total number of choices (for nondeterministic models).
+	 */
+	int getNumChoices() throws PrismException;
+
+	/**
+	 * Get the total number of transitions.
+	 */
+	int getNumTransitions() throws PrismException;
+
+	/**
 	 * Get a string stating the model type and how it was obtained.
 	 */
 	String getModelTypeString();

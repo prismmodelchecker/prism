@@ -94,8 +94,10 @@ public class PrismExplicitImporter implements ExplicitModelImporter
 	// String stating the model type and how it was obtained
 	private String modelTypeString;
 
-	// Num states
+	// Num states/transitions
 	private int numStates = 0;
+	private int numChoices = 0;
+	private int numTransitions = 0;
 
 	// Mapping from label indices in file to (non-built-in) label indices (also: -1=init, -2=deadlock)
 	private List<Integer> labelMap;
@@ -198,6 +200,28 @@ public class PrismExplicitImporter implements ExplicitModelImporter
 	}
 
 	@Override
+	public int getNumChoices() throws PrismException
+	{
+		// Construct lazily, as needed
+		// (determined from transitions file)
+		if (modelInfo == null) {
+			buildModelInfo();
+		}
+		return numChoices;
+	}
+
+	@Override
+	public int getNumTransitions() throws PrismException
+	{
+		// Construct lazily, as needed
+		// (determined from transitions file)
+		if (modelInfo == null) {
+			buildModelInfo();
+		}
+		return numTransitions;
+	}
+
+	@Override
 	public String getModelTypeString()
 	{
 		return modelTypeString;
@@ -215,15 +239,26 @@ public class PrismExplicitImporter implements ExplicitModelImporter
 
 	/**
 	 * Build/store model info from the states/transitions/labels files.
-	 * Can then be accessed via {@link #getModelInfo()} and {@link #getNumStates()}.
+	 * Can then be accessed via {@link #getModelInfo()}.
+	 * Also available: {@link #getNumStates()}, {@link #getNumChoices()}, {@link #getNumTransitions()}.
 	 */
 	private void buildModelInfo() throws PrismException
 	{
-		// Extract variable info from states or transitions file, depending on what is available
+		// Extract model stats from header of transitions file
+		extractModelStatsFromTransFile(transFile);
+
+		// Extract variable info from states, if available
 		if (statesFile != null) {
 			extractVarInfoFromStatesFile(statesFile);
-		} else {
-			extractVarInfoFromTransFile(transFile);
+		}
+		// Otherwise store dummy variable info
+		else {
+			numVars = 1;
+			varNames = Collections.singletonList("x");
+			varTypes = Collections.singletonList(TypeInt.getInstance());
+			varMins = new int[] { 0 };
+			varMaxs = new int[] { numStates - 1 };
+			varRanges = new int[] { numStates - 1 };
 		}
 
 		// Generate and store label names from the labels file, if available.
@@ -318,13 +353,12 @@ public class PrismExplicitImporter implements ExplicitModelImporter
 			// read remaining lines
 			s = in.readLine();
 			lineNum++;
-			numStates = 0;
+			int counter = 0;
 			while (s != null) {
 				// skip blank lines
 				s = s.trim();
 				if (s.length() > 0) {
-					// increment state count
-					numStates++;
+					counter++;
 					// split string
 					s = s.substring(s.indexOf('(') + 1, s.indexOf(')'));
 					String[] ss = s.split(",");
@@ -333,7 +367,7 @@ public class PrismExplicitImporter implements ExplicitModelImporter
 					// for each variable...
 					for (i = 0; i < numVars; i++) {
 						// if this is the first state, establish variable type
-						if (numStates == 1) {
+						if (counter == 1) {
 							if (ss[i].equals("true") || ss[i].equals("false")) {
 								varTypes.add(TypeBool.getInstance());
 							} else {
@@ -343,7 +377,7 @@ public class PrismExplicitImporter implements ExplicitModelImporter
 						// check for new min/max values (ints only)
 						if (varTypes.get(i) instanceof TypeInt) {
 							j = Integer.parseInt(ss[i]);
-							if (numStates == 1) {
+							if (counter == 1) {
 								varMins[i] = varMaxs[i] = j;
 							} else {
 								if (j < varMins[i])
@@ -377,11 +411,10 @@ public class PrismExplicitImporter implements ExplicitModelImporter
 	}
 
 	/**
-	 * Extract variable info from a transitions file.
+	 * Extract model stats (number of states/transitions) from a transitions file header.
 	 */
-	private void extractVarInfoFromTransFile(File transFile) throws PrismException
+	private void extractModelStatsFromTransFile(File transFile) throws PrismException
 	{
-		// Extract number of states from the first line
 		try (BufferedReader in = new BufferedReader(new FileReader(transFile))) {
 			BasicReader reader = BasicReader.wrap(in).normalizeLineEndings();
 			CsvReader csv = new CsvReader(reader, false, false, false, ' ', LF);
@@ -389,20 +422,20 @@ public class PrismExplicitImporter implements ExplicitModelImporter
 				throw new PrismException("empty transitions file");
 			}
 			String[] record = csv.nextRecord();
-			checkLineSize(record, 2);
+			checkLineSize(record, 2, 3);
 			numStates = Integer.parseInt(record[0]);
+			if (record.length == 2) {
+				numChoices = numStates;
+				numTransitions = Integer.parseInt(record[1]);
+			} else {
+				numChoices = Integer.parseInt(record[1]);
+				numTransitions = Integer.parseInt(record[2]);
+			}
 		} catch (IOException e) {
 			throw new PrismException("File I/O error reading from \"" + transFile + "\"");
 		} catch (NumberFormatException | CsvFormatException e) {
 			throw new PrismException("Error detected at line 1 of transitions file \"" + transFile + "\"");
 		}
-		// Store dummy variable info
-		numVars = 1;
-		varNames = Collections.singletonList("x");
-		varTypes = Collections.singletonList(TypeInt.getInstance());
-		varMins = new int[] { 0 };
-		varMaxs = new int[] { numStates - 1 };
-		varRanges = new int[] { numStates - 1 };
 	}
 	
 
