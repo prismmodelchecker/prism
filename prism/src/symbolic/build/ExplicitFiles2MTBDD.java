@@ -542,20 +542,9 @@ public class ExplicitFiles2MTBDD
 	 */
 	protected void storeStateReward(int rewardStructIndex, int s, double d)
 	{
-		// construct element of vector mtbdd
-		// case where we don't have a state list...
-		JDDNode tmp;
-		if (statesArray == null) {
-			tmp = JDD.SetVectorElement(JDD.Constant(0), varDDRowVars[0], s, 1.0);
-		}
-		// case where we do have a state list...
-		else {
-			tmp = JDD.Constant(1);
-			for (int j = 0; j < numVars; j++) {
-				tmp = JDD.Times(tmp, JDD.SetVectorElement(JDD.Constant(0), varDDRowVars[j], statesArray[s][j], 1));
-			}
-		}
-		// add it into mtbdd for state rewards
+		// Construct element of vector MTBDD
+		JDDNode tmp = encodeState(s);
+		// Add it into MTBDD for state rewards
 		stateRewards[rewardStructIndex] = JDD.Plus(stateRewards[rewardStructIndex], JDD.Times(JDD.Constant(d), tmp));
 	}
 
@@ -569,10 +558,9 @@ public class ExplicitFiles2MTBDD
 	 */
 	protected void storeMCTransitionReward(int rewardStructIndex, int s, int s2, double d)
 	{
-		// construct element of vector mtbdd
+		// Construct element of matrix MTBDD
 		JDDNode tmp = encodeStatePair(s, s2);
-
-		// add it into mtbdd for state rewards
+		// Add it into MTBDD for state rewards
 		transRewards[rewardStructIndex] = JDD.Plus(transRewards[rewardStructIndex], JDD.Times(JDD.Constant(d), tmp));
 	}
 
@@ -587,11 +575,10 @@ public class ExplicitFiles2MTBDD
 	 */
 	protected void storeMDPTransitionReward(int rewardStructIndex, int s, int i, int s2, double d)
 	{
-		// construct element of vector mtbdd
+		// Construct element of matrix MTBDD
 		JDDNode tmp = encodeStatePair(s, s2);
 		tmp = JDD.Apply(JDD.TIMES, tmp, JDD.SetVectorElement(JDD.Constant(0), allDDNondetVars, i, 1));
-
-		// add it into mtbdd for state rewards
+		// Add it into MTBDD for state rewards
 		transRewards[rewardStructIndex] = JDD.Plus(transRewards[rewardStructIndex], JDD.Times(JDD.Constant(d), tmp));
 	}
 
