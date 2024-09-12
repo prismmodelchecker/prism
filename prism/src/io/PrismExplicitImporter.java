@@ -49,6 +49,7 @@ import csv.BasicReader;
 import csv.CsvFormatException;
 import csv.CsvReader;
 import param.BigRational;
+import parser.State;
 import parser.ast.DeclarationBool;
 import parser.ast.DeclarationInt;
 import parser.ast.DeclarationType;
@@ -536,6 +537,57 @@ public class PrismExplicitImporter implements ExplicitModelImporter
 			return null;
 		} catch (NumberFormatException | CsvFormatException | IOException e) {
 			return null;
+		}
+	}
+
+	@Override
+	public void extractStates(IOUtils.StateDefnConsumer storeStateDefn) throws PrismException
+	{
+		int numVars = modelInfo.getNumVars();
+		// If there is no info, just assume that states comprise a single integer value
+		if (!hasStatesFile()) {
+			for (int s = 0; s < numStates; s++) {
+				storeStateDefn.accept(s, 0, s);
+			}
+			return;
+		}
+		// Otherwise extract from .sta file
+		int lineNum = 0;
+		try (BufferedReader in = new BufferedReader(new FileReader(statesFile))) {
+			lineNum += skipCommentAndFirstLine(in);
+			String st = in.readLine();
+			lineNum++;
+			while (st != null) {
+				st = st.trim();
+				if (!st.isEmpty()) {
+					// Split into two parts
+					String[] ss = st.split(":");
+					// Determine which state this line describes
+					int s = checkStateIndex(Integer.parseInt(ss[0]), numStates);
+					// Now split up middle bit and extract var info
+					ss = ss[1].substring(ss[1].indexOf('(') + 1, ss[1].indexOf(')')).split(",");
+
+					State state = new State(numVars);
+					if (ss.length != numVars)
+						throw new PrismException("(wrong number of variable values) ");
+					for (int i = 0; i < numVars; i++) {
+						if (ss[i].equals("true")) {
+							storeStateDefn.accept(s, i, Boolean.TRUE);
+						} else if (ss[i].equals("false")) {
+							storeStateDefn.accept(s, i, Boolean.FALSE);
+						} else {
+							storeStateDefn.accept(s, i, Integer.parseInt(ss[i]));
+						}
+					}
+				}
+				st = in.readLine();
+				lineNum++;
+			}
+		} catch (IOException e) {
+			throw new PrismException("File I/O error reading from \"" + statesFile + "\"");
+		} catch (PrismException | NumberFormatException e) {
+			String expl = (e.getMessage() == null || e.getMessage().isEmpty()) ? "" : (" (" + e.getMessage() + ")");
+			throw new PrismException("Error detected" + expl + " at line " + lineNum + " of states file \"" + statesFile + "\"");
 		}
 	}
 

@@ -26,11 +26,22 @@
 
 package io;
 
+import prism.PrismException;
+
 /**
  * Various utilities for input-output functionality
  */
 public class IOUtils
 {
+	/**
+	 * Functional interface for a consumer accepting state variable values (s,i,o),
+	 * i.e., state s, variable index i, value o.
+	 */
+	@FunctionalInterface
+	public interface StateDefnConsumer {
+		void accept(int s, int i, Object o) throws PrismException;
+	}
+
 	/**
 	 * Functional interface for a consumer accepting Markov chain like transitions (s,s2,v,a),
 	 * i.e., source state s, target state s2, probability v, (optional) action a.

@@ -57,6 +57,13 @@ public interface ExplicitModelImporter
 	RewardGenerator<?> getRewardInfo() throws PrismException;
 
 	/**
+	 * Extract state definitions (variable values).
+	 * Calls {@code storeStateDefn(s, i, o)} for each state s, variable (index) i and variable value o.
+	 * @param storeStateDefn Function to be called for each variable value of each state
+	 */
+	void extractStates(IOUtils.StateDefnConsumer storeStateDefn) throws PrismException;
+
+	/**
 	 * Compute the maximum number of choices (in a nondeterministic model).
 	 */
 	int computeMaxNumChoices() throws PrismException;

@@ -27,10 +27,6 @@
 
 package explicit;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.List;
@@ -151,20 +147,8 @@ public class ExplicitFiles2Model extends PrismComponent
 		}
 
 		model.findDeadlocks(fixdl);
-		
-		if (modelImporter.hasStatesFile()) {
-			loadStates(model, modelImporter.getStatesFile(), modelInfo);
-		} else {
-			// in absence of a statesFile, there is a single variable x
-			// in the model, with value corresponding to the state index
-			List<State> states = new ArrayList<State>(model.getNumStates());
-			for (int i = 0; i < model.getNumStates(); i++) {
-				State s = new State(1);
-				s.setValue(0, i); // set x = state index
-				states.add(s);
-			}
-			model.setStatesList(states);
-		}
+
+		loadStates(modelImporter, model);
 
 		return model;
 	}
@@ -191,64 +175,18 @@ public class ExplicitFiles2Model extends PrismComponent
 		}
 	}
 
-	/** Load the state information, construct the statesList and attach to model */
-	private void loadStates(ModelExplicit<?> model, File statesFile, ModelInfo modelInfo) throws PrismException
+	/**
+	 * Load the state information, construct the statesList and attach to model
+	 */
+	private void loadStates(ExplicitModelImporter modelImporter, ModelExplicit<?> model) throws PrismException
 	{
 		int numStates = model.getNumStates();
-		List<State> statesList = new ArrayList<State>(numStates);
+		int numVars = modelImporter.getModelInfo().getNumVars();
+		List<State> statesList = new ArrayList<>(numStates);
 		for (int i = 0; i < numStates; i++) {
-			statesList.add(null);
+			statesList.add(new State(numVars));
 		}
-
-		String s, ss[];
-		int i, j, lineNum = 0;
-
-		int numVars = modelInfo.getNumVars();
-
-		// open file for reading, automatic close when done
-		try (BufferedReader in = new BufferedReader(new FileReader(statesFile))) {
-			// skip first line
-			in.readLine();
-			lineNum = 1;
-			// read remaining lines
-			s = in.readLine();
-			lineNum++;
-			while (s != null) {
-				// skip blank lines
-				s = s.trim();
-				if (s.length() > 0) {
-					// split into two parts
-					ss = s.split(":");
-					// determine which state this line describes
-					i = Integer.parseInt(ss[0]);
-					// now split up middle bit and extract var info
-					ss = ss[1].substring(ss[1].indexOf('(') + 1, ss[1].indexOf(')')).split(",");
-
-					State state = new State(numVars);
-					if (ss.length != numVars)
-						throw new PrismException("(wrong number of variable values) ");
-					for (j = 0; j < numVars; j++) {
-						if (ss[j].equals("true")) {
-							state.setValue(j, true);
-						} else if (ss[j].equals("false")) {
-							state.setValue(j, false);
-						} else {
-							state.setValue(j, Integer.parseInt(ss[j]));
-						}
-					}
-					if (statesList.get(i) != null)
-						throw new PrismException("(duplicated state) ");
-					statesList.set(i, state);
-				}
-				// read next line
-				s = in.readLine();
-				lineNum++;
-			}
-			model.setStatesList(statesList);
-		} catch (IOException e) {
-			throw new PrismException("File I/O error reading from \"" + statesFile + "\"");
-		} catch (PrismException e) {
-			throw new PrismException("Error detected " + e.getMessage() + "at line " + lineNum + " of states file \"" + statesFile + "\"");
-		}
+		modelImporter.extractStates((s, i, o) -> statesList.get(s).setValue(i, o));
+		model.setStatesList(statesList);
 	}
 }

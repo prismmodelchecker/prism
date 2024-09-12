@@ -27,17 +27,11 @@
 
 package symbolic.build;
 
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileReader;
-import java.io.IOException;
-import java.util.BitSet;
 import java.util.LinkedHashMap;
-import java.util.Map;
 import java.util.Vector;
 import java.util.Map.Entry;
 
-import common.IterableStateSet;
 import io.PrismExplicitImporter;
 import jdd.JDD;
 import jdd.JDDNode;
@@ -49,7 +43,6 @@ import prism.ModelType;
 import prism.Prism;
 import prism.PrismException;
 import prism.PrismLog;
-import prism.PrismNotSupportedException;
 import prism.RewardGenerator;
 import symbolic.model.Model;
 import symbolic.model.ModelSymbolic;
@@ -138,6 +131,7 @@ public class ExplicitFiles2MTBDD
 		rewardInfo = importer.getRewardInfo();
 
 		// Build states list, if info is available
+		// (importer can handle case where it is unavailable, but we bypass this)
 		if (importer.hasStatesFile()) {
 			readStatesFromFile();
 		}
@@ -148,48 +142,11 @@ public class ExplicitFiles2MTBDD
 	/** read info about reachable state space from file and store explicitly */
 	private void readStatesFromFile() throws PrismException
 	{
-		String s, ss[];
-		int i, j, lineNum = 0;
-
-		// create arrays for explicit state storage
 		statesArray = new int[numStates][];
-
-		// open file for reading, automatic close when done
-		try (BufferedReader in = new BufferedReader(new FileReader(statesFile))) {
-			// skip first line
-			in.readLine();
-			lineNum = 1;
-			// read remaining lines
-			s = in.readLine();
-			lineNum++;
-			while (s != null) {
-				// skip blank lines
-				s = s.trim();
-				if (s.length() > 0) {
-					// split into two parts
-					ss = s.split(":");
-					// determine which state this line describes
-					i = Integer.parseInt(ss[0]);
-					// now split up middle bit and extract var info
-					ss = ss[1].substring(ss[1].indexOf('(') + 1, ss[1].indexOf(')')).split(",");
-					if (ss.length != numVars)
-						throw new PrismException("(wrong number of variable values) ");
-					if (statesArray[i] != null)
-						throw new PrismException("(duplicated state) ");
-					statesArray[i] = new int[numVars];
-					for (j = 0; j < numVars; j++) {
-						statesArray[i][j] = varList.encodeToIntFromString(j, ss[j]);
-					}
-				}
-				// read next line
-				s = in.readLine();
-				lineNum++;
-			}
-		} catch (IOException e) {
-			throw new PrismException("File I/O error reading from \"" + statesFile + "\"");
-		} catch (PrismException e) {
-			throw new PrismException("Error detected " + e.getMessage() + "at line " + lineNum + " of states file \"" + statesFile + "\"");
+		for (int s = 0; s < numStates; s++) {
+			statesArray[s] = new int[numVars];
 		}
+		importer.extractStates((s, i, o) -> statesArray[s][i] = varList.encodeToInt(i, o));
 	}
 
 	/** build model */
