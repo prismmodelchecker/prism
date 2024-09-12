@@ -241,11 +241,8 @@ public class ExplicitFiles2MTBDD
 		// 		mainLog.println();
 		// 		JDD.Deref(tmp);
 
-		// load labels
-		loadLabels();
-
-		// calculate dd for initial state
-		buildInit();
+		// construct labels and init state info
+		buildLabelsAndInitialStates();
 
 		// compute rewards
 		buildStateRewards();
@@ -467,80 +464,39 @@ public class ExplicitFiles2MTBDD
 		JDD.Deref(elem);
 	}
 
-	/** calculate dd for initial state */
-	private void buildInit() throws PrismException
+	/** Load info on labels and initial states from importer */
+	private void buildLabelsAndInitialStates() throws PrismException
 	{
-		// If no labels are provided, just use state 0 (i.e. min value for each var) 
-		if (labelsDD == null) {
-			start = JDD.Constant(1);
-			for (int i = 0; i < numVars; i++) {
-				JDDNode tmp = JDD.SetVectorElement(JDD.Constant(0), varDDRowVars[i], 0, 1);
-				start = JDD.And(start, tmp);
-			}
+		// Initialise BDDs
+		start = JDD.Constant(0);
+		int numLabels = modelInfo.getNumLabels();
+		JDDNode[] labelDDs = new JDDNode[numLabels];
+		for (int l = 0; l < numLabels; l++) {
+			labelDDs[l] = JDD.Constant(0);
 		}
-		// Otherwise, construct from the labels
-		else {
-			start = labelsDD.get("init").copy();
-			if (start == null || start.equals(JDD.ZERO)) {
-				throw new PrismException("No initial states found in labels file");
-			}
+		// Extract info
+		importer.extractLabelsAndInitialStates((s, l) -> {
+			labelDDs[l] = JDD.Or(labelDDs[l], encodeState(s));
+		}, s -> {
+			start = JDD.Or(start, encodeState(s));
+		});
+		if (start == null || start.equals(JDD.ZERO)) {
+			throw new PrismException("No initial states found in labels file");
 		}
-	}
-
-	/** Load label information form label file (if exists) */
-	private void loadLabels() throws PrismException
-	{
-		if (labelsFile == null) {
-			return;
-		}
-
-		// we construct BitSets for the labels
-		Map<String, BitSet> labels = explicit.StateModelChecker.loadLabelsFile(labelsFile.getAbsolutePath());
+		// Store label map
 		labelsDD = new LinkedHashMap<>();
-
-		for (Entry<String, BitSet> e : labels.entrySet()) {
-			// compute dd
-
-			JDDNode labelStatesDD = JDD.Constant(0);
-
-			for (int state : new IterableStateSet(e.getValue(), numStates)) {
-				JDDNode tmp;
-				// case where we don't have a state list...
-				if (statesFile == null) {
-					tmp = JDD.SetVectorElement(JDD.Constant(0), varDDRowVars[0], state, 1);
-				}
-				// case where we do have a state list...
-				else {
-					tmp = JDD.Constant(1);
-					for (int i = 0; i < numVars; i++) {
-						tmp = JDD.Apply(JDD.TIMES, tmp, JDD.SetVectorElement(JDD.Constant(0), varDDRowVars[i], statesArray[state][i], 1));
-					}
-				}
-
-				// add it into bdd
-				labelStatesDD = JDD.Or(labelStatesDD, tmp);
-			}
-
-			// store the dd
-			labelsDD.put(e.getKey(), labelStatesDD);
+		for (int l = 0; l < numLabels; l++) {
+			labelsDD.put(modelInfo.getLabelName(l), labelDDs[l]);
 		}
 	}
 
 	/** Attach the computed label information to the model */
-	private void attachLabels(ModelSymbolic model) throws PrismNotSupportedException
+	private void attachLabels(ModelSymbolic model)
 	{
-		if (labelsDD == null)
+		if (labelsDD == null) {
 			return;
-
+		}
 		for (Entry<String, JDDNode> e : labelsDD.entrySet()) {
-			if (e.equals("init")) {
-				// handled in buildInit()
-				continue;
-			}
-			if (e.equals("deadlock")) {
-				// ignored (info is recomputed)
-				continue;
-			}
 			model.addLabelDD(e.getKey(), e.getValue().copy());
 		}
 	}
@@ -637,6 +593,27 @@ public class ExplicitFiles2MTBDD
 
 		// add it into mtbdd for state rewards
 		transRewards[rewardStructIndex] = JDD.Plus(transRewards[rewardStructIndex], JDD.Times(JDD.Constant(d), tmp));
+	}
+
+	/**
+	 * Encode a state index into BDD vars (referencing the result).
+	 * @param s state index
+	 */
+	private JDDNode encodeState(int s)
+	{
+		JDDNode res;
+		// Case where there is no state list...
+		if (statesArray == null) {
+			res = JDD.SetVectorElement(JDD.Constant(0), varDDRowVars[0], s, 1.0);
+		}
+		// Case where there is a state list...
+		else {
+			res = JDD.Constant(1);
+			for (int j = 0; j < numVars; j++) {
+				res = JDD.Times(res, JDD.SetVectorElement(JDD.Constant(0), varDDRowVars[j], statesArray[s][j], 1));
+			}
+		}
+		return res;
 	}
 
 	/**

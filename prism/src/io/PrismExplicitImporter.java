@@ -32,11 +32,15 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.BitSet;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -91,6 +95,9 @@ public class PrismExplicitImporter implements ExplicitModelImporter
 
 	// Num states
 	private int numStates = 0;
+
+	// Mapping from label indices in file to (non-built-in) label indices (also: -1=init, -2=deadlock)
+	private List<Integer> labelMap;
 
 	// Reward info extracted from files and then stored in a RewardGenerator object
 	private RewardGenerator<?> rewardInfo;
@@ -236,6 +243,7 @@ public class PrismExplicitImporter implements ExplicitModelImporter
 			extractLabelNamesFromLabelsFile(labelsFile);
 		} else {
 			labelNames = new ArrayList<>();
+			labelMap = new ArrayList<>();
 		}
 		
 		// Set model type: if no preference stated, try to autodetect
@@ -424,19 +432,30 @@ public class PrismExplicitImporter implements ExplicitModelImporter
 			Pattern label = Pattern.compile("(\\d+)=\"([^\"]+)\"\\s*");
 			Matcher matcher = label.matcher(labelsString);
 			labelNames = new ArrayList<>();
+			labelMap = new ArrayList<>();
 			while (matcher.find()) {
-				String labelName = matcher.group(2);
+				// Check indices are ascending/contiguous
+				int labelIndex = checkLabelIndex(matcher.group(1));
+				if (labelIndex != labelMap.size()) {
+					throw new PrismException("unexpected label index " + labelIndex);
+				}
 				// Skip built-in labels
-				if (labelName.equals("init") || labelName.equals("deadlock")) {
+				String labelName = matcher.group(2);
+				if (labelName.equals("init")) {
+					labelMap.add(-1);
+					continue;
+				} else if (labelName.equals("deadlock")) {
+					labelMap.add(-2);
 					continue;
 				}
-				// Check legal and non-dupe
+				// Check name legal and non-dupe
 				if (!ExpressionIdent.isLegalIdentifierName(labelName)) {
 					throw new PrismException("illegal label name \"" + labelName + "\"");
 				}
 				if (labelNames.contains(labelName)) {
 					throw new PrismException("duplicate label name \"" + labelName + "\"");
 				}
+				labelMap.add(labelNames.size());
 				labelNames.add(labelName);
 			}
 		} catch (IOException e) {
@@ -606,6 +625,119 @@ public class PrismExplicitImporter implements ExplicitModelImporter
 		} catch (PrismException | NumberFormatException | CsvFormatException e) {
 			String expl = (e.getMessage() == null || e.getMessage().isEmpty()) ? "" : (" (" + e.getMessage() + ")");
 			throw new PrismException("Error detected" + expl + " at line " + lineNum + " of transitions file \"" + transFile + "\"");
+		}
+	}
+
+	@Override
+	public void extractLabelsAndInitialStates(BiConsumer<Integer, Integer> storeLabel, Consumer<Integer> storeInit) throws PrismException
+	{
+		// If there is no info, just assume that 0 is the initial state
+		if (!hasLabelsFile()) {
+			storeInit.accept(0);
+			return;
+		}
+		// Otherwise extract from .lab file
+		int lineNum = 0;
+		try (BufferedReader in = new BufferedReader(new FileReader(labelsFile))) {
+			// Skip first file (label names extracted earlier with model info)
+			lineNum += skipCommentAndFirstLine(in);
+			String st = in.readLine();
+			while (st != null) {
+				// Skip blank lines
+				st = st.trim();
+				if (!st.isEmpty()) {
+					// Split line
+					String[] ss = st.split(":");
+					int s = checkStateIndex(Integer.parseInt(ss[0].trim()), numStates);
+					ss = ss[1].trim().split(" ");
+					for (int j = 0; j < ss.length; j++) {
+						if (ss[j].isEmpty()) {
+							continue;
+						}
+						// Store label info
+						int i = checkLabelIndex(ss[j]);
+						int l = labelMap.get(i);
+						if (l == -1) {
+							storeInit.accept(s);
+						} else if (l > -1) {
+							storeLabel.accept(s, l);
+						}
+					}
+				}
+				// Prepare for next iter
+				st = in.readLine();
+			}
+		} catch (IOException e) {
+			throw new PrismException("File I/O error reading from \"" + labelsFile + "\"");
+		} catch (PrismException | NumberFormatException e) {
+			String expl = (e.getMessage() == null || e.getMessage().isEmpty()) ? "" : (" (" + e.getMessage() + ")");
+			throw new PrismException("Error detected" + expl + " at line " + lineNum + " of labels file \"" + labelsFile + "\"");
+		}
+	}
+
+	/**
+	 * Load all labels from a PRISM labels (.lab) file and store them in BitSet objects.
+	 * Return a map from label name Strings to BitSets.
+	 * This is for all labels in the file, including "init", "deadlock".
+	 * Note: the size of the BitSet may be smaller than the number of states.
+	 */
+	public Map<String, BitSet> extractAllLabels() throws PrismException
+	{
+		// This method only needs the label file
+		if (!hasLabelsFile()) {
+			throw new PrismException("No labels information available");
+		}
+		// Extract names first
+		extractLabelNamesFromLabelsFile(labelsFile);
+		// Build list of bitsets
+		BitSet[] bitsets = new BitSet[labelMap.size()];
+		for (int i = 0; i < bitsets.length; i++) {
+			bitsets[i] = new BitSet();
+		}
+		// Otherwise extract from .lab file
+		int lineNum = 0;
+		try (BufferedReader in = new BufferedReader(new FileReader(labelsFile))) {
+			// Skip first file (label names extracted earlier)
+			lineNum += skipCommentAndFirstLine(in);
+			String st = in.readLine();
+			while (st != null) {
+				// Skip blank lines
+				st = st.trim();
+				if (!st.isEmpty()) {
+					// Split line
+					String[] ss = st.split(":");
+					int s = checkStateIndex(Integer.parseInt(ss[0].trim()));
+					ss = ss[1].trim().split(" ");
+					for (int j = 0; j < ss.length; j++) {
+						if (ss[j].isEmpty()) {
+							continue;
+						}
+						// Store label info
+						int i = checkLabelIndex(ss[j]);
+						bitsets[i].set(s);
+					}
+				}
+				// Prepare for next iter
+				st = in.readLine();
+			}
+			// Build BitSet map
+			Map<String, BitSet> map = new HashMap<>();
+			for (int i = 0; i < bitsets.length; i++) {
+				int l = labelMap.get(i);
+				if (l == -1) {
+					map.put("init", bitsets[i]);
+				} else if (l  == -2) {
+					map.put("deadlock", bitsets[i]);
+				} else if (l > -1) {
+					map.put(labelNames.get(l), bitsets[i]);
+				}
+			}
+			return map;
+		} catch (IOException e) {
+			throw new PrismException("File I/O error reading from \"" + labelsFile + "\"");
+		} catch (PrismException | NumberFormatException e) {
+			String expl = (e.getMessage() == null || e.getMessage().isEmpty()) ? "" : (" (" + e.getMessage() + ")");
+			throw new PrismException("Error detected" + expl + " at line " + lineNum + " of labels file \"" + labelsFile + "\"");
 		}
 	}
 
@@ -890,6 +1022,14 @@ public class PrismExplicitImporter implements ExplicitModelImporter
 		}
 	}
 
+	protected static int checkStateIndex(int s) throws PrismException
+	{
+		if (s < 0) {
+			throw new PrismException("state index " + s + " is invalid");
+		}
+		return s;
+	}
+
 	protected static int checkStateIndex(int s, int numStates) throws PrismException
 	{
 		if (s < 0) {
@@ -907,6 +1047,19 @@ public class PrismExplicitImporter implements ExplicitModelImporter
 			throw new PrismException("choice index " + i + " is invalid");
 		}
 		return i;
+	}
+
+	protected static int checkLabelIndex(String s) throws PrismException
+	{
+		try {
+			int i = Integer.parseInt(s);
+			if (i < 0) {
+				throw new PrismException("label index " + i + " is invalid");
+			}
+			return i;
+		} catch (NumberFormatException e) {
+			throw new PrismException("label index \"" + s + "\" is invalid");
+		}
 	}
 
 	protected static <Value> Value checkValue(String v, Evaluator<Value> eval) throws PrismException

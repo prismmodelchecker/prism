@@ -34,11 +34,9 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
 
 import common.Interval;
-import common.IterableStateSet;
+import io.ExplicitModelImporter;
 import io.PrismExplicitImporter;
 import parser.State;
 import prism.Evaluator;
@@ -55,6 +53,9 @@ public class ExplicitFiles2Model extends PrismComponent
 {
 	// Should deadlocks be fixed (by adding a self-loop) when detected?
 	private boolean fixdl;
+
+	// Label bitsets
+	private List<BitSet> labelBitSets;
 	
 	/** Constructor */
 	public ExplicitFiles2Model(PrismComponent parent)
@@ -144,14 +145,7 @@ public class ExplicitFiles2Model extends PrismComponent
 			throw new PrismNotSupportedException("Imported model has no states, not supported");
 		}
 
-		if (modelImporter.hasLabelsFile()) {
-			// load labels
-			loadLabels(model, modelImporter.getLabelsFile());
-		} else {
-			// no init label, we choose the first state
-			model.addInitialState(0);
-		}
-
+		loadLabelsAndInitialStates(modelImporter, model);
 		if (!model.getInitialStates().iterator().hasNext()) {
 			throw new PrismException("Imported model has no initial states");
 		}
@@ -180,20 +174,20 @@ public class ExplicitFiles2Model extends PrismComponent
 	 * The "init" label states become the initial states of the model.
 	 * The "deadlock" label is ignored - this info is recomputed.
 	 */
-	private void loadLabels(ModelExplicit<?> model, File labelsFile) throws PrismException
+	private void loadLabelsAndInitialStates(ExplicitModelImporter modelImporter, ModelExplicit<?> model) throws PrismException
 	{
-		Map<String, BitSet> labels = StateModelChecker.loadLabelsFile(labelsFile.getAbsolutePath());
-
-		for (Entry<String, BitSet> e : labels.entrySet()) {
-			if (e.getKey().equals("init")) {
-				for (int state : new IterableStateSet(e.getValue(), model.getNumStates())) {
-					model.addInitialState(state);
-				}
-			} else if (e.getKey().equals("deadlock")) {
-				// Do nothing
-			} else {
-				model.addLabel(e.getKey(), e.getValue());
-			}
+		// Create BitSets to store label info
+		ModelInfo modelInfo = modelImporter.getModelInfo();
+		int numLabels = modelInfo.getNumLabels();
+		labelBitSets = new ArrayList<>(numLabels);
+		for (int l = 0; l < numLabels; l++) {
+			labelBitSets.add(new BitSet());
+		}
+		// Extract info
+		modelImporter.extractLabelsAndInitialStates((s, l) -> labelBitSets.get(l).set(s), model::addInitialState);
+		// Attach labels to model
+		for (int l = 0; l < numLabels; l++) {
+			model.addLabel(modelInfo.getLabelName(l), labelBitSets.get(l));
 		}
 	}
 

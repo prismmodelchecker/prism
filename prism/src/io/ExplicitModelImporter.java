@@ -32,6 +32,7 @@ import prism.PrismException;
 import prism.RewardGenerator;
 
 import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 
 public interface ExplicitModelImporter
 {
@@ -95,6 +96,16 @@ public interface ExplicitModelImporter
 	 * @param eval Evaluator for Value objects
 	 */
 	<Value> void extractMDPTransitions(IOUtils.MDPTransitionConsumer<Value> storeTransition, Evaluator<Value> eval) throws PrismException;
+
+	/**
+	 * Extract info about state labellings and initial states.
+	 * Calls {@code storeLabel(s, i)} for each state s satisfying label l,
+	 * where l is 0-indexed and matches the label list from {@link #getModelInfo()}.
+	 * Calls {@code storeInit(s)} for each initial state s.
+	 * @param storeLabel Function to be called for each state satisfying a label
+	 * @param storeInit Function to be called for each initial stat
+	 */
+	void extractLabelsAndInitialStates(BiConsumer<Integer, Integer> storeLabel, Consumer<Integer> storeInit) throws PrismException;
 
 	/**
 	 * Extract the state rewards for a given reward structure index.

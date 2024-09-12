@@ -27,10 +27,7 @@
 
 package explicit;
 
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileReader;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.HashMap;
@@ -47,6 +44,7 @@ import io.DRNExporter;
 import io.MatlabExporter;
 import io.ModelExportOptions;
 import io.PrismExplicitExporter;
+import io.PrismExplicitImporter;
 import parser.EvaluateContext.EvalMode;
 import parser.State;
 import parser.Values;
@@ -1510,78 +1508,15 @@ public class StateModelChecker extends PrismComponent
 	}
 
 	/**
-	 * Loads labels from a PRISM labels file and stores them in BitSet objects.
-	 * (Actually, it returns a map from label name Strings to BitSets.)
-	 * (Note: the size of the BitSet may be smaller than the number of states.) 
+	 * Load all labels from a PRISM labels (.lab) file and store them in BitSet objects.
+	 * Return a map from label name Strings to BitSets.
+	 * This is for all labels in the file, including "init", "deadlock".
+	 * Note: the size of the BitSet may be smaller than the number of states.
 	 */
 	public static Map<String, BitSet> loadLabelsFile(String filename) throws PrismException
 	{
-		ArrayList<String> labels;
-		BitSet bitsets[];
-		Map<String, BitSet> res;
-		String s, ss[];
-		int i, j, k;
-
-		// open file for reading, automatic close when done
-		try (BufferedReader in = new BufferedReader(new FileReader(new File(filename)))) {
-			// Parse first line to get label list
-			s = in.readLine();
-			if (s == null) {
-				in.close();
-				throw new PrismException("Empty labels file");
-			}
-			ss = s.split(" ");
-			labels = new ArrayList<String>(ss.length);
-			for (i = 0; i < ss.length; i++) {
-				s = ss[i];
-				j = s.indexOf('=');
-				if (j < 0) {
-					in.close();
-					throw new PrismException("Corrupt labels file (line 1)");
-				}
-				k = Integer.parseInt(s.substring(0, j));
-				while (labels.size() <= k)
-					labels.add("?");
-				labels.set(k, s.substring(j + 2, s.length() - 1));
-			}
-			// Build list of bitsets
-			bitsets = new BitSet[labels.size()];
-			for (i = 0; i < bitsets.length; i++)
-				bitsets[i] = new BitSet();
-			// Parse remaining lines
-			s = in.readLine();
-			while (s != null) {
-				// Skip blank lines
-				s = s.trim();
-				if (s.length() > 0) {
-					// Split line
-					ss = s.split(":");
-					i = Integer.parseInt(ss[0].trim());
-					ss = ss[1].trim().split(" ");
-					for (j = 0; j < ss.length; j++) {
-						if (ss[j].length() == 0)
-							continue;
-						k = Integer.parseInt(ss[j]);
-						// Store label info
-						bitsets[k].set(i);
-					}
-				}
-				// Prepare for next iter
-				s = in.readLine();
-			}
-			// Build BitSet map
-			res = new HashMap<String, BitSet>();
-			for (i = 0; i < labels.size(); i++) {
-				if (!labels.get(i).equals("?")) {
-					res.put(labels.get(i), bitsets[i]);
-				}
-			}
-			return res;
-		} catch (IOException e) {
-			throw new PrismException("Error reading labels file \"" + filename + "\"");
-		} catch (NumberFormatException e) {
-			throw new PrismException("Error in labels file");
-		}
+		PrismExplicitImporter modelImporter = new PrismExplicitImporter(null, null, new File(filename), null, null, null);
+		return modelImporter.extractAllLabels();
 	}
 
 	/**
