@@ -1,5 +1,5 @@
--mdp -importmodel robot.all -exportmodel robot.all
--mdp -importmodel robot.all -exportmodel robot.all -ex
+-importmodel robot.all -exportmodel robot.all
+-importmodel robot.all -exportmodel robot.all -ex
 
--mdp -importmodel robot.sta,tra,lab -exportmodel robot.sta,tra,lab
--mdp -importmodel robot.sta,tra,lab -exportmodel robot.sta,tra,lab -ex
+-importmodel robot.sta,tra,lab -exportmodel robot.sta,tra,lab
+-importmodel robot.sta,tra,lab -exportmodel robot.sta,tra,lab -ex

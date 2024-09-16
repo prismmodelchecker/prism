@@ -1,5 +1,4 @@
 # No .sta file (bugfix regression check)
 
--dtmc -importmodel dice2.tra,lab,srew -exportmodel dice2.sta,tra,lab,srew
--dtmc -importmodel dice2.tra,lab,srew -exportmodel dice2.sta,tra,lab,srew -ex
+-importmodel dice2.tra,lab,srew -exportmodel dice2.sta,tra,lab,srew
 -importmodel dice2.tra,lab,srew -exportmodel dice2.sta,tra,lab,srew -ex

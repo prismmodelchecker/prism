@@ -1,7 +1,7 @@
--dtmc -importmodel dice.all -exportmodel dice.all -ex
--dtmc -importmodel dice.all -exportmodel dice.all -h
--dtmc -importmodel dice.all -exportmodel dice.all -s
+-importmodel dice.all -exportmodel dice.all -ex
+-importmodel dice.all -exportmodel dice.all -h
+-importmodel dice.all -exportmodel dice.all -s
 
 # Import model info - exact
--dtmc -importmodel dice.all -exportmodel dice.exact.all -exact
--dtmc -importmodel dice.exact.all -exportmodel dice.exact.all -exact
+-importmodel dice.all -exportmodel dice.exact.all -exact
+-importmodel dice.exact.all -exportmodel dice.exact.all -exact
