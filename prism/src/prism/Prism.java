@@ -1212,6 +1212,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 		ModulesFile modulesFile = null;
 
 		// open file
+		mainLog.print("\nParsing PRISM model file \"" + file + "\"...\n");
 		strModel = new FileInputStream(file);
 
 		try {
@@ -1314,6 +1315,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	 */
 	public ModulesFile importModelFile(String lang, File file) throws PrismException, PrismLangException
 	{
+		mainLog.print("\nImporting " + lang.toUpperCase() + " file \"" + file + "\"...\n");
 		PrismLanguageTranslator importer = createPrismLanguageTranslator(lang);
 		importer.load(file);
 		String prismModelString = importer.translateToString();
@@ -1325,6 +1327,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	 */
 	public ModulesFile importModelString(String lang, String s) throws PrismException, PrismLangException
 	{
+		mainLog.print("\nImporting " + lang.toUpperCase() + " model...\n");
 		PrismLanguageTranslator importer = createPrismLanguageTranslator(lang);
 		importer.load(s);
 		String prismModelString = importer.translateToString();
@@ -1360,6 +1363,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 		String modelString;
 
 		// Compile preprocessor file to a string
+		mainLog.print("\nImporting PRISM preprocessor file \"" + file + "\"...\n");
 		Preprocessor pp = new Preprocessor(this, file);
 		pp.setParameters(params);
 		modelString = pp.preprocess();
@@ -1597,13 +1601,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 		// Clear any existing built model(s)
 		clearBuiltModel();
 		// Print basic model info
-		mainLog.println();
-		mainLog.println("Type:        " + getModelInfo().getModelType());
-		mainLog.println("Modules:     " + String.join(" ", getPRISMModel().getModuleNames()));
-		mainLog.println("Variables:   " + String.join(" ", getModelInfo().getVarNames()));
-		if (getModelInfo().getModelType().partiallyObservable()) {
-			mainLog.println("Observables: " + String.join(" ", getModelInfo().getObservableNames()));
-		}
+		printModelInfo();
 	}
 
 	/**
@@ -1617,6 +1615,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 		if (modelGen == null) {
 			clearModel();
 		}
+		mainLog.println("Loading model generator " + getModelGenerator().getClass().getName() + "...");
 		// Update model info
 		setModelSource(ModelSource.MODEL_GENERATOR);
 		setModelType(modelGen.getModelType());
@@ -1633,10 +1632,8 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 		// Clear any existing built model(s)
 		clearBuiltModel();
 		// Print basic model info
+		printModelInfo();
 		mainLog.println();
-		mainLog.println("Generator: " + getModelGenerator().getClass().getName());
-		mainLog.println("Type:      " + getModelInfo().getModelType());
-		mainLog.println("Variables: " + String.join(" ", getModelInfo().getVarNames()));
 	}
 
 	/**
@@ -1775,6 +1772,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	 */
 	public void loadModelFromExplicitFiles(ExplicitModelImporter importer) throws PrismException
 	{
+		mainLog.println("\nImporting model from " + importer.sourceString() + "...");
 		// Update model source info
 		setModelSource(ModelSource.EXPLICIT_FILES);
 		setPRISMModel(null);
@@ -1787,9 +1785,43 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 		setRewardGenerator(importer.getRewardInfo());
 		setDefinedMFConstants(null);
 		// Print basic model info
+		printModelInfo();
+	}
+
+	/**
+	 * Print basic info about the (unbuilt) current model: type, variables, etc.
+	 */
+	private void printModelInfo() throws PrismException
+	{
+		printModelInfo(getModelInfo(), getRewardGenerator());
+	}
+
+	/**
+	 * Print basic info about an (unbuilt) model: type, variables, etc.
+	 * @param modelInfo The model info
+	 * @param rewardInfo The reward info (optional, can be null)
+	 */
+	private void printModelInfo(ModelInfo modelInfo, RewardGenerator<?> rewardInfo) throws PrismException
+	{
 		mainLog.println();
-		mainLog.println("Type:        " + importer.getModelTypeString());
-		mainLog.println("Variables:   " + String.join(" ", getModelInfo().getVarNames()));
+		if (getModelSource() == ModelSource.EXPLICIT_FILES && modelImporter != null) {
+			mainLog.println("Type:        " + modelImporter.getModelTypeString());
+		} else {
+			mainLog.println("Type:        " + modelInfo.getModelType());
+		}
+		if (modelInfo instanceof ModulesFile) {
+			mainLog.println("Modules:     " + String.join(" ", ((ModulesFile) modelInfo).getModuleNames()));
+		}
+		mainLog.println("Variables:   " + String.join(" ", modelInfo.getVarNames()));
+		if (modelInfo.getModelType().partiallyObservable()) {
+			mainLog.println("Observables: " + String.join(" ", modelInfo.getObservableNames()));
+		}
+		if (modelInfo.getNumLabels() > 0) {
+			mainLog.println("Labels:      " + String.join(" ", modelInfo.getLabelNames()));
+		}
+		if (rewardInfo.getNumRewardStructs() > 0) {
+			mainLog.println("Rewards:     " + String.join(" ", rewardInfo.getRewardStructNames()));
+		}
 	}
 
 	/**

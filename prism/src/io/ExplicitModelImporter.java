@@ -47,6 +47,11 @@ public interface ExplicitModelImporter
 	boolean providesLabels();
 
 	/**
+	 * Get a string summarising the source, e.g. the list of files read in.
+	 */
+	String sourceString();
+
+	/**
 	 * Get info about the model.
 	 */
 	ModelInfo getModelInfo() throws PrismException;

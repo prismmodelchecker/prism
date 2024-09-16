@@ -43,6 +43,7 @@ import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import common.iterable.Reducible;
 import csv.BasicReader;
@@ -166,6 +167,30 @@ public class PrismExplicitImporter implements ExplicitModelImporter
 		return labelsFile;
 	}
 
+	/**
+	 * Get a list of all files being imported from.
+	 */
+	public List<File> getAllFiles()
+	{
+		ArrayList<File> allFiles = new ArrayList<>();
+		if (transFile != null) {
+			allFiles.add(transFile);
+		}
+		if (statesFile != null) {
+			allFiles.add(statesFile);
+		}
+		if (labelsFile != null) {
+			allFiles.add(labelsFile);
+		}
+		if (stateRewardsFiles != null) {
+			allFiles.addAll(stateRewardsFiles);
+		}
+		if (transRewardsFiles != null) {
+			allFiles.addAll(transRewardsFiles);
+		}
+		return allFiles;
+	}
+
 	@Override
 	public boolean providesStates()
 	{
@@ -176,6 +201,12 @@ public class PrismExplicitImporter implements ExplicitModelImporter
 	public boolean providesLabels()
 	{
 		return getLabelsFile() != null;
+	}
+
+	@Override
+	public String sourceString()
+	{
+		return getAllFiles().stream().map(f -> "\""+f.toString()+"\"").collect(Collectors.joining(", "));
 	}
 
 	@Override

@@ -675,40 +675,31 @@ public class PrismCL implements PrismModelListener
 				mainLog.printWarning(importModelWarning);
 			}
 			if (importpepa) {
-				mainLog.print("\nImporting PEPA file \"" + modelFilename + "\"...\n");
 				modulesFile = prism.importPepaFile(new File(modelFilename));
 				prism.loadPRISMModel(modulesFile);
 			} else if (importprismpp) {
-				mainLog.print("\nImporting PRISM preprocessor file \"" + modelFilename + "\"...\n");
 				String prismppParamsList[] = ("? " + prismppParams).split(" ");
 				modulesFile = prism.importPrismPreprocFile(new File(modelFilename), prismppParamsList);
 				prism.loadPRISMModel(modulesFile);
 			} else if (importtrans) {
-				mainLog.print("\nImporting model from \"" + modelFilename + "\"");
 				if (importstates) {
-					mainLog.print(", \"" + importStatesFilename + "\"");
 					sf = new File(importStatesFilename);
 				}
 				if (importlabels) {
-					mainLog.print(", \"" + importLabelsFilename + "\"");
 					lf = new File(importLabelsFilename);
 				}
 				if (importstaterewards) {
 					for (int k = 0; k < importStateRewardsFilenames.size(); k++) {
-						mainLog.print(", \"" + (String) importStateRewardsFilenames.get(k) + "\"");
 						srf.add(new File(importStateRewardsFilenames.get(k)));
 					}
 				}
 				if (importtransrewards) {
 					for (int k = 0; k < importTransRewardsFilenames.size(); k++) {
-						mainLog.print(", \"" + (String) importTransRewardsFilenames.get(k) + "\"");
 						trf.add(new File(importTransRewardsFilenames.get(k)));
 					}
 				}
-				mainLog.println("...");
 				prism.loadModelFromExplicitFiles(sf, new File(modelFilename), lf, srf, trf, typeOverride);
 			} else {
-				mainLog.print("\nParsing model file \"" + modelFilename + "\"...\n");
 				modulesFile = prism.parseModelFile(new File(modelFilename), typeOverride);
 				prism.loadPRISMModel(modulesFile);
 			}
