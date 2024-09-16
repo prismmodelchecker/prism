@@ -119,8 +119,11 @@ public class ExplicitFiles2Model extends PrismComponent
 			IMDPSimple<Value> imdp = new IMDPSimple<>();
 			model = (ModelExplicit<Value>) imdp;
 			break;
-		case CTMDP:
 		case LTS:
+			LTS<Value> lts = new LTSSimple<>();
+			model = (ModelExplicit<Value>) lts;
+			break;
+		case CTMDP:
 		case PTA:
 		case SMG:
 		case STPG:

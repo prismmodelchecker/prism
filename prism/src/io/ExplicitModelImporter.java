@@ -130,6 +130,12 @@ public interface ExplicitModelImporter
 	<Value> void extractMDPTransitions(IOUtils.MDPTransitionConsumer<Value> storeTransition, Evaluator<Value> eval) throws PrismException;
 
 	/**
+	 * Extract the (labelled transition system) transitions from a .tra file.
+	 * @param storeTransition Function to be called for each transition
+	 */
+	void extractLTSTransitions(IOUtils.LTSTransitionConsumer storeTransition) throws PrismException;
+
+	/**
 	 * Extract info about state labellings and initial states.
 	 * Calls {@code storeLabel(s, i)} for each state s satisfying label l,
 	 * where l is 0-indexed and matches the label list from {@link #getModelInfo()}.

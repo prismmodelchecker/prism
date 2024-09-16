@@ -123,7 +123,7 @@ public class PrismExplicitImporter implements ExplicitModelImporter
 	 * @param labelsFile Labels file (may be {@code null})
 	 * @param stateRewardsFiles State rewards files list (can be empty)
 	 * @param transRewardsFiles Transition rewards files list (can be empty)
-	 * @param typeOverride Specified model type (null mean sauto-detect it, or default to MDP if that cannot be done).
+	 * @param typeOverride Specified model type (null mean auto-detect it, or default to MDP if that cannot be done).
 	 */
 	public PrismExplicitImporter(File statesFile, File transFile, File labelsFile, List<File> stateRewardsFiles, List<File> transRewardsFiles, ModelType typeOverride) throws PrismException
 	{
@@ -530,6 +530,7 @@ public class PrismExplicitImporter implements ExplicitModelImporter
 			BasicReader reader = BasicReader.wrap(in).normalizeLineEndings();
 			CsvReader csv = new CsvReader(reader, false, false, false, ' ', LF);
 			boolean nondet;
+			boolean nonprob;
 			// Examine first line
 			// 3 numbers should indicate a nondeterministic model, e.g., MDP
 			// 2 numbers should indicate a probabilistic model, e.g., DTMC
@@ -537,6 +538,7 @@ public class PrismExplicitImporter implements ExplicitModelImporter
 			if (!csv.hasNextRecord()) {
 				return null;
 			}
+			// Detect if model is nondeterministic
 			String[] recordFirst = csv.nextRecord();
 			if (recordFirst.length == 3) {
 				nondet = true;
@@ -556,6 +558,20 @@ public class PrismExplicitImporter implements ExplicitModelImporter
 					continue;
 				}
 				lines++;
+				// Detect if model is non-probabilistic (e.g. LTS)
+				nonprob = false;
+				if (nondet) {
+					if (record.length == 3) {
+						// LTS
+						nonprob = true;
+					} else if (record.length >= 4) {
+						// LTS with actions or MDP
+						nonprob = Prism.isValidIdentifier(record[3]);
+					}
+				}
+				if (nonprob) {
+					return ModelType.LTS;
+				}
 				// Look at probability/rate
 				// (give up if line is in unexpected format)
 				String probOrRate;
@@ -658,7 +674,8 @@ public class PrismExplicitImporter implements ExplicitModelImporter
 					// Skip blank lines
 					continue;
 				}
-				checkLineSize(record, 4, 5);
+				// Lines should be 3-5 long (LTS/MDP with/without actions)
+				checkLineSize(record, 3, 5);
 				int j = checkChoiceIndex(Integer.parseInt(record[1]));
 				if (j + 1 > maxNumChoices) {
 					maxNumChoices = j + 1;
@@ -723,6 +740,35 @@ public class PrismExplicitImporter implements ExplicitModelImporter
 				Value v = checkValue(record[3], eval);
 				Object a = (record.length > 4) ? checkAction(record[4]) : null;
 				storeTransition.accept(s, i, s2, v, a);
+			}
+		} catch (IOException e) {
+			throw new PrismException("File I/O error reading from \"" + transFile + "\"");
+		} catch (PrismException | NumberFormatException | CsvFormatException e) {
+			String expl = (e.getMessage() == null || e.getMessage().isEmpty()) ? "" : (" (" + e.getMessage() + ")");
+			throw new PrismException("Error detected" + expl + " at line " + lineNum + " of transitions file \"" + transFile + "\"");
+		}
+	}
+
+	@Override
+	public void extractLTSTransitions(IOUtils.LTSTransitionConsumer storeTransition) throws PrismException
+	{
+		int lineNum = 0;
+		try (BufferedReader in = new BufferedReader(new FileReader(transFile))) {
+			lineNum += skipCommentAndFirstLine(in);
+			BasicReader reader = BasicReader.wrap(in).normalizeLineEndings();
+			CsvReader csv = new CsvReader(reader, false, false, false, ' ', LF);
+			for (String[] record : csv) {
+				lineNum++;
+				if ("".equals(record[0])) {
+					// Skip blank lines
+					continue;
+				}
+				checkLineSize(record, 3, 4);
+				int s = checkStateIndex(Integer.parseInt(record[0]), numStates);
+				int i = checkChoiceIndex(Integer.parseInt(record[1]));
+				int s2 = checkStateIndex(Integer.parseInt(record[2]), numStates);
+				Object a = (record.length > 3) ? checkAction(record[3]) : null;
+				storeTransition.accept(s, i, s2, a);
 			}
 		} catch (IOException e) {
 			throw new PrismException("File I/O error reading from \"" + transFile + "\"");

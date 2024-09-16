@@ -61,6 +61,15 @@ public class IOUtils
 	}
 
 	/**
+	 * Functional interface for a consumer accepting LTS-like transitions (s,i,s2,a),
+	 * i.e., source state s, index i, target state s2, (optional) action a.
+	 */
+	@FunctionalInterface
+	public interface LTSTransitionConsumer {
+		void accept(int s, int i, int s2, Object a) throws PrismException;;
+	}
+
+	/**
 	 * Functional interface for a consumer accepting transition rewards (s,i,v),
 	 * i.e., source state s, index i, value v.
 	 */
