@@ -42,6 +42,7 @@ import prism.ModelType;
 import prism.Prism;
 import prism.PrismException;
 import prism.PrismLog;
+import prism.ProgressDisplay;
 import prism.RewardGenerator;
 import symbolic.model.Model;
 import symbolic.model.ModelSymbolic;
@@ -99,6 +100,10 @@ public class ExplicitFiles2MTBDD
 
 	private int maxNumChoices = 0;
 	private LinkedHashMap<String, JDDNode> labelsDD;
+
+	// Progress info
+	private ProgressDisplay progress;
+	private int transitionsImported;
 
 	public ExplicitFiles2MTBDD(Prism prism)
 	{
@@ -313,10 +318,14 @@ public class ExplicitFiles2MTBDD
 	/** Construct transition matrix from file */
 	private void buildTrans() throws PrismException
 	{
-		// initialise action list
+		// Initial output
+		mainLog.print("Importing transitions... ");
+		progress = new ProgressDisplay(mainLog);
+		progress.start();
+		progress.setTotalCount(importer.getNumTransitions());
+		transitionsImported = 0;
+		// Initialise storage/MTBDDs
 		synchs = new Vector<String>();
-
-		// initialise mtbdds
 		trans = JDD.Constant(0);
 		if (modelType != ModelType.MDP) {
 			transPerAction = new Vector<JDDNode>();
@@ -324,12 +333,15 @@ public class ExplicitFiles2MTBDD
 		} else {
 			transActions = JDD.Constant(0);
 		}
-
+		// Import transitions
 		if (modelType != ModelType.MDP) {
 			importer.extractMCTransitions((s, s2, d, a) -> storeMCTransition(s, s2, d, a));
 		} else {
 			importer.extractMDPTransitions((s, i, s2, d, a) -> storeMDPTransition(s, i, s2, d, a));
 		}
+		// Finish progress display
+		progress.update(transitionsImported);
+		progress.end();
 	}
 
 	/**
@@ -374,6 +386,8 @@ public class ExplicitFiles2MTBDD
 		transPerAction.set(j, tmp);
 		// deref element dd
 		JDD.Deref(elem);
+		// Print some progress info occasionally
+		progress.updateIfReady(++transitionsImported);
 	}
 
 	/**
@@ -412,6 +426,8 @@ public class ExplicitFiles2MTBDD
 		transActions = JDD.Apply(JDD.MAX, transActions, JDD.Apply(JDD.TIMES, JDD.Constant(j), tmp));
 		// deref element dd
 		JDD.Deref(elem);
+		// Print some progress info occasionally
+		progress.updateIfReady(++transitionsImported);
 	}
 
 	/** Load info on labels and initial states from importer */
