@@ -2117,7 +2117,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 				throw new PrismException("You cannot build a " + getModelType() + " model explicitly, only perform model checking");
 			}
 
-			mainLog.print("\nBuilding model...\n");
+			mainLog.print("\nBuilding model (engine:" + getCurrentEngine().toString().toLowerCase() + ")...\n");
 			if (getUndefinedModelValues() != null && getUndefinedModelValues().getNumValues() > 0)
 				mainLog.println("Model constants: " + getUndefinedModelValues());
 
