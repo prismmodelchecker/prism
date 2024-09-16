@@ -1,0 +1,23 @@
+// RESULT: 0.0
+R{"a"}=? [ F s=0 ]
+// RESULT: 2/x
+R{"a"}=? [ F s=1 ]
+// RESULT: (5*x+14)/(7*x)
+R{"a"}=? [ F s=2 ]
+// RESULT: (12*x+14)/(7*x)
+R{"a"}=? [ F s>2 ]
+
+// RESULT: 0.0
+R{"a"}=? [ S ];
+
+// RESULT: 0.0
+R{"a_state"}=? [ F s=0 ]
+// RESULT: 2/x
+R{"a_state"}=? [ F s=1 ]
+// RESULT: (5*x+14)/(7*x)
+R{"a_state"}=? [ F s=2 ]
+// RESULT: (12*x+14)/(7*x)
+R{"a_state"}=? [ F s>2 ]
+
+// RESULT: 0.0
+R{"a_state"}=? [ S ]

@@ -1,6 +1,51 @@
 This file contains details of the changes in each new version of PRISM.
 
 -----------------------------------------------------------------------------
+Changes since last release (up to 4c095aae5)
+-----------------------------------------------------------------------------
+
+* Explicit engine improvements
+  - support for transition rewards in Markov chains
+  - storage (and export) of actions for Markov chains
+
+* Export functionality (explicit engine)
+  - export of exact (arbitrary precision) models
+  - preliminary DRN (Storm) output
+  - actions=true/false option
+  - remove old options (MRMC format, unordered)
+
+* Minor modelling language updates
+  - new power operator a^b, equivalent to pow(a,b)
+  - fix: implication (=>) is right-associative
+
+* Simulator can take a random seed (API only)
+
+* Development and code-level changes
+  - prism.Prism API: new model export methods
+  - prism.Prism API: remove some old deprecated methods
+  - prism.Prism: refactored storage/access for model info
+  - prism.Prism: integration of exact model building/checking
+  - redesign/refactoring of explicit engine reward classes
+  - refactoring of explicit engine model export code
+    (moved from model classes, centralised in io package)
+  - parametric engine refactored to use explicit models/rewards
+  - symbolic code rearranged (new symbolic package)
+  - symbolic model storage refactored, simplified, documented
+
+* Various bugfixes
+
+* [More minor development and code-level changes]
+
+  - explicit engine product construction refactoring
+  - explicit model refactoring (infoString etc.)
+  - default implementation of getVarDeclarationType in ModelGenerator
+  - POMDP observation info storage refactoring
+  - Expression.toString() respects operator precedence
+  - VarList aware of EvaluationContext/EvalMode
+  - parametric engine: improved error reporting and formatting
+  - prism.API: exportprism moved from setting to API call
+
+-----------------------------------------------------------------------------
 Version 4.8.1 (first released 13/1/2024)
 -----------------------------------------------------------------------------
 

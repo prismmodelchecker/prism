@@ -113,11 +113,17 @@ public class ChoiceActionsSimple
 	{
 		// Create main list if not done yet 
 		if (actions == null) {
+			if (action == null) {
+				return;
+			}
 			actions = new ArrayList<ArrayList<Object>>();
 		}
 		// Expand main list up to state s if needed,
 		// storing null for newly added items 
 		if (s >= actions.size()) {
+			if (action == null) {
+				return;
+			}
 			int n = s - actions.size() + 1;
 			for (int j = 0; j < n; j++) {
 				actions.add(null);
@@ -126,11 +132,17 @@ public class ChoiceActionsSimple
 		// Create action list for state s if needed
 		ArrayList<Object> list;
 		if ((list = actions.get(s)) == null) {
+			if (action == null) {
+				return;
+			}
 			actions.set(s, (list = new ArrayList<Object>()));
 		}
 		// Expand action list up to choice i if needed,
 		// storing null for newly added items 
 		if (i >= list.size()) {
+			if (action == null) {
+				return;
+			}
 			int n = i - list.size() + 1;
 			for (int j = 0; j < n; j++) {
 				list.add(null);
@@ -141,7 +153,10 @@ public class ChoiceActionsSimple
 	}
 	
 	// Accessors
-	
+
+	/**
+	 * Get the action label for choice {@code i} of state {@code s}.
+	 */
 	public Object getAction(int s, int i)
 	{
 		// Null list means no (null) actions everywhere
@@ -149,9 +164,17 @@ public class ChoiceActionsSimple
 			return null;
 		}
 		try {
+			// Undersized list means no actions in this state
+			if (s >= actions.size()) {
+				return null;
+			}
 			ArrayList<Object> list = actions.get(s);
 			// Null list means no (null) actions in this state
 			if (list == null) {
+				return null;
+			}
+			// Undersized list means no action on this choice
+			if (i >= list.size()) {
 				return null;
 			}
 			return list.get(i);
@@ -160,6 +183,16 @@ public class ChoiceActionsSimple
 		catch (IndexOutOfBoundsException e) {
 			return null;
 		}
+	}
+
+	/**
+	 * Check whether the action label for choice {@code i} of state {@code s}
+	 * matches {@code action} (where {@code null} matches no action).
+	 */
+	public boolean actionMatches(int s, int i, Object action)
+	{
+		Object siAction = getAction(s, i);
+		return siAction == null ? (action == null) : siAction.equals(action);
 	}
 	
 	/**

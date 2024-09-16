@@ -3,7 +3,7 @@
 //	Copyright (c) 2013-
 //	Authors:
 //	* Ernst Moritz Hahn <emhahn@cs.ox.ac.uk> (University of Oxford)
-//	* Dave Parker <d.a.parker@cs.bham.ac.uk> (University of Birmingham)
+//	* Dave Parker <david.parker@cs.ox.ac.uk> (University of Birmingham/Oxford)
 //	
 //------------------------------------------------------------------------------
 //	
@@ -27,8 +27,7 @@
 
 package param;
 
-import java.util.HashMap;
-
+import parser.EvaluateContext;
 import parser.Values;
 import parser.ast.Expression;
 import parser.ast.ExpressionBinaryOp;
@@ -37,8 +36,13 @@ import parser.ast.ExpressionFunc;
 import parser.ast.ExpressionITE;
 import parser.ast.ExpressionLiteral;
 import parser.ast.ExpressionUnaryOp;
+import parser.type.TypeInt;
+import parser.visitor.ASTTraverse;
 import prism.PrismException;
 import prism.PrismLangException;
+import prism.PrismSettings;
+
+import java.util.HashMap;
 
 /**
  * Generates new functions, stores valid ranges of parameters, etc.
@@ -51,11 +55,42 @@ public abstract class FunctionFactory
 	protected BigRational[] lowerBounds;
 	/** upper bounds of parameters */
 	protected BigRational[] upperBounds;
-	/** maps variable name to index in {@code parameterNames},
-	 * {@code lowerBounds} and {@code upperBounds}
-	 */
+	/** maps variable name to index in {@code parameterNames}, @code lowerBounds} and {@code upperBounds} */
 	protected HashMap<String, Integer> varnameToInt;
-	
+	/** for expression evaluation (no constants need, just a convenient way to force exact evaluation */
+	protected EvaluateContext ec = EvaluateContext.create(EvaluateContext.EvalMode.EXACT);
+
+	/**
+	 * Create a FunctionFactory based on PRISM settings and parameter details.
+	 * @param paramNames names of parameters
+	 * @param lowerStr lower bounds of parameters as strings
+	 * @param upperStr upper bounds of parameters as strings
+	 * @param settings PRISM settings
+	 */
+	public static FunctionFactory create(String[] paramNames, String[] lowerStr, String[] upperStr, PrismSettings settings) throws PrismException
+	{
+		// Convert parameter info from strings to numbers
+		BigRational[] lower = new BigRational[lowerStr.length];
+		BigRational[] upper = new BigRational[upperStr.length];
+		for (int param = 0; param < lowerStr.length; param++) {
+			lower[param] = new BigRational(lowerStr[param]);
+			upper[param] = new BigRational(upperStr[param]);
+		}
+
+		// Create function factory
+		String functionType = settings.getString(PrismSettings.PRISM_PARAM_FUNCTION);
+		if (functionType.equals("JAS")) {
+			return new JasFunctionFactory(paramNames, lower, upper);
+		} else if (functionType.equals("JAS-cached")) {
+			return new CachedFunctionFactory(new JasFunctionFactory(paramNames, lower, upper));
+		} else if (functionType.equals("DAG")) {
+			double dagMaxError = settings.getDouble(PrismSettings.PRISM_PARAM_DAG_MAX_ERROR);
+			return new DagFunctionFactory(paramNames, lower, upper, dagMaxError, false);
+		} else {
+			throw new PrismException("Unknown function factory type \"" + functionType + "\"");
+		}
+	}
+
 	/**
 	 * Creates a new function factory.
 	 * {@code parameterNames}, {@code lowerBounds}, {@code upperBounds} all
@@ -191,7 +226,6 @@ public abstract class FunctionFactory
 	 * expression can be represented as a rational function. In this case
 	 * a {@code PrismException} will be thrown.
 	 * 
-	 * @param factory function factory used to construct function
 	 * @param expr PRISM expression to transform to rational function
 	 * @return rational function representing the given PRISM expression
 	 * @throws PrismException thrown if {@code expr} cannot be represented as rational function
@@ -208,7 +242,6 @@ public abstract class FunctionFactory
 	 * expression can be represented as a rational function. In this case
 	 * a {@code PrismException} will be thrown.
 	 * 
-	 * @param factory function factory used to construct function
 	 * @param expr PRISM expression to transform to rational function
 	 * @return rational function representing the given PRISM expression
 	 * @throws PrismException thrown if {@code expr} cannot be represented as rational function
@@ -233,17 +266,12 @@ public abstract class FunctionFactory
 			ExpressionBinaryOp binExpr = ((ExpressionBinaryOp) expr);
 			// power is handled differently due to some constraints
 			if (binExpr.getOperator() ==  ExpressionBinaryOp.POW) {
-				// power is supported if the exponent doesn't refer to
-				// parametric constants and can be exactly evaluated
-				try {
-					// non-parametric constants and state variable values have
-					// been already partially expanded, so if this evaluation
-					// succeeds there are no parametric constants involved
-					int exp = binExpr.getOperand2().evaluateInt();
+				// power is supported if the exponent is an integer and doesn't refer parametric constants
+				if (!containsParameter(binExpr.getOperand2(), constantValues) && binExpr.getOperand2().getType() instanceof TypeInt) {
+					int exp = binExpr.getOperand2().evaluateInt(ec);
 					Function f1 = expr2function(binExpr.getOperand1());
 					return f1.pow(exp);
-				} catch (PrismException e) {
-					// Most likely, a parametric constant occurred.
+				} else {
 					throw new PrismLangException("Cannot create rational function for expression " + expr, expr);
 				}
 			}
@@ -277,39 +305,52 @@ public abstract class FunctionFactory
 			ExpressionITE iteExpr = (ExpressionITE) expr;
 			// ITE expressions where the if-expression does not
 			// depend on a parametric constant are supported
-			if (iteExpr.getOperand1().isConstant()) {
-				try {
-					// non-parametric constants and state variable values have
-					// been already partially expanded, so if this evaluation
-					// succeeds there are no parametric constants involved
-					boolean ifValue = iteExpr.getOperand1().evaluateExact().toBoolean();
-					if (ifValue) {
-						return expr2function(iteExpr.getOperand2());
-					} else {
-						return expr2function(iteExpr.getOperand3());
-					}
-				} catch (PrismException e) {
-					// Most likely, a parametric constant occurred.
-					// Do nothing here, exception is thrown below
+			if (!containsParameter(iteExpr.getOperand1(), constantValues)) {
+				boolean ifValue = iteExpr.getOperand1().evaluateBoolean(ec);
+				if (ifValue) {
+					return expr2function(iteExpr.getOperand2());
+				} else {
+					return expr2function(iteExpr.getOperand3());
 				}
-			}
-			throw new PrismLangException("Cannot create rational function for expression " + expr, expr);
+			} else {
+				throw new PrismLangException("Cannot create rational function for expression " + expr, expr);
+				}
 		} else if (expr instanceof ExpressionFunc) {
 			// functions (min, max, floor, ...) are supported if
 			// they don't refer to parametric constants in their arguments
 			// and can be exactly evaluated
-			try {
-				// non-parametric constants and state variable values have
-				// been already partially expanded, so if this evaluation
-				// succeeds there are no parametric constants involved
-				BigRational value = expr.evaluateExact();
+			if (!containsParameter(expr, constantValues)) {
+				BigRational value = expr.evaluateBigRational(ec);
 				return fromBigRational(value);
-			} catch (PrismException e) {
-				// Most likely, a parametric constant occurred.
-				throw new PrismLangException("Cannot create rational function: " + e.getMessage(), expr);
+			} else {
+				throw new PrismLangException("Cannot create rational function for this function: " + expr, expr);
 			}
 		} else {
 			throw new PrismLangException("Cannot create rational function for expression " + expr, expr);
 		}
+	}
+
+	/**
+	 * Returns true if the expression contains a reference to a parameter,
+	 * i.e., an ExpressionConstant not in the provided constantValues list.
+	 */
+	private static boolean containsParameter(Expression expr, Values constantValues)
+	{
+		try {
+			// check for time bounds, don't recurse into P/R/SS subformulas
+			expr.accept(new ASTTraverse()
+			{
+				public void visitPre(ExpressionConstant e) throws PrismLangException
+				{
+					String exprString = ((ExpressionConstant) e).getName();
+					if (constantValues == null || !constantValues.contains(exprString)) {
+						throw new PrismLangException("Found one");
+					}
+				}
+			});
+		} catch (PrismLangException e) {
+			return true;
+		}
+		return false;
 	}
 }

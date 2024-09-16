@@ -2,7 +2,7 @@
 //	
 //	Copyright (c) 2013-
 //	Authors:
-//	* Dave Parker <david.parker@comlab.ox.ac.uk> (University of Oxford)
+//	* Dave Parker <david.parker@cs.ox.ac.uk> (University of Oxford)
 //	* Ernst Moritz Hahn <emhahn@cs.ox.ac.uk> (University of Oxford)
 //	
 //------------------------------------------------------------------------------

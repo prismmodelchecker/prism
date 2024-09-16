@@ -236,10 +236,38 @@ public interface Evaluator<Value>
 	/**
 	 * Create an evaluator for intervals of the {@code Value} object.
 	 */
-	public default Evaluator<Interval<Value>> createIntervalEvaluator()
+	public default Evaluator<Interval<Value>> createIntervalEvaluator() throws PrismException
 	{
 		// Not supported by default
-		throw new UnsupportedOperationException("Intervals not supported for " + evalMode());
+		throw new PrismException("Intervals not supported for " + evalMode());
+	}
+
+	// Utility functions
+
+	/**
+	 * Compute the sum of a list of values.
+	 * By default, this is done using {@link #zero()} and {@link #add(Object, Object)}.
+	 */
+	public default Value sum(Iterable<Value> values)
+	{
+		Value sum = zero();
+		for (Value value : values) {
+			sum = add(sum, value);
+		}
+		return sum;
+	}
+
+	/**
+	 * Compute the product of a list of values.
+	 * By default, this is done using {@link #one()} and {@link #multiply(Object, Object)}.
+	 */
+	public default Value product(Iterable<Value> values)
+	{
+		Value prod = one();
+		for (Value value : values) {
+			prod = multiply(prod, value);
+		}
+		return prod;
 	}
 
 	// Evaluator for doubles
@@ -523,6 +551,14 @@ public interface Evaluator<Value>
 		public EvaluatorFunction(FunctionFactory functionFactory)
 		{
 			this.functionFactory = functionFactory;
+		}
+
+		/**
+		 * Get the FunctionFactory used for manipulating Function objects.
+		 */
+		public FunctionFactory getFunctionFactory()
+		{
+			return functionFactory;
 		}
 
 		@Override

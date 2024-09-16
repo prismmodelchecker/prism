@@ -35,6 +35,7 @@ import java.util.Map;
 import java.util.Set;
 
 import common.IterableStateSet;
+import io.ModelExportOptions;
 import parser.State;
 import parser.Values;
 import parser.VarList;
@@ -244,7 +245,7 @@ public class SubNondetModel<Value> implements NondetModel<Value>
 	}
 
 	@Override
-	public void exportStates(int exportType, VarList varList, PrismLog log) throws PrismException
+	public void exportStates(VarList varList, PrismLog out, ModelExportOptions exportOptions) throws PrismException
 	{
 		throw new UnsupportedOperationException();
 	}

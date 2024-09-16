@@ -753,7 +753,7 @@ public class ProbModelChecker extends NonProbModelChecker
 			throw new PrismNotSupportedException("Cannot model check " + expr + " for " + model.getModelType() + "s");
 		}
 		result.setStrategy(res.strat);
-		return StateValues.createFromDoubleArrayResult(res, model);
+		return StateValues.createFromArrayResult(res, model);
 	}
 
 	/**
@@ -815,7 +815,7 @@ public class ProbModelChecker extends NonProbModelChecker
 				throw new PrismException("Cannot model check " + expr + " for " + model.getModelType() + "s");
 			}
 			result.setStrategy(res.strat);
-			sv = StateValues.createFromDoubleArrayResult(res, model);
+			sv = StateValues.createFromArrayResult(res, model);
 		} else if (windowSize == 0) {
 			// A trivial case: windowSize=0 (prob is 1 in target states, 0 otherwise)
 			sv = StateValues.createFromBitSetAsDoubles(target, model);
@@ -843,7 +843,7 @@ public class ProbModelChecker extends NonProbModelChecker
 				throw new PrismNotSupportedException("Cannot model check " + expr + " for " + model.getModelType() + "s");
 			}
 			result.setStrategy(res.strat);
-			sv = StateValues.createFromDoubleArrayResult(res, model);
+			sv = StateValues.createFromArrayResult(res, model);
 		}
 
 		// perform lowerBound restricted next-step computations to
@@ -912,7 +912,7 @@ public class ProbModelChecker extends NonProbModelChecker
 			throw new PrismNotSupportedException("Cannot model check " + expr + " for " + model.getModelType() + "s");
 		}
 		result.setStrategy(res.strat);
-		return StateValues.createFromDoubleArrayResult(res, model);
+		return StateValues.createFromArrayResult(res, model);
 	}
 
 	/**
@@ -955,7 +955,7 @@ public class ProbModelChecker extends NonProbModelChecker
 		// Build rewards
 		int r = expr.getRewardStructIndexByIndexObject(rewardGen, constantValues);
 		mainLog.println("Building reward structure...");
-		Rewards<?> rewards = constructRewards(model, r);
+		Rewards<?> rewards = Expression.usesInstantaneousReward(expr.getExpression()) ? constructRewards(model, r) : constructExpectedRewards(model, r);
 
 		// Compute rewards
 		StateValues rews = checkRewardFormula(model, rewards, expr.getExpression(), minMax, statesOfInterest);
@@ -971,33 +971,6 @@ public class ProbModelChecker extends NonProbModelChecker
 			rews.applyPredicate(v -> opInfo.apply((double) v, rews.getAccuracy()));
 		}
 		return rews;
-	}
-
-	/**
-	 * Construct rewards for the reward structure with index r of the reward generator and a model.
-	 * Ensures non-negative rewards.
-	 * <br>
-	 * Note: Relies on the stored RewardGenerator for constructing the reward structure.
-	 */
-	protected <Value> Rewards<Value> constructRewards(Model<Value> model, int r) throws PrismException
-	{
-		return constructRewards(model, r, false);
-	}
-
-	/**
-	 * Construct rewards for the reward structure with index r of the reward generator and a model.
-	 * <br>
-	 * If {@code allowNegativeRewards} is true, the rewards may be positive and negative, i.e., weights.
-	 * <br>
-	 * Note: Relies on the stored RewardGenerator for constructing the reward structure.
-	 */
-	@SuppressWarnings("unchecked")
-	protected <Value> Rewards<Value> constructRewards(Model<Value> model, int r, boolean allowNegativeRewards) throws PrismException
-	{
-		ConstructRewards constructRewards = new ConstructRewards(this);
-		if (allowNegativeRewards)
-			constructRewards.allowNegativeRewards();
-		return constructRewards.buildRewardStructure(model, (RewardGenerator<Value>) rewardGen, r);
 	}
 
 	/**
@@ -1065,7 +1038,7 @@ public class ProbModelChecker extends NonProbModelChecker
 					+ "s");
 		}
 		result.setStrategy(res.strat);
-		return StateValues.createFromDoubleArrayResult(res, model);
+		return StateValues.createFromArrayResult(res, model);
 	}
 
 	/**
@@ -1119,7 +1092,7 @@ public class ProbModelChecker extends NonProbModelChecker
 					+ "s");
 		}
 		result.setStrategy(res.strat);
-		return StateValues.createFromDoubleArrayResult(res, model);
+		return StateValues.createFromArrayResult(res, model);
 	}
 
 	/**
@@ -1150,7 +1123,7 @@ public class ProbModelChecker extends NonProbModelChecker
 					+ "s");
 		}
 		result.setStrategy(res.strat);
-		return StateValues.createFromDoubleArrayResult(res, model);
+		return StateValues.createFromArrayResult(res, model);
 	}
 
 	/**
@@ -1172,7 +1145,7 @@ public class ProbModelChecker extends NonProbModelChecker
 			throw new PrismNotSupportedException("Explicit engine does not yet handle the steady-state reward operator for " + model.getModelType() + "s");
 		}
 		result.setStrategy(res.strat);
-		return StateValues.createFromDoubleArrayResult(res, model);
+		return StateValues.createFromArrayResult(res, model);
 	}
 
 	/**
@@ -1232,7 +1205,7 @@ public class ProbModelChecker extends NonProbModelChecker
 					+ "s");
 		}
 		result.setStrategy(res.strat);
-		return StateValues.createFromDoubleArrayResult(res, model);
+		return StateValues.createFromArrayResult(res, model);
 	}
 
 	/**
@@ -1322,230 +1295,5 @@ public class ProbModelChecker extends NonProbModelChecker
 			double pInit = 1.0 / numInitStates;
 			return StateValues.create(TypeDouble.getInstance(), s -> model.isInitialState(s) ? pInit : 0.0, model);
 		}
-	}
-
-
-	/**
-	 * Export (non-zero) state rewards for one reward structure of a model.
-	 * @param model The model
-	 * @param r Index of reward structure to export (0-indexed)
-	 * @param exportType The format in which to export
-	 * @param out Where to export
-	 */
-	public <Value> void exportStateRewardsToFile(Model<Value> model, int r, int exportType, PrismLog out) throws PrismException
-	{
-		exportStateRewardsToFile(model, r, exportType, out, false, DEFAULT_EXPORT_MODEL_PRECISION);
-	}
-
-	/**
-	 * Export (non-zero) state rewards for one reward structure of a model.
-	 * @param model The model
-	 * @param r Index of reward structure to export (0-indexed)
-	 * @param exportType The format in which to export
-	 * @param out Where to export
-	 * @param precision number of significant digits >= 1
-	 * @param noexportheaders disables export headers for srew files
-	 */
-	public <Value> void exportStateRewardsToFile(Model<Value> model, int r, int exportType, PrismLog out, boolean noexportheaders, int precision) throws PrismException
-	{
-		if (exportType != Prism.EXPORT_PLAIN) {
-			throw new PrismNotSupportedException("Exporting state rewards in the requested format is currently not supported by the explicit engine");
-		}
-
-		Rewards<Value> modelRewards = constructRewards(model, r);
-		switch (model.getModelType()) {
-		case DTMC:
-		case CTMC:
-		case IDTMC:
-			exportMCStateRewardsToFile(model, (MCRewards<Value>) modelRewards, r, exportType, out, noexportheaders, precision);
-			break;
-		case MDP:
-		case POMDP:
-		case STPG:
-		case IMDP:
-			exportMDPStateRewardsToFile(model, (MDPRewards<Value>) modelRewards, r, exportType, out, noexportheaders, precision);
-			break;
-		default:
-			throw new PrismNotSupportedException("Explicit engine does not yet export state rewards for " + model.getModelType() + "s");
-		}
-	}
-
-	/**
-	 * Export (non-zero) state rewards from an MCRewards object.
-	 * @param model The model
-	 * @param mcRewards The rewards
-	 * @param exportType The format in which to export
-	 * @param out Where to export
-	 * @param precision number of significant digits >= 1
-	 */
-	protected <Value> void exportMCStateRewardsToFile(Model<Value> model, MCRewards<Value> mcRewards, int r, int exportType, PrismLog out, boolean noexportheaders, int precision) throws PrismException
-	{
-		int numStates = model.getNumStates();
-		int nonZeroRews = 0;
-		Evaluator<Value> eval = mcRewards.getEvaluator();
-		for (int s = 0; s < numStates; s++) {
-			Value d = mcRewards.getStateReward(s);
-			if (!eval.isZero(d)) {
-				nonZeroRews++;
-			}
-		}
-		printStateRewardsHeader(r, out, noexportheaders);
-		out.println(numStates + " " + nonZeroRews);
-		for (int s = 0; s < numStates; s++) {
-			Value d = mcRewards.getStateReward(s);
-			if (!eval.isZero(d)) {
-				out.println(s + " " + eval.toStringExport(d, precision));
-			}
-		}
-	}
-	
-	/**
-	 * Export (non-zero) state rewards from an MDPRewards object.
-	 * @param model The model
-	 * @param mdpRewards The rewards
-	 * @param exportType The format in which to export
-	 * @param out Where to export
-	 * @param precision number of significant digits >= 1
-	 */
-	public <Value> void exportMDPStateRewardsToFile(Model<Value> model, MDPRewards<Value> mdpRewards, int r, int exportType, PrismLog out, boolean noexportheaders, int precision) throws PrismException
-	{
-		int numStates = model.getNumStates();
-		int nonZeroRews = 0;
-		Evaluator<Value> eval = mdpRewards.getEvaluator();
-		for (int s = 0; s < numStates; s++) {
-			Value d = mdpRewards.getStateReward(s);
-			if (!eval.isZero(d)) {
-				nonZeroRews++;
-			}
-		}
-		printStateRewardsHeader(r, out, noexportheaders);
-		out.println(numStates + " " + nonZeroRews);
-		for (int s = 0; s < numStates; s++) {
-			Value d = mdpRewards.getStateReward(s);
-			if (!eval.isZero(d)) {
-				out.println(s + " " + eval.toStringExport(d, precision));
-			}
-		}
-	}
-	
-	/**
-	 * Print header to srew file, when not disabled.
-	 * Header format with optional reward struct name:
-	 * <pre>
-	 *   # Reward structure &lt;double-quoted-name&gt;
-	 *   # State rewards
-	 * </pre>
-	 * where &lt;double-quoted-name&gt; ("<name>") is omitted if the reward structure is not named.
-	 *
-	 * @param r index of the reward structure
-	 * @param out print target
-	 * @param noexportheaders disable export of the header
-	 */
-	protected void printStateRewardsHeader(int r, PrismLog out, boolean noexportheaders)
-	{
-		if (noexportheaders) {
-			return;
-		}
-		String rewardStructName = rewardGen.getRewardStructName(r);
-		out.print("# Reward structure");
-		if (!"".equals(rewardStructName)) {
-			out.print(" \"" + rewardStructName + "\"");
-		}
-		out.println("\n# State rewards");
-	}
-
-	/**
-	 * Export (non-zero) transition rewards for one reward structure of a model.
-	 * @param model The model
-	 * @param r Index of reward structure to export (0-indexed)
-	 * @param exportType The format in which to export
-	 * @param out Where to export
-	 * @param precision number of significant digits >= 1
-	 * @param noexportheaders disables export headers for srew files
-	 */
-
-	public <Value> void exportTransRewardsToFile(Model<Value> model, int r, int exportType, PrismLog out, boolean noexportheaders, int precision) throws PrismException
-	{
-		if (exportType != Prism.EXPORT_PLAIN) {
-			throw new PrismNotSupportedException("Exporting state rewards in the requested format is currently not supported by the explicit engine");
-		}
-
-		Rewards<Value> modelRewards = constructRewards(model, r);
-		switch (model.getModelType()) {
-			case MDP:
-			case POMDP:
-			case STPG:
-			case IMDP:
-				exportMDPTransRewardsToFile((NondetModel<Value>) model, (MDPRewards<Value>) modelRewards, r, exportType, out, noexportheaders, precision);
-				break;
-			default:
-				throw new PrismNotSupportedException("Explicit engine does not yet export transition rewards for " + model.getModelType() + "s");
-		}
-	}
-
-	/**
-	 * Export (non-zero) transition rewards from an MDPRewards object.
-	 * @param model The model
-	 * @param mdpRewards The rewards
-	 * @param exportType The format in which to export
-	 * @param out Where to export
-	 * @param precision number of significant digits >= 1
-	 */
-	public <Value> void exportMDPTransRewardsToFile(NondetModel<Value> model, MDPRewards<Value> mdpRewards, int r, int exportType, PrismLog out, boolean noexportheaders, int precision) throws PrismException
-	{
-		int numStates = model.getNumStates();
-		int numChoicesAll = model.getNumChoices();
-		int nonZeroRews = 0;
-		Evaluator<Value> eval = mdpRewards.getEvaluator();
-		for (int s = 0; s < numStates; s++) {
-			int numChoices = model.getNumChoices();
-			for (int i = 0; i < numChoices; i++) {
-				Value d = mdpRewards.getTransitionReward(s, i);
-				if (!eval.isZero(d)) {
-					nonZeroRews += model.getNumTransitions(s, i);;
-				}
-			}
-		}
-		printTransRewardsHeader(r, out, noexportheaders);
-		out.println(numStates + " " + numChoicesAll + " " + nonZeroRews);
-		for (int s = 0; s < numStates; s++) {
-			int numChoices = model.getNumChoices();
-			for (int i = 0; i < numChoices; i++) {
-				Value d = mdpRewards.getTransitionReward(s, i);
-				if (!eval.isZero(d)) {
-					int numTransitions = model.getNumTransitions(s, i);
-					for (SuccessorsIterator succ = model.getSuccessors(s, i); succ.hasNext();) {
-						int j = succ.nextInt();
-						out.println(s + " " + i + " " + j + " " + eval.toStringExport(d, precision));
-					}
-				}
-			}
-		}
-	}
-
-	/**
-	 * Print header to trew file, when not disabled.
-	 * Header format with optional reward struct name:
-	 * <pre>
-	 *   # Reward structure &lt;double-quoted-name&gt;
-	 *   # State rewards
-	 * </pre>
-	 * where &lt;double-quoted-name&gt; ("<name>") is omitted if the reward structure is not named.
-	 *
-	 * @param r index of the reward structure
-	 * @param out print target
-	 * @param noexportheaders disable export of the header
-	 */
-	protected void printTransRewardsHeader(int r, PrismLog out, boolean noexportheaders)
-	{
-		if (noexportheaders) {
-			return;
-		}
-		String rewardStructName = rewardGen.getRewardStructName(r);
-		out.print("# Reward structure");
-		if (!"".equals(rewardStructName)) {
-			out.print(" \"" + rewardStructName + "\"");
-		}
-		out.println("\n# Transition rewards");
 	}
 }

@@ -28,11 +28,13 @@ package explicit;
 
 import java.util.ArrayList;
 import java.util.BitSet;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.function.IntPredicate;
 
+import prism.PrismException;
 import prism.PrismLog;
 import strat.MDStrategy;
 
@@ -137,7 +139,60 @@ public interface NondetModel<Value> extends Model<Value>
 		}
 		return true;
 	}
-	
+
+	/**
+	 * Check that the available actions and their ordering
+	 * in states {@code s1} and {@copde s2} match, and throw an exception if not.
+	 */
+	public default void checkActionsMatchExactly(int s1, int s2) throws PrismException
+	{
+		int numChoices = getNumChoices(s1);
+		if (numChoices != getNumChoices(s2)) {
+			throw new PrismException("Differing actions found in states: " + getAvailableActions(s1) + " vs. " + getAvailableActions(s2));
+		}
+		for (int i = 0; i < numChoices; i++) {
+			Object action1 = getAction(s1, i);
+			Object action2 = getAction(s2, i);
+			if (action1 == null) {
+				if (action2 != null) {
+					throw new PrismException("Differing actions found in states: " + getAvailableActions(s1) + " vs. " + getAvailableActions(s2));
+				}
+			} else {
+				if (!action1.equals(action2)) {
+					throw new PrismException("Differing actions found in states: " + getAvailableActions(s1) + " vs. " + getAvailableActions(s2));
+				}
+			}
+		}
+	}
+
+	/**
+	 * Check that the *sets* of available actions in states {@code s1} and {@copde s2} match,
+	 * and throw an exception if not.
+	 */
+	public default void checkActionsMatch(int s1, int s2) throws PrismException
+	{
+		// Get and sort action strings for s1
+		List<String> s1Actions = new ArrayList<>();
+		int numChoices = getNumChoices(s1);
+		for (int i = 0; i < numChoices; i++) {
+			Object action = getAction(s1, i);
+			s1Actions.add(action == null ? "" : action.toString());
+		}
+		Collections.sort(s1Actions);
+		// Get and sort action strings for s2
+		List<String> s2Actions = new ArrayList<>();
+		numChoices = getNumChoices(s2);
+		for (int i = 0; i < numChoices; i++) {
+			Object action = getAction(s2, i);
+			s2Actions.add(action == null ? "" : action.toString());
+		}
+		Collections.sort(s2Actions);
+		// Check match
+		if (!(s1Actions.equals(s2Actions))) {
+			throw new PrismException("Differing actions found in states: " + s1Actions + " vs. " + s2Actions);
+		}
+	}
+
 	/**
 	 * Get the number of transitions from choice {@code i} of state {@code s}.
 	 */

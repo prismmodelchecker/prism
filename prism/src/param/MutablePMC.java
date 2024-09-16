@@ -96,7 +96,7 @@ final class MutablePMC {
 		if (useTime) {
 			times = new Function[numStates];
 			for (int i = 0; i < numStates; i++) {
-				times[i] = functionFactory.getZero();
+				times[i] = functionFactory.getOne();
 			}
 		}
 	}

@@ -27,13 +27,11 @@
 
 package explicit.rewards;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import explicit.Model;
-import explicit.Product;
-
-public class STPGRewardsSimple<Value> extends MDPRewardsSimple<Value> implements STPGRewards<Value>
+/**
+ * Simple explicit-state storage of rewards for an STPG.
+ * This is no longer needed - just use {@link RewardsSimple}.
+ */
+public class STPGRewardsSimple<Value> extends RewardsSimple<Value>
 {
 	/**
 	 * Constructor: all zero rewards.
@@ -51,42 +49,5 @@ public class STPGRewardsSimple<Value> extends MDPRewardsSimple<Value> implements
 	public STPGRewardsSimple(MDPRewardsSimple<Value> rews)
 	{
 		super(rews);
-	}
-
-	// Converters
-	
-	@Override
-	public STPGRewards<Value> liftFromModel(Product<?> product)
-	{
-		// Same as for MDPRewardsSimple, but more efficient than calling that code and then copying
-		Model<?> modelProd = product.getProductModel();
-		int numStatesProd = modelProd.getNumStates();
-		STPGRewardsSimple<Value> rewardsProd = new STPGRewardsSimple<>(numStatesProd);
-		rewardsProd.setEvaluator(getEvaluator());
-		if (stateRewards != null) {
-			for (int s = 0; s < numStatesProd; s++) {
-				rewardsProd.setStateReward(s, stateRewards.get(product.getModelState(s)));
-			}
-		}
-		if (transRewards != null) {
-			for (int s = 0; s < numStatesProd; s++) {
-				List<Value> list = transRewards.get(product.getModelState(s));
-				if (list != null) {
-					int numChoices = list.size();
-					for (int i = 0; i < numChoices; i++) {
-						rewardsProd.setTransitionReward(s, i, list.get(i));
-					}
-				}
-			}
-		}
-		return rewardsProd;
-	}
-	
-	// Other
-
-	@Override
-	public MDPRewards<Value> buildMDPRewards()
-	{
-		return new MDPRewardsSimple<>(this);
 	}
 }

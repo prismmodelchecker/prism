@@ -33,6 +33,7 @@ import java.util.regex.Pattern;
 
 import param.BigRational;
 import param.ParamResult;
+import parser.EvaluateContext;
 import parser.Values;
 import parser.ast.ConstantList;
 import parser.ast.Expression;
@@ -402,7 +403,7 @@ public class ResultTesting
 		}
 		// If not, could be an expression
 		catch (NumberFormatException e) {
-			rationalExp = parseExpectedResultString(strExpected, constValues).evaluateExact(constValues);
+			rationalExp = parseExpectedResultString(strExpected, constValues).evaluateBigRational(EvaluateContext.create(constValues, EvaluateContext.EvalMode.EXACT));
 		}
 		// Check result
 		if (!rationalRes.equals(rationalExp)) {

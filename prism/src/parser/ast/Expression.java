@@ -562,6 +562,16 @@ public abstract class Expression extends ASTElement
 	}
 
 	/**
+	 * Evaluate this expression as a BigRational.
+	 * This assumes that the type of the expression is (or can be cast to) double..
+	 * Basically casts the result to a BigRational, checking for any type errors.
+	 */
+	public BigRational evaluateBigRational(EvaluateContext ec) throws PrismLangException
+	{
+		return (BigRational) TypeDouble.getInstance().castValueTo(evaluate(ec), EvalMode.EXACT);
+	}
+
+	/**
 	 * Evaluate this expression as a boolean.
 	 * This assumes that the type of the expression is bool.
 	 * Basically casts the result to a boolean, checking for any type errors.
@@ -960,7 +970,20 @@ public abstract class Expression extends ASTElement
 		}
 		return false;
 	}
-	
+
+	/**
+	 * Test if an expression is a reward operator using instantaneous rewards only.
+	 */
+	public static boolean usesInstantaneousReward(Expression expr)
+	{
+		if (expr instanceof ExpressionTemporal) {
+			if (((ExpressionTemporal) expr).getOperator() == ExpressionTemporal.R_I) {
+				return true;
+			}
+		}
+		return false;
+	}
+
 	/**
 	 * Test if an expression contains a minimum expected reward operator. 
 	 * Actually, this returns true if there is an R operator with "min=?" or a lower bound attached to it,

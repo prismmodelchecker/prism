@@ -27,10 +27,12 @@
 package explicit;
 
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 
 import common.Interval;
 import prism.Evaluator;
+import prism.PrismException;
 
 /**
  * Various utility methods for working with intervals
@@ -63,7 +65,7 @@ public class IntervalUtils
 	}
 	
 	/**
-	 * Delimit a distribution with over intervals of probabilities, i.e., trim the bounds of the
+	 * Delimit a distribution with intervals of probabilities, i.e., trim the bounds of the
 	 * intervals such that at least one possible distribution takes each of the extremal values.
 	 * The Distribution is modified directly.
 	 * @param distr The distribution to delimit
@@ -95,7 +97,40 @@ public class IntervalUtils
 			}
 		}
 	}
-	
+
+	/**
+	 * Delimit a distribution with intervals of probabilities, i.e., trim the bounds of the
+	 * intervals such that at least one possible distribution takes each of the extremal values.
+	 * The intervals (passed in a List) are modified directly.
+	 * @param distr The distribution to delimit
+	 * @param eval An evaluator for the interval's child type (Value)
+	 */
+	public static <Value> void delimit(List<Interval<Value>> distr, Evaluator<Value> eval) throws PrismException
+	{
+		// Compute 1 minus the sum of all bounds
+		Evaluator<Interval<Value>> evalInt = eval.createIntervalEvaluator();
+		Interval<Value> oneMinusSum = evalInt.subtract(evalInt.one(), evalInt.sum(distr));
+		Value oneMinusSumLower = oneMinusSum.getLower();
+		Value oneMinusSumUpper = oneMinusSum.getUpper();
+		// For each interval
+		int size = distr.size();
+		for (int i = 0; i < size; i++) {
+			Interval<Value> ival = distr.get(i);
+			Value lower = ival.getLower();
+			Value upper = ival.getUpper();
+			// Adjust lower bound if needed
+			Value upperTight = eval.add(oneMinusSumUpper, upper);
+			if (eval.gt(upperTight, lower)) {
+				ival.setLower(upperTight);
+			}
+			// Adjust upper bound if needed
+			Value lowerTight = eval.add(oneMinusSumLower, lower);
+			if (eval.gt(upper, lowerTight)) {
+				ival.setUpper(lowerTight);
+			}
+		}
+	}
+
 	/**
 	 * Delimit a distribution with over double-valued intervals of probabilities, i.e., trim the bounds of the
 	 * intervals such that at least one possible distribution takes each of the extremal values.

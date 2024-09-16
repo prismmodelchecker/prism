@@ -75,7 +75,7 @@ public class IDTMCModelChecker extends ProbModelChecker
 		IDTMCModelChecker mcProduct = new IDTMCModelChecker(this);
 		mcProduct.inheritSettings(this);
 		ModelCheckerResult res = mcProduct.computeReachProbs(product.getProductModel(), acc, minMax);
-		StateValues probsProduct = StateValues.createFromDoubleArrayResult(res, product.getProductModel());
+		StateValues probsProduct = StateValues.createFromArrayResult(res, product.getProductModel());
 
 		// Output vector over product, if required
 		if (getExportProductVector()) {
@@ -108,7 +108,7 @@ public class IDTMCModelChecker extends ProbModelChecker
 		IDTMCModelChecker mcProduct = new IDTMCModelChecker(this);
 		mcProduct.inheritSettings(this);
 		ModelCheckerResult res = mcProduct.computeReachRewards(product.getProductModel(), productRewards, acc, minMax);
-		StateValues rewardsProduct = StateValues.createFromDoubleArrayResult(res, product.getProductModel());
+		StateValues rewardsProduct = StateValues.createFromArrayResult(res, product.getProductModel());
 		
 		// Output vector over product, if required
 		if (getExportProductVector()) {

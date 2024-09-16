@@ -64,103 +64,31 @@ public interface DTMC<Value> extends Model<Value>
 	}
 
 	@Override
-	default void exportToPrismExplicitTra(PrismLog out, int precision)
-	{
-		// Output transitions to .tra file
-		int numStates = getNumStates();
-		out.print(numStates + " " + getNumTransitions() + "\n");
-		TreeMap<Integer, Pair<Value, Object>> sorted = new TreeMap<Integer, Pair<Value, Object>>();
-		for (int i = 0; i < numStates; i++) {
-			// Extract transitions and sort by destination state index (to match PRISM-exported files)
-			Iterator<Map.Entry<Integer,Pair<Value, Object>>> iter = getTransitionsAndActionsIterator(i);
-			while (iter.hasNext()) {
-				Map.Entry<Integer, Pair<Value, Object>> e = iter.next();
-				sorted.put(e.getKey(), e.getValue());
-			}
-			// Print out (sorted) transitions
-			for (Map.Entry<Integer, Pair<Value, Object>> e : sorted.entrySet()) {
-				out.print(i + " " + e.getKey() + " " + getEvaluator().toStringExport(e.getValue().first, precision));
-				Object action = e.getValue().second; 
-				if (action != null && !"".equals(action)) {
-					out.print(" " + action);
-				}
-				out.print("\n");
-			}
-			sorted.clear();
-		}
-	}
-
-	@Override
-	default void exportTransitionsToDotFile(int i, PrismLog out, Iterable<explicit.graphviz.Decorator> decorators, int precision)
-	{
-		// Iterate through outgoing transitions for this state
-		Iterator<Map.Entry<Integer, Value>> iter = getTransitionsIterator(i);
-		while (iter.hasNext()) {
-			Map.Entry<Integer, Value> e = iter.next();
-			// Print a new dot file line for the arrow for this transition
-			out.print(i + " -> " + e.getKey());
-			// Annotate this arrow with the probability 
-			explicit.graphviz.Decoration d = new explicit.graphviz.Decoration();
-			d.setLabel(getEvaluator().toStringExport(e.getValue(), precision));
-			// Apply any other decorators requested
-			if (decorators != null) {
-				for (Decorator decorator : decorators) {
-					d = decorator.decorateProbability(i, e.getKey(), e.getValue(), d);
-				}
-			}
-			// Append to the dot file line for this transition
-			out.println(" " + d.toString() + ";");
-		}
-	}
-
-	@Override
 	default void exportToPrismLanguage(final String filename, int precision) throws PrismException
 	{
 		try (FileWriter out = new FileWriter(filename)) {
 			out.write(getModelType().keyword() + "\n");
 			out.write("module M\nx : [0.." + (getNumStates() - 1) + "];\n");
-			final TreeMap<Integer, Value> sorted = new TreeMap<Integer, Value>();
+			final TreeMap<Integer, Pair<Value, Object>> sorted = new TreeMap<>();
 			for (int state = 0, max = getNumStates(); state < max; state++) {
 				// Extract transitions and sort by destination state index (to match PRISM-exported files)
-				for (Iterator<Entry<Integer, Value>> transitions = getTransitionsIterator(state); transitions.hasNext();) {
-					final Entry<Integer, Value> transition = transitions.next();
+				for (Iterator<Entry<Integer, Pair<Value, Object>>> transitions = getTransitionsAndActionsIterator(state); transitions.hasNext();) {
+					final Entry<Integer, Pair<Value, Object>> transition = transitions.next();
 					sorted.put(transition.getKey(), transition.getValue());
 				}
 				// Print out (sorted) transitions
-				out.write("[]x=" + state + "->");
-				boolean first = true;
-				for (Entry<Integer, Value> transition : sorted.entrySet()) {
-					if (first)
-						first = false;
-					else
-						out.write("+");
-					out.write(getEvaluator().toStringPrism(transition.getValue(), precision) + ":(x'=" + transition.getKey() + ")");
+				for (Entry<Integer, Pair<Value, Object>> transition : sorted.entrySet()) {
+					String action = transition.getValue().second == null ? "" : transition.getValue().second.toString();
+					out.write("[" + action + "]x=" + state + "->");
+					out.write(getEvaluator().toStringPrism(transition.getValue().first, precision) + ":(x'=" + transition.getKey() + ")");
+					out.write(";\n");
 				}
-				out.write(";\n");
 				sorted.clear();
 			}
 			out.write("endmodule\n");
 		} catch (IOException e) {
 			throw new PrismException("Could not export " + getModelType() + " to file \"" + filename + "\"" + e);
 		}
-	}
-
-	@Override
-	default String infoString()
-	{
-		String s = "";
-		s += getNumStates() + " states (" + getNumInitialStates() + " initial)";
-		s += ", " + getNumTransitions() + " transitions";
-		return s;
-	}
-
-	@Override
-	default String infoStringTable()
-	{
-		String s = "";
-		s += "States:      " + getNumStates() + " (" + getNumInitialStates() + " initial)\n";
-		s += "Transitions: " + getNumTransitions() + "\n";
-		return s;
 	}
 
 	// Accessors

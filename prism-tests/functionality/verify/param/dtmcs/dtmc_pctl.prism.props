@@ -1,0 +1,20 @@
+// RESULT: -p/(2*p-4)
+P=? [ F s=2 ];
+
+// RESULT: -p/(p-2)
+P=? [ F s=2|s=4 ];
+
+// RESULT: 0
+P=? [ G s<2 ];
+
+// RESULT: 1-p
+P=? [ s!=1 U s=3 ];
+
+// RESULT: -23*p/(4*p-8)
+R{"r"}=? [ S ];
+
+// RESULT: -23*p/(4*p-8)
+R{"r2"}=? [ S ];
+
+// RESULT: (-2*p-2)/(p-2)
+R{"time"}=? [ F s>1 ];

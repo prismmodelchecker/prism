@@ -26,7 +26,6 @@
 
 package explicit.rewards;
 
-import explicit.Model;
 import explicit.Product;
 import prism.Evaluator;
 
@@ -41,15 +40,28 @@ public class MCRewardsFromMDPRewards<Value> extends RewardsExplicit<Value> imple
 	// MDP rewards
 	protected MDPRewards<Value> mdpRewards;
 	// Strategy (array of choice indices; -1 denotes no choice)
-	protected int strat[];
+	protected int[] strat;
 
 	/**
 	 * Constructor: create from MDP rewards and memoryless adversary.
 	 */
-	public MCRewardsFromMDPRewards(MDPRewards<Value> mdpRewards, int strat[])
+	public MCRewardsFromMDPRewards(MDPRewards<Value> mdpRewards, int[] strat)
 	{
 		this.mdpRewards = mdpRewards;
 		this.strat = strat;
+	}
+
+	@Override
+	public Evaluator<Value> getEvaluator()
+	{
+		return mdpRewards.getEvaluator();
+	}
+
+	@Override
+	public boolean hasTransitionRewards()
+	{
+		// Only state rewards
+		return false;
 	}
 
 	@Override
@@ -61,21 +73,8 @@ public class MCRewardsFromMDPRewards<Value> extends RewardsExplicit<Value> imple
 	}
 
 	@Override
-	public Evaluator<Value> getEvaluator()
-	{
-		return mdpRewards.getEvaluator();
-	}
-
-	@Override
-	public MCRewards<Value> liftFromModel(Product<?> product)
+	public MCRewardsFromMDPRewards<Value> liftFromModel(Product<?> product)
 	{
 		throw new UnsupportedOperationException();
-	}
-
-	@Override
-	public boolean hasTransitionRewards()
-	{
-		// only state rewards
-		return false;
 	}
 }

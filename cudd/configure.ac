@@ -131,7 +131,7 @@ AC_MSG_CHECKING([for +Infinity (IEEE 754 floating point)])
 AC_CACHE_VAL(ac_cv_have_ieee_754,
 [ AC_TRY_RUN([
 #include <math.h>
-main(void)
+int main(void)
 {
     if (HUGE_VAL != HUGE_VAL * 3 || HUGE_VAL != HUGE_VAL / 3) return 1;
     return 0;

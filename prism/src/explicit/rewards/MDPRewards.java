@@ -26,24 +26,14 @@
 
 package explicit.rewards;
 
-import explicit.Model;
 import explicit.Product;
 
 /**
  * Classes that provide (read) access to explicit-state rewards for an MDP.
+ * This is no longer needed - just use {@link Rewards}.
  */
 public interface MDPRewards<Value> extends Rewards<Value>
 {
-	/**
-	 * Get the state reward for state {@code s}.
-	 */
-	public abstract Value getStateReward(int s);
-
-	/**
-	 * Get the transition reward for the {@code i}th choice from state {@code s}.
-	 */
-	public abstract Value getTransitionReward(int s, int i);
-
 	@Override
-	public MDPRewards<Value> liftFromModel(Product<?> product);
+	MDPRewards<Value> liftFromModel(Product<?> product);
 }

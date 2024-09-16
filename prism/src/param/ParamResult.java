@@ -2,7 +2,7 @@
 //	
 //	Copyright (c) 2016-
 //	Authors:
-//	* Dave Parker <d.a.parker@cs.bham.ac.uk> (University of Birmingham/Oxford)
+//	* Dave Parker <david.parker@cs.ox.ac.uk> (University of Birmingham/Oxford)
 //	* Joachim Klein <klein@tcs.inf.tu-dresden.de> (TU Dresden)
 //	
 //------------------------------------------------------------------------------
@@ -31,6 +31,7 @@ package param;
 import java.util.Collections;
 import java.util.List;
 
+import parser.EvaluateContext;
 import parser.Values;
 import parser.ast.Expression;
 import parser.ast.ExpressionLiteral;
@@ -44,7 +45,7 @@ import prism.PrismNotSupportedException;
 
 /**
  * Stores the result of a ParamModelChecker run (a RegionValues object)
- * as well as additional information (ModelBuilder, FunctionFactory)
+ * as well as additional information (ParamMode, FunctionFactory)
  * that is needed to test the actual result against an expected result
  * (test mode).
  */
@@ -59,8 +60,8 @@ public class ParamResult
 
 	/**
 	 * Constructor
+	 * @param mode exact or parametric?
 	 * @param regionValues the actual result
-	 * @param modelBuilder the model builder used during checking
 	 * @param factory the function factory used during checking
 	 */
 	public ParamResult(ParamMode mode, RegionValues regionValues, FunctionFactory factory)
@@ -84,7 +85,7 @@ public class ParamResult
 	@Override
 	public String toString()
 	{
-		return regionValues.toString();
+		return regionValues.toStringInitState();
 	}
 
 	/**
@@ -173,7 +174,7 @@ public class ParamResult
 		if (propertyType.equals(TypeBool.getInstance())) {
 			// boolean result
 			boolean boolResult = regionValues.getResult(0).getInitStateValueAsBoolean();
-			boolean boolExpected = expected.evaluateExact().toBoolean();
+			boolean boolExpected = expected.evaluateBoolean(EvaluateContext.create(EvaluateContext.EvalMode.EXACT));
 
 			if (boolResult != boolExpected) {
 				throw new PrismException("Wrong result (expected " + strExpected + ", got " + boolResult + ")");

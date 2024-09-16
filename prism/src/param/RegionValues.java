@@ -215,11 +215,29 @@ public final class RegionValues implements Iterable<Entry<Region, StateValues>>
 	{
 		StringBuilder builder = new StringBuilder();
 		for (int i = 0; i < regions.size(); i++) {
+			if (i > 0) {
+				builder.append(", ");
+			}
 			Region region = regions.get(i);
 			builder.append(region);
 			builder.append(": ");
 			builder.append(values.get(region));
-			builder.append("\n");
+		}
+
+		return builder.toString();
+	}
+
+	public String toStringInitState()
+	{
+		StringBuilder builder = new StringBuilder();
+		for (int i = 0; i < regions.size(); i++) {
+			if (i > 0) {
+				builder.append(", ");
+			}
+			Region region = regions.get(i);
+			builder.append(region);
+			builder.append(": ");
+			builder.append(values.get(region).getInitStateValue());
 		}
 
 		return builder.toString();

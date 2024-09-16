@@ -58,6 +58,7 @@ import explicit.rewards.Rewards;
 import parser.VarList;
 import parser.ast.Declaration;
 import parser.ast.DeclarationIntUnbounded;
+import io.ModelExportOptions;
 import parser.ast.Expression;
 import parser.ast.ExpressionFunc;
 import parser.ast.ExpressionReward;
@@ -352,7 +353,7 @@ public class MDPModelChecker extends ProbModelChecker
 		MDPModelChecker mcProduct = new MDPModelChecker(this);
 		mcProduct.inheritSettings(this);
 		ModelCheckerResult res = mcProduct.computeReachProbs((MDP<Double>) product.getProductModel(), acc, false);
-		StateValues probsProduct = StateValues.createFromDoubleArrayResult(res, product.getProductModel());
+		StateValues probsProduct = StateValues.createFromArrayResult(res, product.getProductModel());
 
 		// Subtract from 1 if we're model checking a negated formula for regular Pmin
 		if (minMax.isMin()) {
@@ -399,7 +400,7 @@ public class MDPModelChecker extends ProbModelChecker
 		MDPModelChecker mcProduct = new MDPModelChecker(this);
 		mcProduct.inheritSettings(this);
 		ModelCheckerResult res = mcProduct.computeReachRewards((MDP<Double>)product.getProductModel(), productRewards, acc, minMax.isMin());
-		StateValues rewardsProduct = StateValues.createFromDoubleArrayResult(res, product.getProductModel());
+		StateValues rewardsProduct = StateValues.createFromArrayResult(res, product.getProductModel());
 
 		// Output vector over product, if required
 		if (getExportProductVector()) {
@@ -626,7 +627,7 @@ public class MDPModelChecker extends ProbModelChecker
 			List<String> labelNames = Arrays.asList("init", "target");
 			mainLog.println("\nExporting target states info to file \"" + getExportTargetFilename() + "\"...");
 			PrismLog out = new PrismFileLog(getExportTargetFilename());
-			exportLabels(mdp, labels, labelNames, Prism.EXPORT_PLAIN, out);
+			exportLabels(mdp, labelNames, labels, out, ModelExportOptions.ModelExportFormat.EXPLICIT);
 			out.close();
 		}
 
@@ -2587,7 +2588,7 @@ public class MDPModelChecker extends ProbModelChecker
 			List<String> labelNames = Arrays.asList("init", "target");
 			mainLog.println("\nExporting target states info to file \"" + getExportTargetFilename() + "\"...");
 			PrismLog out = new PrismFileLog(getExportTargetFilename());
-			exportLabels(mdp, labels, labelNames, Prism.EXPORT_PLAIN, out);
+			exportLabels(mdp, labelNames, labels, out, ModelExportOptions.ModelExportFormat.EXPLICIT);
 			out.close();
 		}
 

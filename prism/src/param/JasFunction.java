@@ -27,12 +27,18 @@
 package param;
 
 import java.util.ArrayList;
+import java.util.BitSet;
 
 import edu.jas.arith.BigInteger;
 import edu.jas.poly.ExpVector;
 import edu.jas.poly.GenPolynomial;
 import edu.jas.poly.Monomial;
 import edu.jas.ufd.Quotient;
+import parser.ast.Expression;
+import parser.ast.ExpressionConstant;
+import parser.ast.ExpressionLiteral;
+import parser.type.TypeDouble;
+import prism.PrismException;
 
 /**
  * Rational function representation using the Java Algebra System (JAS).
@@ -60,12 +66,12 @@ final class JasFunction extends Function {
 	final static int INF = 1;
 	final static int MINF = 2;
 	final static int NAN = 3;
-	
+
 	// constructors
-	
+
 	/**
 	 * Creates a new JAS function.
-	 * 
+	 *
 	 * @param functionContext function context of this function
 	 * @param jas JAS object this function object is wrapping
 	 * @param type type of function represented
@@ -81,6 +87,25 @@ final class JasFunction extends Function {
 	@Override
 	public String toString()
 	{
+		return toStringExpression();
+	}
+
+	/**
+	 * Convert to string formatted as Expression.
+	 */
+	public String toStringExpression() {
+		try {
+			return asExpression().toString();
+		} catch (PrismException e) {
+			return "?";
+		}
+	}
+
+	/**
+	 * Convert to string formatted using JAS methods.
+	 */
+	public String toStringJas()
+	{
 		if (isNaN()) {
 			return "NaN";
 		} else if (isInf()) {
@@ -88,9 +113,10 @@ final class JasFunction extends Function {
 		} else if (isMInf()) {
 			return "-Infinity";
 		}
+
 		return jas.toString();
 	}
-	
+
 	@Override
 	public boolean equals(Object obj) {
 		if (!(obj instanceof JasFunction)) {
@@ -316,6 +342,116 @@ final class JasFunction extends Function {
 		BigRational value = evaluate(point, false);
 		int compare = value.signum();
 		return strict ? (compare > 0) : (compare >= 0);
+	}
+
+	@Override
+	public Expression asExpression() throws PrismException
+	{
+		if (isNaN()) {
+			return new ExpressionLiteral(TypeDouble.getInstance(), BigRational.NAN, BigRational.NAN.toString());
+		} else if (isInf()) {
+			return new ExpressionLiteral(TypeDouble.getInstance(), BigRational.INF, BigRational.INF.toString());
+		} else if (isMInf()) {
+			return new ExpressionLiteral(TypeDouble.getInstance(), BigRational.MINF, BigRational.MINF.toString());
+		}
+		Expression expr =  jasPoly2expr(jas.num);
+		if (!jas.den.isONE()) {
+			expr = Expression.Divide(expr, jasPoly2expr(jas.den));
+		}
+		return expr;
+	}
+
+	/**
+	 * Transform a JAS polynomial to an Expression object.
+	 */
+	private Expression jasPoly2expr(GenPolynomial<BigInteger> jasPoly) throws PrismException
+	{
+		// Special case: 0
+		if (jasPoly.isZERO()) {
+			return new ExpressionLiteral(TypeDouble.getInstance(), BigInteger.ZERO, "0");
+		}
+
+		// Extract info about coefficients and (expressions for) variable powers
+		int numVariables = jasPoly.numberOfVariables();
+		ArrayList<java.math.BigInteger> coeffsAbs = new ArrayList<>();
+		BitSet coeffsNeg = new BitSet();
+		BitSet coeffsOne = new BitSet();
+		ArrayList<Expression> exprPows = new ArrayList<>();
+		int numCoeffs = 0;
+		int firstPosCoeff = -1;
+		// Iterate through monomials
+		for (Monomial<BigInteger> jasMono : jasPoly) {
+			java.math.BigInteger coeff = jasMono.coefficient().getVal();
+			if (coeff.signum() != 0) {
+				// Store (absolute) coefficient and sign/unity info
+				java.math.BigInteger coeffAbs = coeff.signum() > 0 ? coeff : coeff.negate();
+				coeffsAbs.add(coeffAbs);
+				coeffsNeg.set(numCoeffs, coeff.signum() < 0);
+				coeffsOne.set(numCoeffs, coeffAbs.equals(java.math.BigInteger.ONE));
+				if (firstPosCoeff == -1 && coeff.signum() > 0 ) {
+					firstPosCoeff = numCoeffs;
+				}
+				// Convert variable powers to Expression (or null if none)
+				ExpVector jasExpo = jasMono.exponent();
+				Expression exprPow = null;
+				for (int var = 0; var < numVariables; var++) {
+					int power = (int) jasExpo.getVal(var);
+					if (power < 0) {
+						throw new PrismException("Polynomials with negative powers not supported");
+					}
+					if (power > 0) {
+						Expression exprVar = new ExpressionConstant(factory.getParameterName(var), TypeDouble.getInstance());
+						if (power > 1) {
+							exprVar = Expression.Pow(exprVar, Expression.Int(power));
+						}
+						exprPow = (exprPow == null) ? exprVar : Expression.Times(exprPow, exprVar);
+					}
+					/*for (; power > 0; power--) {
+						// Build x^power as x*x*...*x
+						Expression exprConst = new ExpressionConstant(factory.getParameterName(var), TypeDouble.getInstance());
+						exprPow = (exprPow == null) ? exprConst : Expression.Times(exprPow, exprConst);
+					}*/
+				}
+				exprPows.add(exprPow);
+				numCoeffs++;
+			}
+		}
+
+		// Convert to Expression
+		Expression exprPoly = null, exprMono = null;
+		// If possible, put a positive coefficient first
+		int first = firstPosCoeff != -1 ? firstPosCoeff : 0;
+		// First monomial (negation handled by negating coefficient)
+		if (exprPows.get(first) == null) {
+			// No variable powers - just use coefficient
+			java.math.BigInteger coeff = coeffsNeg.get(first) ? coeffsAbs.get(first).negate() : coeffsAbs.get(first);
+			exprMono = new ExpressionLiteral(TypeDouble.getInstance(), coeff, coeff.toString());
+		} else {
+			if (coeffsOne.get(first)) {
+				// Coefficient = 1 (or -1)
+				exprMono = coeffsNeg.get(first) ? Expression.Minus(exprPows.get(first)) : exprPows.get(first);
+			} else {
+				// Pre-multiply by non-1 coefficient
+				java.math.BigInteger coeff = coeffsNeg.get(first) ? coeffsAbs.get(first).negate() : coeffsAbs.get(first);
+				exprMono = Expression.Times(new ExpressionLiteral(TypeDouble.getInstance(), coeff, coeff.toString()), exprPows.get(first));
+			}
+		}
+		exprPoly = exprMono;
+		// Remaining monomials (negation handled by joining with minus)
+		for (int i = 0; i < numCoeffs; i++) {
+			if (i != first) {
+				if (exprPows.get(i) == null) {
+					// No variable powers - just use (absolute) coefficient
+					exprMono = new ExpressionLiteral(TypeDouble.getInstance(), coeffsAbs.get(i), coeffsAbs.get(i).toString());
+				} else {
+					// Pre-multiply by (absolute) coefficient if non-1
+					exprMono = coeffsOne.get(i) ? exprPows.get(i) : Expression.Times(new ExpressionLiteral(TypeDouble.getInstance(), coeffsAbs.get(i), coeffsAbs.get(i).toString()), exprPows.get(i));
+				}
+				exprPoly = coeffsNeg.get(i) ? Expression.Minus(exprPoly, exprMono) : Expression.Plus(exprPoly, exprMono);
+			}
+		}
+
+		return exprPoly;
 	}
 
 	@Override

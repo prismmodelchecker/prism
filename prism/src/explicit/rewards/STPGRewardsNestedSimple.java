@@ -143,7 +143,7 @@ public class STPGRewardsNestedSimple<Value> extends MDPRewardsSimple<Value> impl
 	// Converters
 
 	@Override
-	public STPGRewards<Value> liftFromModel(Product<?> product)
+	public STPGRewardsNestedSimple<Value> liftFromModel(Product<?> product)
 	{
 		// Lift MDP part
 		MDPRewardsSimple<Value> rewardsProdMDP = (MDPRewardsSimple<Value>) ((MDPRewardsSimple<Value>) this).liftFromModel(product);
@@ -167,14 +167,6 @@ public class STPGRewardsNestedSimple<Value> extends MDPRewardsSimple<Value> impl
 			}
 		}
 		return rewardsProd;
-	}
-
-	// Other
-
-	@Override
-	public MDPRewards<Value> buildMDPRewards()
-	{
-		return new MDPRewardsSimple<>(this);
 	}
 
 	@Override

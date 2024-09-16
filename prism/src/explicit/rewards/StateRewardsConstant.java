@@ -26,15 +26,14 @@
 
 package explicit.rewards;
 
-import explicit.Model;
 import explicit.Product;
 
 /**
  * Explicit-state storage of constant state rewards.
  */
-public class StateRewardsConstant<Value> extends StateRewards<Value>
+public class StateRewardsConstant<Value> extends RewardsExplicit<Value>
 {
-	protected Value stateReward = getEvaluator().zero();
+	protected Value stateReward;
 
 	/**
 	 * Constructor: all rewards equal to {@code r}
@@ -47,25 +46,22 @@ public class StateRewardsConstant<Value> extends StateRewards<Value>
 	// Accessors
 
 	@Override
+	public boolean hasTransitionRewards()
+	{
+		// Only state rewards
+		return false;
+	}
+
+	@Override
 	public Value getStateReward(int s)
 	{
 		return stateReward;
 	}
 
-	// Converters
-	
 	@Override
-	public StateRewards<Value> liftFromModel(Product<?> product)
+	public StateRewardsConstant<Value> liftFromModel(Product<?> product)
 	{
-		return deepCopy();
-	}
-	
-	// Other
-
-	@Override
-	public StateRewardsConstant<Value> deepCopy()
-	{
-		StateRewardsConstant rews = new StateRewardsConstant<>(stateReward);
+		StateRewardsConstant<Value> rews = new StateRewardsConstant<>(stateReward);
 		rews.setEvaluator(getEvaluator());
 		return rews;
 	}

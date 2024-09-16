@@ -118,7 +118,7 @@ public class CTMCSimple<Value> extends DTMCSimple<Value> implements CTMC<Value>
 	@Override
 	public Value getExitRate(int i)
 	{
-		return trans.get(i).sum();
+		return getEvaluator().sum(trans.get(i));
 	}
 	
 	@Override
@@ -126,7 +126,7 @@ public class CTMCSimple<Value> extends DTMCSimple<Value> implements CTMC<Value>
 	{
 		Value max = null;
 		for (int i = 0; i < numStates; i++) {
-			Value d = trans.get(i).sum();
+			Value d = getEvaluator().sum(trans.get(i));
 			if (max == null || getEvaluator().gt(d, max)) {
 				max = d;
 			}
@@ -139,7 +139,7 @@ public class CTMCSimple<Value> extends DTMCSimple<Value> implements CTMC<Value>
 	{
 		Value max = null;
 		for (int i = subset.nextSetBit(0); i >= 0; i = subset.nextSetBit(i + 1)) {
-			Value d = trans.get(i).sum();
+			Value d = getEvaluator().sum(trans.get(i));
 			if (max == null || getEvaluator().gt(d, max)) {
 				max = d;
 			}
@@ -188,13 +188,13 @@ public class CTMCSimple<Value> extends DTMCSimple<Value> implements CTMC<Value>
 			dtmc.addInitialState(in);
 		}
 		for (int i = 0; i < numStates; i++) {
-			Distribution<Value> distr = trans.get(i);
-			Value d = distr.sum();
+			Value d = getEvaluator().sum(trans.get(i));
 			if (getEvaluator().isZero(d)) {
-				dtmc.setProbability(i, i, getEvaluator().one());
+				dtmc.setProbability(i, i, getEvaluator().one(), null);
 			} else {
-				for (Map.Entry<Integer, Value> e : distr) {
-					dtmc.setProbability(i, e.getKey(), getEvaluator().divide(e.getValue(), d));
+				int numSucc = succ.get(i).size();
+				for (int j = 0; j < numSucc; j++) {
+					dtmc.setProbability(i, succ.get(i).get(j), getEvaluator().divide(trans.get(i).get(j), d), actions.getAction(i, j));
 				}
 			}
 		}
@@ -204,10 +204,7 @@ public class CTMCSimple<Value> extends DTMCSimple<Value> implements CTMC<Value>
 	@Override
 	public void uniformise(Value q)
 	{
-		for (int i = 0; i < numStates; i++) {
-			Distribution<Value> distr = trans.get(i);
-			distr.set(i, getEvaluator().subtract(q, distr.sumAllBut(i)));
-		}
+		throw new UnsupportedOperationException("Not implemented");
 	}
 
 	@Override
@@ -225,15 +222,20 @@ public class CTMCSimple<Value> extends DTMCSimple<Value> implements CTMC<Value>
 		}
 		for (int i = 0; i < numStates; i++) {
 			// Add scaled off-diagonal entries
-			Distribution<Value> distr = trans.get(i);
-			for (Map.Entry<Integer, Value> e : distr) {
-				dtmc.setProbability(i, e.getKey(), getEvaluator().divide(e.getValue(), q));
+			int numSucc = succ.get(i).size();
+			for (int j = 0; j < numSucc; j++) {
+				dtmc.setProbability(i, succ.get(i).get(j), getEvaluator().divide(trans.get(i).get(j), q), actions.getAction(i, j));
 			}
 			// Add diagonal, if needed
-			Value d = distr.sumAllBut(i);
+			Value d = getEvaluator().zero();
+			for (int j = 0; j < numSucc; j++) {
+				if (succ.get(i).get(j) != i) {
+					d = getEvaluator().add(d, trans.get(i).get(j));
+				}
+			}
 			// if (d < q): P(i,i) = 1 - (d / q)
 			if (!getEvaluator().geq(d, q)) {
-				dtmc.setProbability(i, i, getEvaluator().subtract(getEvaluator().one(), getEvaluator().divide(d, q)));
+				dtmc.setProbability(i, i, getEvaluator().subtract(getEvaluator().one(), getEvaluator().divide(d, q)), null);
 			}
 		}
 		return dtmc;

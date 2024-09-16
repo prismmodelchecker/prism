@@ -1,0 +1,14 @@
+// RESULT: (4*gamma^3+26*gamma^2+25*gamma+6)/(40*gamma^3+68*gamma^2+34*gamma+6)
+S=? [ s1=1 & !(s=1 & a=1) ];
+
+// RESULT: (12*gamma^3+14*gamma^2+3*gamma)/(20*gamma^3+34*gamma^2+17*gamma+3)
+S=? [ s1=0 ];
+
+// RESULT: (2*gamma^2+2*gamma+1)/(4*gamma^2+4*gamma+1)
+P=? [ !(s=2 & a=1) U (s=1 & a=1) ];
+
+// RESULT: (4*gamma^3+26*gamma^2+25*gamma+6)/(40*gamma^3+68*gamma^2+34*gamma+6)
+R{"waiting"}=?[ S ];
+
+// RESULT: (4*gamma^3*gamma+34*gamma^3+48*gamma^2+24*gamma+3)/(16*gamma^3*gamma+30*gamma^3+18*gamma^2+3*gamma)
+R{"waiting"}=?[ F (s=1 & a=1) ];

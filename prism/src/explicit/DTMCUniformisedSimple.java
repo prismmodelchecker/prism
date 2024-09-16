@@ -200,15 +200,6 @@ public class DTMCUniformisedSimple<Value> extends DTMCExplicit<Value>
 		return s;
 	}
 
-	@Override
-	public String infoStringTable()
-	{
-		String s = "";
-		s += "States:      " + getNumStates() + " (" + getNumInitialStates() + " initial)\n";
-		s += "Transitions: " + getNumTransitions() + "\n";
-		return s;
-	}
-
 	// Accessors (for DTMC)
 
 	public Iterator<Entry<Integer,Value>> getTransitionsIterator(int s)

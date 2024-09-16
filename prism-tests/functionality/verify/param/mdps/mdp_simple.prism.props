@@ -1,0 +1,8 @@
+// RESULT: 1.0
+Pmax=? [ F t=1 {s=0&t=0} ];
+
+// RESULT: p
+Pmin=? [ F t=1 ];
+
+// RESULT: (3*p+10)/p
+Rmin=? [ F t=1 ];

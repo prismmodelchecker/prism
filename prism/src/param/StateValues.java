@@ -100,7 +100,7 @@ public final class StateValues
 	@Override
 	public String toString()
 	{
-		return values.get(initState).toString();
+		return values.toString();
 	}
 
 	@Override
@@ -210,6 +210,14 @@ public final class StateValues
 	public boolean getInitStateValueAsBoolean()
 	{
 		return ((StateBoolean) values.get(initState)).getValue();
+	}
+
+	/**
+	 * Get value of initial state.
+	 */
+	public StateValue getInitStateValue()
+	{
+		return values.get(initState);
 	}
 
 	/**

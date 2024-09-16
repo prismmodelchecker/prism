@@ -32,16 +32,10 @@ import explicit.Product;
 
 /**
  * Classes that provide (read) access to explicit-state rewards for an STPG.
- * Currently, this is actually identical to MDPRewards.
+ * This is no longer needed - just use {@link Rewards}.
  */
 public interface STPGRewards<Value> extends MDPRewards<Value>
 {
-	/**
-	 * Build a (new) MDPRewards object containing the same rewards.
-	 * Currently, this interface is the same as MDPRewards, so this is not needed.
-	 */
-	public abstract MDPRewards<Value> buildMDPRewards();
-
 	@Override
-	public STPGRewards<Value> liftFromModel(Product<?> product);
+	STPGRewards<Value> liftFromModel(Product<?> product);
 }

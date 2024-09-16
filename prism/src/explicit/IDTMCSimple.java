@@ -29,6 +29,7 @@ package explicit;
 
 import common.Interval;
 import prism.Evaluator;
+import prism.PrismException;
 
 /**
  * Simple explicit-state representation of an IDTMC.
@@ -84,7 +85,7 @@ public class IDTMCSimple<Value> extends DTMCSimple<Interval<Value>> implements I
 	 * @param s The index of the state to delimit
 	 * @param evalChil An evaluator for the interval's child type (Value)
 	 */
-	public void delimit(int s, Evaluator<Value> evalChil)
+	public void delimit(int s, Evaluator<Value> evalChil) throws PrismException
 	{
 		IntervalUtils.delimit(trans.get(s), evalChil);
 	}

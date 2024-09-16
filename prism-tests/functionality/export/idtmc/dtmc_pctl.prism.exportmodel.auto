@@ -1,0 +1,11 @@
+# Export all model info in different formats
+
+-exportmodel dtmc_pctl.prism.all
+
+# Export model info separately (for a few formats)
+
+-exportmodel dtmc_pctl.prism.tra
+-exportmodel dtmc_pctl.prism.sta
+-exportmodel dtmc_pctl.prism.lab
+-exportmodel dtmc_pctl.prism.srew
+-exportmodel dtmc_pctl.prism.trew

@@ -47,3 +47,5 @@
 -ii -ex -jacobi -topological
 -ii -ex -gs -topological
 -ii -ex -bgs -topological
+
+-exact

@@ -40,6 +40,7 @@ import java.util.function.Function;
 import common.IterableStateSet;
 import common.iterable.PrimitiveIterable;
 import explicit.rewards.MCRewards;
+import prism.Pair;
 import prism.PrismException;
 import prism.PrismNotSupportedException;
 
@@ -58,6 +59,8 @@ public class DTMCSparse extends DTMCExplicit<Double>
 	private int columns[];
 	/** Probabilities for each transition (array of size numTransitions) */
 	private double probabilities[];
+	/** Optionally, action labels for each transition (array of size numTransitions or null) */
+	private Object actions[];
 
 	public DTMCSparse(final DTMC<Double> dtmc) {
 		initialise(dtmc.getNumStates());
@@ -82,12 +85,18 @@ public class DTMCSparse extends DTMCExplicit<Double>
 		probabilities = new double[numTransitions];
 		for (int state=0, column=0; state<numStates; state++) {
 			rows[state] = column;
-			for (Iterator<Entry<Integer, Double>> transitions = dtmc.getTransitionsIterator(state); transitions.hasNext();) {
-				final Entry<Integer, Double> transition = transitions.next();
-				final double probability = transition.getValue();
+			for (Iterator<Entry<Integer, Pair<Double, Object>>> transitions = dtmc.getTransitionsAndActionsIterator(state); transitions.hasNext();) {
+				final Entry<Integer, Pair<Double, Object>> transition = transitions.next();
+				final double probability = transition.getValue().first;
 				if (probability > 0) {
 					columns[column] = transition.getKey();
 					probabilities[column] = probability;
+					if (transition.getValue().second != null) {
+						if (actions == null) {
+							actions = new Object[numTransitions];
+						}
+						actions[column] = transition.getValue().second;
+					}
 					column++;
 				}
 			}
@@ -122,12 +131,18 @@ public class DTMCSparse extends DTMCExplicit<Double>
 		for (int state=0, column=0; state<numStates; state++) {
 			rows[state] = column;
 			final int originalState = permutInv[state];
-			for (Iterator<Entry<Integer, Double>> transitions = dtmc.getTransitionsIterator(originalState); transitions.hasNext();) {
-				final Entry<Integer, Double> transition = transitions.next();
-				final double probability = transition.getValue();
+			for (Iterator<Entry<Integer, Pair<Double, Object>>> transitions = dtmc.getTransitionsAndActionsIterator(originalState); transitions.hasNext();) {
+				final Entry<Integer, Pair<Double, Object>> transition = transitions.next();
+				final double probability = transition.getValue().first;
 				if (probability > 0) {
 					columns[column] = permut[transition.getKey()];
 					probabilities[column] = probability;
+					if (transition.getValue().second != null) {
+						if (actions == null) {
+							actions = new Object[numTransitions];
+						}
+						actions[column] = transition.getValue().second;
+					}
 					column++;
 				}
 			}
@@ -270,6 +285,33 @@ public class DTMCSparse extends DTMCExplicit<Double>
 				final int index = col;
 				col++;
 				return new AbstractMap.SimpleImmutableEntry<>(columns[index], probabilities[index]);
+			}
+		};
+	}
+
+	@Override
+	public Iterator<Entry<Integer, Pair<Double, Object>>> getTransitionsAndActionsIterator(int state)
+	{
+		return new Iterator<Entry<Integer, Pair<Double, Object>>>()
+		{
+			final int start = rows[state];
+			int col = start;
+			final int end = rows[state + 1];
+
+			@Override
+			public boolean hasNext()
+			{
+				return col < end;
+			}
+
+			@Override
+			public Entry<Integer, Pair<Double, Object>> next()
+			{
+				assert (col < end);
+				final int index = col;
+				col++;
+				Pair probAction = new Pair<>(probabilities[index], actions == null ? null : actions[index]);
+				return new AbstractMap.SimpleImmutableEntry<>(columns[index], probAction);
 			}
 		};
 	}

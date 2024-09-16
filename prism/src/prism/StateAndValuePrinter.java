@@ -33,7 +33,7 @@ import parser.type.TypeInt;
  * StateValueConsumer that formats the state/value pairs
  * and prints them to a PrismLog.
  */
-class StateAndValuePrinter implements StateAndValueConsumer
+public class StateAndValuePrinter implements StateAndValueConsumer
 {
 	/** The log for output */
 	private PrismLog outputLog;

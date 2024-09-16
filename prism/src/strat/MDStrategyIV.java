@@ -31,7 +31,7 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import dv.IntegerVector;
-import prism.Model;
+import symbolic.model.Model;
 import prism.PrismException;
 import prism.PrismLog;
 import prism.PrismNotSupportedException;
@@ -57,7 +57,7 @@ public class MDStrategyIV extends StrategyWithStates<Double> implements MDStrate
 	public MDStrategyIV(Model model, IntegerVector iv)
 	{
 		this.model = model;
-		numStates = (int) model.getNumStates();
+		numStates = model.getNumStates();
 		actions = model.getSynchs();
 		this.iv = iv;
 		setStateLookUp(state -> {
