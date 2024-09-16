@@ -39,6 +39,7 @@ import prism.RewardInfo;
 import java.util.BitSet;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
+import java.util.function.IntConsumer;
 
 /**
  * Base class for importers from explicit model sources.
@@ -96,6 +97,11 @@ public abstract class ExplicitModelImporter
 	public abstract boolean providesStates();
 
 	/**
+	 * Does this importer provide info about observation definitions?
+	 */
+	public abstract boolean providesObservations();
+
+	/**
 	 * Does this importer provide info about labels?
 	 */
 	public abstract boolean providesLabels();
@@ -129,6 +135,11 @@ public abstract class ExplicitModelImporter
 	public abstract int getNumTransitions() throws PrismException;
 
 	/**
+	 * Get the number of observations.
+	 */
+	public abstract int getNumObservations() throws PrismException;
+
+	/**
 	 * Get the indices of the states which are/were deadlocks.
 	 */
 	public abstract BitSet getDeadlockStates() throws PrismException;
@@ -154,9 +165,9 @@ public abstract class ExplicitModelImporter
 
 	/**
 	 * Extract state definitions (variable values).
-	 * Calls {@code storeStateDefn(s, i, o)} for each state s, variable (index) i and variable value o.
+	 * Calls {@code storeStateDefn(s, i, v)} for each state s, variable (index) i and variable value v.
 	 * If {@link #providesStates()} returns false, this should report a single
-	 * integer-valued variable range between 0 and {@link #getNumStates()} - 1.
+	 * integer-valued variable ranging between 0 and {@link #getNumStates()} - 1.
 	 * @param storeStateDefn Function to be called for each variable value of each state
 	 */
 	public void extractStates(IOUtils.StateDefnConsumer storeStateDefn) throws PrismException
@@ -165,6 +176,22 @@ public abstract class ExplicitModelImporter
 		int numStates = getNumStates();
 		for (int s = 0; s < numStates; s++) {
 			storeStateDefn.accept(s, 0, s);
+		}
+	}
+
+	/**
+	 * Extract observation definitions (observable values).
+	 * Calls {@code storeObservationDefn(o, i, v)} for each observation o, observable (index) i and observable value v.
+	 * If {@link #providesObservations()} returns false, this should report a single
+	 * integer-valued observable ranging between 0 and {@link #getNumObservations()} - 1.
+	 * @param storeObservationDefn Function to be called for each variable value of each state
+	 */
+	public void extractObservationDefinitions(IOUtils.StateDefnConsumer storeObservationDefn) throws PrismException
+	{
+		// Default implementation - assume one integer observable
+		int numObs = getNumObservations();
+		for (int o = 0; o < numObs; o++) {
+			storeObservationDefn.accept(o, 0, o);
 		}
 	}
 
@@ -243,6 +270,13 @@ public abstract class ExplicitModelImporter
 	public abstract void extractLabelsAndInitialStates(BiConsumer<Integer, Integer> storeLabel, Consumer<Integer> storeInit, Consumer<Integer> storeDeadlock) throws PrismException;
 
 	/**
+	 * Extract info about (deterministic, state-based) observations.
+	 * Calls {@code storeObservation(s, o)} for each state s giving its observation o.
+	 * @param storeObservation Function to be called for each state
+	 */
+	public abstract void extractObservations(IOUtils.StateIntConsumer storeObservation) throws PrismException;
+
+	/**
 	 * Extract the state rewards for a given reward structure index.
 	 * The transition probabilities/rates are assumed to be of type double.
 	 * @param rewardIndex Index of reward structure to extract (0-indexed)
@@ -312,7 +346,7 @@ public abstract class ExplicitModelImporter
 	 */
 	public abstract <Value> void extractMDPTransitionRewards(int rewardIndex, IOUtils.TransitionRewardConsumer<Value> storeReward, Evaluator<Value> eval) throws PrismException;
 
-	// Defaults for a single variable name when none is specified
+	// Defaults for a single variable when none is specified
 
 	/**
 	 * Get the default name for the (single) variable when none is specified.
@@ -339,5 +373,25 @@ public abstract class ExplicitModelImporter
 	public DeclarationType defaultVariableDeclarationType() throws PrismException
 	{
 		return new DeclarationInt(Expression.Int(0), Expression.Int(getNumStates() - 1));
+	}
+
+	// Defaults for a single observable when none is specified
+
+	/**
+	 * Get the default name for the (single) observable when none is specified.
+	 * By default, this is "o".
+	 */
+	public String defaultObservableName()
+	{
+		return "o";
+	}
+
+	/**
+	 * Get the default type for the (single) observable when none is specified.
+	 * By default, this is {@code int}.
+	 */
+	public Type defaultObservableType()
+	{
+		return TypeInt.getInstance();
 	}
 }

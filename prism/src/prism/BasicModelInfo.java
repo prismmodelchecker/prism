@@ -48,6 +48,10 @@ public class BasicModelInfo implements ModelInfo
 	private List<Object> actionList;
 	/** Variable list */
 	private VarList varList;
+	/** Observable name list */
+	private List<String> observableNameList;
+	/** Observable type list */
+	private List<Type> observableTypeList;
 	/** Label names */
 	private List<String> labelNameList;
 
@@ -61,6 +65,8 @@ public class BasicModelInfo implements ModelInfo
 		this.modelType = modelType;
 		actionList = null;
 		varList = new VarList();
+		observableNameList = new ArrayList<>();
+		observableTypeList = new ArrayList<>();
 		labelNameList = new ArrayList<>();
 	}
 
@@ -91,6 +97,22 @@ public class BasicModelInfo implements ModelInfo
 	}
 
 	/**
+	 * Set the list used to store observable names.
+	 */
+	public void setObservableNameList(List<String> observableNameList)
+	{
+		this.observableNameList = observableNameList;
+	}
+
+	/**
+	 * Set the list used to store observable types.
+	 */
+	public void setObservableTypeList(List<Type> observableTypeList)
+	{
+		this.observableTypeList = observableTypeList;
+	}
+
+	/**
 	 * Set the list used to store label names.
 	 */
 	public void setLabelNameList(List<String> labelNameList)
@@ -112,6 +134,22 @@ public class BasicModelInfo implements ModelInfo
 	public VarList getVarList()
 	{
 		return varList;
+	}
+
+	/**
+	 * Get the list used to store observable names.
+	 */
+	public List<String> getObservableNameList()
+	{
+		return observableNameList;
+	}
+
+	/**
+	 * Get the list used to store observable types.
+	 */
+	public List<Type> getObservableTypeList()
+	{
+		return observableTypeList;
 	}
 
 	/**
@@ -156,6 +194,18 @@ public class BasicModelInfo implements ModelInfo
 	public DeclarationType getVarDeclarationType(int i)
 	{
 		return varList.getDeclarationType(i);
+	}
+
+	@Override
+	public List<String> getObservableNames()
+	{
+		return observableNameList;
+	}
+
+	@Override
+	public List<Type> getObservableTypes()
+	{
+		return  observableTypeList;
 	}
 
 	@Override

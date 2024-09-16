@@ -83,16 +83,19 @@ public class ObservationsSimple
 	 */
 	public ObservationsSimple(int numStates)
 	{
-		this.numStates = numStates;
-		observationsList = new ArrayList<>();
-		unobservationsList = new ArrayList<>();
-		observationStates = new ArrayList<>();
-		observablesMap = new ArrayList<>();
-		unobservablesMap = new ArrayList<>();
-		for (int i = 0; i < numStates; i++) {
-			observablesMap.add(-1);
-			unobservablesMap.add(-1);
-		}
+		this();
+		addStates(numStates);
+	}
+
+	/**
+	 * Constructor: initialise storage for observable info when the model has
+	 * {@code numStates} states and {@code numObservations} observations.
+	 */
+	public ObservationsSimple(int numStates, int numObservations)
+	{
+		this();
+		addStates(numStates);
+		addObservations(numObservations);
 	}
 
 	/**
@@ -136,6 +139,17 @@ public class ObservationsSimple
 	}
 
 	// Mutators
+
+	/**
+	 * Initialise observation info for {@code numToAdd} new observations.
+	 */
+	public void addObservations(int numToAdd)
+	{
+		for (int i = 0; i < numToAdd; i++) {
+			observationsList.add(null);
+			observationStates.add(-1);
+		}
+	}
 
 	/**
 	 * Clear observation info for state {@code s}.
@@ -212,7 +226,7 @@ public class ObservationsSimple
 			unobservIndex = unobservationsList.size() - 1;
 		}
 		// Assign the unobservation (index) to the state
-		unobservablesMap.set(s, unobservIndex);
+		setUnobservation(s, unobservIndex);
 	}
 
 	/**
@@ -241,6 +255,17 @@ public class ObservationsSimple
 				model.checkActionsMatchExactly(s, observationState);
 			}
 		}
+	}
+
+	/**
+	 * Assign unobservation with index u to state s.
+	 * (assumes unobservation has already been added to the list)
+	 * @param s State
+	 * @param u Unobservation
+	 */
+	protected void setUnobservation(int s, int u)
+	{
+		unobservablesMap.set(s, u);
 	}
 
 	/**

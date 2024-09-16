@@ -742,6 +742,12 @@ public class PrismCL implements PrismModelListener
 					}
 					importer.setStatesFile(modelImportSource.file);
 					break;
+				case OBSERVATIONS:
+					if (importer.getObservationsFile() != null) {
+						throw new PrismException("Multiple observation files provided for model import");
+					}
+					importer.setObservationsFile(modelImportSource.file);
+					break;
 				case LABELS:
 					if (importer.getLabelsFile() != null) {
 						throw new PrismException("Multiple label files provided for model import");
@@ -1269,6 +1275,14 @@ public class PrismCL implements PrismModelListener
 				else if (sw.equals("importstates")) {
 					if (i < args.length - 1) {
 						modelImportSources.add(new ModelImportSource(ModelExportTask.ModelExportEntity.STATES, ModelExportFormat.EXPLICIT, new File(args[++i])));
+					} else {
+						errorAndExit("No file specified for -" + sw + " switch");
+					}
+				}
+				// import observations for explicit model import
+				else if (sw.equals("importobs")) {
+					if (i < args.length - 1) {
+						modelImportSources.add(new ModelImportSource(ModelExportTask.ModelExportEntity.OBSERVATIONS, ModelExportFormat.EXPLICIT, new File(args[++i])));
 					} else {
 						errorAndExit("No file specified for -" + sw + " switch");
 					}
@@ -1898,6 +1912,7 @@ public class PrismCL implements PrismModelListener
 				modelFilename = basename + ".tra";
 				addModelImport(ModelExportTask.ModelExportEntity.MODEL,basename + ".tra", false);
 				addModelImport(ModelExportTask.ModelExportEntity.STATES,basename + ".sta", false);
+				addModelImport(ModelExportTask.ModelExportEntity.OBSERVATIONS,basename + ".obs", false);
 				addModelImport(ModelExportTask.ModelExportEntity.LABELS,basename + ".lab", false);
 				addStateRewardImports(basename, false);
 				addTransitionRewardImports(basename, false);
@@ -1906,6 +1921,8 @@ public class PrismCL implements PrismModelListener
 				addModelImport(ModelExportTask.ModelExportEntity.MODEL,basename + ".tra", true);
 			} else if (ext.equals("sta")) {
 				addModelImport(ModelExportTask.ModelExportEntity.STATES,basename + ".sta", true);
+			} else if (ext.equals("obs")) {
+				addModelImport(ModelExportTask.ModelExportEntity.OBSERVATIONS,basename + ".obs", true);
 			} else if (ext.equals("lab")) {
 				addModelImport(ModelExportTask.ModelExportEntity.LABELS,basename + ".lab", true);
 			} else if (ext.equals("srew")) {
@@ -2602,6 +2619,7 @@ public class PrismCL implements PrismModelListener
 		mainLog.println("-importmodel <files> ........... Import the model directly from text file(s)");
 		mainLog.println("-importtrans <file> ............ Import the transition matrix directly from a text file");
 		mainLog.println("-importstates <file>............ Import the list of states directly from a text file");
+		mainLog.println("-importobs <file>............... Import the list of observations directly from a text file");
 		mainLog.println("-importlabels <file>............ Import the list of labels directly from a text file");
 		mainLog.println("-importstaterewards <file>...... Import the state rewards directly from a text file");
 		mainLog.println("-importtransrewards <file>...... Import the transition rewards directly from a text file");
@@ -2691,7 +2709,7 @@ public class PrismCL implements PrismModelListener
 			mainLog.println("Import the model directly from text file(s).");
 			mainLog.println("Use a list of file extensions to indicate which files should be read, e.g.:");
 			mainLog.println("\n -importmodel in.tra,sta\n");
-			mainLog.println("Possible extensions are: .tra, .sta, .lab, .srew, .trew");
+			mainLog.println("Possible extensions are: .tra, .sta, .obs, .lab, .srew, .trew");
 			mainLog.println("Use extension .all to import all, e.g.:");
 			mainLog.println("\n -importmodel in.all\n");
 		}

@@ -33,6 +33,7 @@ import java.util.List;
 import java.util.Map;
 
 import explicit.rewards.MDPRewards;
+import io.ExplicitModelImporter;
 import parser.State;
 import prism.PrismException;
 import prism.PrismUtils;
@@ -115,6 +116,17 @@ public class POMDPSimple<Value> extends MDPSimple<Value> implements POMDP<Value>
 	{
 		super.addStates(numToAdd);
 		observations.addStates(numToAdd);
+	}
+
+	@Override
+	public void buildFromExplicitImport(ExplicitModelImporter modelImporter) throws PrismException
+	{
+		super.buildFromExplicitImport(modelImporter);
+		observations = new ObservationsSimple(modelImporter.getNumStates(), modelImporter.getNumObservations());
+		modelImporter.extractObservations(this::setObservation);
+		for (int s = 0; s < numStates; s++) {
+			observations.setUnobservation(s, s);
+		}
 	}
 
 	// Mutators (other)

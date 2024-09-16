@@ -34,12 +34,12 @@ import prism.PrismException;
 public class IOUtils
 {
 	/**
-	 * Functional interface for a consumer accepting state variable values (s,i,o),
-	 * i.e., state s, variable index i, value o.
+	 * Functional interface for a consumer accepting state variable values (s,i,v),
+	 * i.e., state s, variable index i, value v.
 	 */
 	@FunctionalInterface
 	public interface StateDefnConsumer {
-		void accept(int s, int i, Object o) throws PrismException;
+		void accept(int s, int i, Object v) throws PrismException;
 	}
 
 	/**
@@ -67,6 +67,15 @@ public class IOUtils
 	@FunctionalInterface
 	public interface LTSTransitionConsumer {
 		void accept(int s, int i, int s2, Object a) throws PrismException;
+	}
+
+	/**
+	 * Functional interface for a consumer accepting integer state values (s,v),
+	 * i.e., state s, value v.
+	 */
+	@FunctionalInterface
+	public interface StateIntConsumer {
+		void accept(int s, int v) throws PrismException;
 	}
 
 	/**

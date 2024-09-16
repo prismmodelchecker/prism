@@ -80,6 +80,7 @@ public class PrismExplicitImporter extends ExplicitModelImporter
 	// What to import: files and type override
 	private File statesFile;
 	private File transFile;
+	private File observationsFile;
 	private File labelsFile;
 	private List<File> stateRewardsFiles;
 	private List<File> transRewardsFiles;
@@ -99,6 +100,7 @@ public class PrismExplicitImporter extends ExplicitModelImporter
 		int numStates = 0;
 		int numChoices = 0;
 		int numTransitions = 0;
+		int numObservations = 0;
 	}
 	private ModelStats modelStats;
 
@@ -194,6 +196,15 @@ public class PrismExplicitImporter extends ExplicitModelImporter
 	}
 
 	/**
+	 * Set the observations file.
+	 * @param observationsFile Observations file (may be {@code null})
+	 */
+	public void setObservationsFile(File observationsFile)
+	{
+		this.observationsFile = observationsFile;
+	}
+
+	/**
 	 * Set the labels file.
 	 * @param labelsFile Labels file (may be {@code null})
 	 */
@@ -239,6 +250,14 @@ public class PrismExplicitImporter extends ExplicitModelImporter
 	}
 
 	/**
+	 * Get the observations file (null if not used).
+	 */
+	public File getObservationsFile()
+	{
+		return observationsFile;
+	}
+
+	/**
 	 * Get the labels file (null if not used).
 	 */
 	public File getLabelsFile()
@@ -258,6 +277,9 @@ public class PrismExplicitImporter extends ExplicitModelImporter
 		if (statesFile != null) {
 			allFiles.add(statesFile);
 		}
+		if (observationsFile != null) {
+			allFiles.add(observationsFile);
+		}
 		if (labelsFile != null) {
 			allFiles.add(labelsFile);
 		}
@@ -274,6 +296,12 @@ public class PrismExplicitImporter extends ExplicitModelImporter
 	public boolean providesStates()
 	{
 		return getStatesFile() != null;
+	}
+
+	@Override
+	public boolean providesObservations()
+	{
+		return getObservationsFile() != null;
 	}
 
 	@Override
@@ -350,6 +378,20 @@ public class PrismExplicitImporter extends ExplicitModelImporter
 			numTransitions += getNumDeadlockStates();
 		}
 		return numTransitions;
+	}
+
+	@Override
+	public int getNumObservations() throws PrismException
+	{
+		// Construct lazily, as needed
+		// (determined from transitions file, if needed)
+		if (!getModelInfo().getModelType().partiallyObservable()) {
+			return 0;
+		}
+		if (modelStats == null) {
+			buildModelStats();
+		}
+		return modelStats.numObservations;
 	}
 
 	@Override
@@ -439,6 +481,16 @@ public class PrismExplicitImporter extends ExplicitModelImporter
 			basicModelInfo.getVarList().addVar(defaultVariableName(), defaultVariableDeclarationType(), -1);
 		}
 
+		// Extract observable info from observations, if available
+		if (modelType.partiallyObservable() && observationsFile != null) {
+			extractObservableInfoFromObservationsFile(observationsFile);
+		}
+		// Otherwise store default observable info
+		else {
+			basicModelInfo.getObservableNames().add(defaultObservableName());
+			basicModelInfo.getObservableTypeList().add(defaultObservableType());
+		}
+
 		// Generate and store label names from the labels file, if available.
 		// This way, expressions can refer to the labels later on.
 		if (labelsFile != null) {
@@ -453,18 +505,36 @@ public class PrismExplicitImporter extends ExplicitModelImporter
 	 */
 	private void extractVarInfoFromStatesFile(File statesFile) throws PrismException
 	{
-		int i, j, lineNum = 0;
+		extractVarInfoFromFile(statesFile, ModelExportTask.ModelExportEntity.STATES);
+	}
 
+	/**
+	 * Extract observable info from an observations file.
+	 */
+	private void extractObservableInfoFromObservationsFile(File observationsFile) throws PrismException
+	{
+		extractVarInfoFromFile(observationsFile, ModelExportTask.ModelExportEntity.OBSERVATIONS);
+	}
+
+	/**
+	 * Extract variable/observable info from a states/observations file.
+	 * @param file States/observations file
+	 * @param entity State or observations?
+	 */
+	private void extractVarInfoFromFile(File file, ModelExportTask.ModelExportEntity entity) throws PrismException
+	{
+		String entityString = (entity == ModelExportTask.ModelExportEntity.STATES) ? "state" : "observation";
 		// open file for reading, automatic close when done
-		try (BufferedReader in = new BufferedReader(new FileReader(statesFile))) {
+		int lineNum = 0;
+		try (BufferedReader in = new BufferedReader(new FileReader(file))) {
 			// read first line and extract var names
 			String s = in.readLine();
 			lineNum = 1;
 			if (s == null)
-				throw new PrismException("empty states file");
+				throw new PrismException("empty " + entityString + "s file");
 			s = s.trim();
 			if (s.charAt(0) != '(' || s.charAt(s.length() - 1) != ')')
-				throw new PrismException("badly formatted state");
+				throw new PrismException("badly formatted " + entityString);
 			s = s.substring(1, s.length() - 1);
 			List<String> varNames = new ArrayList<>(Arrays.asList(s.split(",")));
 			int numVars = varNames.size();
@@ -487,8 +557,8 @@ public class PrismExplicitImporter extends ExplicitModelImporter
 					if (ss.length != numVars)
 						throw new PrismException("wrong number of variables");
 					// for each variable...
-					for (i = 0; i < numVars; i++) {
-						// if this is the first state, establish variable type
+					for (int i = 0; i < numVars; i++) {
+						// if this is the first state/observation, establish variable type
 						if (counter == 1) {
 							if (ss[i].equals("true") || ss[i].equals("false")) {
 								varTypes.add(TypeBool.getInstance());
@@ -498,7 +568,7 @@ public class PrismExplicitImporter extends ExplicitModelImporter
 						}
 						// check for new min/max values (ints only)
 						if (varTypes.get(i) instanceof TypeInt) {
-							j = Integer.parseInt(ss[i]);
+							int j = Integer.parseInt(ss[i]);
 							if (counter == 1) {
 								varMins[i] = varMaxs[i] = j;
 							} else {
@@ -515,25 +585,33 @@ public class PrismExplicitImporter extends ExplicitModelImporter
 				lineNum++;
 			}
 
-			// Add variables to the VarList
-			for (i = 0; i < numVars; i++) {
-				if (varTypes.get(i) instanceof TypeBool) {
-					basicModelInfo.getVarList().addVar(varNames.get(i), new DeclarationBool(), -1);
-				} else {
-					// Note: we do not yet allow 0-range variables
-					if (varMins[i] == varMaxs[i]) {
-						varMaxs[i]++;
+			if (entity == ModelExportTask.ModelExportEntity.STATES) {
+				// Add variables to the VarList
+				for (int i = 0; i < numVars; i++) {
+					if (varTypes.get(i) instanceof TypeBool) {
+						basicModelInfo.getVarList().addVar(varNames.get(i), new DeclarationBool(), -1);
+					} else {
+						// Note: we do not yet allow 0-range variables
+						if (varMins[i] == varMaxs[i]) {
+							varMaxs[i]++;
+						}
+						basicModelInfo.getVarList().addVar(varNames.get(i), new DeclarationInt(Expression.Int(varMins[i]), Expression.Int(varMaxs[i])), -1);
 					}
-					basicModelInfo.getVarList().addVar(varNames.get(i), new DeclarationInt(Expression.Int(varMins[i]), Expression.Int(varMaxs[i])), -1);
+				}
+			} else if (entity == ModelExportTask.ModelExportEntity.OBSERVATIONS) {
+				// Add observables to the model info
+				for (int i = 0; i < numVars; i++) {
+					basicModelInfo.getObservableNameList().add(varNames.get(i));
+					basicModelInfo.getObservableTypeList().add(varTypes.get(i));
 				}
 			}
 
 		} catch (IOException e) {
-			throw new PrismException("File I/O error reading from \"" + statesFile + "\"");
+			throw new PrismException("File I/O error reading from \"" + file + "\"");
 		} catch (NumberFormatException e) {
-			throw new PrismException("Error detected at line " + lineNum + " of states file \"" + statesFile + "\"");
+			throw new PrismException("Error detected at line " + lineNum + " of " + entityString + "s file \"" + file + "\"");
 		} catch (PrismException e) {
-			throw new PrismException("Error detected (" + e.getMessage() + ") at line " + lineNum + " of states file \"" + statesFile + "\"");
+			throw new PrismException("Error detected (" + e.getMessage() + ") at line " + lineNum + " of " + entityString + "s file \"" + file + "\"");
 		}
 	}
 
@@ -550,14 +628,21 @@ public class PrismExplicitImporter extends ExplicitModelImporter
 				throw new PrismException("empty transitions file");
 			}
 			String[] record = csv.nextRecord();
-			checkLineSize(record, 2, 3);
+			checkLineSize(record, 2, 4);
 			modelStats.numStates = Integer.parseInt(record[0]);
 			if (record.length == 2) {
+				// Markov chain
 				modelStats.numChoices = modelStats.numStates;
 				modelStats.numTransitions = Integer.parseInt(record[1]);
-			} else {
+			} else if (record.length == 3) {
+				// MDP/LTS
 				modelStats.numChoices = Integer.parseInt(record[1]);
 				modelStats.numTransitions = Integer.parseInt(record[2]);
+			} else {
+				// POMDP
+				modelStats.numChoices = Integer.parseInt(record[1]);
+				modelStats.numTransitions = Integer.parseInt(record[2]);
+				modelStats.numObservations = Integer.parseInt(record[3]);
 			}
 			// Also peek at the next line to see if initial states info is provided
 			if (csv.hasNextRecord()) {
@@ -569,12 +654,13 @@ public class PrismExplicitImporter extends ExplicitModelImporter
 		} catch (IOException e) {
 			modelStats = null;
 			throw new PrismException("File I/O error reading from \"" + transFile + "\"");
-		} catch (NumberFormatException | CsvFormatException e) {
+		} catch (PrismException | NumberFormatException | CsvFormatException e) {
 			modelStats = null;
-			throw new PrismException("Error detected at line 1 of transitions file \"" + transFile + "\"");
+			int lineNum = 1;
+			String expl = (e.getMessage() == null || e.getMessage().isEmpty()) ? "" : (" (" + e.getMessage() + ")");
+			throw new PrismException("Error detected" + expl + " at line " + lineNum + " of transitions file \"" + transFile + "\"");
 		}
 	}
-	
 
 	/**
 	 * Extract names of labels from the labels file.
@@ -637,6 +723,7 @@ public class PrismExplicitImporter extends ExplicitModelImporter
 			BasicReader reader = BasicReader.wrap(in).normalizeLineEndings();
 			CsvReader csv = new CsvReader(reader, false, false, false, ' ', LF);
 			boolean nondet;
+			boolean partObs;
 			boolean nonprob;
 			// Examine first line
 			// 3 numbers should indicate a nondeterministic model, e.g., MDP
@@ -647,10 +734,15 @@ public class PrismExplicitImporter extends ExplicitModelImporter
 			}
 			// Detect if model is nondeterministic
 			String[] recordFirst = csv.nextRecord();
-			if (recordFirst.length == 3) {
+			if (recordFirst.length == 4) {
 				nondet = true;
+				partObs = true;
+			} else if (recordFirst.length == 3) {
+				nondet = true;
+				partObs = false;
 			} else if (recordFirst.length == 2) {
 				nondet = false;
+				partObs = false;
 			} else {
 				return null;
 			}
@@ -706,8 +798,8 @@ public class PrismExplicitImporter extends ExplicitModelImporter
 					return ModelType.CTMC;
 				}
 			}
-			// All non-rates seen: guess MDP/DTMC
-			return nondet ? ModelType.MDP : ModelType.DTMC;
+			// All non-rates seen: guess (PO)MDP/DTMC
+			return nondet ? (partObs ? ModelType.POMDP : ModelType.MDP) : ModelType.DTMC;
 		} catch (NumberFormatException | CsvFormatException | IOException e) {
 			return null;
 		}
@@ -732,8 +824,8 @@ public class PrismExplicitImporter extends ExplicitModelImporter
 				if ("".equals(record[0]) || "-".equals(record[0])) {
 					continue;
 				}
-				// Lines should be 3-5 long (LTS/MDP with/without actions)
-				checkLineSize(record, 3, 5);
+				// Lines should be 3-6 long (LTS/MDP/POMDP with/without actions)
+				checkLineSize(record, 3, 6);
 				// Extract/store source state
 				int s = checkStateIndex(Integer.parseInt(record[0]), modelStats.numStates);
 				statesWithTransitions.set(s);
@@ -763,9 +855,32 @@ public class PrismExplicitImporter extends ExplicitModelImporter
 			return;
 		}
 		// Otherwise extract from .sta file
-		int numVars = basicModelInfo.getNumVars();
+		extractStateDefinitions(statesFile, basicModelInfo.getNumVars(), storeStateDefn);
+	}
+
+	@Override
+	public void extractObservationDefinitions(IOUtils.StateDefnConsumer storeObservationDefn) throws PrismException
+	{
+		// If there is no info, just assume that observations comprise a single integer observable
+		if (getObservationsFile() == null) {
+			super.extractObservationDefinitions(storeObservationDefn);
+			return;
+		}
+		// Otherwise extract from .obs file
+		extractStateDefinitions(observationsFile, basicModelInfo.getNumObservables(), storeObservationDefn);
+	}
+
+	/**
+	 * Extract state definitions from a states/observables (.sta/.obs) file.
+	 * Calls {@code storeStateDefn(s, i, v)} for each state s, variable (index) i and variable value v.
+	 * @param file States/observations  (.sta/.obs) file
+	 * @param numVars Number of variables/observables
+	 * @param storeStateDefn Consumer to store state/observation definitions
+	 */
+	private void extractStateDefinitions(File file, int numVars, IOUtils.StateDefnConsumer storeStateDefn) throws PrismException
+	{
 		int lineNum = 0;
-		try (BufferedReader in = new BufferedReader(new FileReader(statesFile))) {
+		try (BufferedReader in = new BufferedReader(new FileReader(file))) {
 			lineNum += skipCommentAndFirstLine(in);
 			String st = in.readLine();
 			lineNum++;
@@ -796,10 +911,10 @@ public class PrismExplicitImporter extends ExplicitModelImporter
 				lineNum++;
 			}
 		} catch (IOException e) {
-			throw new PrismException("File I/O error reading from \"" + statesFile + "\"");
+			throw new PrismException("File I/O error reading from \"" + file + "\"");
 		} catch (PrismException | NumberFormatException e) {
 			String expl = (e.getMessage() == null || e.getMessage().isEmpty()) ? "" : (" (" + e.getMessage() + ")");
-			throw new PrismException("Error detected" + expl + " at line " + lineNum + " of states file \"" + statesFile + "\"");
+			throw new PrismException("Error detected" + expl + " at line " + lineNum + " of states file \"" + file + "\"");
 		}
 	}
 
@@ -818,8 +933,8 @@ public class PrismExplicitImporter extends ExplicitModelImporter
 				if ("".equals(record[0]) || "-".equals(record[0])) {
 					continue;
 				}
-				// Lines should be 3-5 long (LTS/MDP with/without actions)
-				checkLineSize(record, 3, 5);
+				// Lines should be 3-5 long (LTS/MDP/POMDP with/without actions)
+				checkLineSize(record, 3, 6);
 				int j = checkChoiceIndex(Integer.parseInt(record[1]));
 				if (j + 1 > maxNumChoices) {
 					maxNumChoices = j + 1;
@@ -903,12 +1018,14 @@ public class PrismExplicitImporter extends ExplicitModelImporter
 				if ("".equals(record[0]) || "-".equals(record[0])) {
 					continue;
 				}
-				checkLineSize(record, 4, 5);
+				// Lines should be 4-6 long (MDP/POMDP with/without actions)
+				checkLineSize(record, 4, 6);
 				int s = checkStateIndex(Integer.parseInt(record[0]), modelStats.numStates);
 				int i = checkChoiceIndex(Integer.parseInt(record[1]));
 				int s2 = checkStateIndex(Integer.parseInt(record[2]), modelStats.numStates);
 				Value v = checkValue(record[3], eval);
-				Object a = (record.length > 4) ? checkAction(record[4]) : null;
+				int actIndex = getModelInfo().getModelType().partiallyObservable() ? 5 : 4;
+				Object a = (record.length > actIndex) ? checkAction(record[actIndex]) : null;
 				// Add self-loops for any deadlock states before s
 				while (nextDeadlock != -1 && nextDeadlock < s) {
 					storeTransition.accept(nextDeadlock, 0, nextDeadlock, eval.one(), null);
@@ -1054,6 +1171,55 @@ public class PrismExplicitImporter extends ExplicitModelImporter
 		}
 	}
 
+	@Override
+	public void extractObservations(IOUtils.StateIntConsumer storeObservation) throws PrismException
+	{
+		// Skip this if model is not partially observable
+		if (!getModelInfo().getModelType().partiallyObservable()) {
+			return;
+		}
+
+		// Extract observations from transitions file
+		// Temporarily store in an array to check for conflicting info
+		int observations[] = new int[modelStats.numStates];
+		Arrays.fill(observations, -1);
+		int lineNum = 0;
+		try (BufferedReader in = new BufferedReader(new FileReader(transFile))) {
+			lineNum += skipCommentAndFirstLine(in);
+			BasicReader reader = BasicReader.wrap(in).normalizeLineEndings();
+			CsvReader csv = new CsvReader(reader, false, false, false, ' ', LF);
+			for (String[] record : csv) {
+				lineNum++;
+				if ("".equals(record[0])) {
+					// Skip blank lines
+					continue;
+				}
+				// Lines should be 5-6 long (POMDP with/without actions)
+				checkLineSize(record, 5, 6);
+				int s2 = checkStateIndex(Integer.parseInt(record[2]), modelStats.numStates);
+				int o = checkStateIndex(Integer.parseInt(record[4]), modelStats.numStates);
+				// Check/store observation
+				if (observations[s2] != -1 && observations[s2] != o) {
+					throw new PrismException("Conflicting observation information for state " + s2);
+				}
+				observations[s2] = o;
+			}
+			// Finally, store observations in the model
+			for (int s = 0; s < modelStats.numStates; s++) {
+				if (observations[s] == -1) {
+					throw new PrismException("No observation information for state " + s);
+				} else {
+					storeObservation.accept(s, observations[s]);
+				}
+			}
+		} catch (IOException e) {
+			throw new PrismException("File I/O error reading from \"" + transFile + "\"");
+		} catch (PrismException | NumberFormatException | CsvFormatException e) {
+			String expl = (e.getMessage() == null || e.getMessage().isEmpty()) ? "" : (" (" + e.getMessage() + ")");
+			throw new PrismException("Error detected" + expl + " at line " + lineNum + " of transitions file \"" + transFile + "\"");
+		}
+	}
+
 	/**
 	 * Extract any info about initial states stored in the .tra file.
 	 * Calls {@code storeInit(s)} for each initial state s.
@@ -1074,7 +1240,7 @@ public class PrismExplicitImporter extends ExplicitModelImporter
 				if ("".equals(record[0])) {
 					continue;
 				}
-				checkLineSize(record, 3, 5);
+				checkLineSize(record, 3, 6);
 				// Break as soon as a non-initial states line is found
 				if (!"-".equals(record[0])) {
 					break;

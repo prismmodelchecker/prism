@@ -1,0 +1,84 @@
+// maze example (POMDP)
+// Littman, Cassandra and Kaelbling
+// Learning policies for partially observable environments: Scaling up  
+// Technical Report CS, Brown University
+// gxn 29/01/16
+
+// state space (value of variable "s")
+
+//  0  1  2  3  4
+//  5     6     7
+//  8     10    9
+
+// 10 is the target
+
+pomdp
+
+// can observe the walls and target
+observable "west" = s=0|s=5|s=6|s=7|s=8|s=9|s=10; // wall to the west
+observable "east" = s=4|s=5|s=6|s=7|s=8|s=9|s=10; // wall to the east
+observable "north" = s=0|s=1|s=2|s=3|s=4; // wall to the north
+observable "south" = s=1|s=3|s=8|s=9|s=10; // wall to the south
+observable "target" = s=10; //target
+
+module maze
+
+	s : [-1..10];
+	
+	// initialisation
+	[] s=-1 -> 0.1 : (s'=0)
+			 + 0.1 : (s'=1)
+			 + 0.1 : (s'=2)
+			 + 0.1 : (s'=3)
+			 + 0.1 : (s'=4)
+			 + 0.1 : (s'=5)
+			 + 0.1 : (s'=6)
+			 + 0.1 : (s'=7)
+			 + 0.1 : (s'=8)
+			 + 0.1 : (s'=9);
+	
+	// moving around the maze
+
+	[east] s=0 -> (s'=1);
+	[south] s=0 -> (s'=5);
+
+	[east] s=1 -> (s'=2);
+	[west] s=1 -> (s'=0);
+
+	[east] s=2 -> (s'=3);
+	[west] s=2 -> (s'=1);
+	[south] s=2 -> (s'=6);
+
+	[east] s=3 -> (s'=4);
+	[west] s=3 -> (s'=2);
+
+	[west] s=4 -> (s'=3);
+	[south] s=4 -> (s'=7);
+
+	[north] s=5 -> (s'=0);
+	[south] s=5 -> (s'=8);
+
+	[north] s=6 -> (s'=2);
+	[south] s=6 -> (s'=10);
+
+	[north] s=7 -> (s'=4);
+	[south] s=7 -> (s'=9);
+
+	[north] s=8 -> (s'=5);
+
+	[north] s=9 -> (s'=7);
+
+	// loop when we reach the target
+	[done] s=10 -> true;
+
+endmodule
+
+// reward structure (number of steps to reach the target)
+rewards
+
+	[east] true : 1;
+	[west] true : 1;
+	[north] true : 1;
+	[south] true : 1;
+
+endrewards
