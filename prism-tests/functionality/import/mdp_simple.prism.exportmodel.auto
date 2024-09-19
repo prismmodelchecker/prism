@@ -1,0 +1,2 @@
+-importmodel mdp_simple.all -exportmodel mdp_simple.all
+-importmodel mdp_simple.all -exportmodel mdp_simple.all -ex

@@ -363,8 +363,8 @@ public class ExplicitFiles2MTBDD
 		// look up action name
 		String aStr = a == null ? "" : a.toString();
 		int j = 0;
-		if (!("".equals(a))) {
-			j = synchs.indexOf(a);
+		if (!("".equals(aStr))) {
+			j = synchs.indexOf(aStr);
 			// add to list if first time seen
 			if (j == -1) {
 				synchs.add(aStr);
@@ -411,8 +411,8 @@ public class ExplicitFiles2MTBDD
 		// look up action name
 		String aStr = a == null ? "" : a.toString();
 		int j = 0;
-		if (!("".equals(a))) {
-			j = synchs.indexOf(a);
+		if (!("".equals(aStr))) {
+			j = synchs.indexOf(aStr);
 			// add to list if first time seen
 			if (j == -1) {
 				synchs.add(aStr);
