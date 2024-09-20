@@ -30,6 +30,7 @@ package explicit;
 import explicit.rewards.Rewards;
 import explicit.rewards.RewardsSimple;
 import io.ExplicitModelImporter;
+import io.IOUtils;
 import parser.State;
 import prism.Evaluator;
 import prism.PrismComponent;
@@ -201,7 +202,36 @@ public class ExplicitFiles2Rewards<Value> extends PrismComponent implements Rewa
 			if (!model.getModelType().nondeterministic()) {
 				importer.extractMCTransitionRewards(r, (s, s2, v) -> storeMCTransitionReward(r, s, s2, v), eval);
 			} else {
-				importer.extractMDPTransitionRewards(r, (s, i, s2, v) -> storeMDPTransitionReward(r, s, i, s2, v), eval);
+				importer.extractMDPTransitionRewards(r,
+					new IOUtils.TransitionStateRewardConsumer<Value>() {
+						int sLast = -1;
+						int iLast = -1;
+						Value vLast = null;
+						int count = 0;
+						public void accept(int s, int i, int s2, Value v) throws PrismException
+						{
+							count++;
+							// Check that transition rewards for the same state/choice are the same
+							// (currently no support for state-choice-state rewards)
+							if (s == sLast && i == iLast) {
+								if (!eval.equals(vLast, v)) {
+									throw new PrismException("mismatching transition rewards " + vLast + " and " + v + " in choice " + i + " of state " + s);
+								}
+							}
+							// And check that were rewards on all successors for each choice
+							// (for speed, we just check that the right number were present)
+							else {
+								if (sLast != -1 && count != ((NondetModel<?>) model).getNumTransitions(sLast, iLast)) {
+									throw new PrismException("wrong number of transition rewards in choice " + iLast + " of state " + sLast);
+								}
+								sLast = s;
+								iLast = i;
+								vLast = v;
+								count = 0;
+							}
+							storeMDPTransitionReward(r, s, i, s2, v);
+						}
+					}, eval);
 			}
 		}
 		return rewards[r];

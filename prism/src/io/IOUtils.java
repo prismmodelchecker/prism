@@ -66,7 +66,7 @@ public class IOUtils
 	 */
 	@FunctionalInterface
 	public interface LTSTransitionConsumer {
-		void accept(int s, int i, int s2, Object a) throws PrismException;;
+		void accept(int s, int i, int s2, Object a) throws PrismException;
 	}
 
 	/**
@@ -75,7 +75,7 @@ public class IOUtils
 	 */
 	@FunctionalInterface
 	public interface TransitionRewardConsumer<V> {
-		void accept(int s, int i, V v);
+		void accept(int s, int i, V v) throws PrismException;
 	}
 
 	/**
@@ -84,6 +84,6 @@ public class IOUtils
 	 */
 	@FunctionalInterface
 	public interface TransitionStateRewardConsumer<V> {
-		void accept(int s, int i, int s2, V v);
+		void accept(int s, int i, int s2, V v) throws PrismException;
 	}
 }
