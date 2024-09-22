@@ -280,12 +280,12 @@ public class ConstructStrategyProduct
 
 					switch (productModelType) {
 					case DTMC:
-						((DTMCSimple<Value>) prodModel).setProbability(map_1, map_2, prob, act);
+						((DTMCSimple<Value>) prodModel).addToProbability(map_1, map_2, prob, act);
 						break;
 					case MDP:
 					case POMDP:
 					case STPG:
-						prodDistr.set(map_2, prob);
+						prodDistr.add(map_2, prob);
 						break;
 					default:
 						throw new PrismNotSupportedException("Product construction not implemented for " + modelType + "s");

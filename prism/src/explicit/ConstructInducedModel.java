@@ -275,12 +275,12 @@ public class ConstructInducedModel
 					// Add transition to model
 					switch (inducedModelType) {
 						case DTMC:
-							((DTMCSimple<Value>) inducedModel).setProbability(map[s], map[s_2], prob, act);
+							((DTMCSimple<Value>) inducedModel).addToProbability(map[s], map[s_2], prob, act);
 							break;
 						case MDP:
 						case POMDP:
 						case STPG:
-							prodDistr.set(map[s_2], prob);
+							prodDistr.add(map[s_2], prob);
 							break;
 						default:
 							throw new PrismNotSupportedException("Induced model construction not implemented for " + modelType + "s");
