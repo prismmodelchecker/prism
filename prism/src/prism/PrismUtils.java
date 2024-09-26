@@ -31,6 +31,7 @@ import java.io.PrintStream;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.PrimitiveIterator;
@@ -38,6 +39,8 @@ import java.util.Set;
 import java.util.Map.Entry;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
 import common.iterable.PrimitiveIterable;
 import param.BigRational;
@@ -922,6 +925,37 @@ public class PrismUtils
 		}
 
 		return 0;
+	}
+
+	/**
+	 * Get access to a list's items in reverse order.
+	 * Similar to {@code List.reversed()}, which is only in Java 21.
+	 */
+	public static <E> Iterable<E> listReversed(List<E> list)
+	{
+		return () -> new Iterator<E>() {
+			int i = list.size() - 1;
+			@Override
+			public boolean hasNext()
+			{
+				return i >= 0;
+			}
+
+			@Override
+			public E next()
+			{
+				return list.get(i--);
+			}
+		};
+	}
+
+	/**
+	 * Get access to a list's items in reverse order.
+	 * Similar to {@code List.reversed().stream()}, which is only in Java 21.
+	 */
+	public static <E> Stream<E> listReversedStream(List<E> list)
+	{
+		return StreamSupport.stream(listReversed(list).spliterator(), false);
 	}
 }
 
