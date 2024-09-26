@@ -137,7 +137,10 @@ public class DRNExporter<Value> extends Exporter<Value>
 				} else {
 					out.print(j);
 				}
-				out.println(" " + getTransitionRewardTuple(allRewards, s, j).toStringReversed(e -> formatValue(e, evalRewards), ", "));
+				if (numRewardStructs > 0) {
+					out.print(" " + getTransitionRewardTuple(allRewards, s, j).toStringReversed(e -> formatValue(e, evalRewards), ", "));
+				}
+				out.println();
 				// Print out (sorted) transitions
 				for (Transition<Value> transition : getSortedTransitionsIterator(model, s, j, showActions)) {
 					out.println("\t\t" + transition.target + " : " + formatValue(transition.value));
