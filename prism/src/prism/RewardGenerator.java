@@ -26,6 +26,7 @@
 
 package prism;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -80,7 +81,26 @@ public interface RewardGenerator<Value>
 		// No reward structures by default
 		return Collections.emptyList();
 	}
-	
+
+	/**
+	 * Get a list of the strings needed to reference the reward structures,
+	 * i.e., "r" for named ones and k for unnamed ones.
+	 */
+	public default List<String> getRewardStructReferences()
+	{
+		List<String> refs = new ArrayList<>();
+		int numRewards = getNumRewardStructs();
+		for (int r = 0; r < numRewards; r++) {
+			String name = getRewardStructName(r);
+			if ("".equals(name) || name == null) {
+				refs.add(Integer.toString(r + 1));
+			} else {
+				refs.add("\"" + name + "\"");
+			}
+		}
+		return refs;
+	}
+
 	/**
 	 * Get the number of reward structures.
 	 */

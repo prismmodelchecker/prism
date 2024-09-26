@@ -1814,13 +1814,13 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 		}
 		mainLog.println("Variables:   " + String.join(" ", modelInfo.getVarNames()));
 		if (modelInfo.getModelType().partiallyObservable()) {
-			mainLog.println("Observables: " + String.join(" ", modelInfo.getObservableNames()));
+			mainLog.println("Observables: " + "\"" + String.join("\" \"", modelInfo.getObservableNames()) + "\"");
 		}
 		if (modelInfo.getNumLabels() > 0) {
-			mainLog.println("Labels:      " + String.join(" ", modelInfo.getLabelNames()));
+			mainLog.println("Labels:      " + "\"" + String.join("\" \"", modelInfo.getLabelNames()) + "\"");
 		}
 		if (rewardInfo.getNumRewardStructs() > 0) {
-			mainLog.println("Rewards:     " + String.join(" ", rewardInfo.getRewardStructNames()));
+			mainLog.println("Rewards:     " + String.join(" ", rewardInfo.getRewardStructReferences()));
 		}
 	}
 
