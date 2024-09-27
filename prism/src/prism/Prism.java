@@ -3141,6 +3141,15 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 				throw new PrismNotSupportedException("Exact model checking not supported for " + getModelType() + "s");
 			}
 		}
+		// Parametric model checking only support for some models/settings
+		if (getCurrentEngine() == PrismEngine.PARAM) {
+			if (!(getModelType() == ModelType.DTMC || getModelType() == ModelType.CTMC || getModelType() == ModelType.MDP || !getModelType().isProbabilistic())) {
+				throw new PrismNotSupportedException("Parametric model checking not supported for " + getModelType() + "s");
+			}
+			if (getModelType() == ModelType.MDP && getFairness()) {
+				throw new PrismNotSupportedException("Parametric model checking does not support checking MDPs under fairness");
+			}
+		}
 		// PTA (and similar) model checking is handled separately
 		if (getModelType().realTime()) {
 			return modelCheckPTA(propertiesFile, prop.getExpression(), definedPFConstants);
@@ -3243,6 +3252,10 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 				res = mc.check(getBuiltModelExplicit(), prop.getExpression());
 			} else if (getCurrentEngine() == PrismEngine.EXACT) {
 				ParamModelChecker mc = new ParamModelChecker(this, ParamMode.EXACT);
+				mc.setModelCheckingInfo(getPRISMModel(), propertiesFile, getRewardGenerator());
+				res = mc.check(getBuiltModelExplicit(), prop.getExpression());
+			} else if (getCurrentEngine() == PrismEngine.PARAM) {
+				ParamModelChecker mc = new ParamModelChecker(this, ParamMode.PARAMETRIC);
 				mc.setModelCheckingInfo(getPRISMModel(), propertiesFile, getRewardGenerator());
 				res = mc.check(getBuiltModelExplicit(), prop.getExpression());
 			}
@@ -3524,56 +3537,6 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 		// Do simulation
 		loadModelIntoSimulator();
 		getSimulator().modelCheckExperiment(propertiesFile, undefinedConstants, results, expr, initialState, maxPathLength, simMethod);
-	}
-
-	/**
-	 * Perform parametric model checking on the currently loaded model.
-	 * @param propertiesFile parent properties file
-	 * @param prop property to model check
-	 * @param paramNames parameter names
-	 * @param paramLowerBounds lower bounds of parameters
-	 * @param paramUpperBounds upper bounds of parameters
-	 */
-	public Result modelCheckParametric(PropertiesFile propertiesFile, Property prop, String[] paramNames, String[] paramLowerBounds, String[] paramUpperBounds)
-			throws PrismException
-	{
-		// Some checks
-		if (paramNames == null) {
-			throw new PrismException("Must specify some parameters when using " + "the parametric analysis");
-		}
-		if (!(getModelType() == ModelType.DTMC || getModelType() == ModelType.CTMC || getModelType() == ModelType.MDP))
-			throw new PrismNotSupportedException("Parametric model checking is only supported for DTMCs, CTMCs and MDPs");
-
-		if (getModelType() == ModelType.MDP && getFairness())
-			throw new PrismNotSupportedException("Parametric model checking does not support checking MDPs under fairness");
-
-		Values definedPFConstants = propertiesFile.getConstantValues();
-		Values constlist = getPRISMModel().getConstantValues();
-		for (int pnr = 0; pnr < paramNames.length; pnr++) {
-			constlist.removeValue(paramNames[pnr]);
-		}
-
-		// Print info
-		mainLog.printSeparator();
-		mainLog.println("\nParametric model checking: " + prop);
-		if (getUndefinedModelValues() != null && getUndefinedModelValues().getNumValues() > 0)
-			mainLog.println("Model constants: " + getUndefinedModelValues());
-		if (definedPFConstants != null && definedPFConstants.getNumValues() > 0)
-			mainLog.println("Property constants: " + definedPFConstants);
-
-		// Remove old strategy if present
-		clearStrategy();
-
-		// Execute parameteric model checking
-		ConstructModel constructModel = new ConstructModel(this);
-		constructModel.setFixDeadlocks(getFixDeadlocks());
-		ModulesFileModelGenerator<Function> modelGenFunc  = ModulesFileModelGenerator.createForRationalFunctions(getPRISMModel(), paramNames, paramLowerBounds, paramUpperBounds, this);
-		explicit.Model<?> modelExpl = constructModel.constructModel(modelGenFunc);
-		ParamModelChecker mc = new ParamModelChecker(this, ParamMode.PARAMETRIC);
-		mc.setModelCheckingInfo(getPRISMModel(), propertiesFile, modelGenFunc);
-		Result result = mc.check(modelExpl, prop.getExpression());
-
-		return result;
 	}
 
 	/**
@@ -4524,6 +4487,33 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 		settings.set(PrismSettings.PRISM_EXACT_ENABLED, Boolean.TRUE);
 		Result result = modelCheck(propertiesFile, prop);
 		settings.set(PrismSettings.PRISM_EXACT_ENABLED, exactOld);
+		return result;
+	}
+
+	/**
+	 * Perform parametric model checking on the currently loaded model.
+	 * @param propertiesFile parent properties file
+	 * @param prop property to model check
+	 * @param paramNames parameter names
+	 * @param paramLowerBounds lower bounds of parameters
+	 * @param paramUpperBounds upper bounds of parameters
+	 * @deprecated Better to use {@link #modelCheck(PropertiesFile, Property)} now.
+	 */
+	@Deprecated
+	public Result modelCheckParametric(PropertiesFile propertiesFile, Property prop, String[] paramNames, String[] paramLowerBounds, String[] paramUpperBounds)
+			throws PrismException
+	{
+		boolean paramOld = param;
+		String[] paramNamesOld = this.paramNames;
+		String[] paramLowerBoundsOld = this.paramLowerBounds;
+		String[] paramUpperBoundsOld = this.paramUpperBounds;
+		setParametric(paramNames, paramLowerBounds, paramUpperBounds);
+		Result result = modelCheck(propertiesFile, prop);
+		if (paramOld) {
+			setParametric(paramNamesOld, paramLowerBoundsOld, paramUpperBoundsOld);
+		} else {
+			setParametricOff();
+		}
 		return result;
 	}
 }
