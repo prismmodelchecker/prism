@@ -108,7 +108,7 @@ public class AccuracyFactory
 		if (loAcc != null && loAcc.getLevel() == AccuracyLevel.PROBABLY_BOUNDED) {
 			throw new PrismException("Cannot create interval accuracy from probabilistic bounds");
 		}
-		if (loAcc != null && loAcc.getLevel() == AccuracyLevel.PROBABLY_BOUNDED) {
+		if (hiAcc != null && hiAcc.getLevel() == AccuracyLevel.PROBABLY_BOUNDED) {
 			throw new PrismException("Cannot create interval accuracy from probabilistic bounds");
 		}
 		// Extract lower/upper bounds (taking into account accuracy if present)

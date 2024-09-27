@@ -283,12 +283,12 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 			modelSource = other.modelSource;
 			modelType = other.modelType;
 			modelInfo = other.modelInfo;
-			modelSource = other.modelSource;
 			modulesFile = other.modulesFile;
 			modelGenerator = other.modelGenerator;
 			rewardGenerator = other.rewardGenerator;
 			definedMFConstants = other.definedMFConstants;
 			definedMFConstantsAreExact = other.definedMFConstantsAreExact;
+			model = other.model;
 			modelSymb = other.modelSymb;
 			modelExpl = other.modelExpl;
 			modelBuildType = other.modelBuildType;

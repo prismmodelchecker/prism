@@ -34,7 +34,7 @@ public class Accuracy
 	/**
 	 * The possible levels of accuracy. 
 	 */
-	public enum AccuracyLevel { EXACT, EXACT_FLOATING_POINT, BOUNDED, ESTIMATED_BOUNDED, PROBABLY_BOUNDED };
+	public enum AccuracyLevel { EXACT, EXACT_FLOATING_POINT, BOUNDED, ESTIMATED_BOUNDED, PROBABLY_BOUNDED }
 	
 	/**
 	 * The level of accuracy provided. 
@@ -59,7 +59,7 @@ public class Accuracy
 	/**
 	 * The possible types of accuracy: absolute or relative. 
 	 */
-	public enum AccuracyType { ABSOLUTE, RELATIVE };
+	public enum AccuracyType { ABSOLUTE, RELATIVE }
 	
 	/**
 	 * The type of accuracy: absolute or relative. 
@@ -73,7 +73,7 @@ public class Accuracy
 	
 	/**
 	 * Create an accuracy of the specified level.
-	 * For "bounded" accuracies, {@link Accuracy.DEFAULT_ERROR_BOUND} is assumed.
+	 * For "bounded" accuracies, {@link Accuracy#DEFAULT_ERROR_BOUND} is assumed.
 	 * The error bound is also assumed to be absolute.
 	 */
 	public Accuracy(AccuracyLevel level)
@@ -142,7 +142,7 @@ public class Accuracy
 	
 	/**
 	 * Set the probability with which the accuracy is guaranteed
-	 * (for the case where the level is {@link AccuracyLevel.PROBABLY_BOUNDED}).
+	 * (for the case where the level is {@link AccuracyLevel#PROBABLY_BOUNDED}).
 	 */
 	public void setProbability(double probability)
 	{
@@ -264,7 +264,7 @@ public class Accuracy
 	
 	/**
 	 * Get the probability with which the accuracy is guaranteed
-	 * (for the case where the level is {@link AccuracyLevel.PROBABLY_BOUNDED}; otherwise 1.0).
+	 * (for the case where the level is {@link AccuracyLevel#PROBABLY_BOUNDED}; otherwise 1.0).
 	 */
 	public double getProbability()
 	{
