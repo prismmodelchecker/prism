@@ -25,4 +25,4 @@ label "hazard" = s=1;
 label "goal1" = s=5;
 label "goal2" = s=2|s=3;
 
-//rewards "time" true : 1; endrewards
+rewards "time" true : 1; endrewards

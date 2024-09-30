@@ -64,8 +64,18 @@ public class ExplicitFiles2Rewards<Value> extends PrismComponent implements Rewa
 	 */
 	public ExplicitFiles2Rewards(PrismComponent parent, ExplicitModelImporter importer) throws PrismException
 	{
+		this(parent, importer, (Evaluator<Value>) Evaluator.forDouble());
+	}
+
+	/**
+	 * Construct a ExplicitFiles2Rewards object for a specified importer.
+	 * The rewards are actually imported/stored later, on demand.
+	 */
+	public ExplicitFiles2Rewards(PrismComponent parent, ExplicitModelImporter importer, Evaluator<Value> eval) throws PrismException
+	{
 		super(parent);
 		this.importer = importer;
+		this.eval = eval;
 		rewardInfo = importer.getRewardInfo();
 		// Initialise storage
 		rewards = new RewardsSimple[rewardInfo.getNumRewardStructs()];
@@ -74,12 +84,11 @@ public class ExplicitFiles2Rewards<Value> extends PrismComponent implements Rewa
 	/**
 	 * Provide access to the model for which the rewards are to be defined.
 	 * Needed to look up information when storing transition rewards.
-	 * The model's evaluator and attached states list is also stored.
+	 * The model's attached states list is also stored.
 	 */
 	public void setModel(Model<Value> model)
 	{
 		this.model = model;
-		eval = model.getEvaluator();
 		setStatesList(model.getStatesList());
 	}
 
