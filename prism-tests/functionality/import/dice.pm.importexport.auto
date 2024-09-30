@@ -2,6 +2,10 @@
 -importmodel dice.all -exportmodel dice.all -h
 -importmodel dice.all -exportmodel dice.all -s
 
+# Partial
+-importmodel dice.tra,lab,srew -exportmodel dice.tra,lab,srew
+-importmodel dice.tra,sta,trew -exportmodel dice.tra,sta,trew
+
 # Import model info - exact
 -importmodel dice.all -exportmodel dice.exact.all -exact
 -importmodel dice.exact.all -exportmodel dice.exact.all -exact

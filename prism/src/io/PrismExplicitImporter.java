@@ -108,7 +108,7 @@ public class PrismExplicitImporter implements ExplicitModelImporter
 
 	// File(s) to read in rewards from
 	private List<PrismExplicitImporter.RewardFile> stateRewardsReaders = new ArrayList<>();
-	private List<PrismExplicitImporter.RewardFile> transRewardsRewaders = new ArrayList<>();
+	private List<PrismExplicitImporter.RewardFile> transRewardsReaders = new ArrayList<>();
 
 	// Regex for comments
 	protected static final Pattern COMMENT_PATTERN = Pattern.compile("#.*");
@@ -137,9 +137,9 @@ public class PrismExplicitImporter implements ExplicitModelImporter
 		for (File file : this.stateRewardsFiles) {
 			this.stateRewardsReaders.add(new PrismExplicitImporter.RewardFile(file));
 		}
-		this.transRewardsRewaders = new ArrayList<>(this.transRewardsFiles.size());
+		this.transRewardsReaders = new ArrayList<>(this.transRewardsFiles.size());
 		for (File file : this.transRewardsFiles) {
-			this.transRewardsRewaders.add(new PrismExplicitImporter.RewardFile(file));
+			this.transRewardsReaders.add(new PrismExplicitImporter.RewardFile(file));
 		}
 	}
 
@@ -902,7 +902,8 @@ public class PrismExplicitImporter implements ExplicitModelImporter
 			@Override
 			public List<String> getRewardStructNames()
 			{
-				return Reducible.extend(stateRewardsReaders).map(f -> f.getName().orElse("")).collect(new ArrayList<>(stateRewardsReaders.size()));
+				List<PrismExplicitImporter.RewardFile> rewardsReaders = stateRewardsReaders.size() >= transRewardsFiles.size() ? stateRewardsReaders : transRewardsReaders;
+				return Reducible.extend(rewardsReaders).map(f -> f.getName().orElse("")).collect(new ArrayList<>(rewardsReaders.size()));
 			}
 
 			@Override
@@ -931,8 +932,8 @@ public class PrismExplicitImporter implements ExplicitModelImporter
 	@Override
 	public <Value> void extractMCTransitionRewards(int rewardIndex, IOUtils.TransitionRewardConsumer<Value> storeReward, Evaluator<Value> eval) throws PrismException
 	{
-		if (rewardIndex < transRewardsRewaders.size()) {
-			RewardFile file = transRewardsRewaders.get(rewardIndex);
+		if (rewardIndex < transRewardsReaders.size()) {
+			RewardFile file = transRewardsReaders.get(rewardIndex);
 			file.extractMCTransitionRewards(storeReward, eval, numStates);
 		}
 	}
@@ -940,8 +941,8 @@ public class PrismExplicitImporter implements ExplicitModelImporter
 	@Override
 	public <Value> void extractMDPTransitionRewards(int rewardIndex, IOUtils.TransitionStateRewardConsumer<Value> storeReward, Evaluator<Value> eval) throws PrismException
 	{
-		if (rewardIndex < transRewardsRewaders.size()) {
-			RewardFile file = transRewardsRewaders.get(rewardIndex);
+		if (rewardIndex < transRewardsReaders.size()) {
+			RewardFile file = transRewardsReaders.get(rewardIndex);
 			file.extractMDPTransitionRewards(storeReward, eval, numStates);
 		}
 	}
