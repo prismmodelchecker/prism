@@ -32,6 +32,7 @@ import java.util.stream.IntStream;
 
 import dv.IntegerVector;
 import explicit.ConstructStrategyProduct;
+import explicit.NondetModel;
 import symbolic.model.Model;
 import prism.PrismException;
 import prism.PrismLog;
@@ -47,7 +48,6 @@ public class MDStrategyIV extends StrategyWithStates<Double> implements MDStrate
 	// Model associated with the strategy
 	private Model model;
 	// Other model info
-	private int numStates;
 	private List<String> actions;
 	// Array storing MD strategy: *action* index (not choice index) for each state
 	private IntegerVector iv;
@@ -58,7 +58,6 @@ public class MDStrategyIV extends StrategyWithStates<Double> implements MDStrate
 	public MDStrategyIV(Model model, IntegerVector iv)
 	{
 		this.model = model;
-		numStates = model.getNumStates();
 		actions = model.getSynchs();
 		this.iv = iv;
 		setStateLookUp(state -> {
@@ -99,9 +98,9 @@ public class MDStrategyIV extends StrategyWithStates<Double> implements MDStrate
 	}
 
 	@Override
-	public int getNumStates()
+	public prism.Model<Double> getModel()
 	{
-		return numStates;
+		return model;
 	}
 
 	@Override

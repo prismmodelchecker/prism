@@ -186,11 +186,19 @@ public interface Strategy<Value> extends StrategyInfo<Value>
     	// No memory by default
     	return -1;
     }
-    
+
+	/**
+	 * Get the model associated with this strategy.
+	 */
+	public prism.Model<Value> getModel();
+
 	/**
 	 * Get the number of states of the model associated with this strategy.
 	 */
-	public int getNumStates();
+	public default int getNumStates()
+	{
+		return getModel().getNumStates();
+	}
 
 	/**
 	 * Export the model induced by this strategy to a PrismLog.
