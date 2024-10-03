@@ -295,6 +295,7 @@ public interface Strategy<Value> extends StrategyInfo<Value>
 		PrismLog mainLog = new PrismPrintStreamLog(System.out);
 
 		MDPSimple mdp = new MDPSimple(2);
+		mdp.addInitialState(0);
 		Distribution distr2 = Distribution.ofDouble();
 		distr2.add(0, 0.4);
 		distr2.add(1, 0.6);
@@ -306,24 +307,33 @@ public interface Strategy<Value> extends StrategyInfo<Value>
 		mdp.addActionLabelledChoice(1, distr2, "d");
 
 		try {
+			System.out.println("MDP: " + mdp);
+
 			Strategy strat = null;
 
 			strat = new MDStrategyArray(mdp, new int[] {0,1});
-			System.out.println(strat);
+			System.out.println("MDStrategyArray: " + strat);
 			strat.exportActions(mainLog);
+			((explicit.Model) strat.constructInducedModel()).exportToPrismExplicitTra("stdout");
+			System.out.println();
 
 			strat = new FMDStrategyStep(mdp, 2);
 			((FMDStrategyStep) strat).setStepChoices(0, new int[] {0,1});
 			((FMDStrategyStep) strat).setStepChoices(1, new int[] {1,1});
-			System.out.println(strat);
+			System.out.println("FMDStrategyStep: " + strat);
 			strat.exportActions(mainLog);
+			((explicit.Model) strat.constructInducedModel()).exportToPrismExplicitTra("stdout");
+			System.out.println();
 
 			strat = new MRStrategy(mdp);
 			((MRStrategy) strat).setChoiceProbability(0, 0, 0.1);
 			((MRStrategy) strat).setChoiceProbability(0, 1, 0.9);
 			((MRStrategy) strat).setChoiceProbability(1, 0, 1.0);
-			System.out.println(strat);
+			System.out.println("MRStrategy: " + strat);
 			strat.exportActions(mainLog);
+			((explicit.Model) strat.constructInducedModel(new StrategyExportOptions().setMode(StrategyExportOptions.InducedModelMode.REDUCE))).exportToPrismExplicitTra("stdout");
+			((explicit.Model) strat.constructInducedModel(new StrategyExportOptions().setMode(StrategyExportOptions.InducedModelMode.RESTRICT))).exportToPrismExplicitTra("stdout");
+			System.out.println();
 
 		} catch (PrismException e) {
 			throw new RuntimeException(e);

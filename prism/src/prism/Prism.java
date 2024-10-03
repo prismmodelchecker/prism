@@ -1627,6 +1627,15 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	}
 
 	/**
+	 * Convert an object into a valid identifier in the PRISM language.
+	 */
+	public static String toIdentifier(Object o)
+	{
+		String s = o.toString().replaceAll("[^_a-zA-Z0-9]", "_");
+		return isValidIdentifier(s) ? s : "_" + s;
+	}
+
+	/**
 	 * Clear storage of the current model, if any.
 	 */
 	public void clearModel() throws PrismException
