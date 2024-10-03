@@ -101,22 +101,9 @@ public class ConstructStrategyProduct
 
 		// Determine type of induced model
 		ModelType modelType = model.getModelType();
-		ModelType productModelType = null;
-		if (mode == StrategyExportOptions.InducedModelMode.REDUCE) {
-			switch (modelType) {
-				case MDP:
-				case POMDP:
-				case STPG:
-					productModelType = ModelType.DTMC;
-					break;
-				case IMDP:
-					productModelType = ModelType.IDTMC;
-					break;
-				default:
-					throw new PrismNotSupportedException("Product construction not supported for " + modelType + "s");
-			}
-		} else {
-			productModelType = modelType;
+		ModelType productModelType = strat.getInducedModelType(mode);
+		if (productModelType == null) {
+			throw new PrismNotSupportedException("Product construction not supported for " + modelType + "s");
 		}
 
 		// Create a (simple, mutable) model of the appropriate type

@@ -95,7 +95,7 @@ public interface StrategyGenerator<Value> extends StrategyInfo<Value>
 	 * Sample an action chosen by the strategy in the current state.
 	 * For a deterministic strategy, this returns the (unique) chosen action;
 	 * for a randomised strategy, an action is sampled according to the strategy's distribution.
-	 * Returns {@link #StrategyInfo.UNDEFINED} if undefined.
+	 * Returns {@link StrategyInfo#UNDEFINED} if undefined.
 	 */
 	public default Object sampleCurrentChoiceAction(RandomNumberGenerator rng)
 	{

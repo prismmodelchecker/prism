@@ -95,22 +95,9 @@ public class ConstructInducedModel
 
 		// Determine type of induced model
 		ModelType modelType = model.getModelType();
-		ModelType inducedModelType = null;
-		if (mode == InducedModelMode.REDUCE) {
-			switch (modelType) {
-				case MDP:
-				case POMDP:
-				case STPG:
-					inducedModelType = ModelType.DTMC;
-					break;
-				case IMDP:
-					inducedModelType = ModelType.IDTMC;
-					break;
-				default:
-					throw new PrismNotSupportedException("Induced model construction not supported for " + modelType + "s");
-			}
-		} else {
-			inducedModelType = modelType;
+		ModelType inducedModelType = strat.getInducedModelType(mode);
+		if (inducedModelType == null) {
+			throw new PrismNotSupportedException("Induced model construction not supported for " + modelType + "s");
 		}
 
 		// Create a (simple, mutable) model of the appropriate type

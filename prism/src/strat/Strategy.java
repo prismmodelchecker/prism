@@ -29,6 +29,7 @@ package strat;
 
 import explicit.Distribution;
 import explicit.MDPSimple;
+import prism.ModelType;
 import prism.PrismException;
 import prism.PrismLog;
 import prism.PrismPrintStreamLog;
@@ -206,6 +207,16 @@ public interface Strategy<Value> extends StrategyInfo<Value>
 	public default int getNumModelPlayers()
 	{
 		return getModel().getNumPlayers();
+	}
+
+	/**
+	 * Get the type of model induced by this strategy when applied to its associated model.
+	 * Returns null if the model type cannot be deduced.
+	 * @param mode Mode of induced model construction ("restrict" or "reduce")
+	 */
+	public default ModelType getInducedModelType(StrategyExportOptions.InducedModelMode mode)
+	{
+		return getInducedModelType(getModel().getModelType(), getNumModelPlayers(), mode);
 	}
 
 	/**

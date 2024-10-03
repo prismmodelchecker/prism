@@ -30,7 +30,10 @@ import java.util.Objects;
 
 import explicit.DistributionOver;
 import prism.Evaluator;
+import prism.ModelType;
+import prism.PrismNotSupportedException;
 import simulator.RandomNumberGenerator;
+import strat.StrategyExportOptions.InducedModelMode;
 
 /**
  * Super-interface for Strategy and StrategyGenerator interfaces.
@@ -127,7 +130,7 @@ public interface StrategyInfo<Value>
 	 * as returned by getChoiceAction().
 	 * For a deterministic strategy, this returns the (unique) chosen action;
 	 * for a randomised strategy, an action is sampled according to the strategy's distribution.
-	 * Returns {@link #StrategyInfo.UNDEFINED} if undefined.
+	 * Returns {@link StrategyInfo#UNDEFINED} if undefined.
 	 * @param decision The decision taken by the strategy
 	 * @param rng Random number generator
 	 */
@@ -157,7 +160,34 @@ public interface StrategyInfo<Value>
     {
 		return m == -1 ? "?" : Integer.toString(m);
     }
-    
+
+	/**
+	 * Get the type of model induced by this strategy when applied to a type of model.
+	 * Returns null if the model type cannot be deduced.
+	 * @param modelType The type of model to which the strategy will be applied
+	 * @param numPlayers The number of players in the model (if relevant)
+	 * @param mode Mode of induced model construction ("restrict" or "reduce")
+	 */
+	public default ModelType getInducedModelType(ModelType modelType, int numPlayers, InducedModelMode mode)
+	{
+		ModelType inducedModelType = null;
+		if (mode == InducedModelMode.REDUCE) {
+			switch (modelType) {
+				case MDP:
+				case POMDP:
+				case STPG:
+					inducedModelType = ModelType.DTMC;
+					break;
+				case IMDP:
+					inducedModelType = ModelType.IDTMC;
+					break;
+			}
+		} else {
+			inducedModelType = modelType;
+		}
+		return inducedModelType;
+	}
+
 	/**
 	 * Get an Evaluator for the probability values returned when this strategy is randomised.
 	 * By default, this is an evaluator for the (usual) case when Value is Double.
