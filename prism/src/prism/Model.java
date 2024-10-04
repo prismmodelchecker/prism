@@ -45,6 +45,14 @@ public interface Model<Value>
 	int getNumStates();
 
 	/**
+	 * Get the number of players.
+	 */
+	default int getNumPlayers()
+	{
+		return getModelType() == ModelType.STPG ? 2 : 1;
+	}
+
+	/**
 	 * Get the number of initial states.
 	 */
 	int getNumInitialStates();

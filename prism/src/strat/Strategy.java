@@ -201,6 +201,14 @@ public interface Strategy<Value> extends StrategyInfo<Value>
 	}
 
 	/**
+	 * Get the number of players of the model associated with this strategy.
+	 */
+	public default int getNumModelPlayers()
+	{
+		return getModel().getNumPlayers();
+	}
+
+	/**
 	 * Export the model induced by this strategy to a PrismLog.
 	 */
 	public default prism.Model<Value> constructInducedModel() throws PrismException
