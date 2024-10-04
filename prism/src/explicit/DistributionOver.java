@@ -30,6 +30,7 @@ import java.util.AbstractMap;
 import java.util.Iterator;
 import java.util.Objects;
 import java.util.Map.Entry;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
@@ -93,6 +94,22 @@ public class DistributionOver<Value,T> implements Iterable<Entry<T, Value>>
 				return new AbstractMap.SimpleImmutableEntry<>(objects.apply(e.getKey()), e.getValue());
 			}
 		};
+	}
+
+	/**
+	 * Get the support of the distribution.
+	 */
+	public Set<T> getSupport()
+	{
+		return distr.getSupport().stream().map(objects::apply).collect(Collectors.toSet());
+	}
+
+	/**
+	 * Get the support of the distribution, as a string "a,b,c".
+	 */
+	public String getSupportString()
+	{
+		return distr.getSupport().stream().map(i -> objects.apply(i).toString()).collect(Collectors.joining(","));
 	}
 
 	/**
