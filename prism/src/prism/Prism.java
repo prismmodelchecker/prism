@@ -1631,7 +1631,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	 */
 	public static String toIdentifier(Object o)
 	{
-		String s = o.toString().replaceAll("[^_a-zA-Z0-9]", "_");
+		String s = o.toString().replaceAll("[^_a-zA-Z0-9]+", "_");
 		return isValidIdentifier(s) ? s : "_" + s;
 	}
 
