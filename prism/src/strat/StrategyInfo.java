@@ -31,6 +31,7 @@ import java.util.Objects;
 import explicit.DistributionOver;
 import prism.Evaluator;
 import prism.ModelType;
+import prism.Prism;
 import prism.PrismNotSupportedException;
 import simulator.RandomNumberGenerator;
 import strat.StrategyExportOptions.InducedModelMode;
@@ -148,7 +149,26 @@ public interface StrategyInfo<Value>
 			return decision;
 		}
 	}
-	
+
+	/**
+	 * Get the action label for a choice in the model induced by this strategy.
+	 * For a deterministic strategy, it is unchanged.
+	 * For a randomised strategy, a descriptive string identifier is created.
+	 * @param decision The decision taken by the strategy
+	 * @param act The action to check
+	 */
+	public default Object getInducedAction(Object decision, Object act)
+	{
+		if (decision == UNDEFINED) {
+			return null;
+		}
+		if (decision instanceof DistributionOver) {
+			return Prism.toIdentifier(decision);
+		} else {
+			return decision;
+		}
+	}
+
 	/**
 	 * For a strategy with memory, get a description of a given memory value.
 	 * By default, this is a just the integer value of the memory as a string,

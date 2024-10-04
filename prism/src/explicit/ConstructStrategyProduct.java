@@ -41,7 +41,6 @@ import parser.ast.Declaration;
 import parser.ast.DeclarationInt;
 import parser.ast.Expression;
 import prism.ModelType;
-import prism.Prism;
 import prism.PrismException;
 import prism.PrismNotSupportedException;
 import strat.Strategy;
@@ -229,21 +228,28 @@ public class ConstructStrategyProduct
 			if (decision == StrategyInfo.UNDEFINED && numChoices > 0) {
 				decision = model.getAction(s_1, 0);
 			}
-			// To build nondeterministic models, store new transitions in a distrbution
+			// To build nondeterministic models, store new transitions in a distribution
+			Object inducedAction = null;
 			Distribution<Value> prodDistr = null;
 			if (productModelType.nondeterministic()) {
 				prodDistr = new Distribution<>(model.getEvaluator());
 			}
-			// Go through transitions from state s_1 in original model
+			// Go through choices from state s_1 in original model
 			for (int j = 0; j < numChoices; j++) {
 				Object act = model.getAction(s_1, j);
 				// Skip choices not picked by the strategy
 				if (!strat.isActionChosen(decision, act)) {
 					continue;
 				}
+				// Get strategy choice probability if needed
 				if (strat.isRandomised()) {
 					stratChoiceProb = strat.getChoiceActionProbability(decision, act);
 				}
+				// Get choice action for induced model if needed
+				if (productModelType.nondeterministic()) {
+					inducedAction = strat.getInducedAction(decision, act);
+				}
+				// Go through transitions of original model
 				Iterator<Map.Entry<Integer, Value>> iter;
 				switch (modelType) {
 				case MDP:
@@ -283,17 +289,15 @@ public class ConstructStrategyProduct
 			}
 			// Add distribution to nondeterministic model
 			if (productModelType.nondeterministic()) {
-				// Get new action label (needed e.g. for randomised strategies)
-				String actDistr = Prism.toIdentifier(decision);
 				switch (productModelType) {
 				case MDP:
-					((MDPSimple<Value>) prodModel).addActionLabelledChoice(map_1, prodDistr, actDistr);
+					((MDPSimple<Value>) prodModel).addActionLabelledChoice(map_1, prodDistr, inducedAction);
 					break;
 				case POMDP:
-					((POMDPSimple<Value>) prodModel).addActionLabelledChoice(map_1, prodDistr, actDistr);
+					((POMDPSimple<Value>) prodModel).addActionLabelledChoice(map_1, prodDistr, inducedAction);
 					break;
 				case STPG:
-					((STPGSimple<Value>) prodModel).addActionLabelledChoice(map_1, prodDistr, actDistr);
+					((STPGSimple<Value>) prodModel).addActionLabelledChoice(map_1, prodDistr, inducedAction);
 					break;
 				default:
 					break;
