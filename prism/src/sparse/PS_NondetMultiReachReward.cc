@@ -669,7 +669,7 @@ JNIEXPORT jdouble __jlongpointer JNICALL Java_sparse_PrismSparse_PS_1NondetMulti
     }
 
     // Modify result based on type
-    if (relops[0] != 0 && relopsReward[0] != 3 && relopsReward[0] != 8) {
+    if ((num_targets == 0 || relops[0] != 0) && (num_rewards == 0 || (relopsReward[0] != 3 && relopsReward[0] != 8))) {
       // for qualitative queries, return 1/0 for existence of solution or not
       PS_PrintToMainLog(env, "LP problem solution %sfound so result is %s\n",  lp_solved ? "" : "not ", lp_solved ? "true" : "false");
       lp_result = lp_solved ? 1.0 : 0.0;
