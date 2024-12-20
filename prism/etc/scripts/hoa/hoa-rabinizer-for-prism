@@ -1,0 +1,15 @@
+#! /bin/bash
+
+# Interface wrapper for calling Rabinizer (version 4)
+# Invoke from PRISM with
+#  -ltl2datool hoa-rabinizer-for-prism -ltl2dasyntax rabinizer
+#
+# Expects the ltl2dra executable to be on the PATH, otherwise specify its location using
+# specify its location using
+#  export RABINIZER_LTL2DRA=path/to/ltl2dra
+
+# Take the  executable from the RABINIZER_LTL2DRA environment variable
+# Otherwise, default to "ltl2dra", which will search the PATH
+RABINIZER_LTL2DRA_BIN=${RABINIZER_LTL2DRA-ltl2dra}
+
+$RABINIZER_LTL2DRA_BIN --filein "$1" --fileout="$2"
