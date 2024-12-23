@@ -2373,7 +2373,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	}
 
 	/**
-	 * Export various aspects, combined, the current built model.
+	 * Export various aspects of the current built model together.
 	 * @param file File to export to
 	 * @param exportOptions The options for export
 	 */
@@ -2407,7 +2407,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	}
 
 	/**
-	 * Export the transtion matrix for the current built model.
+	 * Export the transition matrix for the current built model.
 	 * @param file File to export to
 	 * @param exportOptions The options for export
 	 */
@@ -4360,6 +4360,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	}
 
 	/**
+	 * @deprecated
 	 * Export the currently loaded model's states to a file
 	 * @param exportType Type of export; one of: <ul>
 	 * <li> {@link #EXPORT_PLAIN}
@@ -4367,12 +4368,14 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	 * </ul>
 	 * @param file File to export to (if null, print to the log instead)
 	 */
+	@Deprecated
 	public void exportStatesToFile(int exportType, File file) throws FileNotFoundException, PrismException
 	{
 		exportBuiltModelStates(file, convertExportType(exportType));
 	}
 
 	/**
+	 * @deprecated
 	 * Export the observations for the currently loaded model to a file
 	 * @param exportType Type of export; one of: <ul>
 	 * <li> {@link #EXPORT_PLAIN}
@@ -4380,6 +4383,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	 * </ul>
 	 * @param file File to export to (if null, print to the log instead)
 	 */
+	@Deprecated
 	public void exportObservationsToFile(int exportType, File file) throws FileNotFoundException, PrismException
 	{
 		exportBuiltModelObservations(file, convertExportType(exportType));
