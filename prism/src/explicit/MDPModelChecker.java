@@ -26,6 +26,7 @@
 
 package explicit;
 
+import java.io.File;
 import java.util.Arrays;
 import java.util.BitSet;
 import java.util.Iterator;
@@ -388,9 +389,7 @@ public class MDPModelChecker extends ProbModelChecker
 			List<BitSet> labels = Arrays.asList(bsInit, target);
 			List<String> labelNames = Arrays.asList("init", "target");
 			mainLog.println("\nExporting target states info to file \"" + getExportTargetFilename() + "\"...");
-			PrismLog out = new PrismFileLog(getExportTargetFilename());
-			exportLabels(mdp, labelNames, labels, out, ModelExportFormat.EXPLICIT);
-			out.close();
+			exportLabels(mdp, labelNames, labels, new File(getExportTargetFilename()), ModelExportFormat.EXPLICIT);
 		}
 
 		// If required, create/initialise strategy storage
@@ -2120,9 +2119,7 @@ public class MDPModelChecker extends ProbModelChecker
 			List<BitSet> labels = Arrays.asList(bsInit, target);
 			List<String> labelNames = Arrays.asList("init", "target");
 			mainLog.println("\nExporting target states info to file \"" + getExportTargetFilename() + "\"...");
-			PrismLog out = new PrismFileLog(getExportTargetFilename());
-			exportLabels(mdp, labelNames, labels, out, ModelExportFormat.EXPLICIT);
-			out.close();
+			exportLabels(mdp, labelNames, labels, new File(getExportTargetFilename()), ModelExportFormat.EXPLICIT);
 		}
 
 		// If required, create/initialise strategy storage

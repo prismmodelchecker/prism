@@ -26,6 +26,8 @@
 
 package prism;
 
+import java.io.File;
+
 /**
  * Base class for "components" of PRISM, i.e. classes that implement
  * a particular piece of functionality required for model checking.
@@ -113,4 +115,43 @@ public class PrismComponent
 	{
 		return settings;
 	}
+
+	/**
+	 * Either create a new PrismFileLog for {@code file} or,
+	 * if {@code file} is null, return the log.
+	 * Throws a {@code PrismException} if there is a problem opening the file.
+	 */
+	public PrismLog getPrismLogForFile(File file) throws PrismException
+	{
+		return getPrismLogForFile(file, false);
+	}
+
+	/**
+	 * Either create a new PrismFileLog for {@code file} or,
+	 * if {@code file} is null, return the log.
+	 * Throws a {@code PrismException} if there is a problem opening the file.
+	 * If {@code append} is true, file should be opened in "append" mode.
+	 */
+	public PrismLog getPrismLogForFile(File file, boolean append) throws PrismException
+	{
+		// create new file log or use main log
+		PrismLog tmpLog;
+		if (file != null) {
+			tmpLog = PrismFileLog.create(file.getPath(), append);
+		} else {
+			tmpLog = mainLog;
+		}
+		return tmpLog;
+	}
+
+	/**
+	 * Get a string describing the output destination specified by a File:
+	 * "to file \"filename\"..." if non-null; "below:" if null.
+	 * See {@link #getPrismLogForFile(File)}.
+	 */
+	public static String getDestinationStringForFile(File file)
+	{
+		return (file == null) ? "below:" : "to file \"" + file + "\"...";
+	}
+
 }

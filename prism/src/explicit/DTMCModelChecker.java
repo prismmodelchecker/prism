@@ -595,9 +595,7 @@ public class DTMCModelChecker extends ProbModelChecker
 			List<BitSet> labels = Arrays.asList(bsInit, target);
 			List<String> labelNames = Arrays.asList("init", "target");
 			mainLog.println("\nExporting target states info to file \"" + getExportTargetFilename() + "\"...");
-			PrismLog out = new PrismFileLog(getExportTargetFilename());
-			exportLabels(dtmc, labelNames, labels, out, ModelExportFormat.EXPLICIT);
-			out.close();
+			exportLabels(dtmc, labelNames, labels, new File(getExportTargetFilename()), ModelExportFormat.EXPLICIT);
 		}
 
 		if (precomp && (prob0 || prob1) && preRel) {

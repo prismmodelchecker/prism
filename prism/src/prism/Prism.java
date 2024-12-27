@@ -2431,7 +2431,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 
 	/**
 	 * Export the currently loaded and parsed PRISM model to a file.
-	 * @param file File to export to
+	 * @param file File to export to (if null, print to the log instead)
 	 */
 	public void exportPRISMModel(File file) throws FileNotFoundException, PrismException
 	{
@@ -2447,7 +2447,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	/**
 	 * Export the currently loaded and parsed PRISM model to a file,
 	 * after expanding all constants to their actual, defined values.
-	 * @param file File to export to
+	 * @param file File to export to (if null, print to the log instead)
 	 */
 	public void exportPRISMModelWithExpandedConstants(File file) throws FileNotFoundException, PrismException
 	{
@@ -2466,7 +2466,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 
 	/**
 	 * Export various aspects of the current built model together.
-	 * @param file File to export to
+	 * @param file File to export to (if null, print to the log instead)
 	 * @param exportOptions The options for export
 	 */
 	public void exportBuiltModelCombined(File file, ModelExportOptions exportOptions) throws PrismException, FileNotFoundException
@@ -2500,7 +2500,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 
 	/**
 	 * Export the transition matrix for the current built model.
-	 * @param file File to export to
+	 * @param file File to export to (if null, print to the log instead)
 	 * @param exportOptions The options for export
 	 */
 	public void exportBuiltModelTransitions(File file, ModelExportOptions exportOptions) throws PrismException, FileNotFoundException
@@ -2521,10 +2521,8 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 			int precision = settings.getInteger(PrismSettings.PRISM_EXPORT_MODEL_PRECISION);
 			getBuiltModelSymbolic().exportToFile(convertExportTypeTrans(exportOptions), true, file, precision);
 		} else {
-			PrismLog tmpLog = getPrismLogForFile(file);
 			explicit.StateModelChecker mcExpl = createModelCheckerExplicit(null);
-			mcExpl.exportTransitions(getBuiltModelExplicit(), tmpLog, exportOptions);
-			tmpLog.close();
+			mcExpl.exportTransitions(getBuiltModelExplicit(), file, exportOptions);
 		}
 
 		// for export to dot with states, need to do a bit more
@@ -2604,7 +2602,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	 * Export the state rewards for the current built model.
 	 * If there is more than 1 reward structure, then multiple files are generated
 	 * (e.g. "rew.sta" becomes "rew1.sta", "rew2.sta", ...)
-	 * @param file File to export to
+	 * @param file File to export to (if null, print to the log instead)
 	 * @param exportOptions The options for export
 	 */
 	public void exportBuiltModelStateRewards(File file, ModelExportOptions exportOptions) throws PrismException, FileNotFoundException
@@ -2641,18 +2639,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 				getBuiltModelSymbolic().exportStateRewardsToFile(r, convertExportType(exportOptions), fileToUse, precision, noexportheaders);
 			} else {
 				explicit.StateModelChecker mcExpl = createModelCheckerExplicit(null);
-				try (PrismLog out = getPrismLogForFile(fileToUse)){
-					mcExpl.exportStateRewards(getBuiltModelExplicit(), r, out, exportOptions);
-				} catch (PrismNotSupportedException e1) {
-					mainLog.println("\nReward export failed: " + e1.getMessage());
-					try {
-						if (fileToUse != null) {
-							fileToUse.delete();
-						}
-					} catch (SecurityException e2) {
-						// Cannot delete File; continue
-					}
-				}
+				mcExpl.exportStateRewards(getBuiltModelExplicit(), r, fileToUse, exportOptions);
 			}
 		}
 		
@@ -2665,7 +2652,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	 * Export the transition rewards for the current built model.
 	 * If there is more than 1 reward structure, then multiple files are generated
 	 * (e.g. "rew.sta" becomes "rew1.sta", "rew2.sta", ...)
-	 * @param file File to export to
+	 * @param file File to export to (if null, print to the log instead)
 	 * @param exportOptions The options for export
 	 */
 	public void exportBuiltModelTransRewards(File file, ModelExportOptions exportOptions) throws FileNotFoundException, PrismException
@@ -2702,18 +2689,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 				getBuiltModelSymbolic().exportTransRewardsToFile(r, convertExportTypeTrans(exportOptions), true, fileToUse, precision, noexportheaders);
 			} else {
 				explicit.StateModelChecker mcExpl = createModelCheckerExplicit(null);
-				try (PrismLog out = getPrismLogForFile(fileToUse)){
-					mcExpl.exportTransRewards(getBuiltModelExplicit(), r, out, exportOptions);
-				} catch (PrismNotSupportedException e1) {
-					mainLog.println("\nReward export failed: " + e1.getMessage());
-					try {
-						if (fileToUse != null) {
-							fileToUse.delete();
-						}
-					} catch (SecurityException e2) {
-						// Cannot delete File; continue
-					}
-				}
+				mcExpl.exportTransRewards(getBuiltModelExplicit(), r, fileToUse, exportOptions);
 			}
 		}
 		
@@ -2740,20 +2716,15 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 		// Merge export options with settings
 		exportOptions = newMergedModelExportOptions(exportOptions);
 
-		// Create new file log or use main log
-		PrismLog out = getPrismLogForFile(file);
-
 		// Export
 		if (getBuiltModelType() == ModelBuildType.SYMBOLIC) {
-			getBuiltModelSymbolic().exportStates(convertExportType(exportOptions), out);
+			try (PrismLog out = getPrismLogForFile(file)) {
+				getBuiltModelSymbolic().exportStates(convertExportType(exportOptions), out);
+			}
 		} else {
 			explicit.StateModelChecker mcExpl = createModelCheckerExplicit(null);
-			mcExpl.exportStates(getBuiltModelExplicit(), out, exportOptions);
+			mcExpl.exportStates(getBuiltModelExplicit(), file, exportOptions);
 		}
-
-		// Tidy up
-		if (file != null)
-			out.close();
 	}
 
 	/**
@@ -2779,16 +2750,9 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 		// Merge export options with settings
 		exportOptions = newMergedModelExportOptions(exportOptions);
 
-		// Create new file log or use main log
-		PrismLog out = getPrismLogForFile(file);
-
 		// Export (explicit engine only)
 		explicit.StateModelChecker mcExpl = createModelCheckerExplicit(null);
-		mcExpl.exportObservations(getBuiltModelExplicit(), out, exportOptions);
-
-		// Tidy up
-		if (file != null)
-			out.close();
+		mcExpl.exportObservations(getBuiltModelExplicit(), file, exportOptions);
 	}
 
 	/**
@@ -2836,7 +2800,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	 * The PropertiesFile should correspond to the currently loaded model.
 	 * @param propertiesFile The properties file, for further labels (ignored if null)
 	 * @param labelNames The list of label names to export
-	 * @param file File to export to
+	 * @param file File to export to (if null, print to the log instead)
 	 * @param exportOptions The options for export
 	 */
 	private void doExportBuiltModelLabels(PropertiesFile propertiesFile, List<String> labelNames, File file, ModelExportOptions exportOptions) throws FileNotFoundException, PrismException
@@ -2854,10 +2818,8 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 
 		// Export
 		if (getBuiltModelType() != ModelBuildType.SYMBOLIC) {
-			PrismLog out = getPrismLogForFile(file);
 			explicit.StateModelChecker mcExpl = createModelCheckerExplicit(propertiesFile);
-			mcExpl.exportLabels(getBuiltModelExplicit(), labelNames, out, exportOptions);
-			out.close();
+			mcExpl.exportLabels(getBuiltModelExplicit(), labelNames, file, exportOptions);
 		} else {
 			StateModelChecker mc = createModelChecker(propertiesFile);
 			mc.exportLabels(labelNames, convertExportType(exportOptions), file);
@@ -3135,7 +3097,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 
 	/**
 	 * Return a new {@code ModelExportOptions} object with any relevant PRISM settings applied,
-	 * then merged with the passed ewxport options (which take precedence).
+	 * then merged with the passed export options (which take precedence).
 	 */
 	private ModelExportOptions newMergedModelExportOptions(ModelExportOptions exportOptions)
 	{
@@ -4309,34 +4271,6 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	}
 
 	/**
-	 * Either create a new PrismFileLog for {@code file} or,
-	 * if {@code file} is null, return {@code mainLog}.
-	 * Throws a {@code PrismException} if there is a problem opening the file.
-	 */
-	private PrismLog getPrismLogForFile(File file) throws PrismException
-	{
-		return getPrismLogForFile(file, false);
-	}
-
-	/**
-	 * Either create a new PrismFileLog for {@code file} or,
-	 * if {@code file} is null, return {@code mainLog}.
-	 * Throws a {@code PrismException} if there is a problem opening the file.
-	 * If {@code append} is true, file should be opened in "append" mode.
-	 */
-	private PrismLog getPrismLogForFile(File file, boolean append) throws PrismException
-	{
-		// create new file log or use main log
-		PrismLog tmpLog;
-		if (file != null) {
-			tmpLog = PrismFileLog.create(file.getPath(), append);
-		} else {
-			tmpLog = mainLog;
-		}
-		return tmpLog;
-	}
-
-	/**
 	 * Get a string describing an output format, e.g. "in plain text format" for EXPORT_PLAIN.
 	 */
 	private static String getStringForExportType(int exportType)
@@ -4355,15 +4289,6 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 		default:
 			return "in ? format";
 		}
-	}
-
-	/**
-	 * Get a string describing the output destination specified by a File:
-	 * "to file \"filename\"..." if non-null; "below:" if null
-	 */
-	private static String getDestinationStringForFile(File file)
-	{
-		return (file == null) ? "below:" : "to file \"" + file + "\"...";
 	}
 
 	//------------------------------------------------------------------------------
