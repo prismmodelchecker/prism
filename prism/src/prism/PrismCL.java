@@ -841,7 +841,7 @@ public class PrismCL implements PrismModelListener
 		if (exporttrans) {
 			try {
 				File f = (exportTransFilename.equals("stdout")) ? null : new File(exportTransFilename);
-				exportTransOptions.applyTo(modelExportOptionsGlobal);
+				exportTransOptions.apply(modelExportOptionsGlobal);
 				prism.exportBuiltModelTransitions(f, exportTransOptions);
 			}
 			// in case of error, report it and proceed
@@ -856,7 +856,7 @@ public class PrismCL implements PrismModelListener
 		if (exportstaterewards) {
 			try {
 				File f = (exportStateRewardsFilename.equals("stdout")) ? null : new File(exportStateRewardsFilename);
-				exportStateRewardsOptions.applyTo(modelExportOptionsGlobal);
+				exportStateRewardsOptions.apply(modelExportOptionsGlobal);
 				prism.exportBuiltModelStateRewards(f, exportStateRewardsOptions);
 			}
 			// in case of error, report it and proceed
@@ -871,7 +871,7 @@ public class PrismCL implements PrismModelListener
 		if (exporttransrewards) {
 			try {
 				File f = (exportTransRewardsFilename.equals("stdout")) ? null : new File(exportTransRewardsFilename);
-				exportTransRewardsOptions.applyTo(modelExportOptionsGlobal);
+				exportTransRewardsOptions.apply(modelExportOptionsGlobal);
 				prism.exportBuiltModelTransRewards(f, exportTransRewardsOptions);
 			}
 			// in case of error, report it and proceed
@@ -886,7 +886,7 @@ public class PrismCL implements PrismModelListener
 		if (exportstates) {
 			try {
 				File f = (exportStatesFilename.equals("stdout")) ? null : new File(exportStatesFilename);
-				exportStatesOptions.applyTo(modelExportOptionsGlobal);
+				exportStatesOptions.apply(modelExportOptionsGlobal);
 				prism.exportBuiltModelStates(f, exportStatesOptions);
 			}
 			// in case of error, report it and proceed
@@ -901,8 +901,8 @@ public class PrismCL implements PrismModelListener
 		if (exportobservations) {
 			try {
 				File f = (exportObservationsFilename.equals("stdout")) ? null : new File(exportObservationsFilename);
-				exportObservationsOptions.applyTo(modelExportOptionsGlobal);
-				prism.exportBuiltModelObservations(f, exportStatesOptions);
+				exportObservationsOptions.apply(modelExportOptionsGlobal);
+				prism.exportBuiltModelObservations(f, exportObservationsOptions);
 			}
 			// in case of error, report it and proceed
 			catch (FileNotFoundException e) {
@@ -991,11 +991,11 @@ public class PrismCL implements PrismModelListener
 					// export labels from model and properties to same file
 					definedPFConstants = undefinedMFConstants.getPFConstantValues();
 					propertiesFile.setSomeUndefinedConstants(definedPFConstants, exactConstants);
-					exportLabelsOptions.applyTo(modelExportOptionsGlobal);
+					exportLabelsOptions.apply(modelExportOptionsGlobal);
 					prism.exportBuiltModelLabels(propertiesFile, f, exportLabelsOptions);
 				} else {
 					// export labels from model only
-					exportLabelsOptions.applyTo(modelExportOptionsGlobal);
+					exportLabelsOptions.apply(modelExportOptionsGlobal);
 					prism.exportBuiltModelLabels(null, f, exportLabelsOptions);
 				}
 			}
@@ -1017,7 +1017,7 @@ public class PrismCL implements PrismModelListener
 				// export labels from properties file
 				definedPFConstants = undefinedMFConstants.getPFConstantValues();
 				propertiesFile.setSomeUndefinedConstants(definedPFConstants, exactConstants);
-				exportLabelsOptions.applyTo(modelExportOptionsGlobal);
+				exportLabelsOptions.apply(modelExportOptionsGlobal);
 				prism.exportBuiltModelPropLabels(propertiesFile, f, exportLabelsOptions);
 			}
 			// in case of error, report it and proceed
@@ -1032,7 +1032,7 @@ public class PrismCL implements PrismModelListener
 		if (exportmodelcombined) {
 			try {
 				File f = (exportModelCombinedFilename.equals("stdout")) ? null : new File(exportModelCombinedFilename);
-				exportModelCombinedOptions.applyTo(modelExportOptionsGlobal);
+				exportModelCombinedOptions.apply(modelExportOptionsGlobal);
 				prism.exportBuiltModelCombined(f, exportModelCombinedOptions);
 			}
 			// in case of error, report it and proceed

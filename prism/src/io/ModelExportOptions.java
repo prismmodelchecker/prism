@@ -177,6 +177,9 @@ public class ModelExportOptions implements Cloneable
 		if (other.showActions.isPresent()) {
 			setShowActions(other.getShowActions());
 		}
+		if (other.printHeaders.isPresent()) {
+			setPrintHeaders(other.getPrintHeaders());
+		}
 		if (other.explicitRows.isPresent()) {
 			setExplicitRows(other.getExplicitRows());
 		}
