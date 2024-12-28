@@ -2527,64 +2527,6 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	}
 
 	/**
-	 * Export the currently loaded model's transition matrix to a Spy file.
-	 * @param file File to export to
-	 */
-	public void exportToSpyFile(File file) throws FileNotFoundException, PrismException
-	{
-		int depth;
-		JDDNode tmp;
-
-		if (getCurrentEngine() == PrismEngine.EXPLICIT) {
-			throw new PrismNotSupportedException("Export to Spy file not yet supported by explicit engine");
-		}
-
-		// Build model, if necessary
-		buildModelIfRequired();
-
-		mainLog.println("\nExporting to spy file \"" + file + "\"...");
-
-		// choose depth
-		depth = getBuiltModelSymbolic().getAllDDRowVars().n();
-		if (depth > 9)
-			depth = 9;
-
-		// get rid of non det vars if necessary
-		tmp = getBuiltModelSymbolic().getTrans();
-		JDD.Ref(tmp);
-		if (getModelType() == ModelType.MDP) {
-			tmp = JDD.MaxAbstract(tmp, ((NondetModel) getBuiltModelSymbolic()).getAllDDNondetVars());
-		}
-
-		// export to spy file
-		JDD.ExportMatrixToSpyFile(tmp, getBuiltModelSymbolic().getAllDDRowVars(), getBuiltModelSymbolic().getAllDDColVars(), depth, file.getPath());
-		JDD.Deref(tmp);
-	}
-
-	/**
-	 * Export the MTBDD for the currently loaded model's transition matrix to a Dot file.
-	 * @param file File to export to
-	 */
-	public void exportToDotFile(File file) throws FileNotFoundException, PrismException
-	{
-		if (getCurrentEngine() == PrismEngine.EXPLICIT) {
-			throw new PrismNotSupportedException("Export to Dot file not yet supported by explicit engine");
-		}
-
-		// Build model, if necessary
-		buildModelIfRequired();
-
-		// Check again (in case engine was switched)
-		if (getCurrentEngine() == PrismEngine.EXPLICIT) {
-			throw new PrismNotSupportedException("Export to Dot file not yet supported by explicit engine");
-		}
-		
-		// Export to dot file
-		mainLog.println("\nExporting to dot file \"" + file + "\"...");
-		JDD.ExportDDToDotFileLabelled(getBuiltModelSymbolic().getTrans(), file.getPath(), getBuiltModelSymbolic().getDDVarNames());
-	}
-
-	/**
 	 * Export the state rewards for the current built model.
 	 * If there is more than 1 reward structure, then multiple files are generated
 	 * (e.g. "rew.sta" becomes "rew1.sta", "rew2.sta", ...)
@@ -4379,6 +4321,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	}
 
 	/**
+	 * @deprecated
 	 * Export the states satisfying labels from the properties file to a file.
 	 * The PropertiesFile should correspond to the currently loaded model.
 	 * @param propertiesFile The properties file (for further labels)
@@ -4388,9 +4331,21 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	 * </ul>
 	 * @param file File to export to (if null, print to the log instead)
 	 */
+	@Deprecated
 	public void exportPropLabelsToFile(PropertiesFile propertiesFile, int exportType, File file) throws FileNotFoundException, PrismException
 	{
 		exportBuiltModelPropLabels(propertiesFile, file, convertExportType(exportType));
+	}
+
+	/**
+	 * @deprecated
+	 * Export the MTBDD for the currently loaded model's transition matrix to a Dot file.
+	 * @param file File to export to
+	 */
+	@Deprecated
+	public void exportToDotFile(File file) throws FileNotFoundException, PrismException
+	{
+		exportBuiltModelTransitions(file, new ModelExportOptions(ModelExportFormat.DD_DOT));
 	}
 
 	/**

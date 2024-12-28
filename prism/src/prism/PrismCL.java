@@ -92,7 +92,6 @@ public class PrismCL implements PrismModelListener
 	private boolean exportmodelproplabels = false;
 	private boolean exportproplabels = false;
 	private boolean exportmodelcombined = false;
-	private boolean exportspy = false;
 	private boolean exportdot = false;
 	private boolean exporttransdot = false;
 	private boolean exporttransdotstates = false;
@@ -164,7 +163,6 @@ public class PrismCL implements PrismModelListener
 	private String exportObservationsFilename = null;
 	private String exportModelLabelsFilename = null;
 	private String exportPropLabelsFilename = null;
-	private String exportSpyFilename = null;
 	private String exportDotFilename = null;
 	private String exportTransDotFilename = null;
 	private String exportTransDotStatesFilename = null;
@@ -816,7 +814,6 @@ public class PrismCL implements PrismModelListener
 			exporttransrewards ||
 			exportstates ||
 			exportobservations ||
-			exportspy ||
 			exportdot ||
 			exporttransdot ||
 			exporttransdotstates ||
@@ -912,23 +909,10 @@ public class PrismCL implements PrismModelListener
 			}
 		}
 
-		// export to spy file
-		if (exportspy) {
-			try {
-				prism.exportToSpyFile(new File(exportSpyFilename));
-			}
-			// in case of error, report it and proceed
-			catch (FileNotFoundException e) {
-				error("Couldn't open file \"" + exportSpyFilename + "\" for output");
-			} catch (PrismException e) {
-				error(e);
-			}
-		}
-
 		// export mtbdd to dot file
 		if (exportdot) {
 			try {
-				prism.exportToDotFile(new File(exportDotFilename));
+				prism.exportBuiltModelTransitions(new File(exportDotFilename), new ModelExportOptions(ModelExportFormat.DD_DOT));
 			}
 			// in case of error, report it and proceed
 			catch (FileNotFoundException e) {
@@ -1860,15 +1844,6 @@ public class PrismCL implements PrismModelListener
 					if (i < args.length - 1) {
 						prism.setExportProductVector(true);
 						prism.setExportProductVectorFilename(args[++i]);
-					} else {
-						errorAndExit("No file specified for -" + sw + " switch");
-					}
-				}
-				// export to spy file (hidden option)
-				else if (sw.equals("exportspy")) {
-					if (i < args.length - 1) {
-						exportspy = true;
-						exportSpyFilename = args[++i];
 					} else {
 						errorAndExit("No file specified for -" + sw + " switch");
 					}

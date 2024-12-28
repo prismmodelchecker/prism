@@ -1700,6 +1700,11 @@ public class StateModelChecker extends PrismComponent implements ModelChecker
 	 */
 	public void exportTransitions(File file, ModelExportOptions exportOptions) throws PrismException
 	{
+		if (exportOptions.getFormat() == ModelExportFormat.DD_DOT) {
+			JDD.ExportDDToDotFileLabelled(model.getTrans(), file.getPath(), model.getDDVarNames());
+			return;
+		}
+
 		int precision = exportOptions.getModelPrecision();
 		try {
 			model.exportToFile(Prism.convertExportTypeTrans(exportOptions), true, file, precision);
@@ -1791,6 +1796,29 @@ public class StateModelChecker extends PrismComponent implements ModelChecker
 		for (int i = 0; i < numLabels; i++) {
 			JDD.Deref(labels[i]);
 		}
+	}
+
+	/**
+	 * Export the transition matrix to a Spy file.
+	 * @param file File to export to
+	 */
+	public void exportTransitionsToSpyFile(File file) throws PrismException
+	{
+		// choose depth
+		int depth = model.getAllDDRowVars().n();
+		if (depth > 9)
+			depth = 9;
+
+		// get rid of non det vars if necessary
+		JDDNode tmp = model.getTrans();
+		JDD.Ref(tmp);
+		if (model.getModelType() == ModelType.MDP) {
+			tmp = JDD.MaxAbstract(tmp, ((NondetModel) model).getAllDDNondetVars());
+		}
+
+		// export to spy file
+		JDD.ExportMatrixToSpyFile(tmp, model.getAllDDRowVars(), model.getAllDDColVars(), depth, file.getPath());
+		JDD.Deref(tmp);
 	}
 }
 

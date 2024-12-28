@@ -1559,6 +1559,8 @@ public class StateModelChecker extends PrismComponent
 				case DOT:
 					new DotExporter<Value>(exportOptions).exportModel(model, out, null);
 					break;
+				default:
+					throw new PrismNotSupportedException("Export " + exportOptions.getFormat().description() + " not supported by explicit engine");
 			}
 		}
 	}

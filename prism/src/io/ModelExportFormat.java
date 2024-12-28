@@ -5,7 +5,7 @@ package io;
  */
 public enum ModelExportFormat
 {
-	EXPLICIT, MATLAB, DOT, DRN;
+	EXPLICIT, MATLAB, DOT, DD_DOT, DRN;
 
 	public String description()
 	{
@@ -16,6 +16,8 @@ public enum ModelExportFormat
 				return "in Matlab format";
 			case DOT:
 				return "in Dot format";
+			case DD_DOT:
+				return "in DD Dot format";
 			case DRN:
 				return "in DRN format";
 			default:
