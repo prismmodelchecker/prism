@@ -2518,25 +2518,11 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 
 		// do export
 		if (getBuiltModelType() == ModelBuildType.SYMBOLIC) {
-			int precision = settings.getInteger(PrismSettings.PRISM_EXPORT_MODEL_PRECISION);
-			getBuiltModelSymbolic().exportToFile(convertExportTypeTrans(exportOptions), true, file, precision);
+			symbolic.comp.StateModelChecker mcSymb = createModelChecker(null);
+			mcSymb.exportTransitions(file, exportOptions);
 		} else {
 			explicit.StateModelChecker mcExpl = createModelCheckerExplicit(null);
 			mcExpl.exportTransitions(getBuiltModelExplicit(), file, exportOptions);
-		}
-
-		// for export to dot with states, need to do a bit more
-		if (getBuiltModelType() == ModelBuildType.SYMBOLIC && convertExportTypeTrans(exportOptions) == EXPORT_DOT_STATES) {
-			// open (appending to) existing new file log or use main log
-			PrismLog tmpLog = getPrismLogForFile(file, true);
-			// insert states info into dot file
-			getBuiltModelSymbolic().getReachableStates().printDot(tmpLog);
-			// print footer
-			tmpLog.println("}");
-			// tidy up
-			if (file != null) {
-				tmpLog.close();
-			}
 		}
 	}
 
@@ -2634,9 +2620,8 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 			}
 			File fileToUse = (filename == null) ? null : new File(filename);
 			if (getBuiltModelType() == ModelBuildType.SYMBOLIC) {
-				int precision = settings.getInteger(PrismSettings.PRISM_EXPORT_MODEL_PRECISION);
-				boolean noexportheaders = !settings.getBoolean(PrismSettings.PRISM_EXPORT_MODEL_HEADERS);
-				getBuiltModelSymbolic().exportStateRewardsToFile(r, convertExportType(exportOptions), fileToUse, precision, noexportheaders);
+				symbolic.comp.StateModelChecker mcSymb = createModelChecker(null);
+				mcSymb.exportStateRewards(r, fileToUse, exportOptions);
 			} else {
 				explicit.StateModelChecker mcExpl = createModelCheckerExplicit(null);
 				mcExpl.exportStateRewards(getBuiltModelExplicit(), r, fileToUse, exportOptions);
@@ -2684,9 +2669,8 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 			}
 			File fileToUse = (filename == null) ? null : new File(filename);
 			if (getBuiltModelType() == ModelBuildType.SYMBOLIC) {
-				int precision = settings.getInteger(PrismSettings.PRISM_EXPORT_MODEL_PRECISION);
-				boolean noexportheaders = !settings.getBoolean(PrismSettings.PRISM_EXPORT_MODEL_HEADERS);
-				getBuiltModelSymbolic().exportTransRewardsToFile(r, convertExportTypeTrans(exportOptions), true, fileToUse, precision, noexportheaders);
+				symbolic.comp.StateModelChecker mcSymb = createModelChecker(null);
+				mcSymb.exportTransRewards(r, fileToUse, exportOptions);
 			} else {
 				explicit.StateModelChecker mcExpl = createModelCheckerExplicit(null);
 				mcExpl.exportTransRewards(getBuiltModelExplicit(), r, fileToUse, exportOptions);
@@ -2718,9 +2702,8 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 
 		// Export
 		if (getBuiltModelType() == ModelBuildType.SYMBOLIC) {
-			try (PrismLog out = getPrismLogForFile(file)) {
-				getBuiltModelSymbolic().exportStates(convertExportType(exportOptions), out);
-			}
+			symbolic.comp.StateModelChecker mcSymb = createModelChecker(null);
+			mcSymb.exportStates(file, exportOptions);
 		} else {
 			explicit.StateModelChecker mcExpl = createModelCheckerExplicit(null);
 			mcExpl.exportStates(getBuiltModelExplicit(), file, exportOptions);
@@ -2821,8 +2804,8 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 			explicit.StateModelChecker mcExpl = createModelCheckerExplicit(propertiesFile);
 			mcExpl.exportLabels(getBuiltModelExplicit(), labelNames, file, exportOptions);
 		} else {
-			StateModelChecker mc = createModelChecker(propertiesFile);
-			mc.exportLabels(labelNames, convertExportType(exportOptions), file);
+			symbolic.comp.StateModelChecker mcSymb = createModelChecker(propertiesFile);
+			mcSymb.exportLabels(labelNames, file, exportOptions);
 		}
 	}
 

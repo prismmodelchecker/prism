@@ -34,7 +34,8 @@ import java.util.Set;
 import java.util.TreeSet;
 import java.util.Vector;
 
-import explicit.ModelExplicit;
+import io.ModelExportFormat;
+import io.ModelExportOptions;
 import mtbdd.PrismMTBDD;
 import dv.DoubleVector;
 import jdd.*;
@@ -51,6 +52,7 @@ import prism.Prism;
 import prism.PrismComponent;
 import prism.PrismException;
 import prism.PrismLangException;
+import prism.PrismLog;
 import prism.PrismNotSupportedException;
 import prism.PrismSettings;
 import prism.PrismUtils;
@@ -1692,12 +1694,82 @@ public class StateModelChecker extends PrismComponent implements ModelChecker
 	}
 
 	/**
+	 * Export the transition matrix.
+	 * @param file File to export to (if null, print to the log instead)
+	 * @param exportOptions The options for export
+	 */
+	public void exportTransitions(File file, ModelExportOptions exportOptions) throws PrismException
+	{
+		int precision = exportOptions.getModelPrecision();
+		try {
+			model.exportToFile(Prism.convertExportTypeTrans(exportOptions), true, file, precision);
+		} catch (FileNotFoundException e) {
+			throw new PrismException("Could not open file \"" + file.getName() + "\" for output");
+		}
+
+		// For export to Dot with states, need to insert states info into file
+		if (exportOptions.getFormat() == ModelExportFormat.DOT) {
+			try (PrismLog out = getPrismLogForFile(file, true)) {
+				model.getReachableStates().printDot(out);
+				// Print footer
+				out.println("}");
+			}
+		}
+	}
+
+	/**
+	 * Export the state rewards for one reward structure.
+	 * @param r Index of reward structure to export (0-indexed)
+	 * @param file File to export to (if null, print to the log instead)
+	 * @param exportOptions The options for export
+	 */
+	public void exportStateRewards(int r, File file, ModelExportOptions exportOptions) throws PrismException
+	{
+		int precision = exportOptions.getModelPrecision();
+		boolean noexportheaders = !exportOptions.getPrintHeaders();
+		try {
+			model.exportStateRewardsToFile(r, Prism.convertExportType(exportOptions), file, precision, noexportheaders);
+		} catch (FileNotFoundException e) {
+			throw new PrismException("Could not open file \"" + file.getName() + "\" for output");
+		}
+	}
+
+	/**
+	 * Export the transition rewards for one reward structure.
+	 * @param r Index of reward structure to export (0-indexed)
+	 * @param file File to export to (if null, print to the log instead)
+	 * @param exportOptions The options for export
+	 */
+	public void exportTransRewards(int r, File file, ModelExportOptions exportOptions) throws PrismException
+	{
+		int precision = exportOptions.getModelPrecision();
+		boolean noexportheaders = !exportOptions.getPrintHeaders();
+		try {
+			model.exportTransRewardsToFile(r, Prism.convertExportTypeTrans(exportOptions), true, file, precision, noexportheaders);
+		} catch (FileNotFoundException e) {
+			throw new PrismException("Could not open file \"" + file.getName() + "\" for output");
+		}
+	}
+
+	/**
+	 * Export the set of states.
+	 * @param file File to export to (if null, print to the log instead)
+	 * @param exportOptions The options for export
+	 */
+	public void exportStates(File file, ModelExportOptions exportOptions) throws PrismException
+	{
+		try (PrismLog out = getPrismLogForFile(file)) {
+			model.exportStates(Prism.convertExportType(exportOptions), out);
+		}
+	}
+
+	/**
 	 * Export a set of labels and the states that satisfy them.
 	 * @param labelNames The name of each label
-	 * @param exportType The format in which to export
-	 * @param file Where to export
+	 * @param file File to export to (if null, print to the log instead)
+	 * @param exportOptions The options for export
 	 */
-	public void exportLabels(List<String> labelNames, int exportType, File file) throws PrismException, FileNotFoundException
+	public void exportLabels(List<String> labelNames, File file, ModelExportOptions exportOptions) throws PrismException
 	{
 		// Convert labels to BDDs
 		int numLabels = labelNames.size();
@@ -1709,8 +1781,12 @@ public class StateModelChecker extends PrismComponent implements ModelChecker
 		// Export them using the MTBDD engine
 		String matlabVarName = "l";
 		String labelNamesArr[] = labelNames.toArray(new String[labelNames.size()]);
-		PrismMTBDD.ExportLabels(labels, labelNamesArr, matlabVarName, allDDRowVars, odd, exportType, (file != null) ? file.getPath() : null);
-		
+		try {
+			PrismMTBDD.ExportLabels(labels, labelNamesArr, matlabVarName, allDDRowVars, odd, Prism.convertExportType(exportOptions), (file != null) ? file.getPath() : null);
+		} catch (FileNotFoundException e) {
+			throw new PrismException("Could not open file \"" + file.getName() + "\" for output");
+		}
+
 		// Derefs
 		for (int i = 0; i < numLabels; i++) {
 			JDD.Deref(labels[i]);
