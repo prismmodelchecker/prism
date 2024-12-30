@@ -1552,10 +1552,11 @@ public class StateModelChecker extends PrismComponent
 		try (PrismLog out = getPrismLogForFile(file)) {
 			switch (exportOptions.getFormat()) {
 				case EXPLICIT:
+					if (exportOptions.getExplicitRows()) {
+						throw new PrismNotSupportedException("Export in rows format not yet supported by explicit engine");
+					}
 					new PrismExplicitExporter<Value>(exportOptions).exportTransitions(model, out);
 					break;
-				case MATLAB:
-					throw new PrismNotSupportedException("Export not yet supported");
 				case DOT:
 					new DotExporter<Value>(exportOptions).exportModel(model, out, null);
 					break;
