@@ -43,6 +43,7 @@ import common.StackTraceHelper;
 import csv.CsvFormatException;
 import io.ModelExportOptions;
 import io.ModelExportFormat;
+import io.ModelExportTask;
 import parser.Values;
 import parser.ast.Expression;
 import parser.ast.ExpressionReward;
@@ -83,18 +84,6 @@ public class PrismCL implements PrismModelListener
 	private boolean dotransient = false;
 	private boolean exportprism = false;
 	private boolean exportprismconst = false;
-	private boolean exporttrans = false;
-	private boolean exportstaterewards = false;
-	private boolean exporttransrewards = false;
-	private boolean exportstates = false;
-	private boolean exportobservations = false;
-	private boolean exportmodellabels = false;
-	private boolean exportmodelproplabels = false;
-	private boolean exportproplabels = false;
-	private boolean exportmodelcombined = false;
-	private boolean exportdot = false;
-	private boolean exporttransdot = false;
-	private boolean exporttransdotstates = false;
 	private boolean exportmodeldotview = false;
 	private boolean exportsccs = false;
 	private boolean exportbsccs = false;
@@ -102,19 +91,8 @@ public class PrismCL implements PrismModelListener
 	private boolean exportresults = false;
 	private ResultsExportShape exportShape = ResultsExportShape.LIST_PLAIN;
 	private boolean exportvector = false;
-	private boolean exportModelNoBasename = false;
 	private int exportType = Prism.EXPORT_PLAIN;
 	private boolean exportstrat = false;
-	private ModelExportOptions exportTransOptions = new ModelExportOptions();
-	private ModelExportOptions exportStateRewardsOptions = new ModelExportOptions();
-	private ModelExportOptions exportTransRewardsOptions = new ModelExportOptions();
-	private ModelExportOptions exportStatesOptions = new ModelExportOptions();
-	private ModelExportOptions exportObservationsOptions = new ModelExportOptions();
-	private ModelExportOptions exportLabelsOptions = new ModelExportOptions();
-	private ModelExportOptions exportTransDotOptions = new ModelExportOptions();
-	private ModelExportOptions exportTransDotStatesOptions = new ModelExportOptions();
-	private ModelExportOptions exportModelCombinedOptions = new ModelExportOptions();
-	private ModelExportOptions modelExportOptionsGlobal = new ModelExportOptions();
 	private boolean simulate = false;
 	private boolean simpath = false;
 	private boolean param = false;
@@ -125,6 +103,10 @@ public class PrismCL implements PrismModelListener
 	private boolean nobuild = false;
 	private boolean test = false;
 	private boolean testExitsOnFail = true;
+
+	// export info
+	private List<ModelExportTask> modelExportTasks = new ArrayList<>();
+	private ModelExportOptions modelExportOptionsGlobal = new ModelExportOptions();
 
 	// property info
 	private List<Object> propertyIndices = null;
@@ -156,17 +138,6 @@ public class PrismCL implements PrismModelListener
 	private String propertiesFilename = null;
 	private String exportPrismFilename = null;
 	private String exportPrismConstFilename = null;
-	private String exportTransFilename = null;
-	private String exportStateRewardsFilename = null;
-	private String exportTransRewardsFilename = null;
-	private String exportStatesFilename = null;
-	private String exportObservationsFilename = null;
-	private String exportModelLabelsFilename = null;
-	private String exportPropLabelsFilename = null;
-	private String exportDotFilename = null;
-	private String exportTransDotFilename = null;
-	private String exportTransDotStatesFilename = null;
-	private String exportModelCombinedFilename = null;
 	private String exportSCCsFilename = null;
 	private String exportBSCCsFilename = null;
 	private String exportMECsFilename = null;
@@ -305,7 +276,7 @@ public class PrismCL implements PrismModelListener
 		try {
 			// first, see which constants are undefined
 			// (one set of info for model, and one set of info for each property)
-			if (exportmodellabels && exportmodelproplabels || exportproplabels) {
+			if (modelExportTasks.stream().anyMatch(ModelExportTask::extraLabelsUsed)) {
 				undefinedMFConstants = new UndefinedConstants(modulesFile, propertiesFile, true);
 			} else {
 				undefinedMFConstants = new UndefinedConstants(modulesFile, null);
@@ -809,18 +780,8 @@ public class PrismCL implements PrismModelListener
 			}
 		}
 
-		if (exporttrans ||
-			exportstaterewards ||
-			exporttransrewards ||
-			exportstates ||
-			exportobservations ||
-			exportdot ||
-			exporttransdot ||
-			exporttransdotstates ||
-			exportmodelcombined ||
+		if (!modelExportTasks.isEmpty() ||
 			exportmodeldotview ||
-			exportmodellabels ||
-			exportproplabels ||
 			exportsccs ||
 			exportbsccs ||
 			exportmecs) {
@@ -834,117 +795,20 @@ public class PrismCL implements PrismModelListener
 			}
 		}
 
-		// export transition matrix to a file
-		if (exporttrans) {
+		// Do export tasks
+		for (ModelExportTask exportTask : modelExportTasks) {
 			try {
-				File f = (exportTransFilename.equals("stdout")) ? null : new File(exportTransFilename);
-				exportTransOptions.apply(modelExportOptionsGlobal);
-				prism.exportBuiltModelTransitions(f, exportTransOptions);
+				exportTask.getExportOptions().apply(modelExportOptionsGlobal);
+				if (exportTask.extraLabelsUsed()) {
+					definedPFConstants = undefinedMFConstants.getPFConstantValues();
+					propertiesFile.setSomeUndefinedConstants(definedPFConstants, exactConstants);
+					exportTask.setExtraLabelsSource(propertiesFile);
+				}
+				prism.exportBuiltModelTask(exportTask);
 			}
-			// in case of error, report it and proceed
+			// In case of error, report it and proceed
 			catch (FileNotFoundException e) {
-				error("Couldn't open file \"" + exportTransFilename + "\" for output");
-			} catch (PrismException e) {
-				error(e);
-			}
-		}
-
-		// export state rewards to a file
-		if (exportstaterewards) {
-			try {
-				File f = (exportStateRewardsFilename.equals("stdout")) ? null : new File(exportStateRewardsFilename);
-				exportStateRewardsOptions.apply(modelExportOptionsGlobal);
-				prism.exportBuiltModelStateRewards(f, exportStateRewardsOptions);
-			}
-			// in case of error, report it and proceed
-			catch (FileNotFoundException e) {
-				error("Couldn't open file \"" + exportStateRewardsFilename + "\" for output");
-			} catch (PrismException e) {
-				error(e);
-			}
-		}
-
-		// export transition rewards to a file
-		if (exporttransrewards) {
-			try {
-				File f = (exportTransRewardsFilename.equals("stdout")) ? null : new File(exportTransRewardsFilename);
-				exportTransRewardsOptions.apply(modelExportOptionsGlobal);
-				prism.exportBuiltModelTransRewards(f, exportTransRewardsOptions);
-			}
-			// in case of error, report it and proceed
-			catch (FileNotFoundException e) {
-				error("Couldn't open file \"" + exportTransRewardsFilename + "\" for output");
-			} catch (PrismException e) {
-				error(e);
-			}
-		}
-
-		// export states list
-		if (exportstates) {
-			try {
-				File f = (exportStatesFilename.equals("stdout")) ? null : new File(exportStatesFilename);
-				exportStatesOptions.apply(modelExportOptionsGlobal);
-				prism.exportBuiltModelStates(f, exportStatesOptions);
-			}
-			// in case of error, report it and proceed
-			catch (FileNotFoundException e) {
-				error("Couldn't open file \"" + exportStatesFilename + "\" for output");
-			} catch (PrismException e) {
-				error(e);
-			}
-		}
-
-		// export observations list
-		if (exportobservations) {
-			try {
-				File f = (exportObservationsFilename.equals("stdout")) ? null : new File(exportObservationsFilename);
-				exportObservationsOptions.apply(modelExportOptionsGlobal);
-				prism.exportBuiltModelObservations(f, exportObservationsOptions);
-			}
-			// in case of error, report it and proceed
-			catch (FileNotFoundException e) {
-				error("Couldn't open file \"" + exportObservationsFilename + "\" for output");
-			} catch (PrismException e) {
-				error(e);
-			}
-		}
-
-		// export mtbdd to dot file
-		if (exportdot) {
-			try {
-				prism.exportBuiltModelTransitions(new File(exportDotFilename), new ModelExportOptions(ModelExportFormat.DD_DOT));
-			}
-			// in case of error, report it and proceed
-			catch (FileNotFoundException e) {
-				error("Couldn't open file \"" + exportDotFilename + "\" for output");
-			} catch (PrismException e) {
-				error(e);
-			}
-		}
-
-		// export transition matrix graph to dot file
-		if (exporttransdot) {
-			try {
-				File f = (exportTransDotFilename.equals("stdout")) ? null : new File(exportTransDotFilename);
-				prism.exportBuiltModelTransitions(f, exportTransDotOptions);
-			}
-			// in case of error, report it and proceed
-			catch (FileNotFoundException e) {
-				error("Couldn't open file \"" + exportTransDotFilename + "\" for output");
-			} catch (PrismException e) {
-				error(e);
-			}
-		}
-
-		// export transition matrix graph to dot file (with states)
-		if (exporttransdotstates) {
-			try {
-				File f = (exportTransDotStatesFilename.equals("stdout")) ? null : new File(exportTransDotStatesFilename);
-				prism.exportBuiltModelTransitions(f, exportTransDotStatesOptions);
-			}
-			// in case of error, report it and proceed
-			catch (FileNotFoundException e) {
-				error("Couldn't open file \"" + exportTransDotStatesFilename + "\" for output");
+				error("Couldn't open file \"" + exportTask.getFile().getName() + "\" for output");
 			} catch (PrismException e) {
 				error(e);
 			}
@@ -955,73 +819,13 @@ public class PrismCL implements PrismModelListener
 			try {
 				File dotFile = File.createTempFile("prism-dot-", ".dot", null);
 				File dotPdfFile = File.createTempFile("prism-dot-", ".dot.pdf", null);
-				prism.exportBuiltModelTransitions(dotFile, exportTransDotStatesOptions);
+				prism.exportBuiltModelTransitions(dotFile, new ModelExportOptions().setFormat(ModelExportFormat.DOT).setShowStates(true));
 				(new ProcessBuilder(new String[]{ "dot", "-Tpdf", "-o", dotPdfFile.getPath(), dotFile.getPath()})).start().waitFor();
 				(new ProcessBuilder(new String[]{ "open",dotPdfFile.getPath()})).start();
 			}
 			// in case of error, report it and proceed
 			catch (IOException | InterruptedException e) {
 				error("Problem generating dot file: " + e.getMessage());
-			} catch (PrismException e) {
-				error(e);
-			}
-		}
-
-		// export labels/states
-		if (exportmodellabels) {
-			try {
-				File f = (exportModelLabelsFilename.equals("stdout")) ? null : new File(exportModelLabelsFilename);
-				if (propertiesFile != null && exportmodelproplabels) {
-					// export labels from model and properties to same file
-					definedPFConstants = undefinedMFConstants.getPFConstantValues();
-					propertiesFile.setSomeUndefinedConstants(definedPFConstants, exactConstants);
-					exportLabelsOptions.apply(modelExportOptionsGlobal);
-					prism.exportBuiltModelLabels(propertiesFile, f, exportLabelsOptions);
-				} else {
-					// export labels from model only
-					exportLabelsOptions.apply(modelExportOptionsGlobal);
-					prism.exportBuiltModelLabels(null, f, exportLabelsOptions);
-				}
-			}
-			// in case of error, report it and proceed
-			catch (FileNotFoundException e) {
-				mainLog.println("Couldn't open file \"" + exportModelLabelsFilename + "\" for output");
-			} catch (PrismException e) {
-				mainLog.println("\nError: " + e.getMessage() + ".");
-			}
-		}
-
-		// export labels/states from properties file
-		if (exportproplabels) {
-			try {
-				File f = (exportPropLabelsFilename.equals("stdout")) ? null : new File(exportPropLabelsFilename);
-				if (propertiesFile == null) {
-					throw new PrismException("No properties file provided to export labels from");
-				}
-				// export labels from properties file
-				definedPFConstants = undefinedMFConstants.getPFConstantValues();
-				propertiesFile.setSomeUndefinedConstants(definedPFConstants, exactConstants);
-				exportLabelsOptions.apply(modelExportOptionsGlobal);
-				prism.exportBuiltModelPropLabels(propertiesFile, f, exportLabelsOptions);
-			}
-			// in case of error, report it and proceed
-			catch (FileNotFoundException e) {
-				mainLog.println("Couldn't open file \"" + exportModelLabelsFilename + "\" for output");
-			} catch (PrismException e) {
-				mainLog.println("\nError: " + e.getMessage() + ".");
-			}
-		}
-
-		// export combined aspects of model
-		if (exportmodelcombined) {
-			try {
-				File f = (exportModelCombinedFilename.equals("stdout")) ? null : new File(exportModelCombinedFilename);
-				exportModelCombinedOptions.apply(modelExportOptionsGlobal);
-				prism.exportBuiltModel(f, exportModelCombinedOptions);
-			}
-			// in case of error, report it and proceed
-			catch (FileNotFoundException e) {
-				error("Couldn't open file \"" + exportModelCombinedFilename + "\" for output");
 			} catch (PrismException e) {
 				error(e);
 			}
@@ -1624,8 +1428,7 @@ public class PrismCL implements PrismModelListener
 				// export transition matrix to file
 				else if (sw.equals("exporttrans")) {
 					if (i < args.length - 1) {
-						exporttrans = true;
-						exportTransFilename = args[++i];
+						modelExportTasks.add(new ModelExportTask(ModelExportTask.ModelExportEntity.MODEL, args[++i]));
 					} else {
 						errorAndExit("No file specified for -" + sw + " switch");
 					}
@@ -1633,8 +1436,7 @@ public class PrismCL implements PrismModelListener
 				// export state rewards to file
 				else if (sw.equals("exportstaterewards")) {
 					if (i < args.length - 1) {
-						exportstaterewards = true;
-						exportStateRewardsFilename = args[++i];
+						modelExportTasks.add(new ModelExportTask(ModelExportTask.ModelExportEntity.STATE_REWARDS, args[++i]));
 					} else {
 						errorAndExit("No file specified for -" + sw + " switch");
 					}
@@ -1642,8 +1444,7 @@ public class PrismCL implements PrismModelListener
 				// export transition rewards to file
 				else if (sw.equals("exporttransrewards")) {
 					if (i < args.length - 1) {
-						exporttransrewards = true;
-						exportTransRewardsFilename = args[++i];
+						modelExportTasks.add(new ModelExportTask(ModelExportTask.ModelExportEntity.TRANSITION_REWARDS, args[++i]));
 					} else {
 						errorAndExit("No file specified for -" + sw + " switch");
 					}
@@ -1651,10 +1452,8 @@ public class PrismCL implements PrismModelListener
 				// export both state/transition rewards to file
 				else if (sw.equals("exportrewards")) {
 					if (i < args.length - 2) {
-						exportstaterewards = true;
-						exporttransrewards = true;
-						exportStateRewardsFilename = args[++i];
-						exportTransRewardsFilename = args[++i];
+						modelExportTasks.add(new ModelExportTask(ModelExportTask.ModelExportEntity.STATE_REWARDS, args[++i]));
+						modelExportTasks.add(new ModelExportTask(ModelExportTask.ModelExportEntity.TRANSITION_REWARDS, args[++i]));
 					} else {
 						errorAndExit("Two files must be specified for -" + sw + " switch");
 					}
@@ -1662,8 +1461,7 @@ public class PrismCL implements PrismModelListener
 				// export states
 				else if (sw.equals("exportstates")) {
 					if (i < args.length - 1) {
-						exportstates = true;
-						exportStatesFilename = args[++i];
+						modelExportTasks.add(new ModelExportTask(ModelExportTask.ModelExportEntity.STATES, args[++i]));
 					} else {
 						errorAndExit("No file specified for -" + sw + " switch");
 					}
@@ -1671,8 +1469,7 @@ public class PrismCL implements PrismModelListener
 				// export observations
 				else if (sw.equals("exportobs")) {
 					if (i < args.length - 1) {
-						exportobservations = true;
-						exportObservationsFilename = args[++i];
+						modelExportTasks.add(new ModelExportTask(ModelExportTask.ModelExportEntity.OBSERVATIONS, args[++i]));
 					} else {
 						errorAndExit("No file specified for -" + sw + " switch");
 					}
@@ -1680,8 +1477,7 @@ public class PrismCL implements PrismModelListener
 				// export labels/states
 				else if (sw.equals("exportlabels")) {
 					if (i < args.length - 1) {
-						exportmodellabels = true;
-						exportModelLabelsFilename = processExportLabelsSwitch(args[++i]);
+						processExportLabelsSwitch(args[++i]);
 					} else {
 						errorAndExit("No file specified for -" + sw + " switch");
 					}
@@ -1689,8 +1485,7 @@ public class PrismCL implements PrismModelListener
 				// export labels/states from properties file
 				else if (sw.equals("exportproplabels")) {
 					if (i < args.length - 1) {
-						exportproplabels = true;
-						exportPropLabelsFilename = processExportLabelsSwitch(args[++i]);
+						processExportPropLabelsSwitch(args[++i]);
 					} else {
 						errorAndExit("No file specified for -" + sw + " switch");
 					}
@@ -1720,10 +1515,8 @@ public class PrismCL implements PrismModelListener
 				// export transition matrix graph to dot file
 				else if (sw.equals("exporttransdot")) {
 					if (i < args.length - 1) {
-						exporttransdot = true;
-						exportTransDotFilename = args[++i];
-						exportTransDotOptions = new ModelExportOptions(ModelExportFormat.DOT);
-						exportTransDotOptions.setShowStates(false);
+						ModelExportOptions exportOptions = new ModelExportOptions().setFormat(ModelExportFormat.DOT).setShowStates(false);
+						modelExportTasks.add(new ModelExportTask(ModelExportTask.ModelExportEntity.MODEL, args[++i], exportOptions));
 					} else {
 						errorAndExit("No file specified for -" + sw + " switch");
 					}
@@ -1731,10 +1524,8 @@ public class PrismCL implements PrismModelListener
 				// export transition matrix graph to dot file (with states)
 				else if (sw.equals("exporttransdotstates")) {
 					if (i < args.length - 1) {
-						exporttransdotstates = true;
-						exportTransDotStatesFilename = args[++i];
-						exportTransDotStatesOptions = new ModelExportOptions(ModelExportFormat.DOT);
-						exportTransDotStatesOptions.setShowStates(true);
+						ModelExportOptions exportOptions = new ModelExportOptions().setFormat(ModelExportFormat.DOT).setShowStates(true);
+						modelExportTasks.add(new ModelExportTask(ModelExportTask.ModelExportEntity.MODEL, args[++i], exportOptions));
 					} else {
 						errorAndExit("No file specified for -" + sw + " switch");
 					}
@@ -1742,8 +1533,8 @@ public class PrismCL implements PrismModelListener
 				// export transition matrix MTBDD to dot file
 				else if (sw.equals("exportdot")) {
 					if (i < args.length - 1) {
-						exportdot = true;
-						exportDotFilename = args[++i];
+						ModelExportOptions exportOptions = new ModelExportOptions().setFormat(ModelExportFormat.DD_DOT);
+						modelExportTasks.add(new ModelExportTask(ModelExportTask.ModelExportEntity.MODEL, args[++i], exportOptions));
 					} else {
 						errorAndExit("No file specified for -" + sw + " switch");
 					}
@@ -2015,8 +1806,6 @@ public class PrismCL implements PrismModelListener
 				// export transition matrix graph to dot file and view it (hidden option, for now)
 				else if (sw.equals("exportmodeldotview")) {
 					exportmodeldotview = true;
-					exportTransDotStatesOptions = new ModelExportOptions(ModelExportFormat.DOT);
-					exportTransDotStatesOptions.setShowStates(true);
 				}
 				// mtbdd construction method (hidden option)
 				else if (sw.equals("c1")) {
@@ -2240,15 +2029,13 @@ public class PrismCL implements PrismModelListener
 	}
 
 	/**
-	 * Process the arguments (file, options) to the -export(prop)labels switch.
-	 * Currently, only one option is supported: proplabels, cf.
-	 * {@link #processExportModelSwitch}
-	 * @return The name of the export file
+	 * Process the arguments (file, options) to the -exportlabels switch.
 	 */
-	private String processExportLabelsSwitch(String filesOptionsString) throws PrismException
+	private void processExportLabelsSwitch(String filesOptionsString) throws PrismException
 	{
 		// Split into files/options (on :)
 		String pair[] = splitFilesAndOptions(filesOptionsString);
+		ModelExportTask newExportTask = new ModelExportTask(ModelExportTask.ModelExportEntity.LABELS, pair[0]);
 		String options[] = pair[1].split(",");
 		for (String opt : options) {
 			// Ignore ""
@@ -2256,17 +2043,42 @@ public class PrismCL implements PrismModelListener
 			}
 			// Export type
 			else if (opt.equals("matlab")) {
-				exportType = Prism.EXPORT_MATLAB;
-				exportLabelsOptions.setFormat(ModelExportFormat.MATLAB);
+				newExportTask.getExportOptions().setFormat(ModelExportFormat.MATLAB);
 			} else if (opt.equals("proplabels")) {
-				exportmodelproplabels = true;
+				newExportTask.setLabelExportSet(ModelExportTask.LabelExportSet.ALL);
 			}
 			// Unknown option
 			else {
 				throw new PrismException("Unknown option \"" + opt + "\" for -exportlabels switch");
 			}
 		}
-		return pair[0];
+		modelExportTasks.add(newExportTask);
+	}
+
+	/**
+	 * Process the arguments (file, options) to the -exportproplabels switch.
+	 */
+	private void processExportPropLabelsSwitch(String filesOptionsString) throws PrismException
+	{
+		// Split into files/options (on :)
+		String pair[] = splitFilesAndOptions(filesOptionsString);
+		ModelExportTask newExportTask = new ModelExportTask(ModelExportTask.ModelExportEntity.LABELS, pair[0]);
+		newExportTask.setLabelExportSet(ModelExportTask.LabelExportSet.EXTRA);
+		String options[] = pair[1].split(",");
+		for (String opt : options) {
+			// Ignore ""
+			if (opt.equals("")) {
+			}
+			// Export type
+			else if (opt.equals("matlab")) {
+				newExportTask.getExportOptions().setFormat(ModelExportFormat.MATLAB);
+			}
+			// Unknown option
+			else {
+				throw new PrismException("Unknown option \"" + opt + "\" for -exportproplabels switch");
+			}
+		}
+		modelExportTasks.add(newExportTask);
 	}
 
 	/**
@@ -2283,64 +2095,42 @@ public class PrismCL implements PrismModelListener
 		String optionsString = halves[1];
 		// Split files into basename/extensions
 		int i = filesString.lastIndexOf('.');
-		if (i == -1)
+		if (i == -1) {
 			throw new PrismException("No file name extension(s) in file(s) \"" + filesString + "\" for -exportmodel");
+		}
 		String basename = filesString.substring(0, i);
 		String extList = filesString.substring(i + 1);
 		String exts[] = extList.split(",");
-		// Check for empty base name (e.g. ".all") - will be replaced with modelname
-		if (basename.length() == 0) {
-			basename = "modelFileBasename";
-			exportModelNoBasename = true;
-		}
 		// Process file extensions
+		List<ModelExportTask> newModelExportTasks = new ArrayList<>();
 		for (String ext : exts) {
 			// Items to export
 			if (ext.equals("all")) {
-				exporttrans = true;
-				exportTransFilename = basename.equals("stdout") ? "stdout" : basename + ".tra";
-				exportstaterewards = true;
-				exportStateRewardsFilename = basename.equals("stdout") ? "stdout" : basename + ".srew";
-				exporttransrewards = true;
-				exportTransRewardsFilename = basename.equals("stdout") ? "stdout" : basename + ".trew";
-				exportstates = true;
-				exportStatesFilename = basename.equals("stdout") ? "stdout" : basename + ".sta";
-				exportobservations = true;
-				exportObservationsFilename = basename.equals("stdout") ? "stdout" : basename + ".obs";
-				exportmodellabels = true;
-				exportModelLabelsFilename = basename.equals("stdout") ? "stdout" : basename + ".lab";
+				newModelExportTasks.add(ModelExportTask.fromFilename(basename, "tra"));
+				newModelExportTasks.add(ModelExportTask.fromFilename(basename, "srew"));
+				newModelExportTasks.add(ModelExportTask.fromFilename(basename, "trew"));
+				newModelExportTasks.add(ModelExportTask.fromFilename(basename, "sta"));
+				newModelExportTasks.add(ModelExportTask.fromFilename(basename, "obs"));
+				newModelExportTasks.add(ModelExportTask.fromFilename(basename, "lab"));
 			} else if (ext.equals("tra")) {
-				exporttrans = true;
-				exportTransFilename = basename.equals("stdout") ? "stdout" : basename + ".tra";
+				newModelExportTasks.add(ModelExportTask.fromFilename(basename, ext));
 			} else if (ext.equals("srew")) {
-				exportstaterewards = true;
-				exportStateRewardsFilename = basename.equals("stdout") ? "stdout" : basename + ".srew";
+				newModelExportTasks.add(ModelExportTask.fromFilename(basename, ext));
 			} else if (ext.equals("trew")) {
-				exporttransrewards = true;
-				exportTransRewardsFilename = basename.equals("stdout") ? "stdout" : basename + ".trew";
+				newModelExportTasks.add(ModelExportTask.fromFilename(basename, ext));
 			} else if (ext.equals("rew")) {
-				exportstaterewards = true;
-				exportStateRewardsFilename = basename.equals("stdout") ? "stdout" : basename + ".srew";
-				exporttransrewards = true;
-				exportTransRewardsFilename = basename.equals("stdout") ? "stdout" : basename + ".trew";
+				newModelExportTasks.add(ModelExportTask.fromFilename(basename, "srew"));
+				newModelExportTasks.add(ModelExportTask.fromFilename(basename, "trew"));
 			} else if (ext.equals("sta")) {
-				exportstates = true;
-				exportStatesFilename = basename.equals("stdout") ? "stdout" : basename + ".sta";
+				newModelExportTasks.add(ModelExportTask.fromFilename(basename, ext));
 			} else if (ext.equals("obs")) {
-				exportobservations = true;
-				exportObservationsFilename = basename.equals("stdout") ? "stdout" : basename + ".obs";
+				newModelExportTasks.add(ModelExportTask.fromFilename(basename, ext));
 			} else if (ext.equals("lab")) {
-				exportmodellabels = true;
-				exportModelLabelsFilename = basename.equals("stdout") ? "stdout" : basename + ".lab";
+				newModelExportTasks.add(ModelExportTask.fromFilename(basename, ext));
 			} else if (ext.equals("dot")) {
-				exporttransdotstates = true;
-				exportTransDotStatesFilename = basename.equals("stdout") ? "stdout" : basename + ".dot";
-				exportTransDotStatesOptions = new ModelExportOptions(ModelExportFormat.DOT);
-				exportTransDotStatesOptions.setShowStates(true);
+				newModelExportTasks.add(ModelExportTask.fromFilename(basename, ext));
 			} else if (ext.equals("drn")) {
-				exportmodelcombined = true;
-				exportModelCombinedFilename = basename.equals("stdout") ? "stdout" : basename + ".drn";
-				exportModelCombinedOptions = new ModelExportOptions(ModelExportFormat.DRN);
+				newModelExportTasks.add(ModelExportTask.fromFilename(basename, ext));
 			}
 			// Unknown extension
 			else {
@@ -2348,6 +2138,7 @@ public class PrismCL implements PrismModelListener
 			}
 		}
 		// Process options
+		ModelExportOptions exportOptions = new ModelExportOptions();
 		String options[] = optionsString.split(",");
 		for (String opt : options) {
 			// Ignore ""
@@ -2355,17 +2146,11 @@ public class PrismCL implements PrismModelListener
 			}
 			// Export type
 			else if (opt.equals("matlab")) {
+				exportOptions.setFormat(ModelExportFormat.MATLAB);
 				exportType = Prism.EXPORT_MATLAB;
-				exportTransOptions.setFormat(ModelExportFormat.MATLAB);
-				exportStateRewardsOptions.setFormat(ModelExportFormat.MATLAB);
-				exportTransRewardsOptions.setFormat(ModelExportFormat.MATLAB);
-				exportStatesOptions.setFormat(ModelExportFormat.MATLAB);
-				exportObservationsOptions.setFormat(ModelExportFormat.MATLAB);
-				exportLabelsOptions.setFormat(ModelExportFormat.MATLAB);
 			} else if (opt.equals("rows")) {
+				exportOptions.setExplicitRows(true);
 				exportType = Prism.EXPORT_ROWS;
-				exportTransOptions.setExplicitRows(true);
-				exportTransRewardsOptions.setExplicitRows(true);
 			} /*else if (opt.startsWith("type=")) {
 				String exportTypeString = opt.substring(5);
 				if (exportTypeString.equals("matlab")) {
@@ -2377,18 +2162,20 @@ public class PrismCL implements PrismModelListener
 				}
 				}*/
 			else if (opt.equals("proplabels")) {
-				exportmodelproplabels = true;
+				for (ModelExportTask exportTask : newModelExportTasks) {
+					if (exportTask.getEntity() == ModelExportTask.ModelExportEntity.LABELS) {
+						exportTask.setLabelExportSet(ModelExportTask.LabelExportSet.ALL);
+					}
+				}
 			}
 			else if (opt.startsWith("actions")) {
 				if (!opt.startsWith("actions="))
 					throw new PrismException("No value provided for \"actions\" option of -exportmodel");
 				String optVal = opt.substring(8);
 				if (optVal.equals("true")) {
-					exportTransOptions.setShowActions(true);
-					exportTransRewardsOptions.setShowActions(true);
+					exportOptions.setShowActions(true);
 				} else if (optVal.equals("false")) {
-					exportTransOptions.setShowActions(false);
-					exportTransRewardsOptions.setShowActions(false);
+					exportOptions.setShowActions(false);
 				}
 				else
 					throw new PrismException("Unknown value \"" + optVal + "\" provided for \"reach\" option of -exportstrat");
@@ -2398,6 +2185,12 @@ public class PrismCL implements PrismModelListener
 				throw new PrismException("Unknown option \"" + opt + "\" for -exportmodel switch");
 			}
 		}
+		// Apply options from this switch to each export task
+		for (ModelExportTask exportTask : newModelExportTasks) {
+			exportTask.getExportOptions().apply(exportOptions);
+		}
+		// Add export tasks to the main list
+		modelExportTasks.addAll(newModelExportTasks);
 	}
 
 	/**
@@ -2632,25 +2425,15 @@ public class PrismCL implements PrismModelListener
 			}
 		}
 
-		// plug in basename for -exportmodel switch if needed
-		if (exportModelNoBasename) {
+		// Plug in model basename for model exports where needed
+		if (!modelExportTasks.isEmpty()) {
 			String modelFileBasename = modelFilename;
-			if (modelFileBasename.lastIndexOf('.') > -1)
+			if (modelFileBasename.lastIndexOf('.') > -1) {
 				modelFileBasename = modelFilename.substring(0, modelFileBasename.lastIndexOf('.'));
-			if (exporttrans)
-				exportTransFilename = exportTransFilename.replaceFirst("modelFileBasename", modelFileBasename);
-			if (exportstaterewards)
-				exportStateRewardsFilename = exportStateRewardsFilename.replaceFirst("modelFileBasename", modelFileBasename);
-			if (exporttransrewards)
-				exportTransRewardsFilename = exportTransRewardsFilename.replaceFirst("modelFileBasename", modelFileBasename);
-			if (exportstates)
-				exportStatesFilename = exportStatesFilename.replaceFirst("modelFileBasename", modelFileBasename);
-			if (exportobservations)
-				exportObservationsFilename = exportObservationsFilename.replaceFirst("modelFileBasename", modelFileBasename);
-			if (exportmodellabels)
-				exportModelLabelsFilename = exportModelLabelsFilename.replaceFirst("modelFileBasename", modelFileBasename);
-			if (exporttransdotstates)
-				exportTransDotStatesFilename = exportTransDotStatesFilename.replaceFirst("modelFileBasename", modelFileBasename);
+			}
+			for (ModelExportTask exportTask : modelExportTasks) {
+				exportTask.replaceEmptyFileBasename(modelFileBasename);
+			}
 		}
 	}
 
