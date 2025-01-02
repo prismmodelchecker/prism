@@ -83,6 +83,9 @@ import javax.swing.event.ListSelectionListener;
 import javax.swing.filechooser.FileFilter;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
+import io.ModelExportFormat;
+import io.ModelExportOptions;
+import io.ModelExportTask;
 import org.jfree.data.xy.XYDataItem;
 
 import parser.Values;
@@ -94,7 +97,6 @@ import parser.type.Type;
 import parser.type.TypeDouble;
 import parser.type.TypeInt;
 import parser.type.TypeInterval;
-import prism.Prism;
 import prism.PrismException;
 import prism.PrismSettings;
 import prism.PrismSettingsListener;
@@ -112,7 +114,6 @@ import userinterface.SimulationInformation;
 import userinterface.graph.Graph;
 import userinterface.graph.Graph.SeriesKey;
 import userinterface.model.GUIModelEvent;
-import userinterface.model.GUIMultiModelHandler;
 import userinterface.model.computation.ExportBuiltModelThread;
 import userinterface.properties.computation.ExportResultsThread;
 import userinterface.properties.computation.ExportStrategyThread;
@@ -152,9 +153,7 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 	private File activeFile;
 	private Values pfConstants;
 	private String argsPropertiesFile;
-	private int exportType = Prism.EXPORT_PLAIN;
-	private File exportFile = null;
-	private boolean exportModelLabels = false;
+	private ModelExportTask exportTask;
 
 	// GUI
 	private FileFilter propsFilter;
@@ -1120,30 +1119,31 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 		}
 	}
 
-	public void a_exportLabels(int exportType, boolean exportModelLabels)
+	public void a_exportLabels(ModelExportTask.LabelExportSet exportLabelSet, ModelExportFormat exportFormat)
 	{
 		int res = JFileChooser.CANCEL_OPTION;
 
 		// pop up dialog to select file
-		switch (exportType) {
-		case Prism.EXPORT_MATLAB:
-			res = showSaveFileDialog(matlabFilter);
-			break;
-		default:
-			res = showSaveFileDialog(labFilters.values(), labFilters.get("lab"));
-			break;
+		switch (exportFormat) {
+			case MATLAB:
+				res = showSaveFileDialog(matlabFilter);
+				break;
+			case EXPLICIT:
+			default:
+				res = showSaveFileDialog(labFilters.values(), labFilters.get("lab"));
+				break;
 		}
-		if (res != JFileChooser.APPROVE_OPTION)
+		if (res != JFileChooser.APPROVE_OPTION) {
 			return;
+		}
 		consTable.correctEditors();
 		labTable.correctEditors();
 		// Reset warnings counter 
 		getPrism().getMainLog().resetNumberOfWarnings();
 		// Set flag, store export info
 		exportLabelsAfterReceiveParseNotification = true;
-		this.exportType = exportType;
-		this.exportFile = getChooserFile();
-		this.exportModelLabels = exportModelLabels;
+		exportTask = new ModelExportTask(ModelExportTask.ModelExportEntity.LABELS, getChooserFile(), new ModelExportOptions(exportFormat));
+		exportTask.setLabelExportSet(exportLabelSet);
 		// Request a parse
 		exportLabelsAfterReceiveParseNotification = true;
 		notifyEventListeners(new GUIPropertiesEvent(GUIPropertiesEvent.REQUEST_MODEL_PARSE));
@@ -1171,16 +1171,18 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 			}
 			// Store model/property constants
 			pfConstants = uCon.getPFConstantValues();
+			// currently, evaluate constants non-exact for model building
 			getPrism().setPRISMModelConstants(uCon.getMFConstantValues(), exact);
-			parsedProperties.setSomeUndefinedConstants(pfConstants, exact);
+			if (exportTask.extraLabelsUsed()) {
+				parsedProperties.setSomeUndefinedConstants(pfConstants, exact);
+				exportTask.setExtraLabelsSource(parsedProperties);
+			}
 			// If export is being done to log, switch view to log
-			if (exportFile == null)
+			if (exportTask.getFile() == null) {
 				logToFront();
-			// Start export 
-			new ExportBuiltModelThread(this, GUIMultiModelHandler.LABELS_EXPORT, exportType, exportFile)
-			    .setPropertiesFile(parsedProperties)
-			    .setExportModelLabels(exportModelLabels)
-			    .start();
+			}
+			// Start export
+			new ExportBuiltModelThread(this, exportTask).start();
 		} catch (PrismException e) {
 			error(e.getMessage());
 			return;
@@ -2499,7 +2501,7 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 		{
 			public void actionPerformed(ActionEvent e)
 			{
-				a_exportLabels(Prism.EXPORT_PLAIN, false);
+				a_exportLabels(ModelExportTask.LabelExportSet.EXTRA, ModelExportFormat.EXPLICIT);
 			}
 		};
 		exportLabelsPlain.putValue(Action.LONG_DESCRIPTION, "Exports the property file's labels and their satisfying states to a plain text file");
@@ -2511,7 +2513,7 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 		{
 			public void actionPerformed(ActionEvent e)
 			{
-				a_exportLabels(Prism.EXPORT_PLAIN, true);
+				a_exportLabels(ModelExportTask.LabelExportSet.ALL, ModelExportFormat.EXPLICIT);
 			}
 		};
 		exportModelLabelsPlain.putValue(Action.LONG_DESCRIPTION, "Exports the model and property file's labels and their satisfying states to a plain text file");
@@ -2523,7 +2525,7 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 		{
 			public void actionPerformed(ActionEvent e)
 			{
-				a_exportLabels(Prism.EXPORT_MATLAB, false);
+				a_exportLabels(ModelExportTask.LabelExportSet.EXTRA, ModelExportFormat.MATLAB);
 			}
 		};
 		exportLabelsMatlab.putValue(Action.LONG_DESCRIPTION, "Exports the property file's labels and their satisfying states to a Matlab file");
@@ -2535,7 +2537,7 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 		{
 			public void actionPerformed(ActionEvent e)
 			{
-				a_exportLabels(Prism.EXPORT_MATLAB, true);
+				a_exportLabels(ModelExportTask.LabelExportSet.ALL, ModelExportFormat.MATLAB);
 			}
 		};
 		exportModelLabelsMatlab.putValue(Action.LONG_DESCRIPTION, "Exports the model and property file's labels and their satisfying states to a Matlab file");

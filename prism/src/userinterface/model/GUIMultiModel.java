@@ -53,8 +53,11 @@ import javax.swing.KeyStroke;
 import javax.swing.filechooser.FileFilter;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
+import io.ModelExportFormat;
+import io.ModelExportOptions;
+import io.ModelExportTask;
+import io.ModelExportTask.ModelExportEntity;
 import prism.ModelType;
-import prism.Prism;
 import prism.PrismSettings;
 import prism.PrismSettingsListener;
 import userinterface.GUIClipboardEvent;
@@ -78,7 +81,7 @@ public class GUIMultiModel extends GUIPlugin implements PrismSettingsListener
 	private JMenu exportStatesMenu, exportTransMenu, exportObsMenu, exportStateRewardsMenu, exportTransRewardsMenu, exportLabelsMenu, exportSSMenu, exportTrMenu;
 	private AbstractAction viewStates, viewTrans, viewObs, viewStateRewards, viewTransRewards, viewLabels, viewPrismCode, computeSS, computeTr, newPRISMModel,
 			newPEPAModel, loadModel, reloadModel, saveModel, saveAsModel, parseModel, buildModel, exportStatesPlain, exportStatesMatlab,
-			exportTransPlain, exportTransMatlab, exportTransDot, exportTransDotStates, exportObsPlain, exportObsMatlab, exportStateRewardsPlain, exportStateRewardsMatlab,
+			exportTransPlain, exportTransMatlab, exportTransDot, exportObsPlain, exportObsMatlab, exportStateRewardsPlain, exportStateRewardsMatlab,
 			exportTransRewardsPlain, exportTransRewardsMatlab, exportLabelsPlain, exportLabelsMatlab,
 			exportSSPlain, exportSSMatlab, exportTrPlain, exportTrMatlab;
 	private JPopupMenu popup;
@@ -185,7 +188,6 @@ public class GUIMultiModel extends GUIPlugin implements PrismSettingsListener
 		exportTransPlain.setEnabled(!computing);
 		exportTransMatlab.setEnabled(!computing);
 		exportTransDot.setEnabled(!computing);
-		exportTransDotStates.setEnabled(!computing);
 		exportObsPlain.setEnabled(!computing);
 		exportObsMatlab.setEnabled(!computing);
 		exportStateRewardsPlain.setEnabled(!computing);
@@ -351,54 +353,52 @@ public class GUIMultiModel extends GUIPlugin implements PrismSettingsListener
 		handler.forceBuild();
 	}
 
-	protected void a_exportBuildAs(int exportEntity, int exportType)
+	protected void a_exportBuildAs(ModelExportEntity exportEntity, ModelExportFormat exportFormat)
 	{
 		int res = JFileChooser.CANCEL_OPTION;
 
 		// pop up dialog to select file
-		switch (exportType) {
-		case Prism.EXPORT_DOT:
-			res = showSaveFileDialog(dotFilter);
-			break;
-		case Prism.EXPORT_DOT_STATES:
-			res = showSaveFileDialog(dotFilter);
-			break;
-		case Prism.EXPORT_MATLAB:
-			res = showSaveFileDialog(matlabFilter);
-			break;
-		default:
-			switch (exportEntity) {
-			case GUIMultiModelHandler.STATES_EXPORT:
-				res = showSaveFileDialog(staFilters.values(), staFilters.get("sta"));
+		switch (exportFormat) {
+			case DOT:
+				res = showSaveFileDialog(dotFilter);
 				break;
-			case GUIMultiModelHandler.TRANS_EXPORT:
-				res = showSaveFileDialog(traFilters.values(), traFilters.get("tra"));
-				break;
-			case GUIMultiModelHandler.OBSERVATIONS_EXPORT:
-				res = showSaveFileDialog(obsFilters.values(), obsFilters.get("obs"));
-				break;
-			case GUIMultiModelHandler.LABELS_EXPORT:
-				res = showSaveFileDialog(labFilters.values(), labFilters.get("lab"));
+			case MATLAB:
+				res = showSaveFileDialog(matlabFilter);
 				break;
 			default:
-				res = showSaveFileDialog(textFilter);
-			}
-			break;
+				switch (exportEntity) {
+					case ModelExportEntity.STATES:
+						res = showSaveFileDialog(staFilters.values(), staFilters.get("sta"));
+						break;
+					case ModelExportEntity.MODEL:
+						res = showSaveFileDialog(traFilters.values(), traFilters.get("tra"));
+						break;
+					case ModelExportEntity.OBSERVATIONS:
+						res = showSaveFileDialog(obsFilters.values(), obsFilters.get("obs"));
+						break;
+					case ModelExportEntity.LABELS:
+						res = showSaveFileDialog(labFilters.values(), labFilters.get("lab"));
+						break;
+					default:
+						res = showSaveFileDialog(textFilter);
+				}
+				break;
 		}
-		if (res != JFileChooser.APPROVE_OPTION)
+		if (res != JFileChooser.APPROVE_OPTION) {
 			return;
+		}
 		// Reset warnings counter 
 		getPrism().getMainLog().resetNumberOfWarnings();
 		// Do export...
-		handler.export(exportEntity, exportType, getChooserFile());
+		handler.export(new ModelExportTask(exportEntity, getChooserFile(), new ModelExportOptions(exportFormat)));
 	}
 
-	protected void a_viewBuild(int exportEntity, int exportType)
+	protected void a_viewBuild(ModelExportEntity exportEntity, ModelExportFormat exportFormat)
 	{
 		// Reset warnings counter 
 		getPrism().getMainLog().resetNumberOfWarnings();
 		// Do view...
-		handler.export(exportEntity, exportType, null);
+		handler.export(new ModelExportTask(exportEntity, (File) null, new ModelExportOptions(exportFormat)));
 	}
 
 	// 	protected void a_viewStates()
@@ -411,25 +411,26 @@ public class GUIMultiModel extends GUIPlugin implements PrismSettingsListener
 		handler.requestViewModel();
 	}
 
-	protected void a_exportSteadyState(int exportType)
+	protected void a_exportSteadyState(ModelExportFormat exportFormat)
 	{
 		// Pop up dialog to select file
 		int res = JFileChooser.CANCEL_OPTION;
-		switch (exportType) {
-		case Prism.EXPORT_MATLAB:
-			res = showSaveFileDialog(matlabFilter);
-			break;
-		case Prism.EXPORT_PLAIN:
-		default:
-			res = showSaveFileDialog(textFilter);
-			break;
+		switch (exportFormat) {
+			case MATLAB:
+				res = showSaveFileDialog(matlabFilter);
+				break;
+			case ModelExportFormat.EXPLICIT:
+			default:
+				res = showSaveFileDialog(textFilter);
+				break;
 		}
-		if (res != JFileChooser.APPROVE_OPTION)
+		if (res != JFileChooser.APPROVE_OPTION) {
 			return;
+		}
 		// Reset warnings counter 
 		getPrism().getMainLog().resetNumberOfWarnings();
 		// Do steady-state
-		handler.computeSteadyState(exportType, getChooserFile());
+		handler.computeSteadyState(new ModelExportTask(ModelExportEntity.MODEL, getChooserFile(), new ModelExportOptions(exportFormat)));
 	}
 
 	protected void a_computeSteadyState()
@@ -437,10 +438,10 @@ public class GUIMultiModel extends GUIPlugin implements PrismSettingsListener
 		// Reset warnings counter 
 		getPrism().getMainLog().resetNumberOfWarnings();
 		// Do steady-state
-		handler.computeSteadyState(Prism.EXPORT_PLAIN, null);
+		handler.computeSteadyState(new ModelExportTask(ModelExportEntity.MODEL, (File) null, new ModelExportOptions(ModelExportFormat.EXPLICIT)));
 	}
 
-	protected void a_exportTransient(int exportType)
+	protected void a_exportTransient(ModelExportFormat exportFormat)
 	{
 		// Get time
 		int result = GUITransientTime.requestTime(this.getGUI());
@@ -448,21 +449,22 @@ public class GUIMultiModel extends GUIPlugin implements PrismSettingsListener
 			return;
 		// Pop up dialog to select file
 		int res = JFileChooser.CANCEL_OPTION;
-		switch (exportType) {
-		case Prism.EXPORT_MATLAB:
-			res = showSaveFileDialog(matlabFilter);
-			break;
-		case Prism.EXPORT_PLAIN:
-		default:
-			res = showSaveFileDialog(textFilter);
-			break;
+		switch (exportFormat) {
+			case ModelExportFormat.MATLAB:
+				res = showSaveFileDialog(matlabFilter);
+				break;
+			case ModelExportFormat.EXPLICIT:
+			default:
+				res = showSaveFileDialog(textFilter);
+				break;
 		}
-		if (res != JFileChooser.APPROVE_OPTION)
+		if (res != JFileChooser.APPROVE_OPTION) {
 			return;
+		}
 		// Reset warnings counter 
 		getPrism().getMainLog().resetNumberOfWarnings();
 		// Do transient
-		handler.computeTransient(GUITransientTime.getTime(), exportType, getChooserFile());
+		handler.computeTransient(GUITransientTime.getTime(), new ModelExportTask(ModelExportEntity.MODEL, getChooserFile(), new ModelExportOptions(exportFormat)));
 	}
 
 	protected void a_computeTransient()
@@ -474,7 +476,7 @@ public class GUIMultiModel extends GUIPlugin implements PrismSettingsListener
 		if (result != GUITransientTime.OK)
 			return;
 		// Do transient
-		handler.computeTransient(GUITransientTime.getTime(), Prism.EXPORT_PLAIN, null);
+		handler.computeTransient(GUITransientTime.getTime(), new ModelExportTask(ModelExportEntity.MODEL, (File) null, new ModelExportOptions(ModelExportFormat.EXPLICIT)));
 	}
 
 	protected void a_convertToPrismTextModel()
@@ -621,7 +623,7 @@ public class GUIMultiModel extends GUIPlugin implements PrismSettingsListener
 		{
 			public void actionPerformed(ActionEvent e)
 			{
-				a_exportBuildAs(GUIMultiModelHandler.STATES_EXPORT, Prism.EXPORT_PLAIN);
+				a_exportBuildAs(ModelExportEntity.STATES, ModelExportFormat.EXPLICIT);
 			}
 		};
 		exportStatesPlain.putValue(Action.LONG_DESCRIPTION, "Exports the reachable states to a plain text file");
@@ -633,7 +635,7 @@ public class GUIMultiModel extends GUIPlugin implements PrismSettingsListener
 		{
 			public void actionPerformed(ActionEvent e)
 			{
-				a_exportBuildAs(GUIMultiModelHandler.STATES_EXPORT, Prism.EXPORT_MATLAB);
+				a_exportBuildAs(ModelExportEntity.STATES, ModelExportFormat.MATLAB);
 			}
 		};
 		exportStatesMatlab.putValue(Action.LONG_DESCRIPTION, "Exports the reachable states to a Matlab file");
@@ -645,7 +647,7 @@ public class GUIMultiModel extends GUIPlugin implements PrismSettingsListener
 		{
 			public void actionPerformed(ActionEvent e)
 			{
-				a_exportBuildAs(GUIMultiModelHandler.TRANS_EXPORT, Prism.EXPORT_PLAIN);
+				a_exportBuildAs(ModelExportEntity.MODEL, ModelExportFormat.EXPLICIT);
 			}
 		};
 		exportTransPlain.putValue(Action.LONG_DESCRIPTION, "Exports the transition matrix to a plain text file");
@@ -657,7 +659,7 @@ public class GUIMultiModel extends GUIPlugin implements PrismSettingsListener
 		{
 			public void actionPerformed(ActionEvent e)
 			{
-				a_exportBuildAs(GUIMultiModelHandler.TRANS_EXPORT, Prism.EXPORT_MATLAB);
+				a_exportBuildAs(ModelExportEntity.MODEL, ModelExportFormat.MATLAB);
 			}
 		};
 		exportTransMatlab.putValue(Action.LONG_DESCRIPTION, "Exports the transition matrix to a Matlab file");
@@ -669,7 +671,7 @@ public class GUIMultiModel extends GUIPlugin implements PrismSettingsListener
 		{
 			public void actionPerformed(ActionEvent e)
 			{
-				a_exportBuildAs(GUIMultiModelHandler.TRANS_EXPORT, Prism.EXPORT_DOT);
+				a_exportBuildAs(ModelExportEntity.MODEL, ModelExportFormat.DOT);
 			}
 		};
 		exportTransDot.putValue(Action.LONG_DESCRIPTION, "Exports the transition matrix graph to a Dot file");
@@ -677,23 +679,11 @@ public class GUIMultiModel extends GUIPlugin implements PrismSettingsListener
 		exportTransDot.putValue(Action.NAME, "Dot file");
 		exportTransDot.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallFileDot.png"));
 
-		exportTransDotStates = new AbstractAction()
-		{
-			public void actionPerformed(ActionEvent e)
-			{
-				a_exportBuildAs(GUIMultiModelHandler.TRANS_EXPORT, Prism.EXPORT_DOT_STATES);
-			}
-		};
-		exportTransDotStates.putValue(Action.LONG_DESCRIPTION, "Exports the transition matrix graph to a Dot file (with states)");
-		exportTransDotStates.putValue(Action.MNEMONIC_KEY, Integer.valueOf(KeyEvent.VK_S));
-		exportTransDotStates.putValue(Action.NAME, "Dot file (with states)");
-		exportTransDotStates.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallFileDot.png"));
-
 		exportObsPlain = new AbstractAction()
 		{
 			public void actionPerformed(ActionEvent e)
 			{
-				a_exportBuildAs(GUIMultiModelHandler.OBSERVATIONS_EXPORT, Prism.EXPORT_PLAIN);
+				a_exportBuildAs(ModelExportEntity.OBSERVATIONS, ModelExportFormat.EXPLICIT);
 			}
 		};
 		exportObsPlain.putValue(Action.LONG_DESCRIPTION, "Exports the observations to a plain text file");
@@ -705,7 +695,7 @@ public class GUIMultiModel extends GUIPlugin implements PrismSettingsListener
 		{
 			public void actionPerformed(ActionEvent e)
 			{
-				a_exportBuildAs(GUIMultiModelHandler.OBSERVATIONS_EXPORT, Prism.EXPORT_MATLAB);
+				a_exportBuildAs(ModelExportEntity.OBSERVATIONS, ModelExportFormat.MATLAB);
 			}
 		};
 		exportObsMatlab.putValue(Action.LONG_DESCRIPTION, "Exports the observations to a Matlab file");
@@ -717,7 +707,7 @@ public class GUIMultiModel extends GUIPlugin implements PrismSettingsListener
 		{
 			public void actionPerformed(ActionEvent e)
 			{
-				a_exportBuildAs(GUIMultiModelHandler.STATE_REWARDS_EXPORT, Prism.EXPORT_PLAIN);
+				a_exportBuildAs(ModelExportEntity.STATE_REWARDS, ModelExportFormat.EXPLICIT);
 			}
 		};
 		exportStateRewardsPlain.putValue(Action.LONG_DESCRIPTION, "Exports the state rewards vector to a plain text file");
@@ -729,7 +719,7 @@ public class GUIMultiModel extends GUIPlugin implements PrismSettingsListener
 		{
 			public void actionPerformed(ActionEvent e)
 			{
-				a_exportBuildAs(GUIMultiModelHandler.STATE_REWARDS_EXPORT, Prism.EXPORT_MATLAB);
+				a_exportBuildAs(ModelExportEntity.STATE_REWARDS, ModelExportFormat.MATLAB);
 			}
 		};
 		exportStateRewardsMatlab.putValue(Action.LONG_DESCRIPTION, "Exports the state rewards vector to a Matlab file");
@@ -741,7 +731,7 @@ public class GUIMultiModel extends GUIPlugin implements PrismSettingsListener
 		{
 			public void actionPerformed(ActionEvent e)
 			{
-				a_exportBuildAs(GUIMultiModelHandler.TRANS_REWARDS_EXPORT, Prism.EXPORT_PLAIN);
+				a_exportBuildAs(ModelExportEntity.STATE_REWARDS, ModelExportFormat.EXPLICIT);
 			}
 		};
 		exportTransRewardsPlain.putValue(Action.LONG_DESCRIPTION, "Exports the transition rewards matrix to a plain text file");
@@ -753,7 +743,7 @@ public class GUIMultiModel extends GUIPlugin implements PrismSettingsListener
 		{
 			public void actionPerformed(ActionEvent e)
 			{
-				a_exportBuildAs(GUIMultiModelHandler.TRANS_REWARDS_EXPORT, Prism.EXPORT_MATLAB);
+				a_exportBuildAs(ModelExportEntity.TRANSITION_REWARDS, ModelExportFormat.MATLAB);
 			}
 		};
 		exportTransRewardsMatlab.putValue(Action.LONG_DESCRIPTION, "Exports the transition rewards matrix to a Matlab file");
@@ -765,7 +755,7 @@ public class GUIMultiModel extends GUIPlugin implements PrismSettingsListener
 		{
 			public void actionPerformed(ActionEvent e)
 			{
-				a_exportBuildAs(GUIMultiModelHandler.LABELS_EXPORT, Prism.EXPORT_PLAIN);
+				a_exportBuildAs(ModelExportEntity.LABELS, ModelExportFormat.EXPLICIT);
 			}
 		};
 		exportLabelsPlain.putValue(Action.LONG_DESCRIPTION, "Exports the model's labels and their satisfying states to a plain text file");
@@ -777,7 +767,7 @@ public class GUIMultiModel extends GUIPlugin implements PrismSettingsListener
 		{
 			public void actionPerformed(ActionEvent e)
 			{
-				a_exportBuildAs(GUIMultiModelHandler.LABELS_EXPORT, Prism.EXPORT_MATLAB);
+				a_exportBuildAs(ModelExportEntity.LABELS, ModelExportFormat.MATLAB);
 			}
 		};
 		exportLabelsMatlab.putValue(Action.LONG_DESCRIPTION, "Exports the model's labels and their satisfying states to a Matlab file");
@@ -817,7 +807,7 @@ public class GUIMultiModel extends GUIPlugin implements PrismSettingsListener
 		{
 			public void actionPerformed(ActionEvent e)
 			{
-				a_exportSteadyState(Prism.EXPORT_PLAIN);
+				a_exportSteadyState(ModelExportFormat.EXPLICIT);
 			}
 		};
 		exportSSPlain.putValue(Action.LONG_DESCRIPTION, "Exports the steady-state probabilities to a plain text file");
@@ -829,7 +819,7 @@ public class GUIMultiModel extends GUIPlugin implements PrismSettingsListener
 		{
 			public void actionPerformed(ActionEvent e)
 			{
-				a_exportSteadyState(Prism.EXPORT_MATLAB);
+				a_exportSteadyState(ModelExportFormat.MATLAB);
 			}
 		};
 		exportSSMatlab.putValue(Action.LONG_DESCRIPTION, "Exports the steady-state probabilities to a Matlab file");
@@ -841,7 +831,7 @@ public class GUIMultiModel extends GUIPlugin implements PrismSettingsListener
 		{
 			public void actionPerformed(ActionEvent e)
 			{
-				a_exportTransient(Prism.EXPORT_PLAIN);
+				a_exportTransient(ModelExportFormat.EXPLICIT);
 			}
 		};
 		exportTrPlain.putValue(Action.LONG_DESCRIPTION, "Exports the transient probabilities to a plain text file");
@@ -853,7 +843,7 @@ public class GUIMultiModel extends GUIPlugin implements PrismSettingsListener
 		{
 			public void actionPerformed(ActionEvent e)
 			{
-				a_exportTransient(Prism.EXPORT_MATLAB);
+				a_exportTransient(ModelExportFormat.MATLAB);
 			}
 		};
 		exportTrMatlab.putValue(Action.LONG_DESCRIPTION, "Exports the transient probabilities to a Matlab file");
@@ -865,7 +855,7 @@ public class GUIMultiModel extends GUIPlugin implements PrismSettingsListener
 		{
 			public void actionPerformed(ActionEvent e)
 			{
-				a_viewBuild(GUIMultiModelHandler.STATES_EXPORT, Prism.EXPORT_PLAIN);
+				a_viewBuild(ModelExportEntity.STATES, ModelExportFormat.EXPLICIT);
 			}
 		};
 		viewStates.putValue(Action.LONG_DESCRIPTION, "Print the reachable states to the log");
@@ -877,7 +867,7 @@ public class GUIMultiModel extends GUIPlugin implements PrismSettingsListener
 		{
 			public void actionPerformed(ActionEvent e)
 			{
-				a_viewBuild(GUIMultiModelHandler.TRANS_EXPORT, Prism.EXPORT_PLAIN);
+				a_viewBuild(ModelExportEntity.MODEL, ModelExportFormat.EXPLICIT);
 			}
 		};
 		viewTrans.putValue(Action.LONG_DESCRIPTION, "Print the transition matrix to the log");
@@ -889,7 +879,7 @@ public class GUIMultiModel extends GUIPlugin implements PrismSettingsListener
 		{
 			public void actionPerformed(ActionEvent e)
 			{
-				a_viewBuild(GUIMultiModelHandler.OBSERVATIONS_EXPORT, Prism.EXPORT_PLAIN);
+				a_viewBuild(ModelExportEntity.OBSERVATIONS, ModelExportFormat.EXPLICIT);
 			}
 		};
 		viewObs.putValue(Action.LONG_DESCRIPTION, "Print the observations to the log");
@@ -901,7 +891,7 @@ public class GUIMultiModel extends GUIPlugin implements PrismSettingsListener
 		{
 			public void actionPerformed(ActionEvent e)
 			{
-				a_viewBuild(GUIMultiModelHandler.STATE_REWARDS_EXPORT, Prism.EXPORT_PLAIN);
+				a_viewBuild(ModelExportEntity.STATE_REWARDS, ModelExportFormat.EXPLICIT);
 			}
 		};
 		viewStateRewards.putValue(Action.LONG_DESCRIPTION, "Print the state rewards to the log");
@@ -913,7 +903,7 @@ public class GUIMultiModel extends GUIPlugin implements PrismSettingsListener
 		{
 			public void actionPerformed(ActionEvent e)
 			{
-				a_viewBuild(GUIMultiModelHandler.TRANS_REWARDS_EXPORT, Prism.EXPORT_PLAIN);
+				a_viewBuild(ModelExportEntity.TRANSITION_REWARDS, ModelExportFormat.EXPLICIT);
 			}
 		};
 		viewTransRewards.putValue(Action.LONG_DESCRIPTION, "Print the transition rewards to the log");
@@ -925,7 +915,7 @@ public class GUIMultiModel extends GUIPlugin implements PrismSettingsListener
 		{
 			public void actionPerformed(ActionEvent e)
 			{
-				a_viewBuild(GUIMultiModelHandler.LABELS_EXPORT, Prism.EXPORT_PLAIN);
+				a_viewBuild(ModelExportEntity.LABELS, ModelExportFormat.EXPLICIT);
 			}
 		};
 		viewLabels.putValue(Action.LONG_DESCRIPTION, "Print the labels and satisfying states to the log");
@@ -1053,7 +1043,6 @@ public class GUIMultiModel extends GUIPlugin implements PrismSettingsListener
 		exportTransMenu.add(exportTransPlain);
 		exportTransMenu.add(exportTransMatlab);
 		exportTransMenu.add(exportTransDot);
-		exportTransMenu.add(exportTransDotStates);
 		exportMenu.add(exportTransMenu);
 		exportObsMenu = new JMenu("Observations");
 		exportObsMenu.setMnemonic('O');

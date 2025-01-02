@@ -30,8 +30,7 @@ package userinterface.model.computation;
 import java.io.*;
 import javax.swing.*;
 
-import parser.ast.PropertiesFile;
-import prism.*;
+import io.ModelExportTask;
 import userinterface.*;
 import userinterface.model.*;
 import userinterface.util.*;
@@ -41,38 +40,19 @@ import userinterface.util.*;
  */
 public class ExportBuiltModelThread extends GUIComputationThread
 {
-	private int exportEntity;
-	private boolean exportModelLabels;
-	private int exportType;
-	private File exportFile;
-	private PropertiesFile propertiesFile;
+	private ModelExportTask exportTask;
 
 	/** Creates a new instance of ExportBuiltModelThread */
-	public ExportBuiltModelThread(GUIMultiModelHandler handler, int entity, int type, File f)
+	public ExportBuiltModelThread(GUIMultiModelHandler handler, ModelExportTask exportTask)
 	{
-		this(handler.getGUIPlugin(), entity, type, f);
+		this(handler.getGUIPlugin(), exportTask);
 	}
 
 	/** Creates a new instance of ExportBuiltModelThread */
-	public ExportBuiltModelThread(GUIPlugin plug, int entity, int type, File f)
+	public ExportBuiltModelThread(GUIPlugin plug, ModelExportTask exportTask)
 	{
 		super(plug);
-		this.exportEntity = entity;
-		this.exportType = type;
-		this.exportFile = f;
-	}
-
-	/** Set (optional) associated PropertiesFile (for label export) */
-	public ExportBuiltModelThread setPropertiesFile(PropertiesFile propertiesFile)
-	{
-		this.propertiesFile = propertiesFile;
-		return this;
-	}
-
-	public ExportBuiltModelThread setExportModelLabels(boolean exportModelLabels)
-	{
-		this.exportModelLabels = exportModelLabels;
-		return this;
+		this.exportTask = exportTask;
 	}
 
 	public void run()
@@ -91,30 +71,7 @@ public class ExportBuiltModelThread extends GUIComputationThread
 
 			// Do export
 			try {
-				switch (exportEntity) {
-				case GUIMultiModelHandler.STATES_EXPORT:
-					prism.exportStatesToFile(exportType, exportFile);
-					break;
-				case GUIMultiModelHandler.TRANS_EXPORT:
-					prism.exportTransToFile(true, exportType, exportFile);
-					break;
-				case GUIMultiModelHandler.OBSERVATIONS_EXPORT:
-					prism.exportObservationsToFile(exportType, exportFile);
-					break;
-				case GUIMultiModelHandler.STATE_REWARDS_EXPORT:
-					prism.exportStateRewardsToFile(exportType, exportFile);
-					break;
-				case GUIMultiModelHandler.TRANS_REWARDS_EXPORT:
-					prism.exportTransRewardsToFile(true, exportType, exportFile);
-					break;
-				case GUIMultiModelHandler.LABELS_EXPORT:
-					if (exportModelLabels) {
-						prism.exportLabelsToFile(propertiesFile, exportType, exportFile);
-					} else {
-						prism.exportPropLabelsToFile(propertiesFile, exportType, exportFile);
-					}
-					break;
-				}
+				prism.exportBuiltModelTask(exportTask);
 			} catch (FileNotFoundException e) {
 				SwingUtilities.invokeAndWait(new Runnable()
 				{
@@ -123,7 +80,7 @@ public class ExportBuiltModelThread extends GUIComputationThread
 						plug.stopProgress();
 						plug.setTaskBarText("Exporting... error.");
 						plug.notifyEventListeners(new GUIComputationEvent(GUIComputationEvent.COMPUTATION_ERROR, plug));
-						error("Could not export to file \"" + exportFile + "\"");
+						error("Couldn't open file \"" + exportTask.getFile().getName() + "\" for output");
 					}
 				});
 				return;

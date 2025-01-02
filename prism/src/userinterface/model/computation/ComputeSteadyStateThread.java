@@ -27,9 +27,9 @@
 
 package userinterface.model.computation;
 
-import java.io.File;
-
 import javax.swing.*;
+
+import io.ModelExportTask;
 import userinterface.*;
 import userinterface.model.*;
 import prism.*;
@@ -42,22 +42,14 @@ public class ComputeSteadyStateThread extends GUIComputationThread
 {
 	@SuppressWarnings("unused")
 	private GUIMultiModelHandler handler;
-	private int exportType;
-	private File exportFile;
+	private ModelExportTask exportTask;
 
 	/** Creates a new instance of ComputeSteadyStateThread */
-	public ComputeSteadyStateThread(GUIMultiModelHandler handler)
-	{
-		this(handler, Prism.EXPORT_PLAIN, null);
-	}
-
-	/** Creates a new instance of ComputeSteadyStateThread */
-	public ComputeSteadyStateThread(GUIMultiModelHandler handler, int type, File f)
+	public ComputeSteadyStateThread(GUIMultiModelHandler handler, ModelExportTask exportTask)
 	{
 		super(handler.getGUIPlugin());
 		this.handler = handler;
-		this.exportType = type;
-		this.exportFile = f;
+		this.exportTask = exportTask;
 	}
 
 	public void run()
@@ -75,7 +67,7 @@ public class ComputeSteadyStateThread extends GUIComputationThread
 
 		// Do Computation
 		try {
-			prism.doSteadyState(exportType, exportFile, null);
+			prism.doSteadyState(Prism.convertExportType(exportTask.getExportOptions()), exportTask.getFile(), null);
 		} catch (Throwable e) {
 			error(e);
 			SwingUtilities.invokeLater(new Runnable()
