@@ -47,12 +47,11 @@ import explicit.rewards.MCRewards;
 import explicit.rewards.MCRewardsFromMDPRewards;
 import explicit.rewards.MDPRewards;
 import explicit.rewards.Rewards;
-import io.ModelExportOptions;
+import io.ModelExportFormat;
 import parser.ast.Expression;
 import parser.type.TypeDouble;
 import prism.AccuracyFactory;
 import prism.OptionsIntervalIteration;
-import prism.Prism;
 import prism.PrismComponent;
 import prism.PrismDevNullLog;
 import prism.PrismException;
@@ -390,7 +389,7 @@ public class MDPModelChecker extends ProbModelChecker
 			List<String> labelNames = Arrays.asList("init", "target");
 			mainLog.println("\nExporting target states info to file \"" + getExportTargetFilename() + "\"...");
 			PrismLog out = new PrismFileLog(getExportTargetFilename());
-			exportLabels(mdp, labelNames, labels, out, ModelExportOptions.ModelExportFormat.EXPLICIT);
+			exportLabels(mdp, labelNames, labels, out, ModelExportFormat.EXPLICIT);
 			out.close();
 		}
 
@@ -2122,7 +2121,7 @@ public class MDPModelChecker extends ProbModelChecker
 			List<String> labelNames = Arrays.asList("init", "target");
 			mainLog.println("\nExporting target states info to file \"" + getExportTargetFilename() + "\"...");
 			PrismLog out = new PrismFileLog(getExportTargetFilename());
-			exportLabels(mdp, labelNames, labels, out, ModelExportOptions.ModelExportFormat.EXPLICIT);
+			exportLabels(mdp, labelNames, labels, out, ModelExportFormat.EXPLICIT);
 			out.close();
 		}
 

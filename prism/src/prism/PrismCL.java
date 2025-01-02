@@ -42,7 +42,7 @@ import java.util.Map.Entry;
 import common.StackTraceHelper;
 import csv.CsvFormatException;
 import io.ModelExportOptions;
-import io.ModelExportOptions.ModelExportFormat;
+import io.ModelExportFormat;
 import parser.Values;
 import parser.ast.Expression;
 import parser.ast.ExpressionReward;

@@ -42,6 +42,7 @@ import explicit.rewards.Rewards;
 import io.DotExporter;
 import io.DRNExporter;
 import io.MatlabExporter;
+import io.ModelExportFormat;
 import io.ModelExportOptions;
 import io.PrismExplicitExporter;
 import io.PrismExplicitImporter;
@@ -1528,7 +1529,7 @@ public class StateModelChecker extends PrismComponent
 	 */
 	public <Value> void exportModelCombined(Model<Value> model, List<String> labelNames, PrismLog out, ModelExportOptions exportOptions) throws PrismException
 	{
-		if (exportOptions.getFormat() != ModelExportOptions.ModelExportFormat.DRN) {
+		if (exportOptions.getFormat() != ModelExportFormat.DRN) {
 			return;
 		}
 		List<Rewards<Value>> rewards = new ArrayList<>();
@@ -1569,7 +1570,7 @@ public class StateModelChecker extends PrismComponent
 	 */
 	public <Value> void exportStateRewards(Model<Value> model, int r, PrismLog out, ModelExportOptions exportOptions) throws PrismException
 	{
-		if (exportOptions.getFormat() != ModelExportOptions.ModelExportFormat.EXPLICIT) {
+		if (exportOptions.getFormat() != ModelExportFormat.EXPLICIT) {
 			throw new PrismNotSupportedException("Exporting state rewards in the requested format is currently not supported by the explicit engine");
 		}
 
@@ -1587,7 +1588,7 @@ public class StateModelChecker extends PrismComponent
 	 */
 	public <Value> void exportTransRewards(Model<Value> model, int r, PrismLog out, ModelExportOptions exportOptions) throws PrismException
 	{
-		if (exportOptions.getFormat() != ModelExportOptions.ModelExportFormat.EXPLICIT) {
+		if (exportOptions.getFormat() != ModelExportFormat.EXPLICIT) {
 			throw new PrismNotSupportedException("Exporting transition rewards in the requested format is currently not supported by the explicit engine");
 		}
 
@@ -1669,7 +1670,7 @@ public class StateModelChecker extends PrismComponent
 	 * @param out Where to export
 	 * @param format The format in which to export
 	 */
-	public <Value> void exportLabels(Model<Value> model, List<String> labelNames, List<BitSet> labelStates, PrismLog out, ModelExportOptions.ModelExportFormat format) throws PrismException
+	public <Value> void exportLabels(Model<Value> model, List<String> labelNames, List<BitSet> labelStates, PrismLog out, ModelExportFormat format) throws PrismException
 	{
 		exportLabels(model, labelNames, labelStates, out, new ModelExportOptions(format));
 	}

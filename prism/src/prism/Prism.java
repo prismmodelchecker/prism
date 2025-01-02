@@ -48,7 +48,7 @@ import explicit.ModelModelGenerator;
 import hybrid.PrismHybrid;
 import io.ExplicitModelImporter;
 import io.ModelExportOptions;
-import io.ModelExportOptions.ModelExportFormat;
+import io.ModelExportFormat;
 import jdd.JDD;
 import jdd.JDDNode;
 import jdd.JDDVars;

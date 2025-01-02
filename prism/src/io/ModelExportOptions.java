@@ -36,31 +36,9 @@ import static prism.PrismSettings.DEFAULT_EXPORT_MODEL_PRECISION;
 public class ModelExportOptions implements Cloneable
 {
 	/**
-	 * Model export formats
-	 */
-	public enum ModelExportFormat {
-		EXPLICIT, MATLAB, DOT, DRN;
-		public String description()
-		{
-			switch (this) {
-				case EXPLICIT:
-					return "in plain text format";
-				case MATLAB:
-					return "in Matlab format";
-				case DOT:
-					return "in Dot format";
-				case DRN:
-					return "in DRN format";
-				default:
-					return this.toString();
-			}
-		}
-	}
-
-	/**
 	 * Model export format
 	 */
-	private Optional<ModelExportOptions.ModelExportFormat> format = Optional.empty();
+	private Optional<ModelExportFormat> format = Optional.empty();
 
 	/**
 	 * Precision to export probabilities/etc. (number of significant decimal places)
@@ -99,7 +77,7 @@ public class ModelExportOptions implements Cloneable
 	/**
 	 * Construct a StrategyExportOptions with specified format and default options.
 	 */
-	public ModelExportOptions(ModelExportOptions.ModelExportFormat format)
+	public ModelExportOptions(ModelExportFormat format)
 	{
 		setFormat(format);
 	}
@@ -109,7 +87,7 @@ public class ModelExportOptions implements Cloneable
 	/**
 	 * Set the model export format.
 	 */
-	public ModelExportOptions setFormat(ModelExportOptions.ModelExportFormat format)
+	public ModelExportOptions setFormat(ModelExportFormat format)
 	{
 		this.format = Optional.of(format);
 		return this;
@@ -201,7 +179,7 @@ public class ModelExportOptions implements Cloneable
 	/**
 	 * Get the model export format.
 	 */
-	public ModelExportOptions.ModelExportFormat getFormat()
+	public ModelExportFormat getFormat()
 	{
 		return format.orElse(ModelExportFormat.EXPLICIT);
 	}
