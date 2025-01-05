@@ -464,7 +464,7 @@ public class GUIMultiModel extends GUIPlugin implements PrismSettingsListener
 		// Reset warnings counter 
 		getPrism().getMainLog().resetNumberOfWarnings();
 		// Do transient
-		handler.computeTransient(GUITransientTime.getTime(), new ModelExportTask(ModelExportEntity.MODEL, getChooserFile(), new ModelExportOptions(exportFormat)));
+		handler.computeTransient(GUITransientTime.getTimeSpec(), new ModelExportTask(ModelExportEntity.MODEL, getChooserFile(), new ModelExportOptions(exportFormat)));
 	}
 
 	protected void a_computeTransient()
@@ -476,7 +476,7 @@ public class GUIMultiModel extends GUIPlugin implements PrismSettingsListener
 		if (result != GUITransientTime.OK)
 			return;
 		// Do transient
-		handler.computeTransient(GUITransientTime.getTime(), new ModelExportTask(ModelExportEntity.MODEL, (File) null, new ModelExportOptions(ModelExportFormat.EXPLICIT)));
+		handler.computeTransient(GUITransientTime.getTimeSpec(), new ModelExportTask(ModelExportEntity.MODEL, (File) null, new ModelExportOptions(ModelExportFormat.EXPLICIT)));
 	}
 
 	protected void a_convertToPrismTextModel()

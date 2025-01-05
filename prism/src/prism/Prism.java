@@ -55,7 +55,6 @@ import jdd.JDDNode;
 import jdd.JDDVars;
 import mtbdd.PrismMTBDD;
 import odd.ODDUtils;
-import param.Function;
 import param.ParamMode;
 import param.ParamModelChecker;
 import parser.PrismParser;
@@ -3721,6 +3720,9 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 		if (!(getModelType() == ModelType.CTMC || getModelType() == ModelType.DTMC)) {
 			throw new PrismException("Steady-state probabilities only computed for DTMCs/CTMCs");
 		}
+		if (getCurrentEngine() == PrismEngine.EXACT || getCurrentEngine() == PrismEngine.PARAM) {
+			throw new PrismException("Steady-state probabilities cannot be computed with " + getCurrentEngine().description() + " engine");
+		}
 		mainLog.printSeparator();
 		mainLog.println("\nComputing steady-state probabilities...");
 		// Build model, if necessary
@@ -3728,10 +3730,15 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 		// Do computation
 		long l = System.currentTimeMillis();
 		prism.StateVector probs;
-		if (getBuiltModelType() == ModelBuildType.SYMBOLIC) {
-			probs = computeSteadyStateProbabilities(getBuiltModelSymbolic(), initDistFile);
-		} else {
-			probs = computeSteadyStateProbabilitiesExplicit(getBuiltModelExplicit(), initDistFile);
+		switch (getBuiltModelType()) {
+			case SYMBOLIC:
+				probs = computeSteadyStateProbabilities(getBuiltModelSymbolic(), initDistFile);
+				break;
+			case EXPLICIT:
+				probs = computeSteadyStateProbabilitiesExplicit(getBuiltModelExplicit(), initDistFile);
+				break;
+			default:
+				throw new PrismException("Steady-state probability computation not supported for " + getBuiltModelType().description() + " models");
 		}
 		l = System.currentTimeMillis() - l;
 		mainLog.println("\nTime for steady-state probability computation: " + l / 1000.0 + " seconds.");
@@ -3809,6 +3816,35 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 
 	/**
 	 * Compute/export transient probabilities (forwards) for the current model, building it first if needed.
+	 * Applicable for DTMCs/CTMCs only. The time (or times) for which transient probabilities are to be computed
+	 * are specified as a string, which should give an integer/double for discrete/continuous time models.
+	 * Multiple times can also be given in "experiment" notation ("1:10", "0.1:0.1:1.0").
+	 * Optionally (if non-null), read in the initial probability distribution from a file.
+	 * @param timeSpec Time instant(s) for transient probabilities
+	 * @param file File to export to (if null, print to the log instead)
+	 * @param exportOptions The options for export
+	 * @param initDistFile Initial distribution (ignored if null)
+	 */
+	public void exportTransientProbabilities(String timeSpec, File file, ModelExportOptions exportOptions, File initDistFile) throws PrismException
+	{
+		// Parse time specification, store as UndefinedConstant for constant T
+		// (NB: use "null" for model to avoid a potential name clash with T)
+		String timeType = getModelType().continuousTime() ? "double" : "int";
+		UndefinedConstants ucTransient = new UndefinedConstants(null, parsePropertiesString(null, "const " + timeType + " T; T;"));
+		try {
+			ucTransient.defineUsingConstSwitch("T=" + timeSpec);
+		} catch (PrismException e) {
+			if (timeSpec.contains(":")) {
+				throw new PrismException("\"" + timeSpec + "\" is not a valid time range for a " + getModelType());
+			} else {
+				throw new PrismException("\"" + timeSpec + "\" is not a valid time for a " + getModelType());
+			}
+		}
+		exportTransientProbabilities(ucTransient, file, exportOptions, initDistFile);
+	}
+
+	/**
+	 * Compute/export transient probabilities (forwards) for the current model, building it first if needed.
 	 * Applicable for DTMCs/CTMCs only. For a DTMC, {@code time} will be cast to an integer.
 	 * Optionally (if non-null), read in the initial probability distribution from a file.
 	 * @param time Time instant for transient probabilities
@@ -3839,6 +3875,9 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 		if (!(getModelType() == ModelType.CTMC || getModelType() == ModelType.DTMC)) {
 			throw new PrismException("Transient probabilities only computed for DTMCs/CTMCs");
 		}
+		if (getCurrentEngine() == PrismEngine.EXACT || getCurrentEngine() == PrismEngine.PARAM) {
+			throw new PrismException("Transient probabilities cannot be computed with " + getCurrentEngine().description() + " engine");
+		}
 		if (time < 0) {
 			throw new PrismException("Cannot compute transient probabilities for negative time value");
 		}
@@ -3862,27 +3901,28 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 		else {
 			// Build model, if necessary
 			buildModelIfRequired();
-			// Symbolic
-			if (getBuiltModelType() == ModelBuildType.SYMBOLIC) {
-				if (getModelType() == ModelType.DTMC) {
-					ModelChecker mcDTMC = new ProbModelChecker(this, getBuiltModelSymbolic(), null);
-					probs = ((ProbModelChecker) mcDTMC).doTransient((int) time, initDistFile);
-				} else {
-					ModelChecker mcCTMC = new StochModelChecker(this, getBuiltModelSymbolic(), null);
-					probs = ((StochModelChecker) mcCTMC).doTransient(time, initDistFile);
-				}
-			}
-			// Explicit
-			else {
-				if (getModelType() == ModelType.DTMC) {
-					DTMCModelChecker mcDTMC = new DTMCModelChecker(this);
-					probs = mcDTMC.doTransient((DTMC<Double>) getBuiltModelExplicit(), (int) time, initDistFile);
-				} else if (getModelType() == ModelType.CTMC) {
-					CTMCModelChecker mcCTMC = new CTMCModelChecker(this);
-					probs = mcCTMC.doTransient((CTMC<Double>) getBuiltModelExplicit(), time, initDistFile);
-				} else {
-					throw new PrismException("Transient probabilities only computed for DTMCs/CTMCs");
-				}
+			// Then solve
+			switch (getBuiltModelType()) {
+				case SYMBOLIC:
+					if (getModelType() == ModelType.DTMC) {
+						ModelChecker mcDTMC = new ProbModelChecker(this, getBuiltModelSymbolic(), null);
+						probs = ((ProbModelChecker) mcDTMC).doTransient((int) time, initDistFile);
+					} else {
+						ModelChecker mcCTMC = new StochModelChecker(this, getBuiltModelSymbolic(), null);
+						probs = ((StochModelChecker) mcCTMC).doTransient(time, initDistFile);
+					}
+					break;
+				case EXPLICIT:
+					if (getModelType() == ModelType.DTMC) {
+						DTMCModelChecker mcDTMC = new DTMCModelChecker(this);
+						probs = mcDTMC.doTransient((DTMC<Double>) getBuiltModelExplicit(), (int) time, initDistFile);
+					} else {
+						CTMCModelChecker mcCTMC = new CTMCModelChecker(this);
+						probs = mcCTMC.doTransient((CTMC<Double>) getBuiltModelExplicit(), time, initDistFile);
+					}
+					break;
+				default:
+					throw new PrismException("Transient probability computation not supported for " + getBuiltModelType().description() + " models");
 			}
 		}
 		l = System.currentTimeMillis() - l;
@@ -3904,6 +3944,9 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 		if (!(getModelType() == ModelType.CTMC || getModelType() == ModelType.DTMC)) {
 			throw new PrismException("Transient probabilities only computed for DTMCs/CTMCs");
 		}
+		if (getCurrentEngine() == PrismEngine.EXACT || getCurrentEngine() == PrismEngine.PARAM) {
+			throw new PrismException("Transient probabilities cannot be computed with " + getCurrentEngine().description() + " engine");
+		}
 		// Step through required time points
 		prism.StateVector probs = null;
 		symbolic.states.StateValues probsSym = null, initDistSym = null;
@@ -3924,6 +3967,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 			}
 			mainLog.printSeparator();
 			mainLog.println("\nComputing transient probabilities (time = " + time + ")...");
+			// Do computation
 			long l = System.currentTimeMillis();
 			// FAU
 			if (getModelType() == ModelType.CTMC && settings.getString(PrismSettings.PRISM_TRANSIENT_METHOD).equals("Fast adaptive uniformisation")) {
@@ -3944,41 +3988,50 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 			else {
 				// Build model, if necessary
 				buildModelIfRequired();
-				// Symbolic
-				if (getBuiltModelType() == ModelBuildType.SYMBOLIC) {
-					if (getModelType().continuousTime()) {
-						StochModelChecker mc = new StochModelChecker(this, getBuiltModelSymbolic(), null);
-						if (i == 0) {
-							initDistSym = mc.readDistributionFromFile(initDistFile);
-							initTimeDouble = 0;
+				// Then solve
+				switch (getBuiltModelType()) {
+					case SYMBOLIC:
+						if (getModelType().continuousTime()) {
+							StochModelChecker mc = new StochModelChecker(this, getBuiltModelSymbolic(), null);
+							if (i == 0) {
+								initDistSym = mc.readDistributionFromFile(initDistFile);
+								initTimeDouble = 0;
+							}
+							probs = probsSym = ((StochModelChecker) mc).doTransient(timeDouble - initTimeDouble, initDistSym);
+						} else {
+							ProbModelChecker mc = new ProbModelChecker(this, getBuiltModelSymbolic(), null);
+							if (i == 0) {
+								initDistSym = mc.readDistributionFromFile(initDistFile);
+								initTimeInt = 0;
+							}
+							probs = probsSym = ((ProbModelChecker) mc).doTransient(timeInt - initTimeInt, initDistSym);
 						}
-						probs = probsSym = ((StochModelChecker) mc).doTransient(timeDouble - initTimeDouble, initDistSym);
-					} else {
-						ProbModelChecker mc = new ProbModelChecker(this, getBuiltModelSymbolic(), null);
-						if (i == 0) {
-							initDistSym = mc.readDistributionFromFile(initDistFile);
-							initTimeInt = 0;
+						if (initDistSym != null) {
+							initDistSym.clear();
 						}
-						probs = probsSym = ((ProbModelChecker) mc).doTransient(timeInt - initTimeInt, initDistSym);
-					}
-				}
-				// Explicit
-				else {
-					if (getModelType().continuousTime()) {
-						CTMCModelChecker mc = new CTMCModelChecker(this);
-						if (i == 0) {
-							initDistExpl = mc.readDistributionFromFile(initDistFile, getBuiltModelExplicit());
-							initTimeDouble = 0;
+						break;
+					case EXPLICIT:
+						if (getModelType().continuousTime()) {
+							CTMCModelChecker mc = new CTMCModelChecker(this);
+							if (i == 0) {
+								initDistExpl = mc.readDistributionFromFile(initDistFile, getBuiltModelExplicit());
+								initTimeDouble = 0;
+							}
+							probs = probsExpl = mc.doTransient((CTMC<Double>) getBuiltModelExplicit(), timeDouble - initTimeDouble, initDistExpl);
+						} else {
+							DTMCModelChecker mc = new DTMCModelChecker(this);
+							if (i == 0) {
+								initDistExpl = mc.readDistributionFromFile(initDistFile, getBuiltModelExplicit());
+								initTimeInt = 0;
+							}
+							probs = probsExpl = mc.doTransient((DTMC<Double>) getBuiltModelExplicit(), timeInt - initTimeInt, initDistExpl);
 						}
-						probs = probsExpl = mc.doTransient((CTMC<Double>) getBuiltModelExplicit(), timeDouble - initTimeDouble, initDistExpl);
-					} else {
-						DTMCModelChecker mc = new DTMCModelChecker(this);
-						if (i == 0) {
-							initDistExpl = mc.readDistributionFromFile(initDistFile, getBuiltModelExplicit());
-							initTimeInt = 0;
+						if (initDistExpl != null) {
+							initDistExpl.clear();
 						}
-						probs = probsExpl = mc.doTransient((DTMC<Double>) getBuiltModelExplicit(), timeInt - initTimeInt, initDistExpl);
-					}
+						break;
+					default:
+						throw new PrismException("Transient probability computation not supported for " + getBuiltModelType().description() + " models");
 				}
 			}
 			l = System.currentTimeMillis() - l;

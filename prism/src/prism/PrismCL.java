@@ -880,11 +880,6 @@ public class PrismCL implements PrismModelListener
 		File exportSteadyStateFile = null;
 
 		if (steadystate) {
-			if (param || prism.getSettings().getBoolean(PrismSettings.PRISM_EXACT_ENABLED)) {
-				mainLog.printWarning("Skipping steady-state computation in parametric / exact model checking mode, currently not supported.");
-				return;
-			}
-
 			try {
 				// Choose destination for output (file or log)
 				if (exportSteadyStateFilename == null || exportSteadyStateFilename.equals("stdout"))
@@ -892,7 +887,7 @@ public class PrismCL implements PrismModelListener
 				else
 					exportSteadyStateFile = new File(exportSteadyStateFilename);
 				// Compute steady-state probabilities
-				prism.doSteadyState(exportType, exportSteadyStateFile, importinitdist ? new File(importInitDistFilename) : null);
+				prism.exportSteadyStateProbabilities(exportSteadyStateFile, Prism.convertExportType(exportType), importinitdist ? new File(importInitDistFilename) : null);
 			} catch (PrismException e) {
 				// In case of error, report it and proceed
 				error(e);
@@ -910,35 +905,13 @@ public class PrismCL implements PrismModelListener
 
 		if (dotransient) {
 			try {
-				if (param || prism.getSettings().getBoolean(PrismSettings.PRISM_EXACT_ENABLED)) {
-					mainLog.printWarning("Skipping transient probability computation in parametric / exact model checking mode, currently not supported.");
-					return;
-				}
-
 				// Choose destination for output (file or log)
 				if (exportTransientFilename == null || exportTransientFilename.equals("stdout"))
 					exportTransientFile = null;
 				else
 					exportTransientFile = new File(exportTransientFilename);
-
-				// Determine model type
-				modelType = prism.getModelType();
-
-				// Parse time specification, store as UndefinedConstant for constant T
-				// (NB: use "null" for model to avoid a potential name clash with T)
-				String timeType = modelType.continuousTime() ? "double" : "int";
-				UndefinedConstants ucTransient = new UndefinedConstants(null, prism.parsePropertiesString(null, "const " + timeType + " T; T;"));
-				try {
-					ucTransient.defineUsingConstSwitch("T=" + transientTime);
-				} catch (PrismException e) {
-					if (transientTime.contains(":"))
-						errorAndExit("\"" + transientTime + "\" is not a valid time range for a " + modelType);
-					else
-						errorAndExit("\"" + transientTime + "\" is not a valid time for a " + modelType);
-				}
-
 				// Compute transient probabilities
-				prism.doTransient(ucTransient, exportType, exportTransientFile, importinitdist ? new File(importInitDistFilename) : null);
+				prism.exportTransientProbabilities(transientTime, exportTransientFile, Prism.convertExportType(exportType), importinitdist ? new File(importInitDistFilename) : null);
 			}
 			// In case of error, report it and proceed
 			catch (PrismException e) {

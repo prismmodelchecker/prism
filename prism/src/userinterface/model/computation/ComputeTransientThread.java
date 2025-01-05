@@ -32,7 +32,6 @@ import javax.swing.*;
 import io.ModelExportTask;
 import userinterface.*;
 import userinterface.model.*;
-import prism.*;
 import userinterface.util.*;
 
 /**
@@ -42,15 +41,15 @@ public class ComputeTransientThread extends GUIComputationThread
 {
 	@SuppressWarnings("unused")
 	private GUIMultiModelHandler handler;
-	private double transientTime;
+	private String transientTimeSpec;
 	private ModelExportTask exportTask;
 
 	/** Creates a new instance of ComputeTransientThread */
-	public ComputeTransientThread(GUIMultiModelHandler handler, double transientTime, ModelExportTask exportTask)
+	public ComputeTransientThread(GUIMultiModelHandler handler, String transientTimeSpec, ModelExportTask exportTask)
 	{
 		super(handler.getGUIPlugin());
 		this.handler = handler;
-		this.transientTime = transientTime;
+		this.transientTimeSpec = transientTimeSpec;
 		this.exportTask = exportTask;
 	}
 
@@ -69,7 +68,7 @@ public class ComputeTransientThread extends GUIComputationThread
 
 		// Do Computation
 		try {
-			prism.doTransient(transientTime, Prism.convertExportType(exportTask.getExportOptions()), exportTask.getFile(), null);
+			prism.exportTransientProbabilities(transientTimeSpec, exportTask.getFile(), exportTask.getExportOptions(), null);
 		} catch (Throwable e) {
 			error(e);
 			SwingUtilities.invokeLater(new Runnable()

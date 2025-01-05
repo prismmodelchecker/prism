@@ -121,7 +121,7 @@ public class GUIMultiModelHandler extends JPanel implements PrismModelListener
 	private boolean computeSSAfterReceiveParseNotification = false;
 	private boolean computeTransientAfterReceiveParseNotification = false;
 	private ModelExportTask exportTask;
-	private double transientTime;
+	private String transientTimeSpec;
 
 	// GUI
 	private JSplitPane splitter;
@@ -781,10 +781,10 @@ public class GUIMultiModelHandler extends JPanel implements PrismModelListener
 
 	// Compute transient probabilities...
 
-	public void computeTransient(double time, ModelExportTask exportTask)
+	public void computeTransient(String timeSpec, ModelExportTask exportTask)
 	{
 		computeTransientAfterReceiveParseNotification = true;
-		transientTime = time;
+		transientTimeSpec = timeSpec;
 		this.exportTask = exportTask;
 		// do a parse if necessary
 		requestParse(false);
@@ -815,7 +815,7 @@ public class GUIMultiModelHandler extends JPanel implements PrismModelListener
 		if (exportTask.getFile() == null) {
 			theModel.logToFront();
 		}
-		new ComputeTransientThread(this, transientTime, exportTask).start();
+		new ComputeTransientThread(this, transientTimeSpec, exportTask).start();
 	}
 
 	public void requestViewModel()

@@ -26,7 +26,7 @@
 //==============================================================================
 
 package userinterface.model;
-import javax.swing.*;
+
 import userinterface.*;
 
 public class GUITransientTime extends javax.swing.JDialog
@@ -34,7 +34,7 @@ public class GUITransientTime extends javax.swing.JDialog
 	public static final int OK = 0;
 	public static final int CANCELLED = 1;
 	
-	static double time = 0.0;
+	static String timeSpec = "";
 	static boolean first = true;
 	
 	private boolean cancelled = true;
@@ -51,9 +51,9 @@ public class GUITransientTime extends javax.swing.JDialog
 		return cancelled ? CANCELLED : OK;
 	}
 
-	public static double getTime()
+	public static String getTimeSpec()
 	{
-		return time;
+		return timeSpec;
 	}
 
     /** Creates new form GUITransientTime */
@@ -62,7 +62,7 @@ public class GUITransientTime extends javax.swing.JDialog
         initComponents();
         this.getRootPane().setDefaultButton(okayButton);
 		setLocationRelativeTo(getParent()); // centre
-		if (!first) timeField.setText(""+time);
+		if (!first) timeField.setText(timeSpec);
     }
     
     /** This method is called from within the constructor to
@@ -107,7 +107,7 @@ public class GUITransientTime extends javax.swing.JDialog
         gridBagConstraints.gridy = 4;
         jPanel1.add(jPanel5, gridBagConstraints);
 
-        jLabel1.setText("Please specify a time for which to compute transient probabilities:");
+        jLabel1.setText("Please specify the time(s) for which to compute transient probabilities:");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 1;
@@ -153,16 +153,7 @@ public class GUITransientTime extends javax.swing.JDialog
     }//GEN-LAST:event_cancelButtonActionPerformed
 
     private void okayButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_okayButtonActionPerformed
-		double d = 0.0;
-		try {
-			d = Double.parseDouble(timeField.getText());
-			if (d < 0) throw new NumberFormatException();
-		}
-		catch (NumberFormatException e) {
-			JOptionPane.showMessageDialog(this, "Error: Invalid time value.", "Error", JOptionPane.ERROR_MESSAGE);
-			return;
-		}
-		time = d;
+		timeSpec = timeField.getText();
 		first = false;
 		cancelled = false;
 		dispose();

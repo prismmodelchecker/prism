@@ -32,7 +32,6 @@ import javax.swing.*;
 import io.ModelExportTask;
 import userinterface.*;
 import userinterface.model.*;
-import prism.*;
 import userinterface.util.*;
 
 /**
@@ -67,7 +66,7 @@ public class ComputeSteadyStateThread extends GUIComputationThread
 
 		// Do Computation
 		try {
-			prism.doSteadyState(Prism.convertExportType(exportTask.getExportOptions()), exportTask.getFile(), null);
+			prism.exportSteadyStateProbabilities(exportTask.getFile(), exportTask.getExportOptions(), null);
 		} catch (Throwable e) {
 			error(e);
 			SwingUtilities.invokeLater(new Runnable()
