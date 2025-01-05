@@ -3668,74 +3668,74 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	}
 
 	/**
-	 * Compute steady-state probabilities for the current model (DTMCs/CTMCs only).
-	 * Output probability distribution to log. 
+	 * Compute/export steady-state probabilities for the current model, building it first if needed.
+	 * Applicable for DTMCs/CTMCs only.
+	 * @param file File to export to (if null, print to the log instead)
+	 * @param exportFormat The format to use for export
 	 */
-	public void doSteadyState() throws PrismException
+	public void exportSteadyStateProbabilities(File file, ModelExportFormat exportFormat) throws PrismException
 	{
-		doSteadyState(EXPORT_PLAIN, null, null);
+		exportSteadyStateProbabilities(file, new ModelExportOptions(exportFormat), null);
 	}
 
 	/**
-	 * Compute steady-state probabilities for the current model (DTMCs/CTMCs only).
-	 * Output probability distribution to a file (or, if {@code fileOut} is null, to log). 
-	 * The exportType should be EXPORT_PLAIN or EXPORT_MATLAB.
+	 * Compute/export steady-state probabilities for the current model, building it first if needed.
+	 * Applicable for DTMCs/CTMCs only.
 	 * Optionally (if non-null), read in the initial probability distribution from a file.
+	 * @param file File to export to (if null, print to the log instead)
+	 * @param exportFormat The format to use for export
+	 * @param initDistFile Initial distribution (ignored if null)
 	 */
-	public void doSteadyState(int exportType, File fileOut, File fileIn) throws PrismException
+	public void exportSteadyStateProbabilities(File file, ModelExportFormat exportFormat, File initDistFile) throws PrismException
 	{
-		long l = 0; // timer
-		StateValues probs = null;
-		explicit.StateValues probsExpl = null;
-		PrismLog tmpLog;
+		exportSteadyStateProbabilities(file, new ModelExportOptions(exportFormat), initDistFile);
+	}
 
-		// Do some checks
-		if (!(getModelType() == ModelType.CTMC || getModelType() == ModelType.DTMC))
+	/**
+	 * Compute/export steady-state probabilities for the current model, building it first if needed.
+	 * Applicable for DTMCs/CTMCs only.
+	 * Optionally (if non-null), read in the initial probability distribution from a file.
+	 * @param file File to export to (if null, print to the log instead)
+	 * @param exportOptions The options for export
+	 * @param initDistFile Initial distribution (ignored if null)
+	 */
+	public void exportSteadyStateProbabilities(File file, ModelExportOptions exportOptions, File initDistFile) throws PrismException
+	{
+		prism.StateVector probs = computeSteadyStateProbabilities(initDistFile);
+		mainLog.print("\nExporting steady-state probabilities ");
+		mainLog.println(exportOptions.getFormat().description() + " " + getDestinationStringForFile(file));
+		try (PrismLog out = getPrismLogForFile(file)) {
+			probs.print(out, file == null, exportOptions.getFormat() == ModelExportFormat.MATLAB, file == null, file == null);
+		}
+		probs.clear();
+	}
+
+	/**
+	 * Compute steady-state probabilities for the current model, building it first if needed.
+	 * Applicable for DTMCs/CTMCs only.
+	 * Optionally (if non-null), read in the initial probability distribution from a file.
+	 * @param initDistFile Initial distribution (ignored if null)
+	 */
+	public prism.StateVector computeSteadyStateProbabilities(File initDistFile) throws PrismException
+	{
+		if (!(getModelType() == ModelType.CTMC || getModelType() == ModelType.DTMC)) {
 			throw new PrismException("Steady-state probabilities only computed for DTMCs/CTMCs");
-		if (exportType == EXPORT_ROWS)
-			exportType = EXPORT_PLAIN; // rows format does not apply to states output
-
-		// Print message
+		}
 		mainLog.printSeparator();
 		mainLog.println("\nComputing steady-state probabilities...");
-
 		// Build model, if necessary
 		buildModelIfRequired();
-
-		l = System.currentTimeMillis();
+		// Do computation
+		long l = System.currentTimeMillis();
+		prism.StateVector probs;
 		if (getBuiltModelType() == ModelBuildType.SYMBOLIC) {
-			probs = computeSteadyStateProbabilities(getBuiltModelSymbolic(), fileIn);
+			probs = computeSteadyStateProbabilities(getBuiltModelSymbolic(), initDistFile);
 		} else {
-			probsExpl = computeSteadyStateProbabilitiesExplicit(getBuiltModelExplicit(), fileIn);
+			probs = computeSteadyStateProbabilitiesExplicit(getBuiltModelExplicit(), initDistFile);
 		}
 		l = System.currentTimeMillis() - l;
-
-		// print message
-		mainLog.print("\nPrinting steady-state probabilities ");
-		mainLog.print(getStringForExportType(exportType) + " ");
-		mainLog.println(getDestinationStringForFile(fileOut));
-
-		// create new file log or use main log
-		tmpLog = getPrismLogForFile(fileOut);
-
-		// print out or export probabilities
-		if (getBuiltModelType() == ModelBuildType.SYMBOLIC) {
-			probs.print(tmpLog, fileOut == null, exportType == EXPORT_MATLAB, fileOut == null, fileOut == null);
-		} else {
-			probsExpl.print(tmpLog, fileOut == null, exportType == EXPORT_MATLAB, fileOut == null, fileOut == null);
-		}
-
-		// print out computation time
 		mainLog.println("\nTime for steady-state probability computation: " + l / 1000.0 + " seconds.");
-
-		// tidy up
-		if (getBuiltModelType() == ModelBuildType.SYMBOLIC) {
-			probs.clear();
-		} else {
-			probsExpl.clear();
-		}
-		if (fileOut != null)
-			tmpLog.close();
+		return probs;
 	}
 
 	/**
@@ -4456,6 +4456,30 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	public void exportBuiltModelCombined(File file, ModelExportOptions exportOptions) throws PrismException, FileNotFoundException
 	{
 		exportBuiltModel(file, exportOptions);
+	}
+
+	/**
+	 * Compute steady-state probabilities for the current model (DTMCs/CTMCs only).
+	 * Output probability distribution to log.
+	 * @deprecated Use {@link #exportSteadyStateProbabilities(File, ModelExportFormat)}
+	 */
+	@Deprecated
+	public void doSteadyState() throws PrismException
+	{
+		exportSteadyStateProbabilities(null, ModelExportFormat.EXPLICIT, null);
+	}
+
+	/**
+	 * Compute steady-state probabilities for the current model (DTMCs/CTMCs only).
+	 * Output probability distribution to a file (or, if {@code fileOut} is null, to log).
+	 * The exportType should be EXPORT_PLAIN or EXPORT_MATLAB.
+	 * Optionally (if non-null), read in the initial probability distribution from a file.
+	 * @deprecated Use {@link #exportSteadyStateProbabilities(File, ModelExportFormat, File)}
+	 */
+	@Deprecated
+	public void doSteadyState(int exportType, File fileOut, File fileIn) throws PrismException
+	{
+		exportSteadyStateProbabilities(fileOut, convertExportType(exportType), fileIn);
 	}
 
 	/**
