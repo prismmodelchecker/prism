@@ -1154,10 +1154,14 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 		// Switch off flag
 		exportLabelsAfterReceiveParseNotification = false;
 		try {
+			// are we in exact mode?
+			boolean exact = getPrism().getSettings().getBoolean(PrismSettings.PRISM_EXACT_ENABLED);
+
 			// Parse labels/constants
 			parsedProperties = getPrism().parsePropertiesString(getLabelsString() + "\n" + getConstantsString());
 			// Query user for undefined constant values (if required)
 			UndefinedConstants uCon = new UndefinedConstants(parsedModel, parsedProperties, true);
+			uCon.setExactMode(exact);
 			if (uCon.getMFNumUndefined() + uCon.getPFNumUndefined() > 0) {
 				// Use previous constant values as defaults in dialog
 				Values lastModelConstants = getPrism().getUndefinedModelValues();
@@ -1167,9 +1171,8 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 			}
 			// Store model/property constants
 			pfConstants = uCon.getPFConstantValues();
-			// currently, evaluate constants non-exact for model building
-			getPrism().setPRISMModelConstants(uCon.getMFConstantValues(), false);
-			parsedProperties.setSomeUndefinedConstants(pfConstants, false);
+			getPrism().setPRISMModelConstants(uCon.getMFConstantValues(), exact);
+			parsedProperties.setSomeUndefinedConstants(pfConstants, exact);
 			// If export is being done to log, switch view to log
 			if (exportFile == null)
 				logToFront();
