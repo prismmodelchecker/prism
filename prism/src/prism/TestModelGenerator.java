@@ -182,9 +182,6 @@ public class TestModelGenerator implements ModelGenerator<Double>
 			prism.closeDown(true);
 		} catch (PrismException e) {
 			System.err.println("Error: " + e.getMessage());
-		} catch (FileNotFoundException e) {
-			System.err.println("Error: " + e.getMessage());
 		}
-
 	}
 }

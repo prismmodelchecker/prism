@@ -807,9 +807,7 @@ public class PrismCL implements PrismModelListener
 				prism.exportBuiltModelTask(exportTask);
 			}
 			// In case of error, report it and proceed
-			catch (FileNotFoundException e) {
-				error("Couldn't open file \"" + exportTask.getFile().getName() + "\" for output");
-			} catch (PrismException e) {
+			catch (PrismException e) {
 				error(e);
 			}
 		}

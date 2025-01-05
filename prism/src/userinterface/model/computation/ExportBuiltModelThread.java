@@ -72,18 +72,6 @@ public class ExportBuiltModelThread extends GUIComputationThread
 			// Do export
 			try {
 				prism.exportBuiltModelTask(exportTask);
-			} catch (FileNotFoundException e) {
-				SwingUtilities.invokeAndWait(new Runnable()
-				{
-					public void run()
-					{
-						plug.stopProgress();
-						plug.setTaskBarText("Exporting... error.");
-						plug.notifyEventListeners(new GUIComputationEvent(GUIComputationEvent.COMPUTATION_ERROR, plug));
-						error("Couldn't open file \"" + exportTask.getFile().getName() + "\" for output");
-					}
-				});
-				return;
 			} catch (Throwable e2) {
 				error(e2);
 				SwingUtilities.invokeAndWait(new Runnable()
