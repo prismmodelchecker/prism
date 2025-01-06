@@ -12,7 +12,7 @@
 # Run "prism-auto -h" for details of further options.
 
 import os,sys,re,subprocess,signal,tempfile,functools,logging,time,platform,csv
-from pipes import quote
+from shlex import quote
 from optparse import OptionParser
 from threading import Timer
 
