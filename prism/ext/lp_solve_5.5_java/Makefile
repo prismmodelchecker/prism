@@ -29,7 +29,7 @@ lpsolve55java:
 	@(if [ "$(OSTYPE)" = "darwin" ]; then \
 	  echo "Rebuild lpsolve55 Java wrapper for MacOS"; \
 	  (cd lib/mac; ARCH=$(ARCH) JAVA_JNI_H_DIR="$(JAVA_JNI_H_DIR)" JAVA_JNI_MD_H_DIR="$(JAVA_JNI_MD_H_DIR)" sh -x build-osx); \
-	  cp lib/lpsolve55j.jar lib/mac/liblpsolve55j.jnilib ../../$(PRISM_LIB_DIR)/ ; \
+	  cp lib/lpsolve55j.jar lib/mac/liblpsolve55j.dylib ../../$(PRISM_LIB_DIR)/ ; \
 	fi)
 	@(if [ "$(OSTYPE)" = "cygwin" ]; then \
 	  if [ "$(ARCH)" = "x86_64" ]; then \
