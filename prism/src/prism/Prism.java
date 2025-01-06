@@ -232,15 +232,60 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	//------------------------------------------------------------------------------
 
 	public enum ModelSource {
-		PRISM_MODEL, MODEL_GENERATOR, EXPLICIT_FILES, BUILT_MODEL
+		PRISM_MODEL, MODEL_GENERATOR, EXPLICIT_FILES, BUILT_MODEL;
+		public String description()
+		{
+			switch (this) {
+				case PRISM_MODEL:
+					return "PRISM model";
+				case MODEL_GENERATOR:
+					return "model generator";
+				case EXPLICIT_FILES:
+					return "explicit files";
+				case BUILT_MODEL:
+					return "built model";
+				default:
+					return this.toString();
+			}
+		}
 	}
 
 	public enum ModelBuildType {
-		SYMBOLIC, EXPLICIT, EXACT, PARAM
+		SYMBOLIC, EXPLICIT, EXACT, PARAM;
+		public String description()
+		{
+			switch (this) {
+				case SYMBOLIC:
+					return "symbolic";
+				case EXPLICIT:
+					return "explicit";
+				case EXACT:
+					return "exact";
+				case PARAM:
+					return "parametric";
+				default:
+					return this.toString();
+			}
+		}
 	}
 	
 	public enum PrismEngine {
-		SYMBOLIC, EXPLICIT, EXACT, PARAM
+		SYMBOLIC, EXPLICIT, EXACT, PARAM;
+		public String description()
+		{
+			switch (this) {
+				case SYMBOLIC:
+					return "symbolic";
+				case EXPLICIT:
+					return "explicit";
+				case EXACT:
+					return "exact";
+				case PARAM:
+					return "parametric";
+				default:
+					return this.toString();
+			}
+		}
 	}
 
 	/** Class to store details about a loaded model */
