@@ -47,7 +47,7 @@ import java.util.List;
 /**
  * Class to manage export of built models to PRISM's explicit file formats.
  */
-public class PrismExplicitExporter<Value> extends Exporter<Value>
+public class PrismExplicitExporter<Value> extends ModelExporter<Value>
 {
 	public PrismExplicitExporter()
 	{
@@ -57,6 +57,12 @@ public class PrismExplicitExporter<Value> extends Exporter<Value>
 	public PrismExplicitExporter(ModelExportOptions modelExportOptions)
 	{
 		super(modelExportOptions);
+	}
+
+	@Override
+	public void exportModel(Model<Value> model, PrismLog out) throws PrismException
+	{
+		exportTransitions(model, out);
 	}
 
 	/**

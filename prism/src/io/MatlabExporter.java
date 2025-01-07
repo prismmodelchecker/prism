@@ -33,6 +33,7 @@ import parser.VarList;
 import prism.ModelInfo;
 import prism.PrismException;
 import prism.PrismLog;
+import prism.PrismNotSupportedException;
 
 import java.util.BitSet;
 import java.util.List;
@@ -40,7 +41,7 @@ import java.util.List;
 /**
  * Class to manage export of built models to Matlab format.
  */
-public class MatlabExporter<Value> extends Exporter<Value>
+public class MatlabExporter<Value> extends ModelExporter<Value>
 {
 	public MatlabExporter()
 	{
@@ -50,6 +51,12 @@ public class MatlabExporter<Value> extends Exporter<Value>
 	public MatlabExporter(ModelExportOptions modelExportOptions)
 	{
 		super(modelExportOptions);
+	}
+
+	@Override
+	public void exportModel(Model<Value> model, PrismLog out) throws PrismException
+	{
+		throw new PrismNotSupportedException("Model export not supported in Matlab format");
 	}
 
 	/**

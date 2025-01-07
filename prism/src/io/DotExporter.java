@@ -36,7 +36,7 @@ import prism.PrismLog;
 /**
  * Class to manage export of built models to Dot format.
  */
-public class DotExporter<Value> extends Exporter<Value>
+public class DotExporter<Value> extends ModelExporter<Value>
 {
 	public DotExporter()
 	{
@@ -46,6 +46,12 @@ public class DotExporter<Value> extends Exporter<Value>
 	public DotExporter(ModelExportOptions modelExportOptions)
 	{
 		super(modelExportOptions);
+	}
+
+	@Override
+	public void exportModel(Model<Value> model, PrismLog out)
+	{
+		exportModel(model, out, null);
 	}
 
 	/**

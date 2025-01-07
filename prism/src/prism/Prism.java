@@ -2827,8 +2827,12 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 		// Collect names of labels to export from model and/or properties file
 		List<String> labelNames = new ArrayList<>();
 		if (exportTask.getLabelExportSet() == ModelExportTask.LabelExportSet.MODEL || exportTask.getLabelExportSet() == ModelExportTask.LabelExportSet.ALL) {
-			labelNames.add("init");
-			labelNames.add("deadlock");
+			if (exportTask.initLabelIncluded()) {
+				labelNames.add("init");
+			}
+			if (exportTask.deadlockLabelIncluded()) {
+				labelNames.add("deadlock");
+			}
 			labelNames.addAll(getModelInfo().getLabelNames());
 		}
 		if (exportTask.getLabelExportSet() == ModelExportTask.LabelExportSet.EXTRA || exportTask.getLabelExportSet() == ModelExportTask.LabelExportSet.ALL) {

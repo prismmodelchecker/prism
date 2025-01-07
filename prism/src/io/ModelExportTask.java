@@ -369,6 +369,22 @@ public class ModelExportTask
 	}
 
 	/**
+	 * Get whether "init" should be included with model labels.
+	 */
+	public boolean initLabelIncluded()
+	{
+		return true;
+	}
+
+	/**
+	 * Get whether "deadlock" should be included with model labels.
+	 */
+	public boolean deadlockLabelIncluded()
+	{
+		return true;
+	}
+
+	/**
 	 * Get a message describing the export task to be done.
 	 */
 	public String getMessage()

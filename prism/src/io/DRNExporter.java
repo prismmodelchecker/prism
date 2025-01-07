@@ -44,35 +44,33 @@ import java.util.List;
 /**
  * Class to manage export of built models to Storm's DRN file format.
  */
-public class DRNExporter<Value> extends Exporter<Value>
+public class DRNExporter<Value> extends ModelExporter<Value>
 {
+	/**
+	 * Construct a DRNExporter with default export options.
+	 */
 	public DRNExporter()
 	{
 		super();
 	}
 
+	/**
+	 * Construct a DRNExporter with the specified export options.
+	 */
 	public DRNExporter(ModelExportOptions modelExportOptions)
 	{
 		super(modelExportOptions);
 	}
 
-	/**
-	 * Export a model.
-	 * @param model The model
-	 * @param rewardGen The RewardGenerator for reward info
-	 * @param allRewards All the rewards
-	 * @param labelNames The names of the labels to export
-	 * @param labelStates The states that satisfy each label, specified as a BitSet
-	 * @param out Where to export
-	 */
-	public void exportModel(Model<Value> model, RewardGenerator<Value> rewardGen, List<Rewards<Value>> allRewards, List<String> labelNames, List<BitSet> labelStates, PrismLog out) throws PrismException
+	@Override
+	public void exportModel(Model<Value> model, PrismLog out) throws PrismException
 	{
 		// Get model info and options
 		setEvaluator(model.getEvaluator());
-		Evaluator<Value> evalRewards = rewardGen.getRewardEvaluator();
+		Evaluator<Value> evalRewards = getRewardEvaluator();
 		ModelType modelType = model.getModelType();
-		int numRewardStructs = rewardGen.getNumRewardStructs();
-		int numLabels = labelNames.size();
+		int numRewards = getNumRewards();
+		int numLabels = getNumLabels();
 		int numStates = model.getNumStates();
 		// By default, we only show actions for nondeterministic models
 		boolean showActions = modelExportOptions.getShowActions(modelType.nondeterministic());
@@ -88,7 +86,7 @@ public class DRNExporter<Value> extends Exporter<Value>
 
 		// Output reward structure info
 		out.println("@reward_models");
-		out.println(String.join(" ", PrismUtils.listReversed(rewardGen.getRewardStructNames())));
+		out.println(String.join(" ", PrismUtils.listReversed(getRewardNames())));
 
 		// Output model stats
 		out.println("@nr_states");
@@ -114,12 +112,12 @@ public class DRNExporter<Value> extends Exporter<Value>
 			if (modelType.continuousTime()) {
 				out.print(" !" + ((CTMC<Value>) model).getExitRate(s));
 			}
-			if (numRewardStructs > 0) {
-				out.print(" " + getStateRewardTuple(allRewards, s).toStringReversed(e -> formatValue(e, evalRewards), ", "));
+			if (numRewards > 0) {
+				out.print(" " + getStateRewardTuple(getRewards(), s).toStringReversed(e -> formatValue(e, evalRewards), ", "));
 			}
 			for (int i = 0; i < numLabels; i++) {
-				if (labelStates.get(i).get(s)) {
-					out.print(" " + labelNames.get(i));
+				if (getLabel(i).get(s)) {
+					out.print(" " + getLabelName(i));
 				}
 			}
 			out.println();
@@ -137,8 +135,8 @@ public class DRNExporter<Value> extends Exporter<Value>
 				} else {
 					out.print(j);
 				}
-				if (numRewardStructs > 0) {
-					out.print(" " + getTransitionRewardTuple(allRewards, s, j).toStringReversed(e -> formatValue(e, evalRewards), ", "));
+				if (numRewards > 0) {
+					out.print(" " + getTransitionRewardTuple(getRewards(), s, j).toStringReversed(e -> formatValue(e, evalRewards), ", "));
 				}
 				out.println();
 				// Print out (sorted) transitions
