@@ -12,4 +12,4 @@
 # Otherwise, default to "ltl2dra", which will search the PATH
 RABINIZER_LTL2DRA_BIN=${RABINIZER_LTL2DRA-ltl2dra}
 
-$RABINIZER_LTL2DRA_BIN --filein "$1" --fileout="$2"
+$RABINIZER_LTL2DRA_BIN --filein "$1" --fileout="$2" --complete

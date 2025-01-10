@@ -13,4 +13,4 @@ LTL2TGBA_BIN=${LTL2TGBA-ltl2tgba}
 
 # --output=automaton = we want the automaton
 # --output-format=hoa = ... in HOA
-$LTL2TGBA_BIN --file="$1" --lbt-input --hoaf --output="$2" --generic --deterministic
+$LTL2TGBA_BIN --file="$1" --lbt-input --hoaf --output="$2" --generic --deterministic --complete
