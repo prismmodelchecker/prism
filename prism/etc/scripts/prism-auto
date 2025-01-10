@@ -613,7 +613,8 @@ def runPrism(args, bmArgs, dir=""):
                 prismArgs += ['|', 'grep "Testing result:"']
         print(' '.join(prismArgs))
         return
-    print(' '.join(prismArgs))
+    if not options.errorsOnly:
+        print(' '.join(prismArgs))
     sys.stdout.flush()
     if options.logDir:
         logDir = options.logDir
@@ -649,15 +650,15 @@ def runPrism(args, bmArgs, dir=""):
     if options.ddWarnings:
         for line in open(logFile, 'r').readlines():
             if re.match('Warning: CUDD reports .* non-zero references', line):
-                printTestResult(line)
+                printTestResult(line, prismArgs)
     # Extract test results if needed
     if options.test:
         for line in open(logFile, 'r').readlines():
             if re.match('Testing result:', line):
-                printTestResult(line)
+                printTestResult(line, prismArgs)
             elif re.match('Warning:', line):
                 if options.showWarnings or options.verboseTest:
-                    printTestResult(line)
+                    printTestResult(line, prismArgs)
                 else:
                     # We don't print it, but we count it
                     countTestResult(line)
@@ -678,7 +679,7 @@ def runPrism(args, bmArgs, dir=""):
             cleanupLogFile = False
             for line in open(logFile, 'r').readlines():
                 if re.match('Error:', line):
-                    printTestResult(line)
+                    printTestResult(line, prismArgs)
             if (options.printFailures):
                 print("Failing test log file:")
                 for line in open(logFile, 'r').readlines():
@@ -740,8 +741,14 @@ def execute(args):
 
 # Print a testing-related message, colour coding if needed
 
-def printTestResult(msg):
+def printTestResult(msg, prismArgs=[]):
     global testColours
+    if options.errorsOnly:
+        if not ('Error:' in msg or 'FAIL' in msg or ('Warning:' in msg and (options.showWarnings or options.verboseTest))):
+            return
+        else:
+            if prismArgs:
+                print(' '.join(prismArgs))
     msg = str.rstrip(msg)
     countTestResult(msg)
     if not isColourEnabled():
@@ -1154,6 +1161,7 @@ parser.add_option("-x", "--extra", action="append", dest="extraArgs", metavar="X
 parser.add_option("-t", "--test", action="store_true", dest="test", default=False, help="Run in test mode")
 parser.add_option("--verbose-test", action="store_true", dest="verboseTest", default=False, help="Run in verbose test mode (implies --test)")
 parser.add_option("-w", "--show-warnings", action="store_true", dest="showWarnings", default=False, help="Show warnings (as well as errors) when in test mode")
+parser.add_option("--errors-only", action="store_true", dest="errorsOnly", default=False, help="Only show errors when in test mode")
 parser.add_option("--nailgun", action="store_true", dest="nailgun", default=False, help="Run PRISM in Nailgun mode")
 parser.add_option("--ngprism", dest="ngprism", metavar="FILE", default=None, help="Specify the location of ngprism (for Nailgun mode) [default: derive from --prog setting]")
 parser.add_option("--test-all", action="store_true", dest="testAll", default=False, help="In test mode, don't stop after an error")
