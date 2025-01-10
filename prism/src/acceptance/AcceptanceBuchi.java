@@ -82,7 +82,7 @@ public class AcceptanceBuchi implements AcceptanceOmega
 	/**
 	 * Get the Rabin acceptance condition that is the equivalent of this Buchi condition.
 	 */
-	public AcceptanceRabin toRabin(int numStates)
+	public AcceptanceRabin toRabin()
 	{
 		AcceptanceRabin rabin = new AcceptanceRabin();
 		rabin.add(new AcceptanceRabin.RabinPair(new BitSet(), (BitSet) acceptingStates.clone()));

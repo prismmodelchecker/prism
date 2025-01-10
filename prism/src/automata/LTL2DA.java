@@ -37,6 +37,7 @@ import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.List;
 
+import acceptance.AcceptanceBuchi;
 import jhoafparser.consumer.HOAIntermediateStoreAndManipulate;
 import jhoafparser.parser.HOAFParser;
 import jhoafparser.parser.generated.ParseException;
@@ -76,7 +77,15 @@ public class LTL2DA extends PrismComponent
 	@SuppressWarnings("unchecked")
 	public DA<BitSet, AcceptanceRabin> convertLTLFormulaToDRA(Expression ltl, Values constantValues) throws PrismException
 	{
-		return (DA<BitSet, AcceptanceRabin>) convertLTLFormulaToDA(ltl, constantValues, AcceptanceType.RABIN);
+		AcceptanceType[] allowedAcceptance = {
+				AcceptanceType.BUCHI,
+				AcceptanceType.RABIN,
+		};
+		DA<BitSet, ? extends AcceptanceOmega> da = convertLTLFormulaToDA(ltl, constantValues, allowedAcceptance);
+		if (da.getAcceptance() instanceof AcceptanceBuchi) {
+			((DA<BitSet, AcceptanceRabin>) da).setAcceptance(((AcceptanceBuchi) da.getAcceptance()).toRabin());
+		}
+		return (DA<BitSet, AcceptanceRabin>) da;
 	}
 
 	/**
