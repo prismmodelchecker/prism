@@ -396,9 +396,9 @@ def hasExportSwitches(args):
 # and that multiple reward structures will result in filenames extended with a number
 
 def getExpectedOutFilesFromArgs(args):
-    options = [args[i+1] for i in range(len(args)-1) if args[i].startswith("-export") and not args[i]=="-exportmodelprecision"]
+    argsOptions = [args[i+1] for i in range(len(args)-1) if args[i].startswith("-export") and not args[i]=="-exportmodelprecision"]
     # Sometimes there are options appended, after a ":" - remove these
-    files = map(lambda option: option.split(':')[0], options)
+    files = map(lambda option: option.split(':')[0], argsOptions)
 
     resultFiles = []
     for file in files:
@@ -431,7 +431,7 @@ def getExpectedOutFilesFromArgs(args):
                     i += 1
                     fullName = base + str(i) + '.' + ext
                     foundFile = True
-            if not foundFile:
+            if not foundFile and (options.showWarnings or options.verboseTest):
                 printColoured('WARNING', "Warning: There is no file of the form " + base + "[number]." + ext + " to compare against -- will skip")
                 incrementTestStat('WARNING')
     return resultFiles
