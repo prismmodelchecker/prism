@@ -365,7 +365,11 @@ public class PrismCL implements PrismModelListener
 			}
 
 			// Do any model exports
-			doExports();
+			try {
+				doExports();
+			} catch (PrismException e) {
+				error(e);
+			}
 			if (modelBuildFail)
 				continue;
 
@@ -507,7 +511,7 @@ public class PrismCL implements PrismModelListener
 			}
 
 			// Explicitly request a build if necessary
-			if (propertiesToCheck.size() == 0 && !steadystate && !dotransient && !simpath && !nobuild && prism.modelCanBeBuilt() && !prism.modelIsBuilt()) {
+			if (propertiesToCheck.size() == 0 && !steadystate && !dotransient && !simpath && !nobuild && prism.modelCanBeBuilt() && !prism.someModelIsBuilt()) {
 				try {
 					prism.buildModel();
 				} catch (PrismException e) {
@@ -764,7 +768,7 @@ public class PrismCL implements PrismModelListener
 
 	// do any exporting requested
 
-	private void doExports()
+	private void doExports() throws PrismException
 	{
 		// export prism model (with constants), if requested
 		if (exportprismconst) {
@@ -780,36 +784,18 @@ public class PrismCL implements PrismModelListener
 			}
 		}
 
-		if (!modelExportTasks.isEmpty() ||
-			exportmodeldotview ||
-			exportsccs ||
-			exportbsccs ||
-			exportmecs) {
-			// if there are any exports to do,
-			// force model construction to catch errors during build
-			try {
-				prism.buildModel();
-			} catch (PrismException e) {
-				error(e);
-				return;
-			}
-		}
+		// Exceptions from the remaining exports are thrown
+		// since they usually indicate a model build problem, affecting all
 
 		// Do export tasks
 		for (ModelExportTask exportTask : modelExportTasks) {
-			try {
-				exportTask.getExportOptions().apply(modelExportOptionsGlobal);
-				if (exportTask.extraLabelsUsed()) {
-					definedPFConstants = undefinedMFConstants.getPFConstantValues();
-					propertiesFile.setSomeUndefinedConstants(definedPFConstants, exactConstants);
-					exportTask.setExtraLabelsSource(propertiesFile);
-				}
-				prism.exportBuiltModelTask(exportTask);
+			exportTask.getExportOptions().apply(modelExportOptionsGlobal);
+			if (exportTask.extraLabelsUsed()) {
+				definedPFConstants = undefinedMFConstants.getPFConstantValues();
+				propertiesFile.setSomeUndefinedConstants(definedPFConstants, exactConstants);
+				exportTask.setExtraLabelsSource(propertiesFile);
 			}
-			// In case of error, report it and proceed
-			catch (PrismException e) {
-				error(e);
-			}
+			prism.exportBuiltModelTask(exportTask);
 		}
 
 		// export transition matrix graph to dot file and view it
@@ -824,8 +810,6 @@ public class PrismCL implements PrismModelListener
 			// in case of error, report it and proceed
 			catch (IOException | InterruptedException e) {
 				error("Problem generating dot file: " + e.getMessage());
-			} catch (PrismException e) {
-				error(e);
 			}
 		}
 
@@ -838,8 +822,6 @@ public class PrismCL implements PrismModelListener
 			// in case of error, report it and proceed
 			catch (FileNotFoundException e) {
 				error("Couldn't open file \"" + exportSCCsFilename + "\" for output");
-			} catch (PrismException e) {
-				error(e);
 			}
 		}
 
@@ -852,8 +834,6 @@ public class PrismCL implements PrismModelListener
 			// in case of error, report it and proceed
 			catch (FileNotFoundException e) {
 				error("Couldn't open file \"" + exportBSCCsFilename + "\" for output");
-			} catch (PrismException e) {
-				error(e);
 			}
 		}
 
@@ -866,8 +846,6 @@ public class PrismCL implements PrismModelListener
 			// in case of error, report it and proceed
 			catch (FileNotFoundException e) {
 				error("Couldn't open file \"" + exportMECsFilename + "\" for output");
-			} catch (PrismException e) {
-				error(e);
 			}
 		}
 	}

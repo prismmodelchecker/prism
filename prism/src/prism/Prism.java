@@ -2124,6 +2124,14 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	}
 
 	/**
+	 * Returns true if the current model has been built (for any engine).
+	 */
+	public boolean someModelIsBuilt()
+	{
+		return getBuiltModelType() != null;
+	}
+
+	/**
 	 * Get the currently stored strategy (null if none)
 	 */
 	public Strategy<?> getStrategy()
@@ -2673,30 +2681,48 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 		if (!exportTask.isApplicable(getModelInfo())) {
 			return;
 		}
-		// Build model, if necessary
-		buildModelIfRequired();
-		// Merge export options with PRISM settings and do export
-		mainLog.println("\n" + exportTask.getMessage());
-		ModelExportOptions exportOptions = newMergedModelExportOptions(exportTask.getExportOptions());
-		switch (exportTask.getEntity()) {
-			case MODEL:
-				doExportBuiltModel(new ModelExportTask(exportTask, exportOptions));
-				break;
-			case STATE_REWARDS:
-				doExportBuiltModelStateRewards(exportTask.getFile(), exportOptions);
-				break;
-			case TRANSITION_REWARDS:
-				doExportBuiltModelTransRewards(exportTask.getFile(), exportOptions);
-				break;
-			case STATES:
-				doExportBuiltModelStates(exportTask.getFile(), exportOptions);
-				break;
-			case OBSERVATIONS:
-				doExportBuiltModelObservations(exportTask.getFile(), exportOptions);
-				break;
-			case LABELS:
-				doExportBuiltModelLabels(new ModelExportTask(exportTask, exportOptions));
-				break;
+		boolean engineSwitch = false;
+		int lastEngine = -1;
+		try {
+			// Auto-switch to explicit engine if required
+			if (exportTask.getExportOptions().getFormat() == ModelExportFormat.DRN) {
+				if (getCurrentEngine() == PrismEngine.SYMBOLIC) {
+					mainLog.printWarning("Switching to explicit engine to allow export " + exportTask.getExportOptions().getFormat().description());
+					engineSwitch = true;
+					lastEngine = getEngine();
+					setEngine(Prism.EXPLICIT);
+				}
+			}
+			// Build model, if necessary
+			buildModelIfRequired();
+			// Merge export options with PRISM settings and do export
+			mainLog.println("\n" + exportTask.getMessage());
+			ModelExportOptions exportOptions = newMergedModelExportOptions(exportTask.getExportOptions());
+			switch (exportTask.getEntity()) {
+				case MODEL:
+					doExportBuiltModel(new ModelExportTask(exportTask, exportOptions));
+					break;
+				case STATE_REWARDS:
+					doExportBuiltModelStateRewards(exportTask.getFile(), exportOptions);
+					break;
+				case TRANSITION_REWARDS:
+					doExportBuiltModelTransRewards(exportTask.getFile(), exportOptions);
+					break;
+				case STATES:
+					doExportBuiltModelStates(exportTask.getFile(), exportOptions);
+					break;
+				case OBSERVATIONS:
+					doExportBuiltModelObservations(exportTask.getFile(), exportOptions);
+					break;
+				case LABELS:
+					doExportBuiltModelLabels(new ModelExportTask(exportTask, exportOptions));
+					break;
+			}
+		} finally {
+			// Undo auto-switch (if any)
+			if (engineSwitch) {
+				setEngine(lastEngine);
+			}
 		}
 	}
 
