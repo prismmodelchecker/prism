@@ -499,18 +499,20 @@ public class PrismCL implements PrismModelListener
 						if (exportvector && res.getVector() != null) {
 							mainLog.print("\nExporting vector of results for all states ");
 							mainLog.println(exportVectorFilename.equals("stdout") ? "below:" : "to file \"" + exportVectorFilename + "\"...");
-							PrismFileLog tmpLog = new PrismFileLog(exportVectorFilename);
+							boolean toStdout = exportVectorFilename.equals("stdout");
+							PrismLog tmpLog = toStdout ? prism.getMainLog() : new PrismFileLog(exportVectorFilename);
 							if (!tmpLog.ready()) {
 								errorAndExit("Couldn't open file \"" + exportVectorFilename + "\" for output");
 							}
-							boolean toStdout = exportVectorFilename.equals("stdout");
 							try {
 								res.getVector().print(tmpLog, false, false, toStdout, toStdout);
 							} catch (PrismException e) {
 								error(e.getMessage());
 							}
 							res.getVector().clear();
-							tmpLog.close();
+							if (!toStdout) {
+								tmpLog.close();
+							}
 						}
 						
 						// if required, check result against expected value
