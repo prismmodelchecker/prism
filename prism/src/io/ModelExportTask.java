@@ -174,9 +174,13 @@ public class ModelExportTask
 	 * Create a ModelExportTask based on a filename, supplied as separate basename and extension.
 	 * The basename can also be "stdout". It can also be left empty ("") and later replaced
 	 * (e.g. with the model basename) using {@link #replaceEmptyFileBasename(String)}.
+	 * An unknown (or missing) extension is treated as ".tra".
 	 */
 	public static ModelExportTask fromFilename(String basename, String ext) throws PrismException
 	{
+		if (ext == null || ext.equals("")) {
+			return new ModelExportTask(ModelExportEntity.MODEL, basename);
+		}
 		String filename = "stdout".equals(basename) ? "stdout" : basename + "." + ext;
 		switch (ext) {
 			case "tra":
@@ -196,7 +200,8 @@ public class ModelExportTask
 			case "drn":
 				return fromFormat(filename, ModelExportFormat.DRN);
 			default:
-				throw new PrismException("Unknown extension \"" + ext + "\" for model export");
+				// Treat unknown extensions as .tra
+				return new ModelExportTask(ModelExportEntity.MODEL, filename);
 		}
 	}
 

@@ -2044,16 +2044,13 @@ public class PrismCL implements PrismModelListener
 		String optionsString = halves[1];
 		// Split files into basename/extensions
 		int i = filesString.lastIndexOf('.');
-		if (i == -1) {
-			throw new PrismException("No file name extension(s) in file(s) \"" + filesString + "\" for -exportmodel");
-		}
-		String basename = filesString.substring(0, i);
-		String extList = filesString.substring(i + 1);
+		String basename = i == -1 ? filesString : filesString.substring(0, i);
+		String extList = i == -1 ? "" : filesString.substring(i + 1);
 		String exts[] = extList.split(",");
 		// Process file extensions
 		List<ModelExportTask> newModelExportTasks = new ArrayList<>();
 		for (String ext : exts) {
-			// Items to export
+			// Some extensions get expanded to multiple exports
 			if (ext.equals("all")) {
 				newModelExportTasks.add(ModelExportTask.fromFilename(basename, "tra"));
 				newModelExportTasks.add(ModelExportTask.fromFilename(basename, "srew"));
@@ -2061,29 +2058,13 @@ public class PrismCL implements PrismModelListener
 				newModelExportTasks.add(ModelExportTask.fromFilename(basename, "sta"));
 				newModelExportTasks.add(ModelExportTask.fromFilename(basename, "obs"));
 				newModelExportTasks.add(ModelExportTask.fromFilename(basename, "lab"));
-			} else if (ext.equals("tra")) {
-				newModelExportTasks.add(ModelExportTask.fromFilename(basename, ext));
-			} else if (ext.equals("srew")) {
-				newModelExportTasks.add(ModelExportTask.fromFilename(basename, ext));
-			} else if (ext.equals("trew")) {
-				newModelExportTasks.add(ModelExportTask.fromFilename(basename, ext));
 			} else if (ext.equals("rew")) {
 				newModelExportTasks.add(ModelExportTask.fromFilename(basename, "srew"));
 				newModelExportTasks.add(ModelExportTask.fromFilename(basename, "trew"));
-			} else if (ext.equals("sta")) {
-				newModelExportTasks.add(ModelExportTask.fromFilename(basename, ext));
-			} else if (ext.equals("obs")) {
-				newModelExportTasks.add(ModelExportTask.fromFilename(basename, ext));
-			} else if (ext.equals("lab")) {
-				newModelExportTasks.add(ModelExportTask.fromFilename(basename, ext));
-			} else if (ext.equals("dot")) {
-				newModelExportTasks.add(ModelExportTask.fromFilename(basename, ext));
-			} else if (ext.equals("drn")) {
-				newModelExportTasks.add(ModelExportTask.fromFilename(basename, ext));
 			}
-			// Unknown extension
+			// For any other extension (including none/unknown), deduce export
 			else {
-				throw new PrismException("Unknown extension \"" + ext + "\" for -exportmodel switch");
+				newModelExportTasks.add(ModelExportTask.fromFilename(basename, ext));
 			}
 		}
 		// Process options
@@ -2093,6 +2074,29 @@ public class PrismCL implements PrismModelListener
 			// Ignore ""
 			if (opt.equals("")) {
 			}
+			// Export format
+			else if (opt.startsWith("format")) {
+				if (!opt.startsWith("format=")) {
+					throw new PrismException("No value provided for \"format\" option of -exportmodel");
+				}
+				String optVal = opt.substring(7);
+				switch (optVal) {
+					case "explicit":
+						exportOptions.setFormat(ModelExportFormat.EXPLICIT);
+						break;
+					case "matlab":
+						exportOptions.setFormat(ModelExportFormat.MATLAB);
+						break;
+					case "dot":
+						exportOptions.setFormat(ModelExportFormat.DOT);
+						break;
+					case "drn":
+						exportOptions.setFormat(ModelExportFormat.DRN);
+						break;
+					default:
+						throw new PrismException("Unknown value \"" + optVal + "\" provided for \"format\" option of -exportmodel");
+				}
+			}
 			// Export type
 			else if (opt.equals("matlab")) {
 				exportOptions.setFormat(ModelExportFormat.MATLAB);
@@ -2100,16 +2104,7 @@ public class PrismCL implements PrismModelListener
 			} else if (opt.equals("rows")) {
 				exportOptions.setExplicitRows(true);
 				exportType = Prism.EXPORT_ROWS;
-			} /*else if (opt.startsWith("type=")) {
-				String exportTypeString = opt.substring(5);
-				if (exportTypeString.equals("matlab")) {
-					exportType = Prism.EXPORT_MATLAB;
-				} else if (exportTypeString.equals("rows")) {
-					exportType = Prism.EXPORT_ROWS;
-				} else {
-					throw new PrismException("Unknown type \"" + opt + "\" for -exportmodel switch");
-				}
-				}*/
+			}
 			else if (opt.equals("proplabels")) {
 				for (ModelExportTask exportTask : newModelExportTasks) {
 					if (exportTask.getEntity() == ModelExportTask.ModelExportEntity.LABELS) {
@@ -2683,7 +2678,8 @@ public class PrismCL implements PrismModelListener
 			mainLog.println("Omit the file basename to use the basename of the model file, e.g.:");
 			mainLog.println("\n -exportmodel .all\n");
 			mainLog.println("If provided, <options> is a comma-separated list of options taken from:");
-			mainLog.println(" * matlab - export data in Matlab format");
+			mainLog.println(" * format (=explicit/matlab/dot/drn) - model export format");
+			mainLog.println(" * matlab - same as format=matlab");
 			mainLog.println(" * rows - export matrices with one row/distribution on each line");
 			mainLog.println(" * proplabels - export labels from a properties file into the same file, too");
 			mainLog.println(" * actions (=true/false) - shows actions on choices/transitions");
