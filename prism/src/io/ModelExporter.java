@@ -35,8 +35,10 @@ import explicit.rewards.Rewards;
 import prism.Evaluator;
 import prism.Pair;
 import prism.PrismException;
+import prism.PrismFileLog;
 import prism.PrismLog;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.Iterator;
@@ -267,11 +269,23 @@ public abstract class ModelExporter<Value>
 	}
 
 	/**
-	 * Export a model.
+	 * Export a model to a {@link PrismLog}.
 	 * @param model The model
 	 * @param out Where to export
 	 */
 	public abstract void exportModel(Model<Value> model, PrismLog out) throws PrismException;
+
+	/**
+	 * Export a model to a file.
+	 * @param model The model
+	 * @param fileOut File to export to
+	 */
+	public void exportModel(Model<Value> model, File fileOut) throws PrismException
+	{
+		try (PrismLog out = new PrismFileLog(fileOut.getPath())) {
+			exportModel(model, out);
+		}
+	}
 
 	// Utility functions
 
