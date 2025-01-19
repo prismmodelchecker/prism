@@ -1530,46 +1530,49 @@ public class StateModelChecker extends PrismComponent
 	 */
 	public <Value> void exportModel(Model<Value> model, ModelExportTask exportTask) throws PrismException
 	{
-		File file = exportTask.getFile();
 		ModelExportOptions exportOptions = exportTask.getExportOptions();
+		// Build an exporter of the required type
+		ModelExporter<Value> exporter;
+		switch (exportOptions.getFormat()) {
+			case EXPLICIT:
+				if (exportOptions.getExplicitRows()) {
+					throw new PrismNotSupportedException("Export in rows format not yet supported by explicit engine");
+				}
+				exporter = new PrismExplicitExporter<>(exportOptions);
+				break;
+			case DOT:
+				exporter = new DotExporter<>(exportOptions);
+				break;
+			case DRN:
+				exporter = new DRNExporter<>(exportOptions);
+				break;
+			default:
+				throw new PrismNotSupportedException("Export " + exportOptions.getFormat().description() + " not supported by explicit engine");
+		}
+		File file = exportTask.getFile();
+		// If needed, add label/reward info
+		if (exportOptions.getFormat() == ModelExportFormat.DRN) {
+			// Get rewards/labels
+			List<Rewards<Value>> rewards = new ArrayList<>();
+			for (int r = 0; r < rewardGen.getNumRewardStructs(); r++) {
+				rewards.add(constructRewards(model, r));
+			}
+			List<String> labelNames = new ArrayList<>();
+			if (exportTask.initLabelIncluded()) {
+				labelNames.add("init");
+			}
+			if (exportTask.deadlockLabelIncluded()) {
+				labelNames.add("deadlock");
+			}
+			labelNames.addAll(modelInfo.getLabelNames());
+			List<BitSet> labelStates = checkLabels(model, labelNames);
+			// Add to exporter
+			exporter.addRewards(rewards, rewardGen.getRewardStructNames());
+			exporter.setRewardEvaluator((Evaluator<Value>) rewardGen.getRewardEvaluator());
+			exporter.addLabels(labelStates, labelNames);
+		}
+		// Export to log
 		try (PrismLog out = getPrismLogForFile(file)) {
-			ModelExporter<Value> exporter;
-			switch (exportOptions.getFormat()) {
-				case EXPLICIT:
-					if (exportOptions.getExplicitRows()) {
-						throw new PrismNotSupportedException("Export in rows format not yet supported by explicit engine");
-					}
-					exporter = new PrismExplicitExporter<>(exportOptions);
-					break;
-				case DOT:
-					exporter = new DotExporter<>(exportOptions);
-					break;
-				case DRN:
-					exporter = new DRNExporter<>(exportOptions);
-					break;
-				default:
-					throw new PrismNotSupportedException("Export " + exportOptions.getFormat().description() + " not supported by explicit engine");
-			}
-			if (exportOptions.getFormat() == ModelExportFormat.DRN) {
-				// Get reward/label info
-				List<Rewards<Value>> rewards = new ArrayList<>();
-				for (int r = 0; r < rewardGen.getNumRewardStructs(); r++) {
-					rewards.add(constructRewards(model, r));
-				}
-				List<String> labelNames = new ArrayList<>();
-				if (exportTask.initLabelIncluded()) {
-					labelNames.add("init");
-				}
-				if (exportTask.deadlockLabelIncluded()) {
-					labelNames.add("deadlock");
-				}
-				labelNames.addAll(modelInfo.getLabelNames());
-				List<BitSet> labelStates = checkLabels(model, labelNames);
-				// Add to exporter
-				exporter.addRewards(rewards, rewardGen.getRewardStructNames());
-				exporter.setRewardEvaluator((Evaluator<Value>) rewardGen.getRewardEvaluator());
-				exporter.addLabels(labelStates, labelNames);
-			}
 			exporter.exportModel(model, out);
 		}
 	}
