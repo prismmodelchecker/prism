@@ -116,26 +116,96 @@ public class PrismExplicitImporter implements ExplicitModelImporter
 	 * @param statesFile States file (may be {@code null})
 	 * @param transFile Transitions file
 	 * @param labelsFile Labels file (may be {@code null})
-	 * @param stateRewardsFiles State rewards files list (can be empty)
-	 * @param transRewardsFiles Transition rewards files list (can be empty)
+	 * @param stateRewardsFiles State rewards files list (can be null/empty)
+	 * @param transRewardsFiles Transition rewards files list (can be null/empty)
 	 * @param typeOverride Specified model type (null mean auto-detect it, or default to MDP if that cannot be done).
 	 */
 	public PrismExplicitImporter(File statesFile, File transFile, File labelsFile, List<File> stateRewardsFiles, List<File> transRewardsFiles, ModelType typeOverride) throws PrismException
 	{
-		this.statesFile = statesFile;
-		this.transFile = transFile;
-		this.labelsFile = labelsFile;
-		this.stateRewardsFiles = stateRewardsFiles == null ? new ArrayList<>() : stateRewardsFiles;
-		this.transRewardsFiles = transRewardsFiles == null ? new ArrayList<>() : transRewardsFiles;
+		setStatesFile(statesFile);
+		setTransFile(transFile);
+		setLabelsFile(labelsFile);
+		this.stateRewardsFiles = new ArrayList<>();
+		this.stateRewardsReaders = new ArrayList<>();
+		if (stateRewardsFiles != null) {
+			for (File stateRewardsFile : stateRewardsFiles) {
+				addStateRewardsFile(stateRewardsFile);
+			}
+		}
+		this.transRewardsFiles = new ArrayList<>();
+		this.transRewardsReaders = new ArrayList<>();
+		if (transRewardsFiles != null) {
+			for (File transRewardsFile : transRewardsFiles) {
+				addTransitionRewardsFile(transRewardsFile);
+			}
+		}
 		this.typeOverride = typeOverride;
-		this.stateRewardsReaders = new ArrayList<>(this.stateRewardsFiles.size());
-		for (File file : this.stateRewardsFiles) {
-			this.stateRewardsReaders.add(new PrismExplicitImporter.RewardFile(file));
-		}
-		this.transRewardsReaders = new ArrayList<>(this.transRewardsFiles.size());
-		for (File file : this.transRewardsFiles) {
-			this.transRewardsReaders.add(new PrismExplicitImporter.RewardFile(file));
-		}
+	}
+
+	/**
+	 * Constructor
+	 * @param transFile Transitions file
+	 * @param typeOverride Specified model type (null mean auto-detect it, or default to MDP if that cannot be done).
+	 */
+	public PrismExplicitImporter(File transFile, ModelType typeOverride) throws PrismException
+	{
+		this(null, transFile, null, null, null, typeOverride);
+	}
+
+	/**
+	 * Constructor
+	 * @param transFile Transitions file
+	 */
+	public PrismExplicitImporter(File transFile) throws PrismException
+	{
+		this(null, null);
+	}
+
+	/**
+	 * Set the states file.
+	 * @param statesFile States file (may be {@code null})
+	 */
+	public void setStatesFile(File statesFile)
+	{
+		this.statesFile = statesFile;
+	}
+
+	/**
+	 * Set the transitions file.
+	 * @param transFile Transitions file
+	 */
+	public void setTransFile(File transFile)
+	{
+		this.transFile = transFile;
+	}
+
+	/**
+	 * Set the labels file.
+	 * @param labelsFile Labels file (may be {@code null})
+	 */
+	public void setLabelsFile(File labelsFile)
+	{
+		this.labelsFile = labelsFile;
+	}
+
+	/**
+	 * Add a state rewards file.
+	 * @param stateRewardsFile State rewards file
+	 */
+	public void addStateRewardsFile(File stateRewardsFile) throws PrismException
+	{
+		stateRewardsFiles.add(stateRewardsFile);
+		stateRewardsReaders.add(new RewardFile(stateRewardsFile));
+	}
+
+	/**
+	 * Add a transition rewards file.
+	 * @param transitionRewardsFile Transition rewards file
+	 */
+	public void addTransitionRewardsFile(File transitionRewardsFile) throws PrismException
+	{
+		transRewardsFiles.add(transitionRewardsFile);
+		transRewardsReaders.add(new RewardFile(transitionRewardsFile));
 	}
 
 	/**
