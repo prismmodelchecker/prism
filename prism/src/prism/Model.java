@@ -49,7 +49,8 @@ public interface Model<Value>
 	 */
 	default int getNumPlayers()
 	{
-		return getModelType() == ModelType.STPG ? 2 : 1;
+		ModelType modelType = getModelType();
+		return modelType.nondeterministic() ? (modelType == ModelType.STPG ? 2 : 1) : 0;
 	}
 
 	/**
