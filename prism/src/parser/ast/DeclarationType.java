@@ -37,6 +37,15 @@ public abstract class DeclarationType extends ASTElement
 	 */
 	public abstract Expression getDefaultStart();
 
+	/**
+	 * Is this variable type "unbounded"?
+	 */
+	public boolean isUnbounded()
+	{
+		// Usually not
+		return false;
+	}
+
 	@Override
 	public abstract DeclarationType deepCopy(DeepCopy copier) throws PrismLangException;
 

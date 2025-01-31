@@ -37,11 +37,13 @@ import jdd.JDDNode;
 import jdd.JDDVars;
 import parser.Values;
 import parser.VarList;
+import parser.ast.DeclarationType;
 import prism.ModelInfo;
 import prism.ModelType;
 import prism.Prism;
 import prism.PrismException;
 import prism.PrismLog;
+import prism.PrismNotSupportedException;
 import prism.ProgressDisplay;
 import prism.RewardGenerator;
 import symbolic.model.Model;
@@ -268,7 +270,7 @@ public class ExplicitFiles2MTBDD
 	 * allocate DD vars for system
 	 * i.e. decide on variable ordering and request variables from CUDD
 	 */
-	private void allocateDDVars()
+	private void allocateDDVars() throws PrismException
 	{
 		int i, j, n;
 
@@ -300,6 +302,10 @@ public class ExplicitFiles2MTBDD
 		allDDRowVars = new JDDVars();
 		allDDColVars = new JDDVars();
 		for (i = 0; i < numVars; i++) {
+			DeclarationType declType = varList.getDeclarationType(i);
+			if (declType.isUnbounded()) {
+				throw new PrismNotSupportedException("Cannot build a model that contains a variable with unbounded range (try the explicit engine instead)");
+			}
 			// get number of dd variables needed
 			// (ceiling of log2 of range of variable)
 			n = varList.getRangeLogTwo(i);

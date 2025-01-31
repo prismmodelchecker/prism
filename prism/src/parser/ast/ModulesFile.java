@@ -815,7 +815,7 @@ public class ModulesFile extends ASTElement implements ModelInfo, RewardGenerato
 		int n = getNumVars();
 		for (int i = 0; i < n; i++) {
 			DeclarationType declType = getVarDeclaration(i).getDeclType();
-			if (declType instanceof DeclarationClock || declType instanceof DeclarationIntUnbounded) {
+			if (declType.isUnbounded()) {
 				return true;
 			}
 		}

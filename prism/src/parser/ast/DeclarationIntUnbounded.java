@@ -46,7 +46,13 @@ public class DeclarationIntUnbounded extends DeclarationType
 	{
 		return Expression.Int(0);
 	}
-	
+
+	@Override
+	public boolean isUnbounded()
+	{
+		return true;
+	}
+
 	// Methods required for ASTElement:
 	
 	@Override

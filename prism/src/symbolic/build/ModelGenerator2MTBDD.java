@@ -222,7 +222,7 @@ public class ModelGenerator2MTBDD
 	 * allocate DD vars for system
 	 * i.e. decide on variable ordering and request variables from CUDD
 	 */
-	private void allocateDDVars() throws PrismNotSupportedException
+	private void allocateDDVars() throws PrismException
 	{
 		JDDNode vr, vc;
 		int i, j, n;
@@ -254,7 +254,7 @@ public class ModelGenerator2MTBDD
 		allDDColVars = new JDDVars();
 		for (i = 0; i < numVars; i++) {
 			DeclarationType declType = varList.getDeclarationType(i);
-			if (declType instanceof DeclarationClock || declType instanceof DeclarationIntUnbounded) {
+			if (declType.isUnbounded()) {
 				throw new PrismNotSupportedException("Cannot build a model that contains a variable with unbounded range (try the explicit engine instead)");
 			}
 			// get number of dd variables needed

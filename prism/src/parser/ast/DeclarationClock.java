@@ -46,7 +46,13 @@ public class DeclarationClock extends DeclarationType
 	{
 		return Expression.Double(0);
 	}
-	
+
+	@Override
+	public boolean isUnbounded()
+	{
+		return true;
+	}
+
 	// Methods required for ASTElement:
 	
 	@Override
