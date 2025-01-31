@@ -36,15 +36,33 @@ import prism.PrismException;
 public class SafeCast
 {
 	/**
-	 * Convert a primitive {@code double }value to a primitive {@code int} value,
+	 * Convert a primitive {@code double} value to a primitive {@code int} value,
 	 * throwing an exception if the value can not be exactly represented as an {@code int}.
-	 * Wrapper method for toIntExact, converting an ArithmeticException to a PrismExeption.
+	 * Wrapper method for toIntExact, converting an ArithmeticException to a PrismException.
 	 *
 	 * @param value {@code double} value
 	 * @return the corresponding {@code int} value
 	 * @throws PrismException if the value cannot be converted to {@code int}
 	 */
 	public static int toInt(double value) throws PrismException
+	{
+		try {
+			return toIntExact(value);
+		} catch (ArithmeticException e) {
+			throw new PrismException(e.getMessage());
+		}
+	}
+
+	/**
+	 * Convert a primitive {@code long} value to a primitive {@code int} value,
+	 * throwing an exception if the value can not be exactly represented as an {@code int}.
+	 * Wrapper method for toIntExact, converting an ArithmeticException to a PrismException.
+	 *
+	 * @param value {@code long} value
+	 * @return the corresponding {@code int} value
+	 * @throws PrismException if the value cannot be converted to {@code int}
+	 */
+	public static int toInt(long value) throws PrismException
 	{
 		try {
 			return toIntExact(value);
@@ -71,6 +89,22 @@ public class SafeCast
 			throw new ArithmeticException(value + " cannot be losslessly converted to int");
 		}
 
+		return (int) value;
+	}
+
+	/**
+	 * Convert a primitive {@code long} to a primitive {@code int} value,
+	 * throwing an exception if the value can not be exactly represented as an {@code int}.
+	 *
+	 * @param value {@code long} value
+	 * @return the corresponding {@code int} value
+	 * @throws ArithmeticException if the value cannot be converted to {@code int}
+	 */
+	public static int toIntExact(long value)
+	{
+		if (value < Integer.MIN_VALUE || value > Integer.MAX_VALUE) {
+			throw new ArithmeticException(value + " cannot be losslessly converted to int");
+		}
 		return (int) value;
 	}
 
