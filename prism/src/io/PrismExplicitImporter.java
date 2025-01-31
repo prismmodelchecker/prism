@@ -95,10 +95,14 @@ public class PrismExplicitImporter implements ExplicitModelImporter
 	// String stating the model type and how it was obtained
 	private String modelTypeString;
 
-	// Num states/transitions
-	private int numStates = 0;
-	private int numChoices = 0;
-	private int numTransitions = 0;
+	// Model statistics (num states/choices/transitions)
+	private class ModelStats
+	{
+		int numStates = 0;
+		int numChoices = 0;
+		int numTransitions = 0;
+	}
+	private ModelStats modelStats;
 
 	// Mapping from label indices in file to (non-built-in) label indices (also: -1=init, -2=deadlock)
 	private List<Integer> labelMap;
@@ -224,10 +228,10 @@ public class PrismExplicitImporter implements ExplicitModelImporter
 	{
 		// Construct lazily, as needed
 	 	// (determined from either states file or transitions file)
-		if (modelInfo == null) {
-			buildModelInfo();
+		if (modelStats == null) {
+			buildModelStats();
 		}
-		return numStates;
+		return modelStats.numStates;
 	}
 
 	@Override
@@ -235,10 +239,10 @@ public class PrismExplicitImporter implements ExplicitModelImporter
 	{
 		// Construct lazily, as needed
 		// (determined from transitions file)
-		if (modelInfo == null) {
-			buildModelInfo();
+		if (modelStats == null) {
+			buildModelStats();
 		}
-		return numChoices;
+		return modelStats.numChoices;
 	}
 
 	@Override
@@ -246,10 +250,10 @@ public class PrismExplicitImporter implements ExplicitModelImporter
 	{
 		// Construct lazily, as needed
 		// (determined from transitions file)
-		if (modelInfo == null) {
-			buildModelInfo();
+		if (modelStats == null) {
+			buildModelStats();
 		}
-		return numTransitions;
+		return modelStats.numTransitions;
 	}
 
 	@Override
@@ -269,14 +273,27 @@ public class PrismExplicitImporter implements ExplicitModelImporter
 	}
 
 	/**
-	 * Build/store model info from the states/transitions/labels files.
-	 * Can then be accessed via {@link #getModelInfo()}.
-	 * Also available: {@link #getNumStates()}, {@link #getNumChoices()}, {@link #getNumTransitions()}.
+	 * Build/store model stats (from the transitions file).
+	 * Can then be accessed via {@link #getNumStates()}, {@link #getNumChoices()}, {@link #getNumTransitions()}.
 	 */
-	private void buildModelInfo() throws PrismException
+	private void buildModelStats() throws PrismException
 	{
 		// Extract model stats from header of transitions file
 		extractModelStatsFromTransFile(transFile);
+	}
+
+	/**
+	 * Build/store model info from the states/transitions/labels files.
+	 * Can then be accessed via {@link #getModelInfo()}.
+	 * Also calls {@link #buildModelStats()} if needed.
+	 * Which makes available {@link #getNumStates()}, {@link #getNumChoices()}, {@link #getNumTransitions()}.
+	 */
+	private void buildModelInfo() throws PrismException
+	{
+		// Build model stats, if not already done
+		if (modelStats == null) {
+			buildModelStats();
+		}
 
 		// Extract variable info from states, if available
 		if (statesFile != null) {
@@ -288,8 +305,8 @@ public class PrismExplicitImporter implements ExplicitModelImporter
 			varNames = Collections.singletonList("x");
 			varTypes = Collections.singletonList(TypeInt.getInstance());
 			varMins = new int[] { 0 };
-			varMaxs = new int[] { numStates - 1 };
-			varRanges = new int[] { numStates - 1 };
+			varMaxs = new int[] { getNumStates() - 1 };
+			varRanges = new int[] { getNumStates() - 1 };
 		}
 
 		// Generate and store label names from the labels file, if available.
@@ -447,6 +464,7 @@ public class PrismExplicitImporter implements ExplicitModelImporter
 	private void extractModelStatsFromTransFile(File transFile) throws PrismException
 	{
 		try (BufferedReader in = new BufferedReader(new FileReader(transFile))) {
+			modelStats = new ModelStats();
 			BasicReader reader = BasicReader.wrap(in).normalizeLineEndings();
 			CsvReader csv = new CsvReader(reader, false, false, false, ' ', LF);
 			if (!csv.hasNextRecord()) {
@@ -454,17 +472,19 @@ public class PrismExplicitImporter implements ExplicitModelImporter
 			}
 			String[] record = csv.nextRecord();
 			checkLineSize(record, 2, 3);
-			numStates = Integer.parseInt(record[0]);
+			modelStats.numStates = Integer.parseInt(record[0]);
 			if (record.length == 2) {
-				numChoices = numStates;
-				numTransitions = Integer.parseInt(record[1]);
+				modelStats.numChoices = modelStats.numStates;
+				modelStats.numTransitions = Integer.parseInt(record[1]);
 			} else {
-				numChoices = Integer.parseInt(record[1]);
-				numTransitions = Integer.parseInt(record[2]);
+				modelStats.numChoices = Integer.parseInt(record[1]);
+				modelStats.numTransitions = Integer.parseInt(record[2]);
 			}
 		} catch (IOException e) {
+			modelStats = null;
 			throw new PrismException("File I/O error reading from \"" + transFile + "\"");
 		} catch (NumberFormatException | CsvFormatException e) {
+			modelStats = null;
 			throw new PrismException("Error detected at line 1 of transitions file \"" + transFile + "\"");
 		}
 	}
@@ -614,7 +634,7 @@ public class PrismExplicitImporter implements ExplicitModelImporter
 		int numVars = modelInfo.getNumVars();
 		// If there is no info, just assume that states comprise a single integer value
 		if (getStatesFile() == null) {
-			for (int s = 0; s < numStates; s++) {
+			for (int s = 0; s < modelStats.numStates; s++) {
 				storeStateDefn.accept(s, 0, s);
 			}
 			return;
@@ -631,7 +651,7 @@ public class PrismExplicitImporter implements ExplicitModelImporter
 					// Split into two parts
 					String[] ss = st.split(":");
 					// Determine which state this line describes
-					int s = checkStateIndex(Integer.parseInt(ss[0]), numStates);
+					int s = checkStateIndex(Integer.parseInt(ss[0]), modelStats.numStates);
 					// Now split up middle bit and extract var info
 					ss = ss[1].substring(ss[1].indexOf('(') + 1, ss[1].indexOf(')')).split(",");
 
@@ -705,8 +725,8 @@ public class PrismExplicitImporter implements ExplicitModelImporter
 					continue;
 				}
 				checkLineSize(record, 3, 4);
-				int s = checkStateIndex(Integer.parseInt(record[0]), numStates);
-				int s2 = checkStateIndex(Integer.parseInt(record[1]), numStates);
+				int s = checkStateIndex(Integer.parseInt(record[0]), modelStats.numStates);
+				int s2 = checkStateIndex(Integer.parseInt(record[1]), modelStats.numStates);
 				Value v = checkValue(record[2], eval);
 				Object a = (record.length > 3) ? checkAction(record[3]) : null;
 				storeTransition.accept(s, s2, v, a);
@@ -734,9 +754,9 @@ public class PrismExplicitImporter implements ExplicitModelImporter
 					continue;
 				}
 				checkLineSize(record, 4, 5);
-				int s = checkStateIndex(Integer.parseInt(record[0]), numStates);
+				int s = checkStateIndex(Integer.parseInt(record[0]), modelStats.numStates);
 				int i = checkChoiceIndex(Integer.parseInt(record[1]));
-				int s2 = checkStateIndex(Integer.parseInt(record[2]), numStates);
+				int s2 = checkStateIndex(Integer.parseInt(record[2]), modelStats.numStates);
 				Value v = checkValue(record[3], eval);
 				Object a = (record.length > 4) ? checkAction(record[4]) : null;
 				storeTransition.accept(s, i, s2, v, a);
@@ -764,9 +784,9 @@ public class PrismExplicitImporter implements ExplicitModelImporter
 					continue;
 				}
 				checkLineSize(record, 3, 4);
-				int s = checkStateIndex(Integer.parseInt(record[0]), numStates);
+				int s = checkStateIndex(Integer.parseInt(record[0]), modelStats.numStates);
 				int i = checkChoiceIndex(Integer.parseInt(record[1]));
-				int s2 = checkStateIndex(Integer.parseInt(record[2]), numStates);
+				int s2 = checkStateIndex(Integer.parseInt(record[2]), modelStats.numStates);
 				Object a = (record.length > 3) ? checkAction(record[3]) : null;
 				storeTransition.accept(s, i, s2, a);
 			}
@@ -798,7 +818,7 @@ public class PrismExplicitImporter implements ExplicitModelImporter
 				if (!st.isEmpty()) {
 					// Split line
 					String[] ss = st.split(":");
-					int s = checkStateIndex(Integer.parseInt(ss[0].trim()), numStates);
+					int s = checkStateIndex(Integer.parseInt(ss[0].trim()), modelStats.numStates);
 					ss = ss[1].trim().split(" ");
 					for (int j = 0; j < ss.length; j++) {
 						if (ss[j].isEmpty()) {
@@ -925,7 +945,7 @@ public class PrismExplicitImporter implements ExplicitModelImporter
 	{
 		if (rewardIndex < stateRewardsReaders.size()) {
 			RewardFile file = stateRewardsReaders.get(rewardIndex);
-			file.extractStateRewards(storeReward, eval, numStates);
+			file.extractStateRewards(storeReward, eval, modelStats.numStates);
 		}
 	}
 
@@ -934,7 +954,7 @@ public class PrismExplicitImporter implements ExplicitModelImporter
 	{
 		if (rewardIndex < transRewardsReaders.size()) {
 			RewardFile file = transRewardsReaders.get(rewardIndex);
-			file.extractMCTransitionRewards(storeReward, eval, numStates);
+			file.extractMCTransitionRewards(storeReward, eval, modelStats.numStates);
 		}
 	}
 
@@ -943,7 +963,7 @@ public class PrismExplicitImporter implements ExplicitModelImporter
 	{
 		if (rewardIndex < transRewardsReaders.size()) {
 			RewardFile file = transRewardsReaders.get(rewardIndex);
-			file.extractMDPTransitionRewards(storeReward, eval, numStates);
+			file.extractMDPTransitionRewards(storeReward, eval, modelStats.numStates);
 		}
 	}
 
