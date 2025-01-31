@@ -26,6 +26,11 @@
 
 package io;
 
+import parser.ast.DeclarationInt;
+import parser.ast.DeclarationType;
+import parser.ast.Expression;
+import parser.type.Type;
+import parser.type.TypeInt;
 import prism.Evaluator;
 import prism.ModelInfo;
 import prism.PrismException;
@@ -34,6 +39,9 @@ import prism.RewardInfo;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
+/**
+ * Interface for classes that import from explicit model sources.
+ */
 public interface ExplicitModelImporter
 {
 	/**
@@ -204,4 +212,33 @@ public interface ExplicitModelImporter
 	 * @param eval Evaluator for Value objects
 	 */
 	<Value> void extractMDPTransitionRewards(int rewardIndex, IOUtils.TransitionStateRewardConsumer<Value> storeReward, Evaluator<Value> eval) throws PrismException;
+
+	// Defaults for a single variable name when none is specified
+
+	/**
+	 * Get the default name for the (single) variable when none is specified.
+	 * By default, this is "x".
+	 */
+	default String defaultVariableName()
+	{
+		return "x";
+	}
+
+	/**
+	 * Get the default type for the (single) variable when none is specified.
+	 * By default, this is {@code int}.
+	 */
+	default Type defaultVariableType()
+	{
+		return TypeInt.getInstance();
+	}
+
+	/**
+	 * Get the default type declaration for the (single) variable when none is specified.
+	 * By default, this is {@code [0..(numStates-1)]}.
+	 */
+	default DeclarationType defaultVariableDeclarationType() throws PrismException
+	{
+		return new DeclarationInt(Expression.Int(0), Expression.Int(getNumStates() - 1));
+	}
 }

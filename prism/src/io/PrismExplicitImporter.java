@@ -86,6 +86,7 @@ public class PrismExplicitImporter implements ExplicitModelImporter
 	private int numVars;
 	private List<String> varNames;
 	private List<Type> varTypes;
+	private List<DeclarationType> varDeclTypes;
 	private int varMins[];
 	private int varMaxs[];
 	private int varRanges[];
@@ -299,11 +300,12 @@ public class PrismExplicitImporter implements ExplicitModelImporter
 		if (statesFile != null) {
 			extractVarInfoFromStatesFile(statesFile);
 		}
-		// Otherwise store dummy variable info
+		// Otherwise store default variable info
 		else {
 			numVars = 1;
-			varNames = Collections.singletonList("x");
-			varTypes = Collections.singletonList(TypeInt.getInstance());
+			varNames = Collections.singletonList(defaultVariableName());
+			varTypes = Collections.singletonList(defaultVariableType());
+			varDeclTypes = Collections.singletonList(defaultVariableDeclarationType());
 			varMins = new int[] { 0 };
 			varMaxs = new int[] { getNumStates() - 1 };
 			varRanges = new int[] { getNumStates() - 1 };
@@ -358,11 +360,7 @@ public class PrismExplicitImporter implements ExplicitModelImporter
 			@Override
 			public DeclarationType getVarDeclarationType(int i) throws PrismException
 			{
-				if (varTypes.get(i) instanceof TypeInt) {
-					return new DeclarationInt(Expression.Int(varMins[i]), Expression.Int(varMaxs[i]));
-				} else {
-					return new DeclarationBool();
-				}
+				return varDeclTypes.get(i);
 			}
 			
 			@Override
@@ -397,7 +395,8 @@ public class PrismExplicitImporter implements ExplicitModelImporter
 			varMins = new int[numVars];
 			varMaxs = new int[numVars];
 			varRanges = new int[numVars];
-			varTypes = new ArrayList<Type>();
+			varTypes = new ArrayList<>();
+			varDeclTypes = new ArrayList<>();
 			// read remaining lines
 			s = in.readLine();
 			lineNum++;
@@ -449,6 +448,15 @@ public class PrismExplicitImporter implements ExplicitModelImporter
 						varMaxs[i]++;
 				}
 			}
+			// create variable declarations (need ranges)
+			for (i = 0; i < numVars; i++) {
+				if (varTypes.get(i) instanceof TypeBool) {
+					varDeclTypes.add(new DeclarationBool());
+				} else {
+					varDeclTypes.add(new DeclarationInt(Expression.Int(varMins[i]), Expression.Int(varMaxs[i])));
+				}
+			}
+
 		} catch (IOException e) {
 			throw new PrismException("File I/O error reading from \"" + statesFile + "\"");
 		} catch (NumberFormatException e) {
