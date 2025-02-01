@@ -33,7 +33,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.BitSet;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -53,12 +52,12 @@ import param.BigRational;
 import parser.State;
 import parser.ast.DeclarationBool;
 import parser.ast.DeclarationInt;
-import parser.ast.DeclarationType;
 import parser.ast.Expression;
 import parser.ast.ExpressionIdent;
 import parser.type.Type;
 import parser.type.TypeBool;
 import parser.type.TypeInt;
+import prism.BasicModelInfo;
 import prism.Evaluator;
 import prism.ModelInfo;
 import prism.ModelType;
@@ -82,16 +81,8 @@ public class PrismExplicitImporter implements ExplicitModelImporter
 	private List<File> transRewardsFiles;
 	private ModelType typeOverride;
 
-	// Model info extracted from files and then stored in a ModelInfo object
-	private int numVars;
-	private List<String> varNames;
-	private List<Type> varTypes;
-	private List<DeclarationType> varDeclTypes;
-	private int varMins[];
-	private int varMaxs[];
-	private int varRanges[];
-	private List<String> labelNames;
-	private ModelInfo modelInfo;
+	// Model info extracted from files and then stored in a BasicModelInfo object
+	private BasicModelInfo basicModelInfo;
 
 	// String stating the model type and how it was obtained
 	private String modelTypeString;
@@ -119,7 +110,6 @@ public class PrismExplicitImporter implements ExplicitModelImporter
 	protected static final Pattern COMMENT_PATTERN = Pattern.compile("#.*");
 	// Regex for reward name
 	protected static final Pattern REWARD_NAME_PATTERN = Pattern.compile("# Reward structure (\"([_a-zA-Z0-9]*)\")$");
-
 
 	/**
 	 * Constructor
@@ -218,10 +208,10 @@ public class PrismExplicitImporter implements ExplicitModelImporter
 	public ModelInfo getModelInfo() throws PrismException
 	{
 		// Construct lazily, as needed
-		if (modelInfo == null) {
+		if (basicModelInfo == null) {
 			buildModelInfo();
 		}
-		return modelInfo;
+		return basicModelInfo;
 	}
 
 	@Override
@@ -296,30 +286,6 @@ public class PrismExplicitImporter implements ExplicitModelImporter
 			buildModelStats();
 		}
 
-		// Extract variable info from states, if available
-		if (statesFile != null) {
-			extractVarInfoFromStatesFile(statesFile);
-		}
-		// Otherwise store default variable info
-		else {
-			numVars = 1;
-			varNames = Collections.singletonList(defaultVariableName());
-			varTypes = Collections.singletonList(defaultVariableType());
-			varDeclTypes = Collections.singletonList(defaultVariableDeclarationType());
-			varMins = new int[] { 0 };
-			varMaxs = new int[] { getNumStates() - 1 };
-			varRanges = new int[] { getNumStates() - 1 };
-		}
-
-		// Generate and store label names from the labels file, if available.
-		// This way, expressions can refer to the labels later on.
-		if (labelsFile != null) {
-			extractLabelNamesFromLabelsFile(labelsFile);
-		} else {
-			labelNames = new ArrayList<>();
-			labelMap = new ArrayList<>();
-		}
-		
 		// Set model type: if no preference stated, try to autodetect
 		ModelType modelType;
 		if (typeOverride == null) {
@@ -336,39 +302,25 @@ public class PrismExplicitImporter implements ExplicitModelImporter
 			modelType = typeOverride;
 		}
 
-		// Create and return ModelInfo object with above info 
-		modelInfo = new ModelInfo()
-		{
-			@Override
-			public ModelType getModelType()
-			{
-				return modelType;
-			}
-			
-			@Override
-			public List<String> getVarNames()
-			{
-				return varNames;
-			}
-			
-			@Override
-			public List<Type> getVarTypes()
-			{
-				return varTypes;
-			}
-			
-			@Override
-			public DeclarationType getVarDeclarationType(int i) throws PrismException
-			{
-				return varDeclTypes.get(i);
-			}
-			
-			@Override
-			public List<String> getLabelNames()
-			{
-				return labelNames;
-			}
-		};
+		// Store model info
+		basicModelInfo = new BasicModelInfo(modelType);
+
+		// Extract variable info from states, if available
+		if (statesFile != null) {
+			extractVarInfoFromStatesFile(statesFile);
+		}
+		// Otherwise store default variable info
+		else {
+			basicModelInfo.getVarList().addVar(defaultVariableName(), defaultVariableDeclarationType(), -1);
+		}
+
+		// Generate and store label names from the labels file, if available.
+		// This way, expressions can refer to the labels later on.
+		if (labelsFile != null) {
+			extractLabelNamesFromLabelsFile(labelsFile);
+		} else {
+			labelMap = new ArrayList<>();
+		}
 	}
 
 	/**
@@ -389,14 +341,12 @@ public class PrismExplicitImporter implements ExplicitModelImporter
 			if (s.charAt(0) != '(' || s.charAt(s.length() - 1) != ')')
 				throw new PrismException("badly formatted state");
 			s = s.substring(1, s.length() - 1);
-			varNames = new ArrayList<String>(Arrays.asList(s.split(",")));
-			numVars = varNames.size();
-			// create arrays to store info about vars
-			varMins = new int[numVars];
-			varMaxs = new int[numVars];
-			varRanges = new int[numVars];
-			varTypes = new ArrayList<>();
-			varDeclTypes = new ArrayList<>();
+			List<String> varNames = new ArrayList<>(Arrays.asList(s.split(",")));
+			int numVars = varNames.size();
+			// create arrays to (temporarily) store info about vars
+			int[] varMins = new int[numVars];
+			int[] varMaxs = new int[numVars];
+			List<Type> varTypes = new ArrayList<>();
 			// read remaining lines
 			s = in.readLine();
 			lineNum++;
@@ -439,21 +389,13 @@ public class PrismExplicitImporter implements ExplicitModelImporter
 				s = in.readLine();
 				lineNum++;
 			}
-			// compute variable ranges
-			for (i = 0; i < numVars; i++) {
-				if (varTypes.get(i) instanceof TypeInt) {
-					varRanges[i] = varMaxs[i] - varMins[i];
-					// if range = 0, increment maximum - we don't allow zero-range variables
-					if (varRanges[i] == 0)
-						varMaxs[i]++;
-				}
-			}
-			// create variable declarations (need ranges)
+
+			// Add variables to the VarList
 			for (i = 0; i < numVars; i++) {
 				if (varTypes.get(i) instanceof TypeBool) {
-					varDeclTypes.add(new DeclarationBool());
+					basicModelInfo.getVarList().addVar(varNames.get(i), new DeclarationBool(), -1);
 				} else {
-					varDeclTypes.add(new DeclarationInt(Expression.Int(varMins[i]), Expression.Int(varMaxs[i])));
+					basicModelInfo.getVarList().addVar(varNames.get(i), new DeclarationInt(Expression.Int(varMins[i]), Expression.Int(varMaxs[i])), -1);
 				}
 			}
 
@@ -500,6 +442,7 @@ public class PrismExplicitImporter implements ExplicitModelImporter
 
 	/**
 	 * Extract names of labels from the labels file.
+	 * These are store in the label name list within basicModelInfo.
 	 * The "init" and "deadlock" labels are skipped, as they have special
 	 * meaning and are implicitly defined for all models.
 	 */
@@ -512,7 +455,7 @@ public class PrismExplicitImporter implements ExplicitModelImporter
 			String labelsString = in.readLine();
 			Pattern label = Pattern.compile("(\\d+)=\"([^\"]+)\"\\s*");
 			Matcher matcher = label.matcher(labelsString);
-			labelNames = new ArrayList<>();
+			List<String> labelNames = basicModelInfo.getLabelNameList();
 			labelMap = new ArrayList<>();
 			while (matcher.find()) {
 				// Check indices are ascending/contiguous
@@ -639,7 +582,7 @@ public class PrismExplicitImporter implements ExplicitModelImporter
 	@Override
 	public void extractStates(IOUtils.StateDefnConsumer storeStateDefn) throws PrismException
 	{
-		int numVars = modelInfo.getNumVars();
+		int numVars = basicModelInfo.getNumVars();
 		// If there is no info, just assume that states comprise a single integer value
 		if (getStatesFile() == null) {
 			for (int s = 0; s < modelStats.numStates; s++) {
@@ -907,7 +850,7 @@ public class PrismExplicitImporter implements ExplicitModelImporter
 				} else if (l  == -2) {
 					map.put("deadlock", bitsets[i]);
 				} else if (l > -1) {
-					map.put(labelNames.get(l), bitsets[i]);
+					map.put(basicModelInfo.getLabelNameList().get(l), bitsets[i]);
 				}
 			}
 			return map;
