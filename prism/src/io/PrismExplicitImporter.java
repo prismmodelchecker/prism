@@ -44,7 +44,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-import common.iterable.Reducible;
 import csv.BasicReader;
 import csv.CsvFormatException;
 import csv.CsvReader;
@@ -58,6 +57,7 @@ import parser.type.Type;
 import parser.type.TypeBool;
 import parser.type.TypeInt;
 import prism.BasicModelInfo;
+import prism.BasicRewardInfo;
 import prism.Evaluator;
 import prism.ModelInfo;
 import prism.ModelType;
@@ -99,8 +99,8 @@ public class PrismExplicitImporter implements ExplicitModelImporter
 	// Mapping from label indices in file to (non-built-in) label indices (also: -1=init, -2=deadlock)
 	private List<Integer> labelMap;
 
-	// Reward info extracted from files and then stored in a RewardInfo object
-	private RewardInfo rewardInfo;
+	// Reward info extracted from files and then stored in a BasicRewardInfo object
+	private BasicRewardInfo basicRewardInfo;
 
 	// File(s) to read in rewards from
 	private List<PrismExplicitImporter.RewardFile> stateRewardsReaders = new ArrayList<>();
@@ -257,10 +257,10 @@ public class PrismExplicitImporter implements ExplicitModelImporter
 	public RewardInfo getRewardInfo() throws PrismException
 	{
 		// Construct lazily, as needed
-		if (rewardInfo == null) {
+		if (basicRewardInfo == null) {
 			buildRewardInfo();
 		}
-		return rewardInfo;
+		return basicRewardInfo;
 	}
 
 	/**
@@ -868,27 +868,24 @@ public class PrismExplicitImporter implements ExplicitModelImporter
 	 */
 	private void buildRewardInfo() throws PrismException
 	{
-		rewardInfo = new RewardInfo()
-		{
-			@Override
-			public List<String> getRewardStructNames()
-			{
-				List<PrismExplicitImporter.RewardFile> rewardsReaders = stateRewardsReaders.size() >= transRewardsFiles.size() ? stateRewardsReaders : transRewardsReaders;
-				return Reducible.extend(rewardsReaders).map(f -> f.getName().orElse("")).collect(new ArrayList<>(rewardsReaders.size()));
+		basicRewardInfo = new BasicRewardInfo();
+		int numRewards = Math.max(stateRewardsReaders.size(), transRewardsReaders.size());
+		for (int r = 0; r < numRewards; r++) {
+			String stateRewardName = null;
+			String transRewardName = null;
+			if (r < stateRewardsReaders.size()) {
+				stateRewardName = stateRewardsReaders.get(r).getName().orElse("");
 			}
-
-			@Override
-			public int getNumRewardStructs()
-			{
-				return Math.max(stateRewardsFiles.size(), transRewardsFiles.size());
+			if (r < transRewardsReaders.size()) {
+				transRewardName = transRewardsReaders.get(r).getName().orElse("");
 			}
-
-			@Override
-			public boolean rewardStructHasTransitionRewards(int r)
-			{
-				return false;
+			if (transRewardName != null && stateRewardName != null && !transRewardName.equals(stateRewardName)) {
+				throw new PrismException("Reward structure names do not match for state/transition rewards");
 			}
-		};
+			basicRewardInfo.addReward(stateRewardName != null ? stateRewardName : transRewardName);
+			basicRewardInfo.setHasStateRewards(r, r < stateRewardsReaders.size());
+			basicRewardInfo.setHasTransitionRewards(r, r < transRewardsReaders.size());
+		}
 	}
 
 	@Override
