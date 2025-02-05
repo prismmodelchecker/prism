@@ -1927,6 +1927,7 @@ public class MDPModelChecker extends ProbModelChecker
 		int n;
 		long timer;
 		BitSet inf;
+		int strat[] = null;
 
 		// Local copy of setting
 		MDPSolnMethod mdpSolnMethod = this.mdpSolnMethod;
@@ -1947,8 +1948,17 @@ public class MDPModelChecker extends ProbModelChecker
 		// Store num states
 		n = mdp.getNumStates();
 
-		long timerPre;
+		// If required, create/initialise strategy storage
+		// Set choices to -1, denoting unknown
+		if (genStrat) {
+			strat = new int[n];
+			for (int i = 0; i < n; i++) {
+				strat[i] = -1;
+			}
+		}
 
+		// Precomputation (not optional)
+		long timerPre;
 		if (noPositiveECs) {
 			// no inf states
 			inf = new BitSet();
@@ -1986,27 +1996,34 @@ public class MDPModelChecker extends ProbModelChecker
 
 			// inf = Pmax[ <> positiveECs ] > 0
 			//     = ! (Pmax[ <> positiveECs ] = 0)
-			inf = prob0(mdp, null, positiveECs, false, null);  // Pmax[ <> positiveECs ] = 0
+			inf = prob0(mdp, null, positiveECs, false, strat);  // Pmax[ <> positiveECs ] = 0
 			inf.flip(0,n);  // !(Pmax[ <> positive ECs ] = 0) = Pmax[ <> positiveECs ] > 0
 
 			timerPre = System.currentTimeMillis() - timerPre;
 			mainLog.println("Precomputation took " + timerPre / 1000.0 + " seconds, " + inf.cardinality() + " infinite states, " + (n - inf.cardinality()) + " states remaining.");
 		}
 
+		// TODO: generate strategy for "inf" state (possibility to reach +ve EC)
+
 		// Compute rewards
 		// do standard max reward calculation, but with empty target set
 		switch (mdpSolnMethod) {
 		case VALUE_ITERATION:
-			res = computeReachRewardsValIter(mdp, mdpRewards, new BitSet(), inf, false, null, null, null);
+			res = computeReachRewardsValIter(mdp, mdpRewards, new BitSet(), inf, false, null, null, strat);
 			break;
 		case GAUSS_SEIDEL:
-			res = computeReachRewardsGaussSeidel(mdp, mdpRewards, new BitSet(), inf, false, null, null, null);
+			res = computeReachRewardsGaussSeidel(mdp, mdpRewards, new BitSet(), inf, false, null, null, strat);
 			break;
 		case POLICY_ITERATION:
-			res = computeReachRewardsPolIter(mdp, mdpRewards, new BitSet(), inf, false, null);
+			res = computeReachRewardsPolIter(mdp, mdpRewards, new BitSet(), inf, false, strat);
 			break;
 		default:
 			throw new PrismException("Unknown MDP solution method " + mdpSolnMethod.fullName());
+		}
+
+		// Store strategy
+		if (genStrat) {
+			res.strat = new MDStrategyArray<Double>(mdp, strat);
 		}
 
 		// Finished expected total reward
