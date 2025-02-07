@@ -1222,8 +1222,17 @@ public class PrismExplicitImporter implements ExplicitModelImporter
 		}
 	}
 
+	/**
+	 * Check that a (string) action label is legal and return it if so.
+	 * Otherwise, an explanatory exception is thrown.
+	 * A legal action label is either "" (unlabelled) or a legal PRISM identifier.
+	 * In the case of an empty ("") action, this returns null.
+	 */
 	protected static String checkAction(String a) throws PrismException
 	{
+		if (a == null || "".equals(a)) {
+			return null;
+		}
 		if (!Prism.isValidIdentifier(a)) {
 			throw new PrismException("invalid action name \"" + a + "\"");
 		}
