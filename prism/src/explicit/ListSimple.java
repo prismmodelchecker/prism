@@ -34,7 +34,7 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 
 /**
- * A list of lists of values. Mutable, but not especially efficient.
+ * A list of values. Mutable, but not especially efficient.
  * Storage is minimised by only storing the list if needed.
  * This partly depends on the definition of a "zero" value (null by default).
  * The actual size of the list is not known/stored.
