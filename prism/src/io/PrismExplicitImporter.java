@@ -71,7 +71,7 @@ import static csv.BasicReader.LF;
 /**
  * Class to manage importing models from PRISM explicit files (.tra, .sta, etc.)
  */
-public class PrismExplicitImporter implements ExplicitModelImporter
+public class PrismExplicitImporter extends ExplicitModelImporter
 {
 	// What to import: files and type override
 	private File statesFile;

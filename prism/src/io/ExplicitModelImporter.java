@@ -40,73 +40,77 @@ import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
 /**
- * Interface for classes that import from explicit model sources.
+ * Base class for importers from explicit model sources.
  */
-public interface ExplicitModelImporter
+public abstract class ExplicitModelImporter
 {
 	/**
 	 * Does this importer provide info about state definitions?
 	 */
-	boolean providesStates();
+	public abstract boolean providesStates();
 
 	/**
 	 * Does this importer provide info about labels?
 	 */
-	boolean providesLabels();
+	public abstract boolean providesLabels();
 
 	/**
 	 * Get a string summarising the source, e.g. the list of files read in.
 	 */
-	String sourceString();
+	public abstract String sourceString();
 
 	/**
 	 * Get info about the model.
 	 */
-	ModelInfo getModelInfo() throws PrismException;
+	public abstract ModelInfo getModelInfo() throws PrismException;
 
 	/**
 	 * Get the number of states.
 	 */
-	int getNumStates() throws PrismException;
+	public abstract int getNumStates() throws PrismException;
 
 	/**
 	 * Get the total number of choices (for nondeterministic models).
 	 */
-	int getNumChoices() throws PrismException;
+	public abstract int getNumChoices() throws PrismException;
 
 	/**
 	 * Get the total number of transitions.
 	 */
-	int getNumTransitions() throws PrismException;
+	public abstract int getNumTransitions() throws PrismException;
 
 	/**
 	 * Get a string stating the model type and how it was obtained.
 	 */
-	String getModelTypeString();
+	public String getModelTypeString() throws PrismException
+	{
+		// By default, just return the type, no explanation
+		return getModelInfo().getModelType().toString();
+	}
 
 	/**
 	 * Get info about the rewards.
 	 */
-	RewardInfo getRewardInfo() throws PrismException;
+	public abstract RewardInfo getRewardInfo() throws PrismException;
 
 	/**
 	 * Extract state definitions (variable values).
 	 * Calls {@code storeStateDefn(s, i, o)} for each state s, variable (index) i and variable value o.
 	 * @param storeStateDefn Function to be called for each variable value of each state
 	 */
-	void extractStates(IOUtils.StateDefnConsumer storeStateDefn) throws PrismException;
+	public abstract void extractStates(IOUtils.StateDefnConsumer storeStateDefn) throws PrismException;
 
 	/**
 	 * Compute the maximum number of choices (in a nondeterministic model).
 	 */
-	int computeMaxNumChoices() throws PrismException;
+	public abstract int computeMaxNumChoices() throws PrismException;
 
 	/**
 	 * Extract the (Markov chain) transitions from a .tra file.
 	 * The transition probabilities/rates are assumed to be of type double.
 	 * @param storeTransition Function to be called for each transition
 	 */
-	default void extractMCTransitions(IOUtils.MCTransitionConsumer<Double> storeTransition) throws PrismException
+	public void extractMCTransitions(IOUtils.MCTransitionConsumer<Double> storeTransition) throws PrismException
 	{
 		extractMCTransitions(storeTransition, Evaluator.forDouble());
 	}
@@ -117,14 +121,14 @@ public interface ExplicitModelImporter
 	 * @param storeTransition Function to be called for each transition
 	 * @param eval Evaluator for Value objects
 	 */
-	<Value> void extractMCTransitions(IOUtils.MCTransitionConsumer<Value> storeTransition, Evaluator<Value> eval) throws PrismException;
+	public abstract <Value> void extractMCTransitions(IOUtils.MCTransitionConsumer<Value> storeTransition, Evaluator<Value> eval) throws PrismException;
 
 	/**
 	 * Extract the (Markov decision process) transitions from a .tra file.
 	 * The transition probabilities/rates are assumed to be of type double.
 	 * @param storeTransition Function to be called for each transition
 	 */
-	default void extractMDPTransitions(IOUtils.MDPTransitionConsumer<Double> storeTransition) throws PrismException
+	public void extractMDPTransitions(IOUtils.MDPTransitionConsumer<Double> storeTransition) throws PrismException
 	{
 		extractMDPTransitions(storeTransition, Evaluator.forDouble());
 	}
@@ -135,13 +139,13 @@ public interface ExplicitModelImporter
 	 * @param storeTransition Function to be called for each transition
 	 * @param eval Evaluator for Value objects
 	 */
-	<Value> void extractMDPTransitions(IOUtils.MDPTransitionConsumer<Value> storeTransition, Evaluator<Value> eval) throws PrismException;
+	public abstract <Value> void extractMDPTransitions(IOUtils.MDPTransitionConsumer<Value> storeTransition, Evaluator<Value> eval) throws PrismException;
 
 	/**
 	 * Extract the (labelled transition system) transitions from a .tra file.
 	 * @param storeTransition Function to be called for each transition
 	 */
-	void extractLTSTransitions(IOUtils.LTSTransitionConsumer storeTransition) throws PrismException;
+	public abstract void extractLTSTransitions(IOUtils.LTSTransitionConsumer storeTransition) throws PrismException;
 
 	/**
 	 * Extract info about state labellings and initial states.
@@ -151,7 +155,7 @@ public interface ExplicitModelImporter
 	 * @param storeLabel Function to be called for each state satisfying a label
 	 * @param storeInit Function to be called for each initial stat
 	 */
-	void extractLabelsAndInitialStates(BiConsumer<Integer, Integer> storeLabel, Consumer<Integer> storeInit) throws PrismException;
+	public abstract void extractLabelsAndInitialStates(BiConsumer<Integer, Integer> storeLabel, Consumer<Integer> storeInit) throws PrismException;
 
 	/**
 	 * Extract the state rewards for a given reward structure index.
@@ -159,7 +163,7 @@ public interface ExplicitModelImporter
 	 * @param rewardIndex Index of reward structure to extract (0-indexed)
 	 * @param storeReward Function to be called for each reward
 	 */
-	default void extractStateRewards(int rewardIndex, BiConsumer<Integer, Double> storeReward) throws PrismException
+	public void extractStateRewards(int rewardIndex, BiConsumer<Integer, Double> storeReward) throws PrismException
 	{
 		extractStateRewards(rewardIndex, storeReward, Evaluator.forDouble());
 	}
@@ -171,7 +175,7 @@ public interface ExplicitModelImporter
 	 * @param storeReward Function to be called for each reward
 	 * @param eval Evaluator for Value objects
 	 */
-	<Value> void extractStateRewards(int rewardIndex, BiConsumer<Integer, Value> storeReward, Evaluator<Value> eval) throws PrismException;
+	public abstract <Value> void extractStateRewards(int rewardIndex, BiConsumer<Integer, Value> storeReward, Evaluator<Value> eval) throws PrismException;
 
 	/**
 	 * Extract the (Markov chain) transition rewards for a given reward structure index.
@@ -179,7 +183,7 @@ public interface ExplicitModelImporter
 	 * @param rewardIndex Index of reward structure to extract (0-indexed)
 	 * @param storeReward Function to be called for each reward
 	 */
-	default void extractMCTransitionRewards(int rewardIndex, IOUtils.TransitionRewardConsumer<Double> storeReward) throws PrismException
+	public void extractMCTransitionRewards(int rewardIndex, IOUtils.TransitionRewardConsumer<Double> storeReward) throws PrismException
 	{
 		extractMCTransitionRewards(rewardIndex, storeReward, Evaluator.forDouble());
 	}
@@ -191,7 +195,7 @@ public interface ExplicitModelImporter
 	 * @param storeReward Function to be called for each reward
 	 * @param eval Evaluator for Value objects
 	 */
-	<Value> void extractMCTransitionRewards(int rewardIndex, IOUtils.TransitionRewardConsumer<Value> storeReward, Evaluator<Value> eval) throws PrismException;
+	public abstract <Value> void extractMCTransitionRewards(int rewardIndex, IOUtils.TransitionRewardConsumer<Value> storeReward, Evaluator<Value> eval) throws PrismException;
 
 	/**
 	 * Extract the (Markov decision process) transition rewards for a given reward structure index.
@@ -199,7 +203,7 @@ public interface ExplicitModelImporter
 	 * @param rewardIndex Index of reward structure to extract (0-indexed)
 	 * @param storeReward Function to be called for each reward
 	 */
-	default void extractMDPTransitionRewards(int rewardIndex, IOUtils.TransitionStateRewardConsumer<Double> storeReward) throws PrismException
+	public void extractMDPTransitionRewards(int rewardIndex, IOUtils.TransitionStateRewardConsumer<Double> storeReward) throws PrismException
 	{
 		extractMDPTransitionRewards(rewardIndex, storeReward, Evaluator.forDouble());
 	}
@@ -211,7 +215,7 @@ public interface ExplicitModelImporter
 	 * @param storeReward Function to be called for each reward
 	 * @param eval Evaluator for Value objects
 	 */
-	<Value> void extractMDPTransitionRewards(int rewardIndex, IOUtils.TransitionStateRewardConsumer<Value> storeReward, Evaluator<Value> eval) throws PrismException;
+	public abstract <Value> void extractMDPTransitionRewards(int rewardIndex, IOUtils.TransitionStateRewardConsumer<Value> storeReward, Evaluator<Value> eval) throws PrismException;
 
 	// Defaults for a single variable name when none is specified
 
@@ -219,7 +223,7 @@ public interface ExplicitModelImporter
 	 * Get the default name for the (single) variable when none is specified.
 	 * By default, this is "x".
 	 */
-	default String defaultVariableName()
+	public String defaultVariableName()
 	{
 		return "x";
 	}
@@ -228,7 +232,7 @@ public interface ExplicitModelImporter
 	 * Get the default type for the (single) variable when none is specified.
 	 * By default, this is {@code int}.
 	 */
-	default Type defaultVariableType()
+	public Type defaultVariableType()
 	{
 		return TypeInt.getInstance();
 	}
@@ -237,7 +241,7 @@ public interface ExplicitModelImporter
 	 * Get the default type declaration for the (single) variable when none is specified.
 	 * By default, this is {@code [0..(numStates-1)]}.
 	 */
-	default DeclarationType defaultVariableDeclarationType() throws PrismException
+	public DeclarationType defaultVariableDeclarationType() throws PrismException
 	{
 		return new DeclarationInt(Expression.Int(0), Expression.Int(getNumStates() - 1));
 	}
