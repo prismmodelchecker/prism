@@ -239,27 +239,27 @@ public abstract class ExplicitModelImporter
 
 	/**
 	 * Extract the (Markov decision process) transition rewards for a given reward structure index.
-	 * These are supplied as tuples (s,i,s2,v) where s is the (source) state,
+	 * These are supplied as tuples (s,i,v) where s is the (source) state,
 	 * i is the choice index and v is the reward value.
 	 * The reward values are assumed to be of type double.
 	 * @param rewardIndex Index of reward structure to extract (0-indexed)
 	 * @param storeReward Function to be called for each reward
 	 */
-	public void extractMDPTransitionRewards(int rewardIndex, IOUtils.TransitionStateRewardConsumer<Double> storeReward) throws PrismException
+	public void extractMDPTransitionRewards(int rewardIndex, IOUtils.TransitionRewardConsumer<Double> storeReward) throws PrismException
 	{
 		extractMDPTransitionRewards(rewardIndex, storeReward, Evaluator.forDouble());
 	}
 
 	/**
 	 * Extract the (Markov decision process) transition rewards for a given reward structure index.
-	 * These are supplied as tuples (s,i,s2,v) where s is the (source) state,
+	 * These are supplied as tuples (s,i,v) where s is the (source) state,
 	 * i is the choice index and v is the reward value.
 	 * The reward values are assumed to be of type Value.
 	 * @param rewardIndex Index of reward structure to extract (0-indexed)
 	 * @param storeReward Function to be called for each reward
 	 * @param eval Evaluator for Value objects
 	 */
-	public abstract <Value> void extractMDPTransitionRewards(int rewardIndex, IOUtils.TransitionStateRewardConsumer<Value> storeReward, Evaluator<Value> eval) throws PrismException;
+	public abstract <Value> void extractMDPTransitionRewards(int rewardIndex, IOUtils.TransitionRewardConsumer<Value> storeReward, Evaluator<Value> eval) throws PrismException;
 
 	// Defaults for a single variable name when none is specified
 

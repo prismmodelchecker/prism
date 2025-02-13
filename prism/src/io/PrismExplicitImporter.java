@@ -49,6 +49,7 @@ import csv.CsvFormatException;
 import csv.CsvReader;
 import explicit.DTMCSimple;
 import explicit.ModelExplicit;
+import explicit.NondetModel;
 import explicit.SuccessorsIterator;
 import param.BigRational;
 import parser.State;
@@ -980,7 +981,7 @@ public class PrismExplicitImporter extends ExplicitModelImporter
 	}
 
 	@Override
-	public <Value> void extractMDPTransitionRewards(int rewardIndex, IOUtils.TransitionStateRewardConsumer<Value> storeReward, Evaluator<Value> eval) throws PrismException
+	public <Value> void extractMDPTransitionRewards(int rewardIndex, IOUtils.TransitionRewardConsumer<Value> storeReward, Evaluator<Value> eval) throws PrismException
 	{
 		if (rewardIndex < transRewardsReaders.size()) {
 			RewardFile file = transRewardsReaders.get(rewardIndex);
@@ -1124,7 +1125,7 @@ public class PrismExplicitImporter extends ExplicitModelImporter
 		 * The rewards are assumed to be of type double.
 		 * @param storeReward Function to be called for each reward
 		 */
-		protected void extractMDPTransitionRewards(IOUtils.TransitionStateRewardConsumer<Double> storeReward) throws PrismException
+		protected void extractMDPTransitionRewards(IOUtils.TransitionRewardConsumer<Double> storeReward) throws PrismException
 		{
 			extractMDPTransitionRewards(storeReward, Evaluator.forDouble());
 		}
@@ -1135,13 +1136,17 @@ public class PrismExplicitImporter extends ExplicitModelImporter
 		 * @param storeReward Function to be called for each reward
 		 * @param eval Evaluator for Value objects
 		 */
-		protected <Value> void extractMDPTransitionRewards(IOUtils.TransitionStateRewardConsumer<Value> storeReward, Evaluator<Value> eval) throws PrismException
+		protected <Value> void extractMDPTransitionRewards(IOUtils.TransitionRewardConsumer<Value> storeReward, Evaluator<Value> eval) throws PrismException
 		{
 			int lineNum = 0;
 			try (BufferedReader in = new BufferedReader(new FileReader(file))) {
 				lineNum += skipCommentAndFirstLine(in);
 				BasicReader reader = BasicReader.wrap(in).normalizeLineEndings();
 				CsvReader csv = new CsvReader(reader, false, false, false, ' ', LF);
+				int count = 0;
+				int sLast = -1;
+				int iLast = -1;
+				Value vLast = null;
 				for (String[] record : csv) {
 					lineNum++;
 					if ("".equals(record[0])) {
@@ -1153,7 +1158,31 @@ public class PrismExplicitImporter extends ExplicitModelImporter
 					int i = checkChoiceIndex(Integer.parseInt(record[1]));
 					int s2 = checkStateIndex(Integer.parseInt(record[2]), modelStats.numStates);
 					Value v = checkValue(record[3], eval);
-					storeReward.accept(s, i, s2, v);
+					// Check that transition rewards for the same state/choice are the same
+					// (currently no support for state-choice-state rewards)
+					if (s == sLast && i == iLast) {
+						if (!eval.equals(vLast, v)) {
+							throw new PrismException("mismatching transition rewards " + vLast + " and " + v + " in choice " + i + " of state " + s);
+						}
+					}
+					// If possible, check that were rewards on all successors for each choice
+					// (for speed, we just check that the right number were present)
+					// For now, don't bother to check that the reward is the same for all s2
+					// for a given state s and index i (so the first one in the file will define it)
+					else {
+						if (modelLookup != null && modelLookup instanceof NondetModel && sLast != -1 && count != ((NondetModel<?>) modelLookup).getNumTransitions(sLast, iLast)) {
+							throw new PrismException("wrong number of transition rewards in choice " + iLast + " of state " + sLast);
+						}
+						sLast = s;
+						iLast = i;
+						vLast = v;
+						count = 0;
+					}
+					// Only store the reward for the first instance of state-choice (s,i)
+					if (count == 0) {
+						storeReward.accept(s, i, v);
+					}
+					count++;
 				}
 			} catch (IOException e) {
 				throw new PrismException("File I/O error reading from \"" + file + "\"");
