@@ -44,6 +44,40 @@ import java.util.function.Consumer;
  */
 public abstract class ExplicitModelImporter
 {
+	// Importer config or cached information
+
+	/** How transition rewards are indexed */
+	public enum TransitionRewardIndexing {
+		OFFSET, // Offset within rewards for state/choice
+		STATE // Index of successor state
+	};
+	protected TransitionRewardIndexing transitionRewardIndexing = TransitionRewardIndexing.OFFSET;
+
+	/**
+	 * Specify how transition rewards should be supplied when extracted.
+	 */
+	public void setTransitionRewardIndexing(TransitionRewardIndexing transitionRewardIndexing)
+	{
+		this.transitionRewardIndexing = transitionRewardIndexing;
+	}
+
+	/**
+	 * Access provide to a model (usually constructed earlier using this importer)
+	 * which can be looked up to identify transition info (usually for extracting rewards).
+	 */
+	protected explicit.Model modelLookup;
+
+	/**
+	 * Provide access to a model (usually constructed earlier using this importer)
+	 * which can be looked up to identify transition info (usually for extracting rewards).
+	 */
+	public void setModel(explicit.Model modelLookup)
+	{
+		this.modelLookup = modelLookup;
+	}
+
+	// Methods to be implemented by an importer
+
 	/**
 	 * Does this importer provide info about state definitions?
 	 */
@@ -106,7 +140,7 @@ public abstract class ExplicitModelImporter
 	public abstract int computeMaxNumChoices() throws PrismException;
 
 	/**
-	 * Extract the (Markov chain) transitions from a .tra file.
+	 * Extract the (Markov chain) transitions.
 	 * The transition probabilities/rates are assumed to be of type double.
 	 * @param storeTransition Function to be called for each transition
 	 */
@@ -116,7 +150,7 @@ public abstract class ExplicitModelImporter
 	}
 
 	/**
-	 * Extract the (Markov chain) transitions from a .tra file.
+	 * Extract the (Markov chain) transitions.
 	 * The transition probabilities/rates are assumed to be of type Value.
 	 * @param storeTransition Function to be called for each transition
 	 * @param eval Evaluator for Value objects
@@ -124,7 +158,7 @@ public abstract class ExplicitModelImporter
 	public abstract <Value> void extractMCTransitions(IOUtils.MCTransitionConsumer<Value> storeTransition, Evaluator<Value> eval) throws PrismException;
 
 	/**
-	 * Extract the (Markov decision process) transitions from a .tra file.
+	 * Extract the (Markov decision process) transitions.
 	 * The transition probabilities/rates are assumed to be of type double.
 	 * @param storeTransition Function to be called for each transition
 	 */
@@ -134,7 +168,7 @@ public abstract class ExplicitModelImporter
 	}
 
 	/**
-	 * Extract the (Markov decision process) transitions from a .tra file.
+	 * Extract the (Markov decision process) transitions.
 	 * The transition probabilities/rates are assumed to be of type Value.
 	 * @param storeTransition Function to be called for each transition
 	 * @param eval Evaluator for Value objects
@@ -142,7 +176,7 @@ public abstract class ExplicitModelImporter
 	public abstract <Value> void extractMDPTransitions(IOUtils.MDPTransitionConsumer<Value> storeTransition, Evaluator<Value> eval) throws PrismException;
 
 	/**
-	 * Extract the (labelled transition system) transitions from a .tra file.
+	 * Extract the (labelled transition system) transitions.
 	 * @param storeTransition Function to be called for each transition
 	 */
 	public abstract void extractLTSTransitions(IOUtils.LTSTransitionConsumer storeTransition) throws PrismException;
@@ -179,7 +213,10 @@ public abstract class ExplicitModelImporter
 
 	/**
 	 * Extract the (Markov chain) transition rewards for a given reward structure index.
-	 * The transition probabilities/rates are assumed to be of type double.
+	 * These are supplied as tuples (s,i,v) where s is the (source) state and v is the reward value.
+	 * The index i is either the offset within the state or the index of the successor state,
+	 * depending on what has been specified with {@link #setTransitionRewardIndexing(TransitionRewardIndexing)}.
+	 * The reward values are assumed to be of type double.
 	 * @param rewardIndex Index of reward structure to extract (0-indexed)
 	 * @param storeReward Function to be called for each reward
 	 */
@@ -190,7 +227,10 @@ public abstract class ExplicitModelImporter
 
 	/**
 	 * Extract the (Markov chain) transition rewards for a given reward structure index.
-	 * The transition probabilities/rates are assumed to be of type Value.
+	 * These are supplied as tuples (s,i,v) where s is the (source) state and v is the reward value.
+	 * The index i is either the offset within the state or the index of the successor state,
+	 * depending on what has been specified with {@link #setTransitionRewardIndexing(TransitionRewardIndexing)}.
+	 * The reward values are assumed to be of type Value.
 	 * @param rewardIndex Index of reward structure to extract (0-indexed)
 	 * @param storeReward Function to be called for each reward
 	 * @param eval Evaluator for Value objects
@@ -199,7 +239,9 @@ public abstract class ExplicitModelImporter
 
 	/**
 	 * Extract the (Markov decision process) transition rewards for a given reward structure index.
-	 * The transition probabilities/rates are assumed to be of type double.
+	 * These are supplied as tuples (s,i,s2,v) where s is the (source) state,
+	 * i is the choice index and v is the reward value.
+	 * The reward values are assumed to be of type double.
 	 * @param rewardIndex Index of reward structure to extract (0-indexed)
 	 * @param storeReward Function to be called for each reward
 	 */
@@ -210,7 +252,9 @@ public abstract class ExplicitModelImporter
 
 	/**
 	 * Extract the (Markov decision process) transition rewards for a given reward structure index.
-	 * The transition probabilities/rates are assumed to be of type Value.
+	 * These are supplied as tuples (s,i,s2,v) where s is the (source) state,
+	 * i is the choice index and v is the reward value.
+	 * The reward values are assumed to be of type Value.
 	 * @param rewardIndex Index of reward structure to extract (0-indexed)
 	 * @param storeReward Function to be called for each reward
 	 * @param eval Evaluator for Value objects

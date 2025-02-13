@@ -100,8 +100,18 @@ public class IOUtils
 	 * Functional interface for a consumer accepting transition-successor-state rewards (s,i,s2,v),
 	 * i.e., source state s, index i, target state s2, value v.
 	 */
+	// TODO REMOVE
 	@FunctionalInterface
 	public interface TransitionStateRewardConsumer<V> {
 		void accept(int s, int i, int s2, V v) throws PrismException;
+	}
+
+	/**
+	 * Functional interface for a consumer accepting transition-successor-state rewards (s,i,j,v),
+	 * i.e., source state s, index one i, index two j, target state s2, value v.
+	 */
+	@FunctionalInterface
+	public interface TransitionSuccRewardConsumer<V> {
+		void accept(int s, int i, int j, V v) throws PrismException;
 	}
 }

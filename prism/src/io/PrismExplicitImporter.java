@@ -47,6 +47,9 @@ import java.util.stream.Collectors;
 import csv.BasicReader;
 import csv.CsvFormatException;
 import csv.CsvReader;
+import explicit.DTMCSimple;
+import explicit.ModelExplicit;
+import explicit.SuccessorsIterator;
 import param.BigRational;
 import parser.State;
 import parser.ast.DeclarationBool;
@@ -963,7 +966,7 @@ public class PrismExplicitImporter extends ExplicitModelImporter
 	{
 		if (rewardIndex < stateRewardsReaders.size()) {
 			RewardFile file = stateRewardsReaders.get(rewardIndex);
-			file.extractStateRewards(storeReward, eval, modelStats.numStates);
+			file.extractStateRewards(storeReward, eval);
 		}
 	}
 
@@ -972,7 +975,7 @@ public class PrismExplicitImporter extends ExplicitModelImporter
 	{
 		if (rewardIndex < transRewardsReaders.size()) {
 			RewardFile file = transRewardsReaders.get(rewardIndex);
-			file.extractMCTransitionRewards(storeReward, eval, modelStats.numStates);
+			file.extractMCTransitionRewards(storeReward, eval);
 		}
 	}
 
@@ -981,11 +984,11 @@ public class PrismExplicitImporter extends ExplicitModelImporter
 	{
 		if (rewardIndex < transRewardsReaders.size()) {
 			RewardFile file = transRewardsReaders.get(rewardIndex);
-			file.extractMDPTransitionRewards(storeReward, eval, modelStats.numStates);
+			file.extractMDPTransitionRewards(storeReward, eval);
 		}
 	}
 
-	public static class RewardFile
+	public class RewardFile
 	{
 		protected final File file;
 		protected final Optional<String> name;
@@ -1005,11 +1008,10 @@ public class PrismExplicitImporter extends ExplicitModelImporter
 		 * Extract the state rewards from a .srew file.
 		 * The rewards are assumed to be of type double.
 		 * @param storeReward Function to be called for each reward
-		 * @param numStates Number of states in the associated model
 		 */
-		protected void extractStateRewards(BiConsumer<Integer, Double> storeReward, int numStates) throws PrismException
+		protected void extractStateRewards(BiConsumer<Integer, Double> storeReward) throws PrismException
 		{
-			extractStateRewards(storeReward, Evaluator.forDouble(), numStates);
+			extractStateRewards(storeReward, Evaluator.forDouble());
 		}
 
 		/**
@@ -1017,9 +1019,8 @@ public class PrismExplicitImporter extends ExplicitModelImporter
 		 * The rewards are assumed to be of type Value.
 		 * @param storeReward Function to be called for each reward
 		 * @param eval Evaluator for Value objects
-		 * @param numStates Number of states in the associated model
 		 */
-		protected <Value> void extractStateRewards(BiConsumer<Integer, Value> storeReward, Evaluator<Value> eval, int numStates) throws PrismException
+		protected <Value> void extractStateRewards(BiConsumer<Integer, Value> storeReward, Evaluator<Value> eval) throws PrismException
 		{
 			int lineNum = 0;
 			try (BufferedReader in = new BufferedReader(new FileReader(file))) {
@@ -1033,7 +1034,7 @@ public class PrismExplicitImporter extends ExplicitModelImporter
 						continue;
 					}
 					checkLineSize(record, 2, 2);
-					int s = checkStateIndex(Integer.parseInt(record[0]), numStates);
+					int s = checkStateIndex(Integer.parseInt(record[0]), modelStats.numStates);
 					Value v = checkValue(record[1], eval);
 					storeReward.accept(s, v);
 				}
@@ -1049,11 +1050,10 @@ public class PrismExplicitImporter extends ExplicitModelImporter
 		 * Extract the (Markov chain) transition rewards from a .trew file.
 		 * The rewards are assumed to be of type double.
 		 * @param storeReward Function to be called for each reward
-		 * @param numStates Number of states in the associated model
 		 */
-		protected void extractMCTransitionRewards(IOUtils.TransitionRewardConsumer<Double> storeReward, int numStates) throws PrismException
+		protected void extractMCTransitionRewards(IOUtils.TransitionRewardConsumer<Double> storeReward) throws PrismException
 		{
-			extractMCTransitionRewards(storeReward, Evaluator.forDouble(), numStates);
+			extractMCTransitionRewards(storeReward, Evaluator.forDouble());
 		}
 
 		/**
@@ -1061,10 +1061,17 @@ public class PrismExplicitImporter extends ExplicitModelImporter
 		 * The rewards are assumed to be of type Value.
 		 * @param storeReward Function to be called for each reward
 		 * @param eval Evaluator for Value objects
-		 * @param numStates Number of states in the associated model
 		 */
-		protected <Value> void extractMCTransitionRewards(IOUtils.TransitionRewardConsumer<Value> storeReward, Evaluator<Value> eval, int numStates) throws PrismException
+		protected <Value> void extractMCTransitionRewards(IOUtils.TransitionRewardConsumer<Value> storeReward, Evaluator<Value> eval) throws PrismException
 		{
+			// Check that we have access to a model if needed for transition indexing
+			// If not, we build one via this importer
+			if (transitionRewardIndexing == TransitionRewardIndexing.OFFSET && modelLookup == null) {
+				modelLookup = new DTMCSimple<>();
+				((ModelExplicit) modelLookup).setEvaluator(eval);
+				((ModelExplicit) modelLookup).buildFromExplicitImport(PrismExplicitImporter.this);
+			}
+
 			int lineNum = 0;
 			try (BufferedReader in = new BufferedReader(new FileReader(file))) {
 				lineNum += skipCommentAndFirstLine(in);
@@ -1077,10 +1084,32 @@ public class PrismExplicitImporter extends ExplicitModelImporter
 						continue;
 					}
 					checkLineSize(record, 3, 3);
-					int s = checkStateIndex(Integer.parseInt(record[0]), numStates);
-					int s2 = checkStateIndex(Integer.parseInt(record[1]), numStates);
+					int s = checkStateIndex(Integer.parseInt(record[0]), modelStats.numStates);
+					int s2 = checkStateIndex(Integer.parseInt(record[1]), modelStats.numStates);
 					Value v = checkValue(record[2], eval);
-					storeReward.accept(s, s2, v);
+
+					switch (transitionRewardIndexing) {
+						case STATE:
+							storeReward.accept(s, s2, v);
+							break;
+						case OFFSET:
+							// Need to look up transition offset from successor state
+							SuccessorsIterator it = modelLookup.getSuccessors(s);
+							int i = 0;
+							while (it.hasNext()) {
+								if (it.nextInt() == s2) {
+									storeReward.accept(s, i, v);
+									break;
+								}
+								i++;
+							}
+							if (i > modelLookup.getNumTransitions(s)) {
+								throw new PrismException("No matching transition for transition reward " + s + "->" + s2);
+							}
+							break;
+						default:
+							throw new PrismException("Unknown transition reward indexing " + transitionRewardIndexing);
+					}
 				}
 			} catch (IOException e) {
 				throw new PrismException("File I/O error reading from \"" + file + "\"");
@@ -1094,11 +1123,10 @@ public class PrismExplicitImporter extends ExplicitModelImporter
 		 * Extract the (Markov decision process) transition rewards from a .trew file.
 		 * The rewards are assumed to be of type double.
 		 * @param storeReward Function to be called for each reward
-		 * @param numStates Number of states in the associated model
 		 */
-		protected void extractMDPTransitionRewards(IOUtils.TransitionStateRewardConsumer<Double> storeReward, int numStates) throws PrismException
+		protected void extractMDPTransitionRewards(IOUtils.TransitionStateRewardConsumer<Double> storeReward) throws PrismException
 		{
-			extractMDPTransitionRewards(storeReward, Evaluator.forDouble(), numStates);
+			extractMDPTransitionRewards(storeReward, Evaluator.forDouble());
 		}
 
 		/**
@@ -1106,9 +1134,8 @@ public class PrismExplicitImporter extends ExplicitModelImporter
 		 * The rewards are assumed to be of type Value.
 		 * @param storeReward Function to be called for each reward
 		 * @param eval Evaluator for Value objects
-		 * @param numStates Number of states in the associated model
 		 */
-		protected <Value> void extractMDPTransitionRewards(IOUtils.TransitionStateRewardConsumer<Value> storeReward, Evaluator<Value> eval, int numStates) throws PrismException
+		protected <Value> void extractMDPTransitionRewards(IOUtils.TransitionStateRewardConsumer<Value> storeReward, Evaluator<Value> eval) throws PrismException
 		{
 			int lineNum = 0;
 			try (BufferedReader in = new BufferedReader(new FileReader(file))) {
@@ -1122,9 +1149,9 @@ public class PrismExplicitImporter extends ExplicitModelImporter
 						continue;
 					}
 					checkLineSize(record, 4, 4);
-					int s = checkStateIndex(Integer.parseInt(record[0]), numStates);
+					int s = checkStateIndex(Integer.parseInt(record[0]), modelStats.numStates);
 					int i = checkChoiceIndex(Integer.parseInt(record[1]));
-					int s2 = checkStateIndex(Integer.parseInt(record[2]), numStates);
+					int s2 = checkStateIndex(Integer.parseInt(record[2]), modelStats.numStates);
 					Value v = checkValue(record[3], eval);
 					storeReward.accept(s, i, s2, v);
 				}

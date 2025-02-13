@@ -38,6 +38,7 @@ import jdd.JDDVars;
 import parser.Values;
 import parser.VarList;
 import parser.ast.DeclarationType;
+import prism.Evaluator;
 import prism.ModelInfo;
 import prism.ModelType;
 import prism.Prism;
@@ -121,14 +122,16 @@ public class ExplicitFiles2MTBDD
 	public Model build(ExplicitModelImporter importer) throws PrismException
 	{
 		this.importer = importer;
-		this.modelInfo = importer.getModelInfo();
+		modelInfo = importer.getModelInfo();
 		modelType = modelInfo.getModelType();
 		varList = modelInfo.createVarList();
 		numVars = varList.getNumVars();
-		this.numStates = importer.getNumStates();
+		numStates = importer.getNumStates();
 		modelVariables = new ModelVariablesDD();
-
 		rewardInfo = importer.getRewardInfo();
+
+		// Tell importer we need state-indexed transition rewards
+		importer.setTransitionRewardIndexing(ExplicitModelImporter.TransitionRewardIndexing.STATE);
 
 		// Build states list, if info is available
 		// (importer can handle case where it is unavailable, but we bypass this)
@@ -498,7 +501,7 @@ public class ExplicitFiles2MTBDD
 			transRewards[r] = JDD.Constant(0);
 			int finalR = r;
 			if (!modelType.nondeterministic()) {
-				importer.extractMCTransitionRewards(r, (s, s2, d) -> storeMCTransitionReward(finalR, s, s2, d));
+				importer.extractMCTransitionRewards(r, (s, s2, d) -> storeMCTransitionReward(finalR, s, s2, d), Evaluator.forDouble());
 			} else {
 				importer.extractMDPTransitionRewards(r, (s, i, s2, d) -> storeMDPTransitionReward(finalR, s, i, s2, d));
 			}

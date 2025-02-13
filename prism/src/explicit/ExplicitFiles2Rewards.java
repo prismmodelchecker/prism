@@ -71,6 +71,8 @@ public class ExplicitFiles2Rewards<Value> extends PrismComponent
 		this.importer = importer;
 		this.model = (Model<Value>) model;
 		this.eval = eval;
+		// Pass model to importer
+		this.importer.setModel(this.model);
 		// Initialise storage
 		rewards = new RewardsSimple[importer.getRewardInfo().getNumRewardStructs()];
 	}
@@ -160,17 +162,7 @@ public class ExplicitFiles2Rewards<Value> extends PrismComponent
 	 */
 	protected void storeMCTransitionReward(int r, int s, int s2, Value v)
 	{
-		// Find successor index for state s2 (from state s)
-		SuccessorsIterator it = model.getSuccessors(s);
-		int i = 0;
-		while (it.hasNext()) {
-			if (it.nextInt() == s2) {
-				rewards[r].setTransitionReward(s, i, v);
-				return;
-			}
-			i++;
-		}
-		// No matching transition found
+		rewards[r].setTransitionReward(s, s2, v);
 	}
 
 	/**
