@@ -759,6 +759,9 @@ public class PrismCL implements PrismModelListener
 
 		// no properties to check
 		if (propertiesFile == null) {
+			if (propertyIndices != null && !propertyIndices.isEmpty()) {
+				errorAndExit("There is not a property \"" + propertyIndices.get(0) + "\" to check");
+			}
 			numPropertiesToCheck = 0;
 		}
 		// unless specified, verify all properties
@@ -780,11 +783,11 @@ public class PrismCL implements PrismModelListener
 				} else if (o instanceof String) {
 					Property p = propertiesFile.getPropertyObjectByName((String) o);
 					if (p == null)
-						errorAndExit("There is not a property \"" + propertyIndices + "\" to check");
+						errorAndExit("There is not a property \"" + o + "\" to check");
 					numPropertiesToCheck += 1;
 					propertiesToCheck.add(p);
 				} else {
-					errorAndExit("There is not a property " + propertyIndices + " to check");
+					errorAndExit("There is not a property " + o + " to check");
 				}
 			}
 		}
