@@ -1841,7 +1841,7 @@ public class PrismSettings implements Observer
 		mainLog.println("-explicit (or -ex) ............. Use the explicit engine");
 		mainLog.println("-exact ......................... Perform exact (arbitrary precision) model checking");
 		mainLog.println("-ptamethod <name> .............. Specify PTA engine (games, digital, backwards) [default: games]");
-		mainLog.println("-transientmethod <name> ........ CTMC transient analysis methof (unif, fau) [default: unif]");
+		mainLog.println("-transientmethod <name> ........ CTMC transient analysis method (unif, fau) [default: unif]");
 		mainLog.println("-heuristic <mode> .............. Automatic choice of engines/settings (none, speed, memory) [default: none]");
 		mainLog.println();
 		mainLog.println("SOLUTION METHODS (LINEAR EQUATIONS):");
