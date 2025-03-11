@@ -45,7 +45,7 @@ import prism.PrismException;
 import prism.PrismLog;
 import prism.PrismNotSupportedException;
 import prism.ProgressDisplay;
-import prism.RewardGenerator;
+import prism.RewardInfo;
 import symbolic.model.Model;
 import symbolic.model.ModelSymbolic;
 import symbolic.model.ModelVariablesDD;
@@ -76,7 +76,7 @@ public class ExplicitFiles2MTBDD
 	private int statesArray[][] = null;
 
 	// Reward info
-	private RewardGenerator rewardInfo;
+	private RewardInfo rewardInfo;
 
 	// mtbdd stuff
 

@@ -29,7 +29,7 @@ package io;
 import prism.Evaluator;
 import prism.ModelInfo;
 import prism.PrismException;
-import prism.RewardGenerator;
+import prism.RewardInfo;
 
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
@@ -79,7 +79,7 @@ public interface ExplicitModelImporter
 	/**
 	 * Get info about the rewards.
 	 */
-	RewardGenerator<?> getRewardInfo() throws PrismException;
+	RewardInfo getRewardInfo() throws PrismException;
 
 	/**
 	 * Extract state definitions (variable values).

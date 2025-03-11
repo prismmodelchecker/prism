@@ -26,32 +26,29 @@
 
 package prism;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-
 import explicit.rewards.Rewards;
 import parser.State;
 import parser.ast.RewardStruct;
 
 /**
- * Interface for classes that provide details of rewards for a model.
- * This is a generic class where rewards are of type Value.
+ * Interface for classes that generate rewards for a model.
+ * This is a generic class where rewards are of type {@code Value}.
  * <br><br>
- * Firstly, this includes basic syntactic info: the number of reward structs and their names.
+ * Firstly, this includes basic syntactic info (see {@link RewardInfo}).
+ * In particular, this gives the number of reward structures and their names.
  * It is only necessary to implement {@link #getRewardStructNames()};
  * the others have default implementations that use this method as a basis.
  * <br><br>
  * Secondly it provides access to the rewards themselves.
  * Implementations of {@link RewardGenerator} can allow rewards to be queried in one or more ways:
- * by State object; by (integer) state index; syntactically by providing a RewardStruct;
- * or by directly providing a (explicit engine) Rewards object.
+ * by {@link State} object; by (integer) state index; syntactically by providing a {@link RewardStruct};
+ * or by directly providing a (explicit engine) {@link Rewards} object.
  * The method {@link RewardGenerator#isRewardLookupSupported(RewardLookup)} should return true or false accordingly.
  * <br><br>
  * Default implementations of all methods are provided which assume that rewards are
- * looked up by State object and there are no rewards defined (zero reward structs).
+ * looked up by {@link State} object and there are no rewards defined (zero reward structures).
  */
-public interface RewardGenerator<Value>
+public interface RewardGenerator<Value> extends RewardInfo
 {
 	/**
 	 * Mechanisms for querying rewards
@@ -69,92 +66,6 @@ public interface RewardGenerator<Value>
 	public default Evaluator<Value> getRewardEvaluator()
 	{
 		return (Evaluator<Value>) Evaluator.forDouble();
-	}
-	
-	/**
-	 * Get a list of the names of the reward structures.
-	 * Unnamed reward structures are allowed and should use name "".
-	 * Reward names should be distinct (except if equal to "").
-	 */
-	public default List<String> getRewardStructNames()
-	{
-		// No reward structures by default
-		return Collections.emptyList();
-	}
-
-	/**
-	 * Get a list of the strings needed to reference the reward structures,
-	 * i.e., "r" for named ones and k for unnamed ones.
-	 */
-	public default List<String> getRewardStructReferences()
-	{
-		List<String> refs = new ArrayList<>();
-		int numRewards = getNumRewardStructs();
-		for (int r = 0; r < numRewards; r++) {
-			String name = getRewardStructName(r);
-			if ("".equals(name) || name == null) {
-				refs.add(Integer.toString(r + 1));
-			} else {
-				refs.add("\"" + name + "\"");
-			}
-		}
-		return refs;
-	}
-
-	/**
-	 * Get the number of reward structures.
-	 */
-	public default int getNumRewardStructs()
-	{
-		// Default implementation just extracts from getRewardStructNames() 
-		return getRewardStructNames().size();
-	}
-	
-	/**
-	 * Look up the index of a reward structure by name.
-	 * (indexed from 0, not from 1 like at the user (property language) level).
-	 * Returns -1 if there is no such reward structure.
-	 */
-	public default int getRewardStructIndex(String name)
-	{
-		// Default implementation just extracts from getRewardStructNames() 
-		return getRewardStructNames().indexOf(name);
-	}
-
-	/**
-	 * Get the name of the {@code i}th reward structure.
-	 * {@code i} should always be between 0 and getNumVars() - 1. 
-	 */
-	public default String getRewardStructName(int i)
-	{
-		// Default implementation just extracts from getRewardStructNames() 
-		return getRewardStructNames().get(i);
-	}
-	
-	/**
-	 * Returns true if the {@code r}th reward structure defines state rewards.
-	 * ({@code r} is indexed from 0, not from 1 like at the user (property language) level).
-	 * If this returns false, the model checker is allowed to ignore them (which may be more efficient).
-	 * If using an algorithm or implementation that does not support state rewards,
-	 * you may need to return false here (as well as not defining state rewards).
-	 */
-	public default boolean rewardStructHasStateRewards(int r)
-	{
-		// By default, assume that any reward structures that do exist may have state rewards
-		return true;
-	}
-	
-	/**
-	 * Returns true if the {@code r}th reward structure defines transition rewards.
-	 * ({@code r} is indexed from 0, not from 1 like at the user (property language) level).
-	 * If this returns false, the model checker is allowed to ignore them (which may be more efficient).
-	 * If using an algorithm or implementation that does not support transition rewards,
-	 * you may need to return false here (as well as not defining transition rewards).
-	 */
-	public default boolean rewardStructHasTransitionRewards(int r)
-	{
-		// By default, assume that any reward structures that do exist may have transition rewards
-		return true;
 	}
 	
 	/**

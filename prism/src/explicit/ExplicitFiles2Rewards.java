@@ -36,6 +36,7 @@ import prism.Evaluator;
 import prism.PrismComponent;
 import prism.PrismException;
 import prism.RewardGenerator;
+import prism.RewardInfo;
 
 import java.util.List;
 
@@ -46,8 +47,8 @@ public class ExplicitFiles2Rewards<Value> extends PrismComponent implements Rewa
 {
 	// Importer from files
 	protected ExplicitModelImporter importer;
-	// Reward info (stored as RewardGenerator) from importer
-	protected RewardGenerator<?> rewardInfo;
+	// Reward info (stored as RewardInfo) from importer
+	protected RewardInfo rewardInfo;
 	// Model that rewards are for
 	protected Model<Value> model;
 	// Evaluator for reward values

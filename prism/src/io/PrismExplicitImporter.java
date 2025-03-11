@@ -65,7 +65,7 @@ import prism.ModelType;
 import prism.Prism;
 import prism.PrismException;
 import prism.PrismLangException;
-import prism.RewardGenerator;
+import prism.RewardInfo;
 
 import static csv.BasicReader.LF;
 
@@ -103,8 +103,8 @@ public class PrismExplicitImporter implements ExplicitModelImporter
 	// Mapping from label indices in file to (non-built-in) label indices (also: -1=init, -2=deadlock)
 	private List<Integer> labelMap;
 
-	// Reward info extracted from files and then stored in a RewardGenerator object
-	private RewardGenerator<?> rewardInfo;
+	// Reward info extracted from files and then stored in a RewardInfo object
+	private RewardInfo rewardInfo;
 
 	// File(s) to read in rewards from
 	private List<PrismExplicitImporter.RewardFile> stateRewardsReaders = new ArrayList<>();
@@ -259,7 +259,7 @@ public class PrismExplicitImporter implements ExplicitModelImporter
 	}
 
 	@Override
-	public RewardGenerator<?> getRewardInfo() throws PrismException
+	public RewardInfo getRewardInfo() throws PrismException
 	{
 		// Construct lazily, as needed
 		if (rewardInfo == null) {
@@ -897,7 +897,7 @@ public class PrismExplicitImporter implements ExplicitModelImporter
 	 */
 	private void buildRewardInfo() throws PrismException
 	{
-		rewardInfo = new RewardGenerator<>()
+		rewardInfo = new RewardInfo()
 		{
 			@Override
 			public List<String> getRewardStructNames()
