@@ -28,79 +28,117 @@
 package explicit;
 
 import explicit.rewards.Rewards;
+import explicit.rewards.Rewards2RewardGenerator;
 import explicit.rewards.RewardsSimple;
 import io.ExplicitModelImporter;
 import io.IOUtils;
-import parser.State;
 import prism.Evaluator;
 import prism.PrismComponent;
 import prism.PrismException;
 import prism.RewardGenerator;
-import prism.RewardInfo;
-
-import java.util.List;
 
 /**
- * Class to import rewards from explicit files and expose them via a RewardGenerator.
+ * Class to import rewards from explicit files and expose them via a {@link RewardGenerator}.
  */
-public class ExplicitFiles2Rewards<Value> extends PrismComponent implements RewardGenerator<Value>
+public class ExplicitFiles2Rewards<Value> extends PrismComponent
 {
 	// Importer from files
 	protected ExplicitModelImporter importer;
-	// Reward info (stored as RewardInfo) from importer
-	protected RewardInfo rewardInfo;
 	// Model that rewards are for
 	protected Model<Value> model;
 	// Evaluator for reward values
 	protected Evaluator<Value> eval;
-	// State list (optionally)
-	protected List<State> statesList;
-
 	// Local reward storage
 	protected RewardsSimple<Value>[] rewards;
 
 	/**
-	 * Construct a ExplicitFiles2Rewards object for a specified importer.
+	 * Construct a ExplicitFiles2Rewards object for a specified importer/model.
 	 * The rewards are actually imported/stored later, on demand.
+	 * The evaluator for rewards is extracted from the model.
 	 */
-	public ExplicitFiles2Rewards(PrismComponent parent, ExplicitModelImporter importer) throws PrismException
+	public ExplicitFiles2Rewards(PrismComponent parent, ExplicitModelImporter importer, Model<Value> model) throws PrismException
 	{
-		this(parent, importer, (Evaluator<Value>) Evaluator.forDouble());
+		this(parent, importer, model, model.getEvaluator());
 	}
 
 	/**
 	 * Construct a ExplicitFiles2Rewards object for a specified importer.
 	 * The rewards are actually imported/stored later, on demand.
 	 */
-	public ExplicitFiles2Rewards(PrismComponent parent, ExplicitModelImporter importer, Evaluator<Value> eval) throws PrismException
+	public ExplicitFiles2Rewards(PrismComponent parent, ExplicitModelImporter importer, Model<?> model, Evaluator<Value> eval) throws PrismException
 	{
 		super(parent);
 		this.importer = importer;
+		this.model = (Model<Value>) model;
 		this.eval = eval;
-		rewardInfo = importer.getRewardInfo();
 		// Initialise storage
-		rewards = new RewardsSimple[rewardInfo.getNumRewardStructs()];
+		rewards = new RewardsSimple[importer.getRewardInfo().getNumRewardStructs()];
 	}
 
 	/**
-	 * Provide access to the model for which the rewards are to be defined.
-	 * Needed to look up information when storing transition rewards.
-	 * The model's attached states list is also stored.
+	 * Get access to the rewards, as a {@link RewardGenerator}.
 	 */
-	public void setModel(Model<Value> model)
+	public RewardGenerator<Value> getRewardGenerator() throws PrismException
 	{
-		this.model = model;
-		setStatesList(model.getStatesList());
+		return new Rewards2RewardGenerator<Value>(importer.getRewardInfo(), model, eval)
+		{
+			@Override
+			public Rewards<Value> getTheRewardObject(int r) throws PrismException
+			{
+				return ExplicitFiles2Rewards.this.getTheRewardObject(r);
+			}
+		};
 	}
 
 	/**
-	 * Optionally, provide a list of model states,
-	 * so that rewards can be looked up by State object, as well as state index.
+	 * Provide the rewards when requested, importing them from the explicit files.
 	 */
-	public void setStatesList(List<State> statesList)
+	protected Rewards<Value> getTheRewardObject(int r) throws PrismException
 	{
-		this.statesList = statesList;
+		// Lazily load rewards from file when requested
+		if (rewards[r] == null) {
+			rewards[r] = new RewardsSimple<>(importer.getNumStates());
+			rewards[r].setEvaluator(eval);
+			importer.extractStateRewards(r, (i, v) -> storeStateReward(r, i, v), eval);
+			if (!model.getModelType().nondeterministic()) {
+				importer.extractMCTransitionRewards(r, (s, s2, v) -> storeMCTransitionReward(r, s, s2, v), eval);
+			} else {
+				importer.extractMDPTransitionRewards(r,
+						new IOUtils.TransitionStateRewardConsumer<Value>() {
+							int sLast = -1;
+							int iLast = -1;
+							Value vLast = null;
+							int count = 0;
+							public void accept(int s, int i, int s2, Value v) throws PrismException
+							{
+								count++;
+								// Check that transition rewards for the same state/choice are the same
+								// (currently no support for state-choice-state rewards)
+								if (s == sLast && i == iLast) {
+									if (!eval.equals(vLast, v)) {
+										throw new PrismException("mismatching transition rewards " + vLast + " and " + v + " in choice " + i + " of state " + s);
+									}
+								}
+								// And check that were rewards on all successors for each choice
+								// (for speed, we just check that the right number were present)
+								else {
+									if (sLast != -1 && count != ((NondetModel<?>) model).getNumTransitions(sLast, iLast)) {
+										throw new PrismException("wrong number of transition rewards in choice " + iLast + " of state " + sLast);
+									}
+									sLast = s;
+									iLast = i;
+									vLast = v;
+									count = 0;
+								}
+								storeMDPTransitionReward(r, s, i, s2, v);
+							}
+						}, eval);
+			}
+		}
+		return rewards[r];
 	}
+
+	// Methods to create local reward storage
 
 	/**
 	 * Store a state reward.
@@ -148,108 +186,5 @@ public class ExplicitFiles2Rewards<Value> extends PrismComponent implements Rewa
 		// For now, don't bother to check that the reward is the same for all s2
 		// for a given state s and index i (so the last one in the file will define it)
 		rewards[r].setTransitionReward(s, i, v);
-	}
-
-	// Methods to implement RewardGenerator
-
-	@Override
-	public Evaluator<Value> getRewardEvaluator()
-	{
-		return eval;
-	}
-
-	@Override
-	public List<String> getRewardStructNames()
-	{
-		return rewardInfo.getRewardStructNames();
-	}
-
-	@Override
-	public int getNumRewardStructs()
-	{
-		return rewardInfo.getNumRewardStructs();
-	}
-
-	@Override
-	public boolean rewardStructHasTransitionRewards(int r)
-	{
-		return rewardInfo.rewardStructHasTransitionRewards(r);
-	}
-
-	@Override
-	public boolean isRewardLookupSupported(RewardLookup lookup)
-	{
-		return (lookup == RewardLookup.BY_STATE_INDEX) || (lookup == RewardLookup.BY_STATE && statesList != null) || (lookup == RewardLookup.BY_REWARD_OBJECT);
-	}
-
-	@Override
-	public Value getStateReward(int r, State state) throws PrismException
-	{
-		if (statesList == null) {
-			throw new PrismException("Reward lookup by State not possible since state list is missing");
-		}
-		int s = statesList.indexOf(state);
-		if (s == -1) {
-			throw new PrismException("Unknown state " + state);
-		}
-		return getStateReward(r, s);
-	}
-
-	@Override
-	public Value getStateReward(int r, int s) throws PrismException
-	{
-		return getRewardObject(r).getStateReward(s);
-	}
-
-	@Override
-	public Rewards<Value> getRewardObject(int r) throws PrismException
-	{
-		// Lazily load rewards from file when requested
-		if (rewards[r] == null) {
-			rewards[r] = new RewardsSimple<>(importer.getNumStates());
-			rewards[r].setEvaluator(eval);
-			importer.extractStateRewards(r, (i, v) -> storeStateReward(r, i, v), eval);
-			if (!model.getModelType().nondeterministic()) {
-				importer.extractMCTransitionRewards(r, (s, s2, v) -> storeMCTransitionReward(r, s, s2, v), eval);
-			} else {
-				importer.extractMDPTransitionRewards(r,
-					new IOUtils.TransitionStateRewardConsumer<Value>() {
-						int sLast = -1;
-						int iLast = -1;
-						Value vLast = null;
-						int count = 0;
-						public void accept(int s, int i, int s2, Value v) throws PrismException
-						{
-							count++;
-							// Check that transition rewards for the same state/choice are the same
-							// (currently no support for state-choice-state rewards)
-							if (s == sLast && i == iLast) {
-								if (!eval.equals(vLast, v)) {
-									throw new PrismException("mismatching transition rewards " + vLast + " and " + v + " in choice " + i + " of state " + s);
-								}
-							}
-							// And check that were rewards on all successors for each choice
-							// (for speed, we just check that the right number were present)
-							else {
-								if (sLast != -1 && count != ((NondetModel<?>) model).getNumTransitions(sLast, iLast)) {
-									throw new PrismException("wrong number of transition rewards in choice " + iLast + " of state " + sLast);
-								}
-								sLast = s;
-								iLast = i;
-								vLast = v;
-								count = 0;
-							}
-							storeMDPTransitionReward(r, s, i, s2, v);
-						}
-					}, eval);
-			}
-		}
-		return rewards[r];
-	}
-
-	@Override
-	public Model<Value> getRewardObjectModel() throws PrismException
-	{
-		return model;
 	}
 }
