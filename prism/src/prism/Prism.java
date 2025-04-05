@@ -1688,7 +1688,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 		if (modelGen == null) {
 			clearModel();
 		}
-		mainLog.println("Loading model generator " + getModelGenerator().getClass().getName() + "...");
+		mainLog.println("Loading model generator " +  modelGen.getClass().getName() + "...");
 		// Update model info
 		setModelSource(ModelSource.MODEL_GENERATOR);
 		setModelType(modelGen.getModelType());
