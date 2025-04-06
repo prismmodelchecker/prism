@@ -1,20 +1,20 @@
 This file contains details of the changes in each new version of PRISM.
 
 -----------------------------------------------------------------------------
-Changes since last release (up to ed80e0ed7)
+Changes since last release (up to f25c788dd)
 -----------------------------------------------------------------------------
 
 * Explicit engine improvements
   - support for transition rewards in Markov chains
   - storage (and export) of actions for Markov chains
 
-* Export functionality (explicit engine)
-  - export of exact (arbitrary precision) models
+* Model export functionality (explicit engine)
+  - export of exact and parametric models
   - preliminary DRN (Storm) output
   - actions=true/false option
   - remove old options (MRMC format, unordered)
 
-* Import functionality (from explicit files)
+* Model import functionality (from explicit files)
   - import of transition rewards
   - import for exact mode, LTSs
   - import progress display (symbolic engine)
@@ -23,7 +23,13 @@ Changes since last release (up to ed80e0ed7)
   - new power operator a^b, equivalent to pow(a,b)
   - fix: implication (=>) is right-associative
 
-* Simulator can take a random seed (API only)
+* New/improved functionality
+  - simplified/updated LTL-to-automaton scripts
+  - simulator can take a random seed (API only)
+  - exact model checking supported from GUI
+  - optimal strategy synthesis for Rmax=? [ C ] (explicit)
+
+* Various bugfixes
 
 * Development and code-level changes
   - prism.Prism API: new model export methods
@@ -36,8 +42,8 @@ Changes since last release (up to ed80e0ed7)
   - parametric engine refactored to use explicit models/rewards
   - symbolic code rearranged (new symbolic package)
   - symbolic model storage refactored, simplified, documented
-
-* Various bugfixes
+  - extension of strategy classes, especially for induced models
+  - prism-auto: --errors-only switch
 
 * [More minor development and code-level changes]
 
