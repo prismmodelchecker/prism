@@ -1885,10 +1885,8 @@ public class PrismCL implements PrismModelListener
 		String optionsString = halves[1];
 		// Split files into basename/extensions
 		int i = filesString.lastIndexOf('.');
-		if (i == -1)
-			throw new PrismException("No file name extension(s) in file(s) \"" + filesString + "\" for -importmodel");
-		String basename = filesString.substring(0, i);
-		String extList = filesString.substring(i + 1);
+		String basename = i == -1 ? filesString : filesString.substring(0, i);
+		String extList = i == -1 ? "" : filesString.substring(i + 1);
 		String exts[] = extList.split(",");
 		// Process file extensions
 		importModelWarning = null;
@@ -1913,9 +1911,10 @@ public class PrismCL implements PrismModelListener
 			} else if (ext.equals("trew")) {
 				addTransitionRewardImports(basename, true);
 			}
-			// Unknown extension
+			// For any other extension (including none/unknown), default to explicit (.tra)
 			else {
-				throw new PrismException("Unknown extension \"" + ext + "\" for -importmodel switch");
+				modelFilename = basename + (ext.isEmpty() ? "" : "." + ext);
+				modelImportSources.add(new ModelImportSource(ModelExportTask.ModelExportEntity.MODEL, ModelExportFormat.EXPLICIT, new File(modelFilename)));
 			}
 		}
 		// No options supported currently
