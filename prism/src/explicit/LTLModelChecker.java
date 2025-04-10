@@ -669,7 +669,7 @@ public class LTLModelChecker extends PrismComponent
 					if (modelType != ModelType.IMDP) {
 						prodDistr = new Distribution<>(model.getEvaluator());
 					} else {
-						prodDistrIntv = new Distribution<>(((IMDP) model).getIntervalEvaluator());
+						prodDistrIntv = new Distribution<>(((IMDP<Value>) model).getIntervalEvaluator());
 					}
 				}
 

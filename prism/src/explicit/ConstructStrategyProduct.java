@@ -35,6 +35,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
+import common.Interval;
 import parser.State;
 import parser.VarList;
 import parser.ast.Declaration;
@@ -110,18 +111,20 @@ public class ConstructStrategyProduct
 
 		// Attach evaluator and variable info
 		((ModelExplicit<Value>) prodModel).setEvaluator(model.getEvaluator());
+		if (modelType == ModelType.IMDP) {
+			switch (productModelType) {
+				case IDTMC:
+					((IDTMCSimple<Value>) prodModel).setEvaluator(((IMDP<Value>) model).getIntervalEvaluator());
+					break;
+				case IMDP:
+					((IMDPSimple<Value>) prodModel).setIntervalEvaluator(((IMDP<Value>) model).getIntervalEvaluator());
+					break;
+			}
+		}
 		((ModelExplicit<Value>) prodModel).setVarList(newVarList);
 
 		// Now do the actual product model construction
-		// This is a separate method so that we can alter the model type if needed,
-		// e.g. construct an IMDP<Value> product as one over an MDP<Interval<Value>>
-		switch (modelType) {
-		case IMDP:
-			productModelType = (mode == StrategyExportOptions.InducedModelMode.REDUCE) ? ModelType.DTMC : ModelType.MDP;
-			return doConstructProductModel(ModelType.MDP, productModelType, prodModel, model, strat);
-		default:
-			return doConstructProductModel(modelType, productModelType, prodModel, model, strat);
-		}
+		return doConstructProductModel(modelType, productModelType, prodModel, model, strat);
 	}
 	
 	/**
@@ -231,8 +234,13 @@ public class ConstructStrategyProduct
 			// To build nondeterministic models, store new transitions in a distribution
 			Object inducedAction = null;
 			Distribution<Value> prodDistr = null;
+			Distribution<Interval<Value>> prodDistrIntv = null;
 			if (productModelType.nondeterministic()) {
-				prodDistr = new Distribution<>(model.getEvaluator());
+				if (modelType != ModelType.IMDP) {
+					prodDistr = new Distribution<>(model.getEvaluator());
+				} else {
+					prodDistrIntv = new Distribution<>(((IMDP<Value>) model).getIntervalEvaluator());
+				}
 			}
 			// Go through choices from state s_1 in original model
 			for (int j = 0; j < numChoices; j++) {
@@ -250,7 +258,8 @@ public class ConstructStrategyProduct
 					inducedAction = strat.getInducedAction(decision, act);
 				}
 				// Go through transitions of original model
-				Iterator<Map.Entry<Integer, Value>> iter;
+				Iterator<Map.Entry<Integer, Value>> iter = null;
+				Iterator<Map.Entry<Integer, Interval<Value>>> iterIntv = null;
 				switch (modelType) {
 				case MDP:
 					iter = ((MDP<Value>) model).getTransitionsIterator(s_1, j);
@@ -258,32 +267,58 @@ public class ConstructStrategyProduct
 				case POMDP:
 					iter = ((POMDP<Value>) model).getTransitionsIterator(s_1, j);
 					break;
+				case IMDP:
+					iterIntv = ((IMDP<Value>) model).getIntervalTransitionsIterator(s_1, j);
+					break;
 				case STPG:
 					iter = ((STPG<Value>) model).getTransitionsIterator(s_1, j);
 					break;
 				default:
 					throw new PrismNotSupportedException("Product construction not implemented for " + modelType + "s");
 				}
-				while (iter.hasNext()) {
-					Map.Entry<Integer, Value> e = iter.next();
-					int s_2 = e.getKey();
-					Value prob = e.getValue();
-					if (strat.isRandomised()) {
-						prob = model.getEvaluator().multiply(prob, stratChoiceProb);
-					}
-					int map_2 = newStateMap.apply(false, q_1, act, s_2);
+				if (modelType != ModelType.IMDP) {
+					while (iter.hasNext()) {
+						Map.Entry<Integer, Value> e = iter.next();
+						int s_2 = e.getKey();
+						Value prob = e.getValue();
+						if (strat.isRandomised()) {
+							prob = model.getEvaluator().multiply(prob, stratChoiceProb);
+						}
+						int map_2 = newStateMap.apply(false, q_1, act, s_2);
 
-					switch (productModelType) {
-					case DTMC:
-						((DTMCSimple<Value>) prodModel).addToProbability(map_1, map_2, prob, act);
-						break;
-					case MDP:
-					case POMDP:
-					case STPG:
-						prodDistr.add(map_2, prob);
-						break;
-					default:
-						throw new PrismNotSupportedException("Product construction not implemented for " + modelType + "s");
+						switch (productModelType) {
+							case DTMC:
+								((DTMCSimple<Value>) prodModel).addToProbability(map_1, map_2, prob, act);
+								break;
+							case MDP:
+							case POMDP:
+							case STPG:
+								prodDistr.add(map_2, prob);
+								break;
+							default:
+								throw new PrismNotSupportedException("Product construction not implemented for " + modelType + "s");
+						}
+					}
+				} else {
+					while (iterIntv.hasNext()) {
+						Map.Entry<Integer, Interval<Value>> e = iterIntv.next();
+						int s_2 = e.getKey();
+						Interval<Value> prob = e.getValue();
+						if (strat.isRandomised()) {
+							prob = ((IMDP<Value>) model).getIntervalEvaluator().multiply(prob, new Interval<>(stratChoiceProb, stratChoiceProb));
+						}
+						int map_2 = newStateMap.apply(false, q_1, act, s_2);
+						// Add transition to model
+						switch (productModelType) {
+							case IDTMC:
+								((IDTMCSimple<Value>) prodModel).addToProbability(map_1, map_2, prob, act);
+								break;
+							case IMDP:
+								prodDistrIntv.add(map_2, prob);
+								break;
+							default:
+								throw new PrismNotSupportedException("Induced model construction not implemented for " + modelType + "s");
+						}
 					}
 				}
 			}
@@ -292,6 +327,9 @@ public class ConstructStrategyProduct
 				switch (productModelType) {
 				case MDP:
 					((MDPSimple<Value>) prodModel).addActionLabelledChoice(map_1, prodDistr, inducedAction);
+					break;
+				case IMDP:
+					((IMDPSimple<Value>) prodModel).addActionLabelledChoice(map_1, prodDistrIntv, inducedAction);
 					break;
 				case POMDP:
 					((POMDPSimple<Value>) prodModel).addActionLabelledChoice(map_1, prodDistr, inducedAction);
