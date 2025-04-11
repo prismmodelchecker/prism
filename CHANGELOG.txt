@@ -1,18 +1,19 @@
 This file contains details of the changes in each new version of PRISM.
 
 -----------------------------------------------------------------------------
-Changes since last release (up to f25c788dd)
+Changes since last release (up to 4fc1eaed3)
 -----------------------------------------------------------------------------
 
 * Explicit engine improvements
   - support for transition rewards in Markov chains
   - storage (and export) of actions for Markov chains
 
-* Model export functionality (explicit engine)
+* Model export functionality
   - export of exact and parametric models
   - preliminary DRN (Storm) output
-  - actions=true/false option
-  - remove old options (MRMC format, unordered)
+  - actions=true/false option (explicit engine)
+  - multiple -exportmodel allowed and format=x option
+  - remove old options (MRMC format, unordered, spy)
 
 * Model import functionality (from explicit files)
   - import of transition rewards
@@ -32,10 +33,11 @@ Changes since last release (up to f25c788dd)
 * Various bugfixes
 
 * Development and code-level changes
-  - prism.Prism API: new model export methods
+  - prism.Prism API: new/updated model export methods
   - prism.Prism API: remove some old deprecated methods
   - prism.Prism: refactored storage/access for model info
   - prism.Prism: integration of exact model building/checking
+  - improved access to actions and their indices in models
   - redesign/refactoring of explicit engine reward classes
   - refactoring of explicit engine model import/export code
     (centralised in io package, export moved from model classes)
@@ -43,6 +45,7 @@ Changes since last release (up to f25c788dd)
   - symbolic code rearranged (new symbolic package)
   - symbolic model storage refactored, simplified, documented
   - extension of strategy classes, especially for induced models
+  - Java-based symbolic-to-explicit model conversion
   - prism-auto: --errors-only switch
 
 * [More minor development and code-level changes]
@@ -55,6 +58,7 @@ Changes since last release (up to f25c788dd)
   - VarList aware of EvaluationContext/EvalMode
   - parametric engine: improved error reporting and formatting
   - prism.API: exportprism moved from setting to API call
+  - model export refactoring, including ModelExportTask
 
 -----------------------------------------------------------------------------
 Version 4.8.1 (first released 13/1/2024)
