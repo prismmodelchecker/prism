@@ -221,9 +221,10 @@ public class PrismExplicitExporter<Value> extends ModelExporter<Value>
 				for (int j = 0; j < numChoices; j++) {
 					Value d = rewards.getTransitionReward(s, j);
 					if (!evalRewards.isZero(d)) {
-						for (SuccessorsIterator succ = ((NondetModel<Value>) model).getSuccessors(s, j); succ.hasNext();) {
-							int s2 = succ.nextInt();
-							out.println(s + " " + j + " " + s2 + " " + formatValue(d, evalRewards));
+						// For nondet models, the choice reward is displayed by all transitions
+						// (which we sort, in order to match the output for the model)
+						for (Transition<Value> transition : getSortedTransitionsIterator(model, s, j, modelExportOptions.getShowActions())) {
+							out.println(s + " " + j + " " + transition.target + " " + formatValue(d, evalRewards));
 						}
 					}
 				}
