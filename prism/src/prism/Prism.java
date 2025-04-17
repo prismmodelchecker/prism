@@ -4201,7 +4201,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	}
 
 	/**
-	 * Store the built model (only one of the symbolic./explicit models should be non-null)
+	 * Store the built model.
 	 */
 	private void setBuiltModel(ModelBuildType buildType, prism.Model<?> newModel) throws PrismException
 	{
