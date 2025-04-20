@@ -153,8 +153,7 @@ public class DTMCFromMDPMemorylessAdversary<Value> extends DTMCExplicit<Value>
 		if (adv[s] >= 0) {
 			return mdp.getTransitionsIterator(s, adv[s]);
 		} else {
-			// Empty iterator
-			return Collections.<Entry<Integer,Value>>emptyIterator(); 
+			return Collections.emptyIterator();
 		}
 	}
 
@@ -165,8 +164,17 @@ public class DTMCFromMDPMemorylessAdversary<Value> extends DTMCExplicit<Value>
 			final Iterator<Entry<Integer, Value>> transitions = mdp.getTransitionsIterator(s, adv[s]);
 			return Reducible.extend(transitions).map(transition -> DTMC.attachAction(transition, mdp.getAction(s, adv[s])));
 		} else {
-			// Empty iterator
-			return Collections.<Entry<Integer,Pair<Value, Object>>>emptyIterator(); 
+			return Collections.emptyIterator();
+		}
+	}
+
+	@Override
+	public Iterator<Object> getActionsIterator(int s)
+	{
+		if (adv[s] >= 0) {
+			return Collections.nCopies(getNumTransitions(s), mdp.getAction(s, adv[s])).iterator();
+		} else {
+			return Collections.emptyIterator();
 		}
 	}
 

@@ -31,6 +31,7 @@ import java.util.BitSet;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.function.IntPredicate;
 
@@ -46,6 +47,22 @@ import static prism.PrismSettings.DEFAULT_EXPORT_MODEL_PRECISION;
 public interface NondetModel<Value> extends Model<Value>
 {
 	// Accessors
+
+	@Override
+	default List<Object> getActions()
+	{
+		// Default implementation for NondetModel: find unique actions across all choices
+		// This should be cached/optimised if action indices are looked up frequently
+		LinkedHashSet<Object> actions = new LinkedHashSet<>();
+		int numStates = getNumStates();
+		for (int s = 0; s < numStates; s++) {
+			int numChoices = getNumChoices(s);
+			for (int i = 0; i < numChoices; i++) {
+				actions.add(getAction(s, i));
+			}
+		}
+		return new ArrayList<>(actions);
+	}
 
 	/**
 	 * Get the number of nondeterministic choices in state s.
@@ -77,9 +94,21 @@ public interface NondetModel<Value> extends Model<Value>
 	}
 
 	/**
-	 * Get the action label (if any) for choice {@code i} of state {@code s}.
+	 * Get the action label for choice {@code i} of state {@code s}.
+	 * The action is null for an unlabelled choice.
 	 */
 	public Object getAction(int s, int i);
+
+	/**
+	 * Get the index of the action label for choice {@code i} of state {@code s}.
+	 * Indices are into the list given by {@link #getActions()},
+	 * which includes null if there are unlabelled choices,
+	 * so this method should always return a value >= 0.
+	 */
+	public default int getActionIndex(int s, int i)
+	{
+		return actionIndex(getAction(s, i));
+	}
 
 	/**
 	 * Get a list of the actions labelling the choices of state {@code s}.

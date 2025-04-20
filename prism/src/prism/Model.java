@@ -26,6 +26,9 @@
 
 package prism;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 /**
  * Interface for classes that store models.
  * This is generic, where probabilities/rates/etc. are of type {@code Value}.
@@ -38,6 +41,46 @@ public interface Model<Value>
 	 * Get the type of this model.
 	 */
 	ModelType getModelType();
+
+	/**
+	 * Get a list of the action labels attached to choices/transitions.
+	 * This can be a superset of the action labels that are actually used in the model.
+	 * Action labels can be any Object, but will often be treated as a string,
+	 * so should at least have a meaningful toString() method implemented.
+	 * Absence of an action label is denoted by null,
+	 * and null is also included in this list if there are unlabelled choices/transitions.
+	 */
+	List<Object> getActions();
+
+	/**
+	 * Get strings for the action labels attached to choices/transitions.
+	 */
+	default List<String> getActionStrings()
+	{
+		// By default, just apply toString to getActions()
+		return getActions().stream().map(Model::actionString).collect(Collectors.toList());
+	}
+
+	/**
+	 * Default conversion of an action label to a string
+	 * ({@code toString()} or {@code ""} for {@code null}).
+	 */
+	static String actionString(Object action)
+	{
+		return action == null ? "" : action.toString();
+	}
+
+	/**
+	 * Get the index of an action label.
+	 * Indices are into the list given by {@link #getActions()},
+	 * which includes null if there are unlabelled choices,
+	 * so this method should always return a value >= 0 for a valid action.
+	 */
+	default int actionIndex(Object action)
+	{
+		// Default (inefficient) implementation: just look up in getActions()
+		return getActions().indexOf(action);
+	}
 
 	/**
 	 * Get the number of states.

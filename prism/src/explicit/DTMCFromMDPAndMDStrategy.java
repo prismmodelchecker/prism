@@ -150,9 +150,7 @@ public class DTMCFromMDPAndMDStrategy<Value> extends DTMCExplicit<Value>
 		if (strat.isChoiceDefined(s)) {
 			return mdp.getTransitionsIterator(s, strat.getChoiceIndex(s));
 		} else {
-			// Empty iterator
-			Map<Integer,Value> empty = Collections.emptyMap();
-			return empty.entrySet().iterator();
+			return Collections.emptyIterator();
 		}
 	}
 
@@ -162,8 +160,17 @@ public class DTMCFromMDPAndMDStrategy<Value> extends DTMCExplicit<Value>
 			final Iterator<Entry<Integer, Value>> transitions = mdp.getTransitionsIterator(s, strat.getChoiceIndex(s));
 			return Reducible.extend(transitions).map(transition -> DTMC.attachAction(transition, mdp.getAction(s, strat.getChoiceIndex(s))));
 		} else {
-			// Empty iterator
-			return Collections.<Entry<Integer,Pair<Value, Object>>>emptyIterator();
+			return Collections.emptyIterator();
+		}
+	}
+
+	@Override
+	public Iterator<Object> getActionsIterator(int s)
+	{
+		if (strat.isChoiceDefined(s)) {
+			return Collections.nCopies(getNumTransitions(s), mdp.getAction(s, strat.getChoiceIndex(s))).iterator();
+		} else {
+			return Collections.emptyIterator();
 		}
 	}
 

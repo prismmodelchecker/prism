@@ -42,6 +42,7 @@ import prism.PrismUtils;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -422,6 +423,16 @@ public abstract class ModelSymbolic implements Model
 	public abstract void findDeadlocks(boolean fix);
 
 	// Accessors (for prism.Model & symbolic.Model interface)
+
+	@Override
+	public List<Object> getActions()
+	{
+		// Over-approximate and assume that unlabelled actions could occur
+		ArrayList<Object> actions = new ArrayList<>();
+		actions.add(null);
+		actions.addAll(synchs);
+		return actions;
+	}
 
 	@Override
 	public int getNumStates()

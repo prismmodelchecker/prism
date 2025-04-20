@@ -349,6 +349,29 @@ public class DTMCSparse extends DTMCExplicit<Double>
 	}
 
 	@Override
+	public Iterator<Object> getActionsIterator(int s)
+	{
+		return new Iterator<>()
+		{
+			final int start = rows[s];
+			int col = start;
+			final int end = rows[s + 1];
+
+			@Override
+			public boolean hasNext()
+			{
+				return col < end;
+			}
+
+			@Override
+			public Object next()
+			{
+				return actions == null ? null : actions[col++];
+			}
+		};
+	}
+
+	@Override
 	public boolean prob0step(final int s, final BitSet u)
 	{
 		boolean hasTransitionToU = false;

@@ -366,6 +366,28 @@ public class DTMCSimple<Value> extends DTMCExplicit<Value> implements ModelSimpl
 		};
 	}
 
+	@Override
+	public Iterator<Object> getActionsIterator(int s)
+	{
+		// Create iterator (no removal of duplicates)
+		return new Iterator<>() {
+			private final int n = succ.get(s).size();
+			private int i = 0;
+
+			@Override
+			public Object next()
+			{
+				return actions.getAction(s, i++);
+			}
+
+			@Override
+			public boolean hasNext()
+			{
+				return i < n;
+			}
+		};
+	}
+
 	// Accessors (other)
 
 	/**

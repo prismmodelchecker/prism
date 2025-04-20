@@ -29,10 +29,13 @@ package explicit;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.AbstractMap;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.BitSet;
+import java.util.Collections;
 import java.util.Iterator;
-import java.util.Map;
+import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Map.Entry;
 import java.util.PrimitiveIterator;
 import java.util.PrimitiveIterator.OfInt;
@@ -43,12 +46,10 @@ import common.IterableStateSet;
 import common.iterable.FunctionalIterator;
 import common.iterable.PrimitiveIterable;
 import common.iterable.Reducible;
-import explicit.graphviz.Decorator;
 import explicit.rewards.MCRewards;
 import prism.ModelType;
 import prism.Pair;
 import prism.PrismException;
-import prism.PrismLog;
 
 /**
  * Interface for classes that provide (read) access to an explicit-state DTMC.
@@ -92,7 +93,23 @@ public interface DTMC<Value> extends Model<Value>
 	}
 
 	// Accessors
-	
+
+	@Override
+	default List<Object> getActions()
+	{
+		// Default implementation for DTMC: find unique actions across all transitions
+		// This should be cached/optimised if action indices are looked up frequently
+		LinkedHashSet<Object> actions = new LinkedHashSet<>();
+		int numStates = getNumStates();
+		for (int s = 0; s < numStates; s++) {
+			for (Iterator<Entry<Integer, Pair<Value, Object>>> transitions = getTransitionsAndActionsIterator(s); transitions.hasNext();) {
+				final Entry<Integer, Pair<Value, Object>> transition = transitions.next();
+				actions.add(transition.getValue().second);
+			}
+		}
+		return new ArrayList<>(actions);
+	}
+
 	/**
 	 * Get an iterator over the transitions from state s.
 	 */
@@ -106,6 +123,42 @@ public interface DTMC<Value> extends Model<Value>
 		// Default implementation just adds null actions 
 		final Iterator<Entry<Integer, Value>> transitions = getTransitionsIterator(s);
 		return Reducible.extend(transitions).map(transition -> attachAction(transition, null));
+	}
+
+	/**
+	 * Get an iterator over the actions attached to transitions from state s.
+	 */
+	public default Iterator<Object> getActionsIterator(int s)
+	{
+		// Default implementation just assumes null actions
+		return Collections.nCopies(getNumTransitions(s), null).iterator();
+	}
+
+	/**
+	 * Get an iterator over the indices of actions attached to transitions from state s.
+	 * Indices are into the list given by {@link #getActions()},
+	 * which includes null if there are unlabelled choices,
+	 * so this method should always return values >= 0.
+	 */
+	public default PrimitiveIterator.OfInt getActionIndicesIterator(int s)
+	{
+		// Default implementation looks up indices from getActionsIterator
+		return new PrimitiveIterator.OfInt()
+		{
+			private final Iterator<Object> iter = getActionsIterator(s);
+
+			@Override
+			public boolean hasNext()
+			{
+				return iter.hasNext();
+			}
+
+			@Override
+			public int nextInt()
+			{
+				return actionIndex(iter.next());
+			}
+		};
 	}
 
 	/**
