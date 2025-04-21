@@ -39,6 +39,8 @@ import io.ModelExportOptions;
 import parser.State;
 import parser.Values;
 import parser.VarList;
+import prism.ActionList;
+import prism.ActionListOwner;
 import prism.ModelType;
 import prism.PrismException;
 import prism.PrismLog;
@@ -49,10 +51,11 @@ import strat.MDStrategy;
  * used to translate between state ids for model and sub-model. Created sub-model will have new 
  * state numbering from 0 to number of states in the sub model.
  */
-public class SubNondetModel<Value> implements NondetModel<Value>
+public class SubNondetModel<Value> implements NondetModel<Value>, ActionListOwner
 {
 
 	private NondetModel<Value> model = null;
+	private ActionList actionList;
 	private BitSet states = null;
 	private Map<Integer, BitSet> actions = null;
 	private BitSet initialStates = null;
@@ -73,6 +76,7 @@ public class SubNondetModel<Value> implements NondetModel<Value>
 	public SubNondetModel(NondetModel<Value> model, BitSet states, Map<Integer, BitSet> actions, BitSet initialStates)
 	{
 		this.model = model;
+		actionList = new ActionList(this::findActionsUsed);
 		this.states = states;
 		this.actions = actions;
 		this.initialStates = initialStates;
@@ -85,6 +89,24 @@ public class SubNondetModel<Value> implements NondetModel<Value>
 	public ModelType getModelType()
 	{
 		return model.getModelType();
+	}
+
+	@Override
+	public ActionList getActionList()
+	{
+		return actionList;
+	}
+
+	@Override
+	public List<Object> getActions()
+	{
+		return actionList.getActions();
+	}
+
+	@Override
+	public int actionIndex(Object action)
+	{
+		return actionList.actionIndex(action);
 	}
 
 	@Override

@@ -164,6 +164,7 @@ public class DTMCSimple<Value> extends DTMCExplicit<Value> implements ModelSimpl
 		succ.get(i).clear();
 		trans.get(i).clear();
 		actions.clearState(i);
+		actionList.markNeedsRecomputing();
 	}
 
 	@Override
@@ -224,6 +225,7 @@ public class DTMCSimple<Value> extends DTMCExplicit<Value> implements ModelSimpl
 		iSucc.add(j);
 		iTrans.add(prob);
 		actions.setAction(i, numSucc, action);
+		actionList.markNeedsRecomputing();
 	}
 
 	/**
@@ -256,9 +258,16 @@ public class DTMCSimple<Value> extends DTMCExplicit<Value> implements ModelSimpl
 		iSucc.add(j);
 		iTrans.add(prob);
 		actions.setAction(i, numSucc, action);
+		actionList.markNeedsRecomputing();
 	}
 
 	// Accessors (for Model)
+
+	@Override
+	public boolean onlyNullActionUsed()
+	{
+		return actions.onlyNullActionUsed();
+	}
 
 	@Override
 	public int getNumTransitions(int s)

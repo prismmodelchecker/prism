@@ -50,7 +50,12 @@ public interface Model<Value>
 	 * Absence of an action label is denoted by null,
 	 * and null is also included in this list if there are unlabelled choices/transitions.
 	 */
-	List<Object> getActions();
+	default List<Object> getActions()
+	{
+		// Default implementation: find unique actions used across the model.
+		// This should be cached/optimised if action indices are looked up frequently.
+		return findActionsUsed();
+	}
 
 	/**
 	 * Get strings for the action labels attached to choices/transitions.
@@ -58,16 +63,23 @@ public interface Model<Value>
 	default List<String> getActionStrings()
 	{
 		// By default, just apply toString to getActions()
-		return getActions().stream().map(Model::actionString).collect(Collectors.toList());
+		return getActions().stream().map(ActionList::actionString).collect(Collectors.toList());
 	}
 
 	/**
-	 * Default conversion of an action label to a string
-	 * ({@code toString()} or {@code ""} for {@code null}).
+	 * Produce a list of the action labels attached to choices/transitions.
+	 * Absence of an action label is denoted by null,
+	 * and null is also included in this list if there are unlabelled choices/transitions.
 	 */
-	static String actionString(Object action)
+	List<Object> findActionsUsed();
+
+	/**
+	 * Do all choices/transitions have empty (null) action labels?
+	 */
+	default boolean onlyNullActionUsed()
 	{
-		return action == null ? "" : action.toString();
+		// Can't assume this is true
+		return false;
 	}
 
 	/**

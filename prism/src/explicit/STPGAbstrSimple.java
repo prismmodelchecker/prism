@@ -144,6 +144,7 @@ public class STPGAbstrSimple<Value> extends ModelExplicit<Value> implements STPG
 		//TODO: recompute maxNumDistrs
 		// Remove all distribution sets
 		trans.set(i, new ArrayList<>(0));
+		actionList.markNeedsRecomputing();
 	}
 
 	@Override
@@ -234,6 +235,7 @@ public class STPGAbstrSimple<Value> extends ModelExplicit<Value> implements STPG
 			addDistributionSet(iLast, distrs);
 			// Close file
 			in.close();
+			actionList.markNeedsRecomputing();
 		} catch (IOException e) {
 			System.out.println(e);
 			System.exit(1);
@@ -282,6 +284,7 @@ public class STPGAbstrSimple<Value> extends ModelExplicit<Value> implements STPG
 		maxNumDistrs = Math.max(maxNumDistrs, newSet.size());
 		for (Distribution<Value> distr : newSet)
 			numTransitions += distr.size();
+		actionList.markNeedsRecomputing();
 		return set.size() - 1;
 	}
 

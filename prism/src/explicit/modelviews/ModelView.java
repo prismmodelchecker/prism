@@ -40,6 +40,8 @@ import explicit.PredecessorRelation;
 import explicit.StateValues;
 import parser.State;
 import parser.VarList;
+import prism.ActionList;
+import prism.ActionListOwner;
 import prism.Prism;
 import prism.PrismComponent;
 import prism.PrismException;
@@ -49,13 +51,12 @@ import prism.PrismLog;
  * Base class for an DTMCView or MDPView,
  * handling common tasks.
  */
-public abstract class ModelView<Value> implements Model<Value>
+public abstract class ModelView<Value> implements Model<Value>, ActionListOwner
 {
+	protected ActionList actionList = new ActionList(this::findActionsUsed);
 	protected BitSet deadlockStates = new BitSet();
 	protected boolean fixedDeadlocks = false;
 	protected PredecessorRelation predecessorRelation;
-
-
 
 	public ModelView()
 	{
@@ -67,9 +68,25 @@ public abstract class ModelView<Value> implements Model<Value>
 		fixedDeadlocks = model.fixedDeadlocks;
 	}
 
-
-
 	//--- Model ---
+
+	@Override
+	public ActionList getActionList()
+	{
+		return actionList;
+	}
+
+	@Override
+	public List<Object> getActions()
+	{
+		return actionList.getActions();
+	}
+
+	@Override
+	public int actionIndex(Object action)
+	{
+		return actionList.actionIndex(action);
+	}
 
 	@Override
 	public int getNumDeadlockStates()

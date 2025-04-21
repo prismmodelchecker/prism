@@ -110,8 +110,9 @@ public class MDPSimple<Value> extends MDPExplicit<Value> implements NondetModelS
 	{
 		this(dtmc.getNumStates());
 		copyFrom(dtmc);
+		// NB: actions (on transitions) from the DTMC are not copied to (choices of) the MDP
+		actionList.clear();
 		for (int s = 0; s < numStates; s++) {
-			// Note: DTMCSimple has no actions so can ignore these
 			addChoice(s, new Distribution<Value>(dtmc.getTransitions(s)));
 		}
 	}
@@ -226,6 +227,7 @@ public class MDPSimple<Value> extends MDPExplicit<Value> implements NondetModelS
 		maxNumDistrsOk = false;
 		trans.get(s).clear();
 		actions.clearState(s);
+		actionList.markNeedsRecomputing();
 	}
 
 	@Override
@@ -296,6 +298,7 @@ public class MDPSimple<Value> extends MDPExplicit<Value> implements NondetModelS
 		}
 		set = trans.get(s);
 		set.add(distr);
+		actionList.markNeedsRecomputing();
 		// Update stats
 		numDistrs++;
 		maxNumDistrs = Math.max(maxNumDistrs, set.size());
@@ -326,6 +329,7 @@ public class MDPSimple<Value> extends MDPExplicit<Value> implements NondetModelS
 		set.add(distr);
 		// Set action
 		actions.setAction(s, set.size() - 1, action);
+		actionList.markNeedsRecomputing();
 		// Update stats
 		numDistrs++;
 		maxNumDistrs = Math.max(maxNumDistrs, set.size());
@@ -342,9 +346,16 @@ public class MDPSimple<Value> extends MDPExplicit<Value> implements NondetModelS
 	public void setAction(int s, int i, Object o)
 	{
 		actions.setAction(s, i, o);
+		actionList.markNeedsRecomputing();
 	}
 
 	// Accessors (for Model)
+
+	@Override
+	public boolean onlyNullActionUsed()
+	{
+		return actions.onlyNullActionUsed();
+	}
 
 	@Override
 	public int getNumTransitions()

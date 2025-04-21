@@ -145,6 +145,7 @@ public class LTSSimple<Value> extends ModelExplicit<Value> implements LTS<Value>
 		numTransitions -= list.size();
 		list.clear();
 		actions.clearState(s);
+		actionList.markNeedsRecomputing();
 	}
 
 	@Override
@@ -173,6 +174,7 @@ public class LTSSimple<Value> extends ModelExplicit<Value> implements LTS<Value>
 		// We don't care if a transition from s to t already exists
 		trans.get(s).add(t);
 		numTransitions++;
+		actionList.markNeedsRecomputing();
 	}
 
 	/**
@@ -185,6 +187,7 @@ public class LTSSimple<Value> extends ModelExplicit<Value> implements LTS<Value>
 		trans.get(s).add(t);
 		actions.setAction(s, trans.get(s).size() - 1, action);
 		numTransitions++;
+		actionList.markNeedsRecomputing();
 	}
 
 	/**
@@ -194,10 +197,17 @@ public class LTSSimple<Value> extends ModelExplicit<Value> implements LTS<Value>
 	public void setAction(int s, int i, Object action)
 	{
 		actions.setAction(s, i, action);
+		actionList.markNeedsRecomputing();
 	}
 
 	// Accessors (for Model)
-	
+
+	@Override
+	public boolean onlyNullActionUsed()
+	{
+		return actions.onlyNullActionUsed();
+	}
+
 	@Override
 	public int getNumTransitions()
 	{

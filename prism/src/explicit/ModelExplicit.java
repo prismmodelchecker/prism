@@ -40,6 +40,8 @@ import io.PrismExplicitImporter;
 import parser.State;
 import parser.Values;
 import parser.VarList;
+import prism.ActionList;
+import prism.ActionListOwner;
 import prism.Evaluator;
 import prism.ModelType;
 import prism.PrismException;
@@ -47,35 +49,55 @@ import prism.PrismException;
 /**
  * Base class for explicit-state model representations.
  */
-public abstract class ModelExplicit<Value> implements Model<Value>
+public abstract class ModelExplicit<Value> implements Model<Value>, ActionListOwner
 {
-	/** Evaluator for manipulating values in the model (of type {@code Value}) */
+	/**
+	 * Evaluator for manipulating values in the model (of type {@code Value})
+	 */
 	@SuppressWarnings("unchecked")
 	protected Evaluator<Value> eval = (Evaluator<Value>) Evaluator.forDouble();
-	
+
 	// Basic model information
 
-	/** Number of states */
+	/**
+	 * Action list
+	 */
+	protected ActionList actionList;
+	/**
+	 * Number of states
+	 */
 	protected int numStates;
-	/** Which states are initial states */
+	/**
+	 * Which states are initial states
+	 */
 	protected List<Integer> initialStates; // TODO: should be a (linkedhash?) set really
-	/** States that are/were deadlocks. Where requested and where appropriate (DTMCs/MDPs),
-	 * these states may have been fixed at build time by adding self-loops. */
+	/**
+	 * States that are/were deadlocks. Where requested and where appropriate (DTMCs/MDPs),
+	 * these states may have been fixed at build time by adding self-loops.
+	 */
 	protected TreeSet<Integer> deadlocks;
 
 	// Additional, optional information associated with the model
 
-	/** (Optionally) information about the states of this model,
-	 * i.e. the State object corresponding to each state index. */
+	/**
+	 * (Optionally) information about the states of this model,
+	 * i.e. the State object corresponding to each state index.
+	 */
 	protected List<State> statesList;
-	/** (Optionally) a list of values for constants associated with this model. */
+	/**
+	 * (Optionally) a list of values for constants associated with this model.
+	 */
 	protected Values constantValues;
-	/** (Optionally) the list of variables */
+	/**
+	 * (Optionally) the list of variables
+	 */
 	protected VarList varList;
-	/** (Optionally) some labels (atomic propositions) associated with the model,
-	 * represented as a String->BitSet mapping from their names to the states that satisfy them. */
+	/**
+	 * (Optionally) some labels (atomic propositions) associated with the model,
+	 * represented as a String->BitSet mapping from their names to the states that satisfy them.
+	 */
 	protected Map<String, BitSet> labels = new TreeMap<String, BitSet>();
-	
+
 	/**
 	 * (Optionally) the stored predecessor relation. Becomes inaccurate after the model is changed!
 	 */
@@ -90,7 +112,7 @@ public abstract class ModelExplicit<Value> implements Model<Value>
 	{
 		this.eval = eval;
 	}
-	
+
 	/**
 	 * Copy data from another Model (used by superclass copy constructors).
 	 * Assumes that this has already been initialise()ed.
@@ -98,6 +120,9 @@ public abstract class ModelExplicit<Value> implements Model<Value>
 	public void copyFrom(Model<?> model)
 	{
 		setEvaluator((Evaluator<Value>) model.getEvaluator());
+		if (model instanceof ActionListOwner) {
+			actionList.copyFrom(((ActionListOwner) model).getActionList());
+		}
 		numStates = model.getNumStates();
 		for (int in : model.getInitialStates()) {
 			addInitialState(in);
@@ -122,6 +147,9 @@ public abstract class ModelExplicit<Value> implements Model<Value>
 	public void copyFrom(Model<Value> model, int permut[])
 	{
 		setEvaluator(model.getEvaluator());
+		if (model instanceof ActionListOwner) {
+			actionList.copyFrom(((ActionListOwner) model).getActionList());
+		}
 		numStates = model.getNumStates();
 		for (int in : model.getInitialStates()) {
 			addInitialState(permut[in]);
@@ -142,6 +170,7 @@ public abstract class ModelExplicit<Value> implements Model<Value>
 	 */
 	public void initialise(int numStates)
 	{
+		actionList = new ActionList(this::findActionsUsed);
 		this.numStates = numStates;
 		initialStates = new ArrayList<Integer>();
 		deadlocks = new TreeSet<Integer>();
@@ -183,7 +212,7 @@ public abstract class ModelExplicit<Value> implements Model<Value>
 	public void buildFromExplicitImport(ExplicitModelImporter modelImporter) throws PrismException
 	{
 		// Not implemented by default
-		throw new PrismException("Explicit model not yet supported for this model");
+		throw new PrismException("Explicit model import not yet supported for this model");
 	}
 
 	/**
@@ -225,8 +254,9 @@ public abstract class ModelExplicit<Value> implements Model<Value>
 	/**
 	 * Adds a label and the set the states that satisfy it.
 	 * Any existing label with the same name is overwritten.
-	 * @param name The name of the label
-	 * @param states The states that satisfy the label 
+	 *
+	 * @param name   The name of the label
+	 * @param states The states that satisfy the label
 	 */
 	public void addLabel(String name, BitSet states)
 	{
@@ -244,8 +274,8 @@ public abstract class ModelExplicit<Value> implements Model<Value>
 	 * Note that a stored label takes precedence over the on-the-fly calculation
 	 * of an ExpressionLabel, cf. {@link explicit.StateModelChecker#checkExpressionLabel}
 	 *
-	 * @param prefix the prefix for the unique label
-	 * @param labelStates the BitSet with the state set for the label
+	 * @param prefix            the prefix for the unique label
+	 * @param labelStates       the BitSet with the state set for the label
 	 * @param definedLabelNames set of names (optional, may be {@code null}) to check for existing labels
 	 * @return the generated unique label
 	 */
@@ -265,7 +295,7 @@ public abstract class ModelExplicit<Value> implements Model<Value>
 			}
 
 			// prepare next label to try
-			label = prefix+"_"+i;
+			label = prefix + "_" + i;
 			if (i == Integer.MAX_VALUE)
 				throw new UnsupportedOperationException("Integer overflow trying to add unique label");
 
@@ -283,7 +313,29 @@ public abstract class ModelExplicit<Value> implements Model<Value>
 	{
 		return eval;
 	}
-	
+
+	@Override
+	public ActionList getActionList()
+	{
+		return actionList;
+	}
+
+	@Override
+	public List<Object> getActions()
+	{
+		return actionList.getActions();
+	}
+
+	@Override
+	public int actionIndex(Object action)
+	{
+		int actionIndex = actionList.actionIndex(action);
+		if (actionIndex == -1) {
+			throw new RuntimeException("Action storage error: " + action + " not found");
+		}
+		return actionIndex;
+	}
+
 	@Override
 	public int getNumStates()
 	{
@@ -360,7 +412,7 @@ public abstract class ModelExplicit<Value> implements Model<Value>
 	{
 		return constantValues;
 	}
-	
+
 	@Override
 	public VarList getVarList()
 	{
@@ -384,13 +436,13 @@ public abstract class ModelExplicit<Value> implements Model<Value>
 	{
 		return labels.keySet();
 	}
-	
+
 	@Override
 	public Map<String, BitSet> getLabelToStatesMap()
 	{
 		return labels;
 	}
-	
+
 	@Override
 	public void checkForDeadlocks() throws PrismException
 	{
@@ -413,13 +465,15 @@ public abstract class ModelExplicit<Value> implements Model<Value>
 		return true;
 	}
 
-@Override
-	public boolean hasStoredPredecessorRelation() {
+	@Override
+	public boolean hasStoredPredecessorRelation()
+	{
 		return (predecessorRelation != null);
 	}
 
 	@Override
-	public PredecessorRelation getPredecessorRelation(prism.PrismComponent parent, boolean storeIfNew) {
+	public PredecessorRelation getPredecessorRelation(prism.PrismComponent parent, boolean storeIfNew)
+	{
 		if (predecessorRelation != null) {
 			return predecessorRelation;
 		}
@@ -433,7 +487,8 @@ public abstract class ModelExplicit<Value> implements Model<Value>
 	}
 
 	@Override
-	public void clearPredecessorRelation() {
+	public void clearPredecessorRelation()
+	{
 		predecessorRelation = null;
 	}
 }

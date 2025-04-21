@@ -49,10 +49,12 @@ public interface NondetModel<Value> extends Model<Value>
 	// Accessors
 
 	@Override
-	default List<Object> getActions()
+	default List<Object> findActionsUsed()
 	{
-		// Default implementation for NondetModel: find unique actions across all choices
-		// This should be cached/optimised if action indices are looked up frequently
+		// Find unique actions across all choices
+		if (onlyNullActionUsed()) {
+			return Collections.singletonList(null);
+		}
 		LinkedHashSet<Object> actions = new LinkedHashSet<>();
 		int numStates = getNumStates();
 		for (int s = 0; s < numStates; s++) {

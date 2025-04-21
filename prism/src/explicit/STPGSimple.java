@@ -96,6 +96,7 @@ public class STPGSimple<Value> extends MDPSimple<Value> implements STPG<Value>
 	{
 		super.clearState(s);
 		stateOwners.clearState(s);
+		actionList.markNeedsRecomputing();
 	}
 
 	@Override

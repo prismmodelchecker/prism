@@ -155,6 +155,16 @@ public class ChoiceActionsSimple
 	// Accessors
 
 	/**
+	 * Do all choices/transitions have empty (null) action labels?
+	 */
+	public boolean onlyNullActionUsed()
+	{
+		// NB: it's still possible that action storage has been created but has ended up all null
+		// We ignore this possibility
+		return actions == null;
+	}
+
+	/**
 	 * Get the action label for choice {@code i} of state {@code s}.
 	 */
 	public Object getAction(int s, int i)

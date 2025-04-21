@@ -435,6 +435,13 @@ public abstract class ModelSymbolic implements Model
 	}
 
 	@Override
+	public List<Object> findActionsUsed()
+	{
+		// Not yet implemented
+		throw new UnsupportedOperationException();
+	}
+
+	@Override
 	public int getNumStates()
 	{
 		return (numStates > Integer.MAX_VALUE) ? -1 : (int) Math.round(numStates);

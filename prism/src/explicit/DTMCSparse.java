@@ -42,6 +42,7 @@ import common.iterable.PrimitiveIterable;
 import explicit.rewards.MCRewards;
 import io.ExplicitModelImporter;
 import io.IOUtils;
+import prism.ActionListOwner;
 import prism.Pair;
 import prism.PrismException;
 import prism.PrismNotSupportedException;
@@ -67,6 +68,9 @@ public class DTMCSparse extends DTMCExplicit<Double>
 	public DTMCSparse(final DTMC<Double> dtmc)
 	{
 		initialise(dtmc.getNumStates());
+		if (dtmc instanceof ActionListOwner) {
+			actionList.copyFrom(((ActionListOwner) dtmc).getActionList());
+		}
 		for (Integer state : dtmc.getDeadlockStates()) {
 			deadlocks.add(state);
 		}
@@ -110,6 +114,9 @@ public class DTMCSparse extends DTMCExplicit<Double>
 	public DTMCSparse(final DTMC<Double> dtmc, int[] permut)
 	{
 		initialise(dtmc.getNumStates());
+		if (dtmc instanceof ActionListOwner) {
+			actionList.copyFrom(((ActionListOwner) dtmc).getActionList());
+		}
 		for (Integer state : dtmc.getDeadlockStates()) {
 			deadlocks.add(permut[state]);
 		}
@@ -161,6 +168,12 @@ public class DTMCSparse extends DTMCExplicit<Double>
 	}
 
 	//--- Model ---
+
+	@Override
+	public boolean onlyNullActionUsed()
+	{
+		return actions == null;
+	}
 
 	@Override
 	public int getNumTransitions()
@@ -250,6 +263,7 @@ public class DTMCSparse extends DTMCExplicit<Double>
 	public void buildFromExplicitImport(ExplicitModelImporter modelImporter) throws PrismException
 	{
 		initialise(modelImporter.getNumStates());
+		actionList.markNeedsRecomputing();
 		int numTransitions = modelImporter.getNumTransitions();
 		rows = new int[numStates + 1];
 		columns = new int[numTransitions];

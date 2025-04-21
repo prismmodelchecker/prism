@@ -42,6 +42,7 @@ import explicit.rewards.MDPRewards;
 import io.ExplicitModelImporter;
 import io.IOUtils;
 import parser.State;
+import prism.ActionListOwner;
 import prism.PrismException;
 import prism.PrismUtils;
 
@@ -95,7 +96,9 @@ public class MDPSparse extends MDPExplicit<Double>
 	public MDPSparse(final MDP<Double> mdp, boolean sort)
 	{
 		initialise(mdp.getNumStates());
-
+		if (mdp instanceof ActionListOwner) {
+			actionList.copyFrom(((ActionListOwner) mdp).getActionList());
+		}
 		setStatesList(mdp.getStatesList());
 		setConstantValues(mdp.getConstantValues());
 		for (String label : mdp.getLabels()) {
@@ -311,6 +314,9 @@ public class MDPSparse extends MDPExplicit<Double>
 	public MDPSparse(MDP<Double> mdp, List<Integer> states, List<List<Integer>> actions)
 	{
 		initialise(states.size());
+		if (mdp instanceof ActionListOwner) {
+			actionList.copyFrom(((ActionListOwner) mdp).getActionList());
+		}
 		for (int in : mdp.getInitialStates()) {
 			addInitialState(in);
 		}
@@ -421,6 +427,7 @@ public class MDPSparse extends MDPExplicit<Double>
 		rowStarts[numStates] = numDistrs;
 		choiceStarts[numDistrs] = numTransitions;
 		modelImporter.extractMDPTransitions(cons);
+		actionList.markNeedsRecomputing();
 		// Compute maxNumDistrs
 		maxNumDistrs = 0;
 		for (int s = 0; s < numStates; s++) {
@@ -429,6 +436,12 @@ public class MDPSparse extends MDPExplicit<Double>
 	}
 
 	// Accessors (for Model)
+
+	@Override
+	public boolean onlyNullActionUsed()
+	{
+		return actions == null;
+	}
 
 	@Override
 	public int getNumTransitions()
