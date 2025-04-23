@@ -264,6 +264,12 @@ public class DTMCSimple<Value> extends DTMCExplicit<Value> implements ModelSimpl
 	// Accessors (for Model)
 
 	@Override
+	public List<Object> findActionsUsed()
+	{
+		return actions.findActionsUsed(getNumStates(), this::getNumTransitions);
+	}
+
+	@Override
 	public boolean onlyNullActionUsed()
 	{
 		return actions.onlyNullActionUsed();

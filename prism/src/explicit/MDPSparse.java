@@ -30,7 +30,9 @@ package explicit;
 import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.BitSet;
+import java.util.Collections;
 import java.util.Iterator;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -436,6 +438,21 @@ public class MDPSparse extends MDPExplicit<Double>
 	}
 
 	// Accessors (for Model)
+
+	@Override
+	public List<Object> findActionsUsed()
+	{
+		if (actions == null) {
+			return Collections.singletonList(null);
+		} else {
+			LinkedHashSet<Object> allActions = new LinkedHashSet<>();
+			int n = actions.length;
+			for (int i = 0; i < n; i++) {
+				allActions.add(actions[i]);
+			}
+			return new ArrayList<>(allActions);
+		}
+	}
 
 	@Override
 	public boolean onlyNullActionUsed()

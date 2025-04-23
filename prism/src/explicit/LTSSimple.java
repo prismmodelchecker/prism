@@ -203,6 +203,12 @@ public class LTSSimple<Value> extends ModelExplicit<Value> implements LTS<Value>
 	// Accessors (for Model)
 
 	@Override
+	public List<Object> findActionsUsed()
+	{
+		return actions.findActionsUsed(getNumStates(), this::getNumChoices);
+	}
+
+	@Override
 	public boolean onlyNullActionUsed()
 	{
 		return actions.onlyNullActionUsed();

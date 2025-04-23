@@ -27,6 +27,10 @@
 package explicit;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.function.IntUnaryOperator;
 
 /**
  * Explicit-state storage of the action labels attached to choices in a model.
@@ -153,6 +157,46 @@ public class ChoiceActionsSimple
 	}
 	
 	// Accessors
+
+	/**
+	 * Produce a list of the action labels attached to choices/transitions.
+	 * Absence of an action label is denoted by null,
+	 * and null is also included in this list if there are unlabelled choices/transitions.
+	 * @param numStates The number of states in the model
+	 * @param counts A function giving the number of choices/transitions for each state
+	 */
+	public List<Object> findActionsUsed(int numStates, IntUnaryOperator counts)
+	{
+		if (actions == null) {
+			// Null storage means all choices/transitions are unlabelled
+			return Collections.singletonList(null);
+		} else {
+			LinkedHashSet<Object> allActions = new LinkedHashSet<>();
+			int numStatesStored = actions.size();
+			for (int s = 0; s < numStatesStored; s++) {
+				ArrayList<Object> list = actions.get(s);
+				if (list == null) {
+					// Null list means any/all choices/transitions are unlabelled for s
+					if (counts.applyAsInt(s) > 0) {
+						allActions.add(null);
+					}
+				} else {
+					allActions.addAll(list);
+					if (list.size() < counts.applyAsInt(s)) {
+						// Undersized list means there are unlabelled choices/transitions
+						allActions.add(null);
+					}
+				}
+			}
+			for (int s = numStatesStored; s < numStates; s++) {
+				// Missing list means any/all choices/transitions are unlabelled for s
+				if (counts.applyAsInt(s) > 0) {
+					allActions.add(null);
+				}
+			}
+			return new ArrayList<>(allActions);
+		}
+	}
 
 	/**
 	 * Do all choices/transitions have empty (null) action labels?
