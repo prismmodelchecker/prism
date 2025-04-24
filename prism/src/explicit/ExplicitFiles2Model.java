@@ -95,6 +95,7 @@ public class ExplicitFiles2Model extends PrismComponent
 	 */
 	public <Value> Model<Value> build(ExplicitModelImporter modelImporter, Evaluator<Value> eval) throws PrismException
 	{
+		modelImporter.setFixDeadlocks(fixdl);
 		ModelExplicit<Value> model = null;
 		ModelInfo modelInfo = modelImporter.getModelInfo();
 		boolean isDbl = eval.one() instanceof Double;
@@ -148,8 +149,10 @@ public class ExplicitFiles2Model extends PrismComponent
 		if (!model.getInitialStates().iterator().hasNext()) {
 			throw new PrismException("Imported model has no initial states");
 		}
-
-		model.findDeadlocks(fixdl);
+		BitSet deadlocks = modelImporter.getDeadlockStates();
+		for (int s = deadlocks.nextSetBit(0); s >= 0; s = deadlocks.nextSetBit(s + 1)) {
+			model.addDeadlockState(s);
+		}
 
 		loadStates(modelImporter, model);
 

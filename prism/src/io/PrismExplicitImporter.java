@@ -100,6 +100,14 @@ public class PrismExplicitImporter extends ExplicitModelImporter
 	}
 	private ModelStats modelStats;
 
+	// Info about deadlocks
+	private class DeadlockInfo
+	{
+		BitSet deadlocks = new BitSet();
+		int numDeadlocks = 0;
+	}
+	private DeadlockInfo deadlockInfo;
+
 	// Mapping from label indices in file to (non-built-in) label indices (also: -1=init, -2=deadlock)
 	private List<Integer> labelMap;
 
@@ -307,7 +315,12 @@ public class PrismExplicitImporter extends ExplicitModelImporter
 		if (modelStats == null) {
 			buildModelStats();
 		}
-		return modelStats.numChoices;
+		int numChoices = modelStats.numChoices;
+		// Add extras if deadlocks are being fixed
+		if (fixdl) {
+			numChoices += getNumDeadlockStates();
+		}
+		return numChoices;
 	}
 
 	@Override
@@ -318,7 +331,32 @@ public class PrismExplicitImporter extends ExplicitModelImporter
 		if (modelStats == null) {
 			buildModelStats();
 		}
-		return modelStats.numTransitions;
+		int numTransitions = modelStats.numTransitions;
+		// Add extras if deadlocks are being fixed
+		if (fixdl) {
+			numTransitions += getNumDeadlockStates();
+		}
+		return numTransitions;
+	}
+
+	@Override
+	public BitSet getDeadlockStates() throws PrismException
+	{
+		// Do deadlock state detection lazily, as needed
+		if (deadlockInfo == null) {
+			findDeadlocks();
+		}
+		return deadlockInfo.deadlocks;
+	}
+
+	@Override
+	public int getNumDeadlockStates() throws PrismException
+	{
+		// Do deadlock state detection lazily, as needed
+		if (deadlockInfo == null) {
+			findDeadlocks();
+		}
+		return deadlockInfo.numDeadlocks;
 	}
 
 	@Override
@@ -653,6 +691,47 @@ public class PrismExplicitImporter extends ExplicitModelImporter
 		}
 	}
 
+	/**
+	 * Traverse the transitions file to detect any deadlock states
+	 * and then store the details in deadlockInfo.
+	 */
+	private void findDeadlocks() throws PrismException
+	{
+		// Record which states have transitions
+		BitSet statesWithTransitions = new BitSet();
+		int lineNum = 0;
+		try (BufferedReader in = new BufferedReader(new FileReader(transFile))) {
+			lineNum += skipCommentAndFirstLine(in);
+			BasicReader reader = BasicReader.wrap(in).normalizeLineEndings();
+			CsvReader csv = new CsvReader(reader, false, false, false, ' ', LF);
+			for (String[] record : csv) {
+				lineNum++;
+				if ("".equals(record[0])) {
+					// Skip blank lines
+					continue;
+				}
+				// Lines should be 3-5 long (LTS/MDP with/without actions)
+				checkLineSize(record, 3, 5);
+				// Extract/store source state
+				int s = checkStateIndex(Integer.parseInt(record[0]), modelStats.numStates);
+				statesWithTransitions.set(s);
+			}
+		} catch (IOException e) {
+			throw new PrismException("File I/O error reading from \"" + transFile + "\": " + e.getMessage());
+		} catch (PrismException | NumberFormatException | CsvFormatException e) {
+			String expl = (e.getMessage() == null || e.getMessage().isEmpty()) ? "" : (" (" + e.getMessage() + ")");
+			throw new PrismException("Error detected" + expl + " at line " + lineNum + " of transitions file \"" + transFile + "\"");
+		}
+		// Store deadlock info
+		deadlockInfo = new DeadlockInfo();
+		if (statesWithTransitions.cardinality() != modelStats.numStates) {
+			for (int s = statesWithTransitions.nextClearBit(0); s < modelStats.numStates; s = statesWithTransitions.nextClearBit(s + 1)) {
+				deadlockInfo.deadlocks.set(s);
+				deadlockInfo.numDeadlocks++;
+			}
+		}
+	}
+
 	@Override
 	public void extractStates(IOUtils.StateDefnConsumer storeStateDefn) throws PrismException
 	{
@@ -708,11 +787,11 @@ public class PrismExplicitImporter extends ExplicitModelImporter
 	public int computeMaxNumChoices() throws PrismException
 	{
 		int lineNum = 0;
+		int maxNumChoices = 0;
 		try (BufferedReader in = new BufferedReader(new FileReader(transFile))) {
 			lineNum += skipCommentAndFirstLine(in);
 			BasicReader reader = BasicReader.wrap(in).normalizeLineEndings();
 			CsvReader csv = new CsvReader(reader, false, false, false, ' ', LF);
-			int maxNumChoices = 0;
 			for (String[] record : csv) {
 				lineNum++;
 				if ("".equals(record[0])) {
@@ -726,18 +805,27 @@ public class PrismExplicitImporter extends ExplicitModelImporter
 					maxNumChoices = j + 1;
 				}
 			}
-			return maxNumChoices;
 		} catch (IOException e) {
 			throw new PrismException("File I/O error reading from \"" + transFile + "\": " + e.getMessage());
 		} catch (PrismException | NumberFormatException | CsvFormatException e) {
 			String expl = (e.getMessage() == null || e.getMessage().isEmpty()) ? "" : (" (" + e.getMessage() + ")");
 			throw new PrismException("Error detected" + expl + " at line " + lineNum + " of transitions file \"" + transFile + "\"");
 		}
+		if (fixdl && getNumDeadlockStates() > 0) {
+			maxNumChoices = Math.max(maxNumChoices, 1);
+		}
+		return maxNumChoices;
 	}
 
 	@Override
 	public <Value> void extractMCTransitions(IOUtils.MCTransitionConsumer<Value> storeTransition, Evaluator<Value> eval) throws PrismException
 	{
+		BitSet deadlocks = new BitSet();
+		int nextDeadlock = -1;
+		if (fixdl) {
+			deadlocks = getDeadlockStates();
+			nextDeadlock = deadlocks.nextSetBit(0);
+		}
 		int lineNum = 0;
 		try (BufferedReader in = new BufferedReader(new FileReader(transFile))) {
 			lineNum += skipCommentAndFirstLine(in);
@@ -754,7 +842,18 @@ public class PrismExplicitImporter extends ExplicitModelImporter
 				int s2 = checkStateIndex(Integer.parseInt(record[1]), modelStats.numStates);
 				Value v = checkValue(record[2], eval);
 				Object a = (record.length > 3) ? checkAction(record[3]) : null;
+				// Add self-loops for any deadlock states before s
+				while (nextDeadlock != -1 && nextDeadlock < s) {
+					storeTransition.accept(nextDeadlock, nextDeadlock, eval.one(), null);
+					nextDeadlock = deadlocks.nextSetBit(nextDeadlock + 1);
+				}
+				// Add transition
 				storeTransition.accept(s, s2, v, a);
+			}
+			// Add self-loops for any remaining deadlock states
+			while (nextDeadlock != -1) {
+				storeTransition.accept(nextDeadlock, nextDeadlock, eval.one(), null);
+				nextDeadlock = deadlocks.nextSetBit(nextDeadlock + 1);
 			}
 		} catch (IOException e) {
 			throw new PrismException("File I/O error reading from \"" + transFile + "\"");
@@ -767,6 +866,12 @@ public class PrismExplicitImporter extends ExplicitModelImporter
 	@Override
 	public <Value> void extractMDPTransitions(IOUtils.MDPTransitionConsumer<Value> storeTransition, Evaluator<Value> eval) throws PrismException
 	{
+		BitSet deadlocks = new BitSet();
+		int nextDeadlock = -1;
+		if (fixdl) {
+			deadlocks = getDeadlockStates();
+			nextDeadlock = deadlocks.nextSetBit(0);
+		}
 		int lineNum = 0;
 		try (BufferedReader in = new BufferedReader(new FileReader(transFile))) {
 			lineNum += skipCommentAndFirstLine(in);
@@ -784,7 +889,18 @@ public class PrismExplicitImporter extends ExplicitModelImporter
 				int s2 = checkStateIndex(Integer.parseInt(record[2]), modelStats.numStates);
 				Value v = checkValue(record[3], eval);
 				Object a = (record.length > 4) ? checkAction(record[4]) : null;
+				// Add self-loops for any deadlock states before s
+				while (nextDeadlock != -1 && nextDeadlock < s) {
+					storeTransition.accept(nextDeadlock, 0, nextDeadlock, eval.one(), null);
+					nextDeadlock = deadlocks.nextSetBit(nextDeadlock + 1);
+				}
+				// Add transition
 				storeTransition.accept(s, i, s2, v, a);
+			}
+			// Add self-loops for any remaining deadlock states
+			while (nextDeadlock != -1) {
+				storeTransition.accept(nextDeadlock, 0, nextDeadlock, eval.one(), null);
+				nextDeadlock = deadlocks.nextSetBit(nextDeadlock + 1);
 			}
 		} catch (IOException e) {
 			throw new PrismException("File I/O error reading from \"" + transFile + "\"");
@@ -797,6 +913,12 @@ public class PrismExplicitImporter extends ExplicitModelImporter
 	@Override
 	public void extractLTSTransitions(IOUtils.LTSTransitionConsumer storeTransition) throws PrismException
 	{
+		BitSet deadlocks = new BitSet();
+		int nextDeadlock = -1;
+		if (fixdl) {
+			deadlocks = getDeadlockStates();
+			nextDeadlock = deadlocks.nextSetBit(0);
+		}
 		int lineNum = 0;
 		try (BufferedReader in = new BufferedReader(new FileReader(transFile))) {
 			lineNum += skipCommentAndFirstLine(in);
@@ -813,7 +935,18 @@ public class PrismExplicitImporter extends ExplicitModelImporter
 				int i = checkChoiceIndex(Integer.parseInt(record[1]));
 				int s2 = checkStateIndex(Integer.parseInt(record[2]), modelStats.numStates);
 				Object a = (record.length > 3) ? checkAction(record[3]) : null;
+				// Add self-loops for any deadlock states before s
+				while (nextDeadlock != -1 && nextDeadlock < s) {
+					storeTransition.accept(nextDeadlock, 0, nextDeadlock, null);
+					nextDeadlock = deadlocks.nextSetBit(nextDeadlock + 1);
+				}
+				// Add transition
 				storeTransition.accept(s, i, s2, a);
+			}
+			// Add self-loops for any remaining deadlock states
+			while (nextDeadlock != -1) {
+				storeTransition.accept(nextDeadlock, 0, nextDeadlock, null);
+				nextDeadlock = deadlocks.nextSetBit(nextDeadlock + 1);
 			}
 		} catch (IOException e) {
 			throw new PrismException("File I/O error reading from \"" + transFile + "\"");

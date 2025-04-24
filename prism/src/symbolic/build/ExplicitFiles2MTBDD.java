@@ -135,6 +135,9 @@ public class ExplicitFiles2MTBDD
 		// Tell importer we need state-indexed transition rewards
 		importer.setTransitionRewardIndexing(ExplicitModelImporter.TransitionRewardIndexing.STATE);
 
+		// Tell importer not to fix deadlocks; we do it here
+		importer.setFixDeadlocks(false);
+
 		// Build states list, if info is available
 		// (importer can handle case where it is unavailable, but we bypass this)
 		if (importer.providesStates()) {

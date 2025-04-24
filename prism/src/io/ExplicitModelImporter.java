@@ -36,6 +36,7 @@ import prism.ModelInfo;
 import prism.PrismException;
 import prism.RewardInfo;
 
+import java.util.BitSet;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
@@ -52,6 +53,17 @@ public abstract class ExplicitModelImporter
 		STATE // Index of successor state
 	};
 	protected TransitionRewardIndexing transitionRewardIndexing = TransitionRewardIndexing.OFFSET;
+
+	/** Should deadlocks be detected and fixed (by adding a self-loop) on import? */
+	protected boolean fixdl;
+
+	/**
+	 * Specify whether should deadlocks be detected and fixed (by adding a self-loop) on import
+	 */
+	public void setFixDeadlocks(boolean fixdl)
+	{
+		this.fixdl = fixdl;
+	}
 
 	/**
 	 * Specify how transition rewards should be supplied when extracted.
@@ -112,6 +124,16 @@ public abstract class ExplicitModelImporter
 	 * Get the total number of transitions.
 	 */
 	public abstract int getNumTransitions() throws PrismException;
+
+	/**
+	 * Get the indices of the states which are/were deadlocks.
+	 */
+	public abstract BitSet getDeadlockStates() throws PrismException;
+
+	/**
+	 * Get the number of states which are/were deadlocks.
+	 */
+	public abstract int getNumDeadlockStates() throws PrismException;
 
 	/**
 	 * Get a string stating the model type and how it was obtained.

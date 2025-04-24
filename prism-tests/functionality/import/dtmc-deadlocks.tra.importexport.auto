@@ -1,0 +1,1 @@
+-importmodel dtmc-deadlocks.tra -exportmodel dtmc-deadlocks-fixed.tra,lab -ex
