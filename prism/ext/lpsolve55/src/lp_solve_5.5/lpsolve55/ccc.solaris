@@ -6,7 +6,7 @@ src='../lp_MDO.c ../shared/commonlib.c ../shared/mmio.c ../shared/myblas.c ../in
 >/tmp/platform.c
 echo '#include <stdlib.h>'>>/tmp/platform.c
 echo '#include <stdio.h>'>>/tmp/platform.c
-echo 'main(){printf("ux%d", (int) (sizeof(void *)*8));}'>>/tmp/platform.c
+echo 'int main(){printf("ux%d", (int) (sizeof(void *)*8));}'>>/tmp/platform.c
 $c /tmp/platform.c -o /tmp/platform
 PLATFORM=`/tmp/platform`
 rm /tmp/platform /tmp/platform.c >/dev/null 2>&1
@@ -18,7 +18,7 @@ mkdir bin bin/$PLATFORM >/dev/null 2>&1
 echo '#include <stdio.h>'>>/tmp/isnan.c
 echo '#include <stdlib.h>'>>/tmp/isnan.c
 echo '#include <math.h>'>>/tmp/isnan.c
-echo 'main(){isnan(0.0);}'>>/tmp/isnan.c
+echo 'int main(){isnan(0.0);}'>>/tmp/isnan.c
 $c /tmp/isnan.c -o /tmp/isnan $math >/dev/null 2>&1
 if [ $? = 0 ]
 then NOISNAN=
