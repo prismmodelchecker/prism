@@ -641,11 +641,22 @@ public class ProbModelChecker extends NonProbModelChecker
 		Rewards modelRewards = constructRewards(model, r);
 		
 		// Only support MDPs
+		ModelCheckerResult res = null;
+		switch (model.getModelType()) {
+			case MDP:
+				res = ((MDPModelChecker) this).computeMultiStrategy((MDP) model, (MDPRewards) modelRewards, opInfo.getBound());
+				break;
+			case IMDP:
+				res = ((IMDPModelChecker) this).computeMultiStrategy((IMDP) model, (MDPRewards) modelRewards, opInfo.getBound());
+				break;
+			default:
+				throw new PrismNotSupportedException("Cannot model check " + expr + " for " + model.getModelType() + "s");
+		}
 		if (model.getModelType() != ModelType.MDP) {
 			throw new PrismNotSupportedException("Multi-strategy synthesis not supported for " + model.getModelType() + "s");
 		}
 		
-		ModelCheckerResult res = ((MDPModelChecker) this).computeMultiStrategy((MDP) model, (MDPRewards) modelRewards, opInfo.getBound());
+		//ModelCheckerResult res = ((MDPModelChecker) this).computeMultiStrategy((MDP) model, (MDPRewards) modelRewards, opInfo.getBound());
 		
 		result.setStrategy(res.strat);
 		return StateValues.createFromDoubleArrayResult(res, model);

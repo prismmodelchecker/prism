@@ -27,6 +27,8 @@
 package explicit;
 
 import java.util.BitSet;
+import java.util.Iterator;
+import java.util.Map;
 import java.util.PrimitiveIterator;
 
 import acceptance.AcceptanceReach;
@@ -46,6 +48,15 @@ import strat.FMDStrategyProduct;
 import strat.MDStrategy;
 import strat.MDStrategyArray;
 import strat.Strategy;
+
+import com.gurobi.gurobi.GRB;
+import com.gurobi.gurobi.GRBEnv;
+import com.gurobi.gurobi.GRBException;
+import com.gurobi.gurobi.GRBLinExpr;
+import com.gurobi.gurobi.GRBModel;
+import com.gurobi.gurobi.GRBVar;
+import lpsolve.LpSolve;
+import lpsolve.LpSolveException;
 
 /**
  * Explicit-state model checker for interval Markov decision prcoesses (IMDPs).
@@ -589,6 +600,32 @@ public class IMDPModelChecker extends ProbModelChecker
 		// Update time taken
 		res.timeTaken = timer / 1000.0;
 
+		return res;
+	}
+
+	/**
+	 * Compute expected reachability rewards.
+	 * i.e. compute the min/max reward accumulated to reach a state in {@code target}.
+	 * @param imdp The IMDP
+	 * @param imdpRewards The rewards
+	 * @param bound The bound
+	 */
+	public ModelCheckerResult computeMultiStrategy(MDP<Double> mdp, MDPRewards<Double> mdpRewards, double bound) throws PrismException
+	{
+		boolean min = true;
+		double[] soln = null;
+		
+		// Start solution
+		long timer = System.currentTimeMillis();
+		mainLog.println("Starting linear programming (" + (min ? "min" : "max") + ")...");
+		
+		System.out.println("yucky");
+
+		// Return results
+		ModelCheckerResult res = new ModelCheckerResult();
+//		res.accuracy = AccuracyFactory.boundedNumericalIterations();
+		res.soln = soln;
+//		res.timeTaken = timer / 1000.0;
 		return res;
 	}
 	

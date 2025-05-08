@@ -56,7 +56,7 @@ public class MDStrategyArray<Value> extends StrategyExplicit<Value> implements M
 		super(model);
 		this.choices = choices;
 	}
-
+	
 	@Override
 	public Object getChoiceAction(int s, int m)
 	{
@@ -68,6 +68,10 @@ public class MDStrategyArray<Value> extends StrategyExplicit<Value> implements M
 	public int getChoiceIndex(int s, int m)
 	{
 		return choices[s];
+	}
+	public int[] getChoiceIndexMulti(int s, int m)
+	{
+		return null;
 	}
 
 	@Override
