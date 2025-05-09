@@ -565,8 +565,8 @@ public class ProbModelChecker extends NonProbModelChecker
 	protected StateValues checkExpressionStrategy(Model<?> model, ExpressionStrategy expr, BitSet statesOfInterest) throws PrismException
 	{
 		// Only support <<>>/[[]] for MDPs right now
-		if (!(this instanceof MDPModelChecker))
-			throw new PrismNotSupportedException("The " + expr.getOperatorString() + " operator is only supported for MDPs currently");
+		//if (!(this instanceof MDPModelChecker))
+		//	throw new PrismNotSupportedException("The " + expr.getOperatorString() + " operator is only supported for MDPs currently");
 
 		// Will we be quantifying universally or existentially over strategies/adversaries?
 		boolean forAll = !expr.isThereExists();
@@ -652,7 +652,7 @@ public class ProbModelChecker extends NonProbModelChecker
 			default:
 				throw new PrismNotSupportedException("Cannot model check " + expr + " for " + model.getModelType() + "s");
 		}
-		if (model.getModelType() != ModelType.MDP) {
+		if (model.getModelType() != ModelType.MDP && model.getModelType() != ModelType.IMDP ) {
 			throw new PrismNotSupportedException("Multi-strategy synthesis not supported for " + model.getModelType() + "s");
 		}
 		
