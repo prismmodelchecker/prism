@@ -69,7 +69,7 @@ public abstract class ModelSymbolic implements Model
 	/** Number of reward structs */
 	protected int numRewardStructs;
 	/** Reward struct names */
-	protected String[] rewardStructNames;
+	protected String[] rewardStructNames = new String[0];
 	// Stats
 	/** Number of states */
 	protected double numStates;
@@ -91,9 +91,9 @@ public abstract class ModelSymbolic implements Model
 	/** Deadlock states BDD (may have been fixed) */
 	protected JDDNode deadlocks;
 	/** State rewards MTBDDs */
-	protected JDDNode stateRewards[];
+	protected JDDNode stateRewards[] = new JDDNode[0];
 	/** Transition rewards MTBDDs */
-	protected JDDNode transRewards[];
+	protected JDDNode transRewards[] = new JDDNode[0];
 
 	/** DD variable info */
 	protected ModelVariablesDD modelVariables;

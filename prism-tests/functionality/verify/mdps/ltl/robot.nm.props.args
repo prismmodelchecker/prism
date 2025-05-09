@@ -1,0 +1,10 @@
+-explicit
+-explicit -ii -maxiters 100000
+-explicit -ii -topological -maxiters 100000
+-mtbdd
+-mtbdd -ii -maxiters 100000 -cuddepsilon 1E-20
+-hybrid
+-hybrid -ii -maxiters 100000
+-sparse
+-sparse -ii -maxiters 100000
+-exact
