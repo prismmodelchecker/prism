@@ -52,6 +52,7 @@ import parser.type.TypePathDouble;
 import prism.AccuracyFactory;
 import prism.Evaluator;
 import prism.IntegerBound;
+import prism.ModelType;
 import prism.OpRelOpBound;
 import prism.Prism;
 import prism.PrismComponent;
@@ -564,8 +565,8 @@ public class ProbModelChecker extends NonProbModelChecker
 	protected StateValues checkExpressionStrategy(Model<?> model, ExpressionStrategy expr, BitSet statesOfInterest) throws PrismException
 	{
 		// Only support <<>>/[[]] for MDPs right now
-		if (!(this instanceof MDPModelChecker))
-			throw new PrismNotSupportedException("The " + expr.getOperatorString() + " operator is only supported for MDPs currently");
+		//if (!(this instanceof MDPModelChecker))
+		//	throw new PrismNotSupportedException("The " + expr.getOperatorString() + " operator is only supported for MDPs currently");
 
 		// Will we be quantifying universally or existentially over strategies/adversaries?
 		boolean forAll = !expr.isThereExists();
@@ -588,8 +589,12 @@ public class ProbModelChecker extends NonProbModelChecker
 		}
 		Expression exprSub = exprs.get(0);
 		// Pass onto relevant method:
+		// Multi-strategy
+		if ("multi".equals(expr.getModifier())) {
+			return checkExpressionMultiStrategy(model, expr, forAll, coalition, statesOfInterest);
+		}
 		// P operator
-		if (exprSub instanceof ExpressionProb) {
+		else if (exprSub instanceof ExpressionProb) {
 			return checkExpressionProb(model, (ExpressionProb) exprSub, forAll, coalition, statesOfInterest);
 		}
 		// R operator
@@ -602,6 +607,61 @@ public class ProbModelChecker extends NonProbModelChecker
 		}
 	}
 
+	/**
+	 * Model check a <<>> operator requesting a multi-strategy
+ 	 * @param statesOfInterest the states of interest, see checkExpression()
+	 */
+	protected StateValues checkExpressionMultiStrategy(Model model, ExpressionStrategy expr, boolean forAll, Coalition coalition, BitSet statesOfInterest) throws PrismException
+	{
+		// Only support "exists" (<<>>) currently
+		if (forAll) {
+			throw new PrismException("Multi-strategies not supported for " + expr.getOperatorString());
+		}
+		// Only support R[C] currently
+		Expression exprSub = expr.getOperands().get(0);
+		if (!(exprSub instanceof ExpressionReward)) {
+			throw new PrismException("Multi-strategy synthesis only supports R[C] properties currently");
+		}
+		ExpressionReward exprRew = (ExpressionReward) exprSub;
+		if (!(exprRew.getExpression() instanceof ExpressionTemporal)) {
+			throw new PrismException("Multi-strategy synthesis only supports R[C] properties currently");
+		}
+		ExpressionTemporal exprTemp = (ExpressionTemporal) exprRew.getExpression();
+		if (!(exprTemp.getOperator() == ExpressionTemporal.R_C) && !exprTemp.hasBounds()) {
+			throw new PrismException("Multi-strategy synthesis only supports R[C] properties currently");
+		}
+		
+		// Get info from R operator
+		OpRelOpBound opInfo = exprRew.getRelopBoundInfo(constantValues);
+		MinMax minMax = opInfo.getMinMax(model.getModelType(), false);
+
+		// Build rewards
+		int r = exprRew.getRewardStructIndexByIndexObject(rewardGen, constantValues);
+		mainLog.println("Building reward structure...");
+		Rewards modelRewards = constructRewards(model, r);
+		
+		// Only support MDPs
+		ModelCheckerResult res = null;
+		switch (model.getModelType()) {
+			case MDP:
+				res = ((MDPModelChecker) this).computeMultiStrategy((MDP) model, (MDPRewards) modelRewards, opInfo.getBound());
+				break;
+			case IMDP:
+				res = ((IMDPModelChecker) this).computeMultiStrategy((IMDP) model, (MDPRewards) modelRewards, opInfo.getBound());
+				break;
+			default:
+				throw new PrismNotSupportedException("Cannot model check " + expr + " for " + model.getModelType() + "s");
+		}
+		if (model.getModelType() != ModelType.MDP && model.getModelType() != ModelType.IMDP ) {
+			throw new PrismNotSupportedException("Multi-strategy synthesis not supported for " + model.getModelType() + "s");
+		}
+		
+		//ModelCheckerResult res = ((MDPModelChecker) this).computeMultiStrategy((MDP) model, (MDPRewards) modelRewards, opInfo.getBound());
+		
+		result.setStrategy(res.strat);
+		return StateValues.createFromDoubleArrayResult(res, model);
+	}
+	
 	/**
 	 * Model check a P operator expression and return the values for the statesOfInterest.
  	 * @param statesOfInterest the states of interest, see checkExpression()
