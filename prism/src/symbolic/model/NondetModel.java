@@ -281,10 +281,29 @@ public class NondetModel extends ModelSymbolic
 		super.printTransInfo(log, extra);
 		if (extra) {
 			if (transActions != null) {
-				log.print("Action label info (");
-				log.println(JDD.GetInfoString(transActions, getNumDDVarsInTrans()));
+				log.print("Choice action info: ");
+				log.println(JDD.GetInfoString(transActions, allDDRowVars.n() + allDDNondetVars.n()));
 			}
 		}
+	}
+
+	@Override
+	public String getTransDDVarSummary()
+	{
+		return super.getTransDDVarSummary() + "/" + getNumDDNondetVars() + "nd";
+	}
+
+	@Override
+	public String getTransDDVarInfo()
+	{
+		String s = "DD vars (nd):";
+		int n = allDDNondetVars.getNumVars();
+		for (int i = 0; i < n; i++) {
+			int j = allDDNondetVars.getVarIndex(i);
+			s += " " + j + ":" + getDDVarNames().get(j);
+		}
+		s += "\n" + super.getTransDDVarInfo();
+		return s;
 	}
 
 	@Override

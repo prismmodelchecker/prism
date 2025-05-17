@@ -280,6 +280,17 @@ public interface Model extends prism.Model<Double>
 	void printTransInfo(PrismLog log, boolean extra);
 
 	/**
+	 * Get a string summarising the number of DD variables in the transition matrix DD,
+	 * e.g. "31r/31c" or "31r/31c/8nd".
+	 */
+	String getTransDDVarSummary();
+
+	/**
+	 * Get text listing the DD variables in the transition matrix DD.
+	 */
+	String getTransDDVarInfo();
+
+	/**
 	 * Export the transition function/matrix.
 	 * @param exportType The format in which to export
 	 * @param explicit Whether to order by state

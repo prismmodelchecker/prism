@@ -134,7 +134,7 @@ public class ProbModel extends ModelSymbolic
 		if (extra) {
 			if (transPerAction != null) {
 				for (int i = 0; i < numSynchs + 1; i++) {
-					log.print("Action label info (");
+					log.print("Transition action info: ");
 					log.print((i == 0 ? "" : synchs.get(i - 1)) + "): ");
 					log.println(JDD.GetInfoString(transPerAction[i], getNumDDVarsInTrans()));
 				}

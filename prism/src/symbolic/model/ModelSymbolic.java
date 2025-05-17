@@ -638,17 +638,9 @@ public abstract class ModelSymbolic implements Model
 		log.println();
 
 		log.print(getTransName() + ": " + JDD.GetInfoString(trans, getNumDDVarsInTrans()));
-		log.print(", vars: " + getNumDDRowVars() + "r/" + getNumDDColVars() + "c\n");
+		log.print(", vars: " + getTransDDVarSummary() + "\n");
 		if (extra) {
-			log.print("DD vars (r/c):");
-			n = allDDRowVars.getNumVars();
-			for (i = 0; i < n; i++) {
-				j = allDDRowVars.getVarIndex(i);
-				log.print(" " + j + ":" + getDDVarNames().get(j));
-				j = allDDColVars.getVarIndex(i);
-				log.print(" " + j + ":" + getDDVarNames().get(j));
-			}
-			log.println();
+			log.print(getTransDDVarInfo() + "\n");
 			log.print(getTransName() + " terminals: " + JDD.GetTerminalsAndNumbersString(trans, getNumDDVarsInTrans()) + "\n");
 			log.print("Reach: " + JDD.GetNumNodes(reach) + " nodes\n");
 			log.print("ODD: " + ODDUtils.GetNumODDNodes() + " nodes\n");
@@ -677,6 +669,26 @@ public abstract class ModelSymbolic implements Model
 				}
 			}
 		}
+	}
+
+	@Override
+	public String getTransDDVarSummary()
+	{
+		return getNumDDRowVars() + "r/" + getNumDDColVars() + "c";
+	}
+
+	@Override
+	public String getTransDDVarInfo()
+	{
+		String s = "DD vars (r/c):";
+		int n = allDDRowVars.getNumVars();
+		for (int i = 0; i < n; i++) {
+			int j = allDDRowVars.getVarIndex(i);
+			s += " " + j + ":" + getDDVarNames().get(j);
+			j = allDDColVars.getVarIndex(i);
+			s += " " + j + ":" + getDDVarNames().get(j);
+		}
+		return s;
 	}
 
 	@Override
