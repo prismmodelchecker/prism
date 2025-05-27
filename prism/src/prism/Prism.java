@@ -80,6 +80,7 @@ import strat.StrategyGenerator;
 import symbolic.build.ExplicitFiles2MTBDD;
 import io.PrismExplicitImporter;
 import symbolic.build.ExplicitModel2MTBDD;
+import symbolic.build.MTBDD2ExplicitModel;
 import symbolic.build.ModelGenerator2MTBDD;
 import symbolic.build.Modules2MTBDD;
 import symbolic.comp.ECComputer;
@@ -2684,20 +2685,13 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 		boolean engineSwitch = false;
 		int lastEngine = -1;
 		try {
-			// Auto-switch to explicit engine if required
-			if (exportTask.getExportOptions().getFormat() == ModelExportFormat.DRN) {
-				if (getCurrentEngine() == PrismEngine.SYMBOLIC) {
-					mainLog.printWarning("Switching to explicit engine to allow export " + exportTask.getExportOptions().getFormat().description());
-					engineSwitch = true;
-					lastEngine = getEngine();
-					setEngine(Prism.EXPLICIT);
-				}
-			}
+			// NB: currently no engine auto-switch needed
 			// Build model, if necessary
 			buildModelIfRequired();
 			// Merge export options with PRISM settings and do export
 			mainLog.println("\n" + exportTask.getMessage());
 			ModelExportOptions exportOptions = newMergedModelExportOptions(exportTask.getExportOptions());
+			//long timer = System.currentTimeMillis();
 			switch (exportTask.getEntity()) {
 				case MODEL:
 					doExportBuiltModel(new ModelExportTask(exportTask, exportOptions));
@@ -2718,6 +2712,8 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 					doExportBuiltModelLabels(new ModelExportTask(exportTask, exportOptions));
 					break;
 			}
+			//timer = System.currentTimeMillis() - timer;
+			//mainLog.println("Time for model export: " + timer / 1000.0 + " seconds.");
 		} finally {
 			// Undo auto-switch (if any)
 			if (engineSwitch) {
@@ -2737,8 +2733,18 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	{
 		// Export via either symbolic/explicit model checker
 		if (getBuiltModelType() == ModelBuildType.SYMBOLIC) {
-			symbolic.comp.StateModelChecker mcSymb = createModelChecker(null);
-			mcSymb.exportModel(exportTask);
+			// In some cases, we need to convert to an explicit model first
+			if (exportTask.getExportOptions().getFormat() == ModelExportFormat.DRN) {
+				MTBDD2ExplicitModel m2m = new MTBDD2ExplicitModel(this);
+				explicit.Model<Double> modelExpl = m2m.convertModel(getBuiltModelSymbolic());
+				explicit.StateModelChecker mcExpl = explicit.StateModelChecker.createModelChecker(getModelType(), this);
+				RewardGenerator<Double> rewardGen = m2m.getRewardConverter(getBuiltModelSymbolic(), modelExpl, getRewardInfo());
+				mcExpl.setModelCheckingInfo(getModelInfo(), null, rewardGen);
+				mcExpl.exportModel(modelExpl, exportTask);
+			} else {
+				symbolic.comp.StateModelChecker mcSymb = createModelChecker(null);
+				mcSymb.exportModel(exportTask);
+			}
 		} else {
 			explicit.StateModelChecker mcExpl = createModelCheckerExplicit(null);
 			mcExpl.exportModel(getBuiltModelExplicit(), exportTask);
