@@ -1549,6 +1549,7 @@ public class StateModelChecker extends PrismComponent
 			default:
 				throw new PrismNotSupportedException("Export " + exportOptions.getFormat().description() + " not supported by explicit engine");
 		}
+		exporter.setModelInfo(modelInfo);
 		File file = exportTask.getFile();
 		// If needed, add label/reward info
 		if (exportOptions.getFormat() == ModelExportFormat.DRN) {

@@ -33,6 +33,7 @@ import explicit.Model;
 import explicit.NondetModel;
 import explicit.rewards.Rewards;
 import prism.Evaluator;
+import prism.ModelInfo;
 import prism.Pair;
 import prism.PrismException;
 import prism.PrismFileLog;
@@ -66,6 +67,8 @@ public abstract class ModelExporter<Value>
 
 	protected List<BitSet> labels = new ArrayList<>();
 	protected List<String> labelNames = new ArrayList<>();
+
+	protected ModelInfo modelInfo;
 
 	/**
 	 * Construct a ModelExporter with default export options.
@@ -158,6 +161,15 @@ public abstract class ModelExporter<Value>
 		for (int i = 0; i < numLabels; i++) {
 			addLabel(labels.get(i), labelNames.get(i));
 		}
+	}
+
+	/**
+	 * Provide information about the model,
+	 * e.g., for variable/observable annotations.
+	 */
+	public void setModelInfo(ModelInfo modelInfo)
+	{
+		this.modelInfo = modelInfo;
 	}
 
 	// Get methods
@@ -266,6 +278,16 @@ public abstract class ModelExporter<Value>
 	public String getLabelName(int i)
 	{
 		return labelNames.get(i);
+	}
+
+	/**
+	 * Get information about the model,
+	 * e.g., for variable/observable annotations.
+	 * May be null.
+	 */
+	public ModelInfo getModelInfo()
+	{
+		return modelInfo;
 	}
 
 	/**
