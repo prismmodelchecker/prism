@@ -70,6 +70,24 @@ public class IOUtils
 	}
 
 	/**
+	 * Functional interface for a consumer accepting state values (s,v),
+	 * i.e., state s, value v.
+	 */
+	@FunctionalInterface
+	public interface StateValueConsumer<V> {
+		void accept(int s, V v) throws PrismException;
+	}
+
+	/**
+	 * Functional interface for a consumer accepting state rewards (s,v),
+	 * i.e., state s, value v.
+	 */
+	@FunctionalInterface
+	public interface StateRewardConsumer<V> {
+		void accept(int s, V v) throws PrismException;
+	}
+
+	/**
 	 * Functional interface for a consumer accepting transition rewards (s,i,v),
 	 * i.e., source state s, index i, value v.
 	 */

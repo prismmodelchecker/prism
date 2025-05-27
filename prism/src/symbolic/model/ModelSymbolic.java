@@ -562,6 +562,12 @@ public abstract class ModelSymbolic implements Model
 	}
 
 	@Override
+	public String getRewardStructName(int i)
+	{
+		return rewardStructNames[i];
+	}
+
+	@Override
 	public JDDNode getStateRewards(int i)
 	{
 		return (i >= 0 && i < numRewardStructs) ? stateRewards[i] : null;

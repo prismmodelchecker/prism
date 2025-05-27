@@ -163,6 +163,11 @@ public interface Model extends prism.Model<Double>
 	int getNumRewardStructs();
 
 	/**
+	 * Get the name of the {@code i}th reward structure.
+	 */
+	String getRewardStructName(int i);
+
+	/**
 	 * Get an MTBDD for the state rewards for the {@code i}th reward structure.
 	 */
 	JDDNode getStateRewards(int i);

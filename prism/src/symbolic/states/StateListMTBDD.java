@@ -27,6 +27,7 @@
 package symbolic.states;
 
 import java.util.*;
+import java.util.function.Consumer;
 
 import jdd.*;
 import odd.*;
@@ -383,6 +384,69 @@ public class StateListMTBDD implements StateList
 		JDD.Deref(first);
 		
 		return values;
+	}
+
+	/**
+	 * Convert this state list to a {@link List} of {@link State} objects.
+	 */
+	public List<State> getAsListOfStates()
+	{
+		List<State> list = new ArrayList<>();
+		// Initialise variable info storage for recursion
+		for (int i = 0; i < varList.getNumVars(); i++) {
+			varValues[i] = 0;
+		}
+		currentVar = 0;
+		currentVarLevel = 0;
+		// Traverse BDD to extract states
+		getAsListOfStatesRec(states, 0, odd, 0, list::add);
+		return list;
+	}
+
+	/**
+	 * Recursive helper for {@link #getAsListOfStates()}.
+	 * @param dd The BDD
+	 * @param level Level of recursion
+	 * @param o The ODD
+	 * @param n State index counter
+	 * @param consumer Consumer to accept states
+	 */
+	private void getAsListOfStatesRec(JDDNode dd, int level, ODDNode o, long n, Consumer<State> consumer)
+	{
+		// Base case: zero terminal
+		if (dd.equals(JDD.ZERO)) {
+			return;
+		}
+		// Base case: non-zero terminal
+		if (level == numVars) {
+			int numVars = varList.getNumVars();
+			State state = new State(numVars);
+			for (int i = 0; i < numVars; i++) {
+				state.setValue(i, varList.decodeFromInt(i, varValues[i]));
+			}
+			consumer.accept(state);
+			return;
+		}
+		// Recurse
+		JDDNode e, t;
+		if (dd.getIndex() > vars.getVarIndex(level)) {
+			e = t = dd;
+		}
+		else {
+			e = dd.getElse();
+			t = dd.getThen();
+		}
+		ODDNode oe = (o != null ? o.getElse() : null);
+		ODDNode ot = (o != null ? o.getThen() : null);
+		long eoff = (o != null ? o.getEOff() : 0);
+		currentVarLevel++; if (currentVarLevel == varSizes[currentVar]) { currentVar++; currentVarLevel = 0; }
+		getAsListOfStatesRec(e, level + 1, oe, n, consumer);
+		currentVarLevel--; if (currentVarLevel == -1) { currentVar--; currentVarLevel = varSizes[currentVar] - 1; }
+		varValues[currentVar] += (1 << (varSizes[currentVar] - 1 - currentVarLevel));
+		currentVarLevel++; if (currentVarLevel == varSizes[currentVar]) { currentVar++; currentVarLevel = 0; }
+		getAsListOfStatesRec(t, level + 1, ot, n + eoff, consumer);
+		currentVarLevel--; if (currentVarLevel == -1) { currentVar--; currentVarLevel = varSizes[currentVar] - 1; }
+		varValues[currentVar] -= (1 << (varSizes[currentVar] - 1 - currentVarLevel));
 	}
 
 	@Override
