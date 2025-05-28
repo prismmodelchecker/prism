@@ -106,7 +106,10 @@ public abstract class ExplicitModelImporter
 	public abstract String sourceString();
 
 	/**
-	 * Get info about the model.
+	 * Get info about the model (type, variables, labels, etc.).
+	 * If {@link #providesLabels()} returns false, this will report zero labels.
+	 * If {@link #providesStates()} returns false, this will report a single
+	 * integer-valued variable with name {@link #defaultVariableName()}.
 	 */
 	public abstract ModelInfo getModelInfo() throws PrismException;
 
@@ -152,9 +155,18 @@ public abstract class ExplicitModelImporter
 	/**
 	 * Extract state definitions (variable values).
 	 * Calls {@code storeStateDefn(s, i, o)} for each state s, variable (index) i and variable value o.
+	 * If {@link #providesStates()} returns false, this should report a single
+	 * integer-valued variable range between 0 and {@link #getNumStates()} - 1.
 	 * @param storeStateDefn Function to be called for each variable value of each state
 	 */
-	public abstract void extractStates(IOUtils.StateDefnConsumer storeStateDefn) throws PrismException;
+	public void extractStates(IOUtils.StateDefnConsumer storeStateDefn) throws PrismException
+	{
+		// Default implementation - assume one integer variable
+		int numStates = getNumStates();
+		for (int s = 0; s < numStates; s++) {
+			storeStateDefn.accept(s, 0, s);
+		}
+	}
 
 	/**
 	 * Compute the maximum number of choices (in a nondeterministic model).

@@ -735,15 +735,13 @@ public class PrismExplicitImporter extends ExplicitModelImporter
 	@Override
 	public void extractStates(IOUtils.StateDefnConsumer storeStateDefn) throws PrismException
 	{
-		int numVars = basicModelInfo.getNumVars();
 		// If there is no info, just assume that states comprise a single integer value
 		if (getStatesFile() == null) {
-			for (int s = 0; s < modelStats.numStates; s++) {
-				storeStateDefn.accept(s, 0, s);
-			}
+			super.extractStates(storeStateDefn);
 			return;
 		}
 		// Otherwise extract from .sta file
+		int numVars = basicModelInfo.getNumVars();
 		int lineNum = 0;
 		try (BufferedReader in = new BufferedReader(new FileReader(statesFile))) {
 			lineNum += skipCommentAndFirstLine(in);
