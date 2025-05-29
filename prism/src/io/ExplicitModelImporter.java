@@ -220,10 +220,27 @@ public abstract class ExplicitModelImporter
 	 * Calls {@code storeLabel(s, i)} for each state s satisfying label l,
 	 * where l is 0-indexed and matches the label list from {@link #getModelInfo()}.
 	 * Calls {@code storeInit(s)} for each initial state s.
+	 * Any "deadlock" labels are ignored.
 	 * @param storeLabel Function to be called for each state satisfying a label
 	 * @param storeInit Function to be called for each initial stat
 	 */
-	public abstract void extractLabelsAndInitialStates(BiConsumer<Integer, Integer> storeLabel, Consumer<Integer> storeInit) throws PrismException;
+	public void extractLabelsAndInitialStates(BiConsumer<Integer, Integer> storeLabel, Consumer<Integer> storeInit) throws PrismException
+	{
+		extractLabelsAndInitialStates(storeLabel, storeInit, null);
+	}
+
+	/**
+	 * Extract info about state labellings and initial states.
+	 * Calls {@code storeLabel(s, i)} for each state s satisfying label l,
+	 * where l is 0-indexed and matches the label list from {@link #getModelInfo()}.
+	 * Calls {@code storeInit(s)} for each initial state s.
+	 * If {@code storeDeadlock} is non-null, it will be called for each state labelled
+	 * with "deadlock", regardless of whether it has been detected as a deadlock and/or fixed.
+	 * @param storeLabel Function to be called for each state satisfying a label
+	 * @param storeInit Function to be called for each initial state
+	 * @param storeDeadlock Function to be called for each state marked as a deadlock
+	 */
+	public abstract void extractLabelsAndInitialStates(BiConsumer<Integer, Integer> storeLabel, Consumer<Integer> storeInit, Consumer<Integer> storeDeadlock) throws PrismException;
 
 	/**
 	 * Extract the state rewards for a given reward structure index.

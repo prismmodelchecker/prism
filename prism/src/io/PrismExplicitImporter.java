@@ -554,7 +554,7 @@ public class PrismExplicitImporter extends ExplicitModelImporter
 
 	/**
 	 * Extract names of labels from the labels file.
-	 * These are store in the label name list within basicModelInfo.
+	 * These are stored in the label name list within basicModelInfo.
 	 * The "init" and "deadlock" labels are skipped, as they have special
 	 * meaning and are implicitly defined for all models.
 	 */
@@ -955,7 +955,7 @@ public class PrismExplicitImporter extends ExplicitModelImporter
 	}
 
 	@Override
-	public void extractLabelsAndInitialStates(BiConsumer<Integer, Integer> storeLabel, Consumer<Integer> storeInit) throws PrismException
+	public void extractLabelsAndInitialStates(BiConsumer<Integer, Integer> storeLabel, Consumer<Integer> storeInit, Consumer<Integer> storeDeadlock) throws PrismException
 	{
 		// If there is no info, just assume that 0 is the initial state
 		if (getLabelsFile() == null) {
@@ -983,7 +983,11 @@ public class PrismExplicitImporter extends ExplicitModelImporter
 						// Store label info
 						int i = checkLabelIndex(ss[j]);
 						int l = labelMap.get(i);
-						if (l == -1) {
+						if (l == -2) {
+							if (storeDeadlock != null) {
+								storeDeadlock.accept(s);
+							}
+						} else if (l == -1) {
 							storeInit.accept(s);
 						} else if (l > -1) {
 							storeLabel.accept(s, l);

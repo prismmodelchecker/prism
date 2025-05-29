@@ -105,6 +105,7 @@ public class ExplicitFiles2MTBDD
 
 	private int maxNumChoices = 0;
 	private LinkedHashMap<String, JDDNode> labelsDD;
+	private JDDNode labelDeadlock;
 
 	// Progress info
 	private ProgressDisplay progress;
@@ -263,6 +264,7 @@ public class ExplicitFiles2MTBDD
 
 		// attach labels
 		attachLabels(model);
+		model.addDeadlocks(labelDeadlock);
 
 		// deref spare dds
 		if (labelsDD != null) {
@@ -449,6 +451,7 @@ public class ExplicitFiles2MTBDD
 	{
 		// Initialise BDDs
 		start = JDD.Constant(0);
+		labelDeadlock = JDD.Constant(0);
 		int numLabels = modelInfo.getNumLabels();
 		JDDNode[] labelDDs = new JDDNode[numLabels];
 		for (int l = 0; l < numLabels; l++) {
@@ -459,6 +462,8 @@ public class ExplicitFiles2MTBDD
 			labelDDs[l] = JDD.Or(labelDDs[l], encodeState(s));
 		}, s -> {
 			start = JDD.Or(start, encodeState(s));
+		}, s -> {
+			labelDeadlock = JDD.Or(labelDeadlock, encodeState(s));
 		});
 		if (start == null || start.equals(JDD.ZERO)) {
 			throw new PrismException("No initial states found in labels file");

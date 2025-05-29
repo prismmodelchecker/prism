@@ -416,11 +416,24 @@ public abstract class ModelSymbolic implements Model
 
 	/**
 	 * Find all deadlock states and store this information in the model.
-	 * If requested (if fix=true) and if needed (i.e. for DTMCs/CTMCs),
-	 * fix deadlocks by adding self-loops in these states.
+	 * If requested (if fix=true), fix deadlocks by adding self-loops in these states.
 	 * The set of deadlocks (before any possible fixing) can be obtained from {@link #getDeadlocks()}.
 	 */
 	public abstract void findDeadlocks(boolean fix);
+
+	/**
+	 * Mark additional states as deadlocks.
+	 *
+	 * <br>[ DEREFS: moreDeadlocks ]
+	 */
+	public void addDeadlocks(JDDNode moreDeadlocks)
+	{
+		if (deadlocks == null) {
+			deadlocks = moreDeadlocks;
+		} else {
+			deadlocks = JDD.Or(deadlocks, moreDeadlocks);
+		}
+	}
 
 	// Accessors (for prism.Model & symbolic.Model interface)
 

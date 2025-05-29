@@ -174,7 +174,7 @@ public class ExplicitFiles2Model extends PrismComponent
 			labelBitSets.add(new BitSet());
 		}
 		// Extract info
-		modelImporter.extractLabelsAndInitialStates((s, l) -> labelBitSets.get(l).set(s), model::addInitialState);
+		modelImporter.extractLabelsAndInitialStates((s, l) -> labelBitSets.get(l).set(s), model::addInitialState, model::addDeadlockState);
 		// Attach labels to model
 		for (int l = 0; l < numLabels; l++) {
 			model.addLabel(modelInfo.getLabelName(l), labelBitSets.get(l));
