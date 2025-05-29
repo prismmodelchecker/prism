@@ -1,2 +1,2 @@
--mdp -importmodel robot.all robot.prism.props
--mdp -importmodel robot.all robot.prism.props -ex
+-importmodel robot.all robot.prism.props
+-importmodel robot.all robot.prism.props -ex

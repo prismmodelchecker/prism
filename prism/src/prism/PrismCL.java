@@ -438,7 +438,7 @@ public class PrismCL implements PrismModelListener
 						if (modelBuildFail) {
 							results[j].setMultipleErrors(definedMFConstants, null, modelBuildException);
 							if (test) {
-								doResultTest(propertiesToCheck.get(j), new Result(modelBuildException), modulesFile.getConstantValues(), null);
+								doResultTest(propertiesToCheck.get(j), new Result(modelBuildException), prism.getModelInfo().getConstantValues(), null);
 							}
 							break;
 						}
@@ -498,7 +498,7 @@ public class PrismCL implements PrismModelListener
 						
 						// if required, check result against expected value
 						if (test) {
-							doResultTest(propertiesToCheck.get(j), res, modulesFile.getConstantValues(), propertiesFile.getConstantValues());
+							doResultTest(propertiesToCheck.get(j), res, prism.getModelInfo().getConstantValues(), propertiesFile.getConstantValues());
 						}
 
 						// iterate to next property
@@ -511,7 +511,7 @@ public class PrismCL implements PrismModelListener
 					for (j++; j < numPropertiesToCheck; j++) {
 						results[j].setMultipleErrors(definedMFConstants, null, modelBuildException);
 						if (test) {
-							doResultTest(propertiesToCheck.get(j), new Result(modelBuildException), modulesFile.getConstantValues(), propertiesFile.getConstantValues());
+							doResultTest(propertiesToCheck.get(j), new Result(modelBuildException), prism.getModelInfo().getConstantValues(), propertiesFile.getConstantValues());
 						}
 					}
 					break;
