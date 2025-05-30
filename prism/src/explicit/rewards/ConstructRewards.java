@@ -96,7 +96,7 @@ public class ConstructRewards extends PrismComponent
 		// If the RewardGenerator already has the rewards built, use this (after checking)
 		if (rewardGen.isRewardLookupSupported(RewardLookup.BY_REWARD_OBJECT)) {
 			Rewards<Value> rewardsObj = rewardGen.getRewardObject(r);
-			checkRewardObject(rewardsObj, rewardGen.getRewardObjectModel(), rewardGen.getRewardEvaluator());
+			rewardsObj = checkRewardObject(rewardsObj, rewardGen.getRewardObjectModel(), rewardGen.getRewardEvaluator());
 			return rewardsObj;
 		}
 		// Extract some model info
@@ -504,12 +504,24 @@ public class ConstructRewards extends PrismComponent
 	 * @param model The model for the rewards
 	 * @param eval Evaluator matching the type {@code Value} of the reward value
 	 */
-	private <Value> void checkRewardObject(Rewards<Value> rewards, Model<Value> model, Evaluator<Value> eval) throws PrismException
+	private <Value> Rewards<Value> checkRewardObject(Rewards<Value> rewards, Model<Value> model, Evaluator<Value> eval) throws PrismException
 	{
 		int numStates = model.getNumStates();
+		// In some cases, we need to create a new Rewards object
+		// in which (Markov chain) transition rewards are converted to expected rewards
+		RewardsExplicit<Value> rewardsRet = null;
+		boolean convertToExpected = !model.getModelType().nondeterministic() && rewards.hasTransitionRewards() && expectedRewards;
+		if (convertToExpected) {
+			rewardsRet = new RewardsSimple<>(numStates);
+			rewardsRet.setEvaluator(rewards.getEvaluator());
+		}
 		// State rewards
 		for (int s = 0; s < numStates; s++) {
-			checkStateReward(rewards.getStateReward(s), eval, s, null);
+			Value rew = rewards.getStateReward(s);
+			checkStateReward(rew, eval, s, null);
+			if (convertToExpected) {
+				rewardsRet.setStateReward(s, rew);
+			}
 		}
 		// Transition rewards (nondet models)
 		if (model.getModelType().nondeterministic()) {
@@ -523,12 +535,31 @@ public class ConstructRewards extends PrismComponent
 		// Transition rewards (Markov chain like models)
 		else {
 			for (int s = 0; s < numStates; s++) {
-				int numTrans = model.getNumTransitions(s);
-				for (int i = 0; i < numTrans; i++) {
-					checkTransitionReward(rewards.getTransitionReward(s, i), eval, s, null);
+				if (!convertToExpected) {
+					int numTrans = model.getNumTransitions(s);
+					for (int i = 0; i < numTrans; i++) {
+						checkTransitionReward(rewards.getTransitionReward(s, i), eval, s, null);
+					}
+				} else {
+					DTMC<Value> mcModel = (DTMC<Value>) model;
+					Iterator<Map.Entry<Integer, Value>> iter = mcModel.getTransitionsIterator(s);
+					int i = 0;
+					while (iter.hasNext()) {
+						Map.Entry<Integer, Value> e = iter.next();
+						Value rew = rewards.getTransitionReward(s, i);
+						checkTransitionReward(rew, eval, s, null);
+						if (rewards.getEvaluator().isZero(rew)) {
+							i++;
+							continue;
+						}
+						Value rewWeighted = rewards.getEvaluator().multiply(e.getValue(), rew);
+						rewardsRet.addToStateReward(s, rewWeighted);
+						i++;
+					}
 				}
 			}
 		}
+		return convertToExpected ? rewardsRet : rewards;
 	}
 
 	/**
