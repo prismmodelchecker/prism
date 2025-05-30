@@ -680,12 +680,9 @@ public class PrismExplicitImporter extends ExplicitModelImporter
 				if (d > 1) {
 					return ModelType.CTMC;
 				}
-				// All non-rates so far: guess MDP/DTMC
-				if (lines == max) {
-					return nondet ? ModelType.MDP : ModelType.DTMC;
-				}
 			}
-			return null;
+			// All non-rates seen: guess MDP/DTMC
+			return nondet ? ModelType.MDP : ModelType.DTMC;
 		} catch (NumberFormatException | CsvFormatException | IOException e) {
 			return null;
 		}
