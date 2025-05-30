@@ -507,6 +507,10 @@ public class PrismExplicitImporter extends ExplicitModelImporter
 				if (varTypes.get(i) instanceof TypeBool) {
 					basicModelInfo.getVarList().addVar(varNames.get(i), new DeclarationBool(), -1);
 				} else {
+					// Note: we do not yet allow 0-range variables
+					if (varMins[i] == varMaxs[i]) {
+						varMaxs[i]++;
+					}
 					basicModelInfo.getVarList().addVar(varNames.get(i), new DeclarationInt(Expression.Int(varMins[i]), Expression.Int(varMaxs[i])), -1);
 				}
 			}
