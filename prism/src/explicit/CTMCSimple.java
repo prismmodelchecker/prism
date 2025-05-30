@@ -28,6 +28,7 @@ package explicit;
 
 import prism.Evaluator;
 
+import java.util.AbstractMap;
 import java.util.BitSet;
 import java.util.Iterator;
 import java.util.Map;
@@ -114,7 +115,34 @@ public class CTMCSimple<Value> extends DTMCSimple<Value> implements CTMC<Value>
 	}
 
 	// Accessors (for CTMC)
-	
+
+	@Override
+	public Iterator<Map.Entry<Integer, Value>> getEmbeddedTransitionsIterator(int s)
+	{
+		// Create iterator (no removal of duplicates)
+		return new Iterator<>() {
+			private final int n = succ.get(s).size();
+			private int i = 0;
+			private Value exitRate = getExitRate(s);
+
+			@Override
+			public Map.Entry<Integer, Value> next()
+			{
+				if (n == 0) {
+					return new AbstractMap.SimpleEntry<>(i++, getEvaluator().one());
+				} else {
+					return new AbstractMap.SimpleImmutableEntry<>(succ.get(s).get(i), getEvaluator().divide(trans.get(s).get(i++), exitRate));
+				}
+			}
+
+			@Override
+			public boolean hasNext()
+			{
+				return i < (n == 0 ? 1 : n);
+			}
+		};
+	}
+
 	@Override
 	public Value getExitRate(int i)
 	{

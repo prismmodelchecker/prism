@@ -27,6 +27,8 @@
 package explicit;
 
 import java.util.BitSet;
+import java.util.Iterator;
+import java.util.Map;
 
 import prism.ModelType;
 
@@ -44,7 +46,12 @@ public interface CTMC<Value> extends DTMC<Value>
 	}
 
 	// Accessors
-	
+
+	/**
+	 * Get an iterator over the embedded DTMC transitions from state s.
+	 */
+	public Iterator<Map.Entry<Integer, Value>> getEmbeddedTransitionsIterator(int s);
+
 	/**
 	 * Get the exit rate for state {@code i}.
 	 * i.e. sum_j R(i,j)
