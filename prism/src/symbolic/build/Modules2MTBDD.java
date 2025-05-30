@@ -814,7 +814,14 @@ public class Modules2MTBDD
 		if (modelType == ModelType.DTMC) {
 			// divide each row by row sum
 			tmp = JDD.SumAbstract(trans.copy(), allDDColVars);
-			trans = JDD.Apply(JDD.DIVIDE, trans, tmp);
+			trans = JDD.Apply(JDD.DIVIDE, trans, tmp.copy());
+			// also divide action info if needed
+			if (storeTransActions) {
+				for (i = 0; i < numSynchs + 1; i++) {
+					transPerAction[i] = JDD.Apply(JDD.DIVIDE, transPerAction[i], tmp.copy());
+				}
+			}
+			JDD.Deref(tmp);
 		}
 	}
 
