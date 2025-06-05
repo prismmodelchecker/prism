@@ -367,16 +367,16 @@ public class GUIMultiModel extends GUIPlugin implements PrismSettingsListener
 				break;
 			default:
 				switch (exportEntity) {
-					case ModelExportEntity.STATES:
+					case STATES:
 						res = showSaveFileDialog(staFilters.values(), staFilters.get("sta"));
 						break;
-					case ModelExportEntity.MODEL:
+					case MODEL:
 						res = showSaveFileDialog(traFilters.values(), traFilters.get("tra"));
 						break;
-					case ModelExportEntity.OBSERVATIONS:
+					case OBSERVATIONS:
 						res = showSaveFileDialog(obsFilters.values(), obsFilters.get("obs"));
 						break;
-					case ModelExportEntity.LABELS:
+					case LABELS:
 						res = showSaveFileDialog(labFilters.values(), labFilters.get("lab"));
 						break;
 					default:
@@ -419,7 +419,7 @@ public class GUIMultiModel extends GUIPlugin implements PrismSettingsListener
 			case MATLAB:
 				res = showSaveFileDialog(matlabFilter);
 				break;
-			case ModelExportFormat.EXPLICIT:
+			case EXPLICIT:
 			default:
 				res = showSaveFileDialog(textFilter);
 				break;
@@ -450,10 +450,10 @@ public class GUIMultiModel extends GUIPlugin implements PrismSettingsListener
 		// Pop up dialog to select file
 		int res = JFileChooser.CANCEL_OPTION;
 		switch (exportFormat) {
-			case ModelExportFormat.MATLAB:
+			case MATLAB:
 				res = showSaveFileDialog(matlabFilter);
 				break;
-			case ModelExportFormat.EXPLICIT:
+			case EXPLICIT:
 			default:
 				res = showSaveFileDialog(textFilter);
 				break;
