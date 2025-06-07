@@ -39,6 +39,7 @@ import java.util.Map;
 import java.util.Stack;
 import java.util.Vector;
 
+import common.Interval;
 import parser.State;
 import parser.VarList;
 import parser.ast.Declaration;
@@ -67,7 +68,6 @@ import automata.DA;
 import automata.LTL2DA;
 import automata.LTL2WDBA;
 import jltl2ba.SimpleLTL;
-import common.Interval;
 import common.IterableStateSet;
 import common.StopWatch;
 
@@ -528,14 +528,7 @@ public class LTLModelChecker extends PrismComponent
 		((ModelExplicit<Value>) prodModel).setVarList(newVarList);
 
 		// Now do the actual product model construction
-		// This is a separate method so that we can alter the model type if needed,
-		// e.g. construct an IDTMC<Value> product as one over an DTMC<Interval<Value>>
-		switch (modelType) {
-		case IDTMC:
-			return (LTLProduct<M>) doConstructProductModel(ModelType.DTMC, prodModel, da, model, labelBS, statesOfInterest);
-		default:
-			return doConstructProductModel(modelType, prodModel, da, model, labelBS, statesOfInterest);
-		}
+		return doConstructProductModel(modelType, prodModel, da, model, labelBS, statesOfInterest);
 	}
 	
 	/**
@@ -654,6 +647,9 @@ public class LTLModelChecker extends PrismComponent
 				case POMDP:
 					iter = ((POMDP<Value>) model).getTransitionsIterator(s_1, j);
 					break;
+				case IDTMC:
+					iterIntv = ((IDTMC<Value>) model).getIntervalTransitionsIterator(s_1);
+					break;
 				case IMDP:
 					iterIntv = ((IMDP<Value>) model).getIntervalTransitionsIterator(s_1, j);
 					break;
@@ -673,7 +669,7 @@ public class LTLModelChecker extends PrismComponent
 					}
 				}
 
-				if (modelType != ModelType.IMDP) {
+				if (!(model instanceof IntervalModel)) {
 					while (iter.hasNext()) {
 						Map.Entry<Integer, Value> e = iter.next();
 						int s_2 = e.getKey();
@@ -699,7 +695,17 @@ public class LTLModelChecker extends PrismComponent
 						int s_2 = e.getKey();
 						Interval<Value> prob = e.getValue();
 						int map_2 = newStateMap.apply(q_1, s_2);
-						prodDistrIntv.set(map_2, prob);
+
+						switch (modelType) {
+							case IDTMC:
+								((IDTMCSimple<Value>) prodModel).setProbability(map_1, map_2, prob);
+								break;
+							case IMDP:
+								prodDistrIntv.set(map_2, prob);
+								break;
+							default:
+								throw new PrismNotSupportedException("Product construction not implemented for " + modelType + "s");
+						}
 					}
 				}
 				switch (modelType) {

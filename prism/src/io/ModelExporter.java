@@ -381,13 +381,13 @@ public abstract class ModelExporter<Value>
 		else {
 			// IDTMCs
 			if (model instanceof IDTMC) {
-				Iterator<Map.Entry<Integer, Pair<Interval<Value>, Object>>> iter = ((DTMC<Interval<Value>>) model).getTransitionsAndActionsIterator(s);
+				Iterator<Map.Entry<Integer, Pair<Interval<Value>, Object>>> iter = ((IDTMC<Value>) model).getIntervalTransitionsAndActionsIterator(s);
 				while (iter.hasNext()) {
 					Map.Entry<Integer, Pair<Interval<Value>, Object>> e = iter.next();
 					if (includeActions) {
 						action = e.getValue().second;
 					}
-					sorted.add((Transition<Object>) (Transition<? extends Object>) new Transition<>(e.getKey(), e.getValue().first, action, (Evaluator<Interval<Value>>) model.getEvaluator()));
+					sorted.add((Transition<Object>) (Transition<? extends Object>) new Transition<>(e.getKey(), e.getValue().first, action, ((IDTMC<Value>) model).getIntervalEvaluator()));
 				}
 			}
 			// IMDPs
@@ -410,14 +410,14 @@ public abstract class ModelExporter<Value>
 	 * @param s The state
 	 * @param includeActions Whether to include actions
 	 */
-	public Iterable<Transition<Value>> getSortedTransitionRewardsIterator(DTMC<Value> model, Rewards<Value> rewards, int s, boolean includeActions)
+	public <Value1> Iterable<Transition<Value>> getSortedTransitionRewardsIterator(DTMC<Value1> model, Rewards<Value> rewards, int s, boolean includeActions)
 	{
 		TreeSet<Transition<Value>> sorted = new TreeSet<>(Transition::compareTo);
 		Object action = null;
-		Iterator<Map.Entry<Integer, Pair<Value, Object>>> iter = model.getTransitionsAndActionsIterator(s);
+		Iterator<Map.Entry<Integer, Pair<Value1, Object>>> iter = model.getTransitionsAndActionsIterator(s);
 		int k = 0;
 		while (iter.hasNext()) {
-			Map.Entry<Integer, Pair<Value, Object>> e = iter.next();
+			Map.Entry<Integer, Pair<Value1, Object>> e = iter.next();
 			if (includeActions) {
 				action = e.getValue().second;
 			}

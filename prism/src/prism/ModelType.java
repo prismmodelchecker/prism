@@ -203,6 +203,20 @@ public enum ModelType
 			return true;
 		}
 	},
+	UDTMC("uncertain discrete-time Markov chain") {
+		@Override
+		public boolean nondeterministic()
+		{
+			// NB: we distinguish between nondeterminism and uncertainty
+			return false;
+		}
+
+		@Override
+		public boolean uncertain()
+		{
+			return true;
+		}
+	},
 	IMDP("interval Markov decision process") {
 		@Override
 		public ModelType removeNondeterminism()

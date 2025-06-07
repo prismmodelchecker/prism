@@ -28,6 +28,7 @@ package io;
 
 import common.IteratorTools;
 import explicit.DTMC;
+import explicit.IDTMC;
 import explicit.Model;
 import explicit.NondetModel;
 import explicit.PartiallyObservableModel;
@@ -205,7 +206,8 @@ public class PrismExplicitExporter<Value> extends ModelExporter<Value>
 					}
 				}
 			} else {
-				nonZeroRews += Math.toIntExact(IteratorTools.count(getSortedTransitionRewardsIterator(((DTMC<Value>) model), rewards, s,true), t -> !t.isZero()));
+				DTMC<?> mcModel = (model instanceof IDTMC) ? ((IDTMC<Value>) model).getIntervalModel() : (DTMC<Value>) model;
+				nonZeroRews += Math.toIntExact(IteratorTools.count(getSortedTransitionRewardsIterator(mcModel, rewards, s,true), t -> !t.isZero()));
 			}
 		}
 		// Output non-zero rewards
@@ -229,7 +231,8 @@ public class PrismExplicitExporter<Value> extends ModelExporter<Value>
 					}
 				}
 			} else {
-				for (Transition<Value> transition : getSortedTransitionRewardsIterator(((DTMC<Value>) model), rewards, s, true)) {
+				DTMC<?> mcModel = (model instanceof IDTMC) ? ((IDTMC<Value>) model).getIntervalModel() : (DTMC<Value>) model;
+				for (Transition<Value> transition : getSortedTransitionRewardsIterator(mcModel, rewards, s, true)) {
 					if (!transition.isZero()) {
 						out.println(s + " " + transition.target + " " + transition.toString(modelExportOptions));
 					}

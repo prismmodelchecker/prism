@@ -684,7 +684,7 @@ public class DTMCModelChecker extends ProbModelChecker
 	 * @param target Target states
 	 * @param pre The predecessor relation
 	 */
-	public BitSet prob0(DTMC<?> dtmc, BitSet remain, BitSet target, PredecessorRelation pre)
+	public BitSet prob0(Model<?> dtmc, BitSet remain, BitSet target, PredecessorRelation pre)
 	{
 		BitSet canReachTarget, result;
 		long timer;
@@ -869,7 +869,7 @@ public class DTMCModelChecker extends ProbModelChecker
 	 * @param remain Remain in these states (optional: {@code null} means "all")
 	 * @param target Target states
 	 */
-	public BitSet prob1(DTMC<?> dtmc, BitSet remain, BitSet target)
+	public BitSet prob1(Model<?> dtmc, BitSet remain, BitSet target)
 	{
 		int n, iters;
 		BitSet u, v, soln, unknown;
