@@ -729,7 +729,7 @@ public class DTMCModelChecker extends ProbModelChecker
 	 * @param remain Remain in these states (optional: {@code null} means "all")
 	 * @param target Target states
 	 */
-	public BitSet prob0(DTMC<?> dtmc, BitSet remain, BitSet target)
+	public BitSet prob0(Model<?> dtmc, BitSet remain, BitSet target)
 	{
 		int n, iters;
 		BitSet u, soln, unknown;
@@ -800,7 +800,7 @@ public class DTMCModelChecker extends ProbModelChecker
 	 * @param target Target states
 	 * @param pre The predecessor relation of the DTMC
 	 */
-	public BitSet prob1(DTMC<?> dtmc, BitSet remain, BitSet target, PredecessorRelation pre) {
+	public BitSet prob1(Model<?> dtmc, BitSet remain, BitSet target, PredecessorRelation pre) {
 		// Implements the constrained reachability algorithm from
 		// Baier, Katoen: Principles of Model Checking (Corollary 10.31 Qualitative Constrained Reachability)
 		long timer;
