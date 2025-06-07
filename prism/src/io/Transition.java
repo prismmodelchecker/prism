@@ -26,10 +26,13 @@
 
 package io;
 
+import prism.Evaluator;
+
 import java.util.Objects;
 
 /**
  * Storage of info about a model transition, for the purposes of import/export.
+ * Often, but not always, this will be the probability for the transition.
  */
 public class Transition<V> implements Comparable<Transition<V>>
 {
@@ -39,12 +42,23 @@ public class Transition<V> implements Comparable<Transition<V>>
 	protected V value;
 	/** An attached action label */
 	protected Object action;
+	/** Evaluator for the stored value */
+	protected Evaluator<V> evaluator;
 
-	public Transition(int target, V value, Object action)
+	public Transition(int target, V value, Object action, Evaluator<V> evaluator)
 	{
 		this.target = target;
 		this.value = value;
 		this.action = action;
+		this.evaluator = evaluator;
+	}
+
+	/**
+	 * Is the value for this transition zero?
+	 */
+	public boolean isZero()
+	{
+		return evaluator.isZero(value);
 	}
 
 	@Override
@@ -80,5 +94,13 @@ public class Transition<V> implements Comparable<Transition<V>>
 			ret += ", " + action;
 		}
 		return ret;
+	}
+
+	/**
+	 * Returns a string representation, formatted according to the provided export options.
+	 */
+	public String toString(ModelExportOptions exportOptions)
+	{
+		return evaluator.toStringExport(value, exportOptions.getModelPrecision());
 	}
 }

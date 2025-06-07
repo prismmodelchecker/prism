@@ -140,8 +140,8 @@ public class DRNExporter<Value> extends ModelExporter<Value>
 				}
 				out.println();
 				// Print out (sorted) transitions
-				for (Transition<Value> transition : getSortedTransitionsIterator(model, s, j, showActions)) {
-					out.println("\t\t" + transition.target + " : " + formatValue(transition.value));
+				for (Transition<?> transition : getSortedTransitionsIterator(model, s, j, showActions)) {
+					out.println("\t\t" + transition.target + " : " + transition.toString(modelExportOptions));
 				}
 			}
 		}

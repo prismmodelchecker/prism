@@ -57,7 +57,7 @@ public interface STPG<Value> extends MDP<Value>
 	}
 
 	@Override
-	default void exportToDotFile(PrismLog out, Iterable<explicit.graphviz.Decorator> decorators, int precision)
+	default void exportToDotFile(PrismLog out, Iterable<explicit.graphviz.Decorator> decorators, int precision) throws PrismException
 	{
 		// Copy any existing decorators
 		List<explicit.graphviz.Decorator> decoratorsNew = new ArrayList<>();

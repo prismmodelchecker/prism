@@ -408,7 +408,7 @@ public interface Model<Value> extends prism.Model<Value>
 	 * @param exportOptions Options for export
 	 * @param decorators Any Dot decorators to add (ignored if null)
 	 */
-	default void exportToDotFile(PrismLog out, ModelExportOptions exportOptions, Iterable<explicit.graphviz.Decorator> decorators)
+	default void exportToDotFile(PrismLog out, ModelExportOptions exportOptions, Iterable<explicit.graphviz.Decorator> decorators) throws PrismException
 	{
 		new DotExporter<Value>(exportOptions).exportModel(this, out, decorators);
 	}
@@ -418,7 +418,7 @@ public interface Model<Value> extends prism.Model<Value>
 	 * @param out PrismLog to export to
 	 * @param exportOptions Options for export
 	 */
-	default void exportToDotFile(PrismLog out, ModelExportOptions exportOptions)
+	default void exportToDotFile(PrismLog out, ModelExportOptions exportOptions) throws PrismException
 	{
 		new DotExporter<Value>(exportOptions).exportModel(this, out, null);
 	}
@@ -427,7 +427,7 @@ public interface Model<Value> extends prism.Model<Value>
 	 * Export to a dot file.
 	 * @param out PrismLog to export to
 	 */
-	default void exportToDotFile(PrismLog out)
+	default void exportToDotFile(PrismLog out) throws PrismException
 	{
 		exportToDotFile(out, new ModelExportOptions());
 	}
@@ -437,7 +437,7 @@ public interface Model<Value> extends prism.Model<Value>
 	 * @param out PrismLog to export to
 	 * @param precision number of significant digits >= 1
 	 */
-	default void exportToDotFile(PrismLog out, int precision)
+	default void exportToDotFile(PrismLog out, int precision) throws PrismException
 	{
 		exportToDotFile(out, new ModelExportOptions().setModelPrecision(precision));
 	}
@@ -447,7 +447,7 @@ public interface Model<Value> extends prism.Model<Value>
 	 * @param out PrismLog to export to
 	 * @param mark States to highlight (ignored if null)
 	 */
-	default void exportToDotFile(PrismLog out, BitSet mark)
+	default void exportToDotFile(PrismLog out, BitSet mark) throws PrismException
 	{
 		Iterable<explicit.graphviz.Decorator> decorators = (mark == null) ? null : Collections.singleton(new explicit.graphviz.MarkStateSetDecorator(mark));
 		exportToDotFile(out, new ModelExportOptions(), decorators);
@@ -459,7 +459,7 @@ public interface Model<Value> extends prism.Model<Value>
 	 * @param mark States to highlight (ignored if null)
 	 * @param precision number of significant digits >= 1
 	 */
-	default void exportToDotFile(PrismLog out, BitSet mark, int precision)
+	default void exportToDotFile(PrismLog out, BitSet mark, int precision) throws PrismException
 	{
 		Iterable<explicit.graphviz.Decorator> decorators = (mark == null) ? null : Collections.singleton(new explicit.graphviz.MarkStateSetDecorator(mark));
 		exportToDotFile(out, new ModelExportOptions().setModelPrecision(precision), decorators);
@@ -471,7 +471,7 @@ public interface Model<Value> extends prism.Model<Value>
 	 * @param mark States to highlight (ignored if null)
 	 * @param showStates Show state info on nodes?
 	 */
-	default void exportToDotFile(PrismLog out, BitSet mark, boolean showStates)
+	default void exportToDotFile(PrismLog out, BitSet mark, boolean showStates) throws PrismException
 	{
 		Iterable<explicit.graphviz.Decorator> decorators = (mark == null) ? null : Collections.singleton(new explicit.graphviz.MarkStateSetDecorator(mark));
 		exportToDotFile(out, new ModelExportOptions().setShowStates(showStates), decorators);
@@ -484,7 +484,7 @@ public interface Model<Value> extends prism.Model<Value>
 	 * @param showStates Show state info on nodes?
 	 * @param precision number of significant digits >= 1
 	 */
-	default void exportToDotFile(PrismLog out, BitSet mark, boolean showStates, int precision)
+	default void exportToDotFile(PrismLog out, BitSet mark, boolean showStates, int precision) throws PrismException
 	{
 		Iterable<explicit.graphviz.Decorator> decorators = (mark == null) ? null : Collections.singleton(new explicit.graphviz.MarkStateSetDecorator(mark));
 		exportToDotFile(out, new ModelExportOptions().setShowStates(showStates).setModelPrecision(precision), decorators);
@@ -494,7 +494,7 @@ public interface Model<Value> extends prism.Model<Value>
 	 * Export to a dot file, decorating states and transitions with the provided decorators
 	 * @param out PrismLog to export to
 	 */
-	default void exportToDotFile(PrismLog out, Iterable<explicit.graphviz.Decorator> decorators)
+	default void exportToDotFile(PrismLog out, Iterable<explicit.graphviz.Decorator> decorators) throws PrismException
 	{
 		exportToDotFile(out, new ModelExportOptions(), decorators);
 	}
@@ -504,7 +504,7 @@ public interface Model<Value> extends prism.Model<Value>
 	 * @param out PrismLog to export to
 	 * @param precision number of significant digits >= 1
 	 */
-	default void exportToDotFile(PrismLog out, Iterable<explicit.graphviz.Decorator> decorators, int precision)
+	default void exportToDotFile(PrismLog out, Iterable<explicit.graphviz.Decorator> decorators, int precision) throws PrismException
 	{
 		exportToDotFile(out, new ModelExportOptions().setModelPrecision(precision), decorators);
 	}

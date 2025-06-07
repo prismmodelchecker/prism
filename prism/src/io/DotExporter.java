@@ -31,6 +31,7 @@ import explicit.NondetModel;
 import explicit.PartiallyObservableModel;
 import explicit.graphviz.Decorator;
 import prism.ModelType;
+import prism.PrismException;
 import prism.PrismLog;
 
 /**
@@ -49,7 +50,7 @@ public class DotExporter<Value> extends ModelExporter<Value>
 	}
 
 	@Override
-	public void exportModel(Model<Value> model, PrismLog out)
+	public void exportModel(Model<Value> model, PrismLog out) throws PrismException
 	{
 		exportModel(model, out, null);
 	}
@@ -60,7 +61,7 @@ public class DotExporter<Value> extends ModelExporter<Value>
 	 * @param out PrismLog to export to
 	 * @param decorators Any Dot decorators to add (ignored if null)
 	 */
-	public void exportModel(Model<Value> model, PrismLog out, Iterable<explicit.graphviz.Decorator> decorators)
+	public void exportModel(Model<Value> model, PrismLog out, Iterable<explicit.graphviz.Decorator> decorators) throws PrismException
 	{
 		// Get model info and exportOptions
 		setEvaluator(model.getEvaluator());
@@ -136,16 +137,16 @@ public class DotExporter<Value> extends ModelExporter<Value>
 				}
 
 				// Print out (sorted) transitions
-				for (Transition<Value> transition : getSortedTransitionsIterator(model, s, j, showActions && !modelType.nondeterministic())) {
+				for (Transition<?> transition : getSortedTransitionsIterator(model, s, j, showActions && !modelType.nondeterministic())) {
 					// Print a new Dot file line for the arrow for this transition
 					out.print(nodeMid + " -> " + transition.target);
 					// Annotate this arrow with the probability
 					explicit.graphviz.Decoration d3 = new explicit.graphviz.Decoration();
 					if (modelType.isProbabilistic()) {
 						if (showActions && transition.action != null && !"".equals(transition.action)) {
-							d3.setLabel(formatValue(transition.value) + ":" + transition.action);
+							d3.setLabel(transition.toString(modelExportOptions) + ":" + transition.action);
 						} else {
-							d3.setLabel(formatValue(transition.value));
+							d3.setLabel(transition.toString(modelExportOptions));
 						}
 					} else {
 						Object action = ((NondetModel<Value>) model).getAction(s, j);
