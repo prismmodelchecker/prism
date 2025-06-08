@@ -522,8 +522,8 @@ public class LTLModelChecker extends PrismComponent
 
 		// Attach evaluator and variable info
 		((ModelExplicit<Value>) prodModel).setEvaluator(model.getEvaluator());
-		if (modelType == ModelType.IMDP) {
-			((IMDPSimple<Value>) prodModel).setIntervalEvaluator(((IMDP) model).getIntervalEvaluator());
+		if (prodModel instanceof IntervalModelExplicit) {
+			((IntervalModelExplicit<Value>) prodModel).setIntervalEvaluator(((IntervalModel<Value>) model).getIntervalEvaluator());
 		}
 		((ModelExplicit<Value>) prodModel).setVarList(newVarList);
 

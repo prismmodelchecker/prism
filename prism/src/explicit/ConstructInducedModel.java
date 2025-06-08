@@ -105,15 +105,11 @@ public class ConstructInducedModel
 		
 		// Attach evaluator and copy variable info
 		((ModelExplicit<Value>) inducedModel).setEvaluator(model.getEvaluator());
-		if (modelType == ModelType.IMDP) {
-			switch (inducedModelType) {
-				case IDTMC:
-					((IDTMCSimple<Value>) inducedModel).setEvaluator(((IMDP<Value>) model).getIntervalEvaluator());
-					break;
-				case IMDP:
-					((IMDPSimple<Value>) inducedModel).setIntervalEvaluator(((IMDP<Value>) model).getIntervalEvaluator());
-					break;
-			}
+		if (inducedModelType == ModelType.IDTMC) {
+			((IDTMCSimple<Value>) inducedModel).setEvaluator(((IMDP<Value>) model).getIntervalEvaluator());
+		}
+		if (inducedModel instanceof IntervalModelExplicit) {
+			((IntervalModelExplicit<Value>) inducedModel).setIntervalEvaluator(((IntervalModel<Value>) model).getIntervalEvaluator());
 		}
 		((ModelExplicit<Value>) inducedModel).setVarList(model.getVarList());
 

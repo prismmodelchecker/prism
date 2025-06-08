@@ -233,8 +233,8 @@ public class ConstructModel extends PrismComponent
 			}
 			// Attach evaluator and variable info
 			((ModelExplicit<Value>) modelSimple).setEvaluator(modelGen.getEvaluator());
-			if (modelType == ModelType.IMDP) {
-				imdp.setIntervalEvaluator(modelGen.getIntervalEvaluator());
+			if (modelSimple instanceof IntervalModelExplicit) {
+				((IntervalModelExplicit<Value>) modelSimple).setIntervalEvaluator(modelGen.getIntervalEvaluator());
 			}
 			if (modelType == ModelType.IDTMC) {
 				((ModelExplicit<Interval<Value>>) modelSimple).setEvaluator(modelGen.getIntervalEvaluator());

@@ -111,15 +111,11 @@ public class ConstructStrategyProduct
 
 		// Attach evaluator and variable info
 		((ModelExplicit<Value>) prodModel).setEvaluator(model.getEvaluator());
-		if (modelType == ModelType.IMDP) {
-			switch (productModelType) {
-				case IDTMC:
-					((IDTMCSimple<Value>) prodModel).setEvaluator(((IMDP<Value>) model).getIntervalEvaluator());
-					break;
-				case IMDP:
-					((IMDPSimple<Value>) prodModel).setIntervalEvaluator(((IMDP<Value>) model).getIntervalEvaluator());
-					break;
-			}
+		if (productModelType == ModelType.IDTMC) {
+			((IDTMCSimple<Value>) prodModel).setEvaluator(((IMDP<Value>) model).getIntervalEvaluator());
+		}
+		if (prodModel instanceof IntervalModelExplicit) {
+			((IntervalModelExplicit<Value>) prodModel).setIntervalEvaluator(((IntervalModel<Value>) model).getIntervalEvaluator());
 		}
 		((ModelExplicit<Value>) prodModel).setVarList(newVarList);
 

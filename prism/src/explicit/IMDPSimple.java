@@ -41,7 +41,7 @@ import java.util.Map;
 /**
  * Simple explicit-state representation of an IMDP.
  */
-public class IMDPSimple<Value> extends ModelExplicitWrapper<Value> implements NondetModelSimple<Value>, IMDP<Value>
+public class IMDPSimple<Value> extends ModelExplicitWrapper<Value> implements NondetModelSimple<Value>, IntervalModelExplicit<Value>, IMDP<Value>
 {
 	/**
 	 * The IMDP, stored as an MDPSimple over Intervals.
@@ -128,16 +128,15 @@ public class IMDPSimple<Value> extends ModelExplicitWrapper<Value> implements No
 		mdp.addStates(numToAdd);
 	}
 
-	// Mutators (other)
+	// Mutators (for IntervalModelExplicit)
 
-	/**
-	 * Set an Evaluator for intervals of Value.
-	 * The default is for the (usual) case when Value is Double.
-	 */
+	@Override
 	public void setIntervalEvaluator(Evaluator<Interval<Value>> eval)
 	{
 		mdp.setEvaluator(eval);
 	}
+
+	// Mutators (other)
 
 	/**
 	 * Add a choice (uncertain distribution {@code udistr}) to state {@code s} (which must exist).
@@ -261,7 +260,7 @@ public class IMDPSimple<Value> extends ModelExplicitWrapper<Value> implements No
 		return IDTMC.mvMultUncSingle(did, vect, minMax);
 	}
 
-	// Accessors (for IMDP)
+	// Accessors (for IntervalModel)
 
 	@Override
 	public Evaluator<Interval<Value>> getIntervalEvaluator()
@@ -274,6 +273,8 @@ public class IMDPSimple<Value> extends ModelExplicitWrapper<Value> implements No
 	{
 		return mdp;
 	}
+
+	// Accessors (for IMDP)
 
 	@Override
 	public Iterator<Map.Entry<Integer, Interval<Value>>> getIntervalTransitionsIterator(int s, int i)
