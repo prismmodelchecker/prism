@@ -99,7 +99,7 @@ public interface Strategy<Value> extends StrategyInfo<Value>
 	 * Pass an arbitrary value (e.g. -1) for m if memory is not relevant.
 	 */
 	public int getChoiceIndex(int s, int m);
-	public int[] getChoiceIndexMulti(int s, int m);
+	//public int[] getChoiceIndexMulti(int s, int m);
 
 	/**
 	 * Is a choice defined by the strategy in the state index s

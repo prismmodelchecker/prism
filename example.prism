@@ -1,0 +1,32 @@
+mdp
+
+const double e = 0.05;
+
+module finiteMaxReward
+  // States 0..4: 0 = initial, 3,4 = target
+  s : [0..4] init 0;
+
+  // From state 0: two ways to proceed
+  [goA] s=0 -> [0.5-e,0.5+e] : (s'=1) + [0.5-e,0.5+e] : (s'=2);
+  [goB] s=0 -> [0.5-e,0.5+e] : (s'=2) + [0.5-e,0.5+e] : (s'=4);
+
+  // From state 1: one step to target
+  [step] s=1 -> 1.0 : (s'=3);
+
+  // From state 2: one step to target
+  [step] s=2 -> 1.0 : (s'=4);
+
+  // Target is absorbing (no outgoing transitions)
+  [end]    s=3 -> (s'=3);
+  [end]    s=4 -> (s'=4);
+endmodule
+
+rewards "finiteReward"
+  // You get reward once, then the chain moves you toward the target.
+  [goA]  s=0 : 5;    // higher reward for choosing A
+  [goB]  s=0 : 2;    // smaller reward for choosing B
+  [step] s=1 : 3;    // reward for stepping from 1→3
+  [step] s=2 : 1;    // reward for stepping from 2→3
+endrewards
+
+label "goal" = (s=3 | s=4);

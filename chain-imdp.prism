@@ -1,0 +1,22 @@
+mdp
+
+const double p=0.4;
+const double uncertainty=0.05;
+const int H = 6;
+
+module chain
+
+	s : [0..H] init 0;
+	
+	[a] true -> [p-uncertainty, p+uncertainty]: (s'=min(s+1,H)) + [1-p-uncertainty,1-p+uncertainty]: (s'=0);
+	[b] true -> [1-p-uncertainty, 1-p+uncertainty] : (s'=min(s+1,H)) + [p-uncertainty, p+uncertainty] : (s'=0);
+    [end] (s=H) -> true;
+
+endmodule
+
+rewards
+	[a] true : 1;
+	[b] true : 1;
+endrewards
+
+label "goal" = s=H;

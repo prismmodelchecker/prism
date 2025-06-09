@@ -1,6 +1,6 @@
 mdp
 
-const double delta;
+const double delta=0.2;
 const double p = 0.5-delta;
 const double q = 0.5+delta;
 

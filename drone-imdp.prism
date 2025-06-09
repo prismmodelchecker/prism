@@ -1,0 +1,66 @@
+mdp
+
+// Environment Dimensions
+const int MAXX = 8;
+const int MAXY = 8;
+const int MAXZ = 8;
+
+// Disturbance Probability Parameter
+const double p=0.2; // must be less than 1/3
+const double e=0.05;
+
+// Regions
+
+// Target Region
+formula target = x > MAXX - 2 & y < 2 & z > MAXZ - 2;
+
+// Obstacle Regions
+formula crash = obstacle1 | obstacle2 | obstacle3 | obstacle4;
+formula obstacle1 = x >= 3 & x <= 4 & z >= 1 & z <= 2;
+formula obstacle2 = x >= 3 & x <= 4 & y >= 1 & y <= 2;
+formula obstacle3 = x >= 3 & x <= 4 & y >= 3 & y <= 5;
+formula obstacle4 = x >= 3 & x <= 4 & z >= 7 & z <= 8;
+
+module drone
+	x : [1..MAXX] init 1;
+	y : [1..MAXY] init 1;
+	z : [1..MAXZ] init 1;
+
+	[front] true -> [1 - 3 * p-e,1 - 3 * p+e]: (x' = min(x + 1, MAXX))
+				+ [p-e,p+e] : (x' = min(x + 1, MAXX)) & (y' = max(y - 1,1))
+				+ [p-e,p+e] : (x' = min(x + 1, MAXX)) & (y' = min(y + 1, MAXY))
+				+ [p-e,p+e] : (x' = x) & (y' = max(y - 2, 1));
+
+	[back] true ->[1 - 3 * p-e,1 - 3 * p+e]: (x' = max(x - 1, 1))
+				+ [p-e,p+e] : (x' = max(x - 1, 1)) & (y' = max(y - 1,1))
+				+ [p-e,p+e] : (x' = max(x - 1, 1)) & (y' = min(y + 1, MAXY))
+				+ [p-e,p+e] : (x' = x) & (y' = max(y - 2, 1));
+
+	[right] true -> [1 - 2 * p-e,1-2*p+e]: (y' = min(y + 1, MAXY))
+				+ [p-e,p+e]: (y' = min(y + 2, MAXY))
+				+ [p-e,p+e]: (y' = max(y - 1, 1));
+
+	[left] true -> [1 - 2 * p-e,1-2*p+e]: (y' = max(y - 1, 1))
+				+ [p-e,p+e]: (y' = max(y - 2, 1))
+				+ [p-e,p+e]: (y' = min(y + 1, MAXY));
+
+	[up] true -> [1 - 3 * p-e,1 - 3 * p+e]: (z' = min(z + 1, MAXZ))
+				+ [p-e,p+e] : (z' = min(z + 1, MAXZ)) & (y' = max(y - 1,1))
+				+ [p-e,p+e] : (z' = min(z + 1, MAXZ)) & (y' = min(y + 1, MAXY))
+				+ [p-e,p+e] : (z' = z) & (y' = max(y - 2, 1));
+
+	[down] true ->[1 - 3 * p-e,1 - 3 * p+e]: (z' = max(z - 1,1))
+				+ [p-e,p+e] : (z' = max(z - 1,1)) & (y' = max(y - 1,1))
+				+ [p-e,p+e] : (z' = max(z - 1,1)) & (y' = min(y + 1, MAXY))
+				+ [p-e,p+e] : (z' = z) & (y' = max(y - 2, 1));
+    [done] target -> 1:true;
+    [cry] crash -> 1:true;
+
+endmodule 
+
+rewards
+    [] true : 1;
+endrewards
+
+label "goal" = target;
+label "Crash" = crash;

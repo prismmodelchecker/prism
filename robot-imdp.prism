@@ -1,0 +1,286 @@
+mdp
+
+// operator parameters
+const double p=0.5; // probability of increasing workload due to other uncertain tasks
+const double accu_load1; // accuracy at the low workload level (real numbers between 0 and 1)
+const double accu_load2; // accuracy at the high workload level (real numbers between 0 and 1)
+const double fd; // accuracy discount due to fatigue (real numbers between 0 and 1)
+const int COUNTER; // fatigue threshold (integers, e.g, 10)
+const double risky2; // at w2: probability of choosing a risky route
+const double risky6; // at w6: probability of choosing a risky route
+
+global stop : bool init false; // done visiting all waypoints
+formula roz = (r=8) | (w=3&a=1) | (w=3&a=2) | (w=5&a=2); // restricted operating zones
+
+
+// OPERATOR MODEL
+module operator
+	
+	k:[0..100] init 0; // fatigue level measured by completetd tasks
+	t:[0..2] init 0; // workload level
+	s:[0..2] init 0; // status of image processing, 0: init, 1: good, 2: bad
+	c:[0..3] init 0; // choices at the check point
+
+	// image processing, the workload may increase due to other unknown tasks
+	[image] !stop & t=0 & s=0 -> (1-p):(t'=1) & (s'=0) + p:(t'=2) & (s'=0);
+	// not fatigue, workload level 1
+	[process] !stop & t=1 & s=0 & k<=COUNTER -> accu_load1:(s'=1)&(k'=k+1) + (1-accu_load1):(s'=2)&(k'=k+1);
+	// fatigue, workload level 1
+	[process] !stop & t=1 & s=0 & k>COUNTER -> accu_load1*fd:(s'=1) + (1-accu_load1*fd):(s'=2);
+	// not fatigue, workload level 2
+	[process] !stop & t=2 & s=0 & k<=COUNTER -> accu_load2:(s'=1)&(k'=k+1) + (1-accu_load2):(s'=2)&(k'=k+1);
+	// fatigue, workload level 2
+	[process] !stop & t=2 & s=0 & k>COUNTER -> accu_load2*fd:(s'=1) + (1-accu_load2*fd):(s'=2);
+
+	// image analysis is bad, UAV need to wait at the waypoint and take another image
+	[wait] !stop & s=2 -> (t'=0) & (s'=0); 
+
+	// if image analysis is good, UAV can continue flying 
+	// at check points, operator may suggest route for the UAV
+
+	// w2 -> r5 (c=0) |r6 (c=1) |r7 (c=2)|r9 (c=3)
+	[go] !stop & s=1 & w=2 -> risky2:(c'=2) & (t'=0) & (s'=0) + (1-risky2)/3:(c'=3) & (t'=0) & (s'=0)
+			+(1-risky2)/3:(c'=1) & (t'=0) & (s'=0) + (1-risky2)/3:(c'=0) & (t'=0) & (s'=0);
+	
+	// w5 -> r3 (c=0)| r4  (c=1)| w4 (c=2)
+	[go] !stop & s=1 & w=5 -> 1/3:(c'=2) & (t'=0) & (s'=0) + 1/3:(c'=1) & (t'=0) & (s'=0) 
+			+ 1/3:(c'=0) & (t'=0) & (s'=0);
+	
+	// w6 -> r2 (c=0)| r3 (c=1) |r8 (c=2)
+	[go] !stop & s=1 & w=6 -> risky6:(c'=2) & (t'=0) & (s'=0) + (1-risky6)/2:(c'=1) & (t'=0) & (s'=0)
+			+ (1-risky6)/2:(c'=0) & (t'=0) & (s'=0);
+
+	// at non-check-points, UAV has full autonomy to choose flying route
+	[go] !stop & s=1 & (w!=2 & w!=5 & w!=6) -> (t'=0) & (s'=0); 
+
+	// operator stops
+	[] !stop & w1 & w2 & w6 -> (stop'=true);
+	[operator_stop] stop -> true;
+
+endmodule
+
+
+// UAV MODEL
+module UAV
+	// UAV positions:
+	// inside a waypoint: w!=0, a=0, r=0
+	// fly through certain angle of a waypoint: w!=0, a!=0, r=0
+	// fly through a road point: w=0, a=0, r!=0
+	w:[0..6] init 1; // waypoint 
+	a:[0..8] init 0; // angle points
+	r:[0..9] init 0; // road points
+        send: bool init true;
+	in: bool init true;
+	// flag that a waypoint has been visited
+	w1: bool init true;
+	w2: bool init false;
+	w3: bool init false;
+	w4: bool init false;
+	w5: bool init false;
+	w6: bool init false;
+	
+	// at any waypoint:
+	// send image to human operator for analysis
+	[image] w!=0 & a=0 & r=0 & send -> (send'=false); 
+	// wait at the waypoint and send another image
+	[wait] !send -> (send'=true);
+	// fly into a waypoint and take an image
+	[camera] w=1 & a!=0 & r=0 & in -> (a'=0) & (send'=true) & (w1'=true);
+	[camera] w=2 & a!=0 & r=0 & in -> (a'=0) & (send'=true) & (w2'=true);
+	[camera] w=3 & a!=0 & r=0 & in -> (a'=0) & (send'=true) & (w3'=true);
+	[camera] w=4 & a!=0 & r=0 & in -> (a'=0) & (send'=true) & (w4'=true);
+	[camera] w=5 & a!=0 & r=0 & in -> (a'=0) & (send'=true) & (w5'=true);
+	[camera] w=6 & a!=0 & r=0 & in -> (a'=0) & (send'=true) & (w6'=true);
+	// fly out of the waypoint via any angle point
+	[go] w!=0 & a=0 & r=0 -> 1/8:(a'=1) & (in'=false) 
+			       + 1/8:(a'=2) & (in'=false)
+		               + 1/8:(a'=3) & (in'=false) 
+		               + 1/8:(a'=4) & (in'=false)
+			       + 1/8:(a'=5) & (in'=false) 
+		               + 1/8:(a'=6) & (in'=false)
+	                       + 1/8:(a'=7) & (in'=false) 
+			       + 1/8:(a'=8) & (in'=false);
+
+
+	// UAV flying plans (based on the road map)
+	// check points: receiving commands from the operator
+	// w2 -> r5 |r6 |r7 |r9
+	[fly] c=0 & w=2 & (a!=0) & r=0 & !in -> (r'=5);
+	[fly] c=1 & w=2 & (a!=0) & r=0 & !in -> (r'=6);
+	[fly] c=2 & w=2 & (a!=0) & r=0 & !in -> (r'=7);
+	[fly] c=3 & w=2 & (a!=0) & r=0 & !in -> (r'=9);
+	// w5 -> r3 | r4 | w4 (at any angle point)
+	[fly] c=0 & w=5 & (a!=0) & r=0 & !in -> (r'=3);
+	[fly] c=1 & w=5 & (a!=0) & r=0 & !in -> (r'=4);
+	[fly] c=2 & w=5 & (a!=0) & r=0 & !in -> 1/8:(w'=4) & (a'=1) & (r'=0) & (in'=true)
+					   + 1/8:(w'=4) & (a'=2) & (r'=0) & (in'=true)
+					   + 1/8:(w'=4) & (a'=3) & (r'=0) & (in'=true)
+					   + 1/8:(w'=4) & (a'=4) & (r'=0) & (in'=true)
+					   + 1/8:(w'=4) & (a'=5) & (r'=0) & (in'=true)
+					   + 1/8:(w'=4) & (a'=6) & (r'=0) & (in'=true)
+					   + 1/8:(w'=4) & (a'=7) & (r'=0) & (in'=true)
+					   + 1/8:(w'=4) & (a'=8) & (r'=0) & (in'=true);
+	// w6 -> r2 | r3 |r8
+	[fly] c=0 & w=6 & (a!=0) & r=0 & !in -> (r'=2);
+	[fly] c=1 & w=6 & (a!=0) & r=0 & !in -> (r'=3);
+	[fly] c=2 & w=6 & (a!=0) & r=0 & !in -> (r'=8);
+
+	// non check points: fly autonomy
+	// w1 -> r1 | r9
+	[fly] w=1 & (a!=0) & r=0 & !in -> (r'=1);
+	[fly] w=1 & (a!=0) & r=0 & !in -> (r'=9);
+	// w3 -> r6 | w4 (any angle point)
+	[fly] w=3 & (a!=0) & r=0 & !in -> (r'=6);
+	[fly] w=3 & (a!=0) & r=0 & !in -> 1/8:(w'=4) & (a'=1) & (r'=0) & (in'=true)
+				     + 1/8:(w'=4) & (a'=2) & (r'=0) & (in'=true)
+				     + 1/8:(w'=4) & (a'=3) & (r'=0) & (in'=true)
+			             + 1/8:(w'=4) & (a'=4) & (r'=0) & (in'=true)
+			             + 1/8:(w'=4) & (a'=5) & (r'=0) & (in'=true)
+				     + 1/8:(w'=4) & (a'=6) & (r'=0) & (in'=true)
+				     + 1/8:(w'=4) & (a'=7) & (r'=0) & (in'=true)
+			             + 1/8:(w'=4) & (a'=8) & (r'=0) & (in'=true);
+
+	// w4 -> w3 | w5
+	[fly] w=4 & (a!=0) & r=0 & !in -> 1/8:(w'=3) & (a'=1) & (r'=0) & (in'=true)
+				     + 1/8:(w'=3) & (a'=2) & (r'=0) & (in'=true)
+				     + 1/8:(w'=3) & (a'=3) & (r'=0) & (in'=true)
+			             + 1/8:(w'=3) & (a'=4) & (r'=0) & (in'=true)
+			             + 1/8:(w'=3) & (a'=5) & (r'=0) & (in'=true)
+				     + 1/8:(w'=3) & (a'=6) & (r'=0) & (in'=true)
+				     + 1/8:(w'=3) & (a'=7) & (r'=0) & (in'=true)
+			             + 1/8:(w'=3) & (a'=8) & (r'=0) & (in'=true);
+
+	[fly] w=4 & (a!=0) & r=0 & !in -> 1/8:(w'=5) & (a'=1) & (r'=0) & (in'=true)
+				     + 1/8:(w'=5) & (a'=2) & (r'=0) & (in'=true)
+				     + 1/8:(w'=5) & (a'=3) & (r'=0) & (in'=true)
+			             + 1/8:(w'=5) & (a'=4) & (r'=0) & (in'=true)
+			             + 1/8:(w'=5) & (a'=5) & (r'=0) & (in'=true)
+				     + 1/8:(w'=5) & (a'=6) & (r'=0) & (in'=true)
+				     + 1/8:(w'=5) & (a'=7) & (r'=0) & (in'=true)
+			             + 1/8:(w'=5) & (a'=8) & (r'=0) & (in'=true);
+	// r1 -> r2 | w1
+	[fly] r=1 -> (r'=2);
+	[fly] r=1 -> 1/8:(w'=1) & (a'=1) & (r'=0) & (in'=true)
+		+ 1/8:(w'=1) & (a'=2) & (r'=0) & (in'=true)
+		+ 1/8:(w'=1) & (a'=3) & (r'=0) & (in'=true)
+		+ 1/8:(w'=1) & (a'=4) & (r'=0) & (in'=true)
+		+ 1/8:(w'=1) & (a'=5) & (r'=0) & (in'=true)
+		+ 1/8:(w'=1) & (a'=6) & (r'=0) & (in'=true)
+		+ 1/8:(w'=1) & (a'=7) & (r'=0) & (in'=true)
+		+ 1/8:(w'=1) & (a'=8) & (r'=0) & (in'=true);
+	// r2 -> r1 | w6
+	[fly] r=2 -> (r'=1);
+	[fly] r=2 -> 1/8:(w'=6) & (a'=1) & (r'=0) & (in'=true)
+		+ 1/8:(w'=6) & (a'=2) & (r'=0) & (in'=true)
+		+ 1/8:(w'=6) & (a'=3) & (r'=0) & (in'=true)
+		+ 1/8:(w'=6) & (a'=4) & (r'=0) & (in'=true)
+		+ 1/8:(w'=6) & (a'=5) & (r'=0) & (in'=true)
+		+ 1/8:(w'=6) & (a'=6) & (r'=0) & (in'=true)
+		+ 1/8:(w'=6) & (a'=7) & (r'=0) & (in'=true)
+		+ 1/8:(w'=6) & (a'=8) & (r'=0) & (in'=true);
+	// r3 -> w5 | w6
+	[fly] r=3 -> 1/8:(w'=5) & (a'=1) & (r'=0) & (in'=true)
+		+ 1/8:(w'=5) & (a'=2) & (r'=0) & (in'=true)
+		+ 1/8:(w'=5) & (a'=3) & (r'=0) & (in'=true)
+		+ 1/8:(w'=5) & (a'=4) & (r'=0) & (in'=true)
+		+ 1/8:(w'=5) & (a'=5) & (r'=0) & (in'=true)
+		+ 1/8:(w'=5) & (a'=6) & (r'=0) & (in'=true)
+		+ 1/8:(w'=5) & (a'=7) & (r'=0) & (in'=true)
+		+ 1/8:(w'=5) & (a'=8) & (r'=0) & (in'=true);
+
+	[fly] r=3 -> 1/8:(w'=6) & (a'=1) & (r'=0) & (in'=true)
+		+ 1/8:(w'=6) & (a'=2) & (r'=0) & (in'=true)
+		+ 1/8:(w'=6) & (a'=3) & (r'=0) & (in'=true)
+		+ 1/8:(w'=6) & (a'=4) & (r'=0) & (in'=true)
+		+ 1/8:(w'=6) & (a'=5) & (r'=0) & (in'=true)
+		+ 1/8:(w'=6) & (a'=6) & (r'=0) & (in'=true)
+		+ 1/8:(w'=6) & (a'=7) & (r'=0) & (in'=true)
+		+ 1/8:(w'=6) & (a'=8) & (r'=0) & (in'=true);
+	// r4 -> r5 | w5
+	[fly] r=4 -> (r'=5);
+	[fly] r=4 -> 1/8:(w'=5) & (a'=1) & (r'=0) & (in'=true)
+		+ 1/8:(w'=5) & (a'=2) & (r'=0) & (in'=true)
+		+ 1/8:(w'=5) & (a'=3) & (r'=0) & (in'=true)
+		+ 1/8:(w'=5) & (a'=4) & (r'=0) & (in'=true)
+		+ 1/8:(w'=5) & (a'=5) & (r'=0) & (in'=true)
+		+ 1/8:(w'=5) & (a'=6) & (r'=0) & (in'=true)
+		+ 1/8:(w'=5) & (a'=7) & (r'=0) & (in'=true)
+		+ 1/8:(w'=5) & (a'=8) & (r'=0) & (in'=true);
+	// r5 -> r4 | w2
+	[fly] r=5 -> (r'=4);
+	[fly] r=5 -> 1/8:(w'=2) & (a'=1) & (r'=0) & (in'=true)
+		+ 1/8:(w'=2) & (a'=2) & (r'=0) & (in'=true)
+		+ 1/8:(w'=2) & (a'=3) & (r'=0) & (in'=true)
+		+ 1/8:(w'=2) & (a'=4) & (r'=0) & (in'=true)
+		+ 1/8:(w'=2) & (a'=5) & (r'=0) & (in'=true)
+		+ 1/8:(w'=2) & (a'=6) & (r'=0) & (in'=true)
+		+ 1/8:(w'=2) & (a'=7) & (r'=0) & (in'=true)
+		+ 1/8:(w'=2) & (a'=8) & (r'=0) & (in'=true);
+	// r6 -> w2 | w3
+	[fly] r=6 -> 1/8:(w'=2) & (a'=1) & (r'=0) & (in'=true)
+		+ 1/8:(w'=2) & (a'=2) & (r'=0) & (in'=true)
+		+ 1/8:(w'=2) & (a'=3) & (r'=0) & (in'=true)
+		+ 1/8:(w'=2) & (a'=4) & (r'=0) & (in'=true)
+		+ 1/8:(w'=2) & (a'=5) & (r'=0) & (in'=true)
+		+ 1/8:(w'=2) & (a'=6) & (r'=0) & (in'=true)
+		+ 1/8:(w'=2) & (a'=7) & (r'=0) & (in'=true)
+		+ 1/8:(w'=2) & (a'=8) & (r'=0) & (in'=true);
+
+	[fly] r=6 -> 1/8:(w'=3) & (a'=1) & (r'=0) & (in'=true)
+		+ 1/8:(w'=3) & (a'=2) & (r'=0) & (in'=true)
+		+ 1/8:(w'=3) & (a'=3) & (r'=0) & (in'=true)
+		+ 1/8:(w'=3) & (a'=4) & (r'=0) & (in'=true)
+		+ 1/8:(w'=3) & (a'=5) & (r'=0) & (in'=true)
+		+ 1/8:(w'=3) & (a'=6) & (r'=0) & (in'=true)
+		+ 1/8:(w'=3) & (a'=7) & (r'=0) & (in'=true)
+		+ 1/8:(w'=3) & (a'=8) & (r'=0) & (in'=true);
+	// r7 -> w2 | r8
+	[fly] r=7 -> 1/8:(w'=2) & (a'=1) & (r'=0) & (in'=true)
+		+ 1/8:(w'=2) & (a'=2) & (r'=0) & (in'=true)
+		+ 1/8:(w'=2) & (a'=3) & (r'=0) & (in'=true)
+		+ 1/8:(w'=2) & (a'=4) & (r'=0) & (in'=true)
+		+ 1/8:(w'=2) & (a'=5) & (r'=0) & (in'=true)
+		+ 1/8:(w'=2) & (a'=6) & (r'=0) & (in'=true)
+		+ 1/8:(w'=2) & (a'=7) & (r'=0) & (in'=true)
+		+ 1/8:(w'=2) & (a'=8) & (r'=0) & (in'=true);
+	[fly] r=7 -> (r'=8);
+	// r8 -> w6 | r7
+	[fly] r=8 -> 1/8:(w'=6) & (a'=1) & (r'=0) & (in'=true)
+		+ 1/8:(w'=6) & (a'=2) & (r'=0) & (in'=true)
+		+ 1/8:(w'=6) & (a'=3) & (r'=0) & (in'=true)
+		+ 1/8:(w'=6) & (a'=4) & (r'=0) & (in'=true)
+		+ 1/8:(w'=6) & (a'=5) & (r'=0) & (in'=true)
+		+ 1/8:(w'=6) & (a'=6) & (r'=0) & (in'=true)
+		+ 1/8:(w'=6) & (a'=7) & (r'=0) & (in'=true)
+		+ 1/8:(w'=6) & (a'=8) & (r'=0) & (in'=true);
+	[fly] r=8 -> (r'=7);
+	// r9 -> w1 | w2
+	[fly] r=9 -> 1/8:(w'=1) & (a'=1) & (r'=0) & (in'=true)
+		+ 1/8:(w'=1) & (a'=2) & (r'=0) & (in'=true)
+		+ 1/8:(w'=1) & (a'=3) & (r'=0) & (in'=true)
+		+ 1/8:(w'=1) & (a'=4) & (r'=0) & (in'=true)
+		+ 1/8:(w'=1) & (a'=5) & (r'=0) & (in'=true)
+		+ 1/8:(w'=1) & (a'=6) & (r'=0) & (in'=true)
+		+ 1/8:(w'=1) & (a'=7) & (r'=0) & (in'=true)
+		+ 1/8:(w'=1) & (a'=8) & (r'=0) & (in'=true);
+
+	[fly] r=9 -> 1/8:(w'=2) & (a'=1) & (r'=0) & (in'=true)
+		+ 1/8:(w'=2) & (a'=2) & (r'=0) & (in'=true)
+		+ 1/8:(w'=2) & (a'=3) & (r'=0) & (in'=true)
+		+ 1/8:(w'=2) & (a'=4) & (r'=0) & (in'=true)
+		+ 1/8:(w'=2) & (a'=5) & (r'=0) & (in'=true)
+		+ 1/8:(w'=2) & (a'=6) & (r'=0) & (in'=true)
+		+ 1/8:(w'=2) & (a'=7) & (r'=0) & (in'=true)
+		+ 1/8:(w'=2) & (a'=8) & (r'=0) & (in'=true);
+
+endmodule
+
+
+rewards "time" // flight time
+        [wait] true: 10;
+        [fly] true: 60;
+endrewards
+
+rewards "ROZ" // ROZ occupancy
+	[fly] roz : 1;
+endrewards

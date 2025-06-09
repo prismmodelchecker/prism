@@ -1,0 +1,61 @@
+// GRID WORLD MODEL OF A SEMIAUTONOMOUS EXPLORING ROBOT
+// Sebastian Junges, RWTH Aachen University
+// As described in 
+// Junges, Jansen, Dehnert, Topcu, Katoen: 
+// Safety Constrained Reinforcement Learning
+// Proc. of TACAS’16
+
+mdp
+
+//PARAMETERS
+//The difference of the reliability of the channels between the worst and at the best position
+const double pLDiff=0.7;
+const double pHDiff=0.1;
+const double u=0.1;
+//Scaling factor for the minimum reliability of the channels
+const double pL=0.2;
+const double pH=0.3;
+
+//CONSTANTS
+//The minimum reliablities
+const double pLMin=pL*(1-pLDiff);
+const double pHMin= pH*(1-pHDiff);
+
+// Grid size
+const int Xsize = 6;
+const int Ysize = 6;
+// Number of tries before an error
+const int MAXTRIES = 2;
+// Ball within the robot has to move.
+const int B = 2;
+
+
+formula T = (xLoc = Xsize & yLoc = Ysize);
+
+
+module robot
+  xLoc : [1..Ysize] init 1;
+  yLoc : [1..Xsize] init 1;
+  unreported : [0..B] init 0;
+  hasSendNow : bool init false;
+  tries : [0..MAXTRIES] init 0;
+
+  [up] xLoc < Xsize & !T  & hasSendNow  -> 1:(xLoc'=xLoc+1) & (unreported' = 0) & (hasSendNow'=false);
+  [up] xLoc < Xsize & !T  & !hasSendNow -> 1:(xLoc'=xLoc+1) & (unreported'=min(unreported+1, B));
+  [right] yLoc < Ysize & !T  & hasSendNow  -> 1:(yLoc'=yLoc+1) & (unreported' = 0)& (hasSendNow'=false);
+  [right] yLoc < Ysize & !T  & !hasSendNow -> 1:(yLoc'=yLoc+1) & (unreported'=min(unreported+1,B));
+  [sendL] !hasSendNow & !T & tries < MAXTRIES -> [pLMin + pLDiff * xLoc/Xsize-u,pLMin + pLDiff * xLoc/Xsize+u]:(hasSendNow'=true) & (tries'=0) + [1 - pLMin - pLDiff * xLoc/Xsize-u,1 - pLMin - pLDiff * xLoc/Xsize+u]: (tries'=tries+1);
+  [sendH] !hasSendNow & !T & tries < MAXTRIES -> [pHMin + pHDiff * yLoc/Ysize-u,pHMin + pHDiff * yLoc/Ysize+u]:(hasSendNow'=true) & (tries'=0) + [1 - pHMin - pHDiff * yLoc/Ysize-u,1 - pHMin - pHDiff * yLoc/Ysize+u]: (tries'=tries+1);
+  [done] T -> 1:true;
+endmodule
+
+rewards
+  [up] true: 0.03;
+  [right] true: 0.03;
+	[sendL] true: max(10, min(11 + xLoc - yLoc, 20));
+	[sendH] true: min(13 + xLoc + yLoc, 24);
+endrewards
+
+
+label "goal" = T;
+label "Crash" = unreported=B;

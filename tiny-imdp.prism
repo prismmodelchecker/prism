@@ -1,0 +1,22 @@
+mdp
+
+const double p = 0.8;
+const double u=0.1;
+
+module chain
+
+	s : [0..2] init 0;
+	
+	[a] s=0 -> [p-u,p+u] : (s'=1) +  [1-p-u,1-p+u] : (s'=2);
+	[b] s=0 -> 1 : (s'=2);
+	[c] s=1 -> 1 : (s'=2);
+
+endmodule
+
+rewards
+	[a] true : 0;
+	[b] true : 10;
+	[c] true : 19;
+endrewards
+
+label "goal" = s=2;
