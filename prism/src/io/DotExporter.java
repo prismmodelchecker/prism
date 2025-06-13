@@ -83,7 +83,7 @@ public class DotExporter<Value> extends ModelExporter<Value>
 			// Set up Dot Decoration
 			explicit.graphviz.Decoration d = new explicit.graphviz.Decoration(defaults);
 			d.setLabel(Integer.toString(s));
-			if (modelExportOptions.getShowStates()) {
+			if (modelExportOptions.getShowStates() && model.getStatesList() != null) {
 				if (modelType.partiallyObservable()) {
 					d = new explicit.graphviz.ShowStatesDecorator(model.getStatesList(), ((PartiallyObservableModel<Value>) model)::getObservationAsState).decorateState(s, d);
 				} else {
