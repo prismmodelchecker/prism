@@ -67,7 +67,7 @@ alreadyRan = set()
 # returns true if we are running on Windows
 def isWindows():
     s = platform.system()
-    return s == 'Windows' or re.match('CYGWIN', s) != None
+    return s == 'Windows' or re.match(r'CYGWIN', s) != None
 
 # compare two files (with filenames f1,f2) for equality
 def compareFiles(f1,f2):
@@ -87,22 +87,22 @@ def sortedListDir(dir):
     return list
 
 def isPrismModelFile(file):
-    return re.match('.+(\.prism|\.nm|\.pm|\.sm)$', file)
+    return re.match(r'.+(\.prism|\.nm|\.pm|\.sm)$', file)
 
 def isPrismPropertiesFile(file):
-    return re.match('.+(\.props|\.pctl|\.csl)$', file)
+    return re.match(r'.+(\.props|\.pctl|\.csl)$', file)
 
 def isPrismModelListFile(file):
-    return re.match('models$', os.path.basename(file))
+    return re.match(r'models$', os.path.basename(file))
 
 def isPrismPropListFile(file):
-    return re.match('.+(\.txt)$', file)
+    return re.match(r'.+(\.txt)$', file)
 
 def isOutFile(file):
-    return re.match('.+(\.out\.)', file) # Note that this matches anything that contains a .out anywhere in the name
+    return re.match(r'.+(\.out\.)', file) # Note that this matches anything that contains a .out anywhere in the name
 
 def isAutoFile(file):
-    return re.match('.+(\.auto)$', file)
+    return re.match(r'.+(\.auto)$', file)
 
 # Check whether the given (args|auto) file doesn't have an associated model
 
@@ -442,22 +442,22 @@ def createLogFileName(args, dir=""):
     logFile = '.'.join(args)
     if len(dir) > 0:
         logFile = re.sub(dir+'/', '', logFile)
-    logFile = re.sub('/', '_', logFile)
-    logFile = re.sub('[^a-zA-Z0-9=_, \.]', '', logFile)
-    logFile = re.sub('[ ]+', '.', logFile)
-    logFile = re.sub('[\.]+', '.', logFile)
-    logFile = re.sub('^[\._]+', '', logFile)
+    logFile = re.sub(r'/', '_', logFile)
+    logFile = re.sub(r'[^a-zA-Z0-9=_, \.]', '', logFile)
+    logFile = re.sub(r'[ ]+', '.', logFile)
+    logFile = re.sub(r'[\.]+', '.', logFile)
+    logFile = re.sub(r'^[\._]+', '', logFile)
     return logFile + ".log"
 
 # Create a valid name for a log (sub) directory based on a list of benchmark arguments
 
 def createLogDirName(args):
     logDir = '.'.join(args)
-    logDir = re.sub('/', '_', logDir)
-    logDir = re.sub('[^a-zA-Z0-9=_, \.]', '', logDir)
-    logDir = re.sub('[ ]+', '.', logDir)
-    logDir = re.sub('[\.]+', '.', logDir)
-    logDir = re.sub('^[\._]+', '', logDir)
+    logDir = re.sub(r'/', '_', logDir)
+    logDir = re.sub(r'[^a-zA-Z0-9=_, \.]', '', logDir)
+    logDir = re.sub(r'[ ]+', '.', logDir)
+    logDir = re.sub(r'[\.]+', '.', logDir)
+    logDir = re.sub(r'^[\._]+', '', logDir)
     return logDir
 
 # Walk a directory and execute a callback on each file
@@ -649,14 +649,14 @@ def runPrism(args, bmArgs, dir=""):
     # Extract DD reference count warnings
     if options.ddWarnings:
         for line in open(logFile, 'r').readlines():
-            if re.match('Warning: CUDD reports .* non-zero references', line):
+            if re.match(r'Warning: CUDD reports .* non-zero references', line):
                 printTestResult(line, prismArgs)
     # Extract test results if needed
     if options.test:
         for line in open(logFile, 'r').readlines():
-            if re.match('Testing result:', line):
+            if re.match(r'Testing result:', line):
                 printTestResult(line, prismArgs)
-            elif re.match('Warning:', line):
+            elif re.match(r'Warning:', line):
                 if options.showWarnings or options.verboseTest:
                     printTestResult(line, prismArgs)
                 else:
@@ -665,7 +665,7 @@ def runPrism(args, bmArgs, dir=""):
             elif options.verboseTest:
                 # in verbose mode, also print the non-matching lines
                 # rstrip to remove newline before printing
-                if re.match('Error:', line):
+                if re.match(r'Error:', line):
                     # highlight lines with error messages
                     printColoured('FAILURE', line.rstrip())
                 else:
@@ -678,7 +678,7 @@ def runPrism(args, bmArgs, dir=""):
             # so that the user can inspect it
             cleanupLogFile = False
             for line in open(logFile, 'r').readlines():
-                if re.match('Error:', line):
+                if re.match(r'Error:', line):
                     printTestResult(line, prismArgs)
             if (options.printFailures):
                 print("Failing test log file:")
@@ -802,7 +802,7 @@ def countTestResult(msg):
         if 'did not converge' in msg:
             incrementTestStat('FAIL_NONCONVERGE')
         incrementTestStat('FAILURE')
-    elif options.ddWarnings and re.match('Warning: CUDD reports .* non-zero references', msg):
+    elif options.ddWarnings and re.match(r'Warning: CUDD reports .* non-zero references', msg):
         incrementTestStat('WARNING')
         incrementTestStat('DDWARNING')
     elif 'Warning:' in msg:
