@@ -402,20 +402,20 @@ public abstract class IterationMethod {
 
 	/**
 	 * Obtain an Iteration object using mvMultUnc (matrix-vector multiplication, followed by min/max)
-	 * in an IDTMC.
-	 * @param idtmc the IDTMC
+	 * in an UDTMC.
+	 * @param udtmc the UDTMC
 	 * @param minMax min/max info
 	 */
-	public abstract IterationValIter forMvMultMinMaxUnc(IDTMC<Double> idtmc, MinMax minMax) throws PrismException;
+	public abstract IterationValIter forMvMultMinMaxUnc(UDTMC<Double> udtmc, MinMax minMax) throws PrismException;
 	
 	/**
 	 * Obtain an Iteration object using mvMultRewUnc (matrix-vector multiplication with rewards, followed by min/max)
-	 * in an IDTMC.
-	 * @param idtmc the IDTMC
+	 * in an UDTMC.
+	 * @param udtmc the UDTMC
 	 * @param mcRewards the reward structure
 	 * @param minMax min/max info
 	 */
-	public abstract IterationValIter forMvMultRewMinMaxUnc(IDTMC<Double> idtmc, MCRewards<Double> mcRewards, MinMax minMax) throws PrismException;
+	public abstract IterationValIter forMvMultRewMinMaxUnc(UDTMC<Double> udtmc, MCRewards<Double> mcRewards, MinMax minMax) throws PrismException;
 	
 	/**
 	 * Obtain an Iteration object using mvMultUnc (matrix-vector multiplication, followed by min/max)

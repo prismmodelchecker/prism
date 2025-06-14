@@ -207,14 +207,14 @@ public class IterationMethodGS extends IterationMethod {
 	}
 
 	@Override
-	public IterationValIter forMvMultMinMaxUnc(IDTMC<Double> idtmc, MinMax minMax)
+	public IterationValIter forMvMultMinMaxUnc(UDTMC<Double> udtmc, MinMax minMax)
 	{
-		return new SingleVectorIterationValIter(idtmc) {
+		return new SingleVectorIterationValIter(udtmc) {
 			@Override
 			public boolean iterateAndCheckConvergence(IntSet states)
 			{
 				// Matrix-vector multiply
-				error = idtmc.mvMultUncGS(soln, minMax, states.iterator(), absolute);
+				error = udtmc.mvMultUncGS(soln, minMax, states.iterator(), absolute);
 				// Check termination
 				return (error < termCritParam);
 			}
@@ -222,14 +222,14 @@ public class IterationMethodGS extends IterationMethod {
 	}
 	
 	@Override
-	public IterationValIter forMvMultRewMinMaxUnc(IDTMC<Double> idtmc, MCRewards<Double> mcRewards, MinMax minMax)
+	public IterationValIter forMvMultRewMinMaxUnc(UDTMC<Double> udtmc, MCRewards<Double> mcRewards, MinMax minMax)
 	{
-		return new SingleVectorIterationValIter(idtmc) {
+		return new SingleVectorIterationValIter(udtmc) {
 			@Override
 			public boolean iterateAndCheckConvergence(IntSet states)
 			{
 				// Matrix-vector multiply
-				error = idtmc.mvMultRewUncGS(soln, mcRewards, minMax, states.iterator(), absolute);
+				error = udtmc.mvMultRewUncGS(soln, mcRewards, minMax, states.iterator(), absolute);
 				// Check termination
 				return (error < termCritParam);
 			}

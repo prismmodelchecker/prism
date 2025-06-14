@@ -130,19 +130,19 @@ class IterationMethodJacobi extends IterationMethod {
 	}
 
 	@Override
-	public IterationValIter forMvMultMinMaxUnc(IDTMC<Double> idtmc, MinMax minMax) throws PrismException
+	public IterationValIter forMvMultMinMaxUnc(UDTMC<Double> udtmc, MinMax minMax) throws PrismException
 	{
-		throw new PrismNotSupportedException("Jacobi not supported for IDTMCs");
+		throw new PrismNotSupportedException("Jacobi not supported for UDTMCs");
 	}
 
 	@Override
-	public IterationValIter forMvMultRewMinMaxUnc(IDTMC<Double> idtmc, MCRewards<Double> mcRewards, MinMax minMax) throws PrismException
+	public IterationValIter forMvMultRewMinMaxUnc(UDTMC<Double> udtmc, MCRewards<Double> mcRewards, MinMax minMax) throws PrismException
 	{
-		throw new PrismNotSupportedException("Jacobi not supported for IDTMCs");
+		throw new PrismNotSupportedException("Jacobi not supported for UDTMCs");
 	}
 
 	@Override
-	public IterationValIter forMvMultMinMaxUnc(UMDP<Double> idtmc, MinMax minMax, int[] strat) throws PrismException
+	public IterationValIter forMvMultMinMaxUnc(UMDP<Double> imdp, MinMax minMax, int[] strat) throws PrismException
 	{
 		throw new PrismNotSupportedException("Jacobi not supported for IMDPs");
 	}

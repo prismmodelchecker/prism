@@ -744,7 +744,8 @@ public class ProbModelChecker extends NonProbModelChecker
 			res = ((STPGModelChecker) this).computeNextProbs((STPG<Double>) model, target, minMax.isMin1(), minMax.isMin2());
 			break;
 		case IDTMC:
-			res = ((IDTMCModelChecker) this).computeNextProbs((IDTMC<Double>) model, target, minMax);
+		case UDTMC:
+			res = ((UDTMCModelChecker) this).computeNextProbs((UDTMC<Double>) model, target, minMax);
 			break;
 		case IMDP:
 		case UMDP:
@@ -807,7 +808,8 @@ public class ProbModelChecker extends NonProbModelChecker
 				res = ((STPGModelChecker) this).computeUntilProbs((STPG<Double>) model, remain, target, minMax.isMin1(), minMax.isMin2());
 				break;
 			case IDTMC:
-				res = ((IDTMCModelChecker) this).computeUntilProbs((IDTMC<Double>) model, remain, target, minMax);
+			case UDTMC:
+				res = ((UDTMCModelChecker) this).computeUntilProbs((UDTMC<Double>) model, remain, target, minMax);
 				break;
 			case IMDP:
 			case UMDP:
@@ -836,7 +838,8 @@ public class ProbModelChecker extends NonProbModelChecker
 				res = ((STPGModelChecker) this).computeBoundedUntilProbs((STPG<Double>) model, remain, target, windowSize, minMax.isMin1(), minMax.isMin2());
 				break;
 			case IDTMC:
-				res = ((IDTMCModelChecker) this).computeBoundedUntilProbs((IDTMC<Double>) model, remain, target, windowSize, minMax);
+			case UDTMC:
+				res = ((UDTMCModelChecker) this).computeBoundedUntilProbs((UDTMC<Double>) model, remain, target, windowSize, minMax);
 				break;
 			case IMDP:
 			case UMDP:
@@ -906,7 +909,8 @@ public class ProbModelChecker extends NonProbModelChecker
 			res = ((STPGModelChecker) this).computeUntilProbs((STPG<Double>) model, remain, target, minMax.isMin1(), minMax.isMin2());
 			break;
 		case IDTMC:
-			res = ((IDTMCModelChecker) this).computeUntilProbs((IDTMC<Double>) model, remain, target, minMax);
+		case UDTMC:
+			res = ((UDTMCModelChecker) this).computeUntilProbs((UDTMC<Double>) model, remain, target, minMax);
 			break;
 		case IMDP:
 		case UMDP:
@@ -1199,7 +1203,8 @@ public class ProbModelChecker extends NonProbModelChecker
 			res = ((STPGModelChecker) this).computeReachRewards((STPG<Double>) model, (STPGRewards<Double>) modelRewards, target, minMax.isMin1(), minMax.isMin2());
 			break;
 		case IDTMC:
-			res = ((IDTMCModelChecker) this).computeReachRewards((IDTMC<Double>) model, (MCRewards<Double>) modelRewards, target, minMax);
+		case UDTMC:
+			res = ((UDTMCModelChecker) this).computeReachRewards((UDTMC<Double>) model, (MCRewards<Double>) modelRewards, target, minMax);
 			break;
 		case IMDP:
 		case UMDP:
