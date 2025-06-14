@@ -74,7 +74,7 @@ public class DotExporter<Value> extends ModelExporter<Value>
 		defaults.attributes().put("shape", "box");
 
 		// Output header
-		out.println("digraph " + modelType + " {");
+		out.println("digraph " + "M" + " {");
 		out.println("node " + defaults + ";");
 
 		// Output transitions in Dot format

@@ -1,4 +1,4 @@
-digraph MDP {
+digraph M {
 node [label="",shape="box"];
 0 [label="0\n(0)"];
 0 -> n0_0  [label="0:east",arrowhead="none"];

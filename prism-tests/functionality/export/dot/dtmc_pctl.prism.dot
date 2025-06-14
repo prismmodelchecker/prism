@@ -1,4 +1,4 @@
-digraph IDTMC {
+digraph M {
 node [label="",shape="box"];
 0 [label="0"];
 0 -> 1 [label="[0.5,0.5]"];
