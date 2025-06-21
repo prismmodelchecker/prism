@@ -1531,11 +1531,6 @@ public class StateModelChecker extends PrismComponent
 	 */
 	public <Value> void exportModel(Model<Value> model, ModelExportTask exportTask) throws PrismException
 	{
-		// For interval models, we use the underlying model over intervals
-		if (model instanceof IntervalModel) {
-			exportModel(((IntervalModel<Value>) model).getIntervalModel(), exportTask);
-			return;
-		}
 		ModelExportOptions exportOptions = exportTask.getExportOptions();
 		// Build an exporter of the required type
 		ModelExporter<Value> exporter;

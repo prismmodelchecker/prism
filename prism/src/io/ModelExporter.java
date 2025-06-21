@@ -49,8 +49,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeSet;
-import java.util.function.Function;
-import java.util.stream.StreamSupport;
 
 /**
  * Base class for model exporter classes.
@@ -342,21 +340,21 @@ public abstract class ModelExporter<Value>
 	 * @param includeActions Whether to include actions
 	 */
 	@SuppressWarnings("unchecked")
-	public Iterable<Transition<Object>> getSortedTransitionsIterator(Model<Value> model, int s, int j, boolean includeActions) throws PrismException
+	public <ValueM> Iterable<Transition<Object>> getSortedTransitionsIterator(Model<ValueM> model, int s, int j, boolean includeActions) throws PrismException
 	{
 		TreeSet<Transition<Object>> sorted = new TreeSet<>(Transition::compareTo);
 		// Get action (if attached to choice)
 		Object action = null;
 		if (model.getModelType().nondeterministic() && includeActions) {
-			action = ((NondetModel<Value>) model).getAction(s, j);
+			action = ((NondetModel<ValueM>) model).getAction(s, j);
 		}
 		// Extract transitions
 		if (!model.getModelType().uncertain()) {
 			// DTMCs
 			if (model instanceof DTMC) {
-				Iterator<Map.Entry<Integer, Pair<Value, Object>>> iter = ((DTMC<Value>) model).getTransitionsAndActionsIterator(s);
+				Iterator<Map.Entry<Integer, Pair<ValueM, Object>>> iter = ((DTMC<ValueM>) model).getTransitionsAndActionsIterator(s);
 				while (iter.hasNext()) {
-					Map.Entry<Integer, Pair<Value, Object>> e = iter.next();
+					Map.Entry<Integer, Pair<ValueM, Object>> e = iter.next();
 					if (includeActions) {
 						action = e.getValue().second;
 					}
@@ -365,14 +363,14 @@ public abstract class ModelExporter<Value>
 			}
 			// LTS-like (non-probabilistic, nondeterministic) models
 			else if (model instanceof LTS) {
-				int succ = ((LTS<Value>) model).getSuccessor(s, j);
+				int succ = ((LTS<ValueM>) model).getSuccessor(s, j);
 				sorted.add((Transition<Object>) new Transition<>(succ, model.getEvaluator().one(), action, model.getEvaluator()));
 			}
 			// MDP-like (probabilistic, nondeterministic) models
 			else {
-				Iterator<Map.Entry<Integer, Value>> iter = ((MDP<Value>) model).getTransitionsIterator(s, j);
+				Iterator<Map.Entry<Integer, ValueM>> iter = ((MDP<ValueM>) model).getTransitionsIterator(s, j);
 				while (iter.hasNext()) {
-					Map.Entry<Integer, Value> e = iter.next();
+					Map.Entry<Integer, ValueM> e = iter.next();
 					sorted.add((Transition<Object>) new Transition<>(e.getKey(), e.getValue(), action, model.getEvaluator()));
 				}
 			}
@@ -381,21 +379,21 @@ public abstract class ModelExporter<Value>
 		else {
 			// IDTMCs
 			if (model instanceof IDTMC) {
-				Iterator<Map.Entry<Integer, Pair<Interval<Value>, Object>>> iter = ((IDTMC<Value>) model).getIntervalTransitionsAndActionsIterator(s);
+				Iterator<Map.Entry<Integer, Pair<Interval<ValueM>, Object>>> iter = ((IDTMC<ValueM>) model).getIntervalTransitionsAndActionsIterator(s);
 				while (iter.hasNext()) {
-					Map.Entry<Integer, Pair<Interval<Value>, Object>> e = iter.next();
+					Map.Entry<Integer, Pair<Interval<ValueM>, Object>> e = iter.next();
 					if (includeActions) {
 						action = e.getValue().second;
 					}
-					sorted.add((Transition<Object>) (Transition<? extends Object>) new Transition<>(e.getKey(), e.getValue().first, action, ((IDTMC<Value>) model).getIntervalEvaluator()));
+					sorted.add((Transition<Object>) (Transition<? extends Object>) new Transition<>(e.getKey(), e.getValue().first, action, ((IDTMC<ValueM>) model).getIntervalEvaluator()));
 				}
 			}
 			// IMDPs
 			else {
-				Iterator<Map.Entry<Integer, Interval<Value>>> iter = ((IMDP<Value>) model).getIntervalTransitionsIterator(s, j);
+				Iterator<Map.Entry<Integer, Interval<ValueM>>> iter = ((IMDP<ValueM>) model).getIntervalTransitionsIterator(s, j);
 				while (iter.hasNext()) {
-					Map.Entry<Integer, Interval<Value>> e = iter.next();
-					sorted.add((Transition<Object>) (Transition<? extends Object>) new Transition<>(e.getKey(), e.getValue(), action, ((IMDP<Value>) model).getIntervalEvaluator()));
+					Map.Entry<Integer, Interval<ValueM>> e = iter.next();
+					sorted.add((Transition<Object>) (Transition<? extends Object>) new Transition<>(e.getKey(), e.getValue(), action, ((IMDP<ValueM>) model).getIntervalEvaluator()));
 				}
 			}
 		}
@@ -410,14 +408,14 @@ public abstract class ModelExporter<Value>
 	 * @param s The state
 	 * @param includeActions Whether to include actions
 	 */
-	public <Value1> Iterable<Transition<Value>> getSortedTransitionRewardsIterator(DTMC<Value1> model, Rewards<Value> rewards, int s, boolean includeActions)
+	public <ValueM> Iterable<Transition<Value>> getSortedTransitionRewardsIterator(DTMC<ValueM> model, Rewards<Value> rewards, int s, boolean includeActions)
 	{
 		TreeSet<Transition<Value>> sorted = new TreeSet<>(Transition::compareTo);
 		Object action = null;
-		Iterator<Map.Entry<Integer, Pair<Value1, Object>>> iter = model.getTransitionsAndActionsIterator(s);
+		Iterator<Map.Entry<Integer, Pair<ValueM, Object>>> iter = model.getTransitionsAndActionsIterator(s);
 		int k = 0;
 		while (iter.hasNext()) {
-			Map.Entry<Integer, Pair<Value1, Object>> e = iter.next();
+			Map.Entry<Integer, Pair<ValueM, Object>> e = iter.next();
 			if (includeActions) {
 				action = e.getValue().second;
 			}

@@ -29,6 +29,7 @@ package io;
 import common.IteratorTools;
 import explicit.DTMC;
 import explicit.IDTMC;
+import explicit.IntervalModel;
 import explicit.Model;
 import explicit.NondetModel;
 import explicit.PartiallyObservableModel;
@@ -71,10 +72,9 @@ public class PrismExplicitExporter<Value> extends ModelExporter<Value>
 	 * @param model Model to export
 	 * @param out PrismLog to export to
 	 */
-	public void exportTransitions(Model<Value> model, PrismLog out) throws PrismException
+	public <ValueM> void exportTransitions(Model<ValueM> model, PrismLog out) throws PrismException
 	{
 		// Get model info and exportOptions
-		setEvaluator(model.getEvaluator());
 		ModelType modelType = model.getModelType();
 		boolean showActions = modelExportOptions.getShowActions();
 
@@ -82,11 +82,11 @@ public class PrismExplicitExporter<Value> extends ModelExporter<Value>
 		int numStates = model.getNumStates();
 		out.print(numStates);
 		if (modelType.nondeterministic()) {
-			out.print(" " + ((NondetModel<Value>) model).getNumChoices());
+			out.print(" " + ((NondetModel<ValueM>) model).getNumChoices());
 		}
 		out.print(" " + model.getNumTransitions());
 		if (modelType.partiallyObservable()) {
-			out.print(" " + ((PartiallyObservableModel<Value>) model).getNumObservations());
+			out.print(" " + ((PartiallyObservableModel<ValueM>) model).getNumObservations());
 		}
 		out.print("\n");
 
@@ -95,7 +95,7 @@ public class PrismExplicitExporter<Value> extends ModelExporter<Value>
 		for (int s = 0; s < numStates; s++) {
 			int numChoices = 1;
 			if (modelType.nondeterministic()) {
-				numChoices = ((NondetModel<Value>) model).getNumChoices(s);
+				numChoices = ((NondetModel<ValueM>) model).getNumChoices(s);
 			}
 			// Iterate through choices
 			for (int j = 0; j < numChoices; j++) {
@@ -110,7 +110,7 @@ public class PrismExplicitExporter<Value> extends ModelExporter<Value>
 						out.print(" " + transition.toString(modelExportOptions));
 					}
 					if (modelType.partiallyObservable()) {
-						out.print(" " + ((PartiallyObservableModel<Value>) model).getObservation(transition.target));
+						out.print(" " + ((PartiallyObservableModel<ValueM>) model).getObservation(transition.target));
 					}
 					if (showActions && transition.action != null && !"".equals(transition.action)) {
 						out.print(" " + transition.action);
