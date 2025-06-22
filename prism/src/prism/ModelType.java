@@ -196,9 +196,15 @@ public enum ModelType
 			// NB: we distinguish between nondeterminism and uncertainty
 			return false;
 		}
-		
+
 		@Override
 		public boolean uncertain()
+		{
+			return true;
+		}
+
+		@Override
+		public boolean intervals()
 		{
 			return true;
 		}
@@ -226,6 +232,12 @@ public enum ModelType
 
 		@Override
 		public boolean uncertain()
+		{
+			return true;
+		}
+
+		@Override
+		public boolean intervals()
 		{
 			return true;
 		}
@@ -340,6 +352,14 @@ public enum ModelType
 	 * Does this model have uncertainty (e.g., intervals)?
 	 */
 	public boolean uncertain()
+	{
+		return false;
+	}
+
+	/**
+	 * Does this model define probabilities using intervals?
+	 */
+	public boolean intervals()
 	{
 		return false;
 	}
