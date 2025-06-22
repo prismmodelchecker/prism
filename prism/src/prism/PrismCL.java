@@ -67,6 +67,8 @@ import simulator.method.CIwidth;
 import simulator.method.SPRTMethod;
 import simulator.method.SimulationMethod;
 
+import static prism.PrismSettings.RANGE_EXPORT_DOUBLE_PRECISION;
+
 // prism - command line version
 
 public class PrismCL implements PrismModelListener
@@ -2089,6 +2091,7 @@ public class PrismCL implements PrismModelListener
 		ModelExportOptions exportOptions = new ModelExportOptions();
 		String options[] = optionsString.split(",");
 		for (String opt : options) {
+			String sOpt;
 			// Ignore ""
 			if (opt.equals("")) {
 			}
@@ -2130,17 +2133,45 @@ public class PrismCL implements PrismModelListener
 					}
 				}
 			}
-			else if (opt.startsWith("actions")) {
-				if (!opt.startsWith("actions="))
-					throw new PrismException("No value provided for \"actions\" option of -exportmodel");
-				String optVal = opt.substring(8);
+			else if (opt.startsWith(sOpt = "actions")) {
+				if (!opt.startsWith(sOpt + "="))
+					throw new PrismException("No value provided for \"" + sOpt + "\" option of -exportmodel");
+				String optVal = opt.substring(sOpt.length() + 1);
 				if (optVal.equals("true")) {
 					exportOptions.setShowActions(true);
 				} else if (optVal.equals("false")) {
 					exportOptions.setShowActions(false);
 				}
-				else
-					throw new PrismException("Unknown value \"" + optVal + "\" provided for \"reach\" option of -exportstrat");
+				else {
+					throw new PrismException("Unknown value \"" + optVal + "\" provided for \"" + sOpt + "\" option of -exportmodel");
+				}
+			}
+			else if (opt.startsWith(sOpt = "headers")) {
+				if (!opt.startsWith(sOpt + "="))
+					throw new PrismException("No value provided for \"" + sOpt + "\" option of -exportmodel");
+				String optVal = opt.substring(sOpt.length() + 1);
+				if (optVal.equals("true")) {
+					exportOptions.setPrintHeaders(true);
+				} else if (optVal.equals("false")) {
+					exportOptions.setPrintHeaders(false);
+				}
+				else {
+					throw new PrismException("Unknown value \"" + optVal + "\" provided for \"" + sOpt + "\" option of -exportmodel");
+				}
+			}
+			else if (opt.startsWith(sOpt = "precision")) {
+				if (!opt.startsWith(sOpt + "="))
+					throw new PrismException("No value provided for \"" + sOpt + "\" option of -exportmodel");
+				String optVal = opt.substring(sOpt.length() + 1);
+				try {
+					int precision = Integer.parseInt(optVal);
+					if (!RANGE_EXPORT_DOUBLE_PRECISION.contains(precision)) {
+						throw new NumberFormatException("");
+					}
+					exportOptions.setModelPrecision(precision);
+				} catch (NumberFormatException e) {
+					throw new PrismException("Invalid value \"" + optVal + "\" provided for \"" + sOpt + "\" option of -exportmodel");
+				}
 			}
 			// Unknown option
 			else {
@@ -2700,7 +2731,9 @@ public class PrismCL implements PrismModelListener
 			mainLog.println(" * matlab - same as format=matlab");
 			mainLog.println(" * rows - export matrices with one row/distribution on each line");
 			mainLog.println(" * proplabels - export labels from a properties file into the same file, too");
-			mainLog.println(" * actions (=true/false) - shows actions on choices/transitions");
+			mainLog.println(" * actions (=true/false) - show actions on choices/transitions");
+			mainLog.println(" * headers (=true/false) - include headers when exporting rewards");
+			mainLog.println(" * precision (=n) - export probabilities/rewards with n significant decimal places");
 		}
 		// -exportstrat
 		else if (sw.equals("exportstrat")) {
