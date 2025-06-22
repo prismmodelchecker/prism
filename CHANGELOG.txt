@@ -1,7 +1,7 @@
 This file contains details of the changes in each new version of PRISM.
 
 -----------------------------------------------------------------------------
-Changes since last release (up to 4fc1eaed3)
+Changes since last release (up to 073176f5d)
 -----------------------------------------------------------------------------
 
 * Explicit engine improvements
@@ -11,8 +11,8 @@ Changes since last release (up to 4fc1eaed3)
 * Model export functionality
   - export of exact and parametric models
   - preliminary DRN (Storm) output
-  - actions=true/false option (explicit engine)
-  - multiple -exportmodel allowed and format=x option
+  - multiple -exportmodel switches allowed
+  - options for -exportmodel: format/actions/header/precision
   - remove old options (MRMC format, unordered, spy)
 
 * Model import functionality (from explicit files)
@@ -42,6 +42,7 @@ Changes since last release (up to 4fc1eaed3)
   - refactoring of explicit engine model import/export code
     (centralised in io package, export moved from model classes)
   - parametric engine refactored to use explicit models/rewards
+  - refactoring of (explicit engine) interval model storage
   - symbolic code rearranged (new symbolic package)
   - symbolic model storage refactored, simplified, documented
   - extension of strategy classes, especially for induced models
