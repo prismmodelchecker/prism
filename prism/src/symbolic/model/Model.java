@@ -26,6 +26,7 @@
 
 package symbolic.model;
 
+import io.ModelExportOptions;
 import jdd.JDD;
 import jdd.JDDNode;
 import jdd.JDDVars;
@@ -316,6 +317,13 @@ public interface Model extends prism.Model<Double>
 	void exportToFile(int exportType, boolean explicit, File file, int precision) throws FileNotFoundException, PrismException;
 
 	/**
+	 * Export the transition function/matrix.
+	 * @param file File to export to (if null, print to the log instead)
+	 * @param exportOptions The options for export
+	 */
+	void exportToFile(File file, ModelExportOptions exportOptions) throws FileNotFoundException, PrismException;
+
+	/**
 	 * Export (non-zero) state rewards for one reward structure of the model.
 	 * @param r Index of reward structure to export (0-indexed)
 	 * @param exportType The format in which to export
@@ -335,6 +343,14 @@ public interface Model extends prism.Model<Double>
 	 * @param noexportheaders disables export headers for srew files
 	 */
 	void exportStateRewardsToFile(int r, int exportType, File file, int precision, boolean noexportheaders) throws FileNotFoundException, PrismException;
+
+	/**
+	 * Export (non-zero) state rewards for one reward structure of the model.
+	 * @param r Index of reward structure to export (0-indexed)
+	 * @param file File to export to (if null, print to the log instead)
+	 * @param exportOptions The options for export
+	 */
+	void exportStateRewardsToFile(int r, File file, ModelExportOptions exportOptions) throws FileNotFoundException, PrismException;
 
 	/**
 	 * Export (non-zero) transition rewards for one reward structure of the model.
@@ -358,6 +374,14 @@ public interface Model extends prism.Model<Double>
 	 * @param noexportheaders disables export headers for trew files
 	 */
 	void exportTransRewardsToFile(int r, int exportType, boolean ordered, File file, int precision, boolean noexportheaders) throws FileNotFoundException, PrismException;
+
+	/**
+	 * Export (non-zero) transition rewards for one reward structure of the model.
+	 * @param r Index of reward structure to export (0-indexed)
+	 * @param file File to export to (if null, print to the log instead)
+	 * @param exportOptions The options for export
+	 */
+	void exportTransRewardsToFile(int r, File file, ModelExportOptions exportOptions) throws FileNotFoundException, PrismException;
 
 	/**
 	 * Export the list of reachable states of the model.

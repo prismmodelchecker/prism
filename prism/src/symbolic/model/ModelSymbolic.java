@@ -26,6 +26,7 @@
 
 package symbolic.model;
 
+import io.ModelExportOptions;
 import jdd.JDD;
 import jdd.JDDNode;
 import jdd.JDDVars;
@@ -732,6 +733,17 @@ public abstract class ModelSymbolic implements Model
 	public void exportStateRewardsToFile(int r, int exportType, File file, int precision, boolean noexportheaders)
 			throws FileNotFoundException, PrismException
 	{
+		PrismMTBDD.ExportVector(stateRewards[r], "c" + (r + 1), allDDRowVars, odd, exportType, (file == null) ? null : file.getPath(), precision,
+				rewardStructNames[r], noexportheaders);
+	}
+
+	@Override
+	public void exportStateRewardsToFile(int r, File file, ModelExportOptions exportOptions)
+			throws FileNotFoundException, PrismException
+	{
+		int exportType = Prism.convertExportType(exportOptions);
+		int precision = exportOptions.getModelPrecision();
+		boolean noexportheaders = !exportOptions.getPrintHeaders();
 		PrismMTBDD.ExportVector(stateRewards[r], "c" + (r + 1), allDDRowVars, odd, exportType, (file == null) ? null : file.getPath(), precision,
 				rewardStructNames[r], noexportheaders);
 	}

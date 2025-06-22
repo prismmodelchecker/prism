@@ -1710,9 +1710,8 @@ public class StateModelChecker extends PrismComponent implements ModelChecker
 			throw new PrismException("DRN export not yet supported by the symbolic engine");
 		}
 
-		int precision = exportOptions.getModelPrecision();
 		try {
-			model.exportToFile(Prism.convertExportTypeTrans(exportOptions), true, file, precision);
+			model.exportToFile(file, exportOptions);
 		} catch (FileNotFoundException e) {
 			throw new PrismException("Could not open file \"" + file.getName() + "\" for output");
 		}
@@ -1745,10 +1744,8 @@ public class StateModelChecker extends PrismComponent implements ModelChecker
 	 */
 	public void exportStateRewards(int r, File file, ModelExportOptions exportOptions) throws PrismException
 	{
-		int precision = exportOptions.getModelPrecision();
-		boolean noexportheaders = !exportOptions.getPrintHeaders();
 		try {
-			model.exportStateRewardsToFile(r, Prism.convertExportType(exportOptions), file, precision, noexportheaders);
+			model.exportStateRewardsToFile(r, file, exportOptions);
 		} catch (FileNotFoundException e) {
 			throw new PrismException("Could not open file \"" + file.getName() + "\" for output");
 		}
@@ -1762,10 +1759,8 @@ public class StateModelChecker extends PrismComponent implements ModelChecker
 	 */
 	public void exportTransRewards(int r, File file, ModelExportOptions exportOptions) throws PrismException
 	{
-		int precision = exportOptions.getModelPrecision();
-		boolean noexportheaders = !exportOptions.getPrintHeaders();
 		try {
-			model.exportTransRewardsToFile(r, Prism.convertExportTypeTrans(exportOptions), true, file, precision, noexportheaders);
+			model.exportTransRewardsToFile(r, file, exportOptions);
 		} catch (FileNotFoundException e) {
 			throw new PrismException("Could not open file \"" + file.getName() + "\" for output");
 		}

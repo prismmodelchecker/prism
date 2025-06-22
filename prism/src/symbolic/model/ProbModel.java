@@ -26,6 +26,7 @@
 
 package symbolic.model;
 
+import io.ModelExportOptions;
 import jdd.JDD;
 import jdd.JDDNode;
 import jdd.JDDVars;
@@ -37,6 +38,7 @@ import parser.ast.Declaration;
 import parser.ast.DeclarationInt;
 import parser.ast.Expression;
 import prism.ModelType;
+import prism.Prism;
 import prism.PrismException;
 import prism.PrismLog;
 import sparse.PrismSparse;
@@ -153,6 +155,14 @@ public class ProbModel extends ModelSymbolic
 	}
 
 	@Override
+	public void exportToFile(File file, ModelExportOptions exportOptions) throws FileNotFoundException, PrismException
+	{
+		int exportType = Prism.convertExportTypeTrans(exportOptions);
+		int precision = exportOptions.getModelPrecision();
+		PrismSparse.ExportMatrix(trans, getTransSymbol(), allDDRowVars, allDDColVars, odd, exportType, (file != null) ? file.getPath() : null, precision, null, true);
+	}
+
+	@Override
 	public void exportTransRewardsToFile(int r, int exportType, boolean ordered, File file, int precision, boolean noexportheaders) throws FileNotFoundException, PrismException
 	{
 		if (!ordered) {
@@ -160,6 +170,15 @@ public class ProbModel extends ModelSymbolic
 		} else {
 			PrismSparse.ExportMatrix(transRewards[r], "C" + (r + 1), allDDRowVars, allDDColVars, odd, exportType, (file == null) ? null : file.getPath(), precision, rewardStructNames[r], noexportheaders);
 		}
+	}
+
+	@Override
+	public void exportTransRewardsToFile(int r, File file, ModelExportOptions exportOptions) throws FileNotFoundException, PrismException
+	{
+		int exportType = Prism.convertExportTypeTrans(exportOptions);
+		int precision = exportOptions.getModelPrecision();
+		boolean noexportheaders = !exportOptions.getPrintHeaders();
+		PrismSparse.ExportMatrix(transRewards[r], "C" + (r + 1), allDDRowVars, allDDColVars, odd, exportType, (file == null) ? null : file.getPath(), precision, rewardStructNames[r], noexportheaders);
 	}
 
 	@Override
