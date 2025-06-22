@@ -324,6 +324,7 @@ public class NondetModel extends ModelSymbolic
 	{
 		int exportType = Prism.convertExportTypeTrans(exportOptions);
 		int precision = exportOptions.getModelPrecision();
+		JDDNode transActions = exportOptions.getShowActions() ? this.transActions : null;
 		PrismSparse.ExportMDP(trans, transActions, getSynchs(), getTransSymbol(), allDDRowVars, allDDColVars, allDDNondetVars, odd, exportType,
 				(file != null) ? file.getPath() : null, precision);
 	}
