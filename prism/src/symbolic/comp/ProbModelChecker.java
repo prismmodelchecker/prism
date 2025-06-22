@@ -42,6 +42,7 @@ import acceptance.AcceptanceReachDD;
 import acceptance.AcceptanceType;
 import automata.DA;
 import common.StopWatch;
+import io.ModelExportOptions;
 import jdd.JDD;
 import jdd.JDDNode;
 import jdd.JDDVars;
@@ -601,9 +602,10 @@ public class ProbModelChecker extends NonProbModelChecker
 		// Output product, if required
 		if (prism.getExportProductTrans()) {
 			try {
-				int precision = getSettings().getInteger(PrismSettings.PRISM_EXPORT_MODEL_PRECISION);
+				ModelExportOptions exportOptions = new ModelExportOptions();
+				exportOptions.setModelPrecision(getSettings().getInteger(PrismSettings.PRISM_EXPORT_MODEL_PRECISION));
 				mainLog.println("\nExporting product transition matrix to file \"" + prism.getExportProductTransFilename() + "\"...");
-				modelProduct.exportToFile(Prism.EXPORT_PLAIN, true, new File(prism.getExportProductTransFilename()), precision);
+				modelProduct.exportToFile(new File(prism.getExportProductTransFilename()), exportOptions);
 			} catch (FileNotFoundException e) {
 				mainLog.printWarning("Could not export product transition matrix to file \"" + prism.getExportProductTransFilename() + "\"");
 			}
@@ -1028,9 +1030,10 @@ public class ProbModelChecker extends NonProbModelChecker
 		// Output product, if required
 		if (prism.getExportProductTrans()) {
 			try {
-				int precision = getSettings().getInteger(PrismSettings.PRISM_EXPORT_MODEL_PRECISION);
+				ModelExportOptions exportOptions = new ModelExportOptions();
+				exportOptions.setModelPrecision(getSettings().getInteger(PrismSettings.PRISM_EXPORT_MODEL_PRECISION));
 				mainLog.println("\nExporting product transition matrix to file \"" + prism.getExportProductTransFilename() + "\"...");
-				modelProduct.getProductModel().exportToFile(Prism.EXPORT_PLAIN, true, new File(prism.getExportProductTransFilename()), precision);
+				modelProduct.getProductModel().exportToFile(new File(prism.getExportProductTransFilename()), exportOptions);
 			} catch (FileNotFoundException e) {
 				mainLog.printWarning("Could not export product transition matrix to file \"" + prism.getExportProductTransFilename() + "\"");
 			}
