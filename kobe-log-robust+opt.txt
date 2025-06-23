@@ -1,0 +1,71 @@
+PRISM
+=====
+
+Version: 4.8.1.dev
+Date: Tue Jun 10 23:10:06 EDT 2025
+Hostname: Khangs-MacBook-Pro.local
+Memory limits: cudd=1g, java(heap)=1g
+Command line: prism kobe-imdp.prism -pf '<<*>>{multi}R>5.2[C]' -mainlog log.txt
+
+Parsing PRISM model file "kobe-imdp.prism"...
+
+Type:        IMDP
+Modules:     robot
+Variables:   s
+Labels:      "goal"
+Rewards:     1
+
+1 property:
+(1) <<*>> {multi}R>5.2 [ C ]
+
+---------------------------------------------------------------------
+
+Model checking: <<*>> {multi}R>5.2 [ C ]
+
+Warning: Switching to explicit engine to allow model checking of interval model.
+
+Building model (engine:explicit)...
+
+Computing reachable states... 11 states
+Reachable states exploration and model construction done in 0.007 secs.
+Sorting reachable states list...
+
+Time for model construction: 0.021 seconds.
+
+Type:        IMDP
+States:      11 (1 initial)
+Transitions: 29
+Choices:     15
+Max/avg:     2/1.36
+Building reward structure...
+Starting linear programming (min)...
+Calcualting multi Strategy under the assumption of worst transition per objective: 
+Continuous Variables = 99, Integer Variables = 15, Constraints = 188
+Multi Strategy to Obtain at most under worst assumption of adversary 5.2
+0: south
+1: south
+2: south east
+3: south east
+4: south
+5: east
+6: east
+7: east
+8: east
+9: north
+10: stop
+It took 41 milli-seconds to finish synthesize the permissive strategy
+
+java.lang.ClassCastException: class java.lang.Double cannot be cast to class java.lang.Boolean (java.lang.Double and java.lang.Boolean are in module java.base of loader 'bootstrap')
+    at parser.ast.ExpressionFilter.applyForAll(ExpressionFilter.java:391)
+    at parser.ast.ExpressionFilter.apply(ExpressionFilter.java:226)
+    at explicit.StateModelChecker.checkExpressionFilter(StateModelChecker.java:1194)
+    at explicit.StateModelChecker.checkExpression(StateModelChecker.java:674)
+    at explicit.NonProbModelChecker.checkExpression(NonProbModelChecker.java:78)
+    at explicit.ProbModelChecker.checkExpression(ProbModelChecker.java:555)
+    at explicit.StateModelChecker.check(StateModelChecker.java:589)
+    at prism.Prism.modelCheck(Prism.java:3317)
+    at prism.PrismCL.run(PrismCL.java:441)
+    at prism.PrismCL.go(PrismCL.java:246)
+    at prism.PrismCL.main(PrismCL.java:3098)
+
+Error: Caught unhandled exception, aborting....
