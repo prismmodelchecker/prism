@@ -26,12 +26,8 @@
 
 package explicit;
 
-import java.util.BitSet;
-
-import explicit.graphviz.Decorator;
 import prism.ModelType;
 import prism.PrismException;
-import prism.PrismLog;
 
 /**
  * Interface for classes that provide (read) access to an explicit-state labelled transition system (LTS).
@@ -52,14 +48,6 @@ public interface LTS<Value> extends NondetModel<Value>
 		throw new UnsupportedOperationException();
 	}
 
-	// Accessors (for NondetModel) - default implementations
-	
-	@Override
-	default void exportToDotFileWithStrat(PrismLog out, BitSet mark, int[] strat, int precision)
-	{
-		throw new UnsupportedOperationException();
-	}
-	
 	// Accessors
 	
 	/**

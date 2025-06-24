@@ -37,6 +37,9 @@ import java.util.PrimitiveIterator;
 import java.util.function.IntPredicate;
 
 import common.IterableStateSet;
+import explicit.graphviz.Decoration;
+import explicit.graphviz.Decorator;
+import io.ModelExportOptions;
 import prism.PrismException;
 import prism.PrismLog;
 import strat.MDStrategy;
@@ -542,14 +545,47 @@ public interface NondetModel<Value> extends Model<Value>
 	/**
 	 * Export to a dot file, highlighting states in 'mark' and choices for a (memoryless) strategy.
 	 */
-	default void exportToDotFileWithStrat(PrismLog out, BitSet mark, int strat[])
+	default void exportToDotFileWithStrat(PrismLog out, BitSet mark, int[] strat) throws PrismException
 	{
 		exportToDotFileWithStrat(out, mark, strat, DEFAULT_EXPORT_MODEL_PRECISION);
 	}
 
 	/**
 	 * Export to a dot file, highlighting states in 'mark' and choices for a (memoryless) strategy.
+	 *
 	 * @param precision number of significant digits >= 1
 	 */
-	public void exportToDotFileWithStrat(PrismLog out, BitSet mark, int strat[], int precision);
+	default void exportToDotFileWithStrat(PrismLog out, BitSet mark, int[] strat, int precision) throws PrismException
+	{
+		List<Decorator> decorators = new ArrayList<>();
+		if (mark != null) {
+			decorators.add(new Decorator()
+			{
+				@Override
+				public Decoration decorateState(int state, Decoration d)
+				{
+					if (mark.get(state)) {
+						d.attributes().put("style", "filled");
+						d.attributes().put("fillcolor", "#cccccc");
+					}
+					return d;
+				}
+			});
+		}
+		if (strat != null) {
+			decorators.add(new Decorator()
+			{
+				@Override
+				public Decoration decorateTransition(int state, int choice, Decoration d)
+				{
+					if (strat[state] == choice) {
+						d.attributes().put("color", "#ff0000");
+						d.attributes().put("fontcolor", "#ff0000");
+					}
+					return d;
+				}
+			});
+		}
+		exportToDotFile(out, new ModelExportOptions().setModelPrecision(precision), decorators);
+	}
 }

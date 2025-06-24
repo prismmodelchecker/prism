@@ -33,7 +33,6 @@ import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 import java.util.Map.Entry;
 import java.util.PrimitiveIterator;
 import java.util.TreeMap;
@@ -44,12 +43,10 @@ import common.IterableStateSet;
 import common.IteratorTools;
 import common.iterable.FunctionalIterator;
 import common.iterable.Reducible;
-import explicit.graphviz.Decorator;
 import explicit.rewards.MCRewards;
 import explicit.rewards.MDPRewards;
 import prism.ModelType;
 import prism.PrismException;
-import prism.PrismLog;
 import prism.PrismUtils;
 
 /**
@@ -111,34 +108,6 @@ public interface MDP<Value> extends NondetModel<Value>
 		return Math.toIntExact(IteratorTools.count(getTransitionsIterator(s, i)));
 	}
 	
-	@Override
-	default void exportToDotFileWithStrat(PrismLog out, BitSet mark, int strat[], int precision)
-	{
-		int numStates = getNumStates();
-		out.print("digraph " + getModelType() + " {\nnode [shape=box];\n");
-		for (int i = 0; i < numStates; i++) {
-			if (mark != null && mark.get(i))
-				out.print(i + " [style=filled  fillcolor=\"#cccccc\"]\n");
-			int numChoices = getNumChoices(i);
-			for (int j = 0; j < numChoices; j++) {
-				String style = (strat[i] == j) ? ",color=\"#ff0000\",fontcolor=\"#ff0000\"" : "";
-				Object action = getAction(i, j);
-				String nij = "n" + i + "_" + j;
-				out.print(i + " -> " + nij + " [ arrowhead=none,label=\"" + j);
-				if (action != null)
-					out.print(":" + action);
-				out.print("\"" + style + " ];\n");
-				out.print(nij + " [ shape=point,height=0.1,label=\"\"" + style + " ];\n");
-				Iterator<Map.Entry<Integer, Value>> iter = getTransitionsIterator(i, j);
-				while (iter.hasNext()) {
-					Map.Entry<Integer, Value> e = iter.next();
-					out.print(nij + " -> " + e.getKey() + " [ label=\"" + getEvaluator().toStringExport(e.getValue(), precision) + "\"" + style + " ];\n");
-				}
-			}
-		}
-		out.print("}\n");
-	}
-
 	// Accessors
 	
 	/**

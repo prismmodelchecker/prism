@@ -43,7 +43,6 @@ import common.IterableStateSet;
 import explicit.rewards.STPGRewards;
 import explicit.rewards.STPGRewardsNestedSimple;
 import prism.PrismException;
-import prism.PrismLog;
 import prism.PrismUtils;
 import strat.MDStrategy;
 
@@ -374,12 +373,6 @@ public class STPGAbstrSimple<Value> extends ModelExplicit<Value> implements STPG
 		// TODO: Check for empty distributions sets too?
 	}
 
-	@Override
-	public void exportToDotFileWithStrat(PrismLog out, BitSet mark, int strat[], int precision)
-	{
-		throw new RuntimeException("Not yet supported");
-	}
-	
 	@Override
 	public String infoString()
 	{

@@ -27,22 +27,12 @@
 package explicit;
 
 import java.util.BitSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
 import java.util.PrimitiveIterator;
-import java.util.TreeMap;
 
-import common.Interval;
 import common.IterableStateSet;
 import explicit.rewards.MDPRewards;
-import io.ModelExportOptions;
-import parser.State;
-import prism.Evaluator;
 import prism.ModelType;
 import prism.PrismException;
-import prism.PrismLog;
-import prism.PrismUtils;
 
 /**
  * Interface for classes that provide (read) access to an explicit-state uncertain MDP.
@@ -59,14 +49,6 @@ public interface UMDP<Value> extends NondetModel<Value>
 
 	@Override
 	default void exportToPrismLanguage(final String filename, int precision) throws PrismException
-	{
-		throw new UnsupportedOperationException("UMDP model export not implemented");
-	}
-
-	// Accessors (for NondetModel) - default implementations
-
-	@Override
-	default void exportToDotFileWithStrat(PrismLog out, BitSet mark, int strat[], int precision)
 	{
 		throw new UnsupportedOperationException("UMDP model export not implemented");
 	}

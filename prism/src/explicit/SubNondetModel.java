@@ -255,12 +255,6 @@ public class SubNondetModel<Value> implements NondetModel<Value>, ActionListOwne
 	}
 
 	@Override
-	public void exportToDotFileWithStrat(PrismLog out, BitSet mark, int strat[], int precision)
-	{
-		throw new UnsupportedOperationException();
-	}
-	
-	@Override
 	public void exportToPrismLanguage(String filename, int precision) throws PrismException
 	{
 		throw new UnsupportedOperationException();
