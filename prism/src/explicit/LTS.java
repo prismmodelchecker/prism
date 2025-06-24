@@ -47,29 +47,6 @@ public interface LTS<Value> extends NondetModel<Value>
 	}
 
 	@Override
-	default void exportTransitionsToDotFile(int i, PrismLog out, Iterable<explicit.graphviz.Decorator> decorators, int precision)
-	{
-		// Iterate through outgoing transitions (i.e. choices) for this state
-		int numChoices = getNumChoices(i);
-		for (int j = 0; j < numChoices; j++) {
-			Object action = getAction(i, j);
-			// Print a new dot file line for the arrow for this transition
-			out.print(i + " -> " + getSuccessor(i, j));
-			// Annotate this with the choice index/action 
-			explicit.graphviz.Decoration d = new explicit.graphviz.Decoration();
-			d.setLabel(j + (action != null ? ":" + action : ""));
-			// Apply any other decorators requested
-			if (decorators != null) {
-				for (Decorator decorator : decorators) {
-					d = decorator.decorateTransition(i, j, d);
-				}
-			}
-			// Append to the dot file line
-			out.println(" " + d.toString() + ";");
-		}
-	}
-
-	@Override
 	default void exportToPrismLanguage(String filename, int precision) throws PrismException
 	{
 		throw new UnsupportedOperationException();
