@@ -27,7 +27,6 @@
 package explicit;
 
 import java.io.File;
-import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.Collections;
 import java.util.Iterator;
@@ -40,7 +39,6 @@ import java.util.function.IntPredicate;
 
 import common.IterableStateSet;
 import common.IteratorTools;
-import explicit.graphviz.Decorator;
 import io.DotExporter;
 import io.ModelExportOptions;
 import io.PrismExplicitExporter;
@@ -48,7 +46,6 @@ import parser.State;
 import parser.Values;
 import parser.VarList;
 import prism.Evaluator;
-import prism.ModelType;
 import prism.Prism;
 import prism.PrismException;
 import prism.PrismFileLog;
@@ -68,80 +65,80 @@ public interface Model<Value> extends prism.Model<Value>
 	/**
 	 * Get iterator over initial state list.
 	 */
-	public Iterable<Integer> getInitialStates();
+	Iterable<Integer> getInitialStates();
 
 	/**
 	 * Get the index of the first initial state
 	 * (i.e. the one with the lowest index).
 	 * Returns -1 if there are no initial states.
 	 */
-	public int getFirstInitialState();
+	int getFirstInitialState();
 
 	/**
 	 * Check whether a state is an initial state.
 	 */
-	public boolean isInitialState(int i);
+	boolean isInitialState(int i);
 
 	/**
 	 * Get the number of states that are/were deadlocks.
 	 * (Such states may have been fixed at build-time by adding self-loops)
 	 */
-	public int getNumDeadlockStates();
+	int getNumDeadlockStates();
 
 	/**
 	 * Get iterator over states that are/were deadlocks.
 	 * (Such states may have been fixed at build-time by adding self-loops)
 	 */
-	public Iterable<Integer> getDeadlockStates();
+	Iterable<Integer> getDeadlockStates();
 	
 	/**
 	 * Get list of states that are/were deadlocks.
 	 * (Such states may have been fixed at build-time by adding self-loops)
 	 */
-	public StateValues getDeadlockStatesList();
+	StateValues getDeadlockStatesList();
 	
 	/**
 	 * Get the index of the first state that is/was a deadlock.
 	 * (i.e. the one with the lowest index).
 	 * Returns -1 if there are no initial states.
 	 */
-	public int getFirstDeadlockState();
+	int getFirstDeadlockState();
 
 	/**
 	 * Check whether a state is/was deadlock.
 	 * (Such states may have been fixed at build-time by adding self-loops)
 	 */
-	public boolean isDeadlockState(int i);
+	boolean isDeadlockState(int i);
 	
 	/**
 	 * Get access to a list of states (optionally stored).
 	 */
-	public List<State> getStatesList();
+	List<State> getStatesList();
 
 	/** Get access to the VarList (optionally stored) */
-	public VarList getVarList();
+	VarList getVarList();
 
 	/**
 	 * Get access to a list of constant values (optionally stored).
 	 */
-	public Values getConstantValues();
+	Values getConstantValues();
 	
 	/**
 	 * Get the states that satisfy a label in this model (optionally stored).
 	 * Returns null if there is no label of this name.
 	 */
-	public BitSet getLabelStates(String name);
+	BitSet getLabelStates(String name);
 	
 	/**
 	 * Get the labels that are (optionally) stored.
 	 * Returns an empty set if there are no labels.
 	 */
-	public Set<String> getLabels();
+	Set<String> getLabels();
 
 	/**
 	 * Returns true if a label with the given name is attached to this model
 	 */
-	public boolean hasLabel(String name);
+	boolean hasLabel(String name);
 
 	/**
 	 * Get the mapping from labels that are (optionally) stored
@@ -150,7 +147,7 @@ public interface Model<Value> extends prism.Model<Value>
 	default Map<String, BitSet> getLabelToStatesMap()
 	{
 		// Default implementation creates a new map on demand
-		Map<String, BitSet> labels = new TreeMap<String, BitSet>();
+		Map<String, BitSet> labels = new TreeMap<>();
 		for (String name : getLabels()) {
 			labels.put(name, getLabelStates(name));
 		}
@@ -158,7 +155,7 @@ public interface Model<Value> extends prism.Model<Value>
 	}
 	
 	@Override
-	public default int getNumTransitions()
+	default int getNumTransitions()
 	{
 		int numStates = getNumStates();
 		int numTransitions = 0;
@@ -171,7 +168,7 @@ public interface Model<Value> extends prism.Model<Value>
 	/**
 	 * Get the number of transitions from state s.
 	 */
-	public default int getNumTransitions(int s)
+	default int getNumTransitions(int s)
 	{
 		return Math.toIntExact(IteratorTools.count(getSuccessorsIterator(s)));
 	}
@@ -183,7 +180,7 @@ public interface Model<Value> extends prism.Model<Value>
 	 * @param states The set of states, specified by an OfInt iterator
 	 * @return the number of transitions
 	 */
-	public default long getNumTransitions(PrimitiveIterator.OfInt states)
+	default long getNumTransitions(PrimitiveIterator.OfInt states)
 	{
 		long count = 0;
 		while (states.hasNext()) {
@@ -199,7 +196,7 @@ public interface Model<Value> extends prism.Model<Value>
 	 * from {@code getSuccessors}, ensuring that there are no
 	 * duplicates.
 	 */
-	public default Iterator<Integer> getSuccessorsIterator(int s)
+	default Iterator<Integer> getSuccessorsIterator(int s)
 	{
 		SuccessorsIterator successors = getSuccessors(s);
 		return successors.distinct();
@@ -208,12 +205,12 @@ public interface Model<Value> extends prism.Model<Value>
 	/**
 	 * Get a SuccessorsIterator for state s.
 	 */
-	public SuccessorsIterator getSuccessors(int s);
+	SuccessorsIterator getSuccessors(int s);
 
 	/**
 	 * Returns true if state s2 is a successor of state s1.
 	 */
-	public default boolean isSuccessor(int s1, int s2)
+	default boolean isSuccessor(int s1, int s2)
 	{
 		// the code for this method is equivalent to the following stream expression,
 		// but kept explicit for performance
@@ -236,7 +233,7 @@ public interface Model<Value> extends prism.Model<Value>
 	 * @param s The state to check
 	 * @param set The set to test for inclusion
 	 */
-	public default boolean allSuccessorsInSet(int s, BitSet set)
+	default boolean allSuccessorsInSet(int s, BitSet set)
 	{
 		return allSuccessorsMatch(s, set::get);
 	}
@@ -246,7 +243,7 @@ public interface Model<Value> extends prism.Model<Value>
 	 * @param s The state to check
 	 * @param set The set to test for inclusion
 	 */
-	public default boolean someSuccessorsInSet(int s, BitSet set)
+	default boolean someSuccessorsInSet(int s, BitSet set)
 	{
 		return someSuccessorsMatch(s, set::get);
 	}
@@ -256,7 +253,7 @@ public interface Model<Value> extends prism.Model<Value>
 	 * @param s The state to check
 	 * @param p the predicate
 	 */
-	public default boolean allSuccessorsMatch(int s, IntPredicate p)
+	default boolean allSuccessorsMatch(int s, IntPredicate p)
 	{
 		// the code for this method is equivalent to the following stream expression,
 		// but kept explicit for performance
@@ -277,7 +274,7 @@ public interface Model<Value> extends prism.Model<Value>
 	 * @param s The state to check
 	 * @param p the predicate
 	 */
-	public default boolean someSuccessorsMatch(int s, IntPredicate p)
+	default boolean someSuccessorsMatch(int s, IntPredicate p)
 	{
 		// the code for this method is equivalent to the following stream expression,
 		// but kept explicit for performance
@@ -303,7 +300,7 @@ public interface Model<Value> extends prism.Model<Value>
 	 * @param u Set of states {@code u}
 	 * @return true iff there is a transition from s to a state in u
 	 */
-	public default boolean prob0step(int s, BitSet u)
+	default boolean prob0step(int s, BitSet u)
 	{
 		for (SuccessorsIterator succ = getSuccessors(s); succ.hasNext(); ) {
 			int t = succ.nextInt();
@@ -323,7 +320,7 @@ public interface Model<Value> extends prism.Model<Value>
 	 * @param u Set of states {@code u}
 	 * @param result Store results here
 	 */
-	public default void prob0step(BitSet subset, BitSet u, BitSet result)
+	default void prob0step(BitSet subset, BitSet u, BitSet result)
 	{
 		for (PrimitiveIterator.OfInt it = new IterableStateSet(subset, getNumStates()).iterator(); it.hasNext();) {
 			int s = it.nextInt();
@@ -340,7 +337,7 @@ public interface Model<Value> extends prism.Model<Value>
 	 * @param v Set of states {@code v}
 	 * @return true iff there is a transition from s to a state in v and all transitions go to u.
 	 */
-	public default boolean prob1step(int s, BitSet u, BitSet v)
+	default boolean prob1step(int s, BitSet u, BitSet v)
 	{
 		boolean allTransitionsToU = true;
 		boolean hasTransitionToV = false;
@@ -364,7 +361,7 @@ public interface Model<Value> extends prism.Model<Value>
 	 * @param v Set of states {@code v}
 	 * @param result Store results here
 	 */
-	public default void prob1step(BitSet subset, BitSet u, BitSet v, BitSet result)
+	default void prob1step(BitSet subset, BitSet u, BitSet v, BitSet result)
 	{
 		for (PrimitiveIterator.OfInt it = new IterableStateSet(subset, getNumStates()).iterator(); it.hasNext();) {
 			int s = it.nextInt();
@@ -379,18 +376,18 @@ public interface Model<Value> extends prism.Model<Value>
 	 * The set of deadlocks (before any possible fixing) can be obtained from {@link #getDeadlockStates()}.
 	 * @throws PrismException if the model is unable to fix deadlocks because it is non-mutable.
 	 */
-	public void findDeadlocks(boolean fix) throws PrismException;
+	void findDeadlocks(boolean fix) throws PrismException;
 
 	/**
 	 * Checks for deadlocks and throws an exception if any exist.
 	 */
-	public void checkForDeadlocks() throws PrismException;
+	void checkForDeadlocks() throws PrismException;
 
 	/**
 	 * Checks for deadlocks and throws an exception if any exist.
 	 * States in 'except' (If non-null) are excluded from the check.
 	 */
-	public void checkForDeadlocks(BitSet except) throws PrismException;
+	void checkForDeadlocks(BitSet except) throws PrismException;
 
 	// Export methods (explicit files)
 
@@ -425,7 +422,7 @@ public interface Model<Value> extends prism.Model<Value>
 	 * Export transition matrix to explicit format readable by PRISM (i.e. a .tra file).
 	 * @param precision number of significant digits >= 1
 	 */
-	public default void exportToPrismExplicitTra(PrismLog out, int precision) throws PrismException
+	default void exportToPrismExplicitTra(PrismLog out, int precision) throws PrismException
 	{
 		exportToPrismExplicitTra(out, new ModelExportOptions().setModelPrecision(precision));
 	}
@@ -684,12 +681,12 @@ public interface Model<Value> extends prism.Model<Value>
 	 * Export to a equivalent PRISM language model description.
 	 * @param precision number of significant digits >= 1
 	 */
-	public void exportToPrismLanguage(String filename, int precision) throws PrismException;
+	void exportToPrismLanguage(String filename, int precision) throws PrismException;
 	
 	/**
 	 * Export states list.
 	 */
-	public default void exportStates(VarList varList, PrismLog out, ModelExportOptions exportOptions) throws PrismException
+	default void exportStates(VarList varList, PrismLog out, ModelExportOptions exportOptions) throws PrismException
 	{
 		new PrismExplicitExporter<Value>(exportOptions).exportStates(this, varList, out);
 	}
@@ -699,7 +696,7 @@ public interface Model<Value> extends prism.Model<Value>
 	 * Export states list.
 	 */
 	@Deprecated
-	public default void exportStates(int exportType, VarList varList, PrismLog out) throws PrismException
+	default void exportStates(int exportType, VarList varList, PrismLog out) throws PrismException
 	{
 		exportStates(varList, out, Prism.convertExportType(exportType));
 	}
@@ -707,19 +704,19 @@ public interface Model<Value> extends prism.Model<Value>
 	/**
 	 * Report info/stats about the model as a string.
 	 */
-	public default String infoString()
+	default String infoString()
 	{
 		final int numStates = getNumStates();
 		String s = "";
 		s += numStates + " states (" + getNumInitialStates() + " initial)";
 		if (this instanceof PartiallyObservableModel) {
-			s += ", " + ((PartiallyObservableModel) this).getNumObservations() + " observables";
-			s += ", " + ((PartiallyObservableModel) this).getNumUnobservations() + " unobservables";
+			s += ", " + ((PartiallyObservableModel<?>) this).getNumObservations() + " observables";
+			s += ", " + ((PartiallyObservableModel<?>) this).getNumUnobservations() + " unobservables";
 		}
 		s += ", " + getNumTransitions() + " transitions";
 		if (this instanceof NondetModel) {
-			s += ", " + ((NondetModel) this).getNumChoices() + " choices";
-			s += ", dist max/avg = " + ((NondetModel) this).getMaxNumChoices() + "/" + PrismUtils.formatDouble2dp(((double) ((NondetModel) this).getNumChoices()) / numStates);
+			s += ", " + ((NondetModel<?>) this).getNumChoices() + " choices";
+			s += ", dist max/avg = " + ((NondetModel<?>) this).getMaxNumChoices() + "/" + PrismUtils.formatDouble2dp(((double) ((NondetModel<?>) this).getNumChoices()) / numStates);
 		}
 		return s;
 	}
@@ -727,24 +724,24 @@ public interface Model<Value> extends prism.Model<Value>
 	/**
 	 * Report info/stats about the model, tabulated, as a string.
 	 */
-	public default String infoStringTable()
+	default String infoStringTable()
 	{
 		final int numStates = getNumStates();
 		String s = "";
 		s += "States:      " + numStates + " (" + getNumInitialStates() + " initial)\n";
 		if (this instanceof PartiallyObservableModel) {
-			s += "Obs/unobs:   " + ((PartiallyObservableModel) this).getNumObservations() + "/" + ((PartiallyObservableModel) this).getNumUnobservations() + "\n";
+			s += "Obs/unobs:   " + ((PartiallyObservableModel<?>) this).getNumObservations() + "/" + ((PartiallyObservableModel<?>) this).getNumUnobservations() + "\n";
 		}
 		s += "Transitions: " + getNumTransitions() + "\n";
 		if (this instanceof NondetModel) {
-			s += "Choices:     " + ((NondetModel) this).getNumChoices() + "\n";
-			s += "Max/avg:     " + ((NondetModel) this).getMaxNumChoices() + "/" + PrismUtils.formatDouble2dp(((double) ((NondetModel) this).getNumChoices()) / numStates) + "\n";
+			s += "Choices:     " + ((NondetModel<?>) this).getNumChoices() + "\n";
+			s += "Max/avg:     " + ((NondetModel<?>) this).getMaxNumChoices() + "/" + PrismUtils.formatDouble2dp(((double) ((NondetModel<?>) this).getNumChoices()) / numStates) + "\n";
 		}
 		return s;
 	}
 
 	/** Has this model a stored PredecessorRelation? */
-	public boolean hasStoredPredecessorRelation();
+	boolean hasStoredPredecessorRelation();
 
 	/**
 	 * If there is a PredecessorRelation stored for this model, return that.
@@ -754,10 +751,10 @@ public interface Model<Value> extends prism.Model<Value>
 	 * @param parent a PrismComponent (for obtaining the log)
 	 * @param storeIfNew if the predecessor relation is newly created, store it
 	 */
-	public PredecessorRelation getPredecessorRelation(prism.PrismComponent parent, boolean storeIfNew);
+	PredecessorRelation getPredecessorRelation(prism.PrismComponent parent, boolean storeIfNew);
 
 	/** Clear any stored predecessor relation, e.g., because the model was modified */
-	public void clearPredecessorRelation();
+	void clearPredecessorRelation();
 
 	/**
 	 * Get an Evaluator for the values stored in this Model for probabilities etc.
@@ -765,7 +762,7 @@ public interface Model<Value> extends prism.Model<Value>
 	 * A default implementation provides an evaluator for the (usual) case when Value is Double.
 	 */
 	@SuppressWarnings("unchecked")
-	public default Evaluator<Value> getEvaluator()
+	default Evaluator<Value> getEvaluator()
 	{
 		return (Evaluator<Value>) Evaluator.forDouble();
 	}
