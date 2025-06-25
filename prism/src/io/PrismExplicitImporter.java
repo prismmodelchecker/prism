@@ -1460,7 +1460,7 @@ public class PrismExplicitImporter extends ExplicitModelImporter
 	 */
 	protected static String checkAction(String a) throws PrismException
 	{
-		if (a == null || "".equals(a)) {
+		if (a == null || a.isEmpty()) {
 			return null;
 		}
 		if (!Prism.isValidIdentifier(a)) {

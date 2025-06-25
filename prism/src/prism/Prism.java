@@ -32,6 +32,7 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Pattern;
 
 import common.iterable.Range;
 import dv.DoubleVector;
@@ -221,6 +222,9 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	private static PrismParser thePrismParser = null;
 	private static boolean prismParserInUse = false;
 	private SimulatorEngine theSimulator = null;
+
+	/** Regexp for PRISM language identifiers */
+	private static final Pattern IDENTIFIER_PATTERN = Pattern.compile("[_a-zA-Z][_a-zA-Z0-9]*");
 
 	//------------------------------------------------------------------------------
 	// Event listeners
@@ -1627,7 +1631,17 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	 */
 	public static boolean isValidIdentifier(String s)
 	{
-		return s.matches("[_a-zA-Z][_a-zA-Z0-9]*") && !PrismParser.isKeyword(s);
+		if (s == null || s.isEmpty()) {
+			return false;
+		}
+		char first = s.charAt(0);
+		if (!(first == '_' || Character.isLetter(first))) {
+			return false;
+		}
+		if (!IDENTIFIER_PATTERN.matcher(s).matches()) {
+			return false;
+		}
+		return !PrismParser.isKeyword(s);
 	}
 
 	/**

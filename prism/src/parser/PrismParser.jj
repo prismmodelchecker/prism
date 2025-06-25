@@ -36,6 +36,7 @@ package parser;
 import java.io.*;
 import java.util.List;
 import java.util.ArrayList;
+import java.util.HashSet;
 
 import jltl2ba.SimpleLTL;
 import parser.BooleanUtils;
@@ -53,13 +54,14 @@ public class PrismParser
 	private static ModelInfo modelInfo;
 	
 	// List of keyword strings
-	private static ArrayList<String> keywordList = new ArrayList<String>();
+	private static ArrayList<String> keywordList = new ArrayList<>();
 	static {
 		keywordList.clear();
 		for (int i = PrismParserConstants.COMMENT+1; i < PrismParserConstants.NOT; i++) {
 			keywordList.add(PrismParserConstants.tokenImage[i].replaceAll("\"", ""));
 		}
 	}
+	private static HashSet<String> keywordSet = new HashSet<>(keywordList);
 	
 	//-----------------------------------------------------------------------------------
 	// Main method for testing purposes
@@ -332,7 +334,7 @@ public class PrismParser
 	 */
 	public static boolean isKeyword(String s)
 	{
-		return keywordList.contains(s);
+		return keywordSet.contains(s);
 	}
 	
 	/**
