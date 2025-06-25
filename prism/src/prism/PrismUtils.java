@@ -573,13 +573,16 @@ public class PrismUtils
 		// strip trailing zeros after the .
 		String result = String.format((Locale)null, "%." + prec + "g", d);
 		// if there are only zeros after the . (e.g., .000000), strip them including the .
-		result = result.replaceFirst("\\.0+(e|$)", "$1");
+		result = FORMAT_DOUBLE_TRAILING_ZEROS.matcher(result).replaceFirst("$1");
 		// handle .xxxx0000
 		// we first match .xxx until there are only zeros before the end (or e)
 		// as we match reluctantly (using the *?), all trailing zeros are captured
 		// by the 0+ part
-		return result.replaceFirst("(\\.[0-9]*?)0+(e|$)", "$1$2");
+		return FORMAT_DOUBLE_TRAILING_ZEROS2.matcher(result).replaceFirst("$1$2");
 	}
+
+	private static final Pattern FORMAT_DOUBLE_TRAILING_ZEROS = Pattern.compile("\\.0+(e|$)");
+	private static final Pattern FORMAT_DOUBLE_TRAILING_ZEROS2 = Pattern.compile("(\\.[0-9]*?)0+(e|$)");
 
 	/**
 	 * Format a double (that is known to be an integer, but not necessarily in the int range)
