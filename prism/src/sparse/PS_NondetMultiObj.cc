@@ -606,10 +606,15 @@ JNIEXPORT jdoubleArray __jlongpointer JNICALL Java_sparse_PrismSparse_PS_1Nondet
 		if (export_adv_enabled != EXPORT_ADV_NONE) {
 			// Do two passes: first to compute the number of transitions,
 			// the second to actually do the export
+			int num_choice = 0;
 			int num_trans = 0;
 			for (int pass = 1; pass <= 2; pass++) {
 				if (pass == 2) {
-					fprintf(fp_adv, "%d %d\n", n, num_trans);
+					if (export_adv_enabled == EXPORT_ADV_DTMC) {
+						fprintf(fp_adv, "%d %d\n", n, num_trans);
+					} else {
+						fprintf(fp_adv, "%d %d %d\n", n, num_choice, num_trans);
+					}
 				}
 				h1 = h2 = 0;
 				for (i = 0; i < n; i++) {
@@ -623,6 +628,7 @@ JNIEXPORT jdoubleArray __jlongpointer JNICALL Java_sparse_PrismSparse_PS_1Nondet
 						if (j == adv[i]) {
 							switch (pass) {
 							case 1:
+								num_choice++;;
 								num_trans += (h2-l2);
 								break;
 							case 2:
