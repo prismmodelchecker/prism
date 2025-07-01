@@ -70,6 +70,13 @@ fi
 
 ####
 
+# Add JVM parameters for JNI (if Java is new enough)
+PRISM_JAVA_VERSION=$(java -version 2>&1 | awk -F '"' '/version/ {print $2}')
+PRISM_JAVA_VERSION_MAJOR=$(echo "$PRISM_JAVA_VERSION" | cut -d. -f1)
+if [ "$PRISM_JAVA_VERSION_MAJOR" -ge 17 ]; then
+	PRISM_JAVA_PARAMS=${PRISM_JAVA_PARAMS}${PRISM_JAVA_PARAMS:+ }"--enable-native-access=ALL-UNNAMED"
+fi
+
 # JVM parameters via -javaparams switch
 ARGS=( "$@" )
 for ((i=0;i<${#ARGS[@]};i+=1)); do
