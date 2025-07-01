@@ -31,10 +31,12 @@
 #include "jni.h"
 
 /*
- * Currently does nothing, used to annotate jlong's that are pointers
+ * Currently does nothing, used to annotate jlong's that are pointers (or arrays of)
  */
 
 #define __jlongpointer
+
+#define __jlongpointerArray
 
 /*
  * C++ doesn't support implicit conversion from void*

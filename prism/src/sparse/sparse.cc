@@ -44,6 +44,7 @@ static void traverse_mtbdd_vect_rec(DdManager *ddman, DdNode *dd, DdNode **vars,
 static int count;
 static int *starts, *starts2;
 static int *actions;
+static int action_count;
 static RMSparseMatrix *rmsm;
 static CMSparseMatrix *cmsm;
 static RCSparseMatrix *rcsm;
@@ -64,6 +65,7 @@ EXPORT RMSparseMatrix::RMSparseMatrix()
 	non_zeros = NULL;
 	cols = NULL;
 	row_counts = NULL;
+	actions = NULL;
 }
 
 EXPORT RMSparseMatrix::~RMSparseMatrix()
@@ -71,6 +73,7 @@ EXPORT RMSparseMatrix::~RMSparseMatrix()
 	if (non_zeros) delete[] non_zeros;
 	if (cols) delete[] cols;
 	if (row_counts) delete[] row_counts;
+	if (actions) delete[] actions;
 }
 
 //------------------------------------------------------------------------------
@@ -231,6 +234,83 @@ RMSparseMatrix *build_rm_sparse_matrix(DdManager *ddman, DdNode *matrix, DdNode 
 	
 	// now traverse the mtbdd again to get the actual matrix entries
 	traverse_mtbdd_matr_rec(ddman, matrix, rvars, cvars, num_vars, 0, odd, odd, 0, 0, 2, transpose);
+	// and recompute starts info because we've messed with it during previous traversal
+	for (i = n; i > 0; i--) {
+		starts[i] = starts[i-1];
+	}
+	starts[0] = 0;
+	// and if it's safe to do so, replace starts with (smaller) array of counts
+	if (rmsm->use_counts) {
+		rmsm->row_counts = new unsigned char[n];
+		for (i = 0; i < n; i++) rmsm->row_counts[i] = (unsigned char)(starts[i+1] - starts[i]);
+		delete[] starts; starts = NULL;
+		rmsm->mem = (nnz * (sizeof(double) + sizeof(unsigned int)) + n * sizeof(unsigned char)) / 1024.0;
+	} else {
+		rmsm->row_counts = (unsigned char*)starts;
+		rmsm->mem = (nnz * (sizeof(double) + sizeof(unsigned int)) + n * sizeof(int)) / 1024.0;
+	}
+	
+	// try/catch for memory allocation/deallocation
+	} catch(std::bad_alloc e) {
+		if (rmsm) delete rmsm;
+		if (starts) delete[] starts;
+		throw e;
+	}
+	
+	return rmsm;
+}
+
+// build row major (rm) sparse matrix with actions
+// if tranpose flag is true, actually construct for tranpose
+// throws std::bad_alloc on out-of-memory
+
+RMSparseMatrix *build_rm_sparse_matrix_act(DdManager *ddman, DdNode **matrices, int num_actions, DdNode **rvars, DdNode **cvars, int num_vars, ODDNode *odd)
+{ return build_rm_sparse_matrix_act(ddman, matrices, num_actions, rvars, cvars, num_vars, odd, false); }
+
+RMSparseMatrix *build_rm_sparse_matrix_act(DdManager *ddman, DdNode **matrices, int num_actions, DdNode **rvars, DdNode **cvars, int num_vars, ODDNode *odd, bool transpose)
+{
+	int i, n, nnz, max;
+	
+	// try/catch for memory allocation/deallocation
+	try {
+	
+	// create new data structure
+	rmsm = NULL; rmsm = new RMSparseMatrix();
+	
+	// get number of states from odd
+	n = rmsm->n = odd->eoff+odd->toff;
+	// get num of transitions
+	for (int a = 0; a < num_actions; a++) {
+		rmsm->nnz += (int)DD_GetNumMinterms(ddman, matrices[a], num_vars*2);
+	}
+	nnz = rmsm->nnz;
+	
+	// create arrays
+	rmsm->non_zeros = new double[nnz];
+	rmsm->cols = new unsigned int[nnz];
+	rmsm->actions = new unsigned int[nnz];
+	starts = NULL; starts = new int[n+1];
+	
+	// first traverse the mtbdd to compute how many entries are in each row
+	for (i = 0; i < n+1; i++) starts[i] = 0;
+	for (int a = 0; a < num_actions; a++) {
+		traverse_mtbdd_matr_rec(ddman, matrices[a], rvars, cvars, num_vars, 0, odd, odd, 0, 0, 1, transpose);
+	}
+	// and use this to compute the starts information
+	// (and at same time, compute max num entries in a row)
+	max = 0;
+	for (i = 1; i < n+1; i++) {
+		if (starts[i] > max) max = starts[i];
+		starts[i] += starts[i-1];
+	}
+	// max num entries determines whether we store counts or starts:
+	rmsm->use_counts = (max < (unsigned int)(1 << (8*sizeof(unsigned char))));
+	
+	// now traverse the mtbdd again to get the actual matrix entries
+	for (int a = 0; a < num_actions; a++) {
+		action_count = a;
+		traverse_mtbdd_matr_rec(ddman, matrices[a], rvars, cvars, num_vars, 0, odd, odd, 0, 0, 12, transpose);
+	}
 	// and recompute starts info because we've messed with it during previous traversal
 	for (i = n; i > 0; i--) {
 		starts[i] = starts[i-1];
@@ -1095,6 +1175,14 @@ void traverse_mtbdd_matr_rec(DdManager *ddman, DdNode *dd, DdNode **rvars, DdNod
 			ndsm->non_zeros[starts2[starts[(transpose?c:r)]]] = Cudd_V(dd);
 			ndsm->cols[starts2[starts[(transpose?c:r)]]] = (transpose?r:c);
 			starts2[starts[(transpose?c:r)]]++;
+			break;
+		
+		// row major - second pass with actions
+		case 12:
+			rmsm->non_zeros[starts[(transpose?c:r)]] = Cudd_V(dd);
+			rmsm->cols[starts[(transpose?c:r)]] = (transpose?r:c);
+			rmsm->actions[starts[(transpose?c:r)]] = action_count;
+			starts[(transpose?c:r)]++;
 			break;
 		}
 		return;

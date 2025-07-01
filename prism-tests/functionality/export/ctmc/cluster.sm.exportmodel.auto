@@ -2,13 +2,13 @@
 
 # Export all model info in different formats
 
--exportmodel cluster.sm.all
--exportmodel cluster.sm.matlab.all:matlab
--exportmodel cluster.sm.rows.all:rows
+-exportmodel cluster.sm.all:actions=false
+-exportmodel cluster.sm.matlab.all:matlab,actions=false
+-exportmodel cluster.sm.rows.all:rows,actions=false
 
 # Export model info separately (for a few formats)
 
--exportmodel cluster.sm.tra
+-exportmodel cluster.sm.tra:actions=false
 -exportmodel cluster.sm.lab
 -exportmodel cluster.sm.sta
 -exportmodel cluster.sm.srew

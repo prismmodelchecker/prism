@@ -601,7 +601,22 @@ public class PrismSparse
 			throw new PrismException("Out of memory building matrix for export");
 		}
 	}
-	
+
+	// export markov chain (with actions)
+	private static native int PS_ExportMC(long[] trans_per_action, List<String> synchs, String name, long rv, int nrv, long cv, int ncv, long odd, int exportType, String filename);
+	public static void ExportMC(JDDNode[] transPerAction, List<String> synchs, String name, JDDVars rows, JDDVars cols, ODDNode odd, int exportType, String filename, int precision) throws FileNotFoundException, PrismException
+	{
+		PrismNative.setExportModelPrecision(precision);
+		checkNumStates(odd);
+		int res = PS_ExportMC(JDDNode.ptrs(transPerAction), synchs, name, rows.array(), rows.n(), cols.array(), cols.n(), odd.ptr(), exportType, filename);
+		if (res == -1) {
+			throw new FileNotFoundException();
+		}
+		else if (res == -2) {
+			throw new PrismException("Out of memory building matrix for export");
+		}
+	}
+
 	// export mdp
 	private static native int PS_ExportMDP(long mdp, long trans_actions, List<String> synchs, String name, long rv, int nrv, long cv, int ncv, long ndv, int nndv, long odd, int exportType, String filename);
 	public static void ExportMDP(JDDNode mdp, JDDNode transActions, List<String> synchs, String name, JDDVars rows, JDDVars cols, JDDVars nondet, ODDNode odd, int exportType, String filename, int precision) throws FileNotFoundException, PrismException
