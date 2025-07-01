@@ -1,0 +1,116 @@
+mdp
+
+const int N=7;  // N*N grid map
+
+
+
+module robot
+	
+	// define robot position
+	r:[1..N] init 1;  // grid row
+	c:[1..N] init 1;  // grid column
+
+	// stop when entering human zone 
+	[stop] (r=N & c=N) -> 1: true;
+
+	// each state only allow certain moves based on the mission plan
+
+
+	[move_east] (r>=1 & r <= N & c >= 1 & c< N) & !(r>=N/3 & r<= 2*N/3 & c>=N/3 & c<= 2*N/3)
+		& !(r>=1 & r<=N/3 & c>=2*N/3 & c<N)
+		& !(r>1 & r<=N/3 & c>=2*N/3 & c<=N)
+		& !(r>=2*N/3 & r<N & c>=1 & c<=N/3)
+		& !(r>=2*N/3 & r<=N & c>1 & c<=N/3)
+		& !(r>=2 & r<=N/3 & c>=1 & c<=N/3)
+		& !(r>=2 & r<=N/3 & c>1 & c<=N/3) 
+		& !(r>=2*N/3 & r<N & c>=2*N/3 & c<N)
+		& !(r>=2*N/3 & r<=N & c>=2*N/3 & c<=N)
+		& !(r = N & c = N)
+		-> [0.8, 0.9]:(c'=c+1) + [0.1, 0.2]:(c' = c); 
+
+	[move_south] (r>=1 & r < N & c >= 1 & c<= N) & !(r>=N/3 & r<= 2*N/3 & c>=N/3 & c<= 2*N/3)
+		& !(r>=1 & r<=N/3 & c>=2*N/3 & c<N)
+		& !(r>1 & r<=N/3 & c>=2*N/3 & c<=N)
+		& !(r>=2*N/3 & r<N & c>=1 & c<=N/3)
+		& !(r>=2*N/3 & r<=N & c>1 & c<=N/3)
+		& !(r>=2 & r<=N/3 & c>=1 & c<=N/3)
+		& !(r>=2 & r<=N/3 & c>1 & c<=N/3) 
+		& !(r>=2*N/3 & r<N & c>=2*N/3 & c<N)
+		& !(r>=2*N/3 & r<=N & c>=2*N/3 & c<=N)
+		& !(r = N & c = N)
+		-> [0.8, 0.9]:(r'=r+1) + [0.1, 0.2]:(r' = r);
+
+	[move_west]  (r>=1 & r <= N & c > 1 & c<= N) & !(r>=N/3 & r<= 2*N/3 & c>=N/3 & c<= 2*N/3)
+		& !(r>=1 & r<=N/3 & c>=2*N/3 & c<N)
+		& !(r>1 & r<=N/3 & c>=2*N/3 & c<=N)
+		& !(r>=2*N/3 & r<N & c>=1 & c<=N/3)
+		& !(r>=2*N/3 & r<=N & c>1 & c<=N/3)
+		& !(r>=2 & r<=N/3 & c>=1 & c<=N/3)
+		& !(r>=2 & r<=N/3 & c>1 & c<=N/3) 
+		& !(r>=2*N/3 & r<N & c>=2*N/3 & c<N)
+		& !(r>=2*N/3 & r<=N & c>=2*N/3 & c<=N)
+		& !(r = N & c = N)
+		-> [0.8,0.9]:(c'=c-1) + [0.1,0.2]:(c'=c); 
+
+	[move_north] (r>1 & r <= N & c >= 1 & c<= N) & !(r>=N/3 & r<= 2*N/3 & c>=N/3 & c<= 2*N/3)
+		& !(r>=1 & r<=N/3 & c>=2*N/3 & c<N)
+		& !(r>1 & r<=N/3 & c>=2*N/3 & c<=N)
+		& !(r>=2*N/3 & r<N & c>=1 & c<=N/3)
+		& !(r>=2*N/3 & r<=N & c>1 & c<=N/3)
+		& !(r>=2 & r<=N/3 & c>=1 & c<=N/3)
+		& !(r>=2 & r<=N/3 & c>1 & c<=N/3) 
+		& !(r>=2*N/3 & r<N & c>=2*N/3 & c<N)
+		& !(r>=2*N/3 & r<=N & c>=2*N/3 & c<=N)
+		& !(r = N & c = N)
+		->[0.8,0.9]:(r'=r-1) + [0.1,0.2]:(r'=r);
+
+
+	// when in magnetic field, the sensor is not accurate
+	[move_east] (r>=N/3 & r<= 2*N/3 & c>=N/3 & c<= 2*N/3) & !(r = N & c = N) -> [0.1,0.4]:(r'=r+1) + [0.6,0.9]: (c'=c+1);
+	[move_south] (r>=N/3 & r<= 2*N/3 & c>=N/3 & c<= 2*N/3) & !(r = N & c = N)-> [0.6,0.9]:(r'=r+1) + [0.1,0.4]: (c'=c+1);
+	[move_west] (r>=N/3 & r<= 2*N/3 & c>=N/3 & c<= 2*N/3) & !(r = N & c = N) -> [0.1,0.4]:(r'=r-1) + [0.6,0.9]: (c'=c-1);
+	[move_north] (r>=N/3 & r<= 2*N/3 & c>=N/3 & c<= 2*N/3) & !(r = N & c = N) ->[0.6,0.9]:(r'=r-1) + [0.1,0.4]: (c'=c-1);
+
+
+	//red_zone
+	[move_east] (r>=1 & r<=N/3 & c>=2*N/3 & c<N) & !(r = N & c = N)-> [0.3,0.5]:(r'=r+1) + [0.5,0.7]: (c'=c+1);
+	[move_south] (r>=1 & r<=N/3 & c>=2*N/3 & c<N) & !(r = N & c = N)-> [0.5,0.7]:(r'=r+1) + [0.3,0.5]: (c'=c+1);
+	[move_west] (r>1 & r<=N/3 & c>=2*N/3 & c<=N) & !(r = N & c = N)-> [0.3,0.5]:(r'=r-1) + [0.5,0.7]: (c'=c-1);
+	[move_north] (r>1 & r<=N/3 & c>=2*N/3 & c<=N) & !(r = N & c = N)->[0.5,0.7]:(r'=r-1) + [0.3,0.5]: (c'=c-1);
+
+	[move_east] (r>=2*N/3 & r<N & c>=1 & c<=N/3) & !(r = N & c = N)-> [0.3,0.5]:(r'=r+1) + [0.5,0.7]: (c'=c+1);
+	[move_south] (r>=2*N/3 & r<N & c>=1 & c<=N/3)  & !(r = N & c = N)-> [0.5,0.7]:(r'=r+1) + [0.3,0.5]: (c'=c+1);
+	[move_west] (r>=2*N/3 & r<=N & c>1 & c<=N/3)  & !(r = N & c = N)-> [0.3,0.5]:(r'=r-1) + [0.5,0.7]: (c'=c-1);
+	[move_north] (r>=2*N/3 & r<=N & c>1 & c<=N/3)  & !(r = N & c = N)->[0.5,0.7]:(r'=r-1) + [0.3,0.5]: (c'=c-1);
+
+	[move_east] (r>=2 & r<=N/3 & c>=1 & c<=N/3) & !(r = N & c = N)-> [0.3,0.5]:(r'=r+1) + [0.5,0.7]: (c'=c+1);
+	[move_south] (r>=2 & r<=N/3 & c>=1 & c<=N/3) & !(r = N & c = N) -> [0.5,0.7]:(r'=r+1) + [0.3,0.5]: (c'=c+1);
+	[move_west] (r>=2 & r<=N/3 & c>1 & c<=N/3)  & !(r = N & c = N)-> [0.3,0.5]:(r'=r-1) + [0.5,0.7]: (c'=c-1);
+	[move_north] (r>=2 & r<=N/3 & c>1 & c<=N/3) & !(r = N & c = N) ->[0.5,0.7]:(r'=r-1) + [0.3,0.5]: (c'=c-1);
+	
+	[move_east] (r>=2*N/3 & r<N & c>=2*N/3 & c<N) & !(r = N & c = N)-> [0.3,0.5]:(r'=r+1) + [0.5,0.7]: (c'=c+1);
+	[move_south] (r>=2*N/3 & r<N & c>=2*N/3 & c<N)  & !(r = N & c = N)-> [0.5,0.7]:(r'=r+1) + [0.3,0.5]: (c'=c+1);
+	[move_west] (r>=2*N/3 & r<=N & c>=2*N/3 & c<=N) & !(r=N & c=N)  -> [0.3,0.5]:(r'=r-1) + [0.5,0.7]: (c'=c-1);
+	[move_north] (r>=2*N/3 & r<=N & c>=2*N/3 & c<=N) & !(r=N & c=N) ->[0.5,0.7]:(r'=r-1) + [0.3,0.5]: (c'=c-1);
+	[move_east] (r = N & c = N-1) -> [0.8, 0.9]:(c'=c+1) + [0.1, 0.2]:(c' = c); 
+	[move_south] (r = N-1 & c=N) -> [0.8, 0.9]:(r'=r+1) + [0.1, 0.2]:(r' = r);
+endmodule 
+
+
+// propperty: the robot enters human zone with probabilty at most p
+// target states are human zones
+//label "goal" = (r=N-2 & c>=(N/2 + 1) & c<=(N/2 + 2)) ; 
+label "goal" = (r=N & c=N);
+
+rewards
+	[move_east] true : 1;
+	[move_south] true : 1;
+	[move_west] true : 1;
+	[move_north] true : 1;
+endrewards
+
+
+
+
+
+

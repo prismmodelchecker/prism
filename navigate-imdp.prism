@@ -1,0 +1,73 @@
+// Interval‐MDP Grid‐World with parameterizable trap
+mdp
+
+//–– Grid dimensions ––//
+const int width = 7;    // width  (number of columns)
+const int height = 7;    // height (number of rows)
+
+//–– Special locations ––//
+// starting position:
+const int START_X = 0;
+const int START_Y = 0;
+// trap (you can move the trap by changing these):
+const int TRAP_X1  = 2;
+const int TRAP_Y1  = 1;
+
+const int TRAP_X2  = 3;
+const int TRAP_Y2  = 5;
+// goal:
+const int GOAL_X  = 4;
+const int GOAL_Y  = 4;
+
+// success probability intervals for motions:
+const double p_low  = 0.7;
+const double p_high = 0.9;
+
+// formulas to detect special cells
+formula atStart = (x=START_X & y=START_Y);
+formula atTrap  = (x=TRAP_X1   & y=TRAP_Y1) | (x=TRAP_X2 & y=TRAP_Y2);
+formula atGoal  = (x=GOAL_X   & y=GOAL_Y);
+
+// state variables: robot’s (x,y) coordinates
+module robot
+    x : [0..width-1] init START_X;
+    y : [0..height-1] init START_Y;
+
+    // if in trap or goal, stay there (absorbing)
+    [crash] atTrap  -> 1:true;
+    [done] atGoal  -> 1:true;
+
+    // move up
+    [up] !atTrap & !atGoal & y < height-1 ->
+        [p_low, p_high]:(y'=y+1) +
+        [1-p_high, 1-p_low]:(y'=y);
+
+    // move down
+    [down] !atTrap & !atGoal & y > 0 ->
+        [p_low, p_high]:(y'=y-1) +
+        [1-p_high, 1-p_low]:(y'=y);
+
+    // move right
+    [right] !atTrap & !atGoal & x < width-1 ->
+        [p_low, p_high]:(x'=x+1) +
+        [1-p_high, 1-p_low]:(x'=x);
+
+    // move left
+    [left] !atTrap & !atGoal & x > 0 ->
+        [p_low, p_high]:(x'=x-1) +
+        [1-p_high, 1-p_low]:(x'=x);
+
+endmodule
+
+rewards 
+    [crash] true : 10;
+    [up] true : 1;
+    [down] true : 1;
+    [left] true : 1;
+    [right] true : 1;
+endrewards
+
+// labels for properties
+label "Crash" = atTrap;
+label "goal" = atGoal;
+label "start" = atStart;

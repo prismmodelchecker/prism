@@ -1,0 +1,51 @@
+mdp
+
+// UAV Altitude Control under Wind Uncertainty - Interval MDP
+// Discrete altitude band [0..MaxAlt], actions: inc, dec, maint
+
+const int MaxAlt = 20;      // maximum altitude band
+const int StartAlt = 10;     // initial altitude
+const int acceptable_error = 2;
+const int upper = StartAlt + acceptable_error;
+const int lower = StartAlt - acceptable_error;
+const int T = 10;
+
+// Safe altitude corridor: bands 3 through 7
+formula safe = (alt >= lower & alt <= upper);
+
+module UAV
+    alt : [0..MaxAlt] init StartAlt;
+    t : [0..T] init 0;
+
+    // Increase thrust: intended +2, plus wind disturbance
+    [inc] alt <= MaxAlt - 2 & (t < T) -> 
+        [0.6,0.8] : (alt' = min(alt+2, MaxAlt)) & (t' = t + 1) +
+        [0.1,0.2] : (alt' = min(alt+1, MaxAlt)) & (t' = t + 1) +
+        [0.1,0.2] : (alt' = alt) & (t' = t + 1);
+
+    // Decrease thrust: intended -1, plus wind disturbance
+    [dec] alt >= 2 & (t < T)  -> 
+        [0.6,0.8] : (alt' = max(alt-2, 0)) +
+        [0.1,0.2] : (alt' = max(alt-1, 0)) +
+        [0.1,0.2] : (alt' = alt);
+
+    [stop_engine] alt > MaxAlt - 2 & (t < T) -> 1.0 : (alt' = max(alt-2, 0)) & (t' = t + 1);
+
+    [full_speed] alt >= 0 & alt < 2 -> 1.0 : (alt' = alt + 2) & (t' = t + 1);
+
+    // Maintain thrust: intended 0, plus wind disturbance
+    [maint] safe & (t < T) -> 
+        [0.7,0.9]   : (alt' = min(alt+1, MaxAlt)) & (t' = t  + 1) +
+        [0.05,0.15] : (alt' = alt) & (t' = t + 1) +
+        [0.05,0.15] : (alt' = max(alt-1, 0)) & (t' = t  + 1);
+
+    [done] t = T -> 1.0 : (t' = t + 1);
+    [stop] (t = T + 1) -> 1.0 : true;
+endmodule
+
+// Reward for staying in safe corridor vs. violation
+rewards "safety"
+    safe   : 1;
+endrewards
+
+label "goal" = (t = T + 1);

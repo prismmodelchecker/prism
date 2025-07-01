@@ -626,9 +626,9 @@ public class IMDPModelChecker extends ProbModelChecker
 	 */
 	public ModelCheckerResult computeMultiStrategy(IMDP<Double> imdp, MDPRewards<Double> mdpRewards, double bound) throws PrismException
 	{
-		boolean value =false;
-		boolean min = false;
-		boolean robust = false;
+		boolean value =true;
+		boolean min = true;
+		boolean robust = true;
 		if (value){
 			if (min){
 				return computeMultiStrategyValueMin(imdp, mdpRewards, bound, robust);
@@ -667,10 +667,10 @@ public class IMDPModelChecker extends ProbModelChecker
 		System.out.println(n);
 		int sInit = imdp.getFirstInitialState();
 
-		double BIG = 10000.0;
+		double BIG = 1000.0;
 		System.out.println(imdp.getLabelStates("goal"));
 		BitSet targetS = imdp.getLabelStates("goal");
-		System.out.println(imdp.getInitialStates());
+		System.out.println("Hi: " + imdp.getInitialStates());
 		IntSet targetStates = IntSet.asIntSet(targetS);
 		PrimitiveIterator.OfInt states = targetStates.iterator();
 		int numTarget = 0;
@@ -686,33 +686,9 @@ public class IMDPModelChecker extends ProbModelChecker
 			target[counter] = s;
 			counter += 1;
 		}
-		System.out.println(target[0]);
-				//compute predecessor
-		Map<Integer, List<String>> predecessor = new HashMap<>();
-		//cstates = eS.iterator();
-		for(int s = 0; s < n; s++){
-			//final int s = states.nextInt();
-			int numChoices = imdp.getNumChoices(s);
-			for (int c = 0; c < numChoices; c++){
-				String key = s + "-" + c;
-				Iterator<Map.Entry<Integer, Interval<Double>>> iter = imdp.getTransitionsIterator(s, c);
-				while(iter.hasNext()){
-					Map.Entry<Integer, Interval<Double>> e = iter.next();
-					int t = e.getKey();
-					Interval<Double> transition_val = e.getValue();
-					if (predecessor.containsKey(t) == false){
-						predecessor.computeIfAbsent(t, k -> new ArrayList<>()).add(key);
-					} else {
-						List<String> l = predecessor.computeIfAbsent(t,k -> new ArrayList<>());
-						if (!l.contains(key)){
-							l.add(key);
-						}
-					}
-				}
-			}
+		for (int s = 0; s < n; s++){
+			System.out.println("State: " + s + ", nch: "+ imdp.getNumChoices(s));
 		}
-		String fakeKey = sInit + "-DUMMY";
-		predecessor.computeIfAbsent(sInit, __ -> new ArrayList<>()).add(fakeKey);
 		if (robust==true){
 			mainLog.println("Calcualting multi Strategy under the assumption of worst transition per objective: ");
 			try {
@@ -743,7 +719,7 @@ public class IMDPModelChecker extends ProbModelChecker
 					for (int c = 0; c < numChoices; c++){
 						String sc = s + "-" + c;
 						eta.put(sc, m.addVar(0.0,1.0,0.0,GRB.BINARY,"eta"+"-"+sc));
-						lam.put(sc, m.addVar(-GRB.INFINITY,GRB.INFINITY,0,GRB.CONTINUOUS,"lam"+"-"+sc));
+						lam.put(sc, m.addVar(-BIG,BIG,0,GRB.CONTINUOUS,"lam"+"-"+sc));
 						uplus.put(sc, new HashMap<>());
 						umin.put(sc, new HashMap<>());
 						Iterator<Map.Entry<Integer, Interval<Double>>> iter = imdp.getTransitionsIterator(s, c);
@@ -752,8 +728,8 @@ public class IMDPModelChecker extends ProbModelChecker
 							int t = e.getKey();
 							Interval<Double> transition_val = e.getValue();
 							String key = sc + "->" + t;
-							GRBVar up = m.addVar(0,GRB.INFINITY,0,GRB.CONTINUOUS,"uplus["+key+"]");
-							GRBVar um = m.addVar(0,GRB.INFINITY,0,GRB.CONTINUOUS,"umin["+key+"]");
+							GRBVar up = m.addVar(0,BIG,0,GRB.CONTINUOUS,"uplus["+key+"]");
+							GRBVar um = m.addVar(0,BIG,0,GRB.CONTINUOUS,"umin["+key+"]");
 							uplus.get(sc).put(t, up);
 							umin.get(sc).put(t, um);
 							GRBLinExpr allowed = new GRBLinExpr();
@@ -778,50 +754,6 @@ public class IMDPModelChecker extends ProbModelChecker
 						expr.addTerm(1.0, eta.get(s+"-"+c));
 					m.addConstr(expr, GRB.GREATER_EQUAL, 1.0, "actSel-"+s);
 				}
-			/* 	fakeKey = sInit + "-DUMMY";
-				GRBVar etaDummy = m.addVar(0.0, 1.0, 0.0, GRB.BINARY, "eta-" + fakeKey);
-				eta.put(fakeKey, etaDummy);
-				for(int s  =0; s <n; s++){
-					//final int s = states.nextInt();
-					// LHS = sum of eta[s–*]
-					//if (s == sInit) 
-					//	continue;                           // skip initial
-					if (imdp.getNumChoices(s) == 0){
-						System.out.println(s);
-						continue;
-					}
-						
-					List<String> preds = predecessor.get(s);
-					if (preds == null || preds.isEmpty()) 
-						continue;
-					GRBLinExpr lhs1 = new GRBLinExpr();
-					for (int a = 0; a < imdp.getNumChoices(s); a++) {
-						lhs1.addTerm(1.0, eta.get(s + "-" + a));
-					}
-					// RHS = c * sum of eta over all predecessors (t–*)
-					GRBLinExpr rhs1 = new GRBLinExpr();
-					for (String predKey : predecessor.getOrDefault(s, Collections.emptyList())) {
-						rhs1.addTerm(BIG, eta.get(predKey));
-					}
-					m.addConstr(lhs1, GRB.LESS_EQUAL, rhs1, "reach1b_s" + s);
-
-					// (1c):  c · ∑_{a∈α(s)} η_{s,a}  ≥  ∑_{(t,a)∈ρ(s)} η_{t,a}
-					GRBLinExpr lhs2 = new GRBLinExpr();
-					for (int a = 0; a < imdp.getNumChoices(s); a++) {
-						lhs2.addTerm(BIG, eta.get(s + "-" + a));
-					}
-					GRBLinExpr rhs2 = new GRBLinExpr();
-					for (String predKey : predecessor.getOrDefault(s, Collections.emptyList())) {
-						rhs2.addTerm(1.0, eta.get(predKey));
-					}
-					m.addConstr(lhs2, GRB.GREATER_EQUAL, rhs2, "reach1c_s" + s);
-				}
-
-				GRBLinExpr seed = new GRBLinExpr();
-				for (int a = 0; a < imdp.getNumChoices(sInit); a++) {
-					seed.addTerm(1.0, eta.get(sInit + "-" + a));
-				}
-				m.addConstr(seed, GRB.GREATER_EQUAL, 1.0, "seed_s0"); */
 				
 				//Pre-bell
 				Map<String,GRBVar> phi = new HashMap<>();
@@ -832,7 +764,13 @@ public class IMDPModelChecker extends ProbModelChecker
 						GRBVar etaVar = eta.get(sc), lamVar = lam.get(sc);
 						GRBVar phiVar = m.addVar(-BIG, BIG, 0.0, GRB.CONTINUOUS, "phi-" + sc);
 						phi.put(sc, phiVar);
+						// 1) φ ≤ λMore actions
+						m.addConstr(phiVar, GRB.LESS_EQUAL, lamVar, "philem1-" + sc);
 
+						// 2) φ ≤ BIG * η  → build RHS as a LinExpr
+						GRBLinExpr rhs2 = new GRBLinExpr();
+						rhs2.addTerm(BIG, etaVar);
+						m.addConstr(phiVar, GRB.LESS_EQUAL, rhs2, "philem2-" + sc);
 						// 3) φ ≥ λ − BIG*(1−η)
 						GRBLinExpr c3 = new GRBLinExpr();
 						c3.addTerm(1.0,  phiVar);
@@ -975,7 +913,7 @@ public class IMDPModelChecker extends ProbModelChecker
 				// --- 1) Value‐function vars v[s] ---
 				Map<Integer,GRBVar> v = new HashMap<>();
 				for (int s = 0; s < n; s++) {
-					v.put(s, m.addVar(0.0,GRB.INFINITY, 0.0, GRB.CONTINUOUS, "mu["+s+"]"));
+					v.put(s, m.addVar(0.0,BIG, 0.0, GRB.CONTINUOUS, "mu["+s+"]"));
 				}
 				for (int i = 0; i < numTarget; i++) {
 					m.addConstr(v.get(target[i]), GRB.EQUAL, 0.0, "v-target-"+target[i]);
@@ -1015,13 +953,13 @@ public class IMDPModelChecker extends ProbModelChecker
 				}
 
 				// --- 3) Action‐selection: sum η ≥ 1 at each state ---
-				/* for (int s = 0; s < n; s++) {
+				for (int s = 0; s < n; s++) {
 					GRBLinExpr expr = new GRBLinExpr();
 					for (int c = 0; c < imdp.getNumChoices(s); c++)
 						expr.addTerm(1.0, eta.get(s+"-"+c));
 					m.addConstr(expr, GRB.GREATER_EQUAL, 1.0, "actSel-"+s);
-				} */
-				fakeKey = sInit + "-DUMMY";
+				}
+				/* fakeKey = sInit + "-DUMMY";
 				GRBVar etaDummy = m.addVar(0.0, 1.0, 0.0, GRB.BINARY, "eta-" + fakeKey);
 				eta.put(fakeKey, etaDummy);
 				for(int s  =0; s <n; s++){
@@ -1064,7 +1002,7 @@ public class IMDPModelChecker extends ProbModelChecker
 				for (int a = 0; a < imdp.getNumChoices(sInit); a++) {
 					seed.addTerm(1.0, eta.get(sInit + "-" + a));
 				}
-				m.addConstr(seed, GRB.GREATER_EQUAL, 1.0, "seed_s0");
+				m.addConstr(seed, GRB.GREATER_EQUAL, 1.0, "seed_s0"); */
 
 
 				// 3g) Bellman 
@@ -1225,62 +1163,8 @@ public class IMDPModelChecker extends ProbModelChecker
 			counter += 1;
 		}
 		System.out.println(target[0]);
-		//Map<Integer, List<String>> predecessor = new HashMap<>();
-		Map<Integer, List<String>> predecessor = new HashMap<>();
-		//cstates = eS.iterator();
-		for(int s = 0; s < n; s++){
-			//final int s = states.nextInt();
-			int numChoices = imdp.getNumChoices(s);
-			for (int c = 0; c < numChoices; c++){
-				String key = s + "-" + c;
-				Iterator<Map.Entry<Integer, Interval<Double>>> iter = imdp.getTransitionsIterator(s, c);
-				while(iter.hasNext()){
-					Map.Entry<Integer, Interval<Double>> e = iter.next();
-					int t = e.getKey();
-					Interval<Double> transition_val = e.getValue();
-					if (predecessor.containsKey(t) == false){
-						predecessor.computeIfAbsent(t, k -> new ArrayList<>()).add(key);
-					} else {
-						List<String> l = predecessor.computeIfAbsent(t,k -> new ArrayList<>());
-						if (!l.contains(key)){
-							l.add(key);
-						}
-					}
-				}
-			}
-		}
-		String fakeKey = sInit + "-DUMMY";
-		predecessor.computeIfAbsent(sInit, __ -> new ArrayList<>()).add(fakeKey);
-
-		BitSet reachable = new BitSet(n);
-		Queue<Integer> q = new ArrayDeque<>();
-		reachable.set(sInit);
-		q.add(sInit);
-
-		for (int s = 0; s < n; s++)
-			System.out.println(imdp.isSuccessor(sInit, s));
-
-		while (!q.isEmpty()) {
-			int s = q.remove();
-			for (int c = 0; c < imdp.getNumChoices(s); c++) {
-				Iterator<Map.Entry<Integer,Interval<Double>>> it = imdp.getTransitionsIterator(s,c);
-				while (it.hasNext()) {
-					int t = it.next().getKey();
-					if (!reachable.get(t)) {
-						reachable.set(t);
-						q.add(t);
-					}
-				}
-			}
-		}
-
-		System.out.println(reachable);
-
-		// collect into a List for convenient looping
-		List<Integer> reachStates = new ArrayList<>();
-		for (int s = 0; s < n; s++) {
-			if (reachable.get(s));
-		}
+		
+		
 
 		if (robust==true){
 			mainLog.println("Calcualting multi Strategy under the assumption of worst transition per objective: ");
@@ -1321,12 +1205,12 @@ public class IMDPModelChecker extends ProbModelChecker
 						String sc = s + "-" + c;
 						eta.put(sc, m.addVar(0.0,1.0,0.0,GRB.BINARY,"eta"+"-"+sc));
 						lam.put(sc, m.addVar(-BIG,BIG,0,GRB.CONTINUOUS,"lam"+"-"+sc));
-						GRBLinExpr lamAU = new GRBLinExpr();
+						/* GRBLinExpr lamAU = new GRBLinExpr();
 						lamAU.addTerm(BIG, eta.get(sc));
 						GRBLinExpr lamAD = new GRBLinExpr();
 						lamAD.addTerm(-BIG, eta.get(sc));
 						m.addConstr(lam.get(sc), GRB.LESS_EQUAL, lamAU, "lamU["+sc+"]");
-						m.addConstr(lam.get(sc), GRB.GREATER_EQUAL, lamAD, "lamD["+sc+"]");
+						m.addConstr(lam.get(sc), GRB.GREATER_EQUAL, lamAD, "lamD["+sc+"]"); */
 						uplus.put(sc, new HashMap<>());
 						umin.put(sc, new HashMap<>());
 						Iterator<Map.Entry<Integer, Interval<Double>>> iter = imdp.getTransitionsIterator(s, c);
@@ -1359,56 +1243,13 @@ public class IMDPModelChecker extends ProbModelChecker
 				}
 				
 				// Action per state Constraint (multi >= 1.0, deter == 1.0)
-				/* for (int s = 0; s < n; s++) {
+				for (int s = 0; s < n; s++) {
 					GRBLinExpr expr = new GRBLinExpr();
 					for (int c = 0; c < imdp.getNumChoices(s); c++)
 						expr.addTerm(1.0, eta.get(s+"-"+c));
 					m.addConstr(expr, GRB.GREATER_EQUAL, 1.0, "actSel-"+s);
-				} */
-				fakeKey = sInit + "-DUMMY";
-				GRBVar etaDummy = m.addVar(0.0, 1.0, 0.0, GRB.BINARY, "eta-" + fakeKey);
-				eta.put(fakeKey, etaDummy);
-				for(int s  =0; s <n; s++){
-					//final int s = states.nextInt();
-					// LHS = sum of eta[s–*]
-					//if (s == sInit) 
-					//	continue;                           // skip initial
-					if (imdp.getNumChoices(s) == 0){
-						System.out.println(s);
-						continue;
-					}
-						
-					List<String> preds = predecessor.get(s);
-					if (preds == null || preds.isEmpty()) 
-						continue;
-					GRBLinExpr lhs1 = new GRBLinExpr();
-					for (int a = 0; a < imdp.getNumChoices(s); a++) {
-						lhs1.addTerm(1.0, eta.get(s + "-" + a));
-					}
-					// RHS = c * sum of eta over all predecessors (t–*)
-					GRBLinExpr rhs1 = new GRBLinExpr();
-					for (String predKey : predecessor.getOrDefault(s, Collections.emptyList())) {
-						rhs1.addTerm(BIG, eta.get(predKey));
-					}
-					m.addConstr(lhs1, GRB.LESS_EQUAL, rhs1, "reach1b_s" + s);
-
-					// (1c):  c · ∑_{a∈α(s)} η_{s,a}  ≥  ∑_{(t,a)∈ρ(s)} η_{t,a}
-					GRBLinExpr lhs2 = new GRBLinExpr();
-					for (int a = 0; a < imdp.getNumChoices(s); a++) {
-						lhs2.addTerm(BIG, eta.get(s + "-" + a));
-					}
-					GRBLinExpr rhs2 = new GRBLinExpr();
-					for (String predKey : predecessor.getOrDefault(s, Collections.emptyList())) {
-						rhs2.addTerm(1.0, eta.get(predKey));
-					}
-					m.addConstr(lhs2, GRB.GREATER_EQUAL, rhs2, "reach1c_s" + s);
 				}
-
-				GRBLinExpr seed = new GRBLinExpr();
-				for (int a = 0; a < imdp.getNumChoices(sInit); a++) {
-					seed.addTerm(1.0, eta.get(sInit + "-" + a));
-				}
-				m.addConstr(seed, GRB.GREATER_EQUAL, 1.0, "seed_s0");
+				
 				
 				//Pre-bell
 				Map<String,GRBVar> phi = new HashMap<>();
@@ -1785,6 +1626,10 @@ public class IMDPModelChecker extends ProbModelChecker
 		for (int bad : new int[]{4,6,14,15,16,32}) {
 			System.out.printf("state %d has %d choices%n",
 								bad, imdp.getNumChoices(bad));
+		}
+
+		for (int s = 0; s < n; s++){
+			System.out.println("State: " + s + ", nch: "+ imdp.getNumChoices(s));
 		}
 		
 		//compute predecessor

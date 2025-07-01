@@ -2,7 +2,7 @@ mdp
 
 const double p=0.4;
 const double uncertainty=0.05;
-const int H = 13;
+const int H = 6;
 
 module chain
 

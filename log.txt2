@@ -1,0 +1,171 @@
+PRISM
+=====
+
+Version: 4.8.1.dev
+Date: Tue Jul 01 03:10:02 EDT 2025
+Hostname: Khangs-MacBook-Pro.local
+Memory limits: cudd=1g, java(heap)=1g
+Command line: prism kobe-imdp.prism -pf '<<*>>{multi}R>5200[C]' -mainlog log.txt2
+
+Parsing PRISM model file "kobe-imdp.prism"...
+
+Type:        IMDP
+Modules:     robot
+Variables:   loc step
+Labels:      "goal"
+Rewards:     1
+
+1 property:
+(1) <<*>> {multi}R>5200 [ C ]
+
+---------------------------------------------------------------------
+
+Model checking: <<*>> {multi}R>5200 [ C ]
+
+Warning: Switching to explicit engine to allow model checking of interval model.
+
+Building model (engine:explicit)...
+
+Computing reachable states... 111 states
+Reachable states exploration and model construction done in 0.027 secs.
+Sorting reachable states list...
+
+Time for model construction: 0.042 seconds.
+
+Type:        IMDP
+States:      111 (1 initial)
+Transitions: 777
+Choices:     389
+Max/avg:     4/3.50
+Building reward structure...
+Starting linear programming (min)...
+Calcualting multi Strategy under the assumption of worst transition per objective: 
+Continuous Variables = 2443, Integer Variables = 389, Constraints = 4776
+Multi Strategy to Obtain at most under worst assumption of adversary 5200.0
+0: west south
+1: west south east north
+2: west south east north
+3: west south east north
+4: west south east north
+5: west south east north
+6: west south east north
+7: west south east north
+8: west south east north
+9: west south east north
+10: west south
+11: south
+12: west south east north
+13: west south east north
+14: west south east north
+15: west south east north
+16: west south east north
+17: west south east north
+18: west south east north
+19: west south east north
+20: west south east north
+21: south
+22: south east
+23: west south east north
+24: west south east north
+25: west south east north
+26: west south east north
+27: west south east north
+28: west south east north
+29: west south east north
+30: west south east north
+31: west south east north
+32: south east
+33: south east
+34: west south east north
+35: west south east north
+36: west south east north
+37: west south east north
+38: west south east north
+39: west south east north
+40: west south east north
+41: west south east north
+42: west south east north
+43: south east
+44: south
+45: west south east north
+46: west south east north
+47: west south east north
+48: west south east north
+49: west south east north
+50: west south east north
+51: west south east north
+52: west south east north
+53: west south east north
+54: south
+55: east
+56: west south east north
+57: west south east north
+58: west south east north
+59: west south east north
+60: west south east north
+61: west south east north
+62: west south east north
+63: west south east north
+64: west south east north
+65: east
+66: south east
+67: west south east north
+68: west south east north
+69: west south east north
+70: west south east north
+71: west south east north
+72: west south east north
+73: west south east north
+74: west south east north
+75: west south east north
+76: south east
+77: east
+78: west south east north
+79: west south east north
+80: west south east north
+81: west south east north
+82: west south east north
+83: west south east north
+84: west south east north
+85: west south east north
+86: west south east north
+87: east
+88: east
+89: west south east north
+90: west south east north
+91: west south east north
+92: west south east north
+93: west south east north
+94: west south east north
+95: west south east north
+96: west south east north
+97: west south east north
+98: east
+99: north
+100: west south east north
+101: west south east north
+102: west south east north
+103: west south east north
+104: west south east north
+105: west south east north
+106: west south east north
+107: west south east north
+108: west south east north
+109: north
+110: stop
+It took 69 milli-seconds to finish synthesize the permissive strategy
+
+java.lang.ClassCastException: class java.lang.Double cannot be cast to class java.lang.Boolean (java.lang.Double and java.lang.Boolean are in module java.base of loader 'bootstrap')
+    at parser.ast.ExpressionFilter.applyForAll(ExpressionFilter.java:391)
+    at parser.ast.ExpressionFilter.apply(ExpressionFilter.java:226)
+    at explicit.StateModelChecker.checkExpressionFilter(StateModelChecker.java:1194)
+    at explicit.StateModelChecker.checkExpression(StateModelChecker.java:674)
+    at explicit.NonProbModelChecker.checkExpression(NonProbModelChecker.java:78)
+    at explicit.ProbModelChecker.checkExpression(ProbModelChecker.java:555)
+    at explicit.StateModelChecker.check(StateModelChecker.java:589)
+    at prism.Prism.modelCheck(Prism.java:3317)
+    at prism.PrismCL.run(PrismCL.java:441)
+    at prism.PrismCL.go(PrismCL.java:246)
+    at prism.PrismCL.main(PrismCL.java:3098)
+
+Error: Caught unhandled exception, aborting....

@@ -1,0 +1,56 @@
+mdp
+
+// Autonomous Warehouse Scheduling - Interval MDP
+// Single robot with task queue and battery management
+
+const int MaxTasks = 10;     // maximum tasks in queue
+const int StartTasks = 5;    // initial queued tasks
+const int MaxBat = 5;        // maximum battery level
+const int StartBat = 5;      // initial battery level
+
+// State variables:
+// tasks: remaining tasks in queue; bat: robot battery level
+module Scheduler
+    tasks : [0..MaxTasks] init StartTasks;
+    bat   : [0..MaxBat] init StartBat;
+
+    // Assign a task: attempt to complete one
+    [assign] tasks>0 & bat>0 ->
+        [0.7,0.9] : (tasks' = tasks-1) & (bat' = bat-1) +
+        [0.1,0.3] : (tasks' = tasks)   & (bat' = bat-1);
+
+    // Robot idle (wait)
+    [wait] tasks>=0 -> 1 : (tasks' = tasks) & (bat' = bat);
+
+    // Recharge at station
+    [recharge] bat<MaxBat -> 1 : (bat' = MaxBat);
+endmodule
+
+// Probability of new task arrivals per timestep
+global arrival : bool init false;
+
+module TaskArrival
+    // New task arrives
+    [arrival] true ->
+        [0.2,0.4] : (arrival' = true) +
+        [0.6,0.8] : (arrival' = false);
+
+    // Update queue when arrival is true
+    [assign] arrival=true & tasks<MaxTasks -> 1 : (tasks' = min(tasks+1, MaxTasks));
+    [wait]   arrival=true & tasks<MaxTasks -> 1 : (tasks' = min(tasks+1, MaxTasks));
+    [recharge] arrival=true & tasks<MaxTasks -> 1 : (tasks' = min(tasks+1, MaxTasks));
+endmodule
+
+// Rewards: + for completed tasks, - for delay and recharge energy
+//rewards "throughput"
+//    [assign] true : 1;
+//endrewards
+
+rewards
+    [assign]   true : 1;
+    [wait]     true : 1;
+    [recharge] true : 2;
+endrewards
+
+// Label when all tasks done and battery full
+label "goal" = (tasks=0 & bat=MaxBat);
