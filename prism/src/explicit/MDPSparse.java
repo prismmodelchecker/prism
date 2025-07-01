@@ -402,18 +402,25 @@ public class MDPSparse extends MDPExplicit<Double>
 		cols = new int[numTransitions];
 		nonZeros = new double[numTransitions];
 		actions = new Object[numDistrs];
-		IOUtils.MDPTransitionConsumer<Double> cons = new IOUtils.MDPTransitionConsumer<Double>() {
+		IOUtils.MDPTransitionConsumer<Double> cons = new IOUtils.MDPTransitionConsumer<>() {
 			int sLast = -1;
 			int iLast = -1;
 			int count = 0;
 			int countCh = 0;
+
 			@Override
-			public void accept(int s, int i, int s2, Double d, Object a)
+			public void accept(int s, int i, int s2, Double d, Object a) throws PrismException
 			{
+				if (s < sLast) {
+					throw new PrismException("Imported states/transitions must be in ascending order");
+				}
 				if (s != sLast) {
 					rowStarts[s] = countCh;
 					sLast = s;
 					iLast = -1;
+				}
+				if (i < iLast) {
+					throw new PrismException("Imported states/transitions must be in ascending order");
 				}
 				if (i != iLast) {
 					choiceStarts[countCh] = count;

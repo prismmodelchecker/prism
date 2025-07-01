@@ -288,12 +288,15 @@ public class DTMCSparse extends DTMCExplicit<Double>
 		columns = new int[numTransitions];
 		probabilities = new double[numTransitions];
 		actions = new Object[numTransitions];
-		IOUtils.MCTransitionConsumer<Double> cons = new IOUtils.MCTransitionConsumer<Double>() {
+		IOUtils.MCTransitionConsumer<Double> cons = new IOUtils.MCTransitionConsumer<>() {
 			int sLast = -1;
 			int count = 0;
 			@Override
-			public void accept(int s, int s2, Double d, Object a)
+			public void accept(int s, int s2, Double d, Object a) throws PrismException
 			{
+				if (s < sLast) {
+					throw new PrismException("Imported states/transitions must be in ascending order");
+				}
 				if (s != sLast) {
 					rows[s] = count;
 					sLast = s;

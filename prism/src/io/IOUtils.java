@@ -48,7 +48,7 @@ public class IOUtils
 	 */
 	@FunctionalInterface
 	public interface MCTransitionConsumer<V> {
-		void accept(int s, int s2, V v, Object a);
+		void accept(int s, int s2, V v, Object a) throws PrismException;
 	}
 
 	/**
@@ -57,7 +57,7 @@ public class IOUtils
 	 */
 	@FunctionalInterface
 	public interface MDPTransitionConsumer<V> {
-		void accept(int s, int i, int s2, V v, Object a);
+		void accept(int s, int i, int s2, V v, Object a) throws PrismException;
 	}
 
 	/**
