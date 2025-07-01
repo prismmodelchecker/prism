@@ -198,7 +198,7 @@ public class StrategyExportOptions implements Cloneable
 	 */
 	public InducedModelMode getMode()
 	{
-		return mode.orElse(InducedModelMode.RESTRICT);
+		return mode.orElse(InducedModelMode.REDUCE);
 	}
 
 	/**
