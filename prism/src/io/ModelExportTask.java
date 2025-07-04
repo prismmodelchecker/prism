@@ -199,6 +199,8 @@ public class ModelExportTask
 				return fromFormat(filename, ModelExportFormat.DOT);
 			case "drn":
 				return fromFormat(filename, ModelExportFormat.DRN);
+			case "m":
+				return fromFormat(filename, ModelExportFormat.MATLAB);
 			default:
 				// Treat unknown extensions as .tra
 				return new ModelExportTask(ModelExportEntity.MODEL, filename);
