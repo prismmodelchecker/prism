@@ -62,6 +62,9 @@ public class ActionList
 	/** Does the list need recomputing? */
 	protected boolean needsRecomputing;
 
+	/** Never recompute list? */
+	protected boolean neverRecompute;
+
 	/**
 	 * Construct a (for now empty) new {@link ActionList}
 	 * with a supplier of new actions for when the list needs (re)computing.
@@ -74,6 +77,7 @@ public class ActionList
 		actionLookup = new HashMap<>();
 		// Initially empty and therefore almost certainly incomplete
 		needsRecomputing = true;
+		neverRecompute = false;
 	}
 
 	/**
@@ -96,11 +100,13 @@ public class ActionList
 		actionList = new ArrayList<>(other.actionList);
 		actionLookup = new HashMap<>(other.actionLookup);
 		needsRecomputing = other.needsRecomputing;
+		neverRecompute = other.neverRecompute;
 	}
 
 	/**
-	 * Set the list of actions.
-	 * After this, it is assumed that the list does _not_ need recomputing.
+	 * Set the full list of actions.
+	 * After this, it is assumed that the list does _not_ need recomputing,
+	 * even if {@link #markNeedsRecomputing()} is called.
 	 */
 	public void setActions(List<Object> actions)
 	{
@@ -108,6 +114,7 @@ public class ActionList
 		actionLookup.clear();
 		addActions(actions);
 		needsRecomputing = false;
+		neverRecompute = true;
 	}
 
 	/**
@@ -120,6 +127,7 @@ public class ActionList
 		actionLookup.clear();
 		// Empty and therefore almost certainly incomplete
 		needsRecomputing = true;
+		neverRecompute = false;
 	}
 
 	/**
@@ -168,7 +176,7 @@ public class ActionList
 	 */
 	public List<Object> getActions()
 	{
-		if (needsRecomputing) {
+		if (needsRecomputing && !neverRecompute) {
 			recompute();
 		}
 		return actionList;
@@ -180,7 +188,7 @@ public class ActionList
 	 */
 	public int actionIndex(Object action)
 	{
-		if (needsRecomputing) {
+		if (needsRecomputing && !neverRecompute) {
 			recompute();
 		}
 		Integer index = actionLookup.get(action);
