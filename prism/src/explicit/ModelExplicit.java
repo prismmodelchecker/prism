@@ -181,6 +181,14 @@ public abstract class ModelExplicit<Value> implements Model<Value>, ActionListOw
 	}
 
 	/**
+	 * Set the list of all action labels
+	 */
+	public void setActions(List<Object> actions)
+	{
+		actionList.setActions(actions);
+	}
+
+	/**
 	 * Add a state to the list of initial states.
 	 */
 	public void addInitialState(int i)

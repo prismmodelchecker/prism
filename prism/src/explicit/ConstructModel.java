@@ -237,6 +237,11 @@ public class ConstructModel extends PrismComponent
 				((IntervalModelExplicit<Value>) modelSimple).setIntervalEvaluator(modelGen.getIntervalEvaluator());
 			}
 	        ((ModelExplicit<Value>) modelSimple).setVarList(varList);
+			// Attach actions, if provided
+			List<Object> actions = modelGen.getActions();
+			if (actions != null) {
+				((ModelExplicit<Value>) modelSimple).setActions(actions);
+			}
 		}
 
 		// Initialise states storage

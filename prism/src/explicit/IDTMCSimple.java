@@ -107,6 +107,14 @@ public class IDTMCSimple<Value> extends ModelExplicitWrapper<Value> implements M
 		((IDTMCSimple<Double>) this).setIntervalEvaluator(Evaluator.forDoubleInterval());
 	}
 
+	// Mutators (for ModelExplicit)
+
+	@Override
+	public void setActions(List<Object> actions)
+	{
+		dtmc.setActions(actions);
+	}
+
 	// Mutators (for ModelSimple)
 
 	@Override
