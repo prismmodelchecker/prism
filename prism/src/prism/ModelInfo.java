@@ -118,6 +118,24 @@ public interface ModelInfo
 	}
 
 	/**
+	 * Get a list of the action labels attached to choices/transitions.
+	 * This can be a superset of the action labels that are actually used in the model.
+	 * Action labels can be any Object, but will often be treated as a string,
+	 * so should at least have a meaningful toString() method implemented.
+	 * Absence of an action label is denoted by null,
+	 * and null is also included in this list if there are unlabelled choices/transitions.
+	 * <br><br>
+	 * This is optional - the default implementation just returns null,
+	 * which means that this info is not being provided by this class.
+	 * But it can help for more efficient mapping of actions to indices.
+	 */
+	public default List<Object> getActions()
+	{
+		// Default implementation just says that info is unavailable
+		return null;
+	}
+
+	/**
 	 * Does the model contain unbounded variables?
 	 */
 	public default boolean containsUnboundedVariables()

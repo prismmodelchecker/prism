@@ -218,17 +218,32 @@ public class Module extends ASTElement
 			return alphabet;
 		}
 		// Otherwise, deduce syntactically
-		int i, n;
-		String s;
 		List<String> allSynchs = new ArrayList<>();
-		n = getNumCommands();
-		for (i = 0; i < n; i++) {
-			s = getCommand(i).getSynch();
-			if (!s.equals("") && !allSynchs.contains(s)) allSynchs.add(s);
+		int numCommands = getNumCommands();
+		for (int i = 0; i < numCommands; i++) {
+			String s = getCommand(i).getSynch();
+			if (!s.equals("") && !allSynchs.contains(s)) {
+				allSynchs.add(s);
+			}
 		}
 		return allSynchs;
 	}
-	
+
+	/**
+	 * Returns true iff this module contains at least one command
+	 * with no synchronous action label ("[] ...").
+	 */
+	public boolean containsUnlabelledCommand()
+	{
+		int numCommands = getNumCommands();
+		for (int i = 0; i < numCommands; i++) {
+			if (getCommand(i).isUnlabelled()) {
+				return true;
+			}
+		}
+		return false;
+	}
+
 	/**
 	 * Check if action label 's' is in the alphabet of this module.
 	 */

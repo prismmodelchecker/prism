@@ -121,6 +121,12 @@ public class ModelModelGenerator<Value> implements ModelGenerator<Value>
 	}
 
 	@Override
+	public List<Object> getActions()
+	{
+		return model.getActions();
+	}
+
+	@Override
 	public State getInitialState() throws PrismException
 	{
 		int sInitial = model.getFirstInitialState();

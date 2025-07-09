@@ -44,6 +44,8 @@ public class BasicModelInfo implements ModelInfo
 {
 	/** Model type */
 	private ModelType modelType;
+	/** Action list (optional) */
+	private List<Object> actionList;
 	/** Variable list */
 	private VarList varList;
 	/** Label names */
@@ -57,6 +59,7 @@ public class BasicModelInfo implements ModelInfo
 	public BasicModelInfo(ModelType modelType)
 	{
 		this.modelType = modelType;
+		actionList = null;
 		varList = new VarList();
 		labelNameList = new ArrayList<>();
 	}
@@ -69,6 +72,14 @@ public class BasicModelInfo implements ModelInfo
 	public void setModelType(ModelType modelType)
 	{
 		this.modelType = modelType;
+	}
+
+	/**
+	 * Set the list used to store actions.
+	 */
+	public void setActionList(List<Object> actionList)
+	{
+		this.actionList = actionList;
 	}
 
 	/**
@@ -85,6 +96,14 @@ public class BasicModelInfo implements ModelInfo
 	public void setLabelNameList(List<String> labelNameList)
 	{
 		this.labelNameList = labelNameList;
+	}
+
+	/**
+	 * Get the list used to store actions (may be null).
+	 */
+	public List<Object> getActionList()
+	{
+		return actionList;
 	}
 
 	/**
@@ -109,6 +128,12 @@ public class BasicModelInfo implements ModelInfo
 	public ModelType getModelType()
 	{
 		return modelType;
+	}
+
+	@Override
+	public List<Object> getActions()
+	{
+		return actionList;
 	}
 
 	@Override

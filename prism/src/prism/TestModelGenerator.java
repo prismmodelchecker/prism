@@ -29,6 +29,7 @@ package prism;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import explicit.ConstructModel;
@@ -85,7 +86,13 @@ public class TestModelGenerator implements ModelGenerator<Double>
 	{
 		return Arrays.asList("goal");
 	}
-	
+
+	@Override
+	public List<Object> getActions()
+	{
+		return Collections.singletonList(null);
+	}
+
 	@Override
 	public State getInitialState() throws PrismException
 	{

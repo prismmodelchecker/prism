@@ -388,7 +388,13 @@ public class ModulesFileModelGenerator<Value> implements ModelGenerator<Value>, 
 	{
 		return modulesFile.isVarObservable(i);
 	}
-	
+
+	@Override
+	public List<Object> getActions()
+	{
+		return modulesFile.getActions();
+	}
+
 	@Override
 	public int getNumLabels()
 	{

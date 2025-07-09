@@ -103,7 +103,16 @@ public class Command extends ASTElement
 	{
 		return synchIndex;
 	}
-	
+
+	/**
+	 * Returns true if this is an unlabelled command ("[] ..."),
+	 * i.e., if there is no synchronous action label attached to it.
+	 */
+	public boolean isUnlabelled()
+	{
+		return "".equals(getSynch());
+	}
+
 	public Expression getGuard()
 	{
 		return guard;

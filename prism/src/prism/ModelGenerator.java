@@ -62,7 +62,7 @@ public interface ModelGenerator<Value> extends ModelInfo
 		return getEvaluator().createIntervalEvaluator();
 		//return (Evaluator<Interval<Value>>) (Evaluator<? extends Interval<?>>) Evaluator.createForDoubleIntervals();
 	}
-	
+
 	/**
 	 * Does the model have a single initial state?
 	 */

@@ -28,6 +28,8 @@ package parser.ast;
 
 import java.util.List;
 
+import parser.visitor.ASTTraverse;
+import parser.visitor.ASTVisitor;
 import parser.visitor.DeepCopy;
 import prism.PrismLangException;
 
@@ -77,6 +79,25 @@ public abstract class SystemDefn extends ASTElement
 	 * Get list of all synchronising actions _introduced_ (recursively, including descent into references).
 	 */
 	public abstract void getSynchs(List<String> v, ModulesFile modulesFile);
+
+	/**
+	 * Returns true if this SystemDefn contains a SystemHide.
+	 */
+	public boolean containsSystemHide()
+	{
+		try {
+			this.accept(new ASTTraverse()
+			{
+				public void visitPre(SystemHide e) throws PrismLangException
+				{
+					throw new PrismLangException("Found one");
+				}
+			});
+		} catch (PrismLangException e) {
+			return true;
+		}
+		return false;
+	}
 
 	/**
 	 * Get list of all references to other SystemDefns (recursively, but not following references).

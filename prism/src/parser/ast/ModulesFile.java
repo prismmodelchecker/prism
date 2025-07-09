@@ -78,8 +78,10 @@ public class ModulesFile extends ASTElement implements ModelInfo, RewardGenerato
 	private IdentUsage quotedIdentUsage;
 	// List of all module names
 	private String[] moduleNames;
-	// List of synchronising actions
+	// List of synchronising actions (strings appearing as [a] in commands)
 	private ArrayList<String> synchs;
+	// List of choice/transition action labels (includes null when some are unlabelled)
+	private ArrayList<Object> actions;
 	// Lists of variable info (declaration, name, type, module index)
 	private ArrayList<Declaration> varDecls;
 	private ArrayList<String> varNames;
@@ -709,7 +711,8 @@ public class ModulesFile extends ASTElement implements ModelInfo, RewardGenerato
 	}
 
 	/**
-	 * Get the list of action names.
+	 * Get the list of synchronising action names
+	 * (strings appearing as [a] in commands).
 	 */
 	public List<String> getSynchs()
 	{
@@ -717,19 +720,30 @@ public class ModulesFile extends ASTElement implements ModelInfo, RewardGenerato
 	}
 
 	/**
-	 * Get the {@code i}th action name (0-indexed).
+	 * Get the {@code i}th (0-indexed) synchronising action name
+	 * (strings appearing as [a] in commands).
 	 */
 	public String getSynch(int i)
 	{
 		return synchs.get(i);
 	}
 
-	public boolean isSynch(String s)
+	/**
+	 * Is {@code a} a synchronising action name
+	 * (a strings appearing as [a] in a command)?
+	 */
+	public boolean isSynch(String a)
 	{
-		if (synchs == null)
-			return false;
-		else
-			return synchs.contains(s);
+		return synchs != null && synchs.contains(a);
+	}
+
+	/**
+	 * Get the list of actions that can label choices/transitions
+	 * (includes null when some are unlabelled).
+	 */
+	public List<Object> getActions()
+	{
+		return actions;
 	}
 
 	// Variable query methods
@@ -922,7 +936,7 @@ public class ModulesFile extends ASTElement implements ModelInfo, RewardGenerato
 		
 		// Get synchronising action names
 		// (NB: Do this *after* checking for cycles in system defns above)
-		getSynchNames();
+		getSynchAndActionNames();
 		// Then identify/check any references to action names
 		findAllActions(synchs);
 
@@ -1048,35 +1062,41 @@ public class ModulesFile extends ASTElement implements ModelInfo, RewardGenerato
 		}
 	}
 
-	// get all synch names
-
-	private void getSynchNames() throws PrismLangException
+	/**
+	 * Construct the list of synchronising action names
+	 * and also all action names (including null for unlabelled commands).
+	 */
+	private void getSynchAndActionNames() throws PrismLangException
 	{
-		List<String> v;
-		String s;
-		int i, j, n, m;
-
-		// create list to store names
+		// Go thru modules and extract action names which appear in their commands
+		// Also check for presence of unlabelled commands
 		synchs = new ArrayList<>();
-
-		// go thru modules and extract names which appear in their commands
-		n = modules.size();
-		for (i = 0; i < n; i++) {
-			v = getModule(i).getAllSynchs();
-			m = v.size();
-			for (j = 0; j < m; j++) {
-				s = v.get(j);
+		boolean unlabelled = false;
+		int numModules = modules.size();
+		for (int i = 0; i < numModules; i++) {
+			Module module = getModule(i);
+			for (String s : module.getAllSynchs()) {
 				if (!synchs.contains(s)) {
 					synchs.add(s);
 				}
 			}
+			unlabelled |= module.containsUnlabelledCommand();
 		}
 
-		// then extract any which are introduced in the (default) system construct (by renaming)
+		// Then extract any which are introduced in the (default) system construct (by renaming)
 		SystemDefn defaultSystemDefn = getSystemDefn();
 		if (defaultSystemDefn != null) {
 			defaultSystemDefn.getSynchs(synchs, this);
+			unlabelled |= defaultSystemDefn.containsSystemHide();
 		}
+
+		// Put all synchronising actions in the action list
+		// If there are unlabelled commands, add null too
+		actions = new ArrayList<>();
+		if (unlabelled) {
+			actions.add(null);
+		}
+		actions.addAll(synchs);
 	}
 
 	@Override
