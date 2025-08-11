@@ -1,7 +1,7 @@
 This file contains details of the changes in each new version of PRISM.
 
 -----------------------------------------------------------------------------
-Changes since last release (up to 609b68709)
+Version 4.9 (first released 11/8/2025)
 -----------------------------------------------------------------------------
 
 * Explicit engine improvements
