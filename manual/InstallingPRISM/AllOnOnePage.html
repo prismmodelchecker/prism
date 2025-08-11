@@ -286,6 +286,16 @@ To install a binary distribution, unpack the tarred/zipped PRISM distribution in
   <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/InstallingPRISM/AllOnOnePage?action=sourceblock&amp;num=2' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
+<p class='vspace'>On macOS, you may want to run the following command,
+which avoids <a class='urllink' href='https://support.apple.com/en-gb/102445'>manual approving</a> the integrity of the binary files:
+</p>
+<div class='vspace'></div>
+<div class='sourceblock ' id='sourceblock3'>
+  <div class='sourceblocktext'><div class="shell"><span style="font-weight:bold;">xattr -d com.apple.quarantine lib/*lib</span><br/>
+</div></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/InstallingPRISM/AllOnOnePage?action=sourceblock&amp;num=3' type='text/plain'>[&#036;[Get Code]]</a></div>
+</div>
+
 <p class='vspace'>You do not need to be root to install PRISM. The install script simply makes some small customisations to the scripts used to launch PRISM. The PRISM distribution is self-contained and can be freely moved/renamed, however if you do so you will need to re-run <code>./install.sh</code> afterwards.
 </p>
 <p class='vspace'>To run PRISM, execute either the <code>xprism</code> or <code>prism</code> script (for the graphical user interface or command-line version, respectively). These can be found in the <code>bin</code> directory. These scripts are designed to be run from anywhere and you can easily create symbolic links or aliases to them. If you want icons to create desktop shortcuts to PRISM, you can find some in the <code>etc</code> directory.
@@ -305,25 +315,25 @@ To install a binary distribution, unpack the tarred/zipped PRISM distribution in
 <p class='vspace'>Hopefully, you can build PRISM simply by entering the PRISM directory and running <code>make</code>, e.g.:
 </p>
 <div class='vspace'></div>
-<div class='sourceblock ' id='sourceblock3'>
+<div class='sourceblock ' id='sourceblock4'>
   <div class='sourceblocktext'><div class="shell"><span style="font-weight:bold;">tar xfz prism-4.8-src.tar.gz</span><br/>
 <span style="font-weight:bold;">cd prism-4.8-src/prism</span><br/>
 <span style="font-weight:bold;">make</span><br/>
 </div></div>
-  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/InstallingPRISM/AllOnOnePage?action=sourceblock&amp;num=3' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/InstallingPRISM/AllOnOnePage?action=sourceblock&amp;num=4' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 <p class='vspace'>For this process to complete correctly, PRISM needs to be able to determine your operating system (<code>OSTYPE</code>), machine architecture (<code>ARCH</code>) and the location of your Java distribution (<code>JAVA_DIR</code>). If there is a problem with either of these, you will see an error message and will need to specify one or more of these manually, such as in these examples:
 </p>
 <div class='vspace'></div>
-<div class='sourceblock ' id='sourceblock4'>
+<div class='sourceblock ' id='sourceblock5'>
   <div class='sourceblocktext'><div class="shell"><span style="font-weight:bold;">  </span><br/>
 <span style="font-weight:bold;">make OSTYPE=linux</span><br/>
 <span style="font-weight:bold;">make OSTYPE=linux ARCH=aarch64</span><br/>
 <span style="font-weight:bold;">make JAVA_DIR=/usr/java/jdk1.8.0</span><br/>
 <span style="font-weight:bold;">make OSTYPE=cygwin JAVA_DIR="/cygdrive/c/Program Files/Java/jdk1.8.0"</span><br/>
 </div></div>
-  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/InstallingPRISM/AllOnOnePage?action=sourceblock&amp;num=4' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/InstallingPRISM/AllOnOnePage?action=sourceblock&amp;num=5' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 <p class='vspace'>Note the use of double quotes for the case where the directory contains a space. If you don't know the location of your Java installation, try typing <code>which javac</code>. If the result is e.g. <code>/usr/java/jdk1.8.0/bin/javac</code> then your Java directory is <code>/usr/java/jdk1.8.0</code>. Sometimes <code>javac</code> will be a symbolic link, in which case use "<code>ls -l</code>" to determine the actual location.
@@ -360,20 +370,20 @@ If you use a native Windows version of git, you may want to disable the Unix-to-
 You can install the required MSYS2 packages like this:
 </p>
 <div class='vspace'></div>
-<div class='sourceblock ' id='sourceblock5'>
+<div class='sourceblock ' id='sourceblock6'>
   <div class='sourceblocktext'><div class="shell"><span style="font-weight:bold;">pacman -S make mingw-w64-x86_64-gcc binutils dos2unix git wget unzip python nano</span><br/>
 </div></div>
-  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/InstallingPRISM/AllOnOnePage?action=sourceblock&amp;num=5' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/InstallingPRISM/AllOnOnePage?action=sourceblock&amp;num=6' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 <p class='vspace'>The environment is currently not directly supported in the Makefile,
 which can be fixed as follows:
 </p>
 <div class='vspace'></div>
-<div class='sourceblock ' id='sourceblock6'>
+<div class='sourceblock ' id='sourceblock7'>
   <div class='sourceblocktext'><div class="shell"><span style="font-weight:bold;">make OSTYPE=cygwin CC=/mingw64/bin/gcc CXX=/mingw64/bin/g++</span><br/>
 </div></div>
-  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/InstallingPRISM/AllOnOnePage?action=sourceblock&amp;num=6' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/InstallingPRISM/AllOnOnePage?action=sourceblock&amp;num=7' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 <p class='vspace'>Additionally, MSYS2 does not handle symlinks in the same way as Cygwin does.
@@ -381,7 +391,7 @@ At some point <code>make</code> will fail, saying that it cannot find the CUDD l
 You can solve this as follows:
 </p>
 <div class='vspace'></div>
-<div class='sourceblock ' id='sourceblock7'>
+<div class='sourceblock ' id='sourceblock8'>
   <div class='sourceblocktext'><div class="shell"><span style="font-weight:bold;">cd ../cudd/</span><br/>
 <span style="font-weight:bold;">rmdir lib/ </span><br/>
 <span style="font-weight:bold;">./setup.sh</span><br/>
@@ -389,7 +399,7 @@ You can solve this as follows:
 <span style="font-weight:bold;">make OSTYPE=cygwin CC=/mingw64/bin/gcc CXX=/mingw64/bin/g++</span><br/>
 <span style="font-weight:bold;">./install.sh</span><br/>
 </div></div>
-  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/InstallingPRISM/AllOnOnePage?action=sourceblock&amp;num=7' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/InstallingPRISM/AllOnOnePage?action=sourceblock&amp;num=8' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 <p class='vspace'><strong>Problems?</strong> See the section "<a class='wikilink' href='CommonProblemsAndQuestions.html'>Common Problems And Questions</a>''.
@@ -406,7 +416,7 @@ You can solve this as follows:
 <p><strong>When I try to run PRISM on Windows, I double-click the PRISM shortcut but nothing happens.</strong>
 </p>
 <div class='vspace'></div><div class='answer' > 
-<p>The most common cause of this is that you either do not have Java installed or the <code>java</code> executable is not in your path. In any case, to determine the exact problem, launch a command shell and navigate to the <code>bin</code> directory inside the directory where you installed PRISM (you can use the "PRISM (console)" shortcut installed in the start menu to do this). Then, type <code>xprism.bat</code> and see what error message is displayed.
+<p>The most common cause of this is that you either do not have Java installed or the <code>java</code> executable is not in your path. In any case, to determine the exact problem, launch a command shell and navigate to the <code>bin</code> directory inside the directory where you installed PRISM (you can use the "PRISM (console)" shortcut installed in the start menu to do this). Then, type <code>prism.bat</code> and see what error message is displayed.
 </p></div>
 <div class='vspace'></div><hr />
 <div class='vspace'></div><h2>Running PRISM on non-Windows platforms</h2>
@@ -421,13 +431,34 @@ You can solve this as follows:
 </p>
 <p class='vspace'>(2) If you compiled PRISM from source code, are you sure no errors occurred during the process? To check, go into the PRISM directory, type <code>make clean_all</code> and then <code>make</code>, checking the output (especially at the end) carefully for any error messages.
 </p>
-<p class='vspace'>(3) Are you running on Mac OS (notably El Capitan)? This had some issues with PRISM calling <code>java</code>.
+<p class='vspace'>(3) Are you running on Mac OS? See the next question.
+</p>
+<p class='vspace'>(3) Are you running on an old version of Mac OS (notably El Capitan)? This had some issues with PRISM calling <code>java</code>.
 A workaround is to specify the exact path to the <code>java</code> when running PRISM, e.g.:
 </p>
 <p class='vspace'><code>PRISM_JAVA=/Library/Java/JavaVirtualMachines/jdk1.9.jdk/Contents/Home/bin/java prism</code>
 </p>
 <p class='vspace'>or by replacing the value of PRISM_JAVA directly in the prism script
 directly.
+</p></div>
+<p class='vspace'><strong>When I try to run PRISM on macOS, I get an error of the form: "<code>libprism.dylib</code> can’t be opened because Apple cannot check it for malicious software." or "<code>libprism.dylib not valid for use in process: library load disallowed by system policy</code>".</strong>
+</p>
+<div class='vspace'></div><div class='answer' > 
+<p>PRISM's macOS binaries are currently not signed/notarised,
+so you need to approve the binary files manually to run them.
+Run this command from the same place you ran <code>./install.sh</code>:
+</p>
+<div class='vspace'></div>
+<div class='sourceblock ' id='sourceblock9'>
+  <div class='sourceblocktext'><div class="shell"><span style="font-weight:bold;">xattr -d com.apple.quarantine lib/*lib</span><br/>
+</div></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/InstallingPRISM/AllOnOnePage?action=sourceblock&amp;num=9' type='text/plain'>[&#036;[Get Code]]</a></div>
+</div>
+
+<p class='vspace'>or approve the libraries one by one through the
+<a class='urllink' href='https://support.apple.com/en-gb/102445'>security settings</a>.
+</p>
+<p class='vspace'>You can also avoid this issue by compiling from source code.
 </p></div>
 <p class='vspace'><strong>When I try to run PRISM, I get an error of the form:<br /><code>Exception in thread "main" java.lang.UnsupportedClassVersionError: Bad version number in .class file</code></strong>
 </p>

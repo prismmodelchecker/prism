@@ -232,194 +232,139 @@ a.varlink { text-decoration:none;}
 <div id='wikitext'>
 <p>If required, once the model has been constructed, it can be exported, either for manual examination or for use in another tool. The following can all be exported:
 </p>
-<div class='vspace'></div><ul><li>the set of reachable states;
-</li><li>the transition matrix;
-</li><li>the state rewards vector(s);
-</li><li>the transition rewards matrix (or matrices).
+<div class='vspace'></div><ul><li>the transition matrix/function;
+</li><li>the set of reachable states;
+</li><li>the (state/transition) rewards;
 </li><li>labels (in the <a class='wikilink' href='../ThePRISMLanguage/FormulasAndLabels.html'>model</a> or <a class='wikilink' href='../PropertySpecification/PropertiesFiles.html#labels'>properties</a>) and the states that satisfy them
 </li></ul><p class='vspace'>Note that the last of these also provides a way to export information about initial states and deadlock states (via the built-in labels <code>"init"</code> and <code>"deadlock"</code>).
 </p>
 <p class='vspace'>From the GUI, use the "Model | Export" menu to export the data to a file or, for small models, use the "Model | View" menu to print the details directly to the log. For the case of labels, if you want to export labels from the properties file too, use the "Properties | Export labels" option, rather than the "Model | Export" one.
 </p>
-<p class='vspace'>From the command-line version of PRISM, use the following switches:
-</p>
-<div class='vspace'></div><ul><li><code>-exportstates &lt;file&gt;</code>
-</li><li><code>-exporttrans &lt;file&gt;</code>
-</li><li><code>-exportstaterewards &lt;file&gt;</code>
-</li><li><code>-exporttransrewards &lt;file&gt;</code>
-</li><li><code>-exportlabels &lt;file&gt;</code>
-</li></ul><p class='vspace'>or, as explained below, use the more convenient switch:
-</p>
-<div class='vspace'></div><ul><li><code>-exportmodel &lt;files[:options]&gt;</code>
-</li></ul><p class='vspace'>Replace <code>&lt;file&gt;</code> with <code>stdout</code> in any of the above to print the information to the terminal.
-</p>
-<p class='vspace'>The export command-line switches can be used in combination. For example:
+<p class='vspace'>From the command-line version of PRISM, the most convenient and flexible approach is to use the <code>-exportmodel</code> switch, for example:
 </p>
 <div class='vspace'></div>
 <div class='sourceblock ' id='sourceblock1'>
-  <div class='sourceblocktext'><div class="shell"><span style="font-weight:bold;">prism poll2.sm -exportstates poll2.sta -exporttrans poll2.tra</span><br/>
+  <div class='sourceblocktext'><div class="shell"><span style="font-weight:bold;">prism model.prism -exportmodel model.tra</span><br/>
 </div></div>
   <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/RunningPRISM/ExportingTheModel?action=sourceblock&amp;num=1' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
-<p class='vspace'>exports both the state space and transition matrix. You can export both state and transition rewards using the <code>-exportrewards</code> switch. The following are equivalent:
+<p class='vspace'>The default export format is "explicit" plain text files (whose format is detailed in the "<a class='wikilink' href='../Appendices/ExplicitModelFiles.html#srew'>Explicit Model Files</a>" appendix). The <code>-exportmodel</code> switch will auto-detect what is to be exported from the file extension provided. In the example above, <code>.tra</code> indicates the transition matrix/function, i.e., the model itself.
+</p>
+<p class='vspace'>Other possible file extensions are:
+<code>.sta</code> (reachable states),
+<code>.srew</code> (state rewards),
+<code>.trew</code> (transition rewards),
+and <code>.lab</code> (labels).
+You can also perform multiple exports simultaneously using the <code>-exportmodel</code> switch with multiple extensions, for example:
 </p>
 <div class='vspace'></div>
 <div class='sourceblock ' id='sourceblock2'>
-  <div class='sourceblocktext'><div class="shell"><span style="font-weight:bold;">prism poll2.sm -exportrewards poll2.srew poll2.trew</span><br/>
-<span style="font-weight:bold;">prism poll2.sm -exportstaterewards poll2.srew -exporttransrewards poll2.trew</span><br/>
+  <div class='sourceblocktext'><div class="shell"><span style="font-weight:bold;">prism model.prism -exportmodel out.tra,sta</span><br/>
 </div></div>
   <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/RunningPRISM/ExportingTheModel?action=sourceblock&amp;num=2' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
-<p class='vspace'>When there are multiple reward structures, a separate file is created for each one and a (1-indexed) suffix is added to distinguish them.
-A header in each file (see the "<a class='wikilink' href='../Appendices/ExplicitModelFiles.html#srew'>Explicit Model Files</a>" appendix) also shows the name of the reward structure.
-These headers can be omitted using the switch <code>-noexportheaders</code> (or via the option "Include headers in model exports" in the GUI).
-</p>
-<p class='vspace'>You can also easily perform multiple exports simultaneously using the <code>-exportmodel</code> switch, which specifies multiple files using a list of extensions. The file extensions then dictate what is exported. For example:
+<p class='vspace'>exports the transition matrix and states list to <code>out.tra</code> and <code>out.sta</code>, respectively. If you omit the file basename (<code>out</code> in this case), then the basename of the model file (<code>model</code> in this case) is used. For example:
 </p>
 <div class='vspace'></div>
 <div class='sourceblock ' id='sourceblock3'>
-  <div class='sourceblocktext'><div class="shell"><span style="font-weight:bold;">prism poll2.sm -exportmodel out.tra,sta</span><br/>
+  <div class='sourceblocktext'><div class="shell"><span style="font-weight:bold;">prism model.prism -exportmodel .tra,sta</span><br/>
 </div></div>
   <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/RunningPRISM/ExportingTheModel?action=sourceblock&amp;num=3' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
-<p class='vspace'>exports the transition matrix and states list to <code>out.tra</code> and <code>out.sta</code>, respectively. If you omit the file basename (<code>out</code> in this case), then the basename of the model file (<code>poll2</code> in this case) is used. For example:
+<p class='vspace'>exports the transition matrix and states list to <code>model.tra</code> and <code>model.sta</code>.
+</p>
+<p class='vspace'>You can use the shorthand <code>.all</code> to export everything, and <code>.rew</code> to export both state and transition rewards. For example:
 </p>
 <div class='vspace'></div>
 <div class='sourceblock ' id='sourceblock4'>
-  <div class='sourceblocktext'><div class="shell"><span style="font-weight:bold;">prism poll2.sm -exportmodel .tra,sta</span><br/>
+  <div class='sourceblocktext'><div class="shell"><span style="font-weight:bold;">prism model.prism -exportmodel out.all</span><br/>
+<span style="font-weight:bold;">prism model.prism -exportmodel .all</span><br/>
 </div></div>
   <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/RunningPRISM/ExportingTheModel?action=sourceblock&amp;num=4' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
-<p class='vspace'>exports the transition matrix and states list to <code>poll2.tra</code> and <code>poll2.sta</code>.
+<p class='vspace'>creates multiple files of the form <code>out.*</code> or <code>model.*</code>, respectively.
 </p>
-<p class='vspace'>Possible file extensions are:
-<code>.sta</code> (reachable states),
-<code>.tra</code> (transition matrix),
-<code>.srew</code> (state rewards),
-<code>.trew</code> (transition rewards),
-<code>.lab</code> (labels).
-You can use the shorthand <code>.all</code> to export everything, and <code>.rew</code> to export both state and transition rewards. For example:
+<p class='vspace'>You can always use <code>stdout</code> instead of a filename. For example:
 </p>
 <div class='vspace'></div>
 <div class='sourceblock ' id='sourceblock5'>
-  <div class='sourceblocktext'><div class="shell"><span style="font-weight:bold;">prism poll2.sm -exportmodel out.all</span><br/>
-<span style="font-weight:bold;">prism poll2.sm -exportmodel .all</span><br/>
+  <div class='sourceblocktext'><div class="shell"><span style="font-weight:bold;">prism model.prism -exportmodel stdout.all</span><br/>
 </div></div>
   <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/RunningPRISM/ExportingTheModel?action=sourceblock&amp;num=5' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
-<p class='vspace'>creates multiple files of the form <code>out.*</code> or <code>poll2.*</code>, respectively.
+<p class='vspace'>is a quick way to print all details (of a small model) to the terminal.
 </p>
-<p class='vspace'>As mentioned above, you can always use <code>stdout</code> instead of a filename. For example:
+<p class='vspace'><a name='formats' id='formats'></a>
+</p><h3>File formats</h3>
+<p>Other file formats are also available.
+For a graphical view of the transition matrix,
+export in the <a class='urllink' href='http://www.graphviz.org'>Dot</a> format:
 </p>
 <div class='vspace'></div>
 <div class='sourceblock ' id='sourceblock6'>
-  <div class='sourceblocktext'><div class="shell"><span style="font-weight:bold;">prism poll2.sm -exportmodel stdout.all</span><br/>
+  <div class='sourceblocktext'><div class="shell"><span style="font-weight:bold;">prism model.prism -exportmodel model.dot</span><br/>
 </div></div>
   <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/RunningPRISM/ExportingTheModel?action=sourceblock&amp;num=6' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
-<p class='vspace'>is a quick way to print all details (of a small model) to the terminal.
-</p>
-<p class='vspace'>Although it is not exported when using <code>.all</code>, the <code>-exportmodel</code> switch can also be used to export the transition matrix
-in <a class='urllink' href='http://www.graphviz.org'>Dot</a> format which allows easy graphical visualisation of the model:
+<p class='vspace'>Or, you can export as <a class='urllink' href='http://www.mathworks.com/'>Matlab</a> code
+(a <code>.m</code> file):
 </p>
 <div class='vspace'></div>
 <div class='sourceblock ' id='sourceblock7'>
-  <div class='sourceblocktext'><div class="shell"><span style="font-weight:bold;">prism poll2.sm -exportmodel poll2.dot</span><br/>
+  <div class='sourceblocktext'><div class="shell"><span style="font-weight:bold;">prism model.prism -exportmodel model.m</span><br/>
 </div></div>
   <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/RunningPRISM/ExportingTheModel?action=sourceblock&amp;num=7' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
-<div class='vspace'></div><h3>Export options</h3>
-<p>When exporting model details in this way, the precision of numerical values (e.g., for probabilities or rewards) can be configured.
-From the command line, use the switch <code>-exportmodelprecision &lt;x&gt;</code> to show values to <code>&lt;x&gt;</code> significant digits.
-The same setting is available for exports from the GUI via option "Precision of model export".
+<p class='vspace'>Export to Storm's DRN model format (extension <code>.drn</code>) is also supported.
 </p>
-<p class='vspace'>Finally, the <code>-exportmodel</code> switch can be passed various options. The general form is <code>-exportmodel files:options</code> where <code>options</code> is a comma-separated list of options taken from the following list:
-</p>
-<div class='vspace'></div><ul><li><code>mrmc</code> - export data in MRMC format
-</li><li><code>matlab</code> - export data in Matlab format
-</li><li><code>rows</code> - export matrices with one row/distribution on each line
-</li><li><code>ordered</code> - output states indices in ascending order [default]
-</li><li><code>unordered</code> - don't output states indices in ascending order
-</li><li><code>proplabels</code> - also export labels from the properties file
-</li></ul><p class='vspace'>An example is:
+<p class='vspace'>If you don't want to rely on the format being detected by the file extension, you can use the <code>format</code> option, e.g.:
 </p>
 <div class='vspace'></div>
 <div class='sourceblock ' id='sourceblock8'>
-  <div class='sourceblocktext'><div class="shell"><span style="font-weight:bold;">prism poll2.sm -exportmodel out.tra,out.trew:matlab,unordered</span><br/>
+  <div class='sourceblocktext'><div class="shell"><span style="font-weight:bold;">prism model.prism -exportmodel model.txt:format=dot</span><br/>
+<span style="font-weight:bold;">prism model.prism -exportmodel stdout:format=matlab</span><br/>
 </div></div>
   <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/RunningPRISM/ExportingTheModel?action=sourceblock&amp;num=8' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
-<p class='vspace'>By default, when labels are exported, this only includes the labels from the model.
-The <code>proplabels</code> option listed above
-(which applies to both <code>-exportmodel</code> and <code>-exportlabels</code>)
-indicates that labels from any properties file are exported too.
-To export <em>just</em> those labels, use switch <code>-exportproplabels &lt;file&gt;</code>.
+<p class='vspace'>When there are multiple reward structures, a separate file is created for each one and a (1-indexed) suffix is added to distinguish them.
+By default, a header in each file (see the "<a class='wikilink' href='../Appendices/ExplicitModelFiles.html#srew'>Explicit Model Files</a>" appendix) also shows the name of the reward structure.
+This can be omitted - see the options below - or via the option "Include headers in model exports" in the GUI.
 </p>
-<p class='vspace'><a name='formats' id='formats'></a>
-</p><h3>File formats</h3>
-<p>By default, model data is exported (or displayed) in plain text format. The precise details of the formats used can be found in the "<a class='wikilink' href='../Appendices/ExplicitModelFiles.html'>Explicit Model Files</a>" appendix.
-As mentioned above, by convention, we use file extensions
-<code>.sta</code> (for states files), <code>.tra</code> (for transitions files),
-<code>.srew</code> and <code>.trew</code> (for state/transition rewards files)
-and <code>.lab</code> (for labels).
-</p>
-<p class='vspace'>Alternatively, it is possible to export this information as <a class='urllink' href='http://www.mathworks.com/'>Matlab</a> code
-(a <code>.m</code> file) or in a format suitable for import into the <a class='urllink' href='http://www.mrmc-tool.org/'>MRMC</a> tool. Select the appropriate menu item when using the GUI, or add the command-line switches:
-</p>
-<div class='vspace'></div><ul><li><code>-exportmatlab</code>
-</li><li><code>-exportmrmc</code>
-</li></ul><p class='vspace'>or, as described earlier, pass options to the <code>-exportmodel</code> switch.
-</p>
-<p class='vspace'>There is no specific MRMC format for labels, so these are exported as plain text in this case.
-</p>
-<p class='vspace'>There is some additional export functionality available only from the command-line.
-</p>
-<p class='vspace'>Firstly, when outputting matrices for DTMCs or CTMCs, it is possible to request that PRISM does not sort the rows of the matrix,
-as is normally the case. This is achieved with the switch:
-</p>
-<div class='vspace'></div><ul><li><code>-exportunordered</code>
-</li></ul><p class='vspace'>The reason for this is that in this case PRISM does not need to construct an explicit version of the model in memory and the process can thus be performed with reduced memory consumption.
-</p>
-<p class='vspace'>Secondly, there is a switch:
-</p>
-<div class='vspace'></div><ul><li><code>-exportrows</code>
-</li></ul><p class='vspace'>which provides an alternative output format for transition matrices where the elements of each row of the matrix (i.e. the transitions from a state/choice) are grouped on the same line. This can be particularly helpful for viewing the matrix for MDPs. The file format is shown <a class='wikilink' href='../Appendices/ExplicitModelFiles.html#trarows'>here.</a>
-</p>
-<p class='vspace'><a name='graph' id='graph'></a>
-</p><h3>Graphical model export</h3>
-<p>The transition matrix of the model can also be exported in <a class='urllink' href='http://www.graphviz.org'>Dot</a> format,
-which allows easy graphical visualisation of the graph structure of the model.
-You can optionally request that state descriptions are added to each state of graph; if not, states are labelled with integer indices that can be cross-referenced with the list of reachable states.
-</p>
-<p class='vspace'>Use the menu entries under "Model | Export | Transition matrix" from the GUI or command-line switches:
-</p>
-<div class='vspace'></div><ul><li><code>-exporttransdot &lt;file&gt;</code>
-</li><li><code>-exporttransdotstates &lt;file&gt;</code>
-</li></ul><p class='vspace'>As mentioned above, for the latter, the following is equivalent (and easier to remember):
+<div class='vspace'></div><h3>Export options</h3>
+<p>Other options can be specified with the <code>-exportmodel</code> switch and there can be multiple instances of the switch, each with their own options.
 </p>
 <div class='vspace'></div>
 <div class='sourceblock ' id='sourceblock9'>
-  <div class='sourceblocktext'><div class="shell"><span style="font-weight:bold;">prism poll2.sm -exportmodel poll2.dot</span><br/>
+  <div class='sourceblocktext'><div class="shell"><span style="font-weight:bold;">prism model.prism -exportmodel model.tra:precision=10 -exportmodel model.txt:format=dot</span><br/>
 </div></div>
   <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/RunningPRISM/ExportingTheModel?action=sourceblock&amp;num=9' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
-<p class='vspace'><a name='scc' id='scc'></a>
+<p class='vspace'>Options are:
+</p>
+<div class='vspace'></div><pre> * <code>format</code> (=<code>explicit</code>/<code>matlab</code>/<code>dot</code>/<code>drn</code>) - model export format
+ * <code>matlab</code> - same as format=matlab
+ * <code>rows</code> - export matrices with one row/distribution on each line
+ * <code>proplabels</code> - export labels from a properties file into the same file, too
+ * <code>actions</code> (<code>=true/false</code>) - show actions on choices/transitions
+ * <code>headers</code> (<code>=true/false</code>) - include headers when exporting rewards
+ * <code>precision</code> (<code>=n</code>) - export probabilities/rewards with <code>n</code> significant decimal places
+</pre><p class='vspace'><a name='scc' id='scc'></a>
 </p><h3>Exporting (B)SCCs and end components</h3>
 <p>It is also possible to export the set of (bottom) strongly connected components (SCCs or BSCCs) for a model. This can only be done from the command-line currently. Use, for example:
 </p>
 <div class='vspace'></div>
 <div class='sourceblock ' id='sourceblock10'>
-  <div class='sourceblocktext'><div class="shell"><span style="font-weight:bold;">prism poll2.sm -exportsccs stdout</span><br/>
-<span style="font-weight:bold;">prism poll2.sm -exportbsccs stdout</span><br/>
+  <div class='sourceblocktext'><div class="shell"><span style="font-weight:bold;">prism model.prism -exportsccs stdout</span><br/>
+<span style="font-weight:bold;">prism model.prism -exportbsccs stdout</span><br/>
 </div></div>
   <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/RunningPRISM/ExportingTheModel?action=sourceblock&amp;num=10' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
@@ -433,7 +378,22 @@ You can optionally request that state descriptions are added to each state of gr
   <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/RunningPRISM/ExportingTheModel?action=sourceblock&amp;num=11' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
-<div class='vspace'></div>
+<div class='vspace'></div><h3>Other switches</h3>
+<p>Although <code>-exportmodel</code> is now usually the best switch for model exports, other older switches still exist. For example, these can be use to export particular parts of the model:
+</p>
+<div class='vspace'></div><ul><li><code>-exporttrans &lt;file&gt;</code>
+</li><li><code>-exportstates &lt;file&gt;</code>
+</li><li><code>-exportstaterewards &lt;file&gt;</code>
+</li><li><code>-exporttransrewards &lt;file&gt;</code>
+</li><li><code>-exportrewards &lt;file&gt; &lt;file&gt;</code>
+</li><li><code>-exportlabels &lt;file&gt;</code>
+</li><li><code>-exportproplabels &lt;file&gt;</code>
+</li></ul><p class='vspace'>And these switches specify the format for exports:
+</p>
+<div class='vspace'></div><ul><li><code>-exportmatlab</code>
+</li><li><code>-exportrows</code>
+</li><li><code>-exportmodelprecision &lt;x&gt;</code>
+</li></ul><div class='vspace'></div>
 </div>
 
 
@@ -444,7 +404,7 @@ You can optionally request that state descriptions are added to each state of gr
 </p>
 
     </div>
-    <div id='prism-man-lastmod'>Page last modified on May 01, 2023, at 07:27 AM</div>
+    <div id='prism-man-lastmod'>Page last modified on July 06, 2025, at 03:28 PM</div>
   </div>
 <!--/PageFooterFmt-->
 

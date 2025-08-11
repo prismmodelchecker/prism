@@ -167,15 +167,16 @@ The old <em>adversary generation</em> functionality (see below) still exists for
 
 <p class='vspace'>where states, by default, are shown as a tuple of variable values.
 </p>
-<p class='vspace'>(ii) <em>Induced model</em>. This is a representation of the model that is induced when the strategy is applied. There are two "modes" for this export: <em>restrict</em>, which shows the original model but with a restricted set of choices (e.g., an MDP with just one choice in each state); and <em>reduce</em>, which removes the nondeterminism resolved by the strategy (e.g., an MDP becomes a DTMC). The latter can be useful to re-import the model back into PRISM and analyse the induced model; the former is sometimes easier for visualising the strategy's choices. In each case, the transitions of the induced model are presented as a <code>.tra</code> file (as for normal <a class='wikilink' href='../Appendices/ExplicitModelFiles.html'>model export</a>), e.g.:
+<p class='vspace'>(ii) <em>Induced model</em>. This is a representation of the model that is induced when the strategy is applied. There are two "modes" for this export. The first (and default) is 
+<em>reduce</em>, which removes the nondeterminism resolved by the strategy (e.g., an MDP becomes a DTMC). This can be useful to re-import the model back into PRISM and analyse the induced model. The second is <em>restrict</em>, which shows the original model but with a restricted set of choices (e.g., an MDP with just one choice in each state). In each case, the transitions of the induced model are presented as a <code>.tra</code> file (as for normal <a class='wikilink' href='../Appendices/ExplicitModelFiles.html'>model export</a>), e.g.:
 </p>
 <div class='vspace'></div>
 <div class='sourceblock ' id='sourceblock4'>
-  <div class='sourceblocktext'><div class="text">9 9 11<br />
-0 0 5 1 east<br />
-1 0 10 1 north<br />
-2 0 15 0.9 north<br />
-2 0 16 0.1 north<br />
+  <div class='sourceblocktext'><div class="text">9 11<br />
+0 5 1 east<br />
+1 10 1 north<br />
+2 15 0.9 north<br />
+2 16 0.1 north<br />
 ...</div></div>
   <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/RunningPRISM/Strategies?action=sourceblock&amp;num=4' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
@@ -198,7 +199,7 @@ As hinted in the command-line examples above, the <code>-exportstrat</code> swit
 </p>
 <div class='vspace'></div>
 <div class='sourceblock ' id='sourceblock6'>
-  <div class='sourceblocktext'><div class="shell"><span style="font-weight:bold;">prism mdp.prism -pf 'Pmax=? [ F "goal" ]' -exportstrat file.txt:type=induced,mode=reduce</span><br/>
+  <div class='sourceblocktext'><div class="shell"><span style="font-weight:bold;">prism mdp.prism -pf 'Pmax=? [ F "goal" ]' -exportstrat file.txt:type=induced,mode=restrict</span><br/>
 </div></div>
   <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/RunningPRISM/Strategies?action=sourceblock&amp;num=6' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>

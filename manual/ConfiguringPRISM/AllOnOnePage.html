@@ -497,7 +497,7 @@ in order to trap the cases when computation will not converge.
 The default limit is 10,000 but can be changed with the "Termination max. iterations" option (switch <code>-maxiters &lt;val&gt;</code>). Computations that reach this upper limit will trigger an error during model checking to alert the user to this fact.
 </p><hr />
 <h1>Automata Generation</h1>
-<p>When PRISM performs verification of <a class='wikilink' href='../PropertySpecification/ThePOperator.html#ltl'>LTL formulas</a>, it does so by converting the formula into a deterministic omega automaton (such as a Rabin automaton) and then analysing a larger product model, constructed from the model being verified and the omega automaton. For this reason, the size of the omega automaton has an important effect on the efficiency of verification.
+<p>When PRISM performs verification of <a class='wikilink' href='../PropertySpecification/ThePOperator.html#ltl'>LTL formulas</a>, it does so by converting the formula into an automaton (such as a deterministic Rabin automaton) and then analysing a larger product model, constructed from the model being verified and the omega automaton. For this reason, the size of the automaton has an important effect on the efficiency of verification.
 </p>
 <p class='vspace'>By default PRISM uses a port of the <a class='urllink' href='http://www.ltl2dstar.de/'>ltl2dstar</a> library to construct these automata. But it also allows the use of external LTL-to-automata converters producing deterministic automata through support for the <a class='urllink' href='http://adl.github.io/hoaf/'>Hanoi Omega Automaton</a> (HOA) format. From the command line, an example of this is:
 </p>
@@ -520,22 +520,18 @@ ltl2dstar <span class="re5">--output</span>=automaton <span class="re5">--output
 <p class='vspace'>PRISM is known to work with these HOA-enabled tools:
 </p>
 <div class='vspace'></div><ul><li><a class='urllink' href='http://ltl2dstar.de/'>ltl2dstar</a>
-</li><li><a class='urllink' href='http://sourceforge.net/projects/ltl3dra/'>ltl3dra</a>
-</li><li><a class='urllink' href='https://www7.in.tum.de/~kretinsk/rabinizer3.html'>Rabinizer 3</a>
+</li><li><a class='urllink' href='https://spot.lre.epita.fr/'>Spot</a>'s <a class='urllink' href='https://spot.lre.epita.fr/ltl2tgba.html'><code>ltl2tgba</code></a>
+</li><li><a class='urllink' href='https://github.com/xblahoud/ltl3dra'>ltl3dra</a>
+</li><li><a class='urllink' href='https://www7.in.tum.de/~kretinsk/rabinizer4.html'>Rabinizer</a>
 </li></ul><p class='vspace'>and contains ready-made scripts for calling them in the <code>etc/scripts/hoa</code> directory of the distribution:
 </p>
-<div class='vspace'></div><ul><li><code>hoa-ltl2dstar-with-ltl2ba-for-prism</code> <br />  (<a class='urllink' href='http://ltl2dstar.de/'>ltl2dstar</a> using <a class='urllink' href='http://www.lsv.ens-cachan.fr/~gastin/ltl2ba/'><code>ltl2ba</code></a> as the LTL-to-NBA tool)
-</li><li><code>hoa-ltl2dstar-with-ltl2tgba-for-prism</code> <br />  (<a class='urllink' href='http://ltl2dstar.de/'>ltl2dstar</a> using <a class='urllink' href='http://spot.lip6.fr/wiki'>Spot</a>'s <a class='urllink' href='http://spot.lip6.fr/userdoc/ltl2tgba.html'><code>ltl2tgba</code></a> as the LTL-to-NBA tool
-</li><li><code>hoa-ltl2dstar-with-ltl3ba-for-prism</code> <br />  (<a class='urllink' href='http://ltl2dstar.de/'>ltl2dstar</a> using <a class='urllink' href='http://sourceforge.net/projects/ltl3ba/'>LTL3BA</a> as the LTL-to-NBA tool
-</li><li><code>hoa-ltl3dra-dra-for-prism</code> <br />  (<a class='urllink' href='http://sourceforge.net/projects/ltl3dra/'>ltl3dra</a>, generating Rabin automata)
-</li><li><code>hoa-ltl3dra-tdgra-for-prism</code> <br />  (<a class='urllink' href='http://sourceforge.net/projects/ltl3dra/'>ltl3dra</a>, generating transition-based generalized Rabin automata)
-</li><li><code>hoa-rabinizer3-dgra-for-prism</code> <br />  (<a class='urllink' href='https://www7.in.tum.de/~kretinsk/rabinizer3.html'>Rabinizer 3</a>, generating generalized Rabin automata)
-</li><li><code>hoa-rabinizer3-dra-for-prism</code> <br />  (<a class='urllink' href='https://www7.in.tum.de/~kretinsk/rabinizer3.html'>Rabinizer 3</a>, generating Rabin automata)
-</li><li><code>hoa-rabinizer3-tdgra-for-prism</code> <br />  (<a class='urllink' href='https://www7.in.tum.de/~kretinsk/rabinizer3.html'>Rabinizer 3</a>, generating transition-based generalized Rabin automata)
-</li><li><code>hoa-rabinizer3-tdra-for-prism</code> <br />  (<a class='urllink' href='https://www7.in.tum.de/~kretinsk/rabinizer3.html'>Rabinizer 3</a>, generating transition-based Rabin automata)
-</li></ul><p class='vspace'>There are also scripts for the upcoming <a class='urllink' href='https://www7.in.tum.de/~kretinsk/rabinizer3.html'>Rabinizer 3.1</a>.
+<div class='vspace'></div><ul><li><code>hoa-ltl2dstar-for-prism</code> <br />  (<a class='urllink' href='http://ltl2dstar.de/'>ltl2dstar</a>, using <a class='urllink' href='https://spot.lre.epita.fr/'>Spot</a>'s <a class='urllink' href='https://spot.lre.epita.fr/ltl2tgba.html'><code>ltl2tgba</code></a>, <a class='urllink' href='http://www.lsv.ens-cachan.fr/~gastin/ltl2ba/'><code>ltl2ba</code></a> or <a class='urllink' href='https://github.com/xblahoud/ltl3dra'>LTL3BA</a> as the LTL-to-NBA tool as the LTL-to-NBA tool)
+</li><li><code>hoa-ltl2tgba-for-prism</code> <br />  (<a class='urllink' href='https://spot.lre.epita.fr/'>Spot</a>'s <a class='urllink' href='https://spot.lre.epita.fr/ltl2tgba.html'><code>ltl2tgba</code></a>)
+</li><li><code>hoa-ltl3dra-for-prism</code> <br />  (<a class='urllink' href='https://github.com/xblahoud/ltl3dra'>ltl3dra</a>)
+</li><li><code>hoa-rabinizer-for-prism</code> <br />  (<a class='urllink' href='https://www7.in.tum.de/~kretinsk/rabinizer4.html'>Rabinizer</a>'s <code>ltl2dra</code>)
+</li></ul><p class='vspace'>See the files themselves for details of any configuration required, possible options and for a reminder of the PRISM command-line arguments required.
 </p>
-<p class='vspace'>See the files themselves for details of any configuration required and for a reminder of the PRISM command-line arguments required.
+<p class='vspace'>There is also a <code>hoa-rabinizer-for-prism.bat</code> script for connecting to Rabinizer on Windows.
 </p>
 <p class='vspace'>The <code>-ltl2dasyntax</code> switch is used to specify the textual format for passing the LTL formula to the external converter (i.e., in the file <code>out-file</code>). The options are:
 </p>
@@ -543,7 +539,19 @@ ltl2dstar <span class="re5">--output</span>=automaton <span class="re5">--output
 </li><li><code>spin</code> - SPIN format
 </li><li><code>spot</code> - Spot format
 </li><li><code>rabinizer</code> - Rabinizer format
-</li></ul><p class='vspace'>From the GUI, configuring the external LTL converter is done with the two options 
+</li></ul><p class='vspace'>Typical usage is:
+</p>
+<div class='vspace'></div>
+<div class='sourceblock ' id='sourceblock7'>
+  <div class='sourceblocktext'><div class="shell"><span style="font-weight:bold;">prism model.pm -pf "P=? [ G F x=1 ]" -ltl2datool hoa-ltl2dstar-for-prism -ltl2dasyntax lbt</span><br/>
+<span style="font-weight:bold;">prism model.pm -pf "P=? [ G F x=1 ]" -ltl2datool hoa-ltl2tgba-for-prism -ltl2dasyntax lbt</span><br/>
+<span style="font-weight:bold;">prism model.pm -pf "P=? [ G F x=1 ]" -ltl2datool hoa-ltl3dra-for-prism -ltl2dasyntax spin</span><br/>
+<span style="font-weight:bold;">prism model.pm -pf "P=? [ G F x=1 ]" -ltl2datool hoa-rabinizer-for-prism -ltl2dasyntax rabinizer</span><br/>
+</div></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/ConfiguringPRISM/AllOnOnePage?action=sourceblock&amp;num=7' type='text/plain'>[&#036;[Get Code]]</a></div>
+</div>
+
+<p class='vspace'>From the GUI, configuring the external LTL converter is done with the two options 
 "Use external LTL-&gt;DA tool" and "LTL syntax for external LTL-&gt;DA tool".
 </p>
 <p class='vspace'>Another related option is "All path formulas via automata" (command-line switch <code>-pathviaautomata</code>), which forces construction of an automata
@@ -578,10 +586,10 @@ You can also change the level of precision used to check that probabilities sum 
 <p>CUDD, the underlying BDD and MTBDD library used in PRISM has an upper memory limit. By default, this limit is 1 GB. If you are working on a machine with significantly more memory this and PRISM runs out of memory when model checking, it may help to change this. To set the limit, from the command-line, use the <code>-cuddmaxmem</code> switch. For example:
 </p>
 <div class='vspace'></div>
-<div class='sourceblock ' id='sourceblock7'>
+<div class='sourceblock ' id='sourceblock8'>
   <div class='sourceblocktext'><div class="shell"><span style="font-weight:bold;">prism -cuddmaxmem 2g big_model.pm</span><br/>
 </div></div>
-  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/ConfiguringPRISM/AllOnOnePage?action=sourceblock&amp;num=7' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/ConfiguringPRISM/AllOnOnePage?action=sourceblock&amp;num=8' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 <p class='vspace'>Above, <code>g</code> denotes GB. You can also use <code>m</code> for MB.
@@ -592,22 +600,22 @@ You can also the CUDD maximum memory setting from the options panel in the GUI, 
 <p>The Java virtual machine (JVM) used to execute PRISM also has upper memory limits. Sometimes this limit will be exceeded and you will see an error of the form <code>java.lang.OutOfMemory</code>. To resolve this problem, you can increase this memory limit. On Unix, Linux or Mac OS X platforms, this can done by using the <code>-javamaxmem</code> switch, passed either to the command-line script <code>prism</code> or the GUI launcher <code>xprism</code>. For example:
 </p>
 <div class='vspace'></div>
-<div class='sourceblock ' id='sourceblock8'>
+<div class='sourceblock ' id='sourceblock9'>
   <div class='sourceblocktext'><div class="shell"><span style="font-weight:bold;">prism -javamaxmem 4g big_model.pm</span><br/>
 <span style="font-weight:bold;">xprism -javamaxmem 4g big_model.pm</span><br/>
 </div></div>
-  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/ConfiguringPRISM/AllOnOnePage?action=sourceblock&amp;num=8' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/ConfiguringPRISM/AllOnOnePage?action=sourceblock&amp;num=9' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 <p class='vspace'>each set the limit to 4GB. Alternatively, you set the environment variable PRISM_JAVAMAXMEM before running PRISM. For example, under a <code>bash</code> shell:
 </p>
 <div class='vspace'></div>
-<div class='sourceblock ' id='sourceblock9'>
+<div class='sourceblock ' id='sourceblock10'>
   <div class='sourceblocktext'><div class="shell"><span style="font-weight:bold;">PRISM_JAVAMAXMEM=4g</span><br/>
 <span style="font-weight:bold;">export PRISM_JAVAMAXMEM</span><br/>
 <span style="font-weight:bold;">prism big_model.pm</span><br/>
 </div></div>
-  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/ConfiguringPRISM/AllOnOnePage?action=sourceblock&amp;num=9' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/ConfiguringPRISM/AllOnOnePage?action=sourceblock&amp;num=10' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 <p class='vspace'>If you get an error of the form <code>java.lang.StackOverflowError</code>, then you can try increasing the stack size of the JVM.
@@ -615,22 +623,22 @@ On Unix, Linux or Mac OS X platforms, this can done by using the <code>-javastac
 Examples are:
 </p>
 <div class='vspace'></div>
-<div class='sourceblock ' id='sourceblock10'>
+<div class='sourceblock ' id='sourceblock11'>
   <div class='sourceblocktext'><div class="shell"><span style="font-weight:bold;">prism -javastack 1g big_model.pm</span><br/>
 <span style="font-weight:bold;">xprism -javastack 1g big_model.pm</span><br/>
 </div></div>
-  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/ConfiguringPRISM/AllOnOnePage?action=sourceblock&amp;num=10' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/ConfiguringPRISM/AllOnOnePage?action=sourceblock&amp;num=11' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 <p class='vspace'>or:
 </p>
 <div class='vspace'></div>
-<div class='sourceblock ' id='sourceblock11'>
+<div class='sourceblock ' id='sourceblock12'>
   <div class='sourceblocktext'><div class="shell"><span style="font-weight:bold;">PRISM_JAVASTACKSIZE=1g</span><br/>
 <span style="font-weight:bold;">export PRISM_JAVASTACKSIZE</span><br/>
 <span style="font-weight:bold;">prism big_model.pm</span><br/>
 </div></div>
-  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/ConfiguringPRISM/AllOnOnePage?action=sourceblock&amp;num=11' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/ConfiguringPRISM/AllOnOnePage?action=sourceblock&amp;num=12' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 <p class='vspace'>If you are running PRISM on Windows you will have to do make adjustments to Java memory manually, by modifying the <code>prism.bat</code> or <code>xprism.bat</code> scripts.
@@ -642,10 +650,10 @@ To change the stack size to 1GB, add <code>-Xss1g</code>.
 For example:
 </p>
 <div class='vspace'></div>
-<div class='sourceblock ' id='sourceblock12'>
+<div class='sourceblock ' id='sourceblock13'>
   <div class='sourceblocktext'><div class="shell"><span style="font-weight:bold;">prism -javaparams "-XX:AutoBoxCacheMax=100000000 -Xmn2g" -javamaxmem 12g</span><br/>
 </div></div>
-  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/ConfiguringPRISM/AllOnOnePage?action=sourceblock&amp;num=12' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/ConfiguringPRISM/AllOnOnePage?action=sourceblock&amp;num=13' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 <div class='vspace'></div><h3>Precomputation</h3>

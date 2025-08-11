@@ -67,6 +67,28 @@ table.sortable th.dir-d::after { color: inherit; content: "\00A0\025B4"; }
     .rfloat { float:right; margin-left:0.5em; }
 a.varlink { text-decoration:none;}
 
+.sourceblocklink {
+  text-align: right;
+  font-size: smaller;
+}
+.sourceblocktext {
+  padding: 0.5em;
+  border: 1px solid #808080;
+  color: #000000;
+  background-color: #f1f0ed;
+}
+.sourceblocktext div {
+  font-family: monospace;
+  font-size: small;
+  line-height: 1;
+  height: 1%;
+}
+.sourceblocktext div.head,
+.sourceblocktext div.foot {
+  font: italic medium serif;
+  padding: 0.5em;
+}
+
 --></style>  <meta name='robots' content='index,follow' />
 
 
@@ -219,7 +241,7 @@ a.varlink { text-decoration:none;}
 <p><strong>When I try to run PRISM on Windows, I double-click the PRISM shortcut but nothing happens.</strong>
 </p>
 <div class='vspace'></div><div class='answer' > 
-<p>The most common cause of this is that you either do not have Java installed or the <code>java</code> executable is not in your path. In any case, to determine the exact problem, launch a command shell and navigate to the <code>bin</code> directory inside the directory where you installed PRISM (you can use the "PRISM (console)" shortcut installed in the start menu to do this). Then, type <code>xprism.bat</code> and see what error message is displayed.
+<p>The most common cause of this is that you either do not have Java installed or the <code>java</code> executable is not in your path. In any case, to determine the exact problem, launch a command shell and navigate to the <code>bin</code> directory inside the directory where you installed PRISM (you can use the "PRISM (console)" shortcut installed in the start menu to do this). Then, type <code>prism.bat</code> and see what error message is displayed.
 </p></div>
 <div class='vspace'></div><hr />
 <div class='vspace'></div><h2>Running PRISM on non-Windows platforms</h2>
@@ -234,13 +256,34 @@ a.varlink { text-decoration:none;}
 </p>
 <p class='vspace'>(2) If you compiled PRISM from source code, are you sure no errors occurred during the process? To check, go into the PRISM directory, type <code>make clean_all</code> and then <code>make</code>, checking the output (especially at the end) carefully for any error messages.
 </p>
-<p class='vspace'>(3) Are you running on Mac OS (notably El Capitan)? This had some issues with PRISM calling <code>java</code>.
+<p class='vspace'>(3) Are you running on Mac OS? See the next question.
+</p>
+<p class='vspace'>(3) Are you running on an old version of Mac OS (notably El Capitan)? This had some issues with PRISM calling <code>java</code>.
 A workaround is to specify the exact path to the <code>java</code> when running PRISM, e.g.:
 </p>
 <p class='vspace'><code>PRISM_JAVA=/Library/Java/JavaVirtualMachines/jdk1.9.jdk/Contents/Home/bin/java prism</code>
 </p>
 <p class='vspace'>or by replacing the value of PRISM_JAVA directly in the prism script
 directly.
+</p></div>
+<p class='vspace'><strong>When I try to run PRISM on macOS, I get an error of the form: "<code>libprism.dylib</code> can’t be opened because Apple cannot check it for malicious software." or "<code>libprism.dylib not valid for use in process: library load disallowed by system policy</code>".</strong>
+</p>
+<div class='vspace'></div><div class='answer' > 
+<p>PRISM's macOS binaries are currently not signed/notarised,
+so you need to approve the binary files manually to run them.
+Run this command from the same place you ran <code>./install.sh</code>:
+</p>
+<div class='vspace'></div>
+<div class='sourceblock ' id='sourceblock1'>
+  <div class='sourceblocktext'><div class="shell"><span style="font-weight:bold;">xattr -d com.apple.quarantine lib/*lib</span><br/>
+</div></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/InstallingPRISM/CommonProblemsAndQuestions?action=sourceblock&amp;num=1' type='text/plain'>[&#036;[Get Code]]</a></div>
+</div>
+
+<p class='vspace'>or approve the libraries one by one through the
+<a class='urllink' href='https://support.apple.com/en-gb/102445'>security settings</a>.
+</p>
+<p class='vspace'>You can also avoid this issue by compiling from source code.
 </p></div>
 <p class='vspace'><strong>When I try to run PRISM, I get an error of the form:<br /><code>Exception in thread "main" java.lang.UnsupportedClassVersionError: Bad version number in .class file</code></strong>
 </p>
@@ -332,7 +375,7 @@ so we can include this information in future releases. Thanks.
 </p>
 
     </div>
-    <div id='prism-man-lastmod'>Page last modified on December 29, 2023, at 02:18 PM</div>
+    <div id='prism-man-lastmod'>Page last modified on January 07, 2025, at 12:31 PM</div>
   </div>
 <!--/PageFooterFmt-->
 

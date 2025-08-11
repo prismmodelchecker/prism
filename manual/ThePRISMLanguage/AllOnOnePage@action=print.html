@@ -576,6 +576,7 @@ Expressions can contain literal values (12, 3.141592, <code><strong>true</strong
 identifiers (corresponding to variables, constants, etc.) and operators from the following list:
 </p>
 <div class='vspace'></div><ul><li><code>-</code> (unary minus)
+</li><li><code>^</code> (power)
 </li><li><code>*</code>, <code>/</code> (multiplication, division)
 </li><li><code>+</code>, <code>-</code> (addition, subtraction)
 </li><li><code>&lt;</code>, <code>&lt;=</code>, <code>&gt;=</code>, <code>&gt;</code> (relational operators)
@@ -586,7 +587,7 @@ identifiers (corresponding to variables, constants, etc.) and operators from the
 </li><li><code>&lt;=&gt;</code> (if-and-only-if)
 </li><li><code>=&gt;</code> (implication)
 </li><li><code>?</code> (condition evaluation: <code>condition ? a : b</code> means "if <code>condition</code> is true then <code>a</code> else <code>b</code>")
-</li></ul><p class='vspace'>All of these operators except <code>?</code> are left associative
+</li></ul><p class='vspace'>All of these operators except <code>?</code> and <code>=&gt;</code> are left associative
 (i.e. they are evaluated from left to right).
 The precedence of the operators is as found in the list above,
 most strongly binding operators first.
@@ -604,7 +605,7 @@ All expressions must evaluate correctly in terms of type (integer, double or Boo
 <div class='vspace'></div><ul><li><code>min(...)</code> and <code>max(...)</code>, which select the minimum and maximum value, respectively, of two or more numbers
 </li><li><code>floor(x)</code> and <code>ceil(x)</code>, which round <code>x</code> down and up, respectively, to the nearest integer
 </li><li><code>round(x)</code>, which rounds <code>x</code> to the nearest integer (note, in a tie-break, we always round <em>up</em>, e.g. <code>round(-1.5)</code> gives <code>-1</code> not <code>-2</code>)
-</li><li><code>pow(x,y)</code> which computes <code>x</code> to the power of <code>y</code>
+</li><li><code>pow(x,y)</code> which computes <code>x</code> to the power of <code>y</code> (same as <code>x^y</code>)
 </li><li><code>mod(i,n)</code> for integer modulo operations
 </li><li><code>log(x,b)</code>, which computes the logarithm of <code>x</code> to base <code>b</code>
 </li></ul><p class='vspace'>Examples of their usage are:
@@ -823,26 +824,27 @@ Consider the following simple example:
 </p>
 <div class='vspace'></div>
 <div class='sourceblock ' id='sourceblock33'>
-  <div class='sourceblocktext'><div class="prism"><span class="prismkeyword">rewards</span><br/>
+  <div class='sourceblocktext'><div class="prism"><span class="prismkeyword">rewards</span> "<span class="prismident">r1</span>"<br/>
 &nbsp;&nbsp;&nbsp;&nbsp;<span class="prismkeyword">true</span> : <span class="prismnum">1</span>;<br/>
 <span class="prismkeyword">endrewards</span><br/>
 </div></div>
   <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/ThePRISMLanguage/AllOnOnePage?action=sourceblock&amp;num=33' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
-<p class='vspace'>This assigns a reward of 1 to every state of the model.
+<p class='vspace'>This defines a reward structure with name <code>r1</code> (the name is optional)
+which assigns a reward of 1 to every state of the model.
 It comprises a single reward item, the left part of which (<code><strong>true</strong></code>) is a guard
 and the right part of which (<code>1</code>) is a reward.
 States of the model which satisfy the predicate in the guard are assigned the corresponding reward.
 More generally, state rewards can be specified using multiple reward items,
 each of the form <code>guard : reward;</code>,
-where <code>guard</code>is a predicate (over all the variables of the model)
+where <code>guard</code> is a predicate (over all the variables of the model)
 and <code>reward</code> is an expression (containing any variables, constants, etc. from the model).
 For example:
 </p>
 <div class='vspace'></div>
 <div class='sourceblock ' id='sourceblock34'>
-  <div class='sourceblocktext'><div class="prism"><span class="prismkeyword">rewards</span><br/>
+  <div class='sourceblocktext'><div class="prism"><span class="prismkeyword">rewards</span> "<span class="prismident">r2</span>"<br/>
 &nbsp;&nbsp;&nbsp;&nbsp;<span class="prismident">x</span>=<span class="prismnum">0</span> : <span class="prismnum">100</span>;<br/>
 &nbsp;&nbsp;&nbsp;&nbsp;<span class="prismident">x</span>&gt;<span class="prismnum">0</span> &amp; <span class="prismident">x</span>&lt;<span class="prismnum">10</span> : <span class="prismnum">2</span>*<span class="prismident">x</span>;<br/>
 &nbsp;&nbsp;&nbsp;&nbsp;<span class="prismident">x</span>=<span class="prismnum">10</span> : <span class="prismnum">100</span>;<br/>
@@ -869,7 +871,7 @@ For example:
 </p>
 <div class='vspace'></div>
 <div class='sourceblock ' id='sourceblock35'>
-  <div class='sourceblocktext'><div class="prism"><span class="prismkeyword">rewards</span><br/>
+  <div class='sourceblocktext'><div class="prism"><span class="prismkeyword">rewards</span> "<span class="prismident">r3</span>"<br/>
 &nbsp;&nbsp;&nbsp;&nbsp;[] <span class="prismkeyword">true</span> : <span class="prismnum">1</span>;<br/>
 &nbsp;&nbsp;&nbsp;&nbsp;[<span class="prismident">a</span>] <span class="prismkeyword">true</span> : <span class="prismident">x</span>;<br/>
 &nbsp;&nbsp;&nbsp;&nbsp;[<span class="prismident">b</span>] <span class="prismkeyword">true</span> : <span class="prismnum">2</span>*<span class="prismident">x</span>;<br/>
@@ -886,7 +888,7 @@ in which case the resulting reward is the sum of all the individual rewards.
 A model description can specify rewards for both states and transitions.
 These are all placed together in a single <code><strong>rewards</strong>...<strong>endrewards</strong></code> construct.
 </p>
-<p class='vspace'>A PRISM model can have multiple reward structures. Optionally, these can be given labels such as in the following example:
+<p class='vspace'>A PRISM model will often have multiple reward structures, for example:
 </p>
 <div class='vspace'></div>
 <div class='sourceblock ' id='sourceblock36'>

@@ -259,7 +259,7 @@ Below, we describe:
 </li></ul><div class='vspace'></div><hr />
 <p class='vspace'><a name='sta' id='sta'></a>
 </p><h3>States (.sta) files</h3>
-<p>These contain an explicit list of the reachable states of a model. The first line is of the form <code>(v1,...,vn)</code>, listing the names of all the variables in the model in the order that they appear in the PRISM model. Subsequent lines list the values of the <code>n</code> variables in each state of the model. Each line is of the form <code>i:(x1,...,xn)</code>, where <code>i</code> is the index of the state (starting from 0) and <code>x1,...,xn</code> are the values of each variable in the state. States are ordered by their index, or, equivalently, lexicographically according to the tuple of variable values.
+<p>These contain an explicit list of the reachable states of a model. The first line is of the form <code>(v1,...,vn)</code>, listing the names of all the variables in the model in the order that they appear in the PRISM model. Subsequent lines list the values of the <code>n</code> variables in each state of the model. Each line is of the form <code>i:(x1,...,xn)</code>, where <code>i</code> is the index of the state (starting from 0) and <code>x1,...,xn</code> are the values of each variable in the state. States are ordered by their index (and, therefore, given PRISM's default behaviour, lexicographically according to the tuple of variable values).
 </p>
 <p class='vspace'>For the example PRISM model <a class='urllink' href='../uploads/poll2.sm.html'>poll2.sm</a>, the states file looks like:
 </p>
@@ -288,9 +288,11 @@ Below, we describe:
 </p>
 <p class='vspace'><strong>DTMCs and CTMCs</strong>
 </p>
-<p class='vspace'>For Markov chains the first line take the form "<code>n m</code>", giving the number of states (<code>n</code>) and the number of transitions (<code>m</code>). The remaining lines are of the form "<code>i j x</code>", where <code>i</code> and <code>j</code> are the row (source) and column (destination) indices of the transition, and <code>x</code> is the probability (for a DTMC) or rate (for a CTMC) of the transition. Row/column state indices are zero-indexed (i.e. between <code>0</code> and <code>n-1</code>). Probability/rate values are written as (positive) floating point numbers (examples: <code>0.5</code>, <code>.5</code>, <code>5.6e-6</code>, <code>1</code>).
+<p class='vspace'>For Markov chains the first line take the form "<code>n m</code>", giving the number of states (<code>n</code>) and the number of transitions (<code>m</code>). The remaining lines are of the form "<code>i j x</code>" or "<code>i j x a</code>", where <code>i</code> and <code>j</code> are the indices of the source state (row) and destination state (column) of the transition, and <code>x</code> is the probability (for a DTMC) or rate (for a CTMC) of the transition. State indices are zero-indexed (i.e. between <code>0</code> and <code>n-1</code>). Probability/rate values are written as (positive) floating point numbers (examples: <code>0.5</code>, <code>.5</code>, <code>5.6e-6</code>, <code>1</code>). <code>a</code> is optional and gives the action label for the transition. Action labels can be present for some, all or no transitions.
 </p>
-<p class='vspace'>Often, the transition lines in the file are ordered by row index and then column index, but this is optional. For a DTMC, the probabilities for the outgoing transitions of each state should sum to 1.
+<p class='vspace'>It is assumed that source states (rows) are in ascending order, but there is no assumption about the ordering of destination states (columns) within the transitions for each source state.
+</p>
+<p class='vspace'>For a DTMC, the probabilities for the outgoing transitions of each state should sum to 1.
 </p>
 <p class='vspace'>Here is an example, for the (DTMC) PRISM model <a class='urllink' href='../uploads/lec3.pm'>lec3.pm</a> (which looks like <a class='urllink' href='../uploads/lec3.dot.pdf'>this</a>):
 </p>
@@ -344,9 +346,10 @@ Below, we describe:
 <p class='vspace'>For MDPs, the format is an extension of the above
 To clarify terminology: each <em>state</em> of the MDP contains (nondeterministic) <em>choices</em>, each of which is essentially a probability distribution over successor states that we can view as a set of <em>transitions</em>. Optionally, each choice can be labelled with an <em>action</em>.
 </p>
-<p class='vspace'>The first line of the file take the form "<code>n c m</code>", giving the number of states (<code>n</code>), the total number of choices (<code>c</code>) and the total number of transitions (<code>m</code>). The remaining lines are of the form "<code>i k j x</code>" or "<code>i k j x a</code>", where <code>i</code> and <code>j</code> are the row (source) and column (destination) indices of the transition, <code>k</code> is the index of the choice that it belongs to, and <code>x</code> is the probability of the transition. <code>a</code> is optional and gives the action label for the choice of the transition. Action labels can be present for some, all or no states but, in slightly redundant fashion, the action labels, if present, must be the same for all transitions belonging to the same choice.
+<p class='vspace'>The first line of the file take the form "<code>n c m</code>", giving the number of states (<code>n</code>), the total number of choices (<code>c</code>) and the total number of transitions (<code>m</code>). The remaining lines are of the form "<code>i k j x</code>" or "<code>i k j x a</code>", where <code>i</code> and <code>j</code> are the indices of the source state (row) and destination state (column) of the transition, <code>k</code> is the index of the choice that it belongs to, and <code>x</code> is the probability of the transition. <code>a</code> is optional and gives the action label for the choice of the transition. Action labels can be present for some, all or no states but, in slightly redundant fashion, the action labels, if present, must be the same for all transitions belonging to the same choice.
 </p>
-<p class='vspace'>Row/column state indices and choice indices are all zero-indexed. Probability values (as above) are written as (positive) floating point numbers and should sum to 1 for each choice. Often, the transition lines in the file are ordered by row index, then choice index and then column index, but this is optional.
+<p class='vspace'>State indices and choice indices are all zero-indexed. Probability values (as above) are written as (positive) floating point numbers and should sum to 1 for each choice.
+It is assumed that source states (rows) and choices within states are in ascending order, but there is no assumption about the ordering of destination states (columns) within the transitions for each choice.
 </p>
 <p class='vspace'>Here is an example, for the (MDP) PRISM model <a class='urllink' href='../uploads/lec12mdp.nm.html'>lec12mdp.nm</a> (which looks like <a class='urllink' href='../uploads/lec12mdp.dot.pdf'>this</a>):
 </p>
@@ -510,7 +513,7 @@ and the number of transitions (the last number on the first line) is replaced wi
 </p>
 
     </div>
-    <div id='prism-man-lastmod'>Page last modified on April 11, 2023, at 01:51 PM</div>
+    <div id='prism-man-lastmod'>Page last modified on June 25, 2025, at 10:36 AM</div>
   </div>
 <!--/PageFooterFmt-->
 

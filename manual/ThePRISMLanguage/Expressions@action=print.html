@@ -106,6 +106,7 @@ Expressions can contain literal values (12, 3.141592, <code><strong>true</strong
 identifiers (corresponding to variables, constants, etc.) and operators from the following list:
 </p>
 <div class='vspace'></div><ul><li><code>-</code> (unary minus)
+</li><li><code>^</code> (power)
 </li><li><code>*</code>, <code>/</code> (multiplication, division)
 </li><li><code>+</code>, <code>-</code> (addition, subtraction)
 </li><li><code>&lt;</code>, <code>&lt;=</code>, <code>&gt;=</code>, <code>&gt;</code> (relational operators)
@@ -116,7 +117,7 @@ identifiers (corresponding to variables, constants, etc.) and operators from the
 </li><li><code>&lt;=&gt;</code> (if-and-only-if)
 </li><li><code>=&gt;</code> (implication)
 </li><li><code>?</code> (condition evaluation: <code>condition ? a : b</code> means "if <code>condition</code> is true then <code>a</code> else <code>b</code>")
-</li></ul><p class='vspace'>All of these operators except <code>?</code> are left associative
+</li></ul><p class='vspace'>All of these operators except <code>?</code> and <code>=&gt;</code> are left associative
 (i.e. they are evaluated from left to right).
 The precedence of the operators is as found in the list above,
 most strongly binding operators first.
@@ -134,7 +135,7 @@ All expressions must evaluate correctly in terms of type (integer, double or Boo
 <div class='vspace'></div><ul><li><code>min(...)</code> and <code>max(...)</code>, which select the minimum and maximum value, respectively, of two or more numbers
 </li><li><code>floor(x)</code> and <code>ceil(x)</code>, which round <code>x</code> down and up, respectively, to the nearest integer
 </li><li><code>round(x)</code>, which rounds <code>x</code> to the nearest integer (note, in a tie-break, we always round <em>up</em>, e.g. <code>round(-1.5)</code> gives <code>-1</code> not <code>-2</code>)
-</li><li><code>pow(x,y)</code> which computes <code>x</code> to the power of <code>y</code>
+</li><li><code>pow(x,y)</code> which computes <code>x</code> to the power of <code>y</code> (same as <code>x^y</code>)
 </li><li><code>mod(i,n)</code> for integer modulo operations
 </li><li><code>log(x,b)</code>, which computes the logarithm of <code>x</code> to base <code>b</code>
 </li></ul><p class='vspace'>Examples of their usage are:

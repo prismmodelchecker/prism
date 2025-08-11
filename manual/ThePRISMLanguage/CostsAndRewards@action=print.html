@@ -128,26 +128,27 @@ Consider the following simple example:
 </p>
 <div class='vspace'></div>
 <div class='sourceblock ' id='sourceblock1'>
-  <div class='sourceblocktext'><div class="prism"><span class="prismkeyword">rewards</span><br/>
+  <div class='sourceblocktext'><div class="prism"><span class="prismkeyword">rewards</span> "<span class="prismident">r1</span>"<br/>
 &nbsp;&nbsp;&nbsp;&nbsp;<span class="prismkeyword">true</span> : <span class="prismnum">1</span>;<br/>
 <span class="prismkeyword">endrewards</span><br/>
 </div></div>
   <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/ThePRISMLanguage/CostsAndRewards?action=sourceblock&amp;num=1' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
-<p class='vspace'>This assigns a reward of 1 to every state of the model.
+<p class='vspace'>This defines a reward structure with name <code>r1</code> (the name is optional)
+which assigns a reward of 1 to every state of the model.
 It comprises a single reward item, the left part of which (<code><strong>true</strong></code>) is a guard
 and the right part of which (<code>1</code>) is a reward.
 States of the model which satisfy the predicate in the guard are assigned the corresponding reward.
 More generally, state rewards can be specified using multiple reward items,
 each of the form <code>guard : reward;</code>,
-where <code>guard</code>is a predicate (over all the variables of the model)
+where <code>guard</code> is a predicate (over all the variables of the model)
 and <code>reward</code> is an expression (containing any variables, constants, etc. from the model).
 For example:
 </p>
 <div class='vspace'></div>
 <div class='sourceblock ' id='sourceblock2'>
-  <div class='sourceblocktext'><div class="prism"><span class="prismkeyword">rewards</span><br/>
+  <div class='sourceblocktext'><div class="prism"><span class="prismkeyword">rewards</span> "<span class="prismident">r2</span>"<br/>
 &nbsp;&nbsp;&nbsp;&nbsp;<span class="prismident">x</span>=<span class="prismnum">0</span> : <span class="prismnum">100</span>;<br/>
 &nbsp;&nbsp;&nbsp;&nbsp;<span class="prismident">x</span>&gt;<span class="prismnum">0</span> &amp; <span class="prismident">x</span>&lt;<span class="prismnum">10</span> : <span class="prismnum">2</span>*<span class="prismident">x</span>;<br/>
 &nbsp;&nbsp;&nbsp;&nbsp;<span class="prismident">x</span>=<span class="prismnum">10</span> : <span class="prismnum">100</span>;<br/>
@@ -174,7 +175,7 @@ For example:
 </p>
 <div class='vspace'></div>
 <div class='sourceblock ' id='sourceblock3'>
-  <div class='sourceblocktext'><div class="prism"><span class="prismkeyword">rewards</span><br/>
+  <div class='sourceblocktext'><div class="prism"><span class="prismkeyword">rewards</span> "<span class="prismident">r3</span>"<br/>
 &nbsp;&nbsp;&nbsp;&nbsp;[] <span class="prismkeyword">true</span> : <span class="prismnum">1</span>;<br/>
 &nbsp;&nbsp;&nbsp;&nbsp;[<span class="prismident">a</span>] <span class="prismkeyword">true</span> : <span class="prismident">x</span>;<br/>
 &nbsp;&nbsp;&nbsp;&nbsp;[<span class="prismident">b</span>] <span class="prismkeyword">true</span> : <span class="prismnum">2</span>*<span class="prismident">x</span>;<br/>
@@ -191,7 +192,7 @@ in which case the resulting reward is the sum of all the individual rewards.
 A model description can specify rewards for both states and transitions.
 These are all placed together in a single <code><strong>rewards</strong>...<strong>endrewards</strong></code> construct.
 </p>
-<p class='vspace'>A PRISM model can have multiple reward structures. Optionally, these can be given labels such as in the following example:
+<p class='vspace'>A PRISM model will often have multiple reward structures, for example:
 </p>
 <div class='vspace'></div>
 <div class='sourceblock ' id='sourceblock4'>
