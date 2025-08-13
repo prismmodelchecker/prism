@@ -396,9 +396,9 @@ public interface ModelGenerator<Value> extends ModelInfo
 	public default String getTransitionProbabilityString(int i, int offset) throws PrismException
 	{
 		if (!getModelType().uncertain()) {
-			return getTransitionProbability(i, offset).toString();
+			return getEvaluator().toStringExport(getTransitionProbability(i, offset), 10);
 		} else {
-			return getTransitionProbabilityInterval(i, offset).toString();
+			return getIntervalEvaluator().toStringExport(getTransitionProbabilityInterval(i, offset), 10);
 		}
 	}
 
