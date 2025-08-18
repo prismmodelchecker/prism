@@ -1,0 +1,119 @@
+mdp
+
+//─── PARAMETERS ──────────────────────────────────────────────────────────────
+const int K = 500;            // # of sub‐steps per move
+const double p = 0.7;       // nominal success prob.
+const double e = 0.01;       // uncertainty radius
+
+//─── STATE ────────────────────────────────────────────────────────────────────
+module graph_imdp
+    s    : [0..14] init 0;  // which node
+    step : [0..K]  init 0;  // progress along chosen edge
+
+    //───────────────────────────────────────────────────────────────────────────
+    // EAST moves (horizontal rightwards)
+    //────────── sub‐steps ─────────────────────────────────────────────────────
+    [east] (step < K) & (s=0|s=3|s=4|s=8|s=11|s=12)
+       -> 1 : (step' = step + 1);
+
+    //────────── final jump ─────────────────────────────────────────────────────
+    [east] (step = K) & (s=0)
+       -> [p-e, p+e]:(s'=1)&(step'=0)
+        + [1-p-e, 1-p+e]:(s'=0)&(step'=step);
+    [east] (step = K) & (s=2)
+       -> [p-2*e, p+2*e]:(s'=1)&(step'=0)
+        + [1-p-2*e, 1-p+2*e]:(s'=0)&(step'=step);
+    [east] (step = K) & (s=3)
+       -> [p-e, p+e]:(s'=2)&(step'=0)
+        + [1-p-e, 1-p+e]:(s'=3)&(step'=step);
+    [east] (step = K) & (s=4)
+       -> [p-e, p+e]:(s'=5)&(step'=0)
+        + [1-p-e, 1-p+e]:(s'=4)&(step'=step);
+    [east] (step = K) & (s=8)
+       -> [p-e, p+e]:(s'=9)&(step'=0)
+        + [1-p-e, 1-p+e]:(s'=8)&(step'=step);
+    [east] (step = K) & (s=11)
+       -> [p-e, p+e]:(s'=12)&(step'=0)
+        + [1-p-e, 1-p+e]:(s'=11)&(step'=step);
+    [east] (step = K) & (s=12)
+       -> [p-e, p+e]:(s'=13)&(step'=0)
+        + [1-p-e, 1-p+e]:(s'=12)&(step'=step);
+    [east] (step = K) & (s=13)
+       -> [p-e, p+e]:(s'=14)&(step'=0)
+        + [1-p-e, 1-p+e]:(s'=13)&(step'=step);
+
+    //───────────────────────────────────────────────────────────────────────────
+    // SOUTH moves (vertical downwards)
+    [south] (step < K) & (s=0|s=1|s=2|s=3|s=4|s=5|s=6|s=7|s=8|s=9)
+       -> 1 : (step' = step + 1);
+
+    [south] (step = K) & (s=0)
+       -> [p-e, p+e]:(s'=3)&(step'=0)
+        + [1-p-e, 1-p+e]:(s'=0)&(step'=step);
+    [south] (step = K) & (s=1)
+       -> [p-e, p+e]:(s'=2)&(step'=0)
+        + [1-p-e, 1-p+e]:(s'=1)&(step'=step);
+    [south] (step = K) & (s=2)
+       -> [p-e, p+e]:(s'=5)&(step'=0)
+        + [1-p-e, 1-p+e]:(s'=2)&(step'=step);
+    [south] (step = K) & (s=3)
+       -> [p-e, p+e]:(s'=4)&(step'=0)
+        + [1-p-e, 1-p+e]:(s'=3)&(step'=step);
+    [south] (step = K) & (s=4)
+       -> [p-e, p+e]:(s'=8)&(step'=0)
+        + [1-p-e, 1-p+e]:(s'=4)&(step'=step);
+    [south] (step = K) & (s=5)
+       -> [p-e, p+e]:(s'=9)&(step'=0)
+        + [1-p-e, 1-p+e]:(s'=5)&(step'=step);
+    [south] (step = K) & (s=6)
+       -> [p-2*e, p+2*e]:(s'=7)&(step'=0)
+        + [1-p-2*e, 1-p+2*e]:(s'=6)&(step'=step);
+    [south] (step = K) & (s=7)
+       -> [p-2*e, p+2*e]:(s'=10)&(step'=0)
+        + [1-p-2*e, 1-p+2*e]:(s'=7)&(step'=step);
+    [south] (step = K) & (s=8)
+       -> [p-e, p+e]:(s'=11)&(step'=0)
+        + [1-p-e, 1-p+e]:(s'=8)&(step'=step);
+    [south] (step = K) & (s=9)
+       -> [p-e, p+e]:(s'=12)&(step'=0)
+        + [1-p-e, 1-p+e]:(s'=9)&(step'=step);
+
+    //───────────────────────────────────────────────────────────────────────────
+    // WEST moves (horizontal leftwards)
+    [west] (step < K) & (s=7)
+       -> 1 : (step' = step + 1);
+    [west] (step = K) & (s=7)
+       -> [p-2*e, p+2*e]:(s'=5)&(step'=0)
+        + [1-p-2*e, 1-p+2*e]:(s'=7)&(step'=step);
+
+    [west] (step < K) & (s=10)
+       -> 1 : (step' = step + 1);
+    [west] (step = K) & (s=10)
+       -> [p-2*e, p+2*e]:(s'=9)&(step'=0)
+        + [1-p-2*e, 1-p+2*e]:(s'=10)&(step'=step);
+
+    //───────────────────────────────────────────────────────────────────────────
+    // EXIT moves (diagonal/termination from 10→14)
+    [exit] (step < K) & (s=10)
+       -> 1 : (step' = step + 1);
+    [exit] (step = K) & (s=10)
+       -> [p-2*e, p+2*e]:(s'=14)&(step'=0)
+       + [1-p-2*e, 1-p+2*e]:(s'=10)&(step'=step);
+    [exit] (step < K) & (s=13)
+       -> 1 : (step' = step + 1);
+    [exit] (step = K) & (s=13)
+       -> [p-e, p+e]:(s'=14)&(step'=0)
+        + [1-p-e, 1-p+e]:(s'=13)&(step'=step);
+
+    // state 14 has no outgoing moves
+    [done] s = 14 & step = 0 -> true;
+endmodule
+
+
+label "goal" = (s = 14 & step = 0);
+
+rewards
+    [east] true : 1;
+    [west] true : 1;
+    [south] true : 1;
+endrewards

@@ -11,7 +11,7 @@ mdp
 //The difference of the reliability of the channels between the worst and at the best position
 const double pLDiff=0.7;
 const double pHDiff=0.1;
-const double u=0.1;
+const double u=0.08;
 //Scaling factor for the minimum reliability of the channels
 const double pL=0.2;
 const double pH=0.3;
@@ -22,8 +22,8 @@ const double pLMin=pL*(1-pLDiff);
 const double pHMin= pH*(1-pHDiff);
 
 // Grid size
-const int Xsize = 7;
-const int Ysize = 7;
+const int Xsize = 8;
+const int Ysize = 8;
 // Number of tries before an error
 const int MAXTRIES = 2;
 // Ball within the robot has to move.

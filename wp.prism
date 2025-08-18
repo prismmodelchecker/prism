@@ -1,5 +1,5 @@
 mdp
-const int N=10; // N*N grid map
+const int N=5; // N*N grid map
 const double p=0.1; // with probability p, a move to a neighboring state state occurs due to seeing and control noise
 const double e = 0.02;
 

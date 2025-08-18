@@ -1,0 +1,21 @@
+mdp
+
+module robot
+    s : [0..10] init 0;
+
+    // at state 0: west is very reliable, south less so
+    [west]  (s=0) -> [0.8,0.95]:(s'=1) + [0.05,0.2]: (s'=0);
+    [south] (s=0) -> [0.7,0.9]:(s'=3) + [0.1,0.3]: (s'=0);
+
+    // at state 1: south is quite noisy
+    [stop] (s=1) -> 1.0 : true;
+
+    [stop] (s=3) -> 1.0 : true;
+endmodule
+
+label "goal" = (s=3) | (s=1);
+
+rewards
+    [west] true:  1;
+    [south] true: 1;
+endrewards

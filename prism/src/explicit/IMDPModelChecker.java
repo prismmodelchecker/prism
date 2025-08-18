@@ -627,8 +627,8 @@ public class IMDPModelChecker extends ProbModelChecker
 	public ModelCheckerResult computeMultiStrategy(IMDP<Double> imdp, MDPRewards<Double> mdpRewards, double bound) throws PrismException
 	{
 		boolean value =true;
-		boolean min = true;
-		boolean robust = true;
+		boolean min =true;
+		boolean robust=true;
 		if (value){
 			if (min){
 				return computeMultiStrategyValueMin(imdp, mdpRewards, bound, robust);
@@ -667,7 +667,7 @@ public class IMDPModelChecker extends ProbModelChecker
 		System.out.println(n);
 		int sInit = imdp.getFirstInitialState();
 
-		double BIG = 1000.0;
+		double BIG = 100.0;
 		System.out.println(imdp.getLabelStates("goal"));
 		BitSet targetS = imdp.getLabelStates("goal");
 		System.out.println("Hi: " + imdp.getInitialStates());
@@ -685,9 +685,6 @@ public class IMDPModelChecker extends ProbModelChecker
 			final int s = states.nextInt();
 			target[counter] = s;
 			counter += 1;
-		}
-		for (int s = 0; s < n; s++){
-			System.out.println("State: " + s + ", nch: "+ imdp.getNumChoices(s));
 		}
 		if (robust==true){
 			mainLog.println("Calcualting multi Strategy under the assumption of worst transition per objective: ");
@@ -847,8 +844,10 @@ public class IMDPModelChecker extends ProbModelChecker
 				// now optimize
 				m.setObjective(pen, GRB.MINIMIZE);
 				m.setCallback(new trigger(m, 3600));
-
+				m.write("gurobi.lp");
 				m.optimize();
+
+				
 				if (m.get(GRB.IntAttr.Status) == GRB.Status.INFEASIBLE) {
 					System.out.println("Model infeasible—computing IIS...");
 					m.computeIIS();
@@ -864,9 +863,19 @@ public class IMDPModelChecker extends ProbModelChecker
 
 				soln = new double[n];
 				for (int s = 0; s < n; s++) {
-					System.out.println(v.get(s).get(GRB.StringAttr.VarName) + " = "+v.get(s).get(GRB.DoubleAttr.X));
+					if (s==0){
+						System.out.println(v.get(s).get(GRB.StringAttr.VarName) + " = "+v.get(s).get(GRB.DoubleAttr.X));
+					}
+					
+					
 					soln[s] = v.get(s).get(GRB.DoubleAttr.X);
 				}
+
+				int isMIP   = m.get(GRB.IntAttr.IsMIP);    // 1 => has integer vars
+				int isQP    = m.get(GRB.IntAttr.IsQP);     // 1 => quadratic objective
+				int isQCP   = m.get(GRB.IntAttr.IsQCP);    // 1 => quadratic constraints
+				int numQC   = m.get(GRB.IntAttr.NumQConstrs); // # quadratic constraints
+				System.out.printf("IsMIP=%d IsQP=%d IsQCP=%d NumQConstrs=%d%n",isMIP, isQP, isQCP, numQC);
 
 
 				mainLog.println("Multi Strategy to Obtain at most under worst assumption of adversary " + bound);
@@ -879,10 +888,8 @@ public class IMDPModelChecker extends ProbModelChecker
 				for (int s = 0; s < n; s++) {
 					mainLog.print(s + ":");
 					int numChoices = imdp.getNumChoices(s);
-					System.out.println(numChoices);
 					for (int i = 0; i < numChoices; i++) {
 						String sc = s +"-"+i;
-						System.out.println(eta.get(sc).get(GRB.DoubleAttr.X));
 						if (eta.get(sc).get(GRB.DoubleAttr.X) > 0) {
 							
 							mainLog.print(" " + imdp.getAction(s, i));
@@ -890,7 +897,27 @@ public class IMDPModelChecker extends ProbModelChecker
 					}
 					mainLog.println();
 				}
-
+				int permC = 0;
+				for (int s = 0; s < n; s++) {
+					//System.out.println(v.get(s).get(GRB.StringAttr.VarName) + " = "+v.get(s).get(GRB.DoubleAttr.X));
+					int numChoices = imdp.getNumChoices(s);
+					
+					if (numChoices == 1){
+						continue;
+					} else {
+						int tmC = 0;
+						for (int i = 0; i < numChoices; i++) {
+							String sc = s +"-"+i;
+							if (eta.get(sc).get(GRB.DoubleAttr.X) > 0) {
+								tmC += 1;
+							}
+						}
+						if (tmC > 1){
+							permC += 1;
+						}
+					}
+				}
+				mainLog.println("Number of Permissive States: " + permC);
 				// Clean up
 				m.dispose();
 				env.dispose();
@@ -898,7 +925,6 @@ public class IMDPModelChecker extends ProbModelChecker
 				throw new PrismException("Error solving LP: " +e.getMessage());
 			}
 	} else {
-
 
 		// Multi-strategy under best assumption
 		mainLog.println("Calcualting multi Strategy under the assumption of best transition per objective: ");
@@ -908,7 +934,7 @@ public class IMDPModelChecker extends ProbModelChecker
 				GRBEnv env = new GRBEnv("gurobi.log");
 				env.set(GRB.IntParam.OutputFlag, 1);
 				GRBModel m = new GRBModel(env);
-				//m.set(GRB.IntParam.NonConvex, 2);
+				m.set(GRB.IntParam.NonConvex, 2);
 
 				// --- 1) Value‐function vars v[s] ---
 				Map<Integer,GRBVar> v = new HashMap<>();
@@ -935,15 +961,8 @@ public class IMDPModelChecker extends ProbModelChecker
 							Map.Entry<Integer,Interval<Double>> e = it.next();
 							int t = e.getKey();
 							Interval<Double> transition_val = e.getValue();
-							String key = sc+"->"+t;
-							GRBVar up = m.addVar(0.0, 1.0, 0.0,GRB.CONTINUOUS, "delta-"+key);
-							delta.get(sc).put(t, up);
-							GRBLinExpr allowedUp = new GRBLinExpr();
-							GRBLinExpr allowedLow = new GRBLinExpr();
-							allowedUp.addTerm(transition_val.getUpper(), eta.get(sc));
-							allowedLow.addTerm(transition_val.getLower(), eta.get(sc));
-							m.addConstr(delta.get(sc).get(t), GRB.LESS_EQUAL, allowedUp, "upperBound");
-							m.addConstr(delta.get(sc).get(t), GRB.GREATER_EQUAL, allowedLow, "LowerBound");
+							transition_val.getLower();
+							transition_val.getUpper();
 						}
 						GRBLinExpr norm = new GRBLinExpr();
 						for (int t : delta.get(sc).keySet())
@@ -1105,6 +1124,28 @@ public class IMDPModelChecker extends ProbModelChecker
 					}
 					mainLog.println();
 				}
+
+				int permC = 0;
+				for (int s = 0; s < n; s++) {
+					//System.out.println(v.get(s).get(GRB.StringAttr.VarName) + " = "+v.get(s).get(GRB.DoubleAttr.X));
+					int numChoices = imdp.getNumChoices(s);
+					
+					if (numChoices == 1){
+						continue;
+					} else {
+						int tmC = 0;
+						for (int i = 0; i < numChoices; i++) {
+							String sc = s +"-"+i;
+							if (eta.get(sc).get(GRB.DoubleAttr.X) > 0) {
+								tmC += 1;
+							}
+						}
+						if (tmC > 1){
+							permC += 1;
+						}
+					}
+				}
+				System.out.println("Number of Permissive States: " + permC);
 				m.dispose();
 				env.dispose();
 			} catch (GRBException e) {
@@ -1623,14 +1664,14 @@ public class IMDPModelChecker extends ProbModelChecker
 		System.out.println("sInit = " + sInit);
 		System.out.println("Crash states = " + no);
 		System.out.println("Goal states  = " + targetS);
-		for (int bad : new int[]{4,6,14,15,16,32}) {
+		/* for (int bad : new int[]{4,6,14,15,16,32}) {
 			System.out.printf("state %d has %d choices%n",
 								bad, imdp.getNumChoices(bad));
 		}
 
 		for (int s = 0; s < n; s++){
 			System.out.println("State: " + s + ", nch: "+ imdp.getNumChoices(s));
-		}
+		} */
 		
 		//compute predecessor
 		/* Map<Integer, List<String>> predecessor = new HashMap<>();
@@ -1718,7 +1759,7 @@ public class IMDPModelChecker extends ProbModelChecker
 					for (int c = 0; c < numChoices; c++){
 						String sc = s + "-" + c;
 						eta.put(sc, m.addVar(0.0,1.0,0.0,GRB.BINARY,"eta"+"-"+sc));
-						lam.put(sc, m.addVar(-1.0,1.0,0,GRB.CONTINUOUS,"lam"+"-"+sc));
+						lam.put(sc, m.addVar(0.0,1.0,0,GRB.CONTINUOUS,"lam"+"-"+sc));
 						GRBLinExpr lamAU = new GRBLinExpr();
 						lamAU.addTerm(BIG, eta.get(sc));
 						GRBLinExpr lamAD = new GRBLinExpr();
@@ -1915,10 +1956,7 @@ public class IMDPModelChecker extends ProbModelChecker
 				System.out.printf("v[0]: %.4f%n", v.get(sInit).get(GRB.DoubleAttr.X));
 
 				soln = new double[n];
-				for (int s = 0; s < n; s++) {
-					System.out.println(v.get(s).get(GRB.StringAttr.VarName) + " = "+v.get(s).get(GRB.DoubleAttr.X));
-					soln[s] = v.get(s).get(GRB.DoubleAttr.X);
-				}
+				
 
 				mainLog.println("Multi Strategy to Obtain at least under worst assumption of adversary" + bound);
 				
@@ -1939,7 +1977,27 @@ public class IMDPModelChecker extends ProbModelChecker
 					}
 					mainLog.println();
 				}
-
+				int permC = 0;
+				for (int s = 0; s < n; s++) {
+					//System.out.println(v.get(s).get(GRB.StringAttr.VarName) + " = "+v.get(s).get(GRB.DoubleAttr.X));
+					int numChoices = imdp.getNumChoices(s);
+					
+					if (numChoices == 1){
+						continue;
+					} else {
+						int tmC = 0;
+						for (int i = 0; i < numChoices; i++) {
+							String sc = s +"-"+i;
+							if (eta.get(sc).get(GRB.DoubleAttr.X) > 0) {
+								tmC += 1;
+							}
+						}
+						if (tmC > 1){
+							permC += 1;
+						}
+					}
+				}
+				mainLog.println("Number of Permissive States: " + permC);
 				// Clean up
 				m.dispose();
 				env.dispose();
@@ -1947,7 +2005,6 @@ public class IMDPModelChecker extends ProbModelChecker
 				throw new PrismException("Error solving LP: " +e.getMessage());
 			}
 	} else {
-
 
 		// Multi-strategy under best assumption
 		mainLog.println("Calcualting multi Strategy under the assumption of best transition per objective: ");
@@ -2135,6 +2192,27 @@ public class IMDPModelChecker extends ProbModelChecker
 					}
 					mainLog.println();
 				}
+				int permC = 0;
+				for (int s = 0; s < n; s++) {
+					//System.out.println(v.get(s).get(GRB.StringAttr.VarName) + " = "+v.get(s).get(GRB.DoubleAttr.X));
+					int numChoices = imdp.getNumChoices(s);
+					
+					if (numChoices == 1){
+						continue;
+					} else {
+						int tmC = 0;
+						for (int i = 0; i < numChoices; i++) {
+							String sc = s +"-"+i;
+							if (eta.get(sc).get(GRB.DoubleAttr.X) > 0) {
+								tmC += 1;
+							}
+						}
+						if (tmC > 1){
+							permC += 1;
+						}
+					}
+				}
+				mainLog.println("Number of Permissive States: " + permC);
 				m.dispose();
 				env.dispose();
 			} catch (GRBException e) {

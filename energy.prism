@@ -1,0 +1,52 @@
+mdp
+const int M = 5;
+const int N = 5;
+const int B = 10;
+const double p=0.3; // with probability p, staying in place occurs due to seeing and control noise
+const double e = 0.05;
+
+formula area1 = (r=1 & c=3);
+formula area2 = (r=3 & c=1);
+formula area3 = (r=5 & c=3);
+formula regen = (r=3 & c=3);
+formula drained = (battery=0);
+
+module robot
+	//define robot position
+	r:[1..N] init 4; //grid row
+	c:[1..M] init 1; //grid column
+	battery:[0..B] init B; // battery level
+
+	// transitions
+	[wait] ! regen & !drained -> 1.0: (r'=r);
+	[east]  (c<M | c=M) & ! regen  & !drained-> [p/3-e,p/3+e]:(r'=min(r+1, N)) &(battery'=max(battery-1, 0))+ [p/3-e,p/3+e]: (c'=max(c-1, 1))&(battery'=max(battery-1, 0))+ [p/3-e,p/3+e]: (r'=max(r-1, 1)) &(battery'=max(battery-1, 0))+[1-p-e,1-p+e]: (c'=min(c+1, M))&(battery'=max(battery-1, 0));
+	[south] (r<N | r=N) & ! regen & !drained -> [1-p-e,1-p+e]:(r'=min(r+1, N)) &(battery'=max(battery-1, 0))+ [p/3-e,p/3+e]: (c'=min(c+1, M)) &(battery'=max(battery-1, 0))+ [p/3-e,p/3+e]:(r'=max(r-1, 1))&(battery'=max(battery-1, 0))+ [p/3-e,p/3+e]: (c'=max(c-1, 1))&(battery'=max(battery-1, 0));
+	[west]  (c>1 | c=1) & ! regen & !drained -> [p/3-e,p/3+e]:(r'=max(r-1, 1))&(battery'=max(battery-1, 0))+ [p/3-e,p/3+e]:(r'=min(r+1, N))&(battery'=max(battery-1, 0))+ [p/3-e,p/3+e]: (c'=min(c+1, M)) &(battery'=max(battery-1, 0))+ [1-p-e,1-p+e]: (c'=max(c-1, 1))&(battery'=max(battery-1, 0));
+	[north] (r=1 | r>1) & ! regen & !drained -> [1-p-e,1-p+e]:(r'=max(r-1, 1)) &(battery'=max(battery-1, 0))+ [p/3-e,p/3+e]: (c'=max(c-1, 1))&(battery'=max(battery-1, 0)) +[p/3-e,p/3+e]: (c'=min(c+1, M)) &(battery'=max(battery-1, 0))+ [p/3-e,p/3+e]:(r'=min(r+1, N))&(battery'=max(battery-1, 0));
+
+    // transitions battery regeneration
+    [east]  (c<M | c=M) & regen & !drained-> p/3:(r'=min(r+1, N)) &(battery'=min(battery+2, B))+ p/3: (c'=max(c-1, 1))&(battery'=min(battery+2, B))+ p/3: (r'=max(r-1, 1)) &(battery'=min(battery+2, B))+ (1-p): (c'=min(c+1, M))&(battery'=min(battery+2, B));
+    [south] (r<N | r=N) & regen & !drained-> (1-p):(r'=min(r+1, N)) &(battery'=min(battery+2, B))+ p/3: (c'=min(c+1, M)) &(battery'=min(battery+2, B))+ p/3:(r'=max(r-1, 1))&(battery'=min(battery+2, B))+ p/3: (c'=max(c-1, 1))&(battery'=min(battery+2, B));
+    [west]  (c>1 | c=1) & regen & !drained-> p/3:(r'=max(r-1, 1))&(battery'=min(battery+2, B))+ p/3:(r'=min(r+1, N))&(battery'=min(battery+2, B))+ p/3: (c'=min(c+1, M)) &(battery'=min(battery+2, B))+ (1-p): (c'=max(c-1, 1))&(battery'=min(battery+2, B));
+    [north] (r=1 | r>1) & regen & !drained-> (1-p):(r'=max(r-1, 1)) &(battery'=min(battery+2, B))+ p/3: (c'=max(c-1, 1))&(battery'=min(battery+2, B)) + p/3: (c'=min(c+1, M)) &(battery'=min(battery+2, B))+ p/3:(r'=min(r+1, N))&(battery'=min(battery+2, B));
+    [wait]  regen & !drained -> 1: (r'=r) &(c'=c) & (battery'=min(battery+2, B));
+
+	// terminal state self-loop to avoid deadlock
+	[rescue] drained -> 1: (r'=r) &(c'=c) & (battery' = 0);
+
+endmodule
+
+label "goal" = area2;
+label "obs" = drained;
+
+rewards
+	[east] !drained: 1;
+	[south] !drained: 1;
+	[west] !drained: 1;
+	[north] !drained: 1;
+	[wait] !drained: 1;
+
+	// drained
+    [rescue] drained: 50;
+
+endrewards

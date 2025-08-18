@@ -1,0 +1,51 @@
+mdp
+
+module robot
+    s : [0..10] init 0;
+
+    // at state 0: west is very reliable, south less so
+    [west]  (s=0) -> [0.8,1.0]:(s'=1) + [0.0,0.2]: (s'=0);
+    [south] (s=0) -> [0.7,0.9]:(s'=3) + [0.1,0.3]: (s'=0);
+
+    // at state 1: south is quite noisy
+    [south] (s=1) -> [0.6,0.8]:(s'=2) + [0.2,0.4]:(s'=1);
+
+    // at state 2: east is moderately reliable; south is very reliable
+    [east]  (s=2) -> [0.75,0.9]:(s'=3) + [0.1,0.25]:(s'=2);
+    [south] (s=2) -> [0.85,1.0]:(s'=5) + [0.0,0.15]:(s'=2);
+
+    // at state 3: east is less reliable, south more
+    [east]  (s=3) -> [0.65,0.85]:(s'=4) + [0.15,0.35]:(s'=3);
+    [south] (s=3) -> [0.8,0.95]:(s'=6) + [0.05,0.2]:(s'=3);
+
+    // at state 4
+    [south] (s=4) -> [0.8,1.0]:(s'=7) + [0.0,0.2]:(s'=4);
+
+    // at state 5
+    [east]  (s=5) -> [0.7,0.9]:(s'=6) + [0.1,0.3]:(s'=5);
+
+    // at state 6
+    [east]  (s=6) -> [0.8,0.95]:(s'=7) + [0.05,0.2]:(s'=6);
+    [south] (s=6) -> [0.6,0.8]:(s'=8) + [0.2,0.4]:(s'=6);
+
+    // at state 7
+    [east]  (s=7) -> [0.85,1.0]:(s'=10) + [0.0,0.15]:(s'=7);
+
+    // at state 8
+    [east]  (s=8) -> [0.7,0.9]:(s'=9) + [0.1,0.3]:(s'=8);
+
+    // at state 9
+    [north] (s=9) -> [0.8,0.9]:(s'=7) + [0.1,0.2]:(s'=9);
+
+    // stop at destination
+    [stop]  (s=10) -> true;
+endmodule
+
+label "goal" = (s=10);
+
+rewards
+    [west] true:  1;
+    [south] true: 1;
+    [east] true:  1;
+    [north] true: 1;
+endrewards

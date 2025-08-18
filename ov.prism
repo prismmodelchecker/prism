@@ -1,0 +1,74 @@
+mdp
+
+//─── PARAMETERS ────────────────────────────────────────────────────────────────
+const int N = 4;             // grid size: 0..N-1 in both x and y
+const double p = 0.8;        // probability of moving in intended direction
+                              // slip to each of the other 3 directions with (1-p)/3
+const double e = 0.05;
+
+//─── HOLES & GOAL ──────────────────────────────────────────────────────────────
+// standard 4×4 layout:
+// S F F F
+// H F H F
+// F F F H
+// H F F G
+formula hole = (x=1 & y=0)  
+             | (x=1 & y=3)  
+             | (x=2 & y=4)  
+             | (x=3 & y=2)  
+             | (x=4 & y=1)  
+             | (x=4 & y=4);
+formula goal = (x=5 & y=5);
+formula terminal = hole | goal;
+
+//─── MODULE ────────────────────────────────────────────────────────────────────
+module frozenlake
+    x : [0..N-1] init 0;     // column
+    y : [0..N-1] init 0;     // row
+
+    //──– North ───────────────────────────────────────────────────────────
+    [north] !terminal & !goal -> 
+       [p-e,p+e]                 : (y'=max(y-1,0)) + 
+        [(1-p)/3 - e, (1-p)/3 + e]           : (x'=max(x-1,0)) + 
+        [(1-p)/3 - e, (1-p)/3 + e]           : (x'=min(x+1,N-1)) +
+        [(1-p)/3 - e, (1-p)/3 + e]           : (y'=min(y+1,N-1));
+
+    //──– South ───────────────────────────────────────────────────────────
+    [south] !terminal & !goal -> 
+        [p-e,p+e]                 : (y'=min(y+1,N-1)) + 
+        [(1-p)/3 - e, (1-p)/3 + e]            : (x'=max(x-1,0)) + 
+        [(1-p)/3 - e, (1-p)/3 + e]            : (x'=min(x+1,N-1)) +
+        [(1-p)/3 - e, (1-p)/3 + e]            : (y'=max(y-1,0));
+
+    //──– East ────────────────────────────────────────────────────────────
+    [east]  !terminal & !goal-> 
+        [p-e,p+e]                 : (x'=min(x+1,N-1)) + 
+        [(1-p)/3 - e, (1-p)/3 + e]            : (y'=max(y-1,0)) + 
+        [(1-p)/3 - e, (1-p)/3 + e]            : (y'=min(y+1,N-1)) +
+        [(1-p)/3 - e, (1-p)/3 + e]            : (x'=max(x-1,0));
+
+    //──– West ────────────────────────────────────────────────────────────
+    [west]  !terminal & !goal-> 
+        [p-e,p+e]                 : (x'=max(x-1,0)) + 
+        [(1-p)/3 - e, (1-p)/3 + e]           : (y'=max(y-1,0)) + 
+        [(1-p)/3 - e, (1-p)/3 + e]           : (y'=min(y+1,N-1)) +
+        [(1-p)/3 - e, (1-p)/3 + e]           : (x'=min(x+1,N-1));
+
+    //──– At terminal (hole or goal), stay where you are ─────────────────
+    [getTrap] terminal -> 1.0 : (x'=x) & (y'=y);
+
+    [done] goal -> true;
+endmodule
+
+//─── LABELS ───────────────────────────────────────────────────────────────────
+label "start"  = (x=0 & y=0);
+label "Crash"   = hole;
+label "goal"   = goal;
+label "safe"   = !hole & !goal;
+
+rewards
+  [north] !terminal & !goal : 1;
+  [west] !terminal & !goal : 1;
+  [east] !terminal & !goal : 1;
+  [south] !terminal & !goal : 1;
+endrewards
