@@ -1557,7 +1557,7 @@ public class StateModelChecker extends PrismComponent
 			// Get rewards/labels
 			List<Rewards<Value>> rewards = new ArrayList<>();
 			for (int r = 0; r < rewardGen.getNumRewardStructs(); r++) {
-				rewards.add(constructRewards(model, r));
+				rewards.add(constructRewards(model, r, true));
 			}
 			List<String> labelNames = new ArrayList<>();
 			if (exportTask.initLabelIncluded()) {
