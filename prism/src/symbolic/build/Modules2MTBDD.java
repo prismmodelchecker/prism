@@ -2114,12 +2114,12 @@ public class Modules2MTBDD
 						s += "\nIf this is the case, try strengthening the predicate.";
 						throw new PrismLangException(s, rs.getRewardStructItem(i));
 					}
-					if (dmin < 0) {
+					/*if (dmin < 0) {
 						s = "Reward structure item contains negative rewards (" + dmin + ").";
 						s += "\nNote that these may correspond to states which are unreachable.";
 						s += "\nIf this is the case, try strengthening the predicate.";
 						throw new PrismLangException(s, rs.getRewardStructItem(i));
-					}
+					}*/
 					// add to state rewards
 					stateRewards[j] = JDD.Plus(stateRewards[j], item);
 				}
@@ -2160,12 +2160,12 @@ public class Modules2MTBDD
 						s += "\nIf this is the case, try strengthening the predicate.";
 						throw new PrismLangException(s, rs.getRewardStructItem(i));
 					}
-					if (dmin < 0) {
+					/*if (dmin < 0) {
 						s = "Reward structure item contains negative rewards (" + dmin + ").";
 						s += "\nNote that these may correspond to states which are unreachable.";
 						s += "\nIf this is the case, try strengthening the predicate.";
 						throw new PrismLangException(s, rs.getRewardStructItem(i));
-					}
+					}*/
 					// add result to rewards
 					compDDs.rewards[j] = JDD.Plus(compDDs.rewards[j], item);
 				}

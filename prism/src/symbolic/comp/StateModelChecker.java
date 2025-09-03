@@ -1657,6 +1657,20 @@ public class StateModelChecker extends PrismComponent implements ModelChecker
 		return transRewards; 
 	}
 
+	/**
+	 * Check that rewards contained in an MTBDD are non-negative.
+	 * Throws an exception (with explanatory message) if negative rewards are found.
+	 * @param rewards The rewards MTBDD to check
+	 * @param rewardType A string describing the type of rewards: "State" or "Transition"
+	 */
+	public void checkNegativeRewards(JDDNode rewards, String rewardType) throws PrismException
+	{
+		double rmin = JDD.FindMin(rewards);
+		if (rmin < 0) {
+			throw new PrismException(rewardType + " rewards are negative (" + rmin + ") for some states");
+		}
+	}
+
 	@Override
 	public Values getConstantValues()
 	{

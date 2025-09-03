@@ -343,7 +343,9 @@ public class NondetModelChecker extends NonProbModelChecker
 		// Get rewards
 		Object rs = expr.getRewardStructIndex();
 		JDDNode stateRewards = getStateRewardsByIndexObject(rs, model, constantValues);
+		checkNegativeRewards(stateRewards, "State");
 		JDDNode transRewards = getTransitionRewardsByIndexObject(rs, model, constantValues);
+		checkNegativeRewards(transRewards, "Transition");
 
 		// Compute rewards
 		StateValues rewards = null;
@@ -791,7 +793,9 @@ public class NondetModelChecker extends NonProbModelChecker
 				throw new PrismNotSupportedException("Multi-objective model checking does not support state rewards; please convert to transition rewards");
 			}
 			// Add transition rewards to list
-			transRewardsList.add(getTransitionRewardsByIndexObject(rs, model, constantValues));
+			JDDNode transRewards = getTransitionRewardsByIndexObject(rs, model, constantValues);
+			checkNegativeRewards(transRewards, "Transition");
+			transRewardsList.add(transRewards);
 		}
 		
 		// Check that the temporal/reward operator is supported, and store step bounds if present

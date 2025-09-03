@@ -19,6 +19,6 @@ module die
 endmodule
 
 rewards "coin_flips"
-	s<7 : 2;
+	//s<7 : 2;
 	s<7 : 1-2;
 endrewards
