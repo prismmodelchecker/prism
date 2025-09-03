@@ -201,10 +201,10 @@ public class ConstructRewards extends PrismComponent
 		if (rewardGen.isRewardLookupSupported(RewardLookup.BY_STATE)) {
 			State state = statesList.get(s);
 			stateIndex = state;
-			rew = rewardGen.getStateReward(r, state);
+			rew = rewardGen.getStateReward(r, state, allowNegative);
 		} else if (rewardGen.isRewardLookupSupported(RewardLookup.BY_STATE_INDEX)) {
 			stateIndex = s;
-			rew = rewardGen.getStateReward(r, s);
+			rew = rewardGen.getStateReward(r, s, allowNegative);
 		} else {
 			throw new PrismException("Unknown reward lookup mechanism for reward generator");
 		}
@@ -228,10 +228,10 @@ public class ConstructRewards extends PrismComponent
 		if (rewardGen.isRewardLookupSupported(RewardLookup.BY_STATE)) {
 			State state = statesList.get(s);
 			stateIndex = state;
-			rew = rewardGen.getStateActionReward(r, state, action);
+			rew = rewardGen.getStateActionReward(r, state, action, allowNegative);
 		} else if (rewardGen.isRewardLookupSupported(RewardLookup.BY_STATE_INDEX)) {
 			stateIndex = s;
-			rew = rewardGen.getStateActionReward(r, s, action);
+			rew = rewardGen.getStateActionReward(r, s, action, allowNegative);
 		} else {
 			throw new PrismException("Unknown reward lookup mechanism for reward generator");
 		}

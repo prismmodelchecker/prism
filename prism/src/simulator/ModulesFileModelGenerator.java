@@ -720,7 +720,7 @@ public class ModulesFileModelGenerator<Value> implements ModelGenerator<Value>, 
 	}
 	
 	@Override
-	public Value getStateReward(int r, State state) throws PrismException
+	public Value getStateReward(int r, State state, boolean allowNegative) throws PrismException
 	{
 		RewardStruct rewStr = modulesFile.getRewardStruct(r);
 		int n = rewStr.getNumItems();
@@ -739,8 +739,8 @@ public class ModulesFileModelGenerator<Value> implements ModelGenerator<Value>, 
 						if (!eval.isFinite(rew)) {
 							throw new PrismLangException("Reward structure is not finite at state " + state, rewStr.getReward(i));
 						}
-						if (!eval.geq(rew, eval.zero())) {
-							throw new PrismLangException("Reward structure is negative + (" + rew + ") at state " + state, originalModulesFile.getRewardStruct(r).getReward(i));
+						if (!allowNegative && !eval.geq(rew, eval.zero())) {
+							throw new PrismLangException("Reward structure is negative (" + rew + ") at state " + state, originalModulesFile.getRewardStruct(r).getReward(i));
 						}
 					}
 					d = eval.add(d, rew);
@@ -751,7 +751,7 @@ public class ModulesFileModelGenerator<Value> implements ModelGenerator<Value>, 
 	}
 
 	@Override
-	public Value getStateActionReward(int r, State state, Object action) throws PrismException
+	public Value getStateActionReward(int r, State state, Object action, boolean allowNegative) throws PrismException
 	{
 		RewardStruct rewStr = modulesFile.getRewardStruct(r);
 		int n = rewStr.getNumItems();
@@ -772,8 +772,8 @@ public class ModulesFileModelGenerator<Value> implements ModelGenerator<Value>, 
 							if (!eval.isFinite(rew)) {
 								throw new PrismLangException("Reward structure is not finite at state " + state, rewStr.getReward(i));
 							}
-							if (!eval.geq(rew, eval.zero())) {
-								throw new PrismLangException("Reward structure is negative + (" + rew + ") at state " + state, originalModulesFile.getRewardStruct(r).getReward(i));
+							if (!allowNegative && !eval.geq(rew, eval.zero())) {
+								throw new PrismLangException("Reward structure is negative (" + rew + ") at state " + state, originalModulesFile.getRewardStruct(r).getReward(i));
 							}
 						}
 						d = eval.add(d, rew);
