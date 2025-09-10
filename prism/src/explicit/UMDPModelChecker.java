@@ -30,12 +30,14 @@ import java.util.BitSet;
 import java.util.PrimitiveIterator;
 
 import acceptance.AcceptanceReach;
+import acceptance.AcceptanceType;
 import common.IntSet;
 import common.Interval;
 import common.IterableStateSet;
 import explicit.rewards.MDPRewards;
 import explicit.rewards.Rewards;
 import parser.ast.Expression;
+import parser.type.TypeDouble;
 import prism.AccuracyFactory;
 import prism.Evaluator;
 import prism.PrismComponent;
@@ -66,7 +68,69 @@ public class UMDPModelChecker extends ProbModelChecker
 	}
 
 	// Model checking functions
-	
+
+	@Override
+	@SuppressWarnings("unchecked")
+	protected StateValues checkProbPathFormulaLTL(Model<?> model, Expression expr, boolean qual, MinMax minMax, BitSet statesOfInterest) throws PrismException
+	{
+		// For min probabilities, need to negate the formula
+		// (add parentheses to allow re-parsing if required)
+		if (minMax.isMin()) {
+			expr = Expression.Not(Expression.Parenth(expr.deepCopy()));
+		}
+
+		// Build product of UMDP and DA for the LTL formula, and do any required exports
+		LTLModelChecker mcLtl = new LTLModelChecker(this);
+		AcceptanceType[] allowedAcceptance = {
+				AcceptanceType.BUCHI,
+				AcceptanceType.RABIN,
+				AcceptanceType.GENERALIZED_RABIN,
+				AcceptanceType.REACH
+		};
+		LTLModelChecker.LTLProduct<UMDP<Double>> product = mcLtl.constructDAProductForLTLFormula(this, (UMDP<Double>) model, expr, statesOfInterest, allowedAcceptance);
+		doProductExports(product);
+
+		// Find accepting states + compute reachability probabilities
+		BitSet acc;
+		if (product.getAcceptance() instanceof AcceptanceReach) {
+			mainLog.println("\nSkipping accepting MEC computation since acceptance is defined via goal states...");
+			acc = ((AcceptanceReach)product.getAcceptance()).getGoalStates();
+		} else {
+			mainLog.println("\nFinding accepting MECs...");
+			acc = mcLtl.findAcceptingECStates(product.getProductModel(), product.getAcceptance());
+		}
+		mainLog.println("\nComputing reachability probabilities...");
+		UMDPModelChecker mcProduct = new UMDPModelChecker(this);
+		mcProduct.inheritSettings(this);
+		ModelCheckerResult res = mcProduct.computeReachProbs((UMDP<Double>) product.getProductModel(), acc, minMax.isMax() ? minMax : minMax.negate());
+		StateValues probsProduct = StateValues.createFromArrayResult(res, product.getProductModel());
+
+		// Subtract from 1 if we're model checking a negated formula for regular Pmin
+		if (minMax.isMin()) {
+			probsProduct.applyFunction(TypeDouble.getInstance(), v -> 1.0 - (double) v);
+		}
+
+		// Output vector over product, if required
+		if (getExportProductVector()) {
+			mainLog.println("\nExporting product solution vector matrix to file \"" + getExportProductVectorFilename() + "\"...");
+			PrismFileLog out = new PrismFileLog(getExportProductVectorFilename());
+			probsProduct.print(out, false, false, false, false);
+			out.close();
+		}
+
+		// If a strategy was generated, lift it to the product and store
+		if (res.strat != null) {
+			Strategy<Double> stratProduct = new FMDStrategyProduct<>(product, (MDStrategy<Double>) res.strat);
+			result.setStrategy(stratProduct);
+		}
+
+		// Mapping probabilities in the original model
+		StateValues probs = product.projectToOriginalModel(probsProduct);
+		probsProduct.clear();
+
+		return probs;
+	}
+
 	@Override
 	@SuppressWarnings("unchecked")
 	protected StateValues checkProbPathFormulaCosafeLTL(Model<?> model, Expression expr, boolean qual, MinMax minMax, BitSet statesOfInterest) throws PrismException
