@@ -1,0 +1,4 @@
+0: f
+1: m
+2: trapped
+3: done

@@ -1,0 +1,66 @@
+mdp
+
+module TenOut_allLoPositive
+  // States: 0 initial; 1..6 lead to goal; 7..10 lead to sink; 11 goal; 12 sink
+  s : [0..12] init 0;
+
+  // -------- action a --------
+  // lo(goal)=6*0.02=0.12, lo(sink)=4*0.03=0.12  → sum lo = 0.24 ≤ 1
+  // hi(sink)=4*0.20 = 0.80 → Pmin(goal) ≥ max(sum_lo_goal, 1 - sum_hi_sink)
+  //                        = max(0.12, 1-0.80) = 0.20
+  [a] s=0 ->
+    // 6 goal-ward successors
+    [0.02,0.25] : (s'=1) +
+    [0.02,0.25] : (s'=2) +
+    [0.02,0.25] : (s'=3) +
+    [0.02,0.25] : (s'=4) +
+    [0.02,0.25] : (s'=5) +
+    [0.02,0.25] : (s'=6) +
+    // 4 sink-ward successors
+    [0.03,0.20] : (s'=7) +
+    [0.03,0.20] : (s'=8) +
+    [0.03,0.20] : (s'=9) +
+    [0.03,0.20] : (s'=10);
+
+  // -------- action b --------
+  // lo(goal)=6*0.03=0.18, lo(sink)=4*0.02=0.08 → sum lo = 0.26 ≤ 1
+  // hi(sink)=4*0.15=0.60 → Pmin(goal) ≥ max(0.18, 1-0.60)=0.40
+  [b] s=0 ->
+    // 6 goal-ward successors
+    [0.03,0.25] : (s'=1) +
+    [0.03,0.25] : (s'=2) +
+    [0.03,0.25] : (s'=3) +
+    [0.03,0.25] : (s'=4) +
+    [0.03,0.25] : (s'=5) +
+    [0.03,0.25] : (s'=6) +
+    // 4 sink-ward successors
+    [0.02,0.15] : (s'=7) +
+    [0.02,0.15] : (s'=8) +
+    [0.02,0.15] : (s'=9) +
+    [0.02,0.15] : (s'=10);
+
+  // Route successors
+  [t1] s=1  -> (s'=11);
+  [t1] s=2  -> (s'=11);
+  [t1] s=3  -> (s'=11);
+  [t1] s=4  -> (s'=11);
+  [t1] s=5  -> (s'=11);
+  [t1] s=6  -> (s'=11);
+  [t2] s=7  -> (s'=12);
+  [t2] s=8  -> (s'=12);
+  [t2] s=9  -> (s'=12);
+  [t2] s=10 -> (s'=12);
+
+  // Absorbing goal/sink
+  [end1] s=11 -> (s'=11);
+  [end2] s=12 -> (s'=12);
+endmodule
+
+rewards
+  [a] true : 1;
+  [b] true : 1;
+endrewards
+
+label "goal" = s=11;
+label "Crash" = s=12;
+

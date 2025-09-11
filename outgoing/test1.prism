@@ -1,0 +1,25 @@
+mdp
+
+module OneOut_allLoPositive
+  // States: 0 initial; 1 goes to goal; 2 goes to sink; 3 goal; 4 sink
+  s : [0..4] init 0;
+
+  // Only one successor per action (prob must be 1 in any feasible assignment)
+  [a] s=0 -> [0.90,1.00] : (s'=1);
+  [b] s=0 -> [0.90,1.00] : (s'=2);
+
+  // Route to absorbing goal/sink
+  [t1] s=1 -> (s'=3);
+  [t2] s=2 -> (s'=4);
+
+  [end1] s=3 -> (s'=3); // goal
+  [end2] s=4 -> (s'=4); // sink
+endmodule
+
+rewards
+  [a] true : 1;
+  [b] true : 1;
+endrewards
+
+label "goal" = s=3;
+label "Crash" = s=4;

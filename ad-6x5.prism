@@ -1,0 +1,51 @@
+mdp
+
+// Model parameters 
+const double p = 0.1;  // Mean disturbance probability
+const double e = 0.05;        // Epistemic uncertainty 
+formula a = x * e;     // Epistemic uncertainty grows with x-coordinate
+
+const int M = 5; // Environment width
+const int N = 6; // Environment height
+
+const double eps = 0.0001; // Lower bound for probability ranges
+
+// Goal
+formula goal = x = 1 & y = N; 
+
+// Obstacles 
+formula crashed = (x = 2 & y = 3) | (x = 3 & y = 3) | (x = 3 & y = 4);
+
+// UAV behaviour 
+module env
+
+	x : [1..M] init 1;
+	y : [1..N] init 1;
+
+	[up]    !crashed & y < N -> [max(eps,1-3*(p+a)), min(1-3*(p-a),1)] : (y'=min(y+1,N)) // Probability to move in intended direction
+			  + [max(eps,p-a), min(p+a,1)] : (y'=min(y+1,N)) & (x'=max(x-1,1))   // Probabilities to get pushed by wind
+			  + [max(eps,p-a), min(p+a,1)] : (y'=min(y+1,N)) & (x'=min(x+1,M))
+			  + [max(eps,p-a), min(p+a,1)] : true;
+   
+	[right] !crashed & x < M -> [max(eps,1-3*(p+a)), min(1-3*(p-a),1)] : (x'=min(x+1,M)) // Probability to move in intended direction
+			  + [max(eps,p-a), min(p+a,1)] : (x'=min(x+1,M)) & (y'=min(y+1,N))   // Probabilities to get pushed by wind
+			  + [max(eps,p-a), min(p+a,1)] : (x'=max(x-1,1)) 		     
+			  + [max(eps,p-a), min(p+a,1)] : true;
+
+	[left] 	!crashed & x > 1 -> [max(eps,1-3*(p+a)), min(1-3*(p-a),1)] : (x'=max(x-1,1)) // Probability to move in intended direction
+		   	  + [max(eps,p-a), min(p+a,1)] : (x'=max(x-1,1)) & (y'=min(y+1,N))   // Probabilities to get pushed by wind
+			  + [max(eps,p-a), min(p+a,1)] : (x'=min(x+1,M)) 		     
+			  + [max(eps,p-a), min(p+a,1)] : true;
+
+endmodule
+
+// Your handcrafted policy
+module policy
+	[up]    x < 3  -> true;
+	[left]  x >= 3 -> true;
+	[right] false -> true;
+endmodule
+
+// Labelling
+label "Crash" = crashed;
+label "goal" = goal;

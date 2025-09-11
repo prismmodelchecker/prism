@@ -1,7 +1,7 @@
 mdp
 
 //─── PARAMETERS ──────────────────────────────────────────────────────────────
-const int K = 1000;            // # of sub‐steps per move
+const int K = 250;            // # of sub‐steps per move
 const double p = 0.7;       // nominal success prob.
 const double e = 0.01;       // uncertainty radius
 

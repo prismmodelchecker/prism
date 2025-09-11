@@ -1,0 +1,86 @@
+mdp
+
+//─── PARAMETERS ────────────────────────────────────────────────────────────────
+const int N = 5;             // grid size: 0..N-1 in both x and y
+const int K = 1000;             // # of intermediate sub-steps per move
+const double p = 0.8;        // intended-direction probability
+const double e = 0.05;       // slip‐interval half-width
+
+//─── HOLES & GOAL ──────────────────────────────────────────────────────────────
+formula hole = (x=1 & y=0)  
+             | (x=1 & y=3)  
+             | (x=2 & y=4)  
+             | (x=3 & y=2)  
+             | (x=4 & y=1);
+
+formula goal = (x=4 & y=4);
+formula terminal = hole | goal;
+
+//─── MODULE ────────────────────────────────────────────────────────────────────
+module frozenlake
+
+  // “true” state
+  x   : [0..N-1] init 0;     // column
+  y   : [0..N-1] init 0;     // row
+
+  // internal bookkeeping for a “multi-step” move
+  tx  : [0..N-1] init 0;     // target column
+  ty  : [0..N-1] init 0;     // target row
+  step: [0..K]   init 0;     // current sub-step (0 = ready to pick a direction)
+
+  //── Initial direction choice (step=0) ────────────────────────────────────────
+  [north] step=0 & !terminal -> 
+      // intended north
+      [p-e,   p+e]            : (tx'=x) & (ty'=max(y-1,0)) & (step'=1) +
+      // slip west
+      [(1-p)/3 - e, (1-p)/3 + e] : (tx'=max(x-1,0)) & (ty'=y) & (step'=1) +
+      // slip east
+      [(1-p)/3 - e, (1-p)/3 + e] : (tx'=min(x+1,N-1)) & (ty'=y) & (step'=1) +
+      // slip south
+      [(1-p)/3 - e, (1-p)/3 + e] : (tx'=x) & (ty'=min(y+1,N-1)) & (step'=1);
+
+  [south] step=0 & !terminal ->
+      [p-e,   p+e]            : (tx'=x) & (ty'=min(y+1,N-1)) & (step'=1) +
+      [(1-p)/3 - e, (1-p)/3 + e] : (tx'=max(x-1,0)) & (ty'=y) & (step'=1) +
+      [(1-p)/3 - e, (1-p)/3 + e] : (tx'=min(x+1,N-1)) & (ty'=y) & (step'=1) +
+      [(1-p)/3 - e, (1-p)/3 + e] : (tx'=x) & (ty'=max(y-1,0)) & (step'=1);
+
+  [east] step=0 & !terminal ->
+      [p-e,   p+e]            : (tx'=min(x+1,N-1)) & (ty'=y) & (step'=1) +
+      [(1-p)/3 - e, (1-p)/3 + e] : (tx'=x) & (ty'=max(y-1,0)) & (step'=1) +
+      [(1-p)/3 - e, (1-p)/3 + e] : (tx'=x) & (ty'=min(y+1,N-1)) & (step'=1) +
+      [(1-p)/3 - e, (1-p)/3 + e] : (tx'=max(x-1,0)) & (ty'=y) & (step'=1);
+
+  [west] step=0 & !terminal ->
+      [p-e,   p+e]            : (tx'=max(x-1,0)) & (ty'=y) & (step'=1) +
+      [(1-p)/3 - e, (1-p)/3 + e] : (tx'=x) & (ty'=max(y-1,0)) & (step'=1) +
+      [(1-p)/3 - e, (1-p)/3 + e] : (tx'=x) & (ty'=min(y+1,N-1)) & (step'=1) +
+      [(1-p)/3 - e, (1-p)/3 + e] : (tx'=min(x+1,N-1)) & (ty'=y) & (step'=1);
+
+  //── Substep “in-flight” transitions ─────────────────────────────────────────
+  // for 1 ≤ step < K, only one action: advance sub-step
+  [move] step>0 & step<K -> 1.0 : (step'=step+1);
+
+  // at step=K commit the move into (x,y) and reset
+  [move] step=K -> 1.0 : (x'=tx) & (y'=ty) & (step'=0);
+
+  //── Terminal self-loops ─────────────────────────────────────────────────────
+  [getTrap] terminal -> 1.0 : (x'=x) & (y'=y) & (step'=0);
+  [done] goal & step = 0  -> true;
+
+endmodule
+
+//─── LABELS ───────────────────────────────────────────────────────────────────
+label "start" = (x=0 & y=0) & step=0;
+label "Crash" = hole;
+label "goal"  = goal & step=0;
+label "safe"  = !hole & !goal;
+
+//─── REWARDS ─────────────────────────────────────────────────────────────────
+rewards
+  // count 1 reward per *grid-to-grid* move (i.e. when you pick a direction at step=0)
+  [north] step=0 & !terminal : 1;
+  [south] step=0 & !terminal : 1;
+  [east]  step=0 & !terminal : 1;
+  [west]  step=0 & !terminal : 1;
+endrewards

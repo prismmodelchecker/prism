@@ -1,0 +1,27 @@
+mdp
+
+const double e = 0.1;
+
+module OneOut_allLoPositive
+  // States: 0 initial; 1 goes to goal; 2 goes to sink; 3 goal; 4 sink
+  s : [0..3] init 0;
+
+  // s = 0
+  [m] s=0 -> [0.9 - e, 0.9 + e] : (s'=1) + [0.1 - e, 0.1 + e] : (s' = 2);
+  [f] s=0 -> [0.78-e,0.78+e] : (s'=3) + [0.22-e, 0.22+e] : (s' = 2);
+
+  // s = 1
+
+  [m] s = 1 -> [0.9 - e, 0.9 + e] : (s'=3) + [0.1 - e, 0.1 + e] : (s' = 2);
+
+  [trapped] s=2 -> (s'=2); // trap
+  [done] s=3 -> (s'=3); // goal
+endmodule
+
+rewards
+  [m] true : 1;
+  [f] true : 1;
+endrewards
+
+label "goal" = s=3;
+label "Crash" = s=2;

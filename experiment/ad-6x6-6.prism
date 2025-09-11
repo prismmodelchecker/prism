@@ -1,0 +1,68 @@
+mdp
+
+// Model parameters 
+const double p = 0.1;  // Mean disturbance probability
+const double e = 0.05;        // Epistemic uncertainty 
+formula a = x * e;     // Epistemic uncertainty grows with x-coordinate
+
+const int M = 8; // Environment width
+const int N = 8; // Environment height
+
+const double eps = 0.0001; // Lower bound for probability ranges
+
+// Goal
+formula goal = x = 1 & y = N; 
+
+// Obstacles 
+// Obstacles
+formula crashed = (x = 2 & y = 3)
+                | (x = 3 & y = 3)
+                | (x = 3 & y = 4)
+                | (x = 2 & y = 2)
+                | (x = 4 & y = 1)
+                | (x = 5 & y = 3)  // new
+                | (x = 6 & y = 2)  // new
+                | (x = 7 & y = 5)  // new
+                | (x = 4 & y = 6)  // new
+                | (x = 2 & y = 7); // new
+
+
+// UAV behaviour 
+module env
+
+	x : [1..M] init 1;
+	y : [1..N] init 1;
+
+	[up]    !crashed & y < N -> [max(eps,1-4*(p+a)), min(1-4*(p-a),1)] : (y'=min(y+1,N)) // Probability to move in intended direction
+			  + [max(eps,p-a), min(p+a,1)] : (y'=min(y+1,N)) & (x'=max(x-1,1))   // Probabilities to get pushed by wind
+			  + [max(eps,p-a), min(p+a,1)] : (y'=min(y+1,N)) & (x'=min(x+1,M))
+			  + [max(eps,p-a), min(p+a,1)] : true
+			  + [max(eps,(p-a)/2), min((p+a)/2,1)]: (y'=min(y+1,N)) & (x'=max(x-2,1)) 
+			  + [max(eps,(p-a)/2), min((p+a)/2,1)]: (y'=min(y+1,N)) & (x'=max(x+2,1)) ;
+   
+	[right] !crashed & x < M -> [max(eps,1-4*(p+a)), min(1-4*(p-a),1)] : (x'=min(x+1,M)) // Probability to move in intended direction
+			  + [max(eps,p-a), min(p+a,1)] : (x'=min(x+1,M)) & (y'=min(y+1,N))   // Probabilities to get pushed by wind
+			  + [max(eps,p-a), min(p+a,1)] : (x'=max(x-1,1)) 		     
+			  + [max(eps,p-a), min(p+a,1)] : true
+			  + [max(eps,(p-a)/2), min((p+a)/2,1)]: (y'=min(y+2,N)) & (x'=max(x+1,1)) 
+			  + [max(eps,(p-a)/2), min((p+a)/2,1)]: (x'=max(x-2,1));
+
+	[left] 	!crashed & x > 1 -> [max(eps,1-3*(p+a)), min(1-3*(p-a),1)] : (x'=max(x-1,1)) // Probability to move in intended direction
+		   	  + [max(eps,p-a), min(p+a,1)] : (x'=max(x-1,1)) & (y'=min(y+1,N))   // Probabilities to get pushed by wind
+			  + [max(eps,p-a), min(p+a,1)] : (x'=min(x+1,M)) 		     
+			  + [max(eps,p-a), min(p+a,1)] : true
+			  + [max(eps,(p-a)/2), min((p+a)/2,1)]: (y'=min(y+2,N)) & (x'=max(x-1,1)) 
+			  + [max(eps,(p-a)/2), min((p+a)/2,1)]: (x'=min(x+2,M));
+
+endmodule
+
+
+rewards
+	[up] true : 1;
+	[right] true: 1;
+	[left] true : 1;
+endrewards
+
+// Labelling
+label "Crash" = crashed;
+label "goal" = goal;

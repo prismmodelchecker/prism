@@ -1,0 +1,48 @@
+mdp
+
+// Model parameters 
+const double p = 0.1;  // Mean disturbance probability
+const double e = 0.05;        // Epistemic uncertainty 
+
+// Goal
+formula goal = (s=2); 
+
+// Obstacles 
+formula crashed = (s = 1);
+
+// UAV behaviour 
+module env
+
+	s : [0..5] init 0;
+
+	// s = 0
+
+	[right] s = 0 -> [0.5, 0.75] : (s'=1) + [0.4, 0.5] : (s'=4) + [0.05, 0.1] : (s'=0);
+	[down] s = 0 -> [0.6, 0.8] : (s'=3) + [0.35, 0.45] : (s'=4);
+	
+	// s = 1
+	[crash] crashed -> true;
+
+	// s = 2
+	[done] goal -> true;
+
+	// s = 3
+	[right] s = 3 -> [0.5, 0.75] : (s'=4) + [0.25, 0.5] : (s'=1);
+
+	// s = 4
+	[up] s = 4 -> [0.5, 0.75] : (s' = 1)  + [0.25, 0.5] : (s' = 2);
+	[right] s = 4 -> [0.5, 0.75] : (s'=5) + [0.25, 0.5] : (s' = 2);
+
+	// s = 5
+	[up] s = 5 -> [0.5, 0.75] : (s' = 2) + [0.25, 0.5]: (s' = 5);
+endmodule
+
+rewards
+	[up] true : 1;
+	[right] true : 1;
+	[down] true :  1;
+endrewards
+
+// Labelling
+label "Crash" = crashed;
+label "goal" = goal;
