@@ -188,6 +188,12 @@ public class VarList
 			low = 0;
 			high = 1;
 		}
+		// Variable is an (unbounded) double
+		else if (declType instanceof DeclarationDoubleUnbounded) {
+			// Create dummy range info
+			low = 0;
+			high = 1;
+		}
 		else {
 			throw new PrismLangException("Unknown variable type \"" + declType + "\" in declaration", declType);
 		}
