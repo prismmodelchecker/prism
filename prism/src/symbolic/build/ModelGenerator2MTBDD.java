@@ -45,6 +45,7 @@ import prism.PrismException;
 import prism.PrismLangException;
 import prism.PrismLog;
 import prism.PrismNotSupportedException;
+import prism.PrismSettings;
 import prism.RewardGenerator;
 import symbolic.model.Model;
 import symbolic.model.ModelSymbolic;
@@ -226,6 +227,8 @@ public class ModelGenerator2MTBDD
 	{
 		JDDNode vr, vc;
 		int i, j, n;
+
+		modelVariables.preallocateExtraActionVariables(prism.getSettings().getInteger(PrismSettings.PRISM_DD_EXTRA_ACTION_VARS));
 
 		// create arrays/etc. first
 

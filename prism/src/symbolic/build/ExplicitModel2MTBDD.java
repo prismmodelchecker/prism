@@ -37,6 +37,7 @@ import prism.Prism;
 import prism.PrismException;
 import prism.PrismLangException;
 import prism.PrismLog;
+import prism.PrismSettings;
 import prism.ProgressDisplay;
 import symbolic.model.ModelVariablesDD;
 import symbolic.model.ProbModel;
@@ -247,7 +248,9 @@ public class ExplicitModel2MTBDD
 		int i, j, n;
 
 		modelVariables = new ModelVariablesDD();
-		
+
+		modelVariables.preallocateExtraActionVariables(prism.getSettings().getInteger(PrismSettings.PRISM_DD_EXTRA_ACTION_VARS));
+
 		// create arrays/etc. first
 
 		// module variable (row/col) vars
