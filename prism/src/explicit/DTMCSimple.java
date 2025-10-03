@@ -286,13 +286,13 @@ public class DTMCSimple<Value> extends DTMCExplicit<Value> implements ModelSimpl
 	public Iterator<Integer> getSuccessorsIterator(final int s)
 	{
 		// Remove duplicates
-		return new HashSet<>(succ.get(s)).iterator();
+		return succ.get(s).iterator();
 	}
 
 	@Override
 	public SuccessorsIterator getSuccessors(int s)
 	{
-		return SuccessorsIterator.from(getSuccessorsIterator(s), true);
+		return SuccessorsIterator.from(getSuccessorsIterator(s), false);
 	}
 
 	@Override

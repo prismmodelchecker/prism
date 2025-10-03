@@ -215,8 +215,7 @@ public class DTMCSparse extends DTMCExplicit<Double>
 	@Override
 	public SuccessorsIterator getSuccessors(int state)
 	{
-		// We assume here that all the successor states for a given state are distinct
-		return SuccessorsIterator.from(getSuccessorsIterator(state), true);
+		return SuccessorsIterator.from(getSuccessorsIterator(state), false);
 	}
 
 	@Override
