@@ -351,7 +351,7 @@ public class VarList
 			}
 			// Anything else
 			else {
-				throw new PrismLangException("Unknown type " + type + " for variable " + getName(i));
+				throw new PrismLangException("Unsupported type " + type + " for variable " + getName(i));
 			}
 		} catch (ClassCastException e) {
 			throw new PrismLangException("Value " + val + " is wrong type for variable " + getName(i));
@@ -388,7 +388,7 @@ public class VarList
 		}
 		// Anything else
 		else {
-			throw new PrismLangException("Unknown type " + type + " for variable " + getName(i));
+			throw new PrismLangException("Unsupported type " + type + " for variable " + getName(i));
 		}
 	}
 
