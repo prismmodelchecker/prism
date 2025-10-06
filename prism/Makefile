@@ -336,6 +336,9 @@ ifeq ($(OSTYPE),darwin)
 	CLASSPATHSEP = :
 endif
 
+# Java flags
+JFLAGS += -proc:none # Remove annotation processing warnings due to log4j
+
 export CFLAGS CXXFLAGS LDFLAGS JFLAGS LIBPREFIX LIBSUFFIX
 
 ##########################################
