@@ -64,13 +64,13 @@ public class PTA
 	public PTA(List<String> alphabet)
 	{
 		numClocks = 0;
-		clockNames = new ArrayList<String>();
+		clockNames = new ArrayList<>();
 		numLocations = 0;
-		locationNames = new ArrayList<Object>();
-		invariants = new ArrayList<LinkedHashSet<Constraint>>();
+		locationNames = new ArrayList<>();
+		invariants = new ArrayList<>();
 		locationNameVars = null;
 		numTransitions = 0;
-		transitions = new ArrayList<ArrayList<Transition>>();
+		transitions = new ArrayList<>();
 		this.alphabet = alphabet;
 		cMax = 0;
 	}
@@ -103,8 +103,8 @@ public class PTA
 	{
 		numLocations++;
 		locationNames.add(name == null ? "L" + (numLocations - 1) : name);
-		invariants.add(new LinkedHashSet<Constraint>());
-		transitions.add(new ArrayList<Transition>());
+		invariants.add(new LinkedHashSet<>());
+		transitions.add(new ArrayList<>());
 		return numLocations - 1;
 	}
 

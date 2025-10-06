@@ -179,7 +179,7 @@ public class PTAModelCheckerCL
 			else {
 				ForwardsReach forwardsReach = new ForwardsReach();
 				ReachabilityGraph graph = forwardsReach.buildForwardsGraph(pta, targetLocs, targetConstraint);
-				MDP mdp = graph.buildMDP(forwardsReach.getInitialStates());
+				MDP<Double> mdp = graph.buildMDP(forwardsReach.getInitialStates());
 				new MDPModelChecker(null).computeReachProbs(mdp, forwardsReach.getTarget(), min);
 			}
 
@@ -202,7 +202,7 @@ public class PTAModelCheckerCL
 			System.exit(1);
 		}
 
-		ptaFiles = new ArrayList<String>();
+		ptaFiles = new ArrayList<>();
 		for (i = 0; i < args.length; i++) {
 			s = args[i];
 			// Process a switch
@@ -244,7 +244,7 @@ public class PTAModelCheckerCL
 	{
 		String s;
 		
-		ArrayList<String> ptaFilesNew = new ArrayList<String>();
+		ArrayList<String> ptaFilesNew = new ArrayList<>();
 		for (String ptaFile : ptaFiles) {
 			if (ptaFile.endsWith(".deslist")) {
 				try {

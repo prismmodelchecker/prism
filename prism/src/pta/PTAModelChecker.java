@@ -220,7 +220,7 @@ public class PTAModelChecker extends PrismComponent
 		prob = computeProbabilisticReachability(targetLocs, min);
 
 		// Return result
-		return new Result(Double.valueOf(prob));
+		return new Result(prob);
 	}
 
 	/**
@@ -250,7 +250,7 @@ public class PTAModelChecker extends PrismComponent
 		newTargetLoc = pta.addLocation(newTargetLocString);
 		// Go through old (on-target) locations
 		for (i = 0; i < numLocs; i++) {
-			trNewList = new ArrayList<Transition>();
+			trNewList = new ArrayList<>();
 			for (Transition tr : pta.getTransitions(i)) {
 				// See if the transition can go to a target location 
 				toTarget = false;

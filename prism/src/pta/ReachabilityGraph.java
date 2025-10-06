@@ -52,19 +52,19 @@ public class ReachabilityGraph
 	{
 		this.pta = pta;
 		states = null;
-		trans = new ArrayList<ArrayList<SymbolicTransition>>();
+		trans = new ArrayList<>();
 	}
 
 	public void addState()
 	{
-		trans.add(new ArrayList<SymbolicTransition>());
+		trans.add(new ArrayList<>());
 	}
 
 	public void copyState(int i)
 	{
 		ArrayList<SymbolicTransition> listOld, listNew;
 		listOld = trans.get(i);
-		listNew = new ArrayList<SymbolicTransition>(listOld.size());
+		listNew = new ArrayList<>(listOld.size());
 		for (SymbolicTransition g : listOld)
 			listNew.add(new SymbolicTransition(g));
 		trans.add(listNew);
@@ -170,14 +170,14 @@ public class ReachabilityGraph
 	 * Build an MDP from this forwards reachability graph.
 	 * The set of initial states should also be specified.
 	 */
-	public MDP buildMDP(List<Integer> initialStates) throws PrismException
+	public MDP<Double> buildMDP(List<Integer> initialStates) throws PrismException
 	{
-		Distribution distr;
+		Distribution<Double> distr;
 		int numStates, src, count, dest;
-		MDPSimple mdp;
+		MDPSimple<Double> mdp;
 
 		// Building MDP...
-		mdp = new MDPSimple();
+		mdp = new MDPSimple<>();
 
 		// Add all states
 		mdp.addStates(states.size());
