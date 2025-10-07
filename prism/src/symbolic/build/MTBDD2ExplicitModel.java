@@ -90,14 +90,17 @@ public class MTBDD2ExplicitModel extends PrismComponent
 		switch (modelSymb.getModelType()) {
 			case DTMC:
 				modelExpl = dtmcExpl = new DTMCSimple<>(numStates);
+				modelExpl.setActions(modelSymb.getActions());
 				convertMarkovChainTransitions((ProbModel) modelSymb, dtmcExpl);
 				break;
 			case CTMC:
 				modelExpl = ctmcExpl = new CTMCSimple<>(numStates);
+				modelExpl.setActions(modelSymb.getActions());
 				convertMarkovChainTransitions((ProbModel) modelSymb, ctmcExpl);
 				break;
 			case MDP:
 				modelExpl = mdpExpl = new MDPSimple<>(numStates);
+				modelExpl.setActions(modelSymb.getActions());
 				convertMDPTransitions((NondetModel) modelSymb, mdpExpl);
 				break;
 			default:
