@@ -2334,7 +2334,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 					case STRAT:
 						return engine.getStrategyDecisionString(rowIndex);
 					case ACTION:
-						return engine.getTransitionActionString(rowIndex);
+						return engine.getTransitionActionDescription(rowIndex);
 					case PROB:
 						return engine.getTransitionProbabilityString(rowIndex);
 					case UPDATE:

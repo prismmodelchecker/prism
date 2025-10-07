@@ -26,6 +26,7 @@
 
 package prism;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -58,11 +59,14 @@ public interface Model<Value>
 	}
 
 	/**
-	 * Get strings for the action labels attached to choices/transitions.
+	 * Get a list of the string representations of the action labels attached
+	 * to choices/transitions, i.e., {@link #getActions()} converted to strings.
+	 * This can be a superset of the action labels that are actually used in the model.
+	 * If there are unlabelled choices/transitions, the empty string "" is included in this list.
 	 */
 	default List<String> getActionStrings()
 	{
-		// By default, just apply toString to getActions()
+		// By default, just convert list from getActions() to strings
 		return getActions().stream().map(ActionList::actionString).collect(Collectors.toList());
 	}
 

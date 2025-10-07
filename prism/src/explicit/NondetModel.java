@@ -40,6 +40,7 @@ import common.IterableStateSet;
 import explicit.graphviz.Decoration;
 import explicit.graphviz.Decorator;
 import io.ModelExportOptions;
+import prism.ActionList;
 import prism.PrismException;
 import prism.PrismLog;
 import strat.MDStrategy;
@@ -105,6 +106,15 @@ public interface NondetModel<Value> extends Model<Value>
 	 * The action is null for an unlabelled choice.
 	 */
 	Object getAction(int s, int i);
+
+	/**
+	 * Get the string representation of the action label for choice {@code i} of state {@code s}.
+	 * The string is "" for an unlabelled choice.
+	 */
+	default String getActionString(int s, int i)
+	{
+		return ActionList.actionString(getAction(s, i));
+	}
 
 	/**
 	 * Get the index of the action label for choice {@code i} of state {@code s}.

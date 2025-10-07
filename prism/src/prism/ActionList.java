@@ -199,7 +199,7 @@ public class ActionList
 	 * Default conversion of an action label to a string
 	 * ({@code toString()} or {@code ""} for {@code null}).
 	 */
-	static String actionString(Object action)
+	public static String actionString(Object action)
 	{
 		return action == null ? "" : action.toString();
 	}

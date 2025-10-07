@@ -196,6 +196,20 @@ public interface ModelGenerator<Value> extends ModelInfo
 	public Object getTransitionAction(int i, int offset) throws PrismException;
 
 	/**
+	 * Get a string representation of the action label of a transition within a choice, specified by its index/offset.
+	 * The string is "" for an unlabelled choice.
+	 * Note: For most types of models, the action label will be the same for all transitions within
+	 * the same nondeterministic choice (i.e. for each different value of {@code offset}),
+	 * but for Markov chains this may not necessarily be the case.
+	 * @param i Index of the nondeterministic choice
+	 * @param offset Index of the transition within the choice
+	 */
+	public default String getTransitionActionString(int i, int offset) throws PrismException
+	{
+		return ActionList.actionString(getTransitionAction(i, offset));
+	}
+
+	/**
 	 * Get a description for the action label of a choice, specified by its index/offset.
 	 * This might be displayed in a representation of a path, e.g. in the simulator UI.
 	 * By default this, will be {@code toString()} for {@link #getTransitionAction(int, int)},
@@ -208,11 +222,10 @@ public interface ModelGenerator<Value> extends ModelInfo
 	 * @param i Index of the nondeterministic choice
 	 * @param offset Index of the transition within the choice
 	 */
-	public default String getTransitionActionString(int i, int offset) throws PrismException
+	public default String getTransitionActionDescription(int i, int offset) throws PrismException
 	{
-		// Default implementation: use toString on action object 
-		Object action = getTransitionAction(i, offset); 
-		return action == null ? "" : action.toString();
+		// Default implementation: use getTransitionActionString
+		return getTransitionActionString(i, offset);
 	}
 
 	/**
@@ -231,6 +244,19 @@ public interface ModelGenerator<Value> extends ModelInfo
 	}
 
 	/**
+	 * Get a string representation of the action label of a choice within a choice, specified by its index.
+	 * The string is "" for an unlabelled choice.
+	 * Note: If the model has different actions for different transitions within a choice
+	 * (as can be the case for Markov chains), this method returns the action for the first transition.
+	 * So, this method is essentially equivalent to {@code getTransitionActionString(i, 0)}.
+	 * @param i Index of the nondeterministic choice
+	 */
+	public default String getChoiceActionString(int i) throws PrismException
+	{
+		return ActionList.actionString(getChoiceAction(i));
+	}
+
+	/**
 	 * Get a description for the action label of a choice, specified by its index.
 	 * This might be displayed in a representation of a path, e.g. in the simulator UI.
 	 * By default this, will be {@code toString()} for {@link #getChoiceAction(int)},
@@ -239,14 +265,13 @@ public interface ModelGenerator<Value> extends ModelInfo
 	 * For unlabelled choices, this should return "", not null. 
 	 * Note: If the model has different actions for different transitions within a choice
 	 * (as can be the case for Markov chains), this method returns the action for the first transition.
-	 * So, this method is essentially equivalent to {@code getTransitionActionString(i, 0)}. 
+	 * So, this method is essentially equivalent to {@code getTransitionActionDescription(i, 0)}.
 	 * @param i Index of the nondeterministic choice
 	 */
-	public default String getChoiceActionString(int i) throws PrismException
+	public default String getChoiceActionDescription(int i) throws PrismException
 	{
-		// Default implementation: use toString on action object
-		Object action = getChoiceAction(i); 
-		return action == null ? "" : action.toString();
+		// Default implementation: use getChoiceActionString
+		return getChoiceActionString(i);
 	}
 
 	/**

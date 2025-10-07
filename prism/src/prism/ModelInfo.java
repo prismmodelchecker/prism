@@ -30,6 +30,7 @@ package prism;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import parser.EvaluateContext;
 import parser.EvaluateContext.EvalMode;
@@ -133,6 +134,37 @@ public interface ModelInfo
 	{
 		// Default implementation just says that info is unavailable
 		return null;
+	}
+
+	/**
+	 * Get a list of the string representations of the action labels attached
+	 * to choices/transitions, i.e., {@link #getActions()} converted to strings.
+	 * This can be a superset of the action labels that are actually used in the model.
+	 * If there are unlabelled choices/transitions, the empty string "" is included in this list.
+	 * <br><br>
+	 * This is optional - the default implementation just returns null,
+	 * which means that this info is not being provided by this class.
+	 */
+	public default List<String> getActionStrings()
+	{
+		return getActions() == null ? null : getActions().stream()
+				.map(ActionList::actionString)
+				.collect(Collectors.toList());
+	}
+
+	/**
+	 * Get a list of the string representations of the action labels attached
+	 * to choices/transitions, like {@link #getActionStrings()}), but with
+	 * actions formatted as [a], for easier display of empty ("") actions.
+	 * <br><br>
+	 * This is optional - the default implementation just returns null,
+	 * which means that this info is not being provided by this class.
+	 */
+	public default List<String> getBracketedActionStrings()
+	{
+		return getActions() == null ? null : getActions().stream()
+				.map(a -> "[" + ActionList.actionString(a) + "]")
+				.collect(Collectors.toList());
 	}
 
 	/**

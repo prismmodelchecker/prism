@@ -967,7 +967,7 @@ public class SimulatorEngine extends PrismComponent
 		// Get probability and action for transition
 		Object p = modelGen.getTransitionProbabilityObject(i, offset);
 		Object action = modelGen.getChoiceAction(i);
-		String actionString = modelGen.getChoiceActionString(i);
+		String actionString = modelGen.getChoiceActionDescription(i);
 		// Compute its transition rewards
 		calculateTransitionRewards(path.getCurrentState(), action, tmpTransitionRewards);
 		// Compute next state
@@ -1007,7 +1007,7 @@ public class SimulatorEngine extends PrismComponent
 		// Get probability and action for transition
 		Object p = modelGen.getTransitionProbabilityObject(i, offset);
 		Object action = modelGen.getChoiceAction(i);
-		String actionString = modelGen.getChoiceActionString(i);
+		String actionString = modelGen.getChoiceActionDescription(i);
 		// Compute its transition rewards
 		calculateTransitionRewards(path.getCurrentState(), action, tmpTransitionRewards);
 		// Compute next state
@@ -1230,7 +1230,7 @@ public class SimulatorEngine extends PrismComponent
 	}
 
 	/**
-	 * Get a string describing the action of a transition, specified by its index/offset.
+	 * Get a string representation of the action of a transition, specified by its index/offset.
 	 * Usually, this is for the current (final) state of the path but, if you called {@link #computeTransitionsForStep(int step)}, it will be for this state instead.
 	 */
 	public String getTransitionActionString(int i, int offset) throws PrismException
@@ -1239,7 +1239,16 @@ public class SimulatorEngine extends PrismComponent
 	}
 
 	/**
-	 * Get a string describing the action of a transition, specified by its index.
+	 * Get a string describing the action of a transition, specified by its index/offset.
+	 * Usually, this is for the current (final) state of the path but, if you called {@link #computeTransitionsForStep(int step)}, it will be for this state instead.
+	 */
+	public String getTransitionActionDescription(int i, int offset) throws PrismException
+	{
+		return modelGen.getTransitionActionDescription(i, offset);
+	}
+
+	/**
+	 * Get a string representation of the action of a transition, specified by its index.
 	 * Usually, this is for the current (final) state of the path but, if you called {@link #computeTransitionsForStep(int step)}, it will be for this state instead.
 	 */
 	public String getTransitionActionString(int index) throws PrismException
@@ -1247,6 +1256,17 @@ public class SimulatorEngine extends PrismComponent
 		int i = modelGen.getChoiceIndexOfTransition(index);
 		int offset = modelGen.getChoiceOffsetOfTransition(index);
 		return getTransitionActionString(i, offset);
+	}
+
+	/**
+	 * Get a string describing the action of a transition, specified by its index.
+	 * Usually, this is for the current (final) state of the path but, if you called {@link #computeTransitionsForStep(int step)}, it will be for this state instead.
+	 */
+	public String getTransitionActionDescription(int index) throws PrismException
+	{
+		int i = modelGen.getChoiceIndexOfTransition(index);
+		int offset = modelGen.getChoiceOffsetOfTransition(index);
+		return getTransitionActionDescription(i, offset);
 	}
 
 	/**

@@ -47,6 +47,7 @@ import common.iterable.FunctionalIterator;
 import common.iterable.PrimitiveIterable;
 import common.iterable.Reducible;
 import explicit.rewards.MCRewards;
+import prism.ActionList;
 import prism.ModelType;
 import prism.Pair;
 import prism.PrismException;
@@ -159,6 +160,30 @@ public interface DTMC<Value> extends Model<Value>
 			public int nextInt()
 			{
 				return actionIndex(iter.next());
+			}
+		};
+	}
+
+	/**
+	 * Get an iterator over the strings representing actions attached to transitions from state s.
+	 */
+	public default Iterator<String> getActionStringsIterator(int s)
+	{
+		// Default implementation looks up indices from getActionsIterator
+		return new Iterator<String>()
+		{
+			private final Iterator<Object> iter = getActionsIterator(s);
+
+			@Override
+			public boolean hasNext()
+			{
+				return iter.hasNext();
+			}
+
+			@Override
+			public String next()
+			{
+				return ActionList.actionString(iter.next());
 			}
 		};
 	}

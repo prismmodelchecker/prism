@@ -1904,6 +1904,9 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 		if (modelInfo instanceof ModulesFile) {
 			mainLog.println("Modules:     " + String.join(" ", ((ModulesFile) modelInfo).getModuleNames()));
 		}
+		if (modelInfo.getActions() != null) {
+			mainLog.println("Actions:     " + String.join(" ", modelInfo.getBracketedActionStrings()));
+		}
 		mainLog.println("Variables:   " + String.join(" ", modelInfo.getVarNames()));
 		if (modelInfo.getModelType().partiallyObservable()) {
 			mainLog.println("Observables: " + "\"" + String.join("\" \"", modelInfo.getObservableNames()) + "\"");
