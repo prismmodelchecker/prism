@@ -126,6 +126,8 @@ public class ModelModelGenerator<Value> implements ModelGenerator<Value>
 	@Override
 	public List<Object> getActions()
 	{
+		// Use actions from model (not guaranteed to be present in the model source)
+		// (nor guaranteed to be consistent if present, currently)
 		return model.getActions();
 	}
 
