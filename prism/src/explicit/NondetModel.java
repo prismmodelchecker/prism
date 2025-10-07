@@ -33,6 +33,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.PrimitiveIterator;
 import java.util.function.IntPredicate;
 
@@ -142,19 +143,15 @@ public interface NondetModel<Value> extends Model<Value>
 
 	/**
 	 * Get the index of the (first) choice in state {@code s} with action label {@code action}.
-	 * Action labels (which are {@link Object}s) are tested for equality using {@link Object#equals(Object)}.
+	 * Action labels (which are {@link Object}s) are tested for equality using
+	 * {@link Objects#equals(Object, Object)}, i.e., including null matching null.
 	 * Returns -1 if there is no matching action.
 	 */
 	default int getChoiceByAction(int s, Object action)
 	{
 		int numChoices = getNumChoices(s);
 		for (int i = 0; i < numChoices; i++) {
-			Object a = getAction(s, i);
-			if (a == null) {
-				if (action == null) {
-					return i;
-				}
-			} else if (a.equals(action)) {
+			if (Objects.equals(getAction(s, i), action)) {
 				return i;
 			}
 		}
