@@ -966,8 +966,8 @@ public class SimulatorEngine extends PrismComponent
 		}
 		// Get probability and action for transition
 		Object p = modelGen.getTransitionProbabilityObject(i, offset);
-		Object action = modelGen.getChoiceAction(i);
-		String actionString = modelGen.getChoiceActionDescription(i);
+		Object action = modelGen.getTransitionAction(i, offset);
+		String actionString = modelGen.getTransitionActionDescription(i, offset);
 		// Compute its transition rewards
 		calculateTransitionRewards(path.getCurrentState(), action, tmpTransitionRewards);
 		// Compute next state
@@ -1006,8 +1006,8 @@ public class SimulatorEngine extends PrismComponent
 		}
 		// Get probability and action for transition
 		Object p = modelGen.getTransitionProbabilityObject(i, offset);
-		Object action = modelGen.getChoiceAction(i);
-		String actionString = modelGen.getChoiceActionDescription(i);
+		Object action = modelGen.getTransitionAction(i, offset);
+		String actionString = modelGen.getTransitionActionDescription(i, offset);
 		// Compute its transition rewards
 		calculateTransitionRewards(path.getCurrentState(), action, tmpTransitionRewards);
 		// Compute next state
