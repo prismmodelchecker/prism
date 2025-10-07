@@ -26,7 +26,10 @@
 
 package explicit.rewards;
 
+import explicit.DTMC;
+import explicit.IDTMC;
 import explicit.Model;
+import explicit.NondetModel;
 import parser.State;
 import prism.Evaluator;
 import prism.PrismException;
@@ -133,6 +136,39 @@ public abstract class Rewards2RewardGenerator<Value> implements RewardGenerator<
 	public Value getStateReward(int r, int s, boolean allowNegative) throws PrismException
 	{
 		Value rew = getRewardObject(r).getStateReward(s);
+		if (!allowNegative && !eval.geq(rew, eval.zero())) {
+			throw new PrismException("Reward is negative (" + rew + ") at state " + s);
+		}
+		return rew;
+	}
+
+	@Override
+	public Value getStateActionReward(int r, State state, Object action, boolean allowNegative) throws PrismException
+	{
+		if (statesList == null) {
+			throw new PrismException("Reward lookup by State not possible since state list is missing");
+		}
+		int s = statesList.indexOf(state);
+		if (s == -1) {
+			throw new PrismException("Unknown state " + state);
+		}
+		return getStateActionReward(r, s, action, allowNegative);
+	}
+
+	@Override
+	public Value getStateActionReward(int r, int s, Object action, boolean allowNegative) throws PrismException
+	{
+		int i;
+		if (model instanceof NondetModel) {
+			i = ((NondetModel<Value>) model).getChoiceByAction(s, action);
+		} else if (model instanceof DTMC) {
+			i = ((DTMC<Value>) model).getTransitionByAction(s, action);
+		} else if (model instanceof IDTMC) {
+			i = ((IDTMC<Value>) model).getIntervalModel().getTransitionByAction(s, action);
+		} else {
+			throw new PrismException("State-action reward lookup not supported for model type " + model.getModelType() + "s");
+		}
+		Value rew = getRewardObject(r).getTransitionReward(s, i);
 		if (!allowNegative && !eval.geq(rew, eval.zero())) {
 			throw new PrismException("Reward is negative (" + rew + ") at state " + s);
 		}
