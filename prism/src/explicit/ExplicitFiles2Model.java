@@ -139,6 +139,10 @@ public class ExplicitFiles2Model extends PrismComponent
 		} else {
 			((ModelExplicit<Interval<Value>>) model).setEvaluator(eval.createIntervalEvaluator());
 		}
+		List<Object> actions = modelInfo.getActions();
+		if (actions != null) {
+			model.setActions(actions);
+		}
 		model.buildFromExplicitImport(modelImporter);
 
 		if (model.getNumStates() == 0) {
