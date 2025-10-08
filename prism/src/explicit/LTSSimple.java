@@ -229,13 +229,19 @@ public class LTSSimple<Value> extends ModelExplicit<Value> implements LTS<Value>
 	@Override
 	public void findDeadlocks(boolean fix) throws PrismException
 	{
+		int fixed = 0;
 		for (int i = 0; i < numStates; i++) {
 			if (trans.get(i).isEmpty()) {
 				addDeadlockState(i);
 				if (fix) {
 					addTransition(i, i);
+					fixed++;
 				}
 			}
+		}
+		// Add the empty action (if missing), regardless of whether actionList needs recomputing
+		if (fixed > 0) {
+			actionList.addAction(null);
 		}
 	}
 
