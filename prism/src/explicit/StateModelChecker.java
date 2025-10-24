@@ -1746,7 +1746,7 @@ public class StateModelChecker extends PrismComponent
 		if (getExportProductStates()) {
 			mainLog.println("\nExporting product state space to file \"" + getExportProductStatesFilename() + "\"...");
 			PrismFileLog out = new PrismFileLog(getExportProductStatesFilename());
-			VarList newVarList = (VarList) modulesFile.createVarList().clone();
+			VarList newVarList = (VarList) modelInfo.createVarList().clone();
 			String daVar = "_da";
 			while (newVarList.exists(daVar)) {
 				daVar = "_" + daVar;

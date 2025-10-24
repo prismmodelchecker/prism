@@ -94,6 +94,7 @@ import parser.type.TypePathBool;
 import parser.type.TypePathDouble;
 import prism.Accuracy;
 import prism.Evaluator;
+import prism.ModelInfo;
 import prism.ModelType;
 import prism.PrismComponent;
 import prism.PrismException;
@@ -109,8 +110,8 @@ import prism.RewardGenerator;
  */
 final public class ParamModelChecker extends PrismComponent
 {
-	// Model file (for reward structures, etc.)
-	private ModulesFile modulesFile = null;
+	// Model info (for reward structures, etc.)
+	private ModelInfo modelInfo = null;
 	private RewardGenerator<?> rewardGen = null;
 
 	// Properties file (for labels, constants, etc.)
@@ -202,14 +203,14 @@ final public class ParamModelChecker extends PrismComponent
 	 * Set the attached model file (for e.g. reward structures when model checking)
 	 * and the attached properties file (for e.g. constants/labels when model checking)
 	 */
-	public void setModelCheckingInfo(ModulesFile modulesFile, PropertiesFile propertiesFile, RewardGenerator<?> rewardGen)
+	public void setModelCheckingInfo(ModelInfo modelInfo, PropertiesFile propertiesFile, RewardGenerator<?> rewardGen)
 	{
-		this.modulesFile = modulesFile;
+		this.modelInfo = modelInfo;
 		this.propertiesFile = propertiesFile;
 		this.rewardGen = rewardGen;
 		// Get combined constant values from model/properties
 		constantValues = new Values();
-		constantValues.addValues(modulesFile.getConstantValues());
+		constantValues.addValues(modelInfo.getConstantValues());
 		if (propertiesFile != null)
 			constantValues.addValues(propertiesFile.getConstantValues());
 	}
@@ -225,7 +226,7 @@ final public class ParamModelChecker extends PrismComponent
 	 * Model check an expression, process and return the result.
 	 * Information about states and model constants should be attached to the model.
 	 * For other required info (labels, reward structures, etc.),
-	 * use the method {@link #setModelCheckingInfo(ModulesFile, PropertiesFile, RewardGenerator)}.
+	 * use the method {@link #setModelCheckingInfo(ModelInfo, PropertiesFile, RewardGenerator)}.
 	 */
 	public Result check(Model<?> model, Expression expr) throws PrismException
 	{
@@ -370,7 +371,7 @@ final public class ParamModelChecker extends PrismComponent
 	 * Model check an expression and return a vector result values over all states.
 	 * Information about states and model constants should be attached to the model.
 	 * For other required info (labels, reward structures, etc.),
-	 * use the method {@link #setModelCheckingInfo(ModulesFile, PropertiesFile, RewardGenerator)}.
+	 * use the method {@link #setModelCheckingInfo(ModelInfo, PropertiesFile, RewardGenerator)}.
 	 */
 	RegionValues checkExpression(Model<?> model, Expression expr, BitSet needStates) throws PrismException
 	{

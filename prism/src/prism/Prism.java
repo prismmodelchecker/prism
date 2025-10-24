@@ -3354,11 +3354,11 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 				res = mc.check(getBuiltModelExplicit(), prop.getExpression());
 			} else if (getCurrentEngine() == PrismEngine.EXACT) {
 				ParamModelChecker mc = new ParamModelChecker(this, ParamMode.EXACT);
-				mc.setModelCheckingInfo(getPRISMModel(), propertiesFile, getRewardGenerator());
+				mc.setModelCheckingInfo(getModelInfo(), propertiesFile, getRewardGenerator());
 				res = mc.check(getBuiltModelExplicit(), prop.getExpression());
 			} else if (getCurrentEngine() == PrismEngine.PARAM) {
 				ParamModelChecker mc = new ParamModelChecker(this, ParamMode.PARAMETRIC);
-				mc.setModelCheckingInfo(getPRISMModel(), propertiesFile, getRewardGenerator());
+				mc.setModelCheckingInfo(getModelInfo(), propertiesFile, getRewardGenerator());
 				res = mc.check(getBuiltModelExplicit(), prop.getExpression());
 			}
 			
