@@ -306,7 +306,7 @@ ifeq ($(OSTYPE),darwin)
 	ifeq ($(ARCH),x86_64)
 		CFLAGS = -arch x86_64 -fPIC -DPIC $(DEBUG) $(OPTIMISE) $(WARNINGS)
 		CXXFLAGS = --std=c++11 $(CFLAGS)
-		LDFLAGS = -Wl,-search_paths_first
+		LDFLAGS = -arch x86_64 -Wl,-search_paths_first
 		BINDISTSUFFIX = mac64
 		BINDISTARCH = x86
 		BIN_TARGETS=prism.darwin xprism.linux
@@ -314,14 +314,14 @@ ifeq ($(OSTYPE),darwin)
 	ifeq ($(ARCH),arm64)
 		CFLAGS = -arch arm64 -fPIC -DPIC $(DEBUG) $(OPTIMISE) $(WARNINGS)
 		CXXFLAGS = --std=c++11 $(CFLAGS)
-		LDFLAGS = -Wl,-search_paths_first
+		LDFLAGS = -arch arm64 -Wl,-search_paths_first
 		BINDISTSUFFIX = mac64
 		BINDISTARCH = arm
 		BIN_TARGETS=prism.darwin xprism.linux
 	else
 		CFLAGS = -arch i386 $(DEBUG) $(OPTIMISE) $(WARNINGS)
 		CXXFLAGS = --std=c++11 $(CFLAGS)
-		LDFLAGS = -Wl,-search_paths_first
+		LDFLAGS = -arch i386 -Wl,-search_paths_first
 		BINDISTSUFFIX = mac32
 		BINDISTARCH = x86
 		BIN_TARGETS=prism.darwin xprism.linux
