@@ -3,7 +3,7 @@ mdp
 //─── PARAMETERS ──────────────────────────────────────────────────────────────
 const int K = 250;            // # of sub‐steps per move
 const double p = 0.7;       // nominal success prob.
-const double e = 0.01;       // uncertainty radius
+const double e = 0.05;       // uncertainty radius
 
 //─── STATE ────────────────────────────────────────────────────────────────────
 module graph_imdp

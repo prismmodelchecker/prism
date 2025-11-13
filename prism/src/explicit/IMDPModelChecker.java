@@ -629,9 +629,9 @@ public class IMDPModelChecker extends ProbModelChecker
 	 */
 	public ModelCheckerResult computeMultiStrategy(IMDP<Double> imdp, MDPRewards<Double> mdpRewards, double bound) throws PrismException
 	{
-		boolean value =false;
-		boolean min =false;
-		boolean robust=true;
+		boolean value =true;
+		boolean min =true;
+		boolean robust=false;
 		if (value){
 			if (min){
 				return computeMultiStrategyValueMin(imdp, mdpRewards, bound, robust);

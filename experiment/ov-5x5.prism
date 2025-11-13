@@ -4,7 +4,7 @@ mdp
 const int N = 5;             // grid size: 0..N-1 in both x and y
 const int K = 1000;             // # of intermediate sub-steps per move
 const double p = 0.8;        // intended-direction probability
-const double e = 0.05;       // slip‐interval half-width
+const double e = 0.01;       // slip‐interval half-width
 
 //─── HOLES & GOAL ──────────────────────────────────────────────────────────────
 formula hole = (x=1 & y=0)  
