@@ -84,6 +84,8 @@ public class PrismExplicitImporter extends ExplicitModelImporter
 	private List<File> stateRewardsFiles;
 	private List<File> transRewardsFiles;
 	private ModelType typeOverride;
+	// Does the transitions file store initial states info?
+	private boolean transFileStoresInitialStates;
 
 	// Model info extracted from files and then stored in a BasicModelInfo object
 	private BasicModelInfo basicModelInfo;
@@ -278,6 +280,17 @@ public class PrismExplicitImporter extends ExplicitModelImporter
 	public boolean providesLabels()
 	{
 		return getLabelsFile() != null;
+	}
+
+	/**
+	 * Does the transitions file store initial states info?
+	 */
+	private boolean transFileProvidesInitialStates() throws PrismException
+	{
+		if (modelStats == null) {
+			buildModelStats();
+		}
+		return transFileStoresInitialStates;
 	}
 
 	@Override
@@ -546,6 +559,13 @@ public class PrismExplicitImporter extends ExplicitModelImporter
 				modelStats.numChoices = Integer.parseInt(record[1]);
 				modelStats.numTransitions = Integer.parseInt(record[2]);
 			}
+			// Also peek at the next line to see if initial states info is provided
+			if (csv.hasNextRecord()) {
+				record = csv.nextRecord();
+				if (record.length >= 1 && record[0].equals("-")) {
+					transFileStoresInitialStates = true;
+				}
+			}
 		} catch (IOException e) {
 			modelStats = null;
 			throw new PrismException("File I/O error reading from \"" + transFile + "\"");
@@ -641,7 +661,8 @@ public class PrismExplicitImporter extends ExplicitModelImporter
 				if (lines > max) {
 					break;
 				}
-				if ("".equals(record[0])) {
+				// Skip blank lines or initial states lines
+				if ("".equals(record[0]) || "-".equals(record[0])) {
 					continue;
 				}
 				lines++;
@@ -707,8 +728,8 @@ public class PrismExplicitImporter extends ExplicitModelImporter
 			CsvReader csv = new CsvReader(reader, false, false, false, ' ', LF);
 			for (String[] record : csv) {
 				lineNum++;
-				if ("".equals(record[0])) {
-					// Skip blank lines
+				// Skip blank lines or initial states lines
+				if ("".equals(record[0]) || "-".equals(record[0])) {
 					continue;
 				}
 				// Lines should be 3-5 long (LTS/MDP with/without actions)
@@ -793,8 +814,8 @@ public class PrismExplicitImporter extends ExplicitModelImporter
 			CsvReader csv = new CsvReader(reader, false, false, false, ' ', LF);
 			for (String[] record : csv) {
 				lineNum++;
-				if ("".equals(record[0])) {
-					// Skip blank lines
+				// Skip blank lines or initial states lines
+				if ("".equals(record[0]) || "-".equals(record[0])) {
 					continue;
 				}
 				// Lines should be 3-5 long (LTS/MDP with/without actions)
@@ -832,8 +853,8 @@ public class PrismExplicitImporter extends ExplicitModelImporter
 			CsvReader csv = new CsvReader(reader, false, false, false, ' ', LF);
 			for (String[] record : csv) {
 				lineNum++;
-				if ("".equals(record[0])) {
-					// Skip blank lines
+				// Skip blank lines or initial states lines
+				if ("".equals(record[0]) || "-".equals(record[0])) {
 					continue;
 				}
 				checkLineSize(record, 3, 4);
@@ -878,8 +899,8 @@ public class PrismExplicitImporter extends ExplicitModelImporter
 			CsvReader csv = new CsvReader(reader, false, false, false, ' ', LF);
 			for (String[] record : csv) {
 				lineNum++;
-				if ("".equals(record[0])) {
-					// Skip blank lines
+				// Skip blank lines or initial states lines
+				if ("".equals(record[0]) || "-".equals(record[0])) {
 					continue;
 				}
 				checkLineSize(record, 4, 5);
@@ -925,8 +946,8 @@ public class PrismExplicitImporter extends ExplicitModelImporter
 			CsvReader csv = new CsvReader(reader, false, false, false, ' ', LF);
 			for (String[] record : csv) {
 				lineNum++;
-				if ("".equals(record[0])) {
-					// Skip blank lines
+				// Skip blank lines or initial states lines
+				if ("".equals(record[0]) || "-".equals(record[0])) {
 					continue;
 				}
 				checkLineSize(record, 3, 4);
@@ -958,12 +979,27 @@ public class PrismExplicitImporter extends ExplicitModelImporter
 	@Override
 	public void extractLabelsAndInitialStates(BiConsumer<Integer, Integer> storeLabel, Consumer<Integer> storeInit, Consumer<Integer> storeDeadlock) throws PrismException
 	{
-		// If there is no info, just assume that 0 is the initial state
+		// Extract any initial states info from the .tra file first
+		BitSet initialStatesTra = new BitSet();
+		if (transFileProvidesInitialStates()) {
+			extractInitialStatesFromTransFile(initialStatesTra::set);
+		}
+
+		// If there is no .lab file, we are done; just store initial states
+		// Assume that 0 is the initial state in the absence of any other info
 		if (getLabelsFile() == null) {
-			storeInit.accept(0);
+			if (transFileProvidesInitialStates()) {
+				for (int s = initialStatesTra.nextSetBit(0); s >= 0; s = initialStatesTra.nextSetBit(s + 1)) {
+					storeInit.accept(s);
+				}
+			} else {
+				storeInit.accept(0);
+			}
 			return;
 		}
+
 		// Otherwise extract from .lab file
+		BitSet initialStatesLab = new BitSet();
 		int lineNum = 0;
 		try (BufferedReader in = new BufferedReader(new FileReader(labelsFile))) {
 			// Skip first file (label names extracted earlier with model info)
@@ -989,7 +1025,7 @@ public class PrismExplicitImporter extends ExplicitModelImporter
 								storeDeadlock.accept(s);
 							}
 						} else if (l == -1) {
-							storeInit.accept(s);
+							initialStatesLab.set(i);
 						} else if (l > -1) {
 							storeLabel.accept(s, l);
 						}
@@ -998,11 +1034,59 @@ public class PrismExplicitImporter extends ExplicitModelImporter
 				// Prepare for next iter
 				st = in.readLine();
 			}
+
+			// If initial states were provided in .tra file, we check for consistency with .lab file
+			if (transFileProvidesInitialStates()) {
+				if (!initialStatesTra.equals(initialStatesLab)) {
+					throw new PrismException("Inconsistent initial states information between transitions and labels files");
+				}
+			}
+
+			// Finally, store initial states
+			for (int s = initialStatesLab.nextSetBit(0); s >= 0; s = initialStatesLab.nextSetBit(s + 1)) {
+				storeInit.accept(s);
+			}
 		} catch (IOException e) {
 			throw new PrismException("File I/O error reading from \"" + labelsFile + "\"");
 		} catch (PrismException | NumberFormatException e) {
 			String expl = (e.getMessage() == null || e.getMessage().isEmpty()) ? "" : (" (" + e.getMessage() + ")");
 			throw new PrismException("Error detected" + expl + " at line " + lineNum + " of labels file \"" + labelsFile + "\"");
+		}
+	}
+
+	/**
+	 * Extract any info about initial states stored in the .tra file.
+	 * Calls {@code storeInit(s)} for each initial state s.
+	 * @param storeInit Function to be called for each initial state
+	 */
+	private void extractInitialStatesFromTransFile(Consumer<Integer> storeInit) throws PrismException
+	{
+		ModelType modelType = getModelInfo().getModelType();
+		int stateField = modelType.nondeterministic() ? 2 : 1;
+		int lineNum = 0;
+		try (BufferedReader in = new BufferedReader(new FileReader(transFile))) {
+			lineNum += skipCommentAndFirstLine(in);
+			BasicReader reader = BasicReader.wrap(in).normalizeLineEndings();
+			CsvReader csv = new CsvReader(reader, false, false, false, ' ', LF);
+			for (String[] record : csv) {
+				lineNum++;
+				// Skip blank lines
+				if ("".equals(record[0])) {
+					continue;
+				}
+				checkLineSize(record, 3, 5);
+				// Break as soon as a non-initial states line is found
+				if (!"-".equals(record[0])) {
+					break;
+				}
+				int s2 = checkStateIndex(Integer.parseInt(record[stateField]), modelStats.numStates);
+				storeInit.accept(s2);
+			}
+		} catch (IOException e) {
+			throw new PrismException("File I/O error reading from \"" + transFile + "\"");
+		} catch (PrismException | NumberFormatException | CsvFormatException e) {
+			String expl = (e.getMessage() == null || e.getMessage().isEmpty()) ? "" : (" (" + e.getMessage() + ")");
+			throw new PrismException("Error detected" + expl + " at line " + lineNum + " of transitions file \"" + transFile + "\"");
 		}
 	}
 

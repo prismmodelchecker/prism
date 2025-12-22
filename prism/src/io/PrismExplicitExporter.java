@@ -77,6 +77,8 @@ public class PrismExplicitExporter<Value> extends ModelExporter<Value>
 		// Get model info and exportOptions
 		ModelType modelType = model.getModelType();
 		boolean showActions = modelExportOptions.getShowActions();
+		// Currently, we only include initial state info here for POMDPs
+		boolean showInit = modelType.partiallyObservable();
 
 		// Output .tra file file header
 		int numStates = model.getNumStates();
@@ -89,6 +91,24 @@ public class PrismExplicitExporter<Value> extends ModelExporter<Value>
 			out.print(" " + ((PartiallyObservableModel<ValueM>) model).getNumObservations());
 		}
 		out.print("\n");
+
+		// Output initial states, if required
+		if (showInit) {
+			for (int s : model.getInitialStates()) {
+				out.print("-");
+				if (modelType.nondeterministic()) {
+					out.print(" -");
+				}
+				out.print(" " + s);
+				if (modelType.isProbabilistic()) {
+					out.print(" -");
+				}
+				if (modelType.partiallyObservable()) {
+					out.print(" " + ((PartiallyObservableModel<ValueM>) model).getObservation(s));
+				}
+				out.print("\n");
+			}
+		}
 
 		// Output transitions in .tra format
 		// Iterate through states
