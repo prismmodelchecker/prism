@@ -1896,18 +1896,18 @@ public class PrismCL implements PrismModelListener
 			// Items to import
 			if (ext.equals("all")) {
 				modelFilename = basename + ".tra";
-				modelImportSources.add(new ModelImportSource(ModelExportTask.ModelExportEntity.MODEL, ModelExportFormat.EXPLICIT, new File(basename + ".tra")));
-				modelImportSources.add(new ModelImportSource(ModelExportTask.ModelExportEntity.STATES, ModelExportFormat.EXPLICIT, new File(basename + ".sta")));
-				modelImportSources.add(new ModelImportSource(ModelExportTask.ModelExportEntity.LABELS, ModelExportFormat.EXPLICIT, new File(basename + ".lab")));
+				addModelImport(ModelExportTask.ModelExportEntity.MODEL,basename + ".tra", false);
+				addModelImport(ModelExportTask.ModelExportEntity.STATES,basename + ".sta", false);
+				addModelImport(ModelExportTask.ModelExportEntity.LABELS,basename + ".lab", false);
 				addStateRewardImports(basename, false);
 				addTransitionRewardImports(basename, false);
 			} else if (ext.equals("tra")) {
 				modelFilename = basename + ".tra";
-				modelImportSources.add(new ModelImportSource(ModelExportTask.ModelExportEntity.MODEL, ModelExportFormat.EXPLICIT, new File(basename + ".tra")));
+				addModelImport(ModelExportTask.ModelExportEntity.MODEL,basename + ".tra", true);
 			} else if (ext.equals("sta")) {
-				modelImportSources.add(new ModelImportSource(ModelExportTask.ModelExportEntity.STATES, ModelExportFormat.EXPLICIT, new File(basename + ".sta")));
+				addModelImport(ModelExportTask.ModelExportEntity.STATES,basename + ".sta", true);
 			} else if (ext.equals("lab")) {
-				modelImportSources.add(new ModelImportSource(ModelExportTask.ModelExportEntity.LABELS, ModelExportFormat.EXPLICIT, new File(basename + ".lab")));
+				addModelImport(ModelExportTask.ModelExportEntity.LABELS,basename + ".lab", true);
 			} else if (ext.equals("srew")) {
 				addStateRewardImports(basename, true);
 			} else if (ext.equals("trew")) {
@@ -1916,7 +1916,7 @@ public class PrismCL implements PrismModelListener
 			// For any other extension (including none/unknown), default to explicit (.tra)
 			else {
 				modelFilename = basename + (ext.isEmpty() ? "" : "." + ext);
-				modelImportSources.add(new ModelImportSource(ModelExportTask.ModelExportEntity.MODEL, ModelExportFormat.EXPLICIT, new File(modelFilename)));
+				addModelImport(ModelExportTask.ModelExportEntity.MODEL,modelFilename, true);
 			}
 		}
 		// No options supported currently
@@ -1932,7 +1932,20 @@ public class PrismCL implements PrismModelListener
 			}
 		}*/
 	}
-	
+
+	/**
+	 * Add a model import file to {@code modelImportSources}.
+	 * @param entity Model entity
+	 * @param filename Model import filename
+	 * @param assumeExists If true, we add the file even if it does not exist
+	 */
+	private void addModelImport(ModelExportTask.ModelExportEntity entity, String filename, boolean assumeExists)
+	{
+		if (assumeExists || new File(filename).exists()) {
+			modelImportSources.add(new ModelImportSource(entity, ModelExportFormat.EXPLICIT, new File(filename)));
+		}
+	}
+
 	/**
 	 * Given a file basename, find corresponding .srew files
 	 * and add them to {@code modelImportSources}.
