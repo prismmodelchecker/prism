@@ -9,7 +9,7 @@ observables s, g endobservables
 
 module M
 
-	s : [0..2]; // state
+	s : [0..3]; // state
 	h : [0..3]; // hidden var
 	g : [0..N] init N; // num guesses left
 

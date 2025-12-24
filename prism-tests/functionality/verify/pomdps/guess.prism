@@ -4,7 +4,7 @@ const double p = 0.2;
 
 module M
 
-	s : [0..2]; // state
+	s : [0..3]; // state
 	h : [0..3]; // hidden var
 
 	[toss] s=0 -> 0.1:(s'=1)&(h'=1) + 0.3:(s'=1)&(h'=2) + 0.6:(s'=1)&(h'=3);
