@@ -4656,10 +4656,12 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 			case Prism.EXPORT_DOT:
 				exportOptions.setFormat(ModelExportFormat.DOT);
 				exportOptions.setShowStates(false);
+				exportOptions.setShowObservations(false);
 				break;
 			case Prism.EXPORT_DOT_STATES:
 				exportOptions.setFormat(ModelExportFormat.DOT);
 				exportOptions.setShowStates(true);
+				exportOptions.setShowObservations(true);
 				break;
 			case Prism.EXPORT_ROWS:
 				exportOptions.setFormat(ModelExportFormat.EXPLICIT);

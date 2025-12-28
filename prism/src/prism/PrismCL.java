@@ -849,7 +849,7 @@ public class PrismCL implements PrismModelListener
 			try {
 				File dotFile = File.createTempFile("prism-dot-", ".dot", null);
 				File dotPdfFile = File.createTempFile("prism-dot-", ".dot.pdf", null);
-				prism.exportBuiltModelTransitions(dotFile, new ModelExportOptions().setFormat(ModelExportFormat.DOT).setShowStates(true));
+				prism.exportBuiltModelTransitions(dotFile, new ModelExportOptions().setFormat(ModelExportFormat.DOT).setShowStates(true).setShowObservations(true));
 				(new ProcessBuilder(new String[]{ "dot", "-Tpdf", "-o", dotPdfFile.getPath(), dotFile.getPath()})).start().waitFor();
 				(new ProcessBuilder(new String[]{ "open",dotPdfFile.getPath()})).start();
 			}
@@ -1515,7 +1515,7 @@ public class PrismCL implements PrismModelListener
 				// export transition matrix graph to dot file
 				else if (sw.equals("exporttransdot")) {
 					if (i < args.length - 1) {
-						ModelExportOptions exportOptions = new ModelExportOptions().setFormat(ModelExportFormat.DOT).setShowStates(false);
+						ModelExportOptions exportOptions = new ModelExportOptions().setFormat(ModelExportFormat.DOT).setShowStates(false).setShowObservations(false);
 						modelExportTasks.add(new ModelExportTask(ModelExportTask.ModelExportEntity.MODEL, args[++i], exportOptions));
 					} else {
 						errorAndExit("No file specified for -" + sw + " switch");
@@ -1524,7 +1524,7 @@ public class PrismCL implements PrismModelListener
 				// export transition matrix graph to dot file (with states)
 				else if (sw.equals("exporttransdotstates")) {
 					if (i < args.length - 1) {
-						ModelExportOptions exportOptions = new ModelExportOptions().setFormat(ModelExportFormat.DOT).setShowStates(true);
+						ModelExportOptions exportOptions = new ModelExportOptions().setFormat(ModelExportFormat.DOT).setShowStates(true).setShowObservations(true);
 						modelExportTasks.add(new ModelExportTask(ModelExportTask.ModelExportEntity.MODEL, args[++i], exportOptions));
 					} else {
 						errorAndExit("No file specified for -" + sw + " switch");
@@ -2163,6 +2163,28 @@ public class PrismCL implements PrismModelListener
 					}
 				}
 			}
+			else if (opt.startsWith(sOpt = "states")) {
+				if (!opt.startsWith(sOpt + "="))
+					throw new PrismException("No value provided for \"" + sOpt + "\" option of -exportmodel");
+				String optVal = opt.substring(sOpt.length() + 1);
+				if (optVal.equals("true"))
+					exportOptions.setShowStates(true);
+				else if (optVal.equals("false"))
+					exportOptions.setShowStates(false);
+				else
+					throw new PrismException("Unknown value \"" + optVal + "\" provided for \"reach\" option of -exportstrat");
+			}
+			else if (opt.startsWith(sOpt = "obs")) {
+				if (!opt.startsWith(sOpt + "="))
+					throw new PrismException("No value provided for \"" + sOpt + "\" option of -exportmodel");
+				String optVal = opt.substring(sOpt.length() + 1);
+				if (optVal.equals("true"))
+					exportOptions.setShowObservations(true);
+				else if (optVal.equals("false"))
+					exportOptions.setShowObservations(false);
+				else
+					throw new PrismException("Unknown value \"" + optVal + "\" provided for \"reach\" option of -exportstrat");
+			}
 			else if (opt.startsWith(sOpt = "actions")) {
 				if (!opt.startsWith(sOpt + "="))
 					throw new PrismException("No value provided for \"" + sOpt + "\" option of -exportmodel");
@@ -2762,6 +2784,8 @@ public class PrismCL implements PrismModelListener
 			mainLog.println(" * matlab - same as format=matlab");
 			mainLog.println(" * rows - export matrices with one row/distribution on each line");
 			mainLog.println(" * proplabels - export labels from a properties file into the same file, too");
+			mainLog.println(" * states (=true/false) - include state definitions");
+			mainLog.println(" * obs (=true/false) - include observation definitions");
 			mainLog.println(" * actions (=true/false) - show actions on choices/transitions");
 			mainLog.println(" * headers (=true/false) - include headers when exporting rewards");
 			mainLog.println(" * precision (=n) - export probabilities/rewards with n significant decimal places");

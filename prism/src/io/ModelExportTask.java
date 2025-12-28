@@ -244,7 +244,6 @@ public class ModelExportTask
 				break;
 			case DOT:
 				exportTask = new ModelExportTask(ModelExportEntity.MODEL, file);
-				exportTask.getExportOptions().setShowStates(true);
 				break;
 			case DRN:
 				exportTask = new ModelExportTask(ModelExportEntity.MODEL, file);

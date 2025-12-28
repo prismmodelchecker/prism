@@ -65,7 +65,9 @@ public class ShowStatesDecorator implements Decorator
 	/** Decorate state label by appending the variable information */
 	public Decoration decorateState(int state, Decoration d)
 	{
-		d.labelAddBelow(stateList.get(state).toString());
+		if (stateList != null) {
+			d.labelAddBelow(stateList.get(state).toString());
+		}
 		if (obsList != null) {
 			State o = obsList.apply(state);
 			if (o != null) {
