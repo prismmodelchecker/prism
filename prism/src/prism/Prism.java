@@ -2007,10 +2007,10 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 						mfmg = ModulesFileModelGenerator.createForRationalFunctions(getPRISMModel(), paramNames, paramLowerBounds, paramUpperBounds, this);
 					} else if (getCurrentEngine() == PrismEngine.EXACT) {
 						// Exact model checking uses rationals
-						mfmg = ModulesFileModelGenerator.createForRationalFunctions(getPRISMModel(), this);
+						mfmg = ModulesFileModelGenerator.createForRationals(getPRISMModel(), this);
 					} else {
 						// Anything else (explicit engine, simulation, etc.) uses doubles
-						mfmg = ModulesFileModelGenerator.create(getPRISMModel(), this);
+						mfmg = ModulesFileModelGenerator.createForDoubles(getPRISMModel(), this);
 					}
 					setModelGenerator(mfmg);
 					setRewardGenerator(mfmg);

@@ -92,6 +92,19 @@ public abstract class FunctionFactory
 	}
 
 	/**
+	 * Create a FunctionFactory based on PRISM settings and by creating a dummy
+	 * parameter that is not used.
+	 * @param settings PRISM settings
+	 */
+	public static FunctionFactory createDummy(PrismSettings settings) throws PrismException
+	{
+		String[] paramNames = new String[] { "dummy" };
+		String[] lowerStr = new String[] { "0" };
+		String[] upperStr = new String[] { "1" };
+		return create(paramNames, lowerStr, upperStr, settings);
+	}
+
+	/**
 	 * Creates a new function factory.
 	 * {@code parameterNames}, {@code lowerBounds}, {@code upperBounds} all
 	 * must have the same length. Each index into these arrays represents

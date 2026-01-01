@@ -57,8 +57,12 @@ package param;
 import java.util.BitSet;
 import java.util.List;
 
+import explicit.DTMC;
+import explicit.DTMCSimple;
+import explicit.ModelSimple;
 import explicit.rewards.ConstructRewards;
 import explicit.rewards.Rewards;
+import explicit.rewards.RewardsSimple;
 import param.Lumper.BisimType;
 import param.StateEliminator.EliminationOrder;
 import parser.EvaluateContext;
@@ -113,6 +117,9 @@ final public class ParamModelChecker extends PrismComponent
 	// Model info (for reward structures, etc.)
 	private ModelInfo modelInfo = null;
 	private RewardGenerator<?> rewardGen = null;
+
+	// Cached version of the model passed in for model checking, before any conversion
+	private Model<?> modelOrig = null;
 
 	// Properties file (for labels, constants, etc.)
 	private PropertiesFile propertiesFile = null;
@@ -230,6 +237,15 @@ final public class ParamModelChecker extends PrismComponent
 	 */
 	public Result check(Model<?> model, Expression expr) throws PrismException
 	{
+		// In "exact" mode, we first need to convert the rational probabilities to functions
+		// Also store the original model for later use
+		modelOrig = model;
+		if (mode == ParamMode.EXACT) {
+			FunctionFactory functionFactory = FunctionFactory.createDummy(getSettings());
+			Evaluator<Function> eval = Evaluator.forRationalFunction(functionFactory);
+			model = ModelSimple.copy((Model<BigRational>) model, functionFactory::fromBigRational, eval);
+		}
+
 		functionFactory = ((Evaluator.EvaluatorFunction) model.getEvaluator()).getFunctionFactory();
 		constraintChecker = new ConstraintChecker(numRandomPoints);
 		regionFactory = new BoxRegionFactory(functionFactory, constraintChecker, precision,
@@ -1061,7 +1077,12 @@ final public class ParamModelChecker extends PrismComponent
 		// Build rewards
 		int r2 = expr.getRewardStructIndexByIndexObject(rewardGen, constantValues);
 		mainLog.println("Building reward structure...");
-		Rewards<?> rew = constructExpectedRewards(model, r2);
+		Rewards<?> rew = constructExpectedRewards(modelOrig, r2);
+
+		// In "exact" mode, we first need to convert the rational rewards to functions
+		if (mode == ParamMode.EXACT) {
+			rew = new RewardsSimple<>((Rewards<BigRational>) rew, model, functionFactory::fromBigRational, (Evaluator<Function>) model.getEvaluator());
+		}
 
 		// Compute rewards
 		rews = checkRewardFormula(model, rew, expr.getExpression(), min, needStates);
