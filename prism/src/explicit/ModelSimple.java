@@ -29,10 +29,12 @@ package explicit;
 import java.io.File;
 import java.util.BitSet;
 import java.util.List;
+import java.util.function.Function;
 
 import io.ExplicitModelImporter;
 import io.PrismExplicitImporter;
 import parser.State;
+import prism.Evaluator;
 import prism.ModelType;
 import prism.PrismException;
 import prism.PrismNotSupportedException;
@@ -128,5 +130,71 @@ public interface ModelSimple<Value> extends Model<Value>
 				throw new PrismNotSupportedException("Model construction not supported for " + modelType + "s");
 		}
 		return prodModel;
+	}
+
+	/**
+	 * Copy a model, creating a new {@link ModelSimple} of the appropriate type.
+	 * @param model The model to copy
+	 */
+	static <V> ModelSimple<V> copy(Model<V> model) throws PrismException
+	{
+		ModelType modelType = model.getModelType();
+		switch (modelType) {
+			case DTMC:
+				return new DTMCSimple<>((DTMC<V>) model);
+			case CTMC:
+				return new DTMCSimple<>((CTMC<V>) model);
+			case MDP:
+				return new MDPSimple<>((MDP<V>) model);
+			default:
+				throw new PrismNotSupportedException("Model copy not supported for " + modelType + "s");
+		}
+
+	}
+
+	/**
+	 * Copy a model, mapping probability values using the provided function.
+	 * creating a new {@link ModelSimple} of the appropriate type.
+	 * There is no attempt to check that distributions sum to one.
+	 * @param model The model to copy
+	 */
+	static <V> ModelSimple<V> copy(Model<V> model, Function<? super V, ? extends V> probMap) throws PrismException
+	{
+		ModelType modelType = model.getModelType();
+		switch (modelType) {
+			case DTMC:
+				return new DTMCSimple<>((DTMC<V>) model, probMap);
+			case CTMC:
+				return new CTMCSimple<>((CTMC<V>) model, probMap);
+			case MDP:
+				return new MDPSimple<>((MDP<V>) model, probMap);
+			default:
+				throw new PrismNotSupportedException("Model copy not supported for " + modelType + "s");
+		}
+
+	}
+
+	/**
+	 * Copy a model, mapping probability values using the provided function,
+	 * creating a new {@link ModelSimple} of the appropriate type.
+	 * There is no attempt to check that distributions sum to one.
+	 * Since the type changes (V -> V2), an Evaluator for Value must be given.
+	 * creating a new {@link ModelSimple} of the appropriate type.
+	 * @param model The model to copy
+	 */
+	static <V, V2> ModelSimple<V2> copy(Model<V> model, Function<? super V, ? extends V2> probMap, Evaluator<V2> eval) throws PrismException
+	{
+		ModelType modelType = model.getModelType();
+		switch (modelType) {
+			case DTMC:
+				return new DTMCSimple<>((DTMC<V>) model, probMap, eval);
+			case CTMC:
+				return new CTMCSimple<>((CTMC<V>) model, probMap, eval);
+			case MDP:
+				return new MDPSimple<>((MDP<V>) model, probMap, eval);
+			default:
+				throw new PrismNotSupportedException("Model copy not supported for " + modelType + "s");
+		}
+
 	}
 }
