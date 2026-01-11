@@ -469,7 +469,7 @@ public class ExplicitFiles2MTBDD
 			labelDeadlock = JDD.Or(labelDeadlock, encodeState(s));
 		});
 		if (start == null || start.equals(JDD.ZERO)) {
-			throw new PrismException("No initial states found in labels file");
+			throw new PrismException("No initial states found");
 		}
 		// Store label map
 		labelsDD = new LinkedHashMap<>();
