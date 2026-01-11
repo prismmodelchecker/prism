@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 # The prism-log-extract script extracts and collates info from a
 # collection of PRISM log files.
