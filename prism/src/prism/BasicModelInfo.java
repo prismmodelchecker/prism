@@ -26,6 +26,7 @@
 
 package prism;
 
+import parser.EvaluateContext;
 import parser.VarList;
 import parser.ast.DeclarationType;
 import parser.type.Type;
@@ -42,6 +43,8 @@ import java.util.stream.IntStream;
  */
 public class BasicModelInfo implements ModelInfo
 {
+	/** Constants, optionally */
+	private EvaluateContext ecConstants;
 	/** Model type */
 	private ModelType modelType;
 	/** Action list (optional) */
@@ -63,6 +66,7 @@ public class BasicModelInfo implements ModelInfo
 	public BasicModelInfo(ModelType modelType)
 	{
 		this.modelType = modelType;
+		ecConstants = EvaluateContext.create();
 		actionList = null;
 		varList = new VarList();
 		observableNameList = new ArrayList<>();
@@ -166,6 +170,18 @@ public class BasicModelInfo implements ModelInfo
 	public ModelType getModelType()
 	{
 		return modelType;
+	}
+
+	@Override
+	public void setSomeUndefinedConstants(EvaluateContext ecUndefined) throws PrismException
+	{
+		this.ecConstants = ecUndefined == null ? EvaluateContext.create() : EvaluateContext.create(ecUndefined);
+	}
+
+	@Override
+	public EvaluateContext getEvaluateContext()
+	{
+		return ecConstants;
 	}
 
 	@Override

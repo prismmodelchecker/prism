@@ -31,6 +31,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+import parser.EvaluateContext;
 import parser.State;
 import parser.VarList;
 import parser.ast.DeclarationType;
@@ -85,6 +86,18 @@ public class ModelModelGenerator<Value> implements ModelGenerator<Value>
 	public ModelType getModelType()
 	{
 		return model.getModelType();
+	}
+
+	@Override
+	public void setSomeUndefinedConstants(EvaluateContext ecUndefined) throws PrismException
+	{
+		modelInfo.setSomeUndefinedConstants(ecUndefined);
+	}
+
+	@Override
+	public EvaluateContext getEvaluateContext()
+	{
+		return modelInfo.getEvaluateContext();
 	}
 
 	@Override
