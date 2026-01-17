@@ -841,7 +841,9 @@ public class PrismCL implements PrismModelListener
 				propertiesFile.setSomeUndefinedConstants(definedPFConstants, exactConstants);
 				exportTask.setExtraLabelsSource(propertiesFile);
 			}
-			prism.exportBuiltModelTask(exportTask);
+		}
+		if (!modelExportTasks.isEmpty()) {
+			prism.exportBuiltModelTasks(modelExportTasks);
 		}
 
 		// export transition matrix graph to dot file and view it

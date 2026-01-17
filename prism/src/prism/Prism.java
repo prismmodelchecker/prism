@@ -2690,6 +2690,26 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	}
 
 	/**
+	 * Export multiple model export tasks, building the model first if needed.
+	 * @param modelExportTasks List of export tasks
+	 */
+	public void exportBuiltModelTasks(List<ModelExportTask> modelExportTasks) throws PrismException
+	{
+		// Build model, if necessary
+		// (allows us to more easily compute the time for all exports)
+		buildModelIfRequired();
+
+		// Then do export tasks
+		mainLog.println();
+		long timer = System.currentTimeMillis();
+		for (ModelExportTask exportTask : modelExportTasks) {
+			exportBuiltModelTask(exportTask);
+		}
+		timer = System.currentTimeMillis() - timer;
+		mainLog.println("Time for exporting: " + timer / 1000.0 + " seconds.");
+	}
+
+	/**
 	 * Perform an export task for the current model, building it first if needed.
 	 * @param exportTask Export task
 	 */
@@ -2699,43 +2719,31 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 		if (!exportTask.isApplicable(getModelInfo())) {
 			return;
 		}
-		boolean engineSwitch = false;
-		int lastEngine = -1;
-		try {
-			// NB: currently no engine auto-switch needed
-			// Build model, if necessary
-			buildModelIfRequired();
-			// Merge export options with PRISM settings and do export
-			mainLog.println("\n" + exportTask.getMessage());
-			ModelExportOptions exportOptions = newMergedModelExportOptions(exportTask.getExportOptions());
-			//long timer = System.currentTimeMillis();
-			switch (exportTask.getEntity()) {
-				case MODEL:
-					doExportBuiltModel(new ModelExportTask(exportTask, exportOptions));
-					break;
-				case STATE_REWARDS:
-					doExportBuiltModelStateRewards(exportTask.getFile(), exportOptions);
-					break;
-				case TRANSITION_REWARDS:
-					doExportBuiltModelTransRewards(exportTask.getFile(), exportOptions);
-					break;
-				case STATES:
-					doExportBuiltModelStates(exportTask.getFile(), exportOptions);
-					break;
-				case OBSERVATIONS:
-					doExportBuiltModelObservations(exportTask.getFile(), exportOptions);
-					break;
-				case LABELS:
-					doExportBuiltModelLabels(new ModelExportTask(exportTask, exportOptions));
-					break;
-			}
-			//timer = System.currentTimeMillis() - timer;
-			//mainLog.println("Time for model export: " + timer / 1000.0 + " seconds.");
-		} finally {
-			// Undo auto-switch (if any)
-			if (engineSwitch) {
-				setEngine(lastEngine);
-			}
+		// NB: currently no engine auto-switch needed
+		// Build model, if necessary
+		buildModelIfRequired();
+		// Merge export options with PRISM settings and do export
+		mainLog.println( exportTask.getMessage());
+		ModelExportOptions exportOptions = newMergedModelExportOptions(exportTask.getExportOptions());
+		switch (exportTask.getEntity()) {
+			case MODEL:
+				doExportBuiltModel(new ModelExportTask(exportTask, exportOptions));
+				break;
+			case STATE_REWARDS:
+				doExportBuiltModelStateRewards(exportTask.getFile(), exportOptions);
+				break;
+			case TRANSITION_REWARDS:
+				doExportBuiltModelTransRewards(exportTask.getFile(), exportOptions);
+				break;
+			case STATES:
+				doExportBuiltModelStates(exportTask.getFile(), exportOptions);
+				break;
+			case OBSERVATIONS:
+				doExportBuiltModelObservations(exportTask.getFile(), exportOptions);
+				break;
+			case LABELS:
+				doExportBuiltModelLabels(new ModelExportTask(exportTask, exportOptions));
+				break;
 		}
 	}
 
