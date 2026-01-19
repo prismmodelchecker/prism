@@ -191,19 +191,59 @@ public class BasicModelInfo implements ModelInfo
 	}
 
 	@Override
+	public int getNumVars()
+	{
+		// Override default implementation that calls (slow) getVarNames()
+		return varList.getNumVars();
+	}
+
+	@Override
 	public List<String> getVarNames()
 	{
-		return IntStream.range(0, varList.getNumVars())
+		int numVars = varList.getNumVars();
+		List<String> varNames = new ArrayList<>(numVars);
+		for (int i = 0; i < numVars; i++) {
+			varNames.add(varList.getName(i));
+		}
+		return varNames;
+		/*return IntStream.range(0, varList.getNumVars())
 				.mapToObj(varList::getName)
-				.collect(Collectors.toCollection(ArrayList::new));
+				.collect(Collectors.toCollection(ArrayList::new));*/
+	}
+
+	@Override
+	public int getVarIndex(String name)
+	{
+		// Override default implementation that calls (slow) getVarNames()
+		return varList.getIndex(name);
+	}
+
+	@Override
+	public String getVarName(int i)
+	{
+		// Override default implementation that calls (slow) getVarNames()
+		return varList.getName(i);
 	}
 
 	@Override
 	public List<Type> getVarTypes()
 	{
-		return IntStream.range(0, varList.getNumVars())
+		int numVars = varList.getNumVars();
+		List<Type> varTypes = new ArrayList<>(numVars);
+		for (int i = 0; i < numVars; i++) {
+			varTypes.add(varList.getType(i));
+		}
+		return varTypes;
+		/*return IntStream.range(0, varList.getNumVars())
 				.mapToObj(varList::getType)
-				.collect(Collectors.toCollection(ArrayList::new));
+				.collect(Collectors.toCollection(ArrayList::new));*/
+	}
+
+	@Override
+	public Type getVarType(int i) throws PrismException
+	{
+		// Override default implementation that calls (slow) getVarNames()
+		return varList.getType(i);
 	}
 
 	@Override
