@@ -129,48 +129,28 @@ public class POMDPSimple<Value> extends MDPSimple<Value> implements POMDP<Value>
 		}
 	}
 
-	// Mutators (other)
+	// Mutators (for PartiallyObservableModel)
 	
-	/**
-	 * Set the associated (read-only) observation list.
-	 */
+	@Override
 	public void setObservationsList(List<State> observationsList)
 	{
 		observations.setObservationsList(observationsList);
 	}
 
-	/**
-	 * Set the associated (read-only) unobservation list.
-	 */
+	@Override
 	public void setUnobservationsList(List<State> unobservationsList)
 	{
 		observations.setUnobservationsList(unobservationsList);
 	}
 
-	/**
-	 * Set the observation info for a state.
-	 * If the actions for existing states with this observation do not match,
-	 * an explanatory exception is thrown (so this should be done after transitions
-	 * have been added to the state). Optionally, a list of names of the
-	 * observables can be passed for error reporting.
-	 * @param s State
-	 * @param observ Observation
-	 * @param unobserv Unobservation
-	 * @param observableNames Names of observables (optional)
-	 */
+	@Override
 	public void setObservation(int s, State observ, State unobserv, List<String> observableNames) throws PrismException
 	{
 		observations.setObservation(s, observ, unobserv, observableNames, this);
 	}
-	
-	/**
-	 * Assign observation with index o to state s.
-	 * (assumes observation has already been added to the list)
-	 * If the actions for existing states with this observation do not match,
-	 * an explanatory exception is thrown (so this should be done after transitions
-	 * have been added to the state).
-	 */
-	protected void setObservation(int s, int o) throws PrismException
+
+	@Override
+	public void setObservation(int s, int o) throws PrismException
 	{
 		observations.setObservation(s, o, this);
 	}

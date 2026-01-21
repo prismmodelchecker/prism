@@ -254,6 +254,50 @@ public enum ModelType
 		{
 			return true;
 		}
+	},
+	IPOMDP("interval partially observable Markov decision process") {
+		@Override
+		public boolean partiallyObservable()
+		{
+			return true;
+		}
+
+		@Override
+		public ModelType removeNondeterminism()
+		{
+			return DTMC;
+		}
+
+		@Override
+		public boolean uncertain()
+		{
+			return true;
+		}
+
+		@Override
+		public boolean intervals()
+		{
+			return true;
+		}
+	},
+	UPOMDP("uncertain partially observable Markov decision process") {
+		@Override
+		public boolean partiallyObservable()
+		{
+			return true;
+		}
+
+		@Override
+		public ModelType removeNondeterminism()
+		{
+			return DTMC;
+		}
+
+		@Override
+		public boolean uncertain()
+		{
+			return true;
+		}
 	};
 
 	private static final String PROBABILITY = "Probability";

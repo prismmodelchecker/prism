@@ -38,10 +38,44 @@ import prism.PrismException;
 import prism.PrismLog;
 
 /**
- * Interface for classes that provide (read-only) access to an explicit-state model with partial observability.
+ * Interface for classes representing an explicit-state model with partial observability.
  */
 public interface PartiallyObservableModel<Value> extends Model<Value>
 {
+	// Mutators (other)
+
+	/**
+	 * Set the associated (read-only) observation list.
+	 */
+	void setObservationsList(List<State> observationsList);
+
+	/**
+	 * Set the associated (read-only) unobservation list.
+	 */
+	void setUnobservationsList(List<State> unobservationsList);
+
+	/**
+	 * Set the observation info for a state.
+	 * If the actions for existing states with this observation do not match,
+	 * an explanatory exception is thrown (so this should be done after transitions
+	 * have been added to the state). Optionally, a list of names of the
+	 * observables can be passed for error reporting.
+	 * @param s State
+	 * @param observ Observation
+	 * @param unobserv Unobservation
+	 * @param observableNames Names of observables (optional)
+	 */
+	void setObservation(int s, State observ, State unobserv, List<String> observableNames) throws PrismException;
+
+	/**
+	 * Assign observation with index o to state s.
+	 * (assumes observation has already been added to the list)
+	 * If the actions for existing states with this observation do not match,
+	 * an explanatory exception is thrown (so this should be done after transitions
+	 * have been added to the state).
+	 */
+	void setObservation(int s, int o) throws PrismException;
+
 	// Accessors
 
 	/**

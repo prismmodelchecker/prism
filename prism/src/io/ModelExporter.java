@@ -27,13 +27,7 @@
 package io;
 
 import common.Interval;
-import explicit.DTMC;
-import explicit.IDTMC;
-import explicit.IMDP;
-import explicit.LTS;
-import explicit.MDP;
-import explicit.Model;
-import explicit.NondetModel;
+import explicit.*;
 import explicit.rewards.Rewards;
 import prism.Evaluator;
 import prism.ModelInfo;
@@ -388,12 +382,13 @@ public abstract class ModelExporter<Value>
 					sorted.add((Transition<Object>) (Transition<? extends Object>) new Transition<>(e.getKey(), e.getValue().first, action, ((IDTMC<ValueM>) model).getIntervalEvaluator()));
 				}
 			}
-			// IMDPs
+			// IMDP-like models
 			else {
-				Iterator<Map.Entry<Integer, Interval<ValueM>>> iter = ((IMDP<ValueM>) model).getIntervalTransitionsIterator(s, j);
+				Iterator<Map.Entry<Integer, Interval<ValueM>>> iter = ((MDP<Interval<ValueM>>) (((IntervalModel<ValueM>) model).getIntervalModel())).getTransitionsIterator(s, j);
+				Evaluator<Interval<ValueM>> evalIntv = ((IntervalModel<ValueM>) model).getIntervalEvaluator();
 				while (iter.hasNext()) {
 					Map.Entry<Integer, Interval<ValueM>> e = iter.next();
-					sorted.add((Transition<Object>) (Transition<? extends Object>) new Transition<>(e.getKey(), e.getValue(), action, ((IMDP<ValueM>) model).getIntervalEvaluator()));
+					sorted.add((Transition<Object>) (Transition<? extends Object>) new Transition<>(e.getKey(), e.getValue(), action, evalIntv));
 				}
 			}
 		}
