@@ -81,7 +81,6 @@ public class IMDPSimple<Value> extends ModelExplicitWrapper<Value> implements No
 	{
 		this.mdp = new MDPSimple<>(imdp.mdp);
 		this.model = (ModelExplicit<Value>) mdp;
-		createDefaultEvaluatorForMDP();
 	}
 
 	/**
@@ -96,7 +95,6 @@ public class IMDPSimple<Value> extends ModelExplicitWrapper<Value> implements No
 	{
 		this.mdp = new MDPSimple<>(imdp.mdp, permut);
 		this.model = (ModelExplicit<Value>) mdp;
-		createDefaultEvaluatorForMDP();
 	}
 
 	/**

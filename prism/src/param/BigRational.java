@@ -988,6 +988,17 @@ public final class BigRational extends Number implements Comparable<BigRational>
 	}
 
 	/**
+	 * Returns true iff this BigRational represents a finite value
+	 * (i.e., not positive or negative infinity), nor NaN.
+	 *
+	 * @return true iff this BigRational represents a finite value
+	 */
+	public boolean isFinite()
+	{
+		return !(isInf() || isMInf() || isNaN());
+	}
+
+	/**
 	 * Returns true iff this object represents a true rational number.
 	 * This excludes the values for not-a-number as well as positive
 	 * and negative infinity.

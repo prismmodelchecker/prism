@@ -450,7 +450,7 @@ public interface Evaluator<Value>
 		@Override
 		public boolean isFinite(BigRational x)
 		{
-			return !(x.isInf() || x.isMInf() | x.isNaN());
+			return x.isFinite();
 		}
 
 		@Override
@@ -539,6 +539,12 @@ public interface Evaluator<Value>
 		public EvalMode evalMode()
 		{
 			return EvalMode.EXACT;
+		}
+
+		@Override
+		public Evaluator<Interval<BigRational>> createIntervalEvaluator()
+		{
+			return EvaluatorBigRationalInterval.EVALUATOR_BIG_RATIONAL_INTERVAL;
 		}
 	};
 	
@@ -856,6 +862,158 @@ public interface Evaluator<Value>
 		public EvalMode evalMode()
 		{
 			return EvalMode.FP;
+		}
+	}
+
+	// Evaluator for intervals (of doubles)
+
+	class EvaluatorBigRationalInterval implements Evaluator<Interval<BigRational>>
+	{
+		private static final Evaluator<Interval<BigRational>> EVALUATOR_BIG_RATIONAL_INTERVAL = new EvaluatorBigRationalInterval();
+		private static final Interval<BigRational> ZERO = new Interval<BigRational>(BigRational.ZERO, BigRational.ZERO);
+		private static final Interval<BigRational> ONE = new Interval<BigRational>(BigRational.ONE, BigRational.ONE);
+
+		@Override
+		public Interval<BigRational> zero()
+		{
+			return ZERO;
+		}
+
+		@Override
+		public Interval<BigRational> one()
+		{
+			return ONE;
+		}
+
+		@Override
+		public boolean isZero(Interval<BigRational> x)
+		{
+			return x.getLower().equals(BigRational.ZERO) && x.getUpper().equals(BigRational.ZERO);
+		}
+
+		@Override
+		public boolean isOne(Interval<BigRational> x)
+		{
+			return x.getLower().equals(BigRational.ONE) && x.getUpper().equals(BigRational.ONE);
+		}
+
+		@Override
+		public boolean isFinite(Interval<BigRational> x)
+		{
+			return x.getLower().isFinite() && x.getUpper().isFinite();
+		}
+
+		@Override
+		public Interval<BigRational> add(Interval<BigRational> x, Interval<BigRational> y)
+		{
+			BigRational lo = x.getLower().add(y.getLower());
+			BigRational up = x.getUpper().add(y.getUpper());
+			return new Interval<BigRational>(lo, up);
+		}
+
+		@Override
+		public Interval<BigRational> subtract(Interval<BigRational> x, Interval<BigRational> y)
+		{
+			BigRational lo = x.getLower().subtract(y.getLower());
+			BigRational up = x.getUpper().subtract(y.getUpper());
+			return new Interval<>(lo, up);
+		}
+
+		@Override
+		public Interval<BigRational> multiply(Interval<BigRational> x, Interval<BigRational> y)
+		{
+			BigRational x1y1 = x.getLower().multiply(y.getLower());
+			BigRational x1y2 = x.getLower().multiply(y.getUpper());
+			BigRational x2y1 = x.getUpper().multiply(y.getLower());
+			BigRational x2y2 = x.getUpper().multiply(y.getUpper());
+			BigRational lo = x1y1.min(x1y2).min(x2y1).min(x2y2);
+			BigRational up = x1y1.max(x1y2).max(x2y1).max(x2y2);
+			return new Interval<>(lo, up);
+		}
+
+		@Override
+		public Interval<BigRational> divide(Interval<BigRational> x, Interval<BigRational> y)
+		{
+			// TODO
+			throw new UnsupportedOperationException();
+		}
+
+		@Override
+		public boolean gt(Interval<BigRational> x, Interval<BigRational> y)
+		{
+			return x.getLower().greaterThan(y.getUpper());
+		}
+
+		@Override
+		public boolean geq(Interval<BigRational> x, Interval<BigRational> y)
+		{
+			return x.getLower().greaterThanEquals(y.getUpper());
+		}
+
+		@Override
+		public boolean equals(Interval<BigRational> x, Interval<BigRational> y)
+		{
+			return x.getLower().equals(y.getLower()) && x.getUpper().equals(y.getUpper());
+		}
+
+		@Override
+		public Interval<BigRational> checkProbabilitySum(Interval<BigRational> sum) throws PrismException
+		{
+			// For intervals, we need the sum of lower bounds to be <=1
+			// and the sum of upper bounds to be >=1
+			if (sum.getLower().greaterThan(BigRational.ONE)) {
+				throw new PrismException("Probability lower bounds sum to " + sum.getLower() + " which is greater than 1");
+			}
+			if (sum.getUpper() .lessThan(BigRational.ONE)) {
+				throw new PrismException("Probability upper bounds sum to " + sum.getUpper() + " which is less than 1");
+			}
+			return sum;
+		}
+
+		@Override
+		@SuppressWarnings("unchecked")
+		public Interval<BigRational> evaluate(Expression expr, Values constantValues, State state) throws PrismLangException
+		{
+			Object value = expr.evaluate(new EvaluateContextState(constantValues, state).setEvaluationMode(EvalMode.EXACT));
+			return (Interval<BigRational>) TypeInterval.getInstance(TypeDouble.getInstance()).castValueTo(value, EvalMode.EXACT);
+		}
+
+		@Override
+		public double toDouble(Interval<BigRational> x)
+		{
+			throw new UnsupportedOperationException();
+		}
+
+		@Override
+		public Interval<BigRational> fromString(String s) throws NumberFormatException
+		{
+			if (!(s.charAt(0) == '[' && s.charAt(s.length() - 1) == ']')) {
+				throw new NumberFormatException("Illegal interval " + s);
+			}
+			s = s.substring(1, s.length() - 1);
+			String ss[] = s.split(",");
+			if (ss.length != 2) {
+				throw new NumberFormatException("Illegal interval " + s);
+			}
+			return new Interval<>(new BigRational(ss[0]), new BigRational(ss[1]));
+		}
+
+		@Override
+		public boolean exact()
+		{
+			return true;
+		}
+
+		@Override
+		public boolean isSymbolic()
+		{
+			return false;
+		}
+
+		@Override
+		public EvalMode evalMode()
+		{
+			return EvalMode.EXACT;
 		}
 	}
 }

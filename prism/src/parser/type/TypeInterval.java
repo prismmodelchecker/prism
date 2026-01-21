@@ -26,10 +26,12 @@
 
 package parser.type;
 
+import java.math.BigInteger;
 import java.util.HashMap;
 import java.util.Map;
 
 import common.Interval;
+import param.BigRational;
 import parser.EvaluateContext.EvalMode;
 import prism.PrismLangException;
 
@@ -113,7 +115,7 @@ public class TypeInterval extends Type
 	public Interval<?> castValueTo(Object value, EvalMode evalMode) throws PrismLangException
 	{
 		// Scalar converts to singleton interval
-		if (value instanceof Double || value instanceof Integer) {
+		if (value instanceof Double || value instanceof Integer || value instanceof BigRational || value instanceof BigInteger) {
 			Object subValue = getSubType().castValueTo(value, evalMode);
 			return new Interval<Object>(subValue, subValue);
 		}
