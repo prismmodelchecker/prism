@@ -78,9 +78,9 @@ public class IDTMCSimple<Value> extends ModelExplicitWrapper<Value> implements M
 	@SuppressWarnings("unchecked")
 	public IDTMCSimple(IDTMCSimple<Value> idtmc)
 	{
+		setEvaluator(idtmc.getEvaluator());
 		this.dtmc = new DTMCSimple<>(idtmc.dtmc);
 		this.model = (ModelExplicit<Value>) dtmc;
-		createDefaultEvaluatorForDTMC();
 	}
 
 	/**
@@ -93,9 +93,9 @@ public class IDTMCSimple<Value> extends ModelExplicitWrapper<Value> implements M
 	@SuppressWarnings("unchecked")
 	public IDTMCSimple(IDTMCSimple<Value> idtmc, int permut[])
 	{
+		setEvaluator(idtmc.getEvaluator());
 		this.dtmc = new DTMCSimple<>(idtmc.dtmc, permut);
 		this.model = (ModelExplicit<Value>) dtmc;
-		createDefaultEvaluatorForDTMC();
 	}
 
 	/**

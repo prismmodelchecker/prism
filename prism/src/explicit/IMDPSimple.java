@@ -79,6 +79,7 @@ public class IMDPSimple<Value> extends ModelExplicitWrapper<Value> implements No
 	@SuppressWarnings("unchecked")
 	public IMDPSimple(IMDPSimple<Value> imdp)
 	{
+		setEvaluator(imdp.getEvaluator());
 		this.mdp = new MDPSimple<>(imdp.mdp);
 		this.model = (ModelExplicit<Value>) mdp;
 	}
@@ -93,6 +94,7 @@ public class IMDPSimple<Value> extends ModelExplicitWrapper<Value> implements No
 	@SuppressWarnings("unchecked")
 	public IMDPSimple(IMDPSimple<Value> imdp, int permut[])
 	{
+		setEvaluator(imdp.getEvaluator());
 		this.mdp = new MDPSimple<>(imdp.mdp, permut);
 		this.model = (ModelExplicit<Value>) mdp;
 	}
