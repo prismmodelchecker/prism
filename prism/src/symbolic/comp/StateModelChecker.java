@@ -1720,8 +1720,8 @@ public class StateModelChecker extends PrismComponent implements ModelChecker
 			JDD.ExportDDToDotFileLabelled(model.getTrans(), file.getPath(), model.getDDVarNames());
 			return;
 		}
-		if (exportOptions.getFormat() == ModelExportFormat.DRN) {
-			throw new PrismException("DRN export not yet supported by the symbolic engine");
+		if (exportOptions.getFormat() == ModelExportFormat.DRN || exportOptions.getFormat() == ModelExportFormat.UMB) {
+			throw new PrismException("Export " + exportOptions.getFormat().description() + " not yet supported by the symbolic engine");
 		}
 
 		try {

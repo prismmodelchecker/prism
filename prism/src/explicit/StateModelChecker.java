@@ -42,6 +42,7 @@ import explicit.rewards.ConstructRewards;
 import explicit.rewards.Rewards;
 import io.DotExporter;
 import io.DRNExporter;
+import io.UMBExporter;
 import io.MatlabExporter;
 import io.ModelExportFormat;
 import io.ModelExportOptions;
@@ -1551,13 +1552,20 @@ public class StateModelChecker extends PrismComponent
 			case DRN:
 				exporter = new DRNExporter<>(exportOptions);
 				break;
+			case UMB:
+				exporter = new UMBExporter<>(exportOptions);
+				break;
 			default:
 				throw new PrismNotSupportedException("Export " + exportOptions.getFormat().description() + " not supported by explicit engine");
 		}
 		exporter.setModelInfo(modelInfo);
 		File file = exportTask.getFile();
+		// Disallow stdout export for binary formats
+		if (exportOptions.getFormat().isBinary() && !exportOptions.getBinaryAsText() && file == null) {
+			throw new PrismNotSupportedException("Export " + exportOptions.getFormat().description() + " must be to a file");
+		}
 		// If needed, add label/reward info
-		if (exportOptions.getFormat() == ModelExportFormat.DRN) {
+		if (exportOptions.getFormat() == ModelExportFormat.DRN || exportOptions.getFormat() == ModelExportFormat.UMB) {
 			// Get rewards/labels
 			List<Rewards<Value>> rewards = new ArrayList<>();
 			for (int r = 0; r < rewardGen.getNumRewardStructs(); r++) {
@@ -1567,7 +1575,7 @@ public class StateModelChecker extends PrismComponent
 			if (exportTask.initLabelIncluded()) {
 				labelNames.add("init");
 			}
-			if (exportTask.deadlockLabelIncluded()) {
+			if (exportTask.deadlockLabelIncluded() && model.getNumDeadlockStates() > 0) {
 				labelNames.add("deadlock");
 			}
 			labelNames.addAll(modelInfo.getLabelNames());
@@ -1577,9 +1585,13 @@ public class StateModelChecker extends PrismComponent
 			exporter.setRewardEvaluator((Evaluator<Value>) rewardGen.getRewardEvaluator());
 			exporter.addLabels(labelStates, labelNames);
 		}
-		// Export to log
-		try (PrismLog out = getPrismLogForFile(file)) {
-			exporter.exportModel(model, out);
+		// Export to file/log
+		if (exportOptions.getFormat().isBinary() && !exportOptions.getBinaryAsText()) {
+			exporter.exportModel(model, file);
+		} else {
+			try (PrismLog out = getPrismLogForFile(file)) {
+				exporter.exportModel(model, out);
+			}
 		}
 	}
 

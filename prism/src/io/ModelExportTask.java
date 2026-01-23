@@ -201,6 +201,10 @@ public class ModelExportTask
 				return fromFormat(filename, ModelExportFormat.DRN);
 			case "m":
 				return fromFormat(filename, ModelExportFormat.MATLAB);
+			case "umb":
+				return fromFormat(filename, ModelExportFormat.UMB);
+			case "umbt":
+				return fromOptions(filename, new ModelExportOptions(ModelExportFormat.UMB).setBinaryAsText(true));
 			default:
 				// Treat unknown extensions as .tra
 				return new ModelExportTask(ModelExportEntity.MODEL, filename);
@@ -231,6 +235,18 @@ public class ModelExportTask
 	/**
 	 * Create a ModelExportTask to export a model to a file,
 	 * using the supplied export options (which includes the format).
+	 * @param filename Name of file to export to (can be "stdout")
+	 * @param exportOptions The options for export
+	 */
+	public static ModelExportTask fromOptions(String filename, ModelExportOptions exportOptions) throws PrismException
+	{
+		File file = "stdout".equals(filename) ? null : new File(filename);
+		return fromOptions(file, exportOptions);
+	}
+
+	/**
+	 * Create a ModelExportTask to export a model to a file,
+	 * using the supplied export options (which includes the format).
 	 * @param file File to export to (null means stdout)
 	 * @param exportOptions The options for export
 	 */
@@ -246,6 +262,9 @@ public class ModelExportTask
 				exportTask = new ModelExportTask(ModelExportEntity.MODEL, file);
 				break;
 			case DRN:
+				exportTask = new ModelExportTask(ModelExportEntity.MODEL, file);
+				break;
+			case UMB:
 				exportTask = new ModelExportTask(ModelExportEntity.MODEL, file);
 				break;
 			default:
@@ -379,7 +398,7 @@ public class ModelExportTask
 	 */
 	public boolean initLabelIncluded()
 	{
-		return true;
+		return getExportOptions().getFormat() != ModelExportFormat.UMB;
 	}
 
 	/**

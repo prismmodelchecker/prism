@@ -26,6 +26,8 @@
 
 package io;
 
+import io.github.pmctools.umbj.UMBFormat;
+
 import java.util.Optional;
 
 import static prism.PrismSettings.DEFAULT_EXPORT_MODEL_PRECISION;
@@ -35,6 +37,38 @@ import static prism.PrismSettings.DEFAULT_EXPORT_MODEL_PRECISION;
  */
 public class ModelExportOptions implements Cloneable
 {
+	/** File compression formats */
+	public enum CompressionFormat {
+		GZIP,
+		XZ;
+		public String extension()
+		{
+			switch (this) {
+				case GZIP: return "gz";
+				case XZ: return "xz";
+				default: throw new IllegalStateException("Unknown compression format: " + this);
+			}
+		}
+
+		public static CompressionFormat fromUMB(UMBFormat.CompressionFormat compressionFormat)
+		{
+			switch (compressionFormat) {
+				case GZIP: return GZIP;
+				case XZ: return XZ;
+				default: throw new IllegalStateException("Unknown compression format: " + compressionFormat);
+			}
+		}
+
+		public UMBFormat.CompressionFormat toUMB()
+		{
+			switch (this) {
+				case GZIP: return UMBFormat.CompressionFormat.GZIP;
+				case XZ: return UMBFormat.CompressionFormat.XZ;
+				default: throw new IllegalStateException("Unknown compression format: " + this);
+			}
+		}
+	}
+
 	/**
 	 * Model export format
 	 */
@@ -44,6 +78,16 @@ public class ModelExportOptions implements Cloneable
 	 * Precision to export probabilities/etc. (number of significant decimal places)
 	 */
 	private Optional<Integer> modelPrecision = Optional.empty();
+
+	/**
+	 * Whether to show labels
+	 */
+	private Optional<Boolean> showLabels = Optional.empty();
+
+	/**
+	 * Whether to show rewards
+	 */
+	private Optional<Boolean> showRewards = Optional.empty();
 
 	/**
 	 * Whether to show full state details
@@ -69,6 +113,21 @@ public class ModelExportOptions implements Cloneable
 	 * Whether to show transitions in rows in explicit format
 	 */
 	private Optional<Boolean> explicitRows = Optional.empty();
+
+	/**
+	 * For binary formats, whether to show in textual form
+	 */
+	private Optional<Boolean> binaryAsText = Optional.empty();
+
+	/**
+	 * For formats that support it, whether to zip
+	 */
+	private Optional<Boolean> zipped = Optional.empty();
+
+	/**
+	 * Compression format to use (if zipping)
+	 */
+	private Optional<CompressionFormat> zipFormat = Optional.empty();
 
 	// Constructors
 
@@ -112,6 +171,24 @@ public class ModelExportOptions implements Cloneable
 	public ModelExportOptions setModelPrecision(int modelPrecision)
 	{
 		this.modelPrecision = Optional.of(modelPrecision);
+		return this;
+	}
+
+	/**
+	 * Set whether to show labels
+	 */
+	public ModelExportOptions setShowLabels(boolean showLabels)
+	{
+		this.showLabels = Optional.of(showLabels);
+		return this;
+	}
+
+	/**
+	 * Set whether to show rewards
+	 */
+	public ModelExportOptions setShowRewards(boolean showRewards)
+	{
+		this.showRewards = Optional.of(showRewards);
 		return this;
 	}
 
@@ -161,6 +238,33 @@ public class ModelExportOptions implements Cloneable
 	}
 
 	/**
+	 * Set whether to show binary formats in textual form
+	 */
+	public ModelExportOptions setBinaryAsText(boolean binaryAsText)
+	{
+		this.binaryAsText = Optional.of(binaryAsText);
+		return this;
+	}
+
+	/**
+	 * Set whether to zip the output file (for formats that support it)
+	 */
+	public ModelExportOptions setZipped(boolean zipped)
+	{
+		this.zipped = Optional.of(zipped);
+		return this;
+	}
+
+	/**
+	 * Set compression format to use (if zipping)
+	 */
+	public ModelExportOptions setCompressionFormat(CompressionFormat compressionFormat)
+	{
+		this.zipFormat = Optional.of(compressionFormat);
+		return this;
+	}
+
+	/**
 	 * Apply any options that have been set in another {@link ModelExportOptions} to this one.
 	 */
 	public void apply(ModelExportOptions other)
@@ -170,6 +274,12 @@ public class ModelExportOptions implements Cloneable
 		}
 		if (other.modelPrecision.isPresent()) {
 			setModelPrecision(other.getModelPrecision());
+		}
+		if (other.showLabels.isPresent()) {
+			setShowLabels(other.getShowLabels());
+		}
+		if (other.showRewards.isPresent()) {
+			setShowRewards(other.getShowRewards());
 		}
 		if (other.showStates.isPresent()) {
 			setShowStates(other.getShowStates());
@@ -185,6 +295,15 @@ public class ModelExportOptions implements Cloneable
 		}
 		if (other.explicitRows.isPresent()) {
 			setExplicitRows(other.getExplicitRows());
+		}
+		if (other.binaryAsText.isPresent()) {
+			setBinaryAsText(other.getBinaryAsText());
+		}
+		if (other.zipped.isPresent()) {
+			setZipped(other.getZipped());
+		}
+		if (other.zipFormat.isPresent()) {
+			setCompressionFormat(other.getCompressionFormat());
 		}
 	}
 
@@ -215,6 +334,22 @@ public class ModelExportOptions implements Cloneable
 	public int getModelPrecision()
 	{
 		return modelPrecision.orElse(DEFAULT_EXPORT_MODEL_PRECISION);
+	}
+
+	/**
+	 * Whether to show labels.
+	 */
+	public boolean getShowLabels()
+	{
+		return showLabels.orElse(true);
+	}
+
+	/**
+	 * Whether to show rewards.
+	 */
+	public boolean getShowRewards()
+	{
+		return showRewards.orElse(true);
 	}
 
 	/**
@@ -264,6 +399,40 @@ public class ModelExportOptions implements Cloneable
 	public boolean getExplicitRows()
 	{
 		return explicitRows.orElse(false);
+	}
+
+	/**
+	 * Whether to show binary formats in textual form.
+	 */
+	public boolean getBinaryAsText()
+	{
+		return binaryAsText.orElse(false);
+	}
+
+	/**
+	 * Whether to zip the output file (for formats that support it)
+	 */
+	public boolean getZipped()
+	{
+		// Only UMB defaults to zipped
+		return zipped.orElse(getFormat() == ModelExportFormat.UMB);
+	}
+
+	/**
+	 * Compression format to use (if zipping)
+	 */
+	public CompressionFormat getCompressionFormat()
+	{
+		return getCompressionFormat(CompressionFormat.GZIP);
+	}
+
+	/**
+	 * Compression format to use (if zipping)
+	 * @param orElse Default to use if has not been specified
+	 */
+	public CompressionFormat getCompressionFormat(CompressionFormat orElse)
+	{
+		return zipFormat.orElse(CompressionFormat.GZIP);
 	}
 
 	/**

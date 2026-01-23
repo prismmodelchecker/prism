@@ -92,6 +92,15 @@ public abstract class ExplicitModelImporter
 	// Methods to be implemented by an importer
 
 	/**
+	 * Is this model represented exactly (rationals), rather than doubles?
+	 */
+	public boolean modelIsExact()
+	{
+		// By default, assume not exact
+		return false;
+	}
+
+	/**
 	 * Does this importer provide info about state definitions?
 	 */
 	public abstract boolean providesStates();

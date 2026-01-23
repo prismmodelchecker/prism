@@ -33,7 +33,9 @@ import java.util.List;
 
 import common.Interval;
 import io.ExplicitModelImporter;
+import parser.EvaluateContext;
 import parser.State;
+import parser.VarList;
 import prism.Evaluator;
 import prism.ModelInfo;
 import prism.PrismComponent;
@@ -95,6 +97,11 @@ public class ExplicitFiles2Model extends PrismComponent
 	 */
 	public <Value> Model<Value> build(ExplicitModelImporter modelImporter, Evaluator<Value> eval) throws PrismException
 	{
+		// Check model is defined as doubles
+		if (modelImporter.modelIsExact() && !eval.exact()) {
+			throw new PrismException("Cannot import an exact model unless in exact mode");
+		}
+
 		modelImporter.setFixDeadlocks(fixdl);
 		ModelExplicit<Value> model = null;
 		ModelInfo modelInfo = modelImporter.getModelInfo();
@@ -202,10 +209,14 @@ public class ExplicitFiles2Model extends PrismComponent
 		int numStates = model.getNumStates();
 		int numVars = modelImporter.getModelInfo().getNumVars();
 		List<State> statesList = new ArrayList<>(numStates);
+		ModelInfo modelInfo = modelImporter.getModelInfo();
+		EvaluateContext.EvalMode evalMode = model.getEvaluator().evalMode();
 		for (int i = 0; i < numStates; i++) {
 			statesList.add(new State(numVars));
 		}
-		modelImporter.extractStates((s, i, v) -> statesList.get(s).setValue(i, v));
+		modelImporter.extractStates(
+				(s, i, v) -> statesList.get(s).setValue(i, modelInfo.getVarType(i).castValueTo(v, evalMode))
+		);
 		model.setStatesList(statesList);
 	}
 

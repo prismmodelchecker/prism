@@ -47,6 +47,7 @@ import explicit.FastAdaptiveUniformisation;
 import explicit.FastAdaptiveUniformisationModelChecker;
 import explicit.ModelModelGenerator;
 import hybrid.PrismHybrid;
+import io.UMBImporter;
 import io.ExplicitModelImporter;
 import io.ModelExportOptions;
 import io.ModelExportTask;
@@ -91,6 +92,7 @@ import symbolic.comp.SCCComputer;
 import symbolic.comp.StateModelChecker;
 import symbolic.comp.StochModelChecker;
 import symbolic.model.Model;
+import symbolic.model.ModelSymbolic;
 import symbolic.model.NondetModel;
 import symbolic.states.StateList;
 import symbolic.states.StateListMTBDD;
@@ -214,6 +216,9 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 
 	// Method to use for (symbolic) state-space reachability
 	private int reachMethod = REACH_BFS;
+
+	// Test mode(s)
+	private boolean testUMB = false;
 
 	//------------------------------------------------------------------------------
 	// Parsers/translators/model checkers/simulators/etc.
@@ -726,6 +731,11 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	public void setReachMethod(int reachMethod)
 	{
 		this.reachMethod = reachMethod;
+	}
+
+	public void setTestUMB(boolean testUMB)
+	{
+		this.testUMB = testUMB;
 	}
 
 	// Get methods
@@ -1860,6 +1870,16 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	}
 
 	/**
+	 * Load a UMB file for subsequent model building.
+	 * @param umbFile The UMB file
+	 */
+	public void loadModelFromUMBFile(File umbFile) throws PrismException
+	{
+		UMBImporter importer = new UMBImporter(umbFile);
+		loadModelFromExplicitFiles(importer);
+	}
+
+	/**
 	 * Load an explicit file model importer for subsequent model building.
 	 */
 	public void loadModelFromExplicitFiles(ExplicitModelImporter importer) throws PrismException
@@ -2242,7 +2262,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 
 			// Build model
 			l = System.currentTimeMillis();
-			
+
 			switch (getCurrentEngine()) {
 			case SYMBOLIC:
 				symbolic.model.Model newModelSymb;
@@ -2304,9 +2324,31 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 			default:
 				throw new PrismException("Unknown engine " + getCurrentEngine());
 			}
-			
+
 			l = System.currentTimeMillis() - l;
 			mainLog.println("\nTime for model construction: " + l / 1000.0 + " seconds.");
+
+			// In UMB test mode, to an export/import roundtrip
+			if (testUMB && !(getModelSource() == ModelSource.EXPLICIT_FILES)) {
+				File umbTestFile;
+				try {
+					umbTestFile = File.createTempFile("built", ".umb");
+					exportBuiltModel(umbTestFile, ModelExportFormat.UMB);
+				} catch(java.io.IOException | PrismNotSupportedException e){
+					umbTestFile = null;
+					mainLog.printWarning("UMB export failed; skipping testing");
+				}
+				if (umbTestFile != null) {
+					Values constantsCached = getModelInfo().getConstantValues();
+					clearBuiltModel();
+					loadModelFromUMBFile(umbTestFile);
+					buildModel();
+					getModelInfo().setSomeUndefinedConstants(constantsCached);
+					if (getBuiltModelType() == ModelBuildType.SYMBOLIC) {
+						((ModelSymbolic) getBuiltModelSymbolic()).setConstantValues(constantsCached);
+					}
+				}
+			}
 
 			// For digital clocks, do some extra checks on the built model
 			if (isModelSourceDigitalClocks()) {
@@ -2760,7 +2802,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 		// Export via either symbolic/explicit model checker
 		if (getBuiltModelType() == ModelBuildType.SYMBOLIC) {
 			// In some cases, we need to convert to an explicit model first
-			if (exportTask.getExportOptions().getFormat() == ModelExportFormat.DRN) {
+			if (exportTask.getExportOptions().getFormat() == ModelExportFormat.DRN || exportTask.getExportOptions().getFormat() == ModelExportFormat.UMB) {
 				MTBDD2ExplicitModel m2m = new MTBDD2ExplicitModel(this);
 				explicit.Model<Double> modelExpl = m2m.convertModel(getBuiltModelSymbolic());
 				explicit.StateModelChecker mcExpl = explicit.StateModelChecker.createModelChecker(getModelType(), this);

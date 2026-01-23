@@ -5,7 +5,7 @@ package io;
  */
 public enum ModelExportFormat
 {
-	EXPLICIT, MATLAB, DOT, DD_DOT, DRN;
+	EXPLICIT, MATLAB, DOT, DD_DOT, DRN, UMB;
 
 	public String description()
 	{
@@ -20,8 +20,15 @@ public enum ModelExportFormat
 				return "in DD Dot format";
 			case DRN:
 				return "in DRN format";
+			case UMB:
+				return "in UMB format";
 			default:
 				return this.toString();
 		}
+	}
+
+	public boolean isBinary()
+	{
+		return this == UMB;
 	}
 }

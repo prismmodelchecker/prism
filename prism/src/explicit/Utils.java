@@ -27,6 +27,7 @@
 package explicit;
 
 import java.util.BitSet;
+import java.util.PrimitiveIterator;
 
 public class Utils
 {
@@ -259,5 +260,30 @@ public class Utils
 			if (val == array[i])
 				return true;
 		return false;
+	}
+
+	/**
+	 * Create an (int) iterator that returns {@code n} copies of {@code i}.
+	 * Like {@code Collections.nCopies(n, i).iterator()} but for ints.
+	 */
+	public static PrimitiveIterator.OfInt nCopiesIntIterator(int n, int i)
+	{
+		return new PrimitiveIterator.OfInt()
+		{
+			private int count = 0;
+
+			@Override
+			public int nextInt()
+			{
+				count++;
+				return i;
+			}
+
+			@Override
+			public boolean hasNext()
+			{
+				return count < n;
+			}
+		};
 	}
 }
