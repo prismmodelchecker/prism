@@ -299,6 +299,9 @@ public class UMBIndex
 		public Integer numStrings;
 		/** For stochastic annotations, the type for probability values */
 		public UMBType probabilityType;
+		/** For stochastic annotations, the sum of the supports of the distributions */
+		@SerializedName("#probabilities")
+		public Integer numProbabilities;
 
 		/**
 		 * Add an entity to which this annotation applies.
@@ -323,6 +326,12 @@ public class UMBIndex
 			if (type.type == Type.STRING) {
 				if (numStrings <= 0) {
 					throw new UMBException("Number of strings must be positive");
+				}
+			}
+			checkFieldExistsIff(numProbabilities, "#probabilities", probabilityType != null);
+			if (probabilityType != null) {
+				if (numProbabilities <= 0) {
+					throw new UMBException("Number of probabilities must be positive");
 				}
 			}
 		}
