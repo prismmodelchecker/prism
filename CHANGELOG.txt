@@ -5,6 +5,7 @@ Changes since last release (up to 097948f98)
 This file contains details of the changes in each new version of PRISM.
 
 * Import/export functionality
+  - import/export from/to UMB (Unified Markov Binary) format
   - import of POMDPs from explicit files (.tra, .obs, etc.)
   - optionally, export/import initial state info via .tra file
     (currently only done for POMDPs))
