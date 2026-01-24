@@ -1,4 +1,26 @@
+-----------------------------------------------------------------------------
+Changes since last release (up to 097948f98)
+-----------------------------------------------------------------------------
+
 This file contains details of the changes in each new version of PRISM.
+
+* Import/export functionality
+  - import of POMDPs from explicit files (.tra, .obs, etc.)
+  - optionally, export/import initial state info via .tra file
+
+* Full LTL for interval MDPs/DTMCs.
+
+* Construction and export (but not solution) of:
+  - negative rewards
+  - interval POMDPs
+  - exact interval models
+
+* Various bugfixes
+
+* Development and code-level changes
+  - fix to allow cross-compiling Arm->Intel on macOS.
+  - ModelInfo stores actions, alignes with Model
+  - models stored using BigRational not Function in exact mode
 
 -----------------------------------------------------------------------------
 Version 4.9 (first released 11/8/2025)
