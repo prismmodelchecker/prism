@@ -110,7 +110,6 @@ public class UMBBitPacking
 	public UMBIndex.ValuationClassDescription toValuationClassDescription()
 	{
 		UMBIndex.ValuationClassDescription valuationClassDescr = new UMBIndex.ValuationClassDescription();
-		valuationClassDescr.alignment = getTotalNumBytes();
 		// Create an item for each variable or padding
 		int numItems = getNumItems();
 		for (int i = 0; i < numItems; i++) {

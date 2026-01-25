@@ -456,8 +456,6 @@ public class UMBIndex
 	/** Info about a class of valuation (for e.g. states, observations) */
 	public static class ValuationClassDescription
 	{
-		/** Alignment (in bytes) of the data */
-		public Integer alignment;
 		/** List of variables/padding making up each state valuation */
 		public List<ValuationVariable> variables = new ArrayList<>();
 
@@ -571,7 +569,6 @@ public class UMBIndex
 	 */
 	public void validateValuationDescription(ValuationClassDescription valuationDescr, String fieldName) throws UMBException
 	{
-		checkFieldExists(valuationDescr.alignment, fieldName + ".alignment");
 		checkFieldExists(valuationDescr.variables, fieldName + ".variables");
 		for (ValuationVariable var : valuationDescr.variables) {
 			validateValuationVariable(var);
