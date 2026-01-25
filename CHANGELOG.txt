@@ -7,6 +7,7 @@ This file contains details of the changes in each new version of PRISM.
 * Import/export functionality
   - import of POMDPs from explicit files (.tra, .obs, etc.)
   - optionally, export/import initial state info via .tra file
+    (currently only done for POMDPs))
 
 * Full LTL for interval MDPs/DTMCs.
 
@@ -19,7 +20,7 @@ This file contains details of the changes in each new version of PRISM.
 
 * Development and code-level changes
   - fix to allow cross-compiling Arm->Intel on macOS.
-  - ModelInfo stores actions, alignes with Model
+  - ModelInfo stores actions, aligns with Model
   - models stored using BigRational not Function in exact mode
 
 -----------------------------------------------------------------------------
