@@ -2872,8 +2872,9 @@ public class PrismCL implements PrismModelListener
 			mainLog.println("Export the built model to file(s) (or to the screen if <file>=\"stdout\").");
 			mainLog.println("Use a list of file extensions to indicate which files should be generated, e.g.:");
 			mainLog.println("\n -exportmodel out.tra,sta\n");
-			mainLog.println("Possible extensions are: .tra, .srew, .trew, .sta, .lab, .obs, .dot, .drn, .umb");
-			mainLog.println("Use extension .all to export all explicit files (.tra/srew/trew/sta/lab/obs), e.g.:");
+			mainLog.println("\n -exportmodel out.umb\n");
+			mainLog.println("Possible extensions are: .tra, .srew, .trew, .lab, .sta, .obs, .dot, .umb, .drn");
+			mainLog.println("Use extension .all to export all explicit files (.tra/srew/trew/lab/sta/obs), e.g.:");
 			mainLog.println("\n -exportmodel out.all\n");
 			mainLog.println("Omit the file basename to use the basename of the model file, e.g.:");
 			mainLog.println("\n -exportmodel .all\n");
@@ -2881,16 +2882,19 @@ public class PrismCL implements PrismModelListener
 			mainLog.println();
 			mainLog.println("If provided, <options> is a comma-separated list of options taken from:");
 			mainLog.println(" * format (=explicit/matlab/dot/drn/umb) - model export format");
-			mainLog.println(" * matlab - same as format=matlab");
-			mainLog.println(" * rows - export matrices with one row/distribution on each line");
-			mainLog.println(" * text - show binary formats in textual form ");
-			mainLog.println(" * proplabels - export labels from a properties file into the same file, too");
-			mainLog.println(" * states (=true/false) - include state definitions");
-			mainLog.println(" * obs (=true/false) - include observation definitions");
-			mainLog.println(" * actions (=true/false) - show actions on choices/transitions");
-			mainLog.println(" * headers (=true/false) - include headers when exporting rewards");
-			mainLog.println(" * precision (=n) - export probabilities/rewards with n significant decimal places");
+			mainLog.println(" * rewards (=true/false) - whether to include rewards");
+			mainLog.println(" * labels (=true/false) - whether to include labels");
+			mainLog.println(" * states (=true/false) - whether to include state definitions");
+			mainLog.println(" * obs (=true/false) - whether to include observation definitions");
+			mainLog.println(" * actions (=true/false) - whether to include actions on choices/transitions");
+			mainLog.println(" * precision (=<n>) - use <n> significant figures for floating point values (in text)");
 			mainLog.println(" * zip (=true/false) - whether to zip UMB files");
+			mainLog.println(" * text - show binary formats in textual form ");
+			mainLog.println(" * matlab - same as format=matlab");
+			mainLog.println("For the explicit files format:");
+			mainLog.println(" * rows - export matrices with one row/distribution on each line");
+			mainLog.println(" * proplabels - also export labels from a properties file into the same file, too");
+			mainLog.println(" * headers (=true/false) - include headers in explicit (reward) files");
 		}
 		// -exportstrat
 		else if (sw.equals("exportstrat")) {
