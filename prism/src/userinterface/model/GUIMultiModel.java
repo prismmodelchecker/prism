@@ -83,7 +83,7 @@ public class GUIMultiModel extends GUIPlugin implements PrismSettingsListener
 	private AbstractAction computeSS, computeTr, newPRISMModel;
 	private AbstractAction newPEPAModel, loadModel, reloadModel, saveModel, saveAsModel, parseModel, buildModel;
 	private AbstractAction exportStatesPlain, exportStatesMatlab,
-			exportTransPlain, exportTransMatlab, exportTransDot, exportObsPlain, exportObsMatlab, exportStateRewardsPlain, exportStateRewardsMatlab,
+			exportTransPlain, exportTransMatlab, exportTransDot, exportTransUMB, exportObsPlain, exportObsMatlab, exportStateRewardsPlain, exportStateRewardsMatlab,
 			exportTransRewardsPlain, exportTransRewardsMatlab, exportLabelsPlain, exportLabelsMatlab,
 			exportSSPlain, exportSSMatlab, exportTrPlain, exportTrMatlab;
 	private JPopupMenu popup;
@@ -97,6 +97,7 @@ public class GUIMultiModel extends GUIPlugin implements PrismSettingsListener
 	private FileFilter textFilter;
 	private FileFilter matlabFilter;
 	private FileFilter dotFilter;
+	private FileFilter umbFilter;
 	//State
 	private boolean computing = false;
 	private boolean initialised = false;
@@ -190,6 +191,7 @@ public class GUIMultiModel extends GUIPlugin implements PrismSettingsListener
 		exportTransPlain.setEnabled(!computing);
 		exportTransMatlab.setEnabled(!computing);
 		exportTransDot.setEnabled(!computing);
+		exportTransUMB.setEnabled(!computing);
 		exportObsPlain.setEnabled(!computing);
 		exportObsMatlab.setEnabled(!computing);
 		exportStateRewardsPlain.setEnabled(!computing);
@@ -363,6 +365,9 @@ public class GUIMultiModel extends GUIPlugin implements PrismSettingsListener
 		switch (exportFormat) {
 			case DOT:
 				res = showSaveFileDialog(dotFilter);
+				break;
+			case UMB:
+				res = showSaveFileDialog(umbFilter);
 				break;
 			case MATLAB:
 				res = showSaveFileDialog(matlabFilter);
@@ -678,8 +683,20 @@ public class GUIMultiModel extends GUIPlugin implements PrismSettingsListener
 		};
 		exportTransDot.putValue(Action.LONG_DESCRIPTION, "Exports the model to a Dot file");
 		exportTransDot.putValue(Action.MNEMONIC_KEY, Integer.valueOf(KeyEvent.VK_D));
-		exportTransDot.putValue(Action.NAME, "Dot file");
+		exportTransDot.putValue(Action.NAME, "Dot");
 		exportTransDot.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallFileDot.png"));
+
+		exportTransUMB = new AbstractAction()
+		{
+			public void actionPerformed(ActionEvent e)
+			{
+				a_exportBuildAs(ModelExportEntity.MODEL, ModelExportFormat.UMB);
+			}
+		};
+		exportTransUMB.putValue(Action.LONG_DESCRIPTION, "Exports the model to a UMB file");
+		exportTransUMB.putValue(Action.MNEMONIC_KEY, Integer.valueOf(KeyEvent.VK_D));
+		exportTransUMB.putValue(Action.NAME, "UMB");
+		exportTransUMB.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallMatrix.png"));
 
 		exportObsPlain = new AbstractAction()
 		{
@@ -1044,6 +1061,7 @@ public class GUIMultiModel extends GUIPlugin implements PrismSettingsListener
 		exportPlainMenu.add(exportObsPlain);
 		exportMenu.add(exportPlainMenu);
 		exportMenu.add(exportTransDot);
+		exportMenu.add(exportTransUMB);
 		JMenu exportMatlabMenu = new JMenu("Matlab");
 		exportMatlabMenu.setMnemonic('M');
 		exportMatlabMenu.setIcon(GUIPrism.getIconFromImage("smallFileMatlab.png"));
@@ -1182,6 +1200,7 @@ public class GUIMultiModel extends GUIPlugin implements PrismSettingsListener
 		textFilter =  new FileNameExtensionFilter("Plain text files (*.txt)", "txt");
 		matlabFilter = new FileNameExtensionFilter("Matlab files (*.m)", "m");
 		dotFilter = new FileNameExtensionFilter("Dot files (*.dot)", "dot");
+		umbFilter = new FileNameExtensionFilter("UMB files (*.umb)", "dot");
 
 		setLayout(new BorderLayout());
 		add(topPanel, BorderLayout.CENTER);
