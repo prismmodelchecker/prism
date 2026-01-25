@@ -520,9 +520,9 @@ public class UMBReader
 		UMBIn umbIn = open();
 		try {
 			long entrySize = umbIn.findArchiveEntry(filename);
-			long minExpectedSize = (size + 7) / 8;
-			long maxExpectedSize = ((size + 63) / 64) * 8;
-			if (entrySize < minExpectedSize && entrySize > maxExpectedSize) {
+			//long minExpectedSize = (size + 7) / 8;
+			long expectedSize = ((size + 63) / 64) * 8;
+			if (entrySize != expectedSize) {
 				throw new UMBException("File " + filename + " has unexpected size (" + entrySize + " bytes)");
 			}
 			ByteBuffer bytes;
