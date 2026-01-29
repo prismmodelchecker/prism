@@ -1,5 +1,5 @@
 -----------------------------------------------------------------------------
-Changes since last release (up to 097948f98)
+Version 4.10 (first released 29/1/2026)
 -----------------------------------------------------------------------------
 
 This file contains details of the changes in each new version of PRISM.
@@ -16,6 +16,8 @@ This file contains details of the changes in each new version of PRISM.
   - negative rewards
   - interval POMDPs
   - exact interval models
+
+* Use JVM defaults for max heap size
 
 * Various bugfixes
 
