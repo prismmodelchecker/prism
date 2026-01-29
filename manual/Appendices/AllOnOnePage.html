@@ -244,41 +244,16 @@ a.varlink { text-decoration:none;}
 <div class='vspace'></div><h1><span class='big'>Appendices</span></h1>
 <hr />
 <h1>Explicit Model Files</h1>
-<p>This appendix details the (plain text) file formats used by PRISM for <a class='wikilink' href='../RunningPRISM/ExportingTheModel.html'>exporting</a> and <a class='wikilink' href='../RunningPRISM/ExplicitModelImport.html'>importing</a> models that have already been constructed, i.e., they comprise an explicit list of states, transitions, etc. making up the model, rather than a high-level model description in the <a class='wikilink' href='../ThePRISMLanguage/Main.html'>PRISM modelling language</a>.
+<p>This appendix details the plain text file formats used by PRISM for <a class='wikilink' href='../RunningPRISM/ExportingTheModel.html'>exporting</a> and <a class='wikilink' href='../RunningPRISM/ExplicitModelImport.html'>importing</a> models that have already been constructed, i.e., they comprise an explicit list of states, transitions, etc. making up the model, rather than a high-level model description in the <a class='wikilink' href='../ThePRISMLanguage/Main.html'>PRISM modelling language</a>.
 Below, we describe:
 </p>
-<div class='vspace'></div><ul><li><a href='AllOnOnePage.html#sta'>State (.sta) files</a>
-</li><li><a href='AllOnOnePage.html#tra'>Transitions (.tra) files</a>
+<div class='vspace'></div><ul><li><a href='AllOnOnePage.html#tra'>Transitions (.tra) files</a>
 </li><li><a href='AllOnOnePage.html#trarows'>Transitions (.tra) files (row form)</a>
 </li><li><a href='AllOnOnePage.html#lab'>Labels (.lab) files</a>
 </li><li><a href='AllOnOnePage.html#srew'>State rewards (.srew) files</a>
 </li><li><a href='AllOnOnePage.html#trew'>Transition rewards (.trew) files</a>
+</li><li><a href='AllOnOnePage.html#sta'>State (.sta) files</a>
 </li></ul><div class='vspace'></div><hr />
-<p class='vspace'><a name='sta' id='sta'></a>
-</p><h3>States (.sta) files</h3>
-<p>These contain an explicit list of the reachable states of a model. The first line is of the form <code>(v1,...,vn)</code>, listing the names of all the variables in the model in the order that they appear in the PRISM model. Subsequent lines list the values of the <code>n</code> variables in each state of the model. Each line is of the form <code>i:(x1,...,xn)</code>, where <code>i</code> is the index of the state (starting from 0) and <code>x1,...,xn</code> are the values of each variable in the state. States are ordered by their index (and, therefore, given PRISM's default behaviour, lexicographically according to the tuple of variable values).
-</p>
-<p class='vspace'>For the example PRISM model <a class='urllink' href='../uploads/poll2.sm.html'>poll2.sm</a>, the states file looks like:
-</p>
-<div class='vspace'></div>
-<div class='sourceblock ' id='sourceblock1'>
-  <div class='sourceblocktext'><div class="text">(s,a,s1,s2)<br />
-0:(1,0,0,0)<br />
-1:(1,0,0,1)<br />
-2:(1,0,1,0)<br />
-3:(1,0,1,1)<br />
-4:(1,1,1,0)<br />
-5:(1,1,1,1)<br />
-6:(2,0,0,0)<br />
-7:(2,0,0,1)<br />
-8:(2,0,1,0)<br />
-9:(2,0,1,1)<br />
-10:(2,1,0,1)<br />
-11:(2,1,1,1)</div></div>
-  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/Appendices/AllOnOnePage?action=sourceblock&amp;num=1' type='text/plain'>[&#036;[Get Code]]</a></div>
-</div>
-
-<div class='vspace'></div><hr />
 <p class='vspace'><a name='tra' id='tra'></a>
 </p><h3>Transitions (.tra) files</h3>
 <p>These contain an explicit list of the transitions making up a probabilistic model, i.e. they are essentially a sparse matrix representation of the transition probability/rate matrix. The first line of the file contains information about the size of the model, the remaining lines contain information about transitions, one per line.
@@ -294,7 +269,7 @@ Below, we describe:
 <p class='vspace'>Here is an example, for the (DTMC) PRISM model <a class='urllink' href='../uploads/lec3.pm'>lec3.pm</a> (which looks like <a class='urllink' href='../uploads/lec3.dot.pdf'>this</a>):
 </p>
 <div class='vspace'></div>
-<div class='sourceblock ' id='sourceblock2'>
+<div class='sourceblock ' id='sourceblock1'>
   <div class='sourceblocktext'><div class="text">6 9<br />
 0 1 0.5<br />
 0 3 0.5<br />
@@ -305,13 +280,13 @@ Below, we describe:
 3 3 1<br />
 4 4 1<br />
 5 2 1</div></div>
-  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/Appendices/AllOnOnePage?action=sourceblock&amp;num=2' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/Appendices/AllOnOnePage?action=sourceblock&amp;num=1' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
-<p class='vspace'>and here is one for the (CTMC) PRISM model <a class='urllink' href='../uploads/poll2.sm.html'>poll2.sm</a> (which looks like <a class='urllink' href='../uploads/poll2.dot.pdf'>this</a>):
+<p class='vspace'>and here is one for the (CTMC) PRISM model <a class='urllink' href='../uploads/poll2.sm'>poll2.sm</a> (which looks like <a class='urllink' href='../uploads/poll2.dot.pdf'>this</a>):
 </p>
 <div class='vspace'></div>
-<div class='sourceblock ' id='sourceblock3'>
+<div class='sourceblock ' id='sourceblock2'>
   <div class='sourceblocktext'><div class="text">12 22<br />
 0 1 0.5<br />
 0 2 0.5<br />
@@ -335,7 +310,7 @@ Below, we describe:
 10 0 1<br />
 10 11 0.5<br />
 11 2 1</div></div>
-  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/Appendices/AllOnOnePage?action=sourceblock&amp;num=3' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/Appendices/AllOnOnePage?action=sourceblock&amp;num=2' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 <p class='vspace'><strong>MDPs (or PAs)</strong>
@@ -351,7 +326,7 @@ It is assumed that source states (rows) and choices within states are in ascendi
 <p class='vspace'>Here is an example, for the (MDP) PRISM model <a class='urllink' href='../uploads/lec12mdp.nm.html'>lec12mdp.nm</a> (which looks like <a class='urllink' href='../uploads/lec12mdp.dot.pdf'>this</a>):
 </p>
 <div class='vspace'></div>
-<div class='sourceblock ' id='sourceblock4'>
+<div class='sourceblock ' id='sourceblock3'>
   <div class='sourceblocktext'><div class="text">4 5 7<br />
 0 0 1 1 <br />
 1 0 0 0.7 <br />
@@ -360,13 +335,13 @@ It is assumed that source states (rows) and choices within states are in ascendi
 1 1 3 0.5 <br />
 2 0 2 1 <br />
 3 0 3 1 </div></div>
-  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/Appendices/AllOnOnePage?action=sourceblock&amp;num=4' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/Appendices/AllOnOnePage?action=sourceblock&amp;num=3' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 <p class='vspace'>and here is an action-labelled version of the same model, <a class='urllink' href='../uploads/lec12mdpa.nm.html'>lec12mdpa.nm</a> (which looks like <a class='urllink' href='../uploads/lec12mdpa.dot.pdf'>this</a>):
 </p>
 <div class='vspace'></div>
-<div class='sourceblock ' id='sourceblock5'>
+<div class='sourceblock ' id='sourceblock4'>
   <div class='sourceblocktext'><div class="text">4 5 7<br />
 0 0 1 1 a<br />
 1 0 2 0.5 c<br />
@@ -375,13 +350,56 @@ It is assumed that source states (rows) and choices within states are in ascendi
 1 1 1 0.3 b<br />
 2 0 2 1 a<br />
 3 0 3 1 a</div></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/Appendices/AllOnOnePage?action=sourceblock&amp;num=4' type='text/plain'>[&#036;[Get Code]]</a></div>
+</div>
+
+<p class='vspace'><strong>POMDPs</strong>
+</p>
+<p class='vspace'>The format of a <code>.tra</code> file for a POMDP is similar to an MDP,
+but also contains information about observations.
+</p>
+<p class='vspace'>The first line of the file take the form "<code>n c m o</code>", where <code>n</code>, <code>c</code> and <code>m</code> are, as for MDPs, the numbers of states, choices and transitions,
+and <code>o</code> is the number of observations.
+The lines that list transitions contain an additional integer after the transition probability
+(and before the action, if present), giving the (deterministic) observation that is made
+when entering the target state of that transition.
+Currently, it is assumed that these are consistent for all states.
+</p>
+<p class='vspace'>In order to also specify the observation for the initial state,
+a dummy transition line of the form <code>- - s - o</code> is used,
+giving both the initial state <code>s</code> and its observation <code>o</code>.
+</p>
+<p class='vspace'>An example file is:
+</p>
+<div class='vspace'></div>
+<div class='sourceblock ' id='sourceblock5'>
+  <div class='sourceblocktext'><div class="text">10 16 18 4<br />
+- - 0 - 0<br />
+0 0 1 0.1 1 toss<br />
+0 0 2 0.3 1 toss<br />
+0 0 3 0.6 1 toss<br />
+1 0 4 1 2 guess1<br />
+1 1 7 1 3 guess2<br />
+1 2 7 1 3 guess3<br />
+2 0 8 1 3 guess1<br />
+2 1 5 1 2 guess2<br />
+2 2 8 1 3 guess3<br />
+3 0 9 1 3 guess1<br />
+3 1 9 1 3 guess2<br />
+3 2 6 1 2 guess3<br />
+4 0 4 1 2 loop<br />
+5 0 5 1 2 loop<br />
+6 0 6 1 2 loop<br />
+7 0 7 1 3<br />
+8 0 8 1 3<br />
+9 0 9 1 3</div></div>
   <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/Appendices/AllOnOnePage?action=sourceblock&amp;num=5' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 <div class='vspace'></div><hr />
 <p class='vspace'><a name='trarows' id='trarows'></a>
 </p><h3>Transitions (.tra) files (row form)</h3>
-<p>There is alternative format for transition matrices (see the <a class='wikilink' href='../RunningPRISM/ExportingTheModel.html#formats'>-exportrows</a> switch) where transitions for each state/choice are collated on a single line.
+<p>There is alternative format for transition matrices (see the <a class='wikilink' href='../RunningPRISM/ExportingTheModel.html#other'>rows</a> option for <code>-exportmodel</code>) where transitions for each state/choice are collated on a single line.
 </p>
 <p class='vspace'>Here is the result for the <a class='urllink' href='../uploads/lec3.pm'>lec3.pm</a> example from above (a DTMC):
 </p>
@@ -500,6 +518,32 @@ and the number of transitions (the last number on the first line) is replaced wi
   <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/Appendices/AllOnOnePage?action=sourceblock&amp;num=12' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
+<div class='vspace'></div><hr />
+<p class='vspace'><a name='sta' id='sta'></a>
+</p><h3>States (.sta) files</h3>
+<p>These contain an explicit list of the reachable states of a model. The first line is of the form <code>(v1,...,vn)</code>, listing the names of all the variables in the model in the order that they appear in the PRISM model. Subsequent lines list the values of the <code>n</code> variables in each state of the model. Each line is of the form <code>i:(x1,...,xn)</code>, where <code>i</code> is the index of the state (starting from 0) and <code>x1,...,xn</code> are the values of each variable in the state. States are ordered by their index (and, therefore, given PRISM's default behaviour, lexicographically according to the tuple of variable values).
+</p>
+<p class='vspace'>For the example PRISM model <a class='urllink' href='../uploads/poll2.sm'>poll2.sm</a>, the states file looks like:
+</p>
+<div class='vspace'></div>
+<div class='sourceblock ' id='sourceblock13'>
+  <div class='sourceblocktext'><div class="text">(s,a,s1,s2)<br />
+0:(1,0,0,0)<br />
+1:(1,0,0,1)<br />
+2:(1,0,1,0)<br />
+3:(1,0,1,1)<br />
+4:(1,1,1,0)<br />
+5:(1,1,1,1)<br />
+6:(2,0,0,0)<br />
+7:(2,0,0,1)<br />
+8:(2,0,1,0)<br />
+9:(2,0,1,1)<br />
+10:(2,1,0,1)<br />
+11:(2,1,1,1)</div></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/Appendices/AllOnOnePage?action=sourceblock&amp;num=13' type='text/plain'>[&#036;[Get Code]]</a></div>
+</div>
+
+<div class='vspace'></div>
 </div>
 
 
@@ -510,7 +554,7 @@ and the number of transitions (the last number on the first line) is replaced wi
 </p>
 
     </div>
-    <div id='prism-man-lastmod'>Page last modified on November 13, 2013, at 11:23 AM</div>
+    <div id='prism-man-lastmod'>Page last modified on November 13, 2013, at 11:23 am</div>
   </div>
 <!--/PageFooterFmt-->
 

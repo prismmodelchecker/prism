@@ -231,48 +231,50 @@ a.varlink { text-decoration:none;}
 <!--PageText-->
 <div id='wikitext'>
 <p>It is also possible to construct models in PRISM through direct specification of their transition matrix.
-The format in which this information is input to the tool is exactly the same as is currently output
-(see the section "<a class='wikilink' href='ExportingTheModel.html'>Exporting The Model</a>" and the appendix "<a class='wikilink' href='../Appendices/ExplicitModelFiles.html'>Explicit Model Files</a>").
-Presently, this functionality is only supported in the command-line version of the tool, usually using the <code>-importmodel</code> switch, e.g.:
+Two formats for explicit model import are currently supported:
+</p>
+<div class='vspace'></div><ul><li><a class='wikilink' href='../Appendices/ExplicitModelFiles.html'>plain text</a> files (sometimes referred to as "explicit" or "<code>.tra</code>" files)
+</li><li><a class='urllink' href='https://pmc-tools.github.io/umb/'>UMB</a> (Unified Markov binary) format, a binary format supported by other probabilistic model checkers
+</li></ul><p class='vspace'>Presently, this functionality is only supported in the command-line version of the tool, usually using the <code>-importmodel</code> switch.
+In a similar fashion to <code>-exportmodel</code> switch, the type of import is usually determined from the file extension.
+</p>
+<p class='vspace'>For UMB, all model info is contained in a single file. An example of import is:
 </p>
 <div class='vspace'></div>
 <div class='sourceblock ' id='sourceblock1'>
-  <div class='sourceblocktext'><div class="shell"><span style="font-weight:bold;">prism -importmodel poll2.tra</span><br/>
+  <div class='sourceblocktext'><div class="shell"><span style="font-weight:bold;">prism -importmodel poll2.umb</span><br/>
 </div></div>
   <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/RunningPRISM/ExplicitModelImport?action=sourceblock&amp;num=1' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
-<p class='vspace'>PRISM tries to determine the model type from the format of the input files,
-but if this does not work, the model type can be overwritten using the <code>-dtmc</code>, <code>-ctmc</code> and <code>-mdp</code> switches.
-For example:
+<p class='vspace'>For the plain text files (<code>.tra</code> etc.), various options are possible.
+To just import the core part of the model (the transition function) use:
 </p>
 <div class='vspace'></div>
 <div class='sourceblock ' id='sourceblock2'>
-  <div class='sourceblocktext'><div class="shell"><span style="font-weight:bold;">prism -importmodel poll2.tra -ctmc</span><br/>
+  <div class='sourceblocktext'><div class="shell"><span style="font-weight:bold;">prism -importmodel poll2.tra</span><br/>
 </div></div>
   <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/RunningPRISM/ExplicitModelImport?action=sourceblock&amp;num=2' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
-<p class='vspace'>Please note that this method of constructing models in PRISM is typically less efficient than using the PRISM language.
-This is because PRISM is (primarily) a symbolic model checker and the underlying data structures used to represent the model
-function better when there is high-level structure and regularity to exploit.
-This situation can be alleviated to a certain extent by importing not just a transition matrix,
-but also a definition of each state of the model in terms of a set of variables.
-The format of this information is again identical to PRISM's current output format, using the <code>-exportstates</code> switch.
-The following example shows how PRISM could be used to build, export and then re-import a model
-(not a good strategy in general):
+<p class='vspace'>PRISM tries to determine the model type from the format of the <code>.tra</code> file,
+but if this does not work, the model type can be overwritten using the <code>-dtmc</code>, <code>-ctmc</code> and <code>-mdp</code> switches.
+For example:
 </p>
 <div class='vspace'></div>
 <div class='sourceblock ' id='sourceblock3'>
-  <div class='sourceblocktext'><div class="shell"><span style="font-weight:bold;">prism poll2.sm -exportmodel poll2.tra,sta</span><br/>
-<span style="font-weight:bold;">prism -importmodel poll2.tra,sta</span><br/>
+  <div class='sourceblocktext'><div class="shell"><span style="font-weight:bold;">prism -importmodel poll2.tra -ctmc</span><br/>
 </div></div>
   <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/RunningPRISM/ExplicitModelImport?action=sourceblock&amp;num=3' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
-<p class='vspace'>If state information is not imported, a single zero-indexed variable <code>x</code> is assumed.
+<p class='vspace'>Using the same formats as for <a class='wikilink' href='ExportingTheModel.html'>model export</a>, other parts of the model can also be imported:
 </p>
-<p class='vspace'>You can also import information about labels (by default, from a file with extension <code>.lab</code>), e.g.:
+<div class='vspace'></div><ul><li><code>.lab</code> - labels
+</li><li><code>.srew</code>, <code>.trew</code> - rewards: states, transitions
+</li><li><code>.sta</code> - states
+</li><li><code>.obs</code> - observations
+</li></ul><p class='vspace'>Here is an example of also importing labels and states:
 </p>
 <div class='vspace'></div>
 <div class='sourceblock ' id='sourceblock4'>
@@ -281,14 +283,14 @@ The following example shows how PRISM could be used to build, export and then re
   <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/RunningPRISM/ExplicitModelImport?action=sourceblock&amp;num=4' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
-<p class='vspace'>where the labels file (<code>poll2.lab</code> above) is in the format generated by the <code>-exportlabels</code> <a class='wikilink' href='ExportingTheModel.html'>export option</a> of PRISM.
+<p class='vspace'>If state information is not imported, a single zero-indexed variable <code>x</code> is assumed.
 </p>
-<p class='vspace'>In particular, since details about the initial state(s) of a model are not preserved in the <code>.tra</code> file, but are included in the labels file, this should also be used to designate a particular initial state for a model. Otherwise, state 0 is assumed to be the initial state or, if state information is imported, the state in which all variables take their minimum value is used.
+<p class='vspace'>Note also that, since details about the initial state(s) of a model are not preserved in the <code>.tra</code> file,
+but are included in the labels file, this should also be used to designate a particular initial state for a model.
+Otherwise, state 0 is assumed to be the initial state or,
+if state information is imported, the state in which all variables take their minimum value is used.
 </p>
-<p class='vspace'>Lastly, state and transition rewards can also be imported,
-assuming extensions <code>.srew</code> and <code>.trew</code>.
-</p>
-<p class='vspace'>Use the extension <code>.all</code> to import from all of these files:
+<p class='vspace'>Use the extension <code>.all</code> to import from any matching files with appropriate extensions:
 </p>
 <div class='vspace'></div>
 <div class='sourceblock ' id='sourceblock5'>
@@ -306,13 +308,33 @@ assuming extensions <code>.srew</code> and <code>.trew</code>.
   <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/RunningPRISM/ExplicitModelImport?action=sourceblock&amp;num=6' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
-<p class='vspace'>In a similar style to PRISM's <a class='wikilink' href='ExportingTheModel.html'><code>-exportmodel</code></a> switch, while <code>-importmodel</code> is usually the most convenient, you can also specify each part separately, e.g.:
+<div class='vspace'></div><h3>Efficiency</h3>
+<p>Please note, for PRISM's symbolic model construction/engines, which are often used by default,
+this explicit method of constructing models in PRISM is typically less efficient than using the PRISM language.
+This is because the underlying data structures used to represent the model
+function better when there is high-level structure and regularity to exploit.
+You may want to switch to the "explicit" engine:
 </p>
 <div class='vspace'></div>
 <div class='sourceblock ' id='sourceblock7'>
-  <div class='sourceblocktext'><div class="shell"><span style="font-weight:bold;">prism -importtrans poll2.tra -importstates poll2.sta -importlabels poll2.lab -ctmc</span><br/>
+  <div class='sourceblocktext'><div class="shell"><span style="font-weight:bold;">prism -importmodel poll2.tra -ex</span><br/>
 </div></div>
   <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/RunningPRISM/ExplicitModelImport?action=sourceblock&amp;num=7' type='text/plain'>[&#036;[Get Code]]</a></div>
+</div>
+
+<p class='vspace'>The situation can also be alleviated to a certain extent for the symbolic implementations by importing
+the <code>.sta</code> file, since the composition of the states reintroduces some regularity
+(although is still typically inefficient to construct).
+</p>
+<p class='vspace'><a name='other' id='other'></a>
+</p><h3>Other options</h3>
+<p>In a similar style to PRISM's <a class='wikilink' href='ExportingTheModel.html'><code>-exportmodel</code></a> switch, while <code>-importmodel</code> is usually the most convenient, you can also specify each part separately, e.g.:
+</p>
+<div class='vspace'></div>
+<div class='sourceblock ' id='sourceblock8'>
+  <div class='sourceblocktext'><div class="shell"><span style="font-weight:bold;">prism -importtrans poll2.tra -importstates poll2.sta -importlabels poll2.lab -ctmc</span><br/>
+</div></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/RunningPRISM/ExplicitModelImport?action=sourceblock&amp;num=8' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 <p class='vspace'>There are also <code>-importstaterewards</code> and <code>-impottransrewards</code> switches.
@@ -331,7 +353,7 @@ the names of the reward structures are read too.
 </p>
 
     </div>
-    <div id='prism-man-lastmod'>Page last modified on July 06, 2025, at 03:55 PM</div>
+    <div id='prism-man-lastmod'>Page last modified on January 25, 2026, at 10:14 pm</div>
   </div>
 <!--/PageFooterFmt-->
 
