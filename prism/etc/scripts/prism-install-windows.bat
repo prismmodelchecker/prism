@@ -19,4 +19,4 @@ setx PATH "%ProgramFiles(x86)%\NSIS;%PATH%"
 .\setup-x86_64.exe -P make -P mingw64-x86_64-gcc-g++ -P binutils -P dos2unix -P git -P wget -P unzip -P python -P nano -q -s http://ftp.inf.tu-dresden.de/software/windows/cygwin/
 
 @REM Launch a Cygwin terminal
-"%HOMEDRIVE%\cygwin64\bin\mintty.exe" -
+@REM "%HOMEDRIVE%\cygwin64\bin\mintty.exe" -
