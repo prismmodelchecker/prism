@@ -102,12 +102,17 @@ endif
 # For Windows, we decide whether to build in 64-bit mode based on
 # whether java is 32/64-bit (since these need to match)
 ifeq ($(OSTYPE),cygwin)
-    JAVA_VERSION_STRING = $(shell java -version 2>&1)
-    ifneq (,$(findstring 64-bit, $(JAVA_VERSION_STRING)))
-        ARCH = x86_64
+	# Default to 64-bit, which is most likely these days
+	ARCH = x86_64
+    ifeq ($(shell which java 2>/dev/null),)
+        $(error "Could not find java executable. Please install Java or add it to your PATH.")
     endif
-    ifneq (,$(findstring 64-Bit, $(JAVA_VERSION_STRING)))
-        ARCH = x86_64
+    JAVA_VERSION_STRING := $(shell java -version 2>&1)
+	ifneq (,$(findstring 32-bit, $(JAVA_VERSION_STRING)))
+        ARCH = 
+    endif
+    ifneq (,$(findstring Client VM, $(JAVA_VERSION_STRING)))
+        ARCH = 
     endif
 endif
 
