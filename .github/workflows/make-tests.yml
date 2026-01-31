@@ -1,4 +1,4 @@
-name: make-tests
+name: Regression tests
 
 on:
   push:
@@ -52,7 +52,6 @@ jobs:
           mingw64-x86_64-gcc-g++,
           binutils,
           dos2unix,
-          git,
           wget,
           unzip,
           python
