@@ -1,0 +1,7 @@
+# Handle line endings automatically for text files
+* text=auto
+
+# Force LF for build scripts (for make etc. on Cygwin)
+*.sh      text eol=lf
+*.py      text eol=lf
+Makefile  text eol=lf
