@@ -1,0 +1,107 @@
+name: Build/publish release binaries (Windows)
+
+on:
+#   push:
+#     # Trigger on version tags: v4.10 etc.
+#     tags:
+#       - 'v*'
+  # Allows manual triggering
+  workflow_dispatch:
+      inputs:
+        tag_name:
+          description: 'Target tag (e.g., v4.10)'
+          required: true
+          type: string
+        do_publish:
+          description: 'Upload to the GitHub release?'
+          required: true
+          type: boolean
+          default: false
+
+jobs:
+
+  build:
+    strategy:
+      matrix:
+        include:
+          - os: windows-latest
+            artifact_name: prism-win64
+    runs-on: ${{ matrix.os }}
+
+    steps:
+    - run: git config --global core.autocrlf input
+    - uses: actions/checkout@v4
+      with:
+        # Use the tag from manual input, otherwise fall back to the git ref
+        ref: ${{ github.event.inputs.tag_name || github.ref }}
+        fetch-depth: 0 # Fetches all tags and history
+    - name: Set up JDK
+      uses: actions/setup-java@v4
+      with:
+        java-version: '17'
+        distribution: 'temurin'
+    - name: Install Cygwin Dependencies
+      uses: cygwin/cygwin-install-action@v4
+      with:
+        packages: |
+          make,
+          mingw64-x86_64-gcc-g++,
+          binutils,
+          dos2unix,
+          wget,
+          unzip,
+          python
+    - name: Install NSIS
+      uses: negrutiu/nsis-install@v2
+    - name: Build
+      shell: bash
+      env:
+        CYGWIN: winsymlinks:native
+      working-directory: ./prism
+      run: >-
+        make release
+    - name: Upload artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: ${{ matrix.artifact_name }}
+        path: prism/release/*.exe
+
+  publish:
+      needs: build
+      runs-on: ubuntu-latest
+      permissions:
+        # Crucial for creating releases
+        contents: write
+      if: startsWith(github.ref, 'refs/tags/') || github.event.inputs.do_publish == 'true'
+      
+      steps:
+        - name: Download all artifacts
+          uses: actions/download-artifact@v4
+          with:
+            # This downloads all job artifacts into subfolders
+            path: ./artifacts
+  
+        - name: Organize files and Generate Checksums
+          # Move files from subfolders into one flat directory for the release
+          shell: bash
+          run: |
+            mkdir -p release-assets
+            find ./artifacts -type f \( -name "*.tar.gz" -o -name "*.exe" -o -name "*.zip" \) -exec cp {} ./release-assets/ \;
+            cd release-assets
+            sha256sum * > checksums.txt
+            echo "Assets to be published:"
+            ls -lh
+  
+        - name: Create or update GitHub release
+          uses: softprops/action-gh-release@v2
+          with:
+            # Use the tag from manual input, otherwise fall back to the git ref
+            tag_name: ${{ github.event.inputs.tag_name || github.ref_name }}
+            # Upload files (omit checksums for now)
+            files: |
+              release-assets/*.tar.gz
+              release-assets/*.exe
+              release-assets/*.zip
+            # These are safe even if the release exists; it won't overwrite your text
+            generate_release_notes: false 
+            draft: false
