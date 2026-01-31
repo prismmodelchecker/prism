@@ -1,0 +1,67 @@
+name: Release
+
+on:
+  push:
+    # Trigger on version tags: v4.10 etc.
+    tags:
+      - 'v*'
+  # TEMP
+#   pull_request:
+#     branches: [ master ]
+  # Allows manual triggering
+  workflow_dispatch:
+      inputs:
+        do_publish:
+          description: 'Actually publish to GitHub Releases?'
+          required: true
+          type: boolean
+          default: false
+
+jobs:
+
+  build:
+    strategy:
+      matrix:
+        include:
+          - os: windows-latest
+            artifact_name: prism-win64
+    runs-on: ${{ matrix.os }}
+
+    steps:
+    - run: git config --global core.autocrlf input
+    - uses: actions/checkout@v4
+    - name: Set up JDK
+      uses: actions/setup-java@v4
+      with:
+        java-version: '17'
+        distribution: 'temurin'
+    - name: Install Cygwin Dependencies
+      uses: cygwin/cygwin-install-action@v4
+      with:
+        packages: |
+          make,
+          mingw64-x86_64-gcc-g++,
+          binutils,
+          dos2unix,
+          wget,
+          unzip,
+          python
+    - name: Install NSIS
+      uses: negrutiu/nsis-install@v2
+    - name: Build
+      shell: bash
+      env:
+        CYGWIN: winsymlinks:native
+      working-directory: ./prism
+#         echo "C:\Program Files (x86)\NSIS" >> $GITHUB_PATH &&
+#         echo "C:/Program Files (x86)/NSIS" >> $GITHUB_PATH &&
+#         echo $GITHUB_PATH &&
+#         make release
+      run: >-
+        make release
+    - name: Upload artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: ${{ matrix.artifact_name }}
+        path: prism/release/*.exe
+
