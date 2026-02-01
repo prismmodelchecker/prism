@@ -1,5 +1,7 @@
 name: Build/publish release binaries (Linux, Mac)
 
+# Also build/publish a prism-X.Y-src.tar.gz
+
 on:
 #   push:
 #     # Trigger on version tags: v4.10 etc.
@@ -19,6 +21,25 @@ on:
           default: false
 
 jobs:
+
+  build_src:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        # Use the tag from manual input, otherwise fall back to the git ref
+        ref: ${{ github.event.inputs.tag_name || github.ref }}
+        fetch-depth: 0 # Fetches all tags and history
+    - name: Build source
+      shell: bash
+      working-directory: ./prism
+      run: |
+        make release_source BRANCH=HEAD
+    - name: Upload artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: prism-src
+        path: prism/release/*.tar.gz
 
   build:
     strategy:
@@ -90,7 +111,7 @@ jobs:
         etc/tests/run.sh
 
   publish:
-      needs: [build, test_release]
+      needs: [build_src, build, test_release]
       runs-on: ubuntu-latest
       permissions:
         # Crucial for creating releases
