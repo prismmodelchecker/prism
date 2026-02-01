@@ -45,7 +45,7 @@ if [ ! "$1" = "silent" ] ; then
     echo "Installation complete."
 fi
 
-if [ ! "$1" = "silent" ] && [ "$(uname -s)" == "Darwin" ]; then
+if [ ! "$1" = "silent" ] && [ "$(uname -s)" = "Darwin" ]; then
     echo "\nOn macOS, you may want to run the following command now,"
     echo "which avoids manually approving the integrity of the binary files:"
     echo "\nxattr -d com.apple.quarantine lib/*lib"
