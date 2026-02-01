@@ -625,11 +625,12 @@ build_release:
 release_source: release_check_version build_release_source
 
 build_release_source:
-	@echo Creating source distribution from branch "$(BRANCH)" in "release/$(SRC_DIST_FILE)"... && \
+	echo Creating source distribution from branch "$(BRANCH)" in "release/$(SRC_DIST_FILE)"... && \
 	mkdir -p release && \
 	rm -rf "release/$(SRC_DIST_DIR)" && \
 	rm -f "release/$(SRC_DIST_FILE)" && \
 	mkdir -p "release/$(SRC_DIST_DIR)" && \
+	git branch --v && \
 	(cd .. && git archive $(BRANCH) --format=tar) | tar xf - -C "release/$(SRC_DIST_DIR)" && \
 	(cd release && tar cfz "$(SRC_DIST_FILE)" "$(SRC_DIST_DIR)") && rm -rf "release/$(SRC_DIST_DIR)"
 
