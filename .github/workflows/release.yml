@@ -25,9 +25,13 @@ jobs:
       matrix:
         include:
           - os: ubuntu-latest
-            artifact_name: prism-linux64
+            artifact_name: prism-linux64-x86
+          - os: ubuntu-22.04-arm
+            artifact_name: prism-linux64-arm
           - os: macos-latest
-            artifact_name: prism-macos64
+            artifact_name: prism-mac64-arm
+          - os: macos-15-intel
+            artifact_name: prism-mac64-x86
     runs-on: ${{ matrix.os }}
 
     steps:
@@ -58,16 +62,20 @@ jobs:
       matrix:
         include:
           - os: ubuntu-latest
-            artifact: prism-linux64
+            artifact_name: prism-linux64-x86
+          - os: ubuntu-22.04-arm
+            artifact_name: prism-linux64-arm
           - os: macos-latest
-            artifact: prism-macos64
+            artifact_name: prism-mac64-arm
+          - os: macos-15-intel
+            artifact_name: prism-mac64-x86
     runs-on: ${{ matrix.os }}
     
     steps:
     - name: Download Artifact
       uses: actions/download-artifact@v4
       with:
-        name: ${{ matrix.artifact }}
+        name: ${{ matrix.artifact_name }}
         path: test-dir
     - name: Verify download
       run: ls -R test-dir/
