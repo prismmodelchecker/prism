@@ -75,7 +75,7 @@ jobs:
     - name: Download Artifact
       uses: actions/download-artifact@v4
       with:
-        name: ${{ matrix.artifact }}
+        name: ${{ matrix.artifact_name }}
         path: test-dir
     - name: Verify download
       run: ls -R test-dir/
