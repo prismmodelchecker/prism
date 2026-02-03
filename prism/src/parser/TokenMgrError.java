@@ -3,6 +3,7 @@
 package parser;
 
 /** Token Manager Error. */
+@SuppressWarnings("all") 
 public class TokenMgrError extends Error
 {
 
@@ -95,7 +96,7 @@ public class TokenMgrError extends Error
    * token manager to indicate a lexical error.
    * Parameters :
    *    EOFSeen     : indicates if EOF caused the lexical error
-   *    curLexState : lexical state in which this error occurred
+   *    lexState    : lexical state in which this error occurred
    *    errorLine   : line number when the error occurred
    *    errorColumn : column number when the error occurred
    *    errorAfter  : prefix that was seen before this error occurred
@@ -103,12 +104,12 @@ public class TokenMgrError extends Error
    * Note: You can customize the lexical error message by modifying this method.
    */
   protected static String LexicalErr(boolean EOFSeen, int lexState, int errorLine, int errorColumn, String errorAfter, int curChar) {
-    char curChar1 = (char)curChar;
-    return("Lexical error at line " +
-          errorLine + ", column " +
-          errorColumn + ".  Encountered: " +
-          (EOFSeen ? "<EOF> " : ("\"" + addEscapes(String.valueOf(curChar1)) + "\"") + " (" + curChar + "), ") +
-          "after : \"" + addEscapes(errorAfter) + "\"");
+    return("Lexical error at line " + //
+          errorLine + ", column " + //
+          errorColumn + ".  Encountered: " + //
+          (EOFSeen ? "<EOF>" : ("'" + addEscapes(String.valueOf((char) curChar)) + "' (" + curChar + "),")) + //
+          (errorAfter == null || errorAfter.length() == 0 ? "" : " after prefix \"" + addEscapes(errorAfter) + "\"")) + //
+          (lexState == 0 ? "" : " (in lexical state " + lexState + ")");
   }
 
   /**
@@ -144,4 +145,4 @@ public class TokenMgrError extends Error
     this(LexicalErr(EOFSeen, lexState, errorLine, errorColumn, errorAfter, curChar), reason);
   }
 }
-/* JavaCC - OriginalChecksum=247c264b970b850ff3f25ab9073c801d (do not edit this line) */
+/* JavaCC - OriginalChecksum=e91e0e66d4dd0cdd0c9358f11a60962a (do not edit this line) */

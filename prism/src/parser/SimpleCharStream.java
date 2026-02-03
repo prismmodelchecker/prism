@@ -203,22 +203,20 @@ public class SimpleCharStream
     return c;
   }
 
-  @Deprecated
   /**
    * @deprecated
    * @see #getEndColumn
    */
-
+  @Deprecated
   static public int getColumn() {
     return bufcolumn[bufpos];
   }
 
-  @Deprecated
   /**
    * @deprecated
    * @see #getEndLine
    */
-
+  @Deprecated
   static public int getLine() {
     return bufline[bufpos];
   }
@@ -475,4 +473,4 @@ public class SimpleCharStream
   static boolean getTrackLineColumn() { return trackLineColumn; }
   static void setTrackLineColumn(boolean tlc) { trackLineColumn = tlc; }
 }
-/* JavaCC - OriginalChecksum=312d39869f3bfc3a64bf5e66d85fffff (do not edit this line) */
+/* JavaCC - OriginalChecksum=248d3736771a20ebabfe2c19ce2acc79 (do not edit this line) */
