@@ -30,6 +30,8 @@ JAVA_TESTS_CLASSES_DIR := $(JAVA_CLASSES_DIR)
 JAVA_SRC_FILES := $(shell find $(JAVA_SRC_DIR) -name "*.java")
 JAVA_SRC_FILES_LIST := $(JAVA_CLASSES_DIR)/java_sources.txt
 JAVA_COMPILED_STAMP := $(JAVA_CLASSES_DIR)/java_compiled.stamp
+JAVA_PARSER_JJ := $(JAVA_SRC_DIR)/parser/PrismParser.jj
+JAVA_PARSER_JAVA := $(JAVA_SRC_DIR)/parser/PrismParser.java
 JAVA_TESTS_SRC_FILES := $(shell find $(JAVA_TESTS_SRC_DIR) -name "*.java")
 JAVA_TESTS_SRC_FILES_LIST := $(JAVA_TESTS_CLASSES_DIR)/java_tests_sources.txt
 JAVA_TESTS_COMPILED_STAMP := $(JAVA_TESTS_CLASSES_DIR)/java_tests_compiled.stamp
@@ -362,7 +364,7 @@ export CFLAGS CXXFLAGS LDFLAGS JFLAGS LIBPREFIX LIBSUFFIX
 # Main part of Makefile: Compiling PRISM #
 ##########################################
 
-MAKE_DIRS = dd jdd odd dv prism mtbdd sparse hybrid parser
+MAKE_DIRS = dd jdd odd dv prism mtbdd sparse hybrid
 
 EXT_PACKAGES = lpsolve55 lp_solve_5.5_java
 
@@ -382,14 +384,6 @@ all: cuddpackage extpackages prism
 cuddpackage: checks
 	@echo Making cudd ...; cd $(CUDD_DIR) && \
 	LD= LDFLAGS= ./install.sh
-
-# Use this to force a rebuild (with javacc) of the main parser
-parser:
-	@echo Making parser ...; \
-	cd $(JAVA_SRC_DIR)/parser && \
-	$(MAKE) touch && \
-	$(MAKE) \
-	CLASSPATHSEP="$(CLASSPATHSEP)"
 
 # Build various external libraries needed by PRISM
 extpackages: checks
@@ -422,6 +416,18 @@ $(JAVA_COMPILED_STAMP): $(JAVA_SRC_FILES)
 	@echo "Compiling Java files..."
 	$(JAVAC) $(JFLAGS) -classpath "$(PRISM_LIB_DIR)/*" -d $(JAVA_CLASSES_DIR) -h $(PRISM_INCLUDE_DIR)/jni @$(JAVA_SRC_FILES_LIST)
 	@touch $@
+
+# Rebuild PRISM (JavaCC) compiler if needed
+# Just emit warning if javacc not available and fall back to pre-compiled .java
+$(JAVA_PARSER_JAVA): $(JAVA_PARSER_JJ)
+	@$(JAVACC) $< || echo "Warning: Did not recompile $@"
+
+# Use this to force a rebuild (with javacc) of the main parser
+parser: parser_force prism_java
+
+parser_force:
+	@ echo "Forcing parser rebuild"
+	@$(JAVACC) $(JAVA_PARSER_JJ)
 
 # Compile each (top-level) source directory separately
 make_dirs:
@@ -722,8 +728,6 @@ clean_sparse: checks
 	@(cd $(PRISM_SRC_DIR)/sparse && $(MAKE) -s EXE="$(EXE)" clean)
 clean_hybrid: checks
 	@(cd $(PRISM_SRC_DIR)/hybrid && $(MAKE) -s EXE="$(EXE)" clean)
-clean_parser: checks
-	@(cd $(PRISM_SRC_DIR)/parser && $(MAKE) -s EXE="$(EXE)" clean)
 
 ###############
 # IDE support #
