@@ -14,13 +14,25 @@
 # If this is a problem, the best solution is to create symlinks.
 
 export PRISM_SRC_DIR     = src
-export PRISM_CLASSES_DIR = classes
 export PRISM_OBJ_DIR     = obj
 export PRISM_LIB_DIR     = lib
 export PRISM_INCLUDE_DIR = include
 export PRISM_IMAGES_DIR  = images
 export PRISM_DTDS_DIR    = dtds
-export PRISM_TESTS_DIR   = unit-tests
+
+# Java locations, files
+
+JAVA_SRC_DIR := src
+JAVA_CLASSES_DIR := classes
+JAVA_TESTS_SRC_DIR := unit-tests
+JAVA_TESTS_CLASSES_DIR := $(JAVA_CLASSES_DIR)
+
+JAVA_SRC_FILES := $(shell find $(JAVA_SRC_DIR) -name "*.java")
+JAVA_SRC_FILES_LIST := $(JAVA_CLASSES_DIR)/java_sources.txt
+JAVA_COMPILED_STAMP := $(JAVA_CLASSES_DIR)/java_compiled.stamp
+JAVA_TESTS_SRC_FILES := $(shell find $(JAVA_TESTS_SRC_DIR) -name "*.java")
+JAVA_TESTS_SRC_FILES_LIST := $(JAVA_TESTS_CLASSES_DIR)/java_tests_sources.txt
+JAVA_TESTS_COMPILED_STAMP := $(JAVA_TESTS_CLASSES_DIR)/java_tests_compiled.stamp
 
 # Location of CUDD (used to be variable; now mainly fixed with the git repo layout)
 
@@ -350,7 +362,7 @@ export CFLAGS CXXFLAGS LDFLAGS JFLAGS LIBPREFIX LIBSUFFIX
 # Main part of Makefile: Compiling PRISM #
 ##########################################
 
-MAKE_DIRS = dd jdd odd dv prism mtbdd sparse hybrid parser settings userinterface pepa/compiler simulator jltl2ba jltl2dstar explicit pta param strat automata common cex
+MAKE_DIRS = dd jdd odd dv prism mtbdd sparse hybrid parser
 
 EXT_PACKAGES = lpsolve55 lp_solve_5.5_java
 
@@ -374,7 +386,7 @@ cuddpackage: checks
 # Use this to force a rebuild (with javacc) of the main parser
 parser:
 	@echo Making parser ...; \
-	cd $(PRISM_SRC_DIR)/parser && \
+	cd $(JAVA_SRC_DIR)/parser && \
 	$(MAKE) touch && \
 	$(MAKE) \
 	CLASSPATHSEP="$(CLASSPATHSEP)"
@@ -399,11 +411,21 @@ extpackages: checks
 
 # Compile main PRISM code
 # (we also do some preparatory checks, and build launch scripts afterwards)
-prism: checks make_dirs bin_scripts
+prism: checks prism_java make_dirs bin_scripts
+
+# Compile all Java code, build JNI headers
+prism_java: $(JAVA_COMPILED_STAMP)
+
+$(JAVA_COMPILED_STAMP): $(JAVA_SRC_FILES)
+	@mkdir -p $(JAVA_CLASSES_DIR) $(PRISM_INCLUDE_DIR)/jni
+	@find $(JAVA_SRC_DIR) -name "*.java" > $(JAVA_SRC_FILES_LIST)
+	@echo "Compiling Java files..."
+	$(JAVAC) $(JFLAGS) -classpath "$(PRISM_LIB_DIR)/*" -d $(JAVA_CLASSES_DIR) -h $(PRISM_INCLUDE_DIR)/jni @$(JAVA_SRC_FILES_LIST)
+	@touch $@
 
 # Compile each (top-level) source directory separately
 make_dirs:
-	@mkdir -p bin $(PRISM_CLASSES_DIR) $(PRISM_OBJ_DIR)/dd $(PRISM_OBJ_DIR)/jdd $(PRISM_OBJ_DIR)/odd $(PRISM_OBJ_DIR)/dv $(PRISM_OBJ_DIR)/prism $(PRISM_OBJ_DIR)/mtbdd $(PRISM_OBJ_DIR)/sparse $(PRISM_OBJ_DIR)/hybrid $(PRISM_OBJ_DIR)/simulator
+	@mkdir -p bin $(PRISM_OBJ_DIR)/dd $(PRISM_OBJ_DIR)/jdd $(PRISM_OBJ_DIR)/odd $(PRISM_OBJ_DIR)/dv $(PRISM_OBJ_DIR)/prism $(PRISM_OBJ_DIR)/mtbdd $(PRISM_OBJ_DIR)/sparse $(PRISM_OBJ_DIR)/hybrid $(PRISM_OBJ_DIR)/simulator
 	@for dir in $(MAKE_DIRS); do \
 	  echo Making $(PRISM_SRC_DIR)/$$dir ...; \
 	  (cd $(PRISM_SRC_DIR)/$$dir && \
@@ -426,13 +448,13 @@ make_dirs:
 	  dos2unix "$(PRISM_SRC_DIR)"/bin/prism.cygwin; \
 	fi
 
-# Compile unit tests
-make_tests:
-	@echo Making $(PRISM_TESTS_DIR) ...; \
-	(cd $(PRISM_TESTS_DIR) && \
-	$(MAKE) \
-	CLASSPATHSEP="$(CLASSPATHSEP)") \
-	|| exit 1;
+# Compile (Java) unit tests
+$(JAVA_TESTS_COMPILED_STAMP): $(JAVA_TESTS_SRC_FILES)
+	@mkdir -p $(JAVA_TESTS_CLASSES_DIR)
+	@find $(JAVA_TESTS_SRC_DIR) -name "*.java" > $(JAVA_TESTS_SRC_FILES_LIST)
+	@echo "Compiling Java unit tests..."
+	$(JAVAC) $(JFLAGS) -sourcepath $(JAVA_SRC_DIR) -classpath $(PRISM_CLASSPATH) -d $(JAVA_TESTS_CLASSES_DIR) -h $(PRISM_INCLUDE_DIR)/jni @$(JAVA_TESTS_SRC_FILES_LIST)
+	@touch $@
 
 # Copy/modify the launch scripts and put in the bin directory
 bin_scripts:
@@ -505,7 +527,7 @@ checks:
 
 # Misc: count the number of lines of code
 count_loc:
-	find $(PRISM_SRC_DIR) -name '*.java' -o -name '*.cc' | xargs wc -l
+	find $(PRISM_SRC_DIR) $(JAVA_SRC_DIR) -name '*.java' -o -name '*.cc' | xargs wc -l
 
 ###########
 # Testing #
@@ -513,7 +535,7 @@ count_loc:
 
 # Run all unit tests
 JUNIT_JAR = $(wildcard $(PRISM_LIB_DIR)/junit-platform-console-standalone*.jar)
-unittests: make_tests
+unittests: $(JAVA_TESTS_COMPILED_STAMP)
 	# Provide Regex to match our test classes. If none is given, only certain test classes are excluded by default.
 	$(JAVA) -jar $(JUNIT_JAR) -cp classes --include-classname '^(Test.*|.+[.$$]Test.*|.+Tests?[.$$].+|.*Tests?)$$' -scan-classpath --details=summary
 
@@ -565,12 +587,12 @@ testsfull:
 # Build prism.jar
 binary:
 	@echo "Generating JAR file ($(PRISM_LIB_DIR)/prism.jar)..."
-	@jar cmf $(PRISM_SRC_DIR)/manifest.txt $(PRISM_LIB_DIR)/prism.jar -C $(PRISM_CLASSES_DIR) . -C . $(PRISM_IMAGES_DIR) $(PRISM_DTDS_DIR)
+	@jar cmf $(JAVA_SRC_DIR)/manifest.txt $(PRISM_LIB_DIR)/prism.jar -C $(JAVA_CLASSES_DIR) . -C . $(PRISM_IMAGES_DIR) $(PRISM_DTDS_DIR)
 
 # Build prism-sources.jar
 source-jar:
 	@echo "Generating sources JAR file ($(PRISM_LIB_DIR)/prism-sources.jar)..."
-	@find $(PRISM_SRC_DIR) -type f -name '*.java' -o -name '*.form' -o -name '*.jj' | sed -e "s/^$(PRISM_SRC_DIR)./-C $(PRISM_SRC_DIR) /" > prism-sources.txt
+	@find $(JAVA_SRC_DIR) -type f -name '*.java' -o -name '*.form' -o -name '*.jj' | sed -e "s/^$(JAVA_SRC_DIR)./-C $(JAVA_SRC_DIR) /" > prism-sources.txt
 	@jar cf $(PRISM_LIB_DIR)/prism-sources.jar @prism-sources.txt
 	@rm -f prism-sources.txt
 
@@ -636,10 +658,10 @@ build_release_source:
 
 # Build Javadoc (and put in javadoc directory)
 
-PRISM_CLASSPATH = "$(PRISM_CLASSES_DIR)$(CLASSPATHSEP)$(PRISM_LIB_DIR)/*"
+PRISM_CLASSPATH = "$(JAVA_CLASSES_DIR)$(CLASSPATHSEP)$(PRISM_LIB_DIR)/*"
 
 javadoc:
-	@JAVADOC_DIRS=`echo $(MAKE_DIRS) | sed 's/\//./g' | sed 's/ /:/g'` && \mkdir -p javadoc; javadoc $(JFLAGS) -d javadoc -overview $(PRISM_SRC_DIR)/overview.html -sourcepath $(PRISM_SRC_DIR) -classpath $(PRISM_SRC_DIR)$(CLASSPATHSEP)$(PRISM_CLASSPATH) -subpackages $$JAVADOC_DIRS -exclude parser
+	@JAVADOC_DIRS=`echo $(MAKE_DIRS) | sed 's/\//./g' | sed 's/ /:/g'` && \mkdir -p javadoc; javadoc $(JFLAGS) -d javadoc -overview $(JAVA_SRC_DIR)/overview.html -sourcepath $(JAVA_SRC_DIR) -classpath $(JAVA_SRC_DIR)$(CLASSPATHSEP)$(PRISM_CLASSPATH) -subpackages $$JAVADOC_DIRS -exclude parser
 
 ###############
 # Cleaning up #
@@ -653,7 +675,10 @@ clean: checks
 	  $(MAKE) -s EXE="$(EXE)" clean) \
 	  || exit 1; \
 	done; \
-	find $(PRISM_CLASSES_DIR) -name '*.class' -exec rm {} \; ; \
+	rm -rf $(JAVA_CLASSES_DIR) ; \
+	rm -f $(JAVA_SRC_FILES_LIST) $(JAVA_COMPILED_STAMP) ; \
+	rm -f $(JAVA_TESTS_SRC_FILES_LIST) $(JAVA_TESTS_COMPILED_STAMP) ; \
+	rm -f $(PRISM_INCLUDE_DIR)/jni/*.h \
 	rm -f $(PRISM_LIB_DIR)/*jnilib; \
 	rm -f $(PRISM_LIB_DIR)/prism.jar; \
 	rm -f $(PRISM_LIB_DIR)/prism-sources.jar; \
@@ -662,7 +687,7 @@ clean: checks
 celan: clean
 
 # Clean PRISM + CUDD and external libs
-clean_all: checks clean_cudd clean_ext clean clean_tests
+clean_all: checks clean_cudd clean_ext clean
 
 clean_cudd:
 	@(cd $(CUDD_DIR) && ./clean.sh)
@@ -674,9 +699,6 @@ clean_ext:
 	  $(MAKE) -s clean) \
 	  || exit 1; \
 	done )
-
-clean_tests:
-	@(cd $(PRISM_TESTS_DIR) && $(MAKE) clean)
 
 # Remove just the prism.jar binary
 clean_binary:
@@ -702,22 +724,6 @@ clean_hybrid: checks
 	@(cd $(PRISM_SRC_DIR)/hybrid && $(MAKE) -s EXE="$(EXE)" clean)
 clean_parser: checks
 	@(cd $(PRISM_SRC_DIR)/parser && $(MAKE) -s EXE="$(EXE)" clean)
-clean_userinterface: checks
-	@(cd $(PRISM_SRC_DIR)/userinterface && $(MAKE) -s EXE="$(EXE)" clean)
-clean_simulator: checks
-	@(cd $(PRISM_SRC_DIR)/simulator && $(MAKE) -s EXE="$(EXE)" clean)
-clean_jltl2ba: checks
-	@(cd $(PRISM_SRC_DIR)/jltl2ba && $(MAKE) -s EXE="$(EXE)" clean)
-clean_jltl2dstar: checks
-	@(cd $(PRISM_SRC_DIR)/jltl2dstar && $(MAKE) -s EXE="$(EXE)" clean)
-clean_explicit: checks
-	@(cd $(PRISM_SRC_DIR)/explicit && $(MAKE) -s EXE="$(EXE)" clean)
-clean_pta: checks
-	@(cd $(PRISM_SRC_DIR)/pta && $(MAKE) -s EXE="$(EXE)" clean)
-clean_param: checks
-	@(cd $(PRISM_SRC_DIR)/param && $(MAKE) -s EXE="$(EXE)" clean)
-clean_strat: checks
-	@(cd $(PRISM_SRC_DIR)/strat && $(MAKE) -s EXE="$(EXE)" clean)
 
 ###############
 # IDE support #
