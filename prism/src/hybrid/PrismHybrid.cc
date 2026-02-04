@@ -63,9 +63,6 @@ static bool exportIterations = false;
 // error message
 static char error_message[MAX_ERR_STRING_LEN];
 
-// details from numerical computation which may be queried
-double last_unif;
-
 //------------------------------------------------------------------------------
 // cudd manager
 //------------------------------------------------------------------------------
@@ -227,15 +224,6 @@ JNIEXPORT void JNICALL Java_hybrid_PrismHybrid_PH_1SetExportIterations(JNIEnv *e
 bool PH_GetFlagExportIterations()
 {
 	return exportIterations;
-}
-
-//------------------------------------------------------------------------------
-// numerical computation detail queries
-//------------------------------------------------------------------------------
-
-JNIEXPORT jdouble JNICALL Java_hybrid_PrismHybrid_PH_1GetLastUnif(JNIEnv *env, jclass cls)
-{
-	return last_unif;
 }
 
 //------------------------------------------------------------------------------
