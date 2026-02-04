@@ -26,8 +26,8 @@
 //==============================================================================
 
 #include "iv.h"
-#include "DoubleVectorGlob.h"
 #include "IntegerVector.h"
+#include "PrismNativeGlob.h"
 #include "jnipointer.h"
 
 #include <cmath>
