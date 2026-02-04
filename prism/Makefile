@@ -364,7 +364,7 @@ export CFLAGS CXXFLAGS LDFLAGS JFLAGS LIBPREFIX LIBSUFFIX
 # Main part of Makefile: Compiling PRISM #
 ##########################################
 
-MAKE_DIRS = dd jdd odd dv prism
+MAKE_DIRS = dd jdd odd dv
 
 EXT_PACKAGES = lpsolve55 lp_solve_5.5_java
 
@@ -405,7 +405,7 @@ extpackages: checks
 
 # Compile main PRISM code
 # (we also do some preparatory checks, and build launch scripts afterwards)
-prism: checks prism_java make_dirs prism_lib bin_scripts
+prism: checks prism_java make_dirs prism_lib prism_ng bin_scripts
 
 # Compile all Java code, build JNI headers
 prism_java: $(JAVA_COMPILED_STAMP)
@@ -455,7 +455,10 @@ make_dirs:
 	fi
 
 PRISM_LIB_DIRS := prism mtbdd sparse hybrid
-PRISM_LIB_SRC_FILES := $(shell find $(foreach d,$(PRISM_LIB_DIRS),$(PRISM_SRC_DIR)/$(d)) -name "*.cc")
+
+PRISM_LIB_EXCLUDE_FILES := 
+PRISM_LIB_ALL_SRC_FILES := $(shell find $(foreach d,$(PRISM_LIB_DIRS),$(PRISM_SRC_DIR)/$(d)) -name "*.cc")
+PRISM_LIB_SRC_FILES := $(filter-out $(PRISM_LIB_EXCLUDE_FILES), $(PRISM_LIB_ALL_SRC_FILES))
 PRISM_LIB_OBJ_FILES := $(patsubst $(PRISM_SRC_DIR)/%.cc, $(PRISM_OBJ_DIR)/%.o, $(PRISM_LIB_SRC_FILES))
 
 OLD_SHARED_LIBS := prismmtbdd prismsparse prismhybrid
@@ -486,6 +489,18 @@ $(PRISM_LIB_DIR)/$(LIBPREFIX)prism$(LIBSUFFIX): $(PRISM_LIB_OBJ_FILES)
 $(PRISM_OBJ_DIR)/%.o: $(PRISM_SRC_DIR)/%.cc
 	@mkdir -p $(dir $@)
 	$(CXX) $(CXXFLAGS) -c $< -o $@ -I$(PRISM_INCLUDE_DIR)/jni $(INCLUDES)
+
+# Compile ngprism
+# (on Windows, link winsocket library, ws2_32)
+prism_ng: $(PRISM_OBJ_DIR)/prism/ngprism$(EXE)
+
+$(PRISM_OBJ_DIR)/prism/ngprism$(EXE): $(PRISM_SRC_DIR)/prism/ngprism.c
+	@echo "Bilding $@..."
+	@if [ "$(EXE)" = "" ]; then \
+	  $(CC) $(LDFLAGS) $(CFLAGS) -o $@ $<; \
+	else \
+		$(CC) $(LDFLAGS) $(CFLAGS) -o $@ $< -lws2_32; \
+	fi;
 
 # Compile (Java) unit tests
 $(JAVA_TESTS_COMPILED_STAMP): $(JAVA_TESTS_SRC_FILES)
@@ -755,7 +770,5 @@ clean_odd: checks
 	@(cd $(PRISM_SRC_DIR)/odd && $(MAKE) -s EXE="$(EXE)" clean)
 clean_dv: checks
 	@(cd $(PRISM_SRC_DIR)/dv && $(MAKE) -s EXE="$(EXE)" clean)
-clean_prism: checks
-	@(cd $(PRISM_SRC_DIR)/prism && $(MAKE) -s EXE="$(EXE)" clean)
 
 #################################################
