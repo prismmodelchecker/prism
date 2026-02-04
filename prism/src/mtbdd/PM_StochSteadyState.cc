@@ -31,7 +31,7 @@
 #include <cudd.h>
 #include <dd.h>
 #include <odd.h>
-#include "PrismMTBDDGlob.h"
+#include "PrismNativeGlob.h"
 #include "jnipointer.h"
 
 //------------------------------------------------------------------------------
@@ -111,7 +111,7 @@ jint num_cvars
 			break;
 		default:
 			// set error message and return NULL pointer after cleanup, below
-			PM_SetErrorMessage("Gauss-Seidel and its variants are currently not supported by the MTBDD engine");
+			PN_SetErrorMessage("Gauss-Seidel and its variants are currently not supported by the MTBDD engine");
 			break;
 	}
 	

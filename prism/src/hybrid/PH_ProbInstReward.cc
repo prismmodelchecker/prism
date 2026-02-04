@@ -34,7 +34,7 @@
 #include <dv.h>
 #include "sparse.h"
 #include "hybrid.h"
-#include "PrismHybridGlob.h"
+#include "PrismNativeGlob.h"
 #include "jnipointer.h"
 #include "prism.h"
 #include <new>
@@ -100,18 +100,18 @@ jint bound			// time bound
 	n = odd->eoff + odd->toff;
 	
 	// build hdd for matrix
-	PH_PrintToMainLog(env, "\nBuilding hybrid MTBDD matrix... ");
+	PN_PrintToMainLog(env, "\nBuilding hybrid MTBDD matrix... ");
 	hddm = build_hdd_matrix(trans, rvars, cvars, num_rvars, odd, true);
 	hdd = hddm->top;
 	zero = hddm->zero;
 	num_levels = hddm->num_levels;
 	kb = hddm->mem_nodes;
 	kbt = kb;
-	PH_PrintToMainLog(env, "[levels=%d, nodes=%d] ", hddm->num_levels, hddm->num_nodes);
-	PH_PrintMemoryToMainLog(env, "[", kb, "]\n");
+	PN_PrintToMainLog(env, "[levels=%d, nodes=%d] ", hddm->num_levels, hddm->num_nodes);
+	PN_PrintMemoryToMainLog(env, "[", kb, "]\n");
 	
 	// add sparse matrices
-	PH_PrintToMainLog(env, "Adding explicit sparse matrices... ");
+	PN_PrintToMainLog(env, "Adding explicit sparse matrices... ");
 	add_sparse_matrices(hddm, compact, false);
 	compact_sm = hddm->compact_sm;
 	if (compact_sm) {
@@ -121,20 +121,20 @@ jint bound			// time bound
 	}
 	kb = hddm->mem_sm;
 	kbt += kb;
-	PH_PrintToMainLog(env, "[levels=%d, num=%d%s] ", hddm->l_sm, hddm->num_sm, compact_sm?", compact":"");
-	PH_PrintMemoryToMainLog(env, "[", kb, "]\n");
+	PN_PrintToMainLog(env, "[levels=%d, num=%d%s] ", hddm->l_sm, hddm->num_sm, compact_sm?", compact":"");
+	PN_PrintMemoryToMainLog(env, "[", kb, "]\n");
 	
 	// create solution/iteration vectors
 	// (solution is initialised to the state rewards)
-	PH_PrintToMainLog(env, "Allocating iteration vectors... ");
+	PN_PrintToMainLog(env, "Allocating iteration vectors... ");
 	soln = mtbdd_to_double_vector(ddman, state_rewards, rvars, num_rvars, odd);
 	soln2 = new double[n];
 	kb = n*8.0/1024.0;
 	kbt += 2*kb;
-	PH_PrintMemoryToMainLog(env, "[2 x ", kb, "]\n");
+	PN_PrintMemoryToMainLog(env, "[2 x ", kb, "]\n");
 
 	// print total memory usage
-	PH_PrintMemoryToMainLog(env, "TOTAL: [", kbt, "]\n");
+	PN_PrintMemoryToMainLog(env, "TOTAL: [", kbt, "]\n");
 
 	// get setup time
 	stop = util_cpu_time();
@@ -143,7 +143,7 @@ jint bound			// time bound
 	start3 = stop;
 
 	// start iterations
-	PH_PrintToMainLog(env, "\nStarting iterations...\n");
+	PN_PrintToMainLog(env, "\nStarting iterations...\n");
 	
 	// note that we ignore max_iters as we know how any iterations _should_ be performed
 	for (iters = 0; iters < bound; iters++) {
@@ -158,8 +158,8 @@ jint bound			// time bound
 		
 		// print occasional status update
 		if ((util_cpu_time() - start3) > UPDATE_DELAY) {
-			PH_PrintToMainLog(env, "Iteration %d (of %d): ", iters, (int)bound);
-			PH_PrintToMainLog(env, "%.2f sec so far\n", ((double)(util_cpu_time() - start2)/1000));
+			PN_PrintToMainLog(env, "Iteration %d (of %d): ", iters, (int)bound);
+			PN_PrintToMainLog(env, "%.2f sec so far\n", ((double)(util_cpu_time() - start2)/1000));
 			start3 = util_cpu_time();
 		}
 		
@@ -175,11 +175,11 @@ jint bound			// time bound
 	time_taken = (double)(stop - start1)/1000;
 	
 	// print iterations/timing info
-	PH_PrintToMainLog(env, "\nIterative method: %d iterations in %.2f seconds (average %.6f, setup %.2f)\n", iters, time_taken, time_for_iters/iters, time_for_setup);
+	PN_PrintToMainLog(env, "\nIterative method: %d iterations in %.2f seconds (average %.6f, setup %.2f)\n", iters, time_taken, time_for_iters/iters, time_for_setup);
 	
 	// catch exceptions: register error, free memory
 	} catch (std::bad_alloc e) {
-		PH_SetErrorMessage("Out of memory");
+		PN_SetErrorMessage("Out of memory");
 		if (soln) delete[] soln;
 		soln = 0;
 	}

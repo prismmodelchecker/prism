@@ -51,23 +51,8 @@ public class PrismHybrid
 	}
 	
 	//------------------------------------------------------------------------------
-	// initialise/close down methods
+	// Local utility methods
 	//------------------------------------------------------------------------------
-
-	public static void initialise(PrismLog mainLog)
-	{
-		setCUDDManager();
-		setMainLog(mainLog);
-	}
-	
-	public static void closeDown()
-	{
-		// tidy up any JNI stuff
-		PH_FreeGlobalRefs();
-	}
-
-	// tidy up in jni (free global references)
-	private static native void PH_FreeGlobalRefs();
 
 	/**
 	 * Check that number of reachable states is in a range that can be handled by
@@ -82,49 +67,12 @@ public class PrismHybrid
 	}
 
 	//------------------------------------------------------------------------------
-	// cudd manager
-	//------------------------------------------------------------------------------
-
-	// cudd manager
-	
-	// jni method to set cudd manager for native code
-	private static native void PH_SetCUDDManager(long ddm);
-	public static void setCUDDManager()
-	{
-		PH_SetCUDDManager(JDD.GetCUDDManager());
-	}
-	
-	//------------------------------------------------------------------------------
-	// logs
-	//------------------------------------------------------------------------------
-
-	// main log
-	
-	// place to store main log for java code
-	private static PrismLog mainLog;
-	// jni method to set main log for native code
-	private static native void PH_SetMainLog(PrismLog log);
-	// method to set main log both in java and c++
-	public static void setMainLog(PrismLog log)
-	{
-		mainLog = log;
-		PH_SetMainLog(log);
-	}
-	
-	private static native void PH_SetExportIterations(boolean value);
-	public static void SetExportIterations(boolean value)
-	{
-		PH_SetExportIterations(value);
-	}
-
-	//------------------------------------------------------------------------------
 	// error message
 	//------------------------------------------------------------------------------
 	
-	private static native String PH_GetErrorMessage();
 	public static String getErrorMessage()
 	{
-		return PH_GetErrorMessage();
+		return PrismNative.PN_GetErrorMessage();
 	}
 
 	/**

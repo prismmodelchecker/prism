@@ -34,7 +34,7 @@
 #include <dv.h>
 #include <prism.h>
 #include "sparse.h"
-#include "PrismSparseGlob.h"
+#include "PrismNativeGlob.h"
 #include "jnipointer.h"
 #include "Measures.h"
 #include <new>
@@ -92,7 +92,7 @@ jint time		// time
 	n = odd->eoff + odd->toff;
 	
 	// build sparse matrix
-	PS_PrintToMainLog(env, "\nBuilding sparse matrix... ");
+	PN_PrintToMainLog(env, "\nBuilding sparse matrix... ");
 	// if requested, try and build a "compact" version
 	compact_tr = true;
 	cmscsm = NULL;
@@ -110,21 +110,21 @@ jint time		// time
 	}
 	kbt = kb;
 	// print some info
-	PS_PrintToMainLog(env, "[n=%d, nnz=%ld%s] ", n, nnz, compact_tr?", compact":"");
-	PS_PrintMemoryToMainLog(env, "[", kb, "]\n");
+	PN_PrintToMainLog(env, "[n=%d, nnz=%ld%s] ", n, nnz, compact_tr?", compact":"");
+	PN_PrintMemoryToMainLog(env, "[", kb, "]\n");
 	
 	// create solution/iteration vectors
-	PS_PrintToMainLog(env, "Allocating iteration vectors... ");
+	PN_PrintToMainLog(env, "Allocating iteration vectors... ");
 	// for soln, we just use init (since we are free to modify/delete this vector)
 	// we also report the memory usage of this vector here, even though it has already been created
 	soln = init;
 	soln2 = new double[n];
 	kb = n*8.0/1024.0;
 	kbt += 2*kb;
-	PS_PrintMemoryToMainLog(env, "[2 x ", kb, "]\n");
+	PN_PrintMemoryToMainLog(env, "[2 x ", kb, "]\n");
 	
 	// print total memory usage
-	PS_PrintMemoryToMainLog(env, "TOTAL: [", kbt, "]\n");
+	PN_PrintMemoryToMainLog(env, "TOTAL: [", kbt, "]\n");
 	
 	// get setup time
 	stop = util_cpu_time();
@@ -135,7 +135,7 @@ jint time		// time
 	// start iterations
 	iters = 0;
 	done = false;
-	PS_PrintToMainLog(env, "\nStarting iterations...\n");
+	PN_PrintToMainLog(env, "\nStarting iterations...\n");
 	
 	// note that we ignore max_iters as we know how any iterations _should_ be performed
 	for (iters = 0; iters < time && !done; iters++) {
@@ -197,9 +197,9 @@ jint time		// time
 		
 		// print occasional status update
 		if ((util_cpu_time() - start3) > UPDATE_DELAY) {
-			PS_PrintToMainLog(env, "Iteration %d (of %d): ", iters, (int)time);
-			if (do_ss_detect) PS_PrintToMainLog(env, "max %sdiff=%f, ", measure.isRelative()?"relative ":"", measure.value());
-			PS_PrintToMainLog(env, "%.2f sec so far\n", ((double)(util_cpu_time() - start2)/1000));
+			PN_PrintToMainLog(env, "Iteration %d (of %d): ", iters, (int)time);
+			if (do_ss_detect) PN_PrintToMainLog(env, "max %sdiff=%f, ", measure.isRelative()?"relative ":"", measure.value());
+			PN_PrintToMainLog(env, "%.2f sec so far\n", ((double)(util_cpu_time() - start2)/1000));
 			start3 = util_cpu_time();
 		}
 		
@@ -215,12 +215,12 @@ jint time		// time
 	time_taken = (double)(stop - start1)/1000;
 	
 	// print iters/timing info
-	if (done) PS_PrintToMainLog(env, "\nSteady state detected at iteration %d\n", iters);
-	PS_PrintToMainLog(env, "\nIterative method: %d iterations in %.2f seconds (average %.6f, setup %.2f)\n", iters, time_taken, time_for_iters/iters, time_for_setup);
+	if (done) PN_PrintToMainLog(env, "\nSteady state detected at iteration %d\n", iters);
+	PN_PrintToMainLog(env, "\nIterative method: %d iterations in %.2f seconds (average %.6f, setup %.2f)\n", iters, time_taken, time_for_iters/iters, time_for_setup);
 	
 	// catch exceptions: register error, free memory
 	} catch (std::bad_alloc e) {
-		PS_SetErrorMessage("Out of memory");
+		PN_SetErrorMessage("Out of memory");
 		if (soln) delete[] soln;
 		soln = 0;
 	}

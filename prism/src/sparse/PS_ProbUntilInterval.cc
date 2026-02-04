@@ -33,7 +33,7 @@
 #include <odd.h>
 #include <dv.h>
 #include "sparse.h"
-#include "PrismSparseGlob.h"
+#include "PrismNativeGlob.h"
 #include "IntervalIteration.h"
 #include "jnipointer.h"
 #include <new>
@@ -101,10 +101,10 @@ jint flags
 
 	IntervalIteration helper(flags);
 	if (!helper.flag_ensure_monotonic_from_above()) {
-		PS_PrintToMainLog(env, "Note: Interval iteration is configured to not enforce monotonicity from above.\n");
+		PN_PrintToMainLog(env, "Note: Interval iteration is configured to not enforce monotonicity from above.\n");
 	}
 	if (!helper.flag_ensure_monotonic_from_below()) {
-		PS_PrintToMainLog(env, "Note: Interval iteration is configured to not enforce monotonicity from below.\n");
+		PN_PrintToMainLog(env, "Note: Interval iteration is configured to not enforce monotonicity from below.\n");
 	}
 
 	// call iterative method
@@ -125,12 +125,12 @@ jint flags
 		case LIN_EQ_METHOD_BSOR:
 			soln = jlong_to_double(Java_sparse_PrismSparse_PS_1SORInterval(env, cls, ptr_to_jlong(odd), ptr_to_jlong(rvars), num_rvars, ptr_to_jlong(cvars), num_cvars, ptr_to_jlong(a), ptr_to_jlong(b), ptr_to_jlong(lower), ptr_to_jlong(upper), false, false, lin_eq_method_param, false, flags)); break;
 		default:
-			PS_SetErrorMessage("Pseudo Gauss-Seidel/SOR methods are currently not supported by the sparse engine"); return 0;
+			PN_SetErrorMessage("Pseudo Gauss-Seidel/SOR methods are currently not supported by the sparse engine"); return 0;
 	}
 	
 	// catch exceptions: register error, free memory
 	} catch (std::bad_alloc e) {
-		PS_SetErrorMessage("Out of memory");
+		PN_SetErrorMessage("Out of memory");
 		if (soln) delete[] soln;
 		soln = 0;
 	}

@@ -30,7 +30,7 @@
 #include <util.h>
 #include <cudd.h>
 #include <dd.h>
-#include "PrismMTBDDGlob.h"
+#include "PrismNativeGlob.h"
 #include "jnipointer.h"
 
 //------------------------------------------------------------------------------
@@ -128,7 +128,7 @@ jlong __jlongpointer psi	// psi(b2)
 	time_for_iters = time_taken;
 
 	// print iterations/timing info
-	PM_PrintToMainLog(env, "\nProb0E: %d iterations in %.2f seconds (average %.6f, setup %.2f)\n", iters, time_taken, time_for_iters/iters, time_for_setup);
+	PN_PrintToMainLog(env, "\nProb0E: %d iterations in %.2f seconds (average %.6f, setup %.2f)\n", iters, time_taken, time_for_iters/iters, time_for_setup);
 
 	return ptr_to_jlong(sol);
 }

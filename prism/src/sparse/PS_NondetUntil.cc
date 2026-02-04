@@ -35,7 +35,6 @@
 #include "sparse.h"
 #include "prism.h"
 #include "PrismNativeGlob.h"
-#include "PrismSparseGlob.h"
 #include "jnipointer.h"
 #include "Measures.h"
 #include "ExportIterations.h"
@@ -130,7 +129,7 @@ jlong _strat				// strategy storage
 	n = odd->eoff + odd->toff;
 	
 	// build sparse matrix
-	PS_PrintToMainLog(env, "\nBuilding sparse matrix... ");
+	PN_PrintToMainLog(env, "\nBuilding sparse matrix... ");
 	ndsm = build_nd_sparse_matrix(ddman, a, rvars, cvars, num_rvars, ndvars, num_ndvars, odd);
 	// get number of transitions/choices
 	nnz = ndsm->nnz;
@@ -138,13 +137,13 @@ jlong _strat				// strategy storage
 	kb = ndsm->mem;
 	kbt = kb;
 	// print out info
-	PS_PrintToMainLog(env, "[n=%d, nc=%d, nnz=%ld, k=%d] ", n, nc, nnz, ndsm->k);
-	PS_PrintMemoryToMainLog(env, "[", kb, "]\n");
+	PN_PrintToMainLog(env, "[n=%d, nc=%d, nnz=%ld, k=%d] ", n, nc, nnz, ndsm->k);
+	PN_PrintMemoryToMainLog(env, "[", kb, "]\n");
 	
 	// if needed, and if info is available, build a vector of action indices for the MDP
 	if (export_adv_enabled != EXPORT_ADV_NONE || strat != NULL) {
 		if (trans_actions != NULL) {
-			PS_PrintToMainLog(env, "Building action information... ");
+			PN_PrintToMainLog(env, "Building action information... ");
 			// first need to filter out unwanted rows
 			Cudd_Ref(trans_actions);
 			Cudd_Ref(maybe);
@@ -154,32 +153,32 @@ jlong _strat				// strategy storage
 			Cudd_RecursiveDeref(ddman, tmp);
 			kb = n*4.0/1024.0;
 			kbt += kb;
-			PS_PrintMemoryToMainLog(env, "[", kb, "]\n");
+			PN_PrintMemoryToMainLog(env, "[", kb, "]\n");
 			// also extract list of action names from 'synchs'
 			get_string_array_from_java(env, synchs, action_names_jstrings, action_names, num_actions);
 		} else {
-			PS_PrintWarningToMainLog(env, "Action labels are not available for adversary generation.");
+			PN_PrintWarningToMainLog(env, "Action labels are not available for adversary generation.");
 		}
 	}
 	
 	// get vector for yes
-	PS_PrintToMainLog(env, "Creating vector for yes... ");
+	PN_PrintToMainLog(env, "Creating vector for yes... ");
 	yes_vec = mtbdd_to_double_vector(ddman, yes, rvars, num_rvars, odd);
 	kb = n*8.0/1024.0;
 	kbt += kb;
-	PS_PrintMemoryToMainLog(env, "[", kb, "]\n");
+	PN_PrintMemoryToMainLog(env, "[", kb, "]\n");
 	
 	// create solution/iteration vectors
-	PS_PrintToMainLog(env, "Allocating iteration vectors... ");
+	PN_PrintToMainLog(env, "Allocating iteration vectors... ");
 	soln = new double[n];
 	soln2 = new double[n];
 	kb = n*8.0/1024.0;
 	kbt += 2*kb;
-	PS_PrintMemoryToMainLog(env, "[2 x ", kb, "]\n");
+	PN_PrintMemoryToMainLog(env, "[2 x ", kb, "]\n");
 	
 	// if required, create storage for adversary and initialise
 	if (export_adv_enabled != EXPORT_ADV_NONE || strat != NULL) {
-		PS_PrintToMainLog(env, "Allocating adversary vector... ");
+		PN_PrintToMainLog(env, "Allocating adversary vector... ");
 		// Use passed in (pre-filled) array, if provided
 		if (strat) {
 			adv = strat;
@@ -192,11 +191,11 @@ jlong _strat				// strategy storage
 		}
 		kb = n*sizeof(int)/1024.0;
 		kbt += kb;
-		PS_PrintMemoryToMainLog(env, "[", kb, "]\n");
+		PN_PrintMemoryToMainLog(env, "[", kb, "]\n");
 	}
 	
 	// print total memory usage
-	PS_PrintMemoryToMainLog(env, "TOTAL: [", kbt, "]\n");
+	PN_PrintMemoryToMainLog(env, "TOTAL: [", kbt, "]\n");
 	
 	// initial solution is yes
 	for (i = 0; i < n; i++) {
@@ -205,9 +204,9 @@ jlong _strat				// strategy storage
 	}
 
 	std::unique_ptr<ExportIterations> iterationExport;
-	if (PS_GetFlagExportIterations()) {
+	if (PN_GetFlagExportIterations()) {
 		iterationExport.reset(new ExportIterations("PS_NondetUntil"));
-		PS_PrintToMainLog(env, "Exporting iterations to %s\n", iterationExport->getFileName().c_str());
+		PN_PrintToMainLog(env, "Exporting iterations to %s\n", iterationExport->getFileName().c_str());
 		iterationExport->exportVector(soln, n, 0);
 	}
 
@@ -220,13 +219,13 @@ jlong _strat				// strategy storage
 	// start iterations
 	iters = 0;
 	done = false;
-	PS_PrintToMainLog(env, "\nStarting iterations...\n");
+	PN_PrintToMainLog(env, "\nStarting iterations...\n");
 	
 	// open file to store adversary (if required)
 	if (export_adv_enabled != EXPORT_ADV_NONE) {
 		fp_adv = fopen(export_adv_filename, "w");
 		if (!fp_adv) {
-			PS_PrintWarningToMainLog(env, "Adversary generation cancelled (could not open file \"%s\").", export_adv_filename);
+			PN_PrintWarningToMainLog(env, "Adversary generation cancelled (could not open file \"%s\").", export_adv_filename);
 			export_adv_enabled = EXPORT_ADV_NONE;
 		}
 	}
@@ -295,8 +294,8 @@ jlong _strat				// strategy storage
 		
 		// print occasional status update
 		if ((util_cpu_time() - start3) > UPDATE_DELAY) {
-			PS_PrintToMainLog(env, "Iteration %d: max %sdiff=%f", iters, measure.isRelative()?"relative ":"", measure.value());
-			PS_PrintToMainLog(env, ", %.2f sec so far\n", ((double)(util_cpu_time() - start2)/1000));
+			PN_PrintToMainLog(env, "Iteration %d: max %sdiff=%f", iters, measure.isRelative()?"relative ":"", measure.value());
+			PN_PrintToMainLog(env, ", %.2f sec so far\n", ((double)(util_cpu_time() - start2)/1000));
 			start3 = util_cpu_time();
 		}
 		
@@ -359,15 +358,15 @@ jlong _strat				// strategy storage
 	time_taken = (double)(stop - start1)/1000;
 	
 	// print iterations/timing info
-	PS_PrintToMainLog(env, "\nIterative method: %d iterations in %.2f seconds (average %.6f, setup %.2f)\n", iters, time_taken, time_for_iters/iters, time_for_setup);
+	PN_PrintToMainLog(env, "\nIterative method: %d iterations in %.2f seconds (average %.6f, setup %.2f)\n", iters, time_taken, time_for_iters/iters, time_for_setup);
 	
 	// if the iterative method didn't terminate, this is an error
-	if (!done) { delete[] soln; soln = NULL; PS_SetErrorMessage("Iterative method did not converge within %d iterations.\nConsider using a different numerical method or increasing the maximum number of iterations", iters); }
+	if (!done) { delete[] soln; soln = NULL; PN_SetErrorMessage("Iterative method did not converge within %d iterations.\nConsider using a different numerical method or increasing the maximum number of iterations", iters); }
 	
 	// close file to store adversary (if required)
 	if (export_adv_enabled != EXPORT_ADV_NONE) {
 		fclose(fp_adv);
-		PS_PrintToMainLog(env, "\nAdversary written to file \"%s\".\n", export_adv_filename);
+		PN_PrintToMainLog(env, "\nAdversary written to file \"%s\".\n", export_adv_filename);
 	}
 		
 	// convert strategy indices from choices to actions
@@ -383,7 +382,7 @@ jlong _strat				// strategy storage
 	
 	// catch exceptions: register error, free memory
 	} catch (std::bad_alloc e) {
-		PS_SetErrorMessage("Out of memory");
+		PN_SetErrorMessage("Out of memory");
 		if (soln) delete[] soln;
 		soln = 0;
 	}
