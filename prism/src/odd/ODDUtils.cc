@@ -26,21 +26,8 @@
 
 #include "odd.h"
 #include "ODDUtils.h"
+#include "PrismNativeGlob.h"
 #include "jnipointer.h"
-
-//------------------------------------------------------------------------------
-
-// cudd manager
-DdManager *ddman;
-
-//------------------------------------------------------------------------------
-// cudd manager
-//------------------------------------------------------------------------------
-
-JNIEXPORT void JNICALL Java_odd_ODDUtils_ODD_1SetCUDDManager(JNIEnv *env, jclass cls, jlong __jlongpointer ddm)
-{
-	ddman = jlong_to_DdManager(ddm);
-}
 
 //------------------------------------------------------------------------------
 // build odd

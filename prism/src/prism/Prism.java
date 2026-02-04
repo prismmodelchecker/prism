@@ -1252,9 +1252,6 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 
 		// initialise libraries/engines
 		PrismNative.initialise(this, mainLog);
-
-		// set cudd manager in other packages
-		ODDUtils.setCUDDManager();
 	}
 
 	/**

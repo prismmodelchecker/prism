@@ -9,14 +9,6 @@ extern "C" {
 #endif
 /*
  * Class:     odd_ODDUtils
- * Method:    ODD_SetCUDDManager
- * Signature: (J)V
- */
-JNIEXPORT void JNICALL Java_odd_ODDUtils_ODD_1SetCUDDManager
-  (JNIEnv *, jclass, jlong);
-
-/*
- * Class:     odd_ODDUtils
  * Method:    ODD_BuildODD
  * Signature: (JJI)J
  */
