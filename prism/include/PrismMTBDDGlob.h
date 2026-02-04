@@ -46,7 +46,6 @@ extern JNIEnv *export_env;
 
 void PM_PrintToMainLog(JNIEnv *env, const char *str, ...) IS_LIKE_PRINTF(2,3);
 void PM_PrintWarningToMainLog(JNIEnv *env, const char *str, ...) IS_LIKE_PRINTF(2,3);
-void PM_PrintToTechLog(JNIEnv *env, const char *str, ...) IS_LIKE_PRINTF(2,3);
 void PM_SetErrorMessage(const char *str, ...) IS_LIKE_PRINTF(1,2);
 char *PM_GetErrorMessage();
 int store_export_info(int type, jstring fn, JNIEnv *env);

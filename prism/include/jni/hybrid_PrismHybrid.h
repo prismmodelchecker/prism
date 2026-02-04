@@ -33,14 +33,6 @@ JNIEXPORT void JNICALL Java_hybrid_PrismHybrid_PH_1SetMainLog
 
 /*
  * Class:     hybrid_PrismHybrid
- * Method:    PH_SetTechLog
- * Signature: (Lprism/PrismLog;)V
- */
-JNIEXPORT void JNICALL Java_hybrid_PrismHybrid_PH_1SetTechLog
-  (JNIEnv *, jclass, jobject);
-
-/*
- * Class:     hybrid_PrismHybrid
  * Method:    PH_SetExportIterations
  * Signature: (Z)V
  */

@@ -48,14 +48,11 @@ DdManager *ddman;
 // logs
 // global refs to log classes
 static jclass main_log_cls = NULL;
-static jclass tech_log_cls = NULL;
 // global refs to log objects
 static jobject main_log_obj = NULL;
-static jobject tech_log_obj = NULL;
 // method ids for print method in logs
 static jmethodID main_log_mid = NULL;
 static jmethodID main_log_warn = NULL;
-static jmethodID tech_log_mid = NULL;
 
 // export stuff
 static bool exportIterations = false;
@@ -97,26 +94,6 @@ JNIEXPORT void JNICALL Java_hybrid_PrismHybrid_PH_1SetMainLog(JNIEnv *env, jclas
 
 //------------------------------------------------------------------------------
 
-JNIEXPORT void JNICALL Java_hybrid_PrismHybrid_PH_1SetTechLog(JNIEnv *env, jclass cls, jobject log)
-{
-	// if tech log has been set previously, we need to delete existing global refs first
-	if (tech_log_obj != NULL) {
-		env->DeleteGlobalRef(tech_log_cls);
-		tech_log_cls = NULL;
-		env->DeleteGlobalRef(tech_log_obj);
-		tech_log_obj = NULL;
-	}
-	
-	// make a global reference to the log object
-	tech_log_obj = env->NewGlobalRef(log);
-	// get the log class and make a global reference to it
-	tech_log_cls = (jclass)env->NewGlobalRef(env->GetObjectClass(tech_log_obj));
-	// get the method id for the print method
-	tech_log_mid = env->GetMethodID(tech_log_cls, "print", "(Ljava/lang/String;)V");
-}
-
-//------------------------------------------------------------------------------
-
 void PH_PrintToMainLog(JNIEnv *env, const char *str, ...)
 {
 	va_list argptr;
@@ -147,23 +124,6 @@ void PH_PrintWarningToMainLog(JNIEnv *env, const char *str, ...)
 		env->CallVoidMethod(main_log_obj, main_log_warn, env->NewStringUTF(full_string));
 	else
 		printf("\nWarning: %s\n", full_string);
-}
-
-//------------------------------------------------------------------------------
-
-void PH_PrintToTechLog(JNIEnv *env, const char *str, ...)
-{
-	va_list argptr;
-	char full_string[MAX_LOG_STRING_LEN];
-	
-	va_start(argptr, str);
-	vsnprintf(full_string, MAX_LOG_STRING_LEN, str, argptr);
-	va_end(argptr);
-	
-	if (env)
-		env->CallVoidMethod(tech_log_obj, tech_log_mid, env->NewStringUTF(full_string));
-	else
-		printf("%s", full_string);
 }
 
 //------------------------------------------------------------------------------
@@ -235,12 +195,8 @@ JNIEXPORT void JNICALL Java_hybrid_PrismHybrid_PH_1FreeGlobalRefs(JNIEnv *env, j
 	// delete all global references
 	env->DeleteGlobalRef(main_log_cls);
 	main_log_cls = NULL;
-	env->DeleteGlobalRef(tech_log_cls);
-	tech_log_cls = NULL;
 	env->DeleteGlobalRef(main_log_obj);
 	main_log_obj = NULL;
-	env->DeleteGlobalRef(tech_log_obj);
-	tech_log_obj = NULL;
 }
 
 //------------------------------------------------------------------------------
