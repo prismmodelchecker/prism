@@ -33,14 +33,6 @@ JNIEXPORT void JNICALL Java_mtbdd_PrismMTBDD_PM_1SetMainLog
 
 /*
  * Class:     mtbdd_PrismMTBDD
- * Method:    PM_SetTechLog
- * Signature: (Lprism/PrismLog;)V
- */
-JNIEXPORT void JNICALL Java_mtbdd_PrismMTBDD_PM_1SetTechLog
-  (JNIEnv *, jclass, jobject);
-
-/*
- * Class:     mtbdd_PrismMTBDD
  * Method:    PM_SetExportIterations
  * Signature: (Z)V
  */

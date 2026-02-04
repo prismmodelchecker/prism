@@ -66,11 +66,10 @@ public class PrismSparse
 	// initialise/close down methods
 	//----------------------------------------------------------------------------------------------
 
-	public static void initialise(PrismLog mainLog, PrismLog techLog)
+	public static void initialise(PrismLog mainLog)
 	{
 		setCUDDManager();
 		setMainLog(mainLog);
-		setTechLog(techLog);
 	}
 	
 	public static void closeDown()
@@ -124,19 +123,6 @@ public class PrismSparse
 		PS_SetMainLog(log);
 	}
 	
-	// tech log
-	
-	// place to store tech log for java code
-	private static PrismLog techLog;
-	// jni method to set tech log for native code
-	private static native void PS_SetTechLog(PrismLog log);
-	// method to set tech log both in java and c++
-	public static void setTechLog(PrismLog log)
-	{
-		techLog = log;
-		PS_SetTechLog(log);
-	}
-
 	private static native void PS_SetExportIterations(boolean value);
 	public static void SetExportIterations(boolean value)
 	{

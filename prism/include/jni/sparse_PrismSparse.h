@@ -33,14 +33,6 @@ JNIEXPORT void JNICALL Java_sparse_PrismSparse_PS_1SetMainLog
 
 /*
  * Class:     sparse_PrismSparse
- * Method:    PS_SetTechLog
- * Signature: (Lprism/PrismLog;)V
- */
-JNIEXPORT void JNICALL Java_sparse_PrismSparse_PS_1SetTechLog
-  (JNIEnv *, jclass, jobject);
-
-/*
- * Class:     sparse_PrismSparse
  * Method:    PS_SetExportIterations
  * Signature: (Z)V
  */
