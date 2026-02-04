@@ -158,16 +158,6 @@ public class PrismHybrid
 	}
 
 	//------------------------------------------------------------------------------
-	// numerical computation detail queries
-	//------------------------------------------------------------------------------
-	
-	private static native double PH_GetLastUnif();
-	public static double getLastUnif()
-	{
-		return PH_GetLastUnif();
-	}
-
-	//------------------------------------------------------------------------------
 	// JNI wrappers for blocks of hybrid code
 	//------------------------------------------------------------------------------
 

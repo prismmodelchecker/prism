@@ -37,9 +37,6 @@
 // cudd manager
 extern DdManager *ddman;
 
-// details from numerical computation which may be queried
-extern double last_unif;
-
 //------------------------------------------------------------------------------
 
 // macros, function prototypes
