@@ -54,7 +54,7 @@ public class PrismSparse
 	static
 	{
 		try {
-			System.loadLibrary("prismsparse");
+			System.loadLibrary("prism");
 		}
 		catch (UnsatisfiedLinkError e) {
 			System.out.println(e);

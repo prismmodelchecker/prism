@@ -44,7 +44,7 @@ public class PrismMTBDD
 	static
 	{
 		try {
-			System.loadLibrary("prismmtbdd");
+			System.loadLibrary("prism");
 		}
 		catch (UnsatisfiedLinkError e) {
 			System.out.println(e);

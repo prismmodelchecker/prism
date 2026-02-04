@@ -42,7 +42,7 @@ public class PrismHybrid
 	static
 	{
 		try {
-			System.loadLibrary("prismhybrid");
+			System.loadLibrary("prism");
 		}
 		catch (UnsatisfiedLinkError e) {
 			System.out.println(e);
