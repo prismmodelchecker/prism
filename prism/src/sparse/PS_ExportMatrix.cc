@@ -31,7 +31,7 @@
 #include <dd.h>
 #include <odd.h>
 #include "sparse.h"
-#include "PrismSparseGlob.h"
+#include "PrismNativeGlob.h"
 #include "jnipointer.h"
 #include <new>
 

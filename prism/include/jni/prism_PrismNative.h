@@ -25,6 +25,38 @@ JNIEXPORT void JNICALL Java_prism_PrismNative_PN_1SetPrism
 
 /*
  * Class:     prism_PrismNative
+ * Method:    PN_SetCUDDManager
+ * Signature: (J)V
+ */
+JNIEXPORT void JNICALL Java_prism_PrismNative_PN_1SetCUDDManager
+  (JNIEnv *, jclass, jlong);
+
+/*
+ * Class:     prism_PrismNative
+ * Method:    PN_SetMainLog
+ * Signature: (Lprism/PrismLog;)V
+ */
+JNIEXPORT void JNICALL Java_prism_PrismNative_PN_1SetMainLog
+  (JNIEnv *, jclass, jobject);
+
+/*
+ * Class:     prism_PrismNative
+ * Method:    PN_GetErrorMessage
+ * Signature: ()Ljava/lang/String;
+ */
+JNIEXPORT jstring JNICALL Java_prism_PrismNative_PN_1GetErrorMessage
+  (JNIEnv *, jclass);
+
+/*
+ * Class:     prism_PrismNative
+ * Method:    PN_SetExportIterations
+ * Signature: (Z)V
+ */
+JNIEXPORT void JNICALL Java_prism_PrismNative_PN_1SetExportIterations
+  (JNIEnv *, jclass, jboolean);
+
+/*
+ * Class:     prism_PrismNative
  * Method:    PN_SetCompact
  * Signature: (Z)V
  */

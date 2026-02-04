@@ -32,7 +32,7 @@
 #include <dd.h>
 #include <odd.h>
 #include <prism.h>
-#include "PrismMTBDDGlob.h"
+#include "PrismNativeGlob.h"
 #include "jnipointer.h"
 
 //------------------------------------------------------------------------------
@@ -84,14 +84,14 @@ jdouble time		// time bound
 	reach = odd->dd;
 	
 	// compute diagonals
-	PM_PrintToMainLog(env, "\nComputing diagonals MTBDD... ");
+	PN_PrintToMainLog(env, "\nComputing diagonals MTBDD... ");
 	Cudd_Ref(trans);
 	diags = DD_SumAbstract(ddman, trans, cvars, num_rvars);
 	diags = DD_Apply(ddman, APPLY_TIMES, diags, DD_Constant(ddman, -1));
 	i = DD_GetNumNodes(ddman, diags);
-	PM_PrintToMainLog(env, "[nodes=%ld] [%.1f Kb]\n", i, i*20.0/1024.0);
+	PN_PrintToMainLog(env, "[nodes=%ld] [%.1f Kb]\n", i, i*20.0/1024.0);
 	
-	PM_PrintToMainLog(env, "Building iteration matrix MTBDD... ");
+	PN_PrintToMainLog(env, "Building iteration matrix MTBDD... ");
 	
 	// build generator matrix q from trans and diags
 	// note that any self loops are effectively removed because we include their rates
@@ -112,7 +112,7 @@ jdouble time		// time bound
 	Cudd_Ref(reach);
 	q = DD_Apply(ddman, APPLY_PLUS, q, DD_Apply(ddman, APPLY_TIMES, DD_Identity(ddman, rvars, cvars, num_rvars), reach));
 	i = DD_GetNumNodes(ddman, q);
-	PM_PrintToMainLog(env, "[nodes=%ld] [%.1f Kb]\n", i, i*20.0/1024.0);
+	PN_PrintToMainLog(env, "[nodes=%ld] [%.1f Kb]\n", i, i*20.0/1024.0);
 	
 	// combine state/transition rewards into a single vector - this is the initial solution vector
 	Cudd_Ref(trans);
@@ -129,10 +129,10 @@ jdouble time		// time bound
 	term_crit_param_unif = term_crit_param / 8.0;
 	
 	// compute poisson probabilities (fox/glynn)
-	PM_PrintToMainLog(env, "\nUniformisation: q.t = %f x %f = %f\n", unif, time, unif * time);
+	PN_PrintToMainLog(env, "\nUniformisation: q.t = %f x %f = %f\n", unif, time, unif * time);
 	fgw = fox_glynn(unif * time, 1.0e-300, 1.0e+300, term_crit_param_unif);
 	if (fgw.right < 0) {
-		PM_SetErrorMessage("Overflow in Fox-Glynn computation (time bound too big?)");
+		PN_SetErrorMessage("Overflow in Fox-Glynn computation (time bound too big?)");
 		Cudd_RecursiveDeref(ddman, q);
 		Cudd_RecursiveDeref(ddman, diags);
 		Cudd_RecursiveDeref(ddman, sol);
@@ -142,7 +142,7 @@ jdouble time		// time bound
 	for (i = fgw.left; i <= fgw.right; i++) {
 		fgw.weights[i-fgw.left] /= fgw.total_weight;
 	}
-	PM_PrintToMainLog(env, "Fox-Glynn: left = %ld, right = %ld\n", fgw.left, fgw.right);
+	PN_PrintToMainLog(env, "Fox-Glynn: left = %ld, right = %ld\n", fgw.left, fgw.right);
 	
 	// modify the poisson probabilities to what we need for this computation
 	// first make the kth value equal to the sum of the values for 0...k
@@ -163,7 +163,7 @@ jdouble time		// time bound
 	// start transient analysis
 	done = false;
 	num_iters = -1;
-	PM_PrintToMainLog(env, "\nStarting iterations...\n");
+	PN_PrintToMainLog(env, "\nStarting iterations...\n");
 	
 	// do 0th element of summation (doesn't require any matrix powers)
 	if (fgw.left == 0) {
@@ -211,7 +211,7 @@ jdouble time		// time bound
 			// add to sum
 			Cudd_Ref(tmp);
 			sum = DD_Apply(ddman, APPLY_PLUS, sum, DD_Apply(ddman, APPLY_TIMES, tmp, DD_Constant(ddman, weight)));
-			PM_PrintToMainLog(env, "\nSteady state detected at iteration %ld\n", iters);
+			PN_PrintToMainLog(env, "\nSteady state detected at iteration %ld\n", iters);
 			num_iters = iters;
 			Cudd_RecursiveDeref(ddman, tmp);
 			break;
@@ -219,8 +219,8 @@ jdouble time		// time bound
 		
 		// print occasional status update
 		if ((util_cpu_time() - start3) > UPDATE_DELAY) {
-			PM_PrintToMainLog(env, "Iteration %ld (of %ld): ", iters, fgw.right);
-			PM_PrintToMainLog(env, "%.2f sec so far\n", ((double)(util_cpu_time() - start2)/1000));
+			PN_PrintToMainLog(env, "Iteration %ld (of %ld): ", iters, fgw.right);
+			PN_PrintToMainLog(env, "%.2f sec so far\n", ((double)(util_cpu_time() - start2)/1000));
 			start3 = util_cpu_time();
 		}
 		
@@ -245,7 +245,7 @@ jdouble time		// time bound
 	
 	// print iters/timing info
 	if (num_iters == -1) num_iters = fgw.right;
-	PM_PrintToMainLog(env, "\nIterative method: %ld iterations in %.2f seconds (average %.6f, setup %.2f)\n", num_iters, time_taken, time_for_iters/num_iters, time_for_setup);
+	PN_PrintToMainLog(env, "\nIterative method: %ld iterations in %.2f seconds (average %.6f, setup %.2f)\n", num_iters, time_taken, time_for_iters/num_iters, time_for_setup);
 	
 	// free memory
 	Cudd_RecursiveDeref(ddman, q);

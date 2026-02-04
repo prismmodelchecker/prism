@@ -28,7 +28,7 @@
 #include <cmath>
 #include "dv.h"
 #include "sparse.h"
-#include "PrismSparseGlob.h"
+#include "PrismNativeGlob.h"
 #include <new>
 
 //------------------------------------------------------------------------------

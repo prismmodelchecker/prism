@@ -29,7 +29,7 @@
 #include "sparse.h"
 #include "hybrid.h"
 #include "PrismHybrid.h"
-#include "PrismHybridGlob.h"
+#include "PrismNativeGlob.h"
 #include <cmath>
 #include <new>
 

@@ -13,6 +13,7 @@ THIS_DIR = prism
 PRISM_DIR_REL = ../..
 
 INCLUDES = \
+-I$(PRISM_DIR_REL)/$(CUDD_DIR)/include \
 -I"$(JAVA_JNI_H_DIR)" \
 -I"$(JAVA_JNI_MD_H_DIR)" \
 -I$(PRISM_DIR_REL)/$(PRISM_INCLUDE_DIR)

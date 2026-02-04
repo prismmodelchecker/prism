@@ -31,7 +31,7 @@
 #include <cudd.h>
 #include <dd.h>
 #include <odd.h>
-#include "PrismMTBDDGlob.h"
+#include "PrismNativeGlob.h"
 #include "jnipointer.h"
 #include "prism.h"
 #include "ExportIterations.h"
@@ -88,7 +88,7 @@ jboolean min		// min or max probabilities (true = min, false = max)
 	// get reachable states
 	reach = odd->dd;
 	
-	PM_PrintToMainLog(env, "\nBuilding iteration matrix MTBDD... ");
+	PN_PrintToMainLog(env, "\nBuilding iteration matrix MTBDD... ");
 	
 	// filter out rows (goal states and infinity states) from matrix
 	Cudd_Ref(trans);
@@ -122,10 +122,10 @@ jboolean min		// min or max probabilities (true = min, false = max)
 	
 	// print memory usage
 	i = DD_GetNumNodes(ddman, a);
-	PM_PrintToMainLog(env, "[nodes=%d] [%.1f Kb]\n", i, i*20.0/1024.0);
+	PN_PrintToMainLog(env, "[nodes=%d] [%.1f Kb]\n", i, i*20.0/1024.0);
 
 	std::unique_ptr<ExportIterations> iterationExport;
-	if (PM_GetFlagExportIterations()) {
+	if (PN_GetFlagExportIterations()) {
 		iterationExport.reset(new ExportIterations("PM_NondetReachReward"));
 		iterationExport->exportVector(sol, rvars, num_rvars, odd, 0);
 	}
@@ -139,7 +139,7 @@ jboolean min		// min or max probabilities (true = min, false = max)
 	// start iterations
 	iters = 0;
 	done = false;
-	PM_PrintToMainLog(env, "\nStarting iterations...\n");
+	PN_PrintToMainLog(env, "\nStarting iterations...\n");
 	
 	while (!done && iters < max_iters) {
 		
@@ -191,8 +191,8 @@ jboolean min		// min or max probabilities (true = min, false = max)
 		
 		// print occasional status update
 		if ((util_cpu_time() - start3) > UPDATE_DELAY) {
-			PM_PrintToMainLog(env, "Iteration %d: ", iters);
-			PM_PrintToMainLog(env, "%.2f sec so far\n", ((double)(util_cpu_time() - start2)/1000));
+			PN_PrintToMainLog(env, "Iteration %d: ", iters);
+			PN_PrintToMainLog(env, "%.2f sec so far\n", ((double)(util_cpu_time() - start2)/1000));
 			start3 = util_cpu_time();
 		}
 		
@@ -226,7 +226,7 @@ jboolean min		// min or max probabilities (true = min, false = max)
 	time_taken = (double)(stop - start1)/1000;
 	
 	// print iterations/timing info
-	PM_PrintToMainLog(env, "\nIterative method: %d iterations in %.2f seconds (average %.6f, setup %.2f)\n", iters, time_taken, time_for_iters/iters, time_for_setup);
+	PN_PrintToMainLog(env, "\nIterative method: %d iterations in %.2f seconds (average %.6f, setup %.2f)\n", iters, time_taken, time_for_iters/iters, time_for_setup);
 	
 	// free memory
 	Cudd_RecursiveDeref(ddman, a);
@@ -234,7 +234,7 @@ jboolean min		// min or max probabilities (true = min, false = max)
 	Cudd_RecursiveDeref(ddman, new_mask);
 	
 	// if the iterative method didn't terminate, this is an error
-	if (!done) { Cudd_RecursiveDeref(ddman, sol); PM_SetErrorMessage("Iterative method did not converge within %d iterations.\nConsider using a different numerical method or increasing the maximum number of iterations", iters); return 0; }
+	if (!done) { Cudd_RecursiveDeref(ddman, sol); PN_SetErrorMessage("Iterative method did not converge within %d iterations.\nConsider using a different numerical method or increasing the maximum number of iterations", iters); return 0; }
 	
 	return ptr_to_jlong(sol);
 }

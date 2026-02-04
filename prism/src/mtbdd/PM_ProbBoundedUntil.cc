@@ -31,7 +31,7 @@
 #include <cudd.h>
 #include <dd.h>
 #include <odd.h>
-#include "PrismMTBDDGlob.h"
+#include "PrismNativeGlob.h"
 #include "jnipointer.h"
 #include "prism.h"
 
@@ -72,12 +72,12 @@ jint bound		// time bound
 	start1 = start2 = util_cpu_time();
 
 	// get a - filter out rows
-	PM_PrintToMainLog(env, "\nBuilding iteration matrix MTBDD... ");
+	PN_PrintToMainLog(env, "\nBuilding iteration matrix MTBDD... ");
 	Cudd_Ref(trans);
 	Cudd_Ref(maybe);
 	a = DD_Apply(ddman, APPLY_TIMES, trans, maybe);
 	i = DD_GetNumNodes(ddman, a);
-	PM_PrintToMainLog(env, "[nodes=%d] [%.1f Kb]\n", i, i*20.0/1024.0);
+	PN_PrintToMainLog(env, "[nodes=%d] [%.1f Kb]\n", i, i*20.0/1024.0);
 
 	// initial solution
 	// (prob in 0 steps given by yes)
@@ -91,7 +91,7 @@ jint bound		// time bound
 	start3 = stop;
 
 	// start iterations
-	PM_PrintToMainLog(env, "\nStarting iterations...\n");
+	PN_PrintToMainLog(env, "\nStarting iterations...\n");
 
 	// note that we ignore max_iters as we know how any iterations _should_ be performed
 	for (iters = 0; iters < bound; iters++) {
@@ -107,8 +107,8 @@ jint bound		// time bound
 		
 		// print occasional status update
 		if ((util_cpu_time() - start3) > UPDATE_DELAY) {
-			PM_PrintToMainLog(env, "Iteration %d (of %d): ", iters, (int)bound);
-			PM_PrintToMainLog(env, "%.2f sec so far\n", ((double)(util_cpu_time() - start2)/1000));
+			PN_PrintToMainLog(env, "Iteration %d (of %d): ", iters, (int)bound);
+			PN_PrintToMainLog(env, "%.2f sec so far\n", ((double)(util_cpu_time() - start2)/1000));
 			start3 = util_cpu_time();
 		}
 		
@@ -123,7 +123,7 @@ jint bound		// time bound
 	time_taken = (double)(stop - start1)/1000;
 	
 	// print iterations/timing info
-	PM_PrintToMainLog(env, "\nIterative method: %d iterations in %.2f seconds (average %.6f, setup %.2f)\n", iters, time_taken, time_for_iters/iters, time_for_setup);
+	PN_PrintToMainLog(env, "\nIterative method: %d iterations in %.2f seconds (average %.6f, setup %.2f)\n", iters, time_taken, time_for_iters/iters, time_for_setup);
 	
 	// free memory
 	Cudd_RecursiveDeref(ddman, a);

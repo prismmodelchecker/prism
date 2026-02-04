@@ -31,7 +31,7 @@
 #include <cudd.h>
 #include <dd.h>
 #include <odd.h>
-#include "PrismMTBDDGlob.h"
+#include "PrismNativeGlob.h"
 #include "jnipointer.h"
 
 //------------------------------------------------------------------------------

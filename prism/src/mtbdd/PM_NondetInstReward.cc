@@ -31,7 +31,7 @@
 #include <cudd.h>
 #include <dd.h>
 #include <odd.h>
-#include "PrismMTBDDGlob.h"
+#include "PrismNativeGlob.h"
 #include "jnipointer.h"
 #include "prism.h"
 
@@ -93,7 +93,7 @@ jlong __jlongpointer in
 	
 	// start iterations
 	iters = 0;
-	PM_PrintToMainLog(env, "\nStarting iterations...\n");
+	PN_PrintToMainLog(env, "\nStarting iterations...\n");
 	
 	// note that we ignore max_iters as we know how many iterations _should_ be performed
 	for (iters = 0; iters < bound; iters++) {
@@ -119,8 +119,8 @@ jlong __jlongpointer in
 		
 		// print occasional status update
 		if ((util_cpu_time() - start3) > UPDATE_DELAY) {
-			PM_PrintToMainLog(env, "Iteration %d (of %d): ", iters, (int)bound);
-			PM_PrintToMainLog(env, "%.2f sec so far\n", ((double)(util_cpu_time() - start2)/1000));
+			PN_PrintToMainLog(env, "Iteration %d (of %d): ", iters, (int)bound);
+			PN_PrintToMainLog(env, "%.2f sec so far\n", ((double)(util_cpu_time() - start2)/1000));
 			start3 = util_cpu_time();
 		}
 		
@@ -132,7 +132,7 @@ jlong __jlongpointer in
 //		Cudd_Ref(init);
 //		tmp = DD_Apply(ddman, APPLY_TIMES, sol, init);
 //		tmp = DD_SumAbstract(ddman, tmp, rvars, num_rvars);
-//		PM_PrintToMainLog(env, "%i: %f (%0.f, %0d)\n", iters, Cudd_V(tmp), DD_GetNumMinterms(ddman, sol, num_rvars), DD_GetNumNodes(ddman, sol));
+//		PN_PrintToMainLog(env, "%i: %f (%0.f, %0d)\n", iters, Cudd_V(tmp), DD_GetNumMinterms(ddman, sol, num_rvars), DD_GetNumNodes(ddman, sol));
 //		Cudd_RecursiveDeref(ddman, tmp);
 	}
 	
@@ -142,7 +142,7 @@ jlong __jlongpointer in
 	time_taken = (double)(stop - start1)/1000;
 	
 	// print iterations/timing info
-	PM_PrintToMainLog(env, "\nIterative method: %d iterations in %.2f seconds (average %.6f, setup %.2f)\n", iters, time_taken, time_for_iters/iters, time_for_setup);
+	PN_PrintToMainLog(env, "\nIterative method: %d iterations in %.2f seconds (average %.6f, setup %.2f)\n", iters, time_taken, time_for_iters/iters, time_for_setup);
 	
 	// free memory
 	Cudd_RecursiveDeref(ddman, new_mask);

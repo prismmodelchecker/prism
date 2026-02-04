@@ -33,7 +33,7 @@
 #include <odd.h>
 #include <dv.h>
 #include "sparse.h"
-#include "PrismSparseGlob.h"
+#include "PrismNativeGlob.h"
 #include "jnipointer.h"
 #include "prism.h"
 #include "Measures.h"
@@ -120,7 +120,7 @@ jboolean forwards	// forwards or backwards?
 	a = DD_ITE(ddman, id, DD_Constant(ddman, 0), a);
 	
 	// build sparse matrix
-	PS_PrintToMainLog(env, "\nBuilding sparse matrix... ");
+	PN_PrintToMainLog(env, "\nBuilding sparse matrix... ");
 	// if requested, try and build a "compact" version
 	compact_a = true;
 	cmsrsm = NULL;
@@ -138,12 +138,12 @@ jboolean forwards	// forwards or backwards?
 	}
 	kbt = kb;
 	// print some info
-	PS_PrintToMainLog(env, "[n=%d, nnz=%ld%s] ", n, nnz, compact_a?", compact":"");
-	PS_PrintMemoryToMainLog(env, "[", kb, "]\n");
+	PN_PrintToMainLog(env, "[n=%d, nnz=%ld%s] ", n, nnz, compact_a?", compact":"");
+	PN_PrintMemoryToMainLog(env, "[", kb, "]\n");
 	
 	// get vector of diags, either by extracting from mtbdd or
 	// by doing (negative, non-diagonal) row sums of original A matrix
-	PS_PrintToMainLog(env, "Creating vector for diagonals... ");
+	PN_PrintToMainLog(env, "Creating vector for diagonals... ");
 	if (!row_sums) {
 		diags = DD_MaxAbstract(ddman, diags, cvars, num_cvars);
 		diags_vec = mtbdd_to_double_vector(ddman, diags, rvars, num_rvars, odd);
@@ -164,8 +164,8 @@ jboolean forwards	// forwards or backwards?
 	}
 	kb = (!compact_d) ? n*8.0/1024.0 : (diags_dist->num_dist*8.0+n*2.0)/1024.0;
 	kbt += kb;
-	if (compact_d) PS_PrintToMainLog(env, "[dist=%d, compact] ", diags_dist->num_dist);
-	PS_PrintMemoryToMainLog(env, "[", kb, "]\n");
+	if (compact_d) PN_PrintToMainLog(env, "[dist=%d, compact] ", diags_dist->num_dist);
+	PN_PrintMemoryToMainLog(env, "[", kb, "]\n");
 	
 	// invert diagonal
 	if (!compact_d) {
@@ -176,7 +176,7 @@ jboolean forwards	// forwards or backwards?
 	
 	// build b vector (if present)
 	if (b != NULL) {
-		PS_PrintToMainLog(env, "Creating vector for RHS... ");
+		PN_PrintToMainLog(env, "Creating vector for RHS... ");
 		b_vec = mtbdd_to_double_vector(ddman, b, rvars, num_rvars, odd);
 		// try and convert to compact form if required
 		compact_b = false;
@@ -188,28 +188,28 @@ jboolean forwards	// forwards or backwards?
 		}
 		kb = (!compact_b) ? n*8.0/1024.0 : (b_dist->num_dist*8.0+n*2.0)/1024.0;
 		kbt += kb;
-		if (compact_b) PS_PrintToMainLog(env, "[dist=%d, compact] ", b_dist->num_dist);
-		PS_PrintMemoryToMainLog(env, "[", kb, "]\n");
+		if (compact_b) PN_PrintToMainLog(env, "[dist=%d, compact] ", b_dist->num_dist);
+		PN_PrintMemoryToMainLog(env, "[", kb, "]\n");
 	}
 	
 	// create solution/iteration vectors
-	PS_PrintToMainLog(env, "Allocating iteration vector... ");
+	PN_PrintToMainLog(env, "Allocating iteration vector... ");
 	soln = mtbdd_to_double_vector(ddman, init, rvars, num_rvars, odd);
 	kb = n*8.0/1024.0;
 	kbt += kb;
-	PS_PrintMemoryToMainLog(env, "[", kb, "]\n");
+	PN_PrintMemoryToMainLog(env, "[", kb, "]\n");
 	
 	// print total memory usage
-	PS_PrintMemoryToMainLog(env, "TOTAL: [", kbt, "]\n");
+	PN_PrintMemoryToMainLog(env, "TOTAL: [", kbt, "]\n");
 
 	std::unique_ptr<ExportIterations> iterationExport;
-	if (PS_GetFlagExportIterations()) {
+	if (PN_GetFlagExportIterations()) {
 		std::string title("PS_SOR (");
 		title += forwards?"":"Backwards ";
 		title += (omega == 1.0)?"Gauss-Seidel":("SOR omega=" + std::to_string(omega));
 		title += ")";
 		iterationExport.reset(new ExportIterations(title.c_str()));
-		PS_PrintToMainLog(env, "Exporting iterations to %s\n", iterationExport->getFileName().c_str());
+		PN_PrintToMainLog(env, "Exporting iterations to %s\n", iterationExport->getFileName().c_str());
 		iterationExport->exportVector(soln, n, 0);
 	}
 
@@ -222,7 +222,7 @@ jboolean forwards	// forwards or backwards?
 	// start iterations
 	iters = 0;
 	done = false;
-	PS_PrintToMainLog(env, "\nStarting iterations...\n");
+	PN_PrintToMainLog(env, "\nStarting iterations...\n");
 	
 	while (!done && iters < max_iters) {
 		
@@ -301,8 +301,8 @@ jboolean forwards	// forwards or backwards?
 		
 		// print occasional status update
 		if ((util_cpu_time() - start3) > UPDATE_DELAY) {
-			PS_PrintToMainLog(env, "Iteration %d: max %sdiff=%f", iters, measure.isRelative()?"relative ":"", measure.value());
-			PS_PrintToMainLog(env, ", %.2f sec so far\n", ((double)(util_cpu_time() - start2)/1000));
+			PN_PrintToMainLog(env, "Iteration %d: max %sdiff=%f", iters, measure.isRelative()?"relative ":"", measure.value());
+			PN_PrintToMainLog(env, ", %.2f sec so far\n", ((double)(util_cpu_time() - start2)/1000));
 			start3 = util_cpu_time();
 		}
 	}
@@ -313,10 +313,10 @@ jboolean forwards	// forwards or backwards?
 	time_taken = (double)(stop - start1)/1000;
 	
 	// print iters/timing info
-	PS_PrintToMainLog(env, "\n%s%s: %d iterations in %.2f seconds (average %.6f, setup %.2f)\n", forwards?"":"Backwards ", (omega == 1.0)?"Gauss-Seidel":"SOR", iters, time_taken, time_for_iters/iters, time_for_setup);
+	PN_PrintToMainLog(env, "\n%s%s: %d iterations in %.2f seconds (average %.6f, setup %.2f)\n", forwards?"":"Backwards ", (omega == 1.0)?"Gauss-Seidel":"SOR", iters, time_taken, time_for_iters/iters, time_for_setup);
 	
 	// if the iterative method didn't terminate, this is an error
-	if (!done) { delete[] soln; soln = NULL; PS_SetErrorMessage("Iterative method did not converge within %d iterations.\nConsider using a different numerical method or increasing the maximum number of iterations", iters); }
+	if (!done) { delete[] soln; soln = NULL; PN_SetErrorMessage("Iterative method did not converge within %d iterations.\nConsider using a different numerical method or increasing the maximum number of iterations", iters); }
 	
 	// the difference between vector values is not a reliable error bound
 	// but we store it anyway in case it is useful for estimating a bound
@@ -324,7 +324,7 @@ jboolean forwards	// forwards or backwards?
 	
 	// catch exceptions: register error, free memory
 	} catch (std::bad_alloc e) {
-		PS_SetErrorMessage("Out of memory");
+		PN_SetErrorMessage("Out of memory");
 		if (soln) delete[] soln;
 		soln = 0;
 	}

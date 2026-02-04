@@ -34,7 +34,7 @@
 #include <dv.h>
 #include "sparse.h"
 #include "hybrid.h"
-#include "PrismHybridGlob.h"
+#include "PrismNativeGlob.h"
 #include "jnipointer.h"
 #include "prism.h"
 #include <new>
@@ -117,24 +117,24 @@ jboolean min		// min or max probabilities (true = min, false = max)
 	n = odd->eoff + odd->toff;
 	
 	// build hdds for matrix
-	PH_PrintToMainLog(env, "\nBuilding hybrid MTBDD matrices... ");
+	PN_PrintToMainLog(env, "\nBuilding hybrid MTBDD matrices... ");
 	hddms = build_hdd_matrices_mdp(a, NULL, rvars, cvars, num_rvars, ndvars, num_ndvars, odd);
 	nm = hddms->nm;
 	kb = hddms->mem_nodes;
 	kbt = kb;
-	PH_PrintToMainLog(env, "[nm=%d, levels=%d, nodes=%d] ", hddms->nm, hddms->num_levels, hddms->num_nodes);
-	PH_PrintMemoryToMainLog(env, "[", kb, "]\n");
+	PN_PrintToMainLog(env, "[nm=%d, levels=%d, nodes=%d] ", hddms->nm, hddms->num_levels, hddms->num_nodes);
+	PN_PrintMemoryToMainLog(env, "[", kb, "]\n");
 	
 	// add sparse bits
-	PH_PrintToMainLog(env, "Adding sparse bits... ");
+	PN_PrintToMainLog(env, "Adding sparse bits... ");
 	add_sparse_matrices_mdp(hddms, compact);
 	kb = hddms->mem_sm;
 	kbt += kb;
-	PH_PrintToMainLog(env, "[levels=%d-%d, num=%d, compact=%d/%d] ", hddms->l_sm_min, hddms->l_sm_max, hddms->num_sm, hddms->compact_sm, hddms->nm);
-	PH_PrintMemoryToMainLog(env, "[", kb, "]\n");
+	PN_PrintToMainLog(env, "[levels=%d-%d, num=%d, compact=%d/%d] ", hddms->l_sm_min, hddms->l_sm_max, hddms->num_sm, hddms->compact_sm, hddms->nm);
+	PN_PrintMemoryToMainLog(env, "[", kb, "]\n");
 	
 	// get vector of yes
-	PH_PrintToMainLog(env, "Creating vector for yes... ");
+	PN_PrintToMainLog(env, "Creating vector for yes... ");
 	yes_vec = mtbdd_to_double_vector(ddman, yes, rvars, num_rvars, odd);
 	compact_y = false;
 	// try and convert to compact form if required
@@ -146,21 +146,21 @@ jboolean min		// min or max probabilities (true = min, false = max)
 	}
 	kb = (!compact_y) ? n*8.0/1024.0 : (yes_dist->num_dist*8.0+n*2.0)/1024.0;
 	kbt += kb;
-	if (compact_y) PH_PrintToMainLog(env, "[dist=%d, compact] ", yes_dist->num_dist);
-	PH_PrintMemoryToMainLog(env, "[", kb, "]\n");
+	if (compact_y) PN_PrintToMainLog(env, "[dist=%d, compact] ", yes_dist->num_dist);
+	PN_PrintMemoryToMainLog(env, "[", kb, "]\n");
 	//for(i = 0; i < n; i++) printf("%f ", (!compact_y)?(yes_vec[i]):(yes_dist->dist[yes_dist->ptrs[i]])); printf("\n");
 	
 	// create solution/iteration vectors
-	PH_PrintToMainLog(env, "Allocating iteration vectors... ");
+	PN_PrintToMainLog(env, "Allocating iteration vectors... ");
 	soln = new double[n];
 	soln2 = new double[n];
 	soln3 = new double[n];
 	kb = n*8.0/1024.0;
 	kbt += 3*kb;
-	PH_PrintMemoryToMainLog(env, "[3 x ", kb, "]\n");
+	PN_PrintMemoryToMainLog(env, "[3 x ", kb, "]\n");
 	
 	// print total memory usage
-	PH_PrintMemoryToMainLog(env, "TOTAL: [", kbt, "]\n");
+	PN_PrintMemoryToMainLog(env, "TOTAL: [", kbt, "]\n");
 	
 	// initial solution is yes
 	if (!compact_y) {
@@ -176,7 +176,7 @@ jboolean min		// min or max probabilities (true = min, false = max)
 	start3 = stop;
 	
 	// start iterations
-	PH_PrintToMainLog(env, "\nStarting iterations...\n");
+	PN_PrintToMainLog(env, "\nStarting iterations...\n");
 	
 	// note that we ignore max_iters as we know how any iterations _should_ be performed
 	for (iters = 0; iters < bound; iters++) {
@@ -235,8 +235,8 @@ jboolean min		// min or max probabilities (true = min, false = max)
 		
 		// print occasional status update
 		if ((util_cpu_time() - start3) > UPDATE_DELAY) {
-			PH_PrintToMainLog(env, "Iteration %d (of %d): ", iters, (int)bound);
-			PH_PrintToMainLog(env, "%.2f sec so far\n", ((double)(util_cpu_time() - start2)/1000));
+			PN_PrintToMainLog(env, "Iteration %d (of %d): ", iters, (int)bound);
+			PN_PrintToMainLog(env, "%.2f sec so far\n", ((double)(util_cpu_time() - start2)/1000));
 			start3 = util_cpu_time();
 		}
 		
@@ -252,11 +252,11 @@ jboolean min		// min or max probabilities (true = min, false = max)
 	time_taken = (double)(stop - start1)/1000;
 	
 	// print iterations/timing info
-	PH_PrintToMainLog(env, "\nIterative method: %d iterations in %.2f seconds (average %.6f, setup %.2f)\n", iters, time_taken, time_for_iters/iters, time_for_setup);
+	PN_PrintToMainLog(env, "\nIterative method: %d iterations in %.2f seconds (average %.6f, setup %.2f)\n", iters, time_taken, time_for_iters/iters, time_for_setup);
 	
 	// catch exceptions: register error, free memory
 	} catch (std::bad_alloc e) {
-		PH_SetErrorMessage("Out of memory");
+		PN_SetErrorMessage("Out of memory");
 		if (soln) delete[] soln;
 		soln = 0;
 	}

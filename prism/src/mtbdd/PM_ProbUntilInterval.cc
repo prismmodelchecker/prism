@@ -32,7 +32,7 @@
 #include <cudd.h>
 #include <dd.h>
 #include <odd.h>
-#include "PrismMTBDDGlob.h"
+#include "PrismNativeGlob.h"
 #include "IntervalIteration.h"
 #include "jnipointer.h"
 
@@ -94,10 +94,10 @@ jint flags
 
 	IntervalIteration helper(flags);
 	if (!helper.flag_ensure_monotonic_from_above()) {
-		PM_PrintToMainLog(env, "Note: Interval iteration is configured to not enforce monotonicity from above.\n");
+		PN_PrintToMainLog(env, "Note: Interval iteration is configured to not enforce monotonicity from above.\n");
 	}
 	if (!helper.flag_ensure_monotonic_from_below()) {
-		PM_PrintToMainLog(env, "Note: Interval iteration is configured to not enforce monotonicity from below.\n");
+		PN_PrintToMainLog(env, "Note: Interval iteration is configured to not enforce monotonicity from below.\n");
 	}
 
 	// call iterative method
@@ -114,7 +114,7 @@ jint flags
 			break;
 		default:
 			// set error message and return NULL pointer after cleanup, below
-			PM_SetErrorMessage("Gauss-Seidel and its variants are currently not supported by the MTBDD engine");
+			PN_SetErrorMessage("Gauss-Seidel and its variants are currently not supported by the MTBDD engine");
 			break;
 	}
 	
