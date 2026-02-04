@@ -364,7 +364,7 @@ export CFLAGS CXXFLAGS LDFLAGS JFLAGS LIBPREFIX LIBSUFFIX
 # Main part of Makefile: Compiling PRISM #
 ##########################################
 
-MAKE_DIRS = dd jdd odd dv prism mtbdd sparse hybrid
+MAKE_DIRS = dd jdd odd dv prism
 
 EXT_PACKAGES = lpsolve55 lp_solve_5.5_java
 
@@ -405,7 +405,7 @@ extpackages: checks
 
 # Compile main PRISM code
 # (we also do some preparatory checks, and build launch scripts afterwards)
-prism: checks prism_java make_dirs bin_scripts
+prism: checks prism_java make_dirs prism_lib bin_scripts
 
 # Compile all Java code, build JNI headers
 prism_java: $(JAVA_COMPILED_STAMP)
@@ -453,6 +453,39 @@ make_dirs:
 	  find .. -name '*.sh' -exec dos2unix {} \; ; \
 	  dos2unix "$(PRISM_SRC_DIR)"/bin/prism.cygwin; \
 	fi
+
+PRISM_LIB_DIRS := prism mtbdd sparse hybrid
+PRISM_LIB_SRC_FILES := $(shell find $(foreach d,$(PRISM_LIB_DIRS),$(PRISM_SRC_DIR)/$(d)) -name "*.cc")
+PRISM_LIB_OBJ_FILES := $(patsubst $(PRISM_SRC_DIR)/%.cc, $(PRISM_OBJ_DIR)/%.o, $(PRISM_LIB_SRC_FILES))
+
+OLD_SHARED_LIBS := prismmtbdd prismsparse prismhybrid
+OLD_SHARED_LIB_FILES := $(patsubst %, $(PRISM_LIB_DIR)/$(LIBPREFIX)%$(LIBSUFFIX), $(OLD_SHARED_LIBS))
+
+INCLUDES = \
+-I$(CUDD_DIR)/include \
+-I"$(JAVA_JNI_H_DIR)" \
+-I"$(JAVA_JNI_MD_H_DIR)" \
+-I$(PRISM_INCLUDE_DIR) \
+-Iext/lpsolve55/include
+
+LIBRARIES = \
+-L$(PRISM_LIB_DIR) \
+-lodd \
+-ldd \
+-ldv \
+$(LIBMATH) \
+-llpsolve55
+
+# Compile the main native shared library
+prism_lib: prism_java $(PRISM_LIB_DIR)/$(LIBPREFIX)prism$(LIBSUFFIX)
+
+$(PRISM_LIB_DIR)/$(LIBPREFIX)prism$(LIBSUFFIX): $(PRISM_LIB_OBJ_FILES)
+	@echo "Linking shared library $@..."
+	$(LD) $(SHARED) $(LDFLAGS) -o $@ $^ $(LIBRARIES)
+
+$(PRISM_OBJ_DIR)/%.o: $(PRISM_SRC_DIR)/%.cc
+	@mkdir -p $(dir $@)
+	$(CXX) $(CXXFLAGS) -c $< -o $@ -I$(PRISM_INCLUDE_DIR)/jni $(INCLUDES)
 
 # Compile (Java) unit tests
 $(JAVA_TESTS_COMPILED_STAMP): $(JAVA_TESTS_SRC_FILES)
@@ -683,6 +716,9 @@ clean: checks
 	rm -rf $(JAVA_CLASSES_DIR) ; \
 	rm -f $(JAVA_SRC_FILES_LIST) $(JAVA_COMPILED_STAMP) ; \
 	rm -f $(JAVA_TESTS_SRC_FILES_LIST) $(JAVA_TESTS_COMPILED_STAMP) ; \
+	rm -rf $(PRISM_OBJ_DIR) ; \
+	rm -f $(PRISM_LIB_DIR)/$(LIBPREFIX)prism$(LIBSUFFIX) ; \
+	rm -f $(OLD_SHARED_LIB_FILES) ; \
 	rm -f $(PRISM_INCLUDE_DIR)/jni/*.h \
 	rm -f $(PRISM_LIB_DIR)/*jnilib; \
 	rm -f $(PRISM_LIB_DIR)/prism.jar; \
@@ -721,11 +757,5 @@ clean_dv: checks
 	@(cd $(PRISM_SRC_DIR)/dv && $(MAKE) -s EXE="$(EXE)" clean)
 clean_prism: checks
 	@(cd $(PRISM_SRC_DIR)/prism && $(MAKE) -s EXE="$(EXE)" clean)
-clean_mtbdd: checks
-	@(cd $(PRISM_SRC_DIR)/mtbdd && $(MAKE) -s EXE="$(EXE)" clean)
-clean_sparse: checks
-	@(cd $(PRISM_SRC_DIR)/sparse && $(MAKE) -s EXE="$(EXE)" clean)
-clean_hybrid: checks
-	@(cd $(PRISM_SRC_DIR)/hybrid && $(MAKE) -s EXE="$(EXE)" clean)
 
 #################################################
