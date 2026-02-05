@@ -13,6 +13,8 @@ jobs:
       matrix:
         java: [11, 21]
         os: [ubuntu-latest, macos-latest]
+        #java: [11, 17, 21]
+        #os: [ubuntu-20.04, ubuntu-22.04, ubuntu-24.04, macos-14, macos-15, macos-26, ubuntu-22.04-arm, ubuntu-24.04-arm, macos-15-intel]
     runs-on: ${{ matrix.os }}
 
     steps:
@@ -34,7 +36,15 @@ jobs:
     strategy:
       matrix:
         java: [11, 21]
-    runs-on: windows-latest
+        os: [windows-latest]
+        #java: [11, 17, 21]
+        #os: [windows-2019, windows-2022, windows-2025] #, windows-11-arm]
+        #exclude:
+          #- os: windows-11-arm
+            #java: 11
+          #- os: windows-11-arm
+            #java: 17
+    runs-on: ${{ matrix.os }}
 
     steps:
     - run: git config --global core.autocrlf input
