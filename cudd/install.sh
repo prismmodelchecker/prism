@@ -27,7 +27,7 @@ if [ ! -f Makefile ]; then
   fi
   
   # Build Makefile
-  ./configure --prefix="$(pwd)" $CONFIGURE_ARGS CFLAGS="$CFLAGS" CXXFLAGS="$CXXFLAGS" LDFLAGS="$LDFLAGS" || exit 1
+  ./configure --prefix="$(pwd)" $CONFIGURE_ARGS CFLAGS="$CFLAGS" CXXFLAGS="$CXXFLAGS" LDFLAGS="$LDFLAGS" || { cat config.log; exit 1; }
   
 fi
 
