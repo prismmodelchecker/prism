@@ -39,7 +39,7 @@ JAVA_TESTS_COMPILED_STAMP := $(JAVA_TESTS_CLASSES_DIR)/java_tests_compiled.stamp
 
 # Location of CUDD (used to be variable; now mainly fixed with the git repo layout)
 
-CUDD_DIR = ../cudd
+CUDD_DIR := ../cudd
 
 ####################
 # Operating system #
@@ -59,42 +59,42 @@ CUDD_DIR = ../cudd
 ifneq ($(OSTYPE),)
 	# Look for common variants, e.g. gnu-linux -> linux
 	ifneq (,$(findstring linux, $(OSTYPE)))
-	  OSTYPE = linux
+	  OSTYPE := linux
 	endif
 	ifneq (,$(findstring solaris, $(OSTYPE)))
-	  OSTYPE = solaris
+	  OSTYPE := solaris
 	endif
 	ifneq (,$(findstring cygwin, $(OSTYPE)))
-	  OSTYPE = cygwin
+	  OSTYPE := cygwin
 	endif
 	# For Cygwin , OSTYPE is sometimes set to "posix"
 	ifneq (,$(findstring posix, $(OSTYPE)))
-	  OSTYPE = cygwin
+	  OSTYPE := cygwin
 	endif
 	ifneq (,$(findstring darwin, $(OSTYPE)))
-	  OSTYPE = darwin
+	  OSTYPE := darwin
 	endif
 else
 	# If OSTYPE is not defined/available,
 	# First try OS (on Windows), otherwise try uname
 	ifeq ($(OS),Windows_NT)
-		OSTYPE = cygwin
+		OSTYPE := cygwin
 	else
 		UNAME_STR := $(shell uname -s 2>/dev/null || echo unknown)
 		ifneq (,$(findstring Linux, $(UNAME_STR)))
-			OSTYPE = linux
+			OSTYPE := linux
 		endif
 		ifneq (,$(findstring SunOS, $(UNAME_STR)))
-			OSTYPE = solaris
+			OSTYPE := solaris
 		endif
 		ifneq (,$(findstring CYGWIN, $(UNAME_STR)))
-			OSTYPE = cygwin
+			OSTYPE := cygwin
 		endif
 		ifneq (,$(findstring MINGW, $(UNAME_STR)))
-			OSTYPE = cygwin
+			OSTYPE := cygwin
 		endif
 		ifneq (,$(findstring Darwin, $(UNAME_STR)))
-			OSTYPE = darwin
+			OSTYPE := darwin
 		endif
 	endif
 endif
@@ -106,37 +106,37 @@ endif
 # For Linux/Mac, we use uname to check the architecture
 ifeq ($(OSTYPE),linux)
 	ifneq (,$(findstring 86_64, $(shell uname -m)))
-		ARCH = amd64
+		ARCH := amd64
 	endif
 	ifneq (,$(findstring ia64, $(shell uname -m)))
-		ARCH = ia64
+		ARCH := ia64
 	endif
 	ifneq (,$(findstring aarch64, $(shell uname -m)))
-		ARCH = aarch64
+		ARCH := aarch64
 	endif
 endif
 ifeq ($(OSTYPE),darwin)
 	ifneq (,$(findstring x86_64, $(shell uname -m)))
-		ARCH = x86_64
+		ARCH := x86_64
 	endif
 	ifneq (,$(findstring arm64, $(shell uname -m)))
-		ARCH = arm64
+		ARCH := arm64
 	endif
 endif
 # For Windows, we decide whether to build in 64-bit mode based on
 # whether java is 32/64-bit (since these need to match)
 ifeq ($(OSTYPE),cygwin)
 	# Default to 64-bit, which is most likely these days
-	ARCH = x86_64
+	ARCH := x86_64
     ifeq ($(shell which java 2>/dev/null),)
         $(error "Could not find java executable. Please install Java or add it to your PATH.")
     endif
     JAVA_VERSION_STRING := $(shell java -version 2>&1)
 	ifneq (,$(findstring 32-bit, $(JAVA_VERSION_STRING)))
-        ARCH = 
+        ARCH := 
     endif
     ifneq (,$(findstring Client VM, $(JAVA_VERSION_STRING)))
-        ARCH = 
+        ARCH := 
     endif
 endif
 
@@ -165,13 +165,13 @@ DETECT_JAVAC = $(shell $(PRISM_SRC_DIR)/scripts/findjavac.sh 2> /dev/null)
 
 # Find directory containing javac
 ifeq ("$(DETECT_JAVAC)","")
-  JAVA_DIR =
+  JAVA_DIR :=
 else
-  JAVA_DIR = $(shell dirname "$(DETECT_JAVAC)" | sed -e 's/\/bin//' -e 's/\/Commands//')
+  JAVA_DIR := $(shell dirname "$(DETECT_JAVAC)" | sed -e 's/\/bin//' -e 's/\/Commands//')
 endif
 
 # As a backup way of detecting JAVA_DIR, run java_home
-JAVA_DIR_BACKUP = $(shell \
+JAVA_DIR_BACKUP := $(shell \
 	if [ -f /usr/libexec/java_home ]; then /usr/libexec/java_home; \
 	else echo ""; fi )
 
@@ -183,14 +183,14 @@ JAVA_DIR_BACKUP = $(shell \
 
 # Now we locate the JNI header files jni.h and jni_md.h
 # (in fact this is the only reason we need JAVA_DIR)
-JAVA_JNI_H_DIR = $(shell \
+JAVA_JNI_H_DIR := $(shell \
 	if [ -f "$(JAVA_DIR)"/include/jni.h ]; then echo "$(JAVA_DIR)"/include; \
 	elif [ -f "$(JAVA_DIR)"/Headers/jni.h ]; then echo "$(JAVA_DIR)"/Headers; \
 	elif [ -f "$(JAVA_DIR_BACKUP)"/include/jni.h ]; then echo "$(JAVA_DIR_BACKUP)"/include; \
 	elif [ -f "$(JAVA_DIR_BACKUP)"/Headers/jni.h ]; then echo "$(JAVA_DIR_BACKUP)"/Headers; \
 	else echo ""; fi )
-JAVA_JNI_MD_H_DIR = $(shell (ls "$(JAVA_JNI_H_DIR)"/jni_md.h "$(JAVA_JNI_H_DIR)"/*/jni_md.h | head -n 1 | sed 's/\/jni_md.h//') 2>/dev/null)
-JAVA_INCLUDES = -I $(JAVA_JNI_H_DIR) -I $(JAVA_JNI_MD_H_DIR)
+JAVA_JNI_MD_H_DIR := $(shell (ls "$(JAVA_JNI_H_DIR)"/jni_md.h "$(JAVA_JNI_H_DIR)"/*/jni_md.h | head -n 1 | sed 's/\/jni_md.h//') 2>/dev/null)
+JAVA_INCLUDES := -I $(JAVA_JNI_H_DIR) -I $(JAVA_JNI_MD_H_DIR)
 
 ##################
 # Compilers etc. #
@@ -198,21 +198,21 @@ JAVA_INCLUDES = -I $(JAVA_JNI_H_DIR) -I $(JAVA_JNI_MD_H_DIR)
 
 ifeq ($(OSTYPE),cygwin)
 	ifeq ($(ARCH),x86_64)
-		CC = /usr/bin/x86_64-w64-mingw32-gcc
-		CXX = /usr/bin/x86_64-w64-mingw32-g++
+		CC := /usr/bin/x86_64-w64-mingw32-gcc
+		CXX := /usr/bin/x86_64-w64-mingw32-g++
 	else
-		CC = /usr/bin/i686-w64-mingw32-gcc
-		CXX = /usr/bin/i686-w64-mingw32-g++
+		CC := /usr/bin/i686-w64-mingw32-gcc
+		CXX := /usr/bin/i686-w64-mingw32-g++
 	endif
-	JAVACC = javacc.bat
+	JAVACC := javacc.bat
 else
-	CC = gcc
-	CXX = g++
-	JAVACC = javacc
+	CC := gcc
+	CXX := g++
+	JAVACC := javacc
 endif
-LD = $(CXX)
-JAVAC = javac
-JAVA = java
+LD := $(CXX)
+JAVAC := javac
+JAVA := java
 
 export CC CXX LD JAVAC JAVACC
 
@@ -222,17 +222,17 @@ export CC CXX LD JAVAC JAVACC
 
 # Tell compiler to generate debug information?
 # (WARNING: must not contain a % symbol!)
-DEBUG = 
-#DEBUG = -g
+DEBUG := 
+#DEBUG := -g
 
 # Compiler optimisation level:
 # (WARNING: must not contain a % symbol!)
-OPTIMISE = -O3
-#OPTIMISE =
+OPTIMISE := -O3
+#OPTIMISE :=
 
 # Compiler warnings to enable:
 # (WARNING: must not contain a % symbol!)
-WARNINGS = #-Wformat
+WARNINGS := #-Wformat
 
 # Flags for compilation/linking
 # Flags to generate shared libraries
@@ -244,62 +244,62 @@ WARNINGS = #-Wformat
 ifeq ($(OSTYPE),linux)
 	ifeq ($(ARCH),amd64)
 		# Position Independent Code required on AMD64/Itanium
-		CFLAGS = -m64 -fPIC -DPIC $(DEBUG) $(OPTIMISE) $(WARNINGS)
-		CXXFLAGS = --std=c++11 $(CFLAGS)
-		LDFLAGS =
-		BINDISTSUFFIX = linux64
-		BINDISTARCH = x86
+		CFLAGS := -m64 -fPIC -DPIC $(DEBUG) $(OPTIMISE) $(WARNINGS)
+		CXXFLAGS := --std=c++11 $(CFLAGS)
+		LDFLAGS :=
+		BINDISTSUFFIX := linux64
+		BINDISTARCH := x86
 	else
 	ifeq ($(ARCH),ia64)
 		# Position Independent Code required on AMD64/Itanium
 		# Note: We omit the -m64 flag from here since it seems to be unsupported by gcc on IA64
-		CFLAGS = -fPIC -DPIC $(DEBUG) $(OPTIMISE) $(WARNINGS)
-		CXXFLAGS = --std=c++11 $(CFLAGS)
-		LDFLAGS =
-		BINDISTSUFFIX = linux64
-		BINDISTARCH = ia64
+		CFLAGS := -fPIC -DPIC $(DEBUG) $(OPTIMISE) $(WARNINGS)
+		CXXFLAGS := --std=c++11 $(CFLAGS)
+		LDFLAGS :=
+		BINDISTSUFFIX := linux64
+		BINDISTARCH := ia64
 	else
 	ifeq ($(ARCH),aarch64)
 		# Position Independent Code required on Aarch64
-		CFLAGS = -fPIC -DPIC $(DEBUG) $(OPTIMISE) $(WARNINGS)
-		CXXFLAGS = --std=c++11 $(CFLAGS)
-		LDFLAGS =
-		BINDISTSUFFIX = linux64
-		BINDISTARCH = arm
+		CFLAGS := -fPIC -DPIC $(DEBUG) $(OPTIMISE) $(WARNINGS)
+		CXXFLAGS := --std=c++11 $(CFLAGS)
+		LDFLAGS :=
+		BINDISTSUFFIX := linux64
+		BINDISTARCH := arm
 	else
-		CFLAGS = -m32 $(DEBUG) $(OPTIMISE) $(WARNINGS)
-		CXXFLAGS = --std=c++11 $(CFLAGS)
-		LDFLAGS =
-		BINDISTSUFFIX = linux32
-		BINDISTARCH = x86
+		CFLAGS := -m32 $(DEBUG) $(OPTIMISE) $(WARNINGS)
+		CXXFLAGS := --std=c++11 $(CFLAGS)
+		LDFLAGS :=
+		BINDISTSUFFIX := linux32
+		BINDISTARCH := x86
 	endif
 	endif
 	endif
-	BIN_TARGETS=prism.linux xprism.linux
+	BIN_TARGETS := prism.linux xprism.linux
 	JFLAGS := -encoding UTF8
-	SHARED = -shared
-	#SHARED = -G
-	EXE =
-	LIBPREFIX = lib
-	LIBSUFFIX = .so
-	LIBMATH = -lm
-	CLASSPATHSEP = :
+	SHARED := -shared
+	#SHARED := -G
+	EXE :=
+	LIBPREFIX := lib
+	LIBSUFFIX := .so
+	LIBMATH := -lm
+	CLASSPATHSEP := :
 endif
 # Solaris
 ifeq ($(OSTYPE),solaris)
-	CFLAGS = -mcpu=ultrasparc $(DEBUG) $(OPTIMISE) $(WARNINGS)
-	CXXFLAGS = --std=c++11 $(CFLAGS)
-	LDFLAGS =
-	BINDISTSUFFIX = solaris
-	BINDISTARCH = solaris
-	BIN_TARGETS=prism.linux xprism.linux
+	CFLAGS := -mcpu=ultrasparc $(DEBUG) $(OPTIMISE) $(WARNINGS)
+	CXXFLAGS := --std=c++11 $(CFLAGS)
+	LDFLAGS :=
+	BINDISTSUFFIX := solaris
+	BINDISTARCH := solaris
+	BIN_TARGETS := prism.linux xprism.linux
 	JFLAGS := -encoding UTF8
-	SHARED = -shared -mimpure-text
-	EXE =
-	LIBPREFIX = lib
-	LIBSUFFIX = .so
-	LIBMATH = -lm
-	CLASSPATHSEP = :
+	SHARED := -shared -mimpure-text
+	EXE :=
+	LIBPREFIX := lib
+	LIBSUFFIX := .so
+	LIBMATH := -lm
+	CLASSPATHSEP := :
 endif
 # Cygwin
 ifeq ($(OSTYPE),cygwin)
@@ -308,61 +308,61 @@ ifeq ($(OSTYPE),cygwin)
 	# -Wl,--add-stdcall-alias needed so shared libraries can be read from JNI
 	# -Wl ... -lpthread ... --no-whole-archive needed to statically include pthread in case missing
 	ifeq ($(ARCH),x86_64)
-		CFLAGS = $(DEBUG) $(OPTIMISE) $(WARNINGS)
-		CXXFLAGS = --std=c++11 -DWIN32 $(CFLAGS)
-		LDFLAGS = -static-libgcc -static-libstdc++ -Wl,--add-stdcall-alias -Wl,-Bstatic,--whole-archive -lpthread -Wl,-Bdynamic,--no-whole-archive
-		BINDISTSUFFIX = win64
-		BINDISTARCH = x86
+		CFLAGS := $(DEBUG) $(OPTIMISE) $(WARNINGS)
+		CXXFLAGS := --std=c++11 -DWIN32 $(CFLAGS)
+		LDFLAGS := -static-libgcc -static-libstdc++ -Wl,--add-stdcall-alias -Wl,-Bstatic,--whole-archive -lpthread -Wl,-Bdynamic,--no-whole-archive
+		BINDISTSUFFIX := win64
+		BINDISTARCH := x86
 	else
-		CFLAGS = -march=i686 $(DEBUG) $(OPTIMISE) $(WARNINGS)
-		CXXFLAGS = --std=c++11 -DWIN32 $(CFLAGS)
-		LDFLAGS = -static-libgcc -static-libstdc++ -Wl,--add-stdcall-alias -Wl,-Bstatic,--whole-archive -lpthread -Wl,-Bdynamic,--no-whole-archive
-		BINDISTSUFFIX = win32
-		BINDISTARCH = x86
+		CFLAGS := -march=i686 $(DEBUG) $(OPTIMISE) $(WARNINGS)
+		CXXFLAGS := --std=c++11 -DWIN32 $(CFLAGS)
+		LDFLAGS := -static-libgcc -static-libstdc++ -Wl,--add-stdcall-alias -Wl,-Bstatic,--whole-archive -lpthread -Wl,-Bdynamic,--no-whole-archive
+		BINDISTSUFFIX := win32
+		BINDISTARCH := x86
 	endif
-	BIN_TARGETS=prism.cygwin xprism.linux prism.bat.win xprism.bat.win
+	BIN_TARGETS := prism.cygwin xprism.linux prism.bat.win xprism.bat.win
 	JFLAGS := -encoding UTF8
-	SHARED = -shared
-	#SHARED = -G
-	EXE = .exe
-	LIBPREFIX =
-	LIBSUFFIX = .dll
-	LIBMATH = 
-	CLASSPATHSEP = ;
+	SHARED := -shared
+	#SHARED := -G
+	EXE := .exe
+	LIBPREFIX :=
+	LIBSUFFIX := .dll
+	LIBMATH := 
+	CLASSPATHSEP := ;
 endif
 # Darwin
 ifeq ($(OSTYPE),darwin)
 	ifeq ($(ARCH),x86_64)
-		CFLAGS = -arch x86_64 -fPIC -DPIC $(DEBUG) $(OPTIMISE) $(WARNINGS)
-		CXXFLAGS = --std=c++11 $(CFLAGS)
-		LDFLAGS = -arch x86_64 -Wl,-search_paths_first
-		BINDISTSUFFIX = mac64
-		BINDISTARCH = x86
-		BIN_TARGETS=prism.darwin xprism.linux
+		CFLAGS := -arch x86_64 -fPIC -DPIC $(DEBUG) $(OPTIMISE) $(WARNINGS)
+		CXXFLAGS := --std=c++11 $(CFLAGS)
+		LDFLAGS := -arch x86_64 -Wl,-search_paths_first
+		BINDISTSUFFIX := mac64
+		BINDISTARCH := x86
+		BIN_TARGETS := prism.darwin xprism.linux
 	else
 	ifeq ($(ARCH),arm64)
-		CFLAGS = -arch arm64 -fPIC -DPIC $(DEBUG) $(OPTIMISE) $(WARNINGS)
-		CXXFLAGS = --std=c++11 $(CFLAGS)
-		LDFLAGS = -arch arm64 -Wl,-search_paths_first
-		BINDISTSUFFIX = mac64
-		BINDISTARCH = arm
-		BIN_TARGETS=prism.darwin xprism.linux
+		CFLAGS := -arch arm64 -fPIC -DPIC $(DEBUG) $(OPTIMISE) $(WARNINGS)
+		CXXFLAGS := --std=c++11 $(CFLAGS)
+		LDFLAGS := -arch arm64 -Wl,-search_paths_first
+		BINDISTSUFFIX := mac64
+		BINDISTARCH := arm
+		BIN_TARGETS := prism.darwin xprism.linux
 	else
-		CFLAGS = -arch i386 $(DEBUG) $(OPTIMISE) $(WARNINGS)
-		CXXFLAGS = --std=c++11 $(CFLAGS)
-		LDFLAGS = -arch i386 -Wl,-search_paths_first
-		BINDISTSUFFIX = mac32
-		BINDISTARCH = x86
-		BIN_TARGETS=prism.darwin xprism.linux
+		CFLAGS := -arch i386 $(DEBUG) $(OPTIMISE) $(WARNINGS)
+		CXXFLAGS := --std=c++11 $(CFLAGS)
+		LDFLAGS := -arch i386 -Wl,-search_paths_first
+		BINDISTSUFFIX := mac32
+		BINDISTARCH := x86
+		BIN_TARGETS := prism.darwin xprism.linux
 	endif
 	endif
 	JFLAGS := -encoding UTF8
-	SHARED = -dynamiclib
-	EXE =
-	LIBPREFIX = lib
-	LIBSUFFIX = .dylib
-	LIBMATH = -lm
-	CLASSPATHSEP = :
+	SHARED := -dynamiclib
+	EXE :=
+	LIBPREFIX := lib
+	LIBSUFFIX := .dylib
+	LIBMATH := -lm
+	CLASSPATHSEP := :
 endif
 
 # Java flags
@@ -374,7 +374,7 @@ export CFLAGS CXXFLAGS LDFLAGS JFLAGS LIBPREFIX LIBSUFFIX
 # Main part of Makefile: Compiling PRISM #
 ##########################################
 
-EXT_PACKAGES = lpsolve55 lp_solve_5.5_java
+EXT_PACKAGES := lpsolve55 lp_solve_5.5_java
 
 .PHONY: clean javadoc tests release
 
@@ -455,14 +455,14 @@ PRISM_LIB_OBJ_FILES := $(patsubst $(PRISM_SRC_DIR)/%.cc, $(PRISM_OBJ_DIR)/%.o, $
 OLD_SHARED_LIBS := dd jdd odd dv prismmtbdd prismsparse prismhybrid
 OLD_SHARED_LIB_FILES := $(patsubst %, $(PRISM_LIB_DIR)/$(LIBPREFIX)%$(LIBSUFFIX), $(OLD_SHARED_LIBS))
 
-INCLUDES = \
+INCLUDES := \
 -I$(CUDD_DIR)/include \
 -I"$(JAVA_JNI_H_DIR)" \
 -I"$(JAVA_JNI_MD_H_DIR)" \
 -I$(PRISM_INCLUDE_DIR) \
 -Iext/lpsolve55/include
 
-LIBRARIES = \
+LIBRARIES := \
 -L$(PRISM_LIB_DIR) \
 -L$(CUDD_DIR)/lib \
 -lcudd \
@@ -642,8 +642,8 @@ source-jar:
 	@rm -f prism-sources.txt
 
 # Download a local html copy of the manual
-#PRISM_MANUAL_WEBSITE = http://prismmodelchecker.localhost/manual/
-PRISM_MANUAL_WEBSITE = http://www.prismmodelchecker.org/manual/
+#PRISM_MANUAL_WEBSITE := http://prismmodelchecker.localhost/manual/
+PRISM_MANUAL_WEBSITE := http://www.prismmodelchecker.org/manual/
 doc: clean_doc
 	(cd .. && wget -r -np -k -E -nH --no-cookies --header "Cookie: setskin=offline" --restrict-file-names=windows --reject '*action=sourceblock*' $(PRISM_MANUAL_WEBSITE) $(PRISM_MANUAL_WEBSITE)/pub/skins/offline/images/)
 clean_doc:
@@ -703,7 +703,7 @@ build_release_source:
 
 # Build Javadoc (and put in javadoc directory)
 
-PRISM_CLASSPATH = "$(JAVA_CLASSES_DIR)$(CLASSPATHSEP)$(PRISM_LIB_DIR)/*"
+PRISM_CLASSPATH := "$(JAVA_CLASSES_DIR)$(CLASSPATHSEP)$(PRISM_LIB_DIR)/*"
 
 PRISM_JAVADOC_DIR := javadoc
 
