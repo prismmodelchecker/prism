@@ -56,7 +56,7 @@ CUDD_DIR = ../cudd
 #OSTYPE = cygwin
 #OSTYPE = darwin
 
-ifdef OSTYPE
+ifneq ($(OSTYPE),)
 	# Look for common variants, e.g. gnu-linux -> linux
 	ifneq (,$(findstring linux, $(OSTYPE)))
 	  OSTYPE = linux
@@ -75,18 +75,27 @@ ifdef OSTYPE
 	  OSTYPE = darwin
 	endif
 else
-	# If OSTYPE is not defined/available, try uname
-	ifneq (,$(findstring Linux, $(shell uname -s)))
-		OSTYPE = linux
-	endif
-	ifneq (,$(findstring SunOS, $(shell uname -s)))
-		OSTYPE = solaris
-	endif
-	ifneq (,$(findstring CYGWIN, $(shell uname -s)))
+	# If OSTYPE is not defined/available,
+	# First try OS (on Windows), otherwise try uname
+	ifeq ($(OS),Windows_NT)
 		OSTYPE = cygwin
-	endif
-	ifneq (,$(findstring Darwin, $(shell uname -s)))
-		OSTYPE = darwin
+	else
+		UNAME_STR := $(shell uname -s 2>/dev/null || echo unknown)
+		ifneq (,$(findstring Linux, $(UNAME_STR)))
+			OSTYPE = linux
+		endif
+		ifneq (,$(findstring SunOS, $(UNAME_STR)))
+			OSTYPE = solaris
+		endif
+		ifneq (,$(findstring CYGWIN, $(UNAME_STR)))
+			OSTYPE = cygwin
+		endif
+		ifneq (,$(findstring MINGW, $(UNAME_STR)))
+			OSTYPE = cygwin
+		endif
+		ifneq (,$(findstring Darwin, $(UNAME_STR)))
+			OSTYPE = darwin
+		endif
 	endif
 endif
 
