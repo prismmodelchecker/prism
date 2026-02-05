@@ -45,7 +45,7 @@ libtool -static -o bin/$PLATFORM/liblpsolve55.a `echo $src|sed s/[.]c/.o/g|sed '
 if [ "$so" != "" ]
 then
   $c $CFLAGS -fPIC -fno-common -s -c -I.. -I../shared -I../bfp -I../bfp/bfp_LUSOL -I../bfp/bfp_LUSOL/LUSOL -I../colamd -I. $opts $NOISNAN -DYY_NEVER_INTERACTIVE -DPARSER_LP -DINVERSE_ACTIVE=INVERSE_LUSOL -DRoleIsExternalInvEngine $src
-  $c $CFLAGS -dynamiclib bin/$PLATFORM/liblpsolve55.a -compatibility_version 5.5.0 -current_version 5.5.0 -o bin/$PLATFORM/liblpsolve55.dylib `echo $src|sed s/[.]c/.o/g|sed 's/[^ ]*\///g'` -lc
+  $c $CFLAGS -dynamiclib bin/$PLATFORM/liblpsolve55.a -compatibility_version 5.5.0 -current_version 5.5.0 -Wl,-install_name,@rpath/liblpsolve55.dylib -o bin/$PLATFORM/liblpsolve55.dylib `echo $src|sed s/[.]c/.o/g|sed 's/[^ ]*\///g'` -lc
   mv bin/$PLATFORM/liblpsolve55.dylib ../../../lib
 fi
 

@@ -32,4 +32,4 @@ if [ "$ARCH" = "arm64" ]; then
 fi
 
 g++ $CFLAGS $INCL -c $SRC_DIR/lpsolve5j.cpp
-g++ $CFLAGS -dynamiclib lpsolve5j.o -compatibility_version 5.5.0 -current_version 5.5.0 -o liblpsolve55j.dylib -lc -llpsolve55 -L$LPSOLVE_LIB_DIR
+g++ $CFLAGS -dynamiclib lpsolve5j.o -compatibility_version 5.5.0 -current_version 5.5.0 -Wl,-install_name,@rpath/liblpsolve55j.dylib -Wl,-rpath,@loader_path/. -o liblpsolve55j.dylib -lc -llpsolve55 -L$LPSOLVE_LIB_DIR

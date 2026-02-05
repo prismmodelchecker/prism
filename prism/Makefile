@@ -469,12 +469,20 @@ LIBRARIES := \
 $(LIBMATH) \
 -llpsolve55
 
+# Setup RPATH. Use = here (not :=) so $@ is evaluated inside the recipe scope
+RPATH_LINUX   = -Wl,-soname,$(notdir $@) -Wl,-rpath,'$$ORIGIN'
+RPATH_DARWIN  = -Wl,-install_name,@rpath/$(notdir $@) -Wl,-rpath,@loader_path/.
+# Then pick the right one based on OSTYPE
+$(PRISM_LIB_DIR)/$(LIBPREFIX)prism$(LIBSUFFIX): RPATH_SETTING = \
+    $(if $(filter linux,$(OSTYPE)),$(RPATH_LINUX), \
+    $(if $(filter darwin,$(OSTYPE)),$(RPATH_DARWIN),))
+
 # Compile the main native shared library
 prism_lib: prism_java $(PRISM_LIB_DIR)/$(LIBPREFIX)prism$(LIBSUFFIX)
 
 $(PRISM_LIB_DIR)/$(LIBPREFIX)prism$(LIBSUFFIX): $(PRISM_LIB_OBJ_FILES)
 	@echo "Linking shared library $@..."
-	$(LD) $(SHARED) $(LDFLAGS) -o $@ $^ $(LIBRARIES)
+	$(LD) $(SHARED) $(LDFLAGS) $(RPATH_SETTING) -o $@ $^ $(LIBRARIES)
 
 $(PRISM_OBJ_DIR)/%.o: $(PRISM_SRC_DIR)/%.cc
 	@mkdir -p $(dir $@)
