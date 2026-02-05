@@ -364,8 +364,6 @@ export CFLAGS CXXFLAGS LDFLAGS JFLAGS LIBPREFIX LIBSUFFIX
 # Main part of Makefile: Compiling PRISM #
 ##########################################
 
-MAKE_DIRS = dd
-
 EXT_PACKAGES = lpsolve55 lp_solve_5.5_java
 
 .PHONY: clean javadoc tests release
@@ -405,7 +403,7 @@ extpackages: checks
 
 # Compile main PRISM code
 # (we also do some preparatory checks, and build launch scripts afterwards)
-prism: checks prism_java make_dirs prism_lib prism_ng bin_scripts
+prism: checks prism_java prism_lib prism_ng bin_scripts
 
 # Compile all Java code, build JNI headers
 prism_java: $(JAVA_COMPILED_STAMP)
@@ -429,23 +427,6 @@ parser_force:
 	@ echo "Forcing parser rebuild"
 	@$(JAVACC) $(JAVA_PARSER_JJ)
 
-# Compile each (top-level) source directory separately
-make_dirs:
-	@mkdir -p bin $(PRISM_OBJ_DIR)/dd
-	@for dir in $(MAKE_DIRS); do \
-	  echo Making $(PRISM_SRC_DIR)/$$dir ...; \
-	  (cd $(PRISM_SRC_DIR)/$$dir && \
-	  $(MAKE) \
-	  CUDD_DIR="$(CUDD_DIR)" \
-	  JAVA_INCLUDES="$(JAVA_INCLUDES)" \
-	  JAVA_JNI_H_DIR="$(JAVA_JNI_H_DIR)" \
-	  JAVA_JNI_MD_H_DIR="$(JAVA_JNI_MD_H_DIR)" \
-	  SHARED="$(SHARED)" \
-	  EXE="$(EXE)" \
-	  LIBMATH="$(LIBMATH)" \
-	  CLASSPATHSEP="$(CLASSPATHSEP)") \
-	  || exit 1; \
-	done
 # On Windows, convert the generated JNI headers using dos2unix
 # and any scripts to be run from Cywgin, in case extracted with CRLF endings.
 	@if [ "$(OSTYPE)" = "cygwin" ]; then \
@@ -454,14 +435,14 @@ make_dirs:
 	  dos2unix "$(PRISM_SRC_DIR)"/bin/prism.cygwin; \
 	fi
 
-PRISM_LIB_DIRS := jdd odd dv prism mtbdd sparse hybrid
+PRISM_LIB_DIRS := dd jdd odd dv prism mtbdd sparse hybrid
 
-PRISM_LIB_EXCLUDE_FILES := 
+PRISM_LIB_EXCLUDE_FILES := $(PRISM_SRC_DIR)/dd/dd_test.cc
 PRISM_LIB_ALL_SRC_FILES := $(shell find $(foreach d,$(PRISM_LIB_DIRS),$(PRISM_SRC_DIR)/$(d)) -name "*.cc")
 PRISM_LIB_SRC_FILES := $(filter-out $(PRISM_LIB_EXCLUDE_FILES), $(PRISM_LIB_ALL_SRC_FILES))
 PRISM_LIB_OBJ_FILES := $(patsubst $(PRISM_SRC_DIR)/%.cc, $(PRISM_OBJ_DIR)/%.o, $(PRISM_LIB_SRC_FILES))
 
-OLD_SHARED_LIBS := jdd odd dv prismmtbdd prismsparse prismhybrid
+OLD_SHARED_LIBS := dd jdd odd dv prismmtbdd prismsparse prismhybrid
 OLD_SHARED_LIB_FILES := $(patsubst %, $(PRISM_LIB_DIR)/$(LIBPREFIX)%$(LIBSUFFIX), $(OLD_SHARED_LIBS))
 
 INCLUDES = \
@@ -473,7 +454,8 @@ INCLUDES = \
 
 LIBRARIES = \
 -L$(PRISM_LIB_DIR) \
--ldd \
+-L$(CUDD_DIR)/lib \
+-lcudd \
 $(LIBMATH) \
 -llpsolve55
 
@@ -712,8 +694,16 @@ build_release_source:
 
 PRISM_CLASSPATH = "$(JAVA_CLASSES_DIR)$(CLASSPATHSEP)$(PRISM_LIB_DIR)/*"
 
-javadoc:
-	@JAVADOC_DIRS=`echo $(MAKE_DIRS) | sed 's/\//./g' | sed 's/ /:/g'` && \mkdir -p javadoc; javadoc $(JFLAGS) -d javadoc -overview $(JAVA_SRC_DIR)/overview.html -sourcepath $(JAVA_SRC_DIR) -classpath $(JAVA_SRC_DIR)$(CLASSPATHSEP)$(PRISM_CLASSPATH) -subpackages $$JAVADOC_DIRS -exclude parser
+PRISM_JAVADOC_DIR := javadoc
+
+javadoc: prism_java
+	@mkdir -p $(PRISM_JAVADOC_DIR)
+	@echo "Generating Javadoc..."
+	javadoc -d $(PRISM_JAVADOC_DIR) \
+	        -classpath $(PRISM_CLASSPATH) \
+	        -quiet \
+	        -Xdoclint:none \
+	        @$(JAVA_SRC_FILES_LIST)
 
 ###############
 # Cleaning up #
@@ -721,23 +711,17 @@ javadoc:
 
 # Clean main PRISM build (not CUDD or external libs)
 clean: checks
-	@(for dir in $(MAKE_DIRS); do \
-	  echo Cleaning $(PRISM_SRC_DIR)/$$dir ...; \
-	  (cd $(PRISM_SRC_DIR)/$$dir && \
-	  $(MAKE) -s EXE="$(EXE)" clean) \
-	  || exit 1; \
-	done; \
-	rm -rf $(JAVA_CLASSES_DIR) ; \
-	rm -f $(JAVA_SRC_FILES_LIST) $(JAVA_COMPILED_STAMP) ; \
-	rm -f $(JAVA_TESTS_SRC_FILES_LIST) $(JAVA_TESTS_COMPILED_STAMP) ; \
-	rm -rf $(PRISM_OBJ_DIR) ; \
-	rm -f $(PRISM_LIB_DIR)/$(LIBPREFIX)prism$(LIBSUFFIX) ; \
-	rm -f $(OLD_SHARED_LIB_FILES) ; \
-	rm -f $(PRISM_INCLUDE_DIR)/jni/*.h \
-	rm -f $(PRISM_LIB_DIR)/*jnilib; \
-	rm -f $(PRISM_LIB_DIR)/prism.jar; \
-	rm -f $(PRISM_LIB_DIR)/prism-sources.jar; \
-	rm -f $(BIN_PRISM) $(BIN_XPRISM) $(BIN_PRISM_BAT) $(BIN_XPRISM_BAT) )
+	rm -rf $(JAVA_CLASSES_DIR)
+	rm -f $(JAVA_SRC_FILES_LIST) $(JAVA_COMPILED_STAMP)
+	rm -f $(JAVA_TESTS_SRC_FILES_LIST) $(JAVA_TESTS_COMPILED_STAMP)
+	rm -rf $(PRISM_OBJ_DIR)
+	rm -f $(PRISM_LIB_DIR)/$(LIBPREFIX)prism$(LIBSUFFIX)
+	rm -f $(OLD_SHARED_LIB_FILES)
+	rm -f $(PRISM_INCLUDE_DIR)/jni/*.h
+	rm -f $(PRISM_LIB_DIR)/*jnilib
+	rm -f $(PRISM_LIB_DIR)/prism.jar
+	rm -f $(PRISM_LIB_DIR)/prism-sources.jar
+	rm -f $(BIN_PRISM) $(BIN_XPRISM) $(BIN_PRISM_BAT) $(BIN_XPRISM_BAT)
 
 celan: clean
 
@@ -759,10 +743,6 @@ clean_ext:
 clean_binary:
 	@echo "Removing JAR file ($(PRISM_LIB_DIR)/prism.jar)..."
 	@rm -f $(PRISM_LIB_DIR)/prism.jar
-
-# Clear individual directories (sometimes useful)
-clean_dd: checks
-	@(cd $(PRISM_SRC_DIR)/dd && $(MAKE) -s EXE="$(EXE)" clean)
 
 ###############
 # IDE support #
