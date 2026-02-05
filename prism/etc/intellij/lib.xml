@@ -1,0 +1,16 @@
+<component name="libraryTable">
+  <library name="lib">
+    <CLASSES>
+      <root url="file://$PROJECT_DIR$/prism/lib" />
+    </CLASSES>
+    <JAVADOC />
+    <NATIVE>
+      <root url="file://$PROJECT_DIR$/prism/lib" />
+    </NATIVE>
+    <SOURCES>
+      <root url="file://$PROJECT_DIR$/prism/lib" />
+    </SOURCES>
+    <jarDirectory url="file://$PROJECT_DIR$/prism/lib" recursive="false" />
+    <jarDirectory url="file://$PROJECT_DIR$/prism/lib" recursive="false" type="SOURCES" />
+  </library>
+</component>

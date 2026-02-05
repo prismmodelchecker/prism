@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<module type="JAVA_MODULE" version="4">
+  <component name="NewModuleRootManager">
+    <output url="file://$MODULE_DIR$/prism/classes" />
+    <output-test url="file://$MODULE_DIR$/prism/classes" />
+    <exclude-output />
+    <content url="file://$MODULE_DIR$">
+      <sourceFolder url="file://$MODULE_DIR$/prism/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/prism/unit-tests" isTestSource="true" />
+      <sourceFolder url="file://$MODULE_DIR$/prism/images" type="java-resource" relativeOutputPath="images" />
+      <excludeFolder url="file://$MODULE_DIR$/prism/classes" />
+    </content>
+    <orderEntry type="inheritedJdk" />
+    <orderEntry type="sourceFolder" forTests="false" />
+    <orderEntry type="library" name="lib" level="project" />
+  </component>
+</module>

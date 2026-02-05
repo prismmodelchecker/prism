@@ -1,0 +1,11 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="PrismCL" type="Application" factoryName="Application">
+    <option name="MAIN_CLASS_NAME" value="prism.PrismCL" />
+    <module name="prism" />
+    <option name="VM_PARAMETERS" value="-Djava.library.path=$PROJECT_DIR$/prism/lib" />
+    <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/prism" />
+    <method v="2">
+      <option name="Make" enabled="true" />
+    </method>
+  </configuration>
+</component>
