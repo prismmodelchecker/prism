@@ -16,6 +16,7 @@
 export PRISM_SRC_DIR     = src
 export PRISM_OBJ_DIR     = obj
 export PRISM_LIB_DIR     = lib
+export PRISM_BIN_DIR     = bin
 export PRISM_INCLUDE_DIR = include
 export PRISM_IMAGES_DIR  = images
 export PRISM_DTDS_DIR    = dtds
@@ -492,13 +493,14 @@ $(JAVA_TESTS_COMPILED_STAMP): $(JAVA_TESTS_SRC_FILES)
 
 # Copy/modify the launch scripts and put in the bin directory
 bin_scripts:
+	@mkdir -p $(PRISM_BIN_DIR)
 	@for target in $(BIN_TARGETS); do \
 	  target_trunc=`echo $$target | sed 's/\.[^.]*$$//'` && \
-	  echo Copying "$(PRISM_SRC_DIR)/bin/$$target -> bin/$$target_trunc" && \
-	  cp $(PRISM_SRC_DIR)/bin/$$target bin/$$target_trunc; \
+	  echo Copying "$(PRISM_SRC_DIR)/bin/$$target -> $(PRISM_BIN_DIR)/$$target_trunc" && \
+	  cp $(PRISM_SRC_DIR)/bin/$$target "$(PRISM_BIN_DIR)/$$target_trunc"; \
 	done;
-	@echo Copying "$(PRISM_OBJ_DIR)/prism/ngprism$(EXE) -> bin/ngprism$(EXE)" && \
-	cp $(PRISM_OBJ_DIR)/prism/ngprism$(EXE) bin/ngprism$(EXE)
+	@echo Copying "$(PRISM_OBJ_DIR)/prism/ngprism$(EXE) -> $(PRISM_BIN_DIR)/ngprism$(EXE)" && \
+	cp $(PRISM_OBJ_DIR)/prism/ngprism$(EXE) $(PRISM_BIN_DIR)/ngprism$(EXE)
 	@./install.sh silent
 
 # Some checks to make sure that the main settings are valid
@@ -574,17 +576,17 @@ unittests: $(JAVA_TESTS_COMPILED_STAMP)
 
 # Run a single test case from the test suite (useful quick check that the build was ok)
 test:
-	bin/prism etc/tests/dtmc_pctl.prism etc/tests/dtmc_pctl.prism.props -h -test
+	$(PRISM_BIN_DIR)/prism etc/tests/dtmc_pctl.prism etc/tests/dtmc_pctl.prism.props -h -test
 
 # Run a single test case from the test suite that relies on lpsolve being properly installed
 testlpsolve:
-	bin/prism etc/tests/test_lpsolve_mdpmo.prism etc/tests/test_lpsolve_mdpmo.prism.props -lp -test
+	$(PRISM_BIN_DIR)/prism etc/tests/test_lpsolve_mdpmo.prism etc/tests/test_lpsolve_mdpmo.prism.props -lp -test
 
 # Run all tests from the test suite (in ../prism-tests and ./tests)
 # Optionally, extra arguments for prism-auto are picked up via variable TESTS_ARGS
 tests: testslocal
 	@if [ -d ../prism-tests ]; then \
-	  etc/scripts/prism-auto -t -m ../prism-tests -p bin/prism --print-failures --nailgun --ngprism bin/ngprism $(TESTS_ARGS); \
+	  etc/scripts/prism-auto -t -m ../prism-tests -p $(PRISM_BIN_DIR)/prism --print-failures --nailgun --ngprism $(PRISM_BIN_DIR)/ngprism $(TESTS_ARGS); \
 	else \
 	  echo "Skipping tests"; \
 	fi
@@ -592,13 +594,13 @@ tests: testslocal
 # Just display the command to run the test suite on this version of PRISM
 # Optionally, extra arguments for prism-auto are picked up via variable TESTS_ARGS
 testsecho:
-	@echo etc/scripts/prism-auto -t -m ../prism-tests -p bin/prism --print-failures --nailgun --ngprism bin/ngprism $(TESTS_ARGS)
+	@echo etc/scripts/prism-auto -t -m ../prism-tests -p $(PRISM_BIN_DIR)/prism --print-failures --nailgun --ngprism $(PRISM_BIN_DIR)/ngprism $(TESTS_ARGS)
 
 # Run local tests (in ./tests)
 # Optionally, extra arguments for prism-auto are picked up via variable TESTS_ARGS
 testslocal:
 	@if [ -d tests ]; then \
-	  etc/scripts/prism-auto -t -m tests -p bin/prism --print-failures --nailgun --ngprism bin/ngprism $(TESTS_ARGS); \
+	  etc/scripts/prism-auto -t -m tests -p $(PRISM_BIN_DIR)/prism --print-failures --nailgun --ngprism $(PRISM_BIN_DIR)/ngprism $(TESTS_ARGS); \
 	else \
 	  echo "Skipping local tests"; \
 	fi
@@ -611,7 +613,7 @@ testslocal:
 testsfull:
 	etc/scripts/prism-auto -t -m ../prism-tests \
 	--skip-export-runs --skip-duplicate-runs --test-all -a ../prism-tests/all-engines.args --timeout 1m \
-	-p bin/prism --print-failures --nailgun $(TESTS_ARGS);
+	-p $(PRISM_BIN_DIR)/prism --print-failures --nailgun $(TESTS_ARGS);
 
 ##########################
 # Building distributions #
@@ -720,7 +722,7 @@ clean: checks
 	rm -f $(PRISM_LIB_DIR)/*jnilib
 	rm -f $(PRISM_LIB_DIR)/prism.jar
 	rm -f $(PRISM_LIB_DIR)/prism-sources.jar
-	rm -f $(BIN_PRISM) $(BIN_XPRISM) $(BIN_PRISM_BAT) $(BIN_XPRISM_BAT)
+	rm -f $(addprefix $(PRISM_BIN_DIR)/, $(notdir $(basename $(BIN_TARGETS)))) $(PRISM_BIN_DIR)/ngprism$(EXE)
 
 celan: clean
 
