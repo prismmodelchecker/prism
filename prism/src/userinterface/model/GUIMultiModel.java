@@ -732,7 +732,7 @@ public class GUIMultiModel extends GUIPlugin implements PrismSettingsListener
 		exportStateRewardsPlain.putValue(Action.LONG_DESCRIPTION, "Exports the state rewards vector to a plain text file");
 		exportStateRewardsPlain.putValue(Action.MNEMONIC_KEY, Integer.valueOf(KeyEvent.VK_R));
 		exportStateRewardsPlain.putValue(Action.NAME, "State rewards");
-		exportStateRewardsPlain.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("JMenu .png"));
+		exportStateRewardsPlain.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallStates.png"));
 
 		exportStateRewardsMatlab = new AbstractAction()
 		{
@@ -744,7 +744,7 @@ public class GUIMultiModel extends GUIPlugin implements PrismSettingsListener
 		exportStateRewardsMatlab.putValue(Action.LONG_DESCRIPTION, "Exports the state rewards vector to a Matlab file");
 		exportStateRewardsMatlab.putValue(Action.MNEMONIC_KEY, Integer.valueOf(KeyEvent.VK_R));
 		exportStateRewardsMatlab.putValue(Action.NAME, "State rewards");
-		exportStateRewardsMatlab.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("JMenu .png"));
+		exportStateRewardsMatlab.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallStates.png"));
 
 		exportTransRewardsPlain = new AbstractAction()
 		{
