@@ -364,7 +364,7 @@ export CFLAGS CXXFLAGS LDFLAGS JFLAGS LIBPREFIX LIBSUFFIX
 # Main part of Makefile: Compiling PRISM #
 ##########################################
 
-MAKE_DIRS = dd jdd
+MAKE_DIRS = dd
 
 EXT_PACKAGES = lpsolve55 lp_solve_5.5_java
 
@@ -431,7 +431,7 @@ parser_force:
 
 # Compile each (top-level) source directory separately
 make_dirs:
-	@mkdir -p bin $(PRISM_OBJ_DIR)/dd $(PRISM_OBJ_DIR)/jdd
+	@mkdir -p bin $(PRISM_OBJ_DIR)/dd
 	@for dir in $(MAKE_DIRS); do \
 	  echo Making $(PRISM_SRC_DIR)/$$dir ...; \
 	  (cd $(PRISM_SRC_DIR)/$$dir && \
@@ -454,14 +454,14 @@ make_dirs:
 	  dos2unix "$(PRISM_SRC_DIR)"/bin/prism.cygwin; \
 	fi
 
-PRISM_LIB_DIRS := odd dv prism mtbdd sparse hybrid
+PRISM_LIB_DIRS := jdd odd dv prism mtbdd sparse hybrid
 
 PRISM_LIB_EXCLUDE_FILES := 
 PRISM_LIB_ALL_SRC_FILES := $(shell find $(foreach d,$(PRISM_LIB_DIRS),$(PRISM_SRC_DIR)/$(d)) -name "*.cc")
 PRISM_LIB_SRC_FILES := $(filter-out $(PRISM_LIB_EXCLUDE_FILES), $(PRISM_LIB_ALL_SRC_FILES))
 PRISM_LIB_OBJ_FILES := $(patsubst $(PRISM_SRC_DIR)/%.cc, $(PRISM_OBJ_DIR)/%.o, $(PRISM_LIB_SRC_FILES))
 
-OLD_SHARED_LIBS := odd dv prismmtbdd prismsparse prismhybrid
+OLD_SHARED_LIBS := jdd odd dv prismmtbdd prismsparse prismhybrid
 OLD_SHARED_LIB_FILES := $(patsubst %, $(PRISM_LIB_DIR)/$(LIBPREFIX)%$(LIBSUFFIX), $(OLD_SHARED_LIBS))
 
 INCLUDES = \
@@ -763,8 +763,6 @@ clean_binary:
 # Clear individual directories (sometimes useful)
 clean_dd: checks
 	@(cd $(PRISM_SRC_DIR)/dd && $(MAKE) -s EXE="$(EXE)" clean)
-clean_jdd: checks
-	@(cd $(PRISM_SRC_DIR)/jdd && $(MAKE) -s EXE="$(EXE)" clean)
 
 ###############
 # IDE support #

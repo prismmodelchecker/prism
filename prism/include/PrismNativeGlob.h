@@ -116,7 +116,8 @@ const int REACH_FRONTIER = 2;
 EXPORT extern jclass prism_cls;
 EXPORT extern jobject prism_obj;
 
-// cudd manager
+// CUDD manager: stored so that it doesn't have to be passed to every CUDD/dd call.
+// Set via (JNI) PN_SetCUDDManager, cached here and accessible across all native code.
 EXPORT extern DdManager *ddman;
 
 // Export stuff:
