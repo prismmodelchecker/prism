@@ -37,7 +37,8 @@
 EXPORT jclass prism_cls = NULL;
 EXPORT jobject prism_obj = NULL;
 
-// cudd manager
+// CUDD manager: stored so that it doesn't have to be passed to every CUDD/dd call.
+// Set via (JNI) PN_SetCUDDManager, cached here and accessible across all native code.
 DdManager *ddman;
 
 // error messages

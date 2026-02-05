@@ -38,6 +38,8 @@
 
 //------------------------------------------------------------------------------
 
+// CUDD manager: cached here locally, so that it doesn't have to be passed to every
+// CUDD/dd call. Extracted from underlying CUDD lib on call to InitialiseCUDD
 static DdManager *ddman;
 
 //------------------------------------------------------------------------------
