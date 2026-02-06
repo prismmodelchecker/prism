@@ -1,0 +1,109 @@
+// Gradle-based download of dependency jars
+
+plugins {
+    id 'java'
+}
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_1_9
+    targetCompatibility = JavaVersion.VERSION_1_9
+}
+
+repositories {
+    mavenCentral()
+}
+
+configurations {
+    // Bucket for the JUnit standalone runner
+    testRunner
+}
+
+// Libraries not on Maven Central
+// Get from prismmodelchecker.org and cache in local-libs
+
+def prismJarBaseUrl = "https://www.prismmodelchecker.org/other/"
+def prismJarStashDir = file("local-libs")
+
+def customJars = [
+    "jhoafparser-1.1.1.jar",
+    "epsgraphics-1.0.0.jar",
+    "nailgun-server-0.9.2-SNAPSHOT.jar",
+    "pepa.jar"
+]
+
+tasks.register('downloadPrismJars') {
+    group = "PRISM"
+    description = "Downloads non-Maven jars from the PRISM website."
+    
+    doLast {
+        if (!prismJarStashDir.exists()) prismJarStashDir.mkdirs()
+        
+        customJars.each { jarName ->
+            def destFile = new File(prismJarStashDir, jarName)
+            if (!destFile.exists()) {
+                println "Downloading ${jarName}..."
+                ant.get(src: "${prismJarBaseUrl}${jarName}", dest: destFile)
+            }
+        }
+    }
+}
+
+// Main dependencies
+
+dependencies {
+
+    implementation 'colt:colt:1.2.0'
+	implementation("de.uni-mannheim.rz.krum:jas:2.7.90")
+    implementation 'org.jfree:jfreechart:1.0.14'
+    implementation 'org.jfree:jcommon:1.0.17'
+	//implementation("com.martiansoftware:nailgun-server:0.9.1")
+    implementation 'it.unimi.dsi:fastutil:8.5.15'
+    implementation 'org.apache.commons:commons-compress:1.24.0'
+    implementation 'org.tukaani:xz:1.10'
+    implementation 'com.google.code.gson:gson:2.11.0'
+    implementation 'org.apache.logging.log4j:log4j-api:2.17.1'
+    implementation 'org.apache.logging.log4j:log4j-core:2.17.1'
+
+    // JUnit: for simplicity, don't put in separate test group for now
+    implementation 'org.junit.platform:junit-platform-console-standalone:1.7.2'
+    //testRunner 'org.junit.platform:junit-platform-console-standalone:1.9.3'
+    
+	// Grab anything we can't find online from our local stash
+    implementation fileTree(dir: 'local-libs', include: ['*.jar'])
+}
+
+tasks.register('syncLibs', Copy) {
+    group = "PRISM"
+    description = "Downloads and copies JAR dependencies into the lib/ folder."
+
+    dependsOn 'downloadPrismJars'
+    
+    // 1. Production Libs
+    from(configurations.runtimeClasspath) {
+        into "lib" 
+    }
+
+    // 2. Test Libs
+    from(configurations.testRunner) {
+        into "lib/test"
+    }
+    
+    // 3. Clean up version numbers (Optional)
+    // If your Makefile expects 'gson.jar' instead of 'gson-2.11.0.jar', 
+    // uncomment the line below:
+    // rename { it.replaceAll(/-\d+\..*jar$/, ".jar") }
+
+    // Anchor this task to the parent parent directory (prism/)
+    destinationDir = file("../..") 
+
+    // Optional: This ensures the task always runs if you call it,
+    // preventing Gradle from saying "Up-to-Date" if you've manually deleted a JAR.
+    outputs.upToDateWhen { false }
+}
+
+tasks.register('cleanLibs', Delete) {
+    group = "PRISM"
+    description = "Deletes all JARs in the lib/ and lib/test/ folders."
+    delete fileTree("../../lib") { include "*.jar" }
+    delete "../../lib/test"
+}

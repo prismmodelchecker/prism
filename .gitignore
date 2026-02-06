@@ -36,3 +36,8 @@ prism/\.project
 # Eclipse project custom settings
 \.settings/
 prism/\.settings/
+
+# Dependency management via Gradle
+prism/etc/jars/.gradle/
+prism/etc/jars/build/
+prism/etc/jars/local-libs/
