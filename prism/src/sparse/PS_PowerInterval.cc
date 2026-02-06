@@ -34,7 +34,7 @@
 #include <odd.h>
 #include <dv.h>
 #include "sparse.h"
-#include "PrismSparseGlob.h"
+#include "PrismNativeGlob.h"
 #include "jnipointer.h"
 #include "prism.h"
 #include "Measures.h"
@@ -111,7 +111,7 @@ jint flags
 	Cudd_Ref(a);
 	
 	// build sparse matrix
-	PS_PrintToMainLog(env, "\nBuilding sparse matrix... ");
+	PN_PrintToMainLog(env, "\nBuilding sparse matrix... ");
 	// if requested, try and build a "compact" version
 	compact_a = true;
 	cmsrsm = NULL;
@@ -129,12 +129,12 @@ jint flags
 	}
 	kbt = kb;
 	// print some info
-	PS_PrintToMainLog(env, "[n=%d, nnz=%ld%s] ", n, nnz, compact_a?", compact":"");
-	PS_PrintMemoryToMainLog(env, "[", kb, "]\n");
+	PN_PrintToMainLog(env, "[n=%d, nnz=%ld%s] ", n, nnz, compact_a?", compact":"");
+	PN_PrintMemoryToMainLog(env, "[", kb, "]\n");
 	
 	// build b vector (if present)
 	if (b != NULL) {
-		PS_PrintToMainLog(env, "Creating vector for RHS... ");
+		PN_PrintToMainLog(env, "Creating vector for RHS... ");
 		b_vec = mtbdd_to_double_vector(ddman, b, rvars, num_rvars, odd);
 		// try and convert to compact form if required
 		compact_b = false;
@@ -146,27 +146,27 @@ jint flags
 		}
 		kb = (!compact_b) ? n*8.0/1024.0 : (b_dist->num_dist*8.0+n*2.0)/1024.0;
 		kbt += kb;
-		if (compact_b) PS_PrintToMainLog(env, "[dist=%d, compact] ", b_dist->num_dist);
-		PS_PrintMemoryToMainLog(env, "[", kb, "]\n");
+		if (compact_b) PN_PrintToMainLog(env, "[dist=%d, compact] ", b_dist->num_dist);
+		PN_PrintMemoryToMainLog(env, "[", kb, "]\n");
 	}
 	
 	// create solution/iteration vectors
-	PS_PrintToMainLog(env, "Allocating iteration vectors... ");
+	PN_PrintToMainLog(env, "Allocating iteration vectors... ");
 	soln_below = mtbdd_to_double_vector(ddman, lower, rvars, num_rvars, odd);
 	soln_above = mtbdd_to_double_vector(ddman, upper, rvars, num_rvars, odd);
 	soln_below2 = new double[n];
 	soln_above2 = new double[n];
 	kb = n*8.0/1024.0;
 	kbt += 4*kb;
-	PS_PrintMemoryToMainLog(env, "[4 x ", kb, "]\n");
+	PN_PrintMemoryToMainLog(env, "[4 x ", kb, "]\n");
 	
 	// print total memory usage
-	PS_PrintMemoryToMainLog(env, "TOTAL: [", kbt, "]\n");
+	PN_PrintMemoryToMainLog(env, "TOTAL: [", kbt, "]\n");
 
 	std::unique_ptr<ExportIterations> iterationExport;
-	if (PS_GetFlagExportIterations()) {
+	if (PN_GetFlagExportIterations()) {
 		iterationExport.reset(new ExportIterations("PS_PowerInterval"));
-		PS_PrintToMainLog(env, "Exporting iterations to %s\n", iterationExport->getFileName().c_str());
+		PN_PrintToMainLog(env, "Exporting iterations to %s\n", iterationExport->getFileName().c_str());
 		iterationExport->exportVector(soln_below, n, 0);
 		iterationExport->exportVector(soln_above, n, 1);
 	}
@@ -180,7 +180,7 @@ jint flags
 	// start iterations
 	iters = 0;
 	done = false;
-	PS_PrintToMainLog(env, "\nStarting iterations...\n");
+	PN_PrintToMainLog(env, "\nStarting iterations...\n");
 	
 	while (!done && iters < max_iters) {
 		
@@ -246,14 +246,14 @@ jint flags
 		measure.reset();
 		measure.measure(soln_below2, soln_above2, n);
 		if (measure.value() < term_crit_param) {
-			PS_PrintToMainLog(env, "Max %sdiff between upper and lower bound on convergence: %G", measure.isRelative()?"relative ":"", measure.value());
+			PN_PrintToMainLog(env, "Max %sdiff between upper and lower bound on convergence: %G", measure.isRelative()?"relative ":"", measure.value());
 			done = true;
 		}
 
 		// print occasional status update
 		if ((util_cpu_time() - start3) > UPDATE_DELAY) {
-			PS_PrintToMainLog(env, "Iteration %d: max %sdiff=%f", iters, measure.isRelative()?"relative ":"", measure.value());
-			PS_PrintToMainLog(env, ", %.2f sec so far\n", ((double)(util_cpu_time() - start2)/1000));
+			PN_PrintToMainLog(env, "Iteration %d: max %sdiff=%f", iters, measure.isRelative()?"relative ":"", measure.value());
+			PN_PrintToMainLog(env, ", %.2f sec so far\n", ((double)(util_cpu_time() - start2)/1000));
 			start3 = util_cpu_time();
 		}
 		
@@ -272,14 +272,14 @@ jint flags
 	time_taken = (double)(stop - start1)/1000;
 	
 	// print iters/timing info
-	PS_PrintToMainLog(env, "\nPower method (interval iteration): %d iterations in %.2f seconds (average %.6f, setup %.2f)\n", iters, time_taken, time_for_iters/iters, time_for_setup);
+	PN_PrintToMainLog(env, "\nPower method (interval iteration): %d iterations in %.2f seconds (average %.6f, setup %.2f)\n", iters, time_taken, time_for_iters/iters, time_for_setup);
 	
 	// if the iterative method didn't terminate, this is an error
 	if (!done) {
 		delete[] soln_below;
 		soln_below = NULL;
-		PS_SetErrorMessage("Iterative method (interval iteration) did not converge within %d iterations.\nConsider using a different numerical method or increasing the maximum number of iterations", iters);
-		PS_PrintToMainLog(env, "Max remaining %sdiff between upper and lower bound on convergence: %G", measure.isRelative()?"relative ":"", measure.value());
+		PN_SetErrorMessage("Iterative method (interval iteration) did not converge within %d iterations.\nConsider using a different numerical method or increasing the maximum number of iterations", iters);
+		PN_PrintToMainLog(env, "Max remaining %sdiff between upper and lower bound on convergence: %G", measure.isRelative()?"relative ":"", measure.value());
 	}
 
 	if (helper.flag_select_midpoint() && soln_below) { // we did converge, select midpoint
@@ -295,7 +295,7 @@ jint flags
 
 	// catch exceptions: register error, free memory
 	} catch (std::bad_alloc e) {
-		PS_SetErrorMessage("Out of memory");
+		PN_SetErrorMessage("Out of memory");
 		if (soln_below) delete[] soln_below;
 		soln_below = 0;
 	}

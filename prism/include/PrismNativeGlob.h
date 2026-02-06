@@ -28,8 +28,11 @@
 #define PRISMNATIVEGLOB_H
 
 //------------------------------------------------------------------------------
+
+#include <stdarg.h>
 #include <cstdio>
 #include <jni.h>
+#include <cudd.h>
 
 // Flags for building Windows DLLs
 #ifdef __MINGW32__
@@ -69,6 +72,9 @@
 
 //------------------------------------------------------------------------------
 
+#define MAX_LOG_STRING_LEN 1024
+#define MAX_ERR_STRING_LEN 1024
+
 // Constants - these need to match the definitions in prism/Prism.java
 
 const int EXPORT_PLAIN = 1;
@@ -102,13 +108,32 @@ const int REACH_FRONTIER = 2;
 
 //------------------------------------------------------------------------------
 
+#define logtwo(X) log((double)X)/log(2.0)
+
 // External refs to global variables
 
 // Prism object
 EXPORT extern jclass prism_cls;
 EXPORT extern jobject prism_obj;
 
+// CUDD manager: stored so that it doesn't have to be passed to every CUDD/dd call.
+// Set via (JNI) PN_SetCUDDManager, cached here and accessible across all native code.
+EXPORT extern DdManager *ddman;
+
+// Export stuff:
+
+EXPORT extern int export_type;
+EXPORT extern FILE *export_file;
+EXPORT extern JNIEnv *export_env;
+// adversary export mode
+EXPORT extern int export_adv;
+// adversary export filename
+EXPORT extern const char *export_adv_filename;
+// export iterations filename
+EXPORT extern const char *export_iterations_filename;
+
 // Options:
+
 // numerical method stuff
 EXPORT extern int lin_eq_method;
 EXPORT extern double lin_eq_method_param;
@@ -126,15 +151,24 @@ EXPORT extern int sor_max_mem;
 EXPORT extern int num_sor_levels;
 // use steady-state detection for transient computation?
 EXPORT extern bool do_ss_detect;
-// adversary EXPORT extern mode
-EXPORT extern int export_adv;
-// adversary export filename
-EXPORT extern const char *export_adv_filename;
-// export iterations filename
-EXPORT extern const char *export_iterations_filename;
 
 // details from numerical computation which may be queried
 EXPORT extern double last_error_bound;
+
+//------------------------------------------------------------------------------
+
+// function prototypes
+
+EXPORT void PN_SetErrorMessage(const char *str, ...)  IS_LIKE_PRINTF(1,2);
+EXPORT char *PH_GetErrorMessage();
+
+int store_export_info(int type, jstring fn, JNIEnv *env);
+void export_string(const char *str, ...) IS_LIKE_PRINTF(1,2);
+bool PN_GetFlagExportIterations();
+
+void PN_PrintToMainLog(JNIEnv *env, const char *str, ...) IS_LIKE_PRINTF(2,3);
+void PN_PrintWarningToMainLog(JNIEnv *env, const char *str, ...) IS_LIKE_PRINTF(2,3);
+void PN_PrintMemoryToMainLog(JNIEnv *env, const char *before, double mem, const char *after);
 
 //------------------------------------------------------------------------------
 

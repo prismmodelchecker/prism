@@ -34,7 +34,7 @@
 #include <dv.h>
 #include "sparse.h"
 #include "hybrid.h"
-#include "PrismHybridGlob.h"
+#include "PrismNativeGlob.h"
 #include "jnipointer.h"
 #include <new>
 
@@ -101,7 +101,7 @@ jint num_cvars
 		q = DD_Apply(ddman, APPLY_PLUS, trans, DD_Apply(ddman, APPLY_TIMES, DD_Identity(ddman, rvars, cvars, num_rvars), diags));
 		
 		// build iteration matrix
-		PH_PrintToMainLog(env, "\nBuilding power method iteration matrix MTBDD... ");
+		PN_PrintToMainLog(env, "\nBuilding power method iteration matrix MTBDD... ");
 		// (includes a "fix" for when we are solving a subsystem e.g. BSCC)
 		// (although i don't think we actually need this for the power method)
 		Cudd_Ref(diags);
@@ -109,7 +109,7 @@ jint num_cvars
 		Cudd_Ref(q);
 		a = DD_Apply(ddman, APPLY_PLUS, DD_Apply(ddman, APPLY_TIMES, DD_Constant(ddman, deltat), q), DD_Apply(ddman, APPLY_TIMES, DD_Identity(ddman, rvars, cvars, num_rvars), tmp));
 		i = DD_GetNumNodes(ddman, a);
-		PH_PrintToMainLog(env, "[nodes=%d] [%.1f Kb]", i, i*20.0/1024.0);
+		PN_PrintToMainLog(env, "[nodes=%d] [%.1f Kb]", i, i*20.0/1024.0);
 		
 		// deref unneeded mtbdds
 		Cudd_RecursiveDeref(ddman, diags);
@@ -163,7 +163,7 @@ jint num_cvars
 	
 	// catch exceptions: register error, free memory
 	} catch (std::bad_alloc e) {
-		PH_SetErrorMessage("Out of memory");
+		PN_SetErrorMessage("Out of memory");
 		if (soln) delete[] soln;
 		soln = 0;
 	}

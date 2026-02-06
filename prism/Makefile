@@ -14,17 +14,32 @@
 # If this is a problem, the best solution is to create symlinks.
 
 export PRISM_SRC_DIR     = src
-export PRISM_CLASSES_DIR = classes
 export PRISM_OBJ_DIR     = obj
 export PRISM_LIB_DIR     = lib
+export PRISM_BIN_DIR     = bin
 export PRISM_INCLUDE_DIR = include
 export PRISM_IMAGES_DIR  = images
 export PRISM_DTDS_DIR    = dtds
-export PRISM_TESTS_DIR   = unit-tests
+
+# Java locations, files
+
+JAVA_SRC_DIR := src
+JAVA_CLASSES_DIR := classes
+JAVA_TESTS_SRC_DIR := unit-tests
+JAVA_TESTS_CLASSES_DIR := $(JAVA_CLASSES_DIR)
+
+JAVA_SRC_FILES := $(shell find $(JAVA_SRC_DIR) -name "*.java")
+JAVA_SRC_FILES_LIST := $(JAVA_CLASSES_DIR)/java_sources.txt
+JAVA_COMPILED_STAMP := $(JAVA_CLASSES_DIR)/java_compiled.stamp
+JAVA_PARSER_JJ := $(JAVA_SRC_DIR)/parser/PrismParser.jj
+JAVA_PARSER_JAVA := $(JAVA_SRC_DIR)/parser/PrismParser.java
+JAVA_TESTS_SRC_FILES := $(shell find $(JAVA_TESTS_SRC_DIR) -name "*.java")
+JAVA_TESTS_SRC_FILES_LIST := $(JAVA_TESTS_CLASSES_DIR)/java_tests_sources.txt
+JAVA_TESTS_COMPILED_STAMP := $(JAVA_TESTS_CLASSES_DIR)/java_tests_compiled.stamp
 
 # Location of CUDD (used to be variable; now mainly fixed with the git repo layout)
 
-CUDD_DIR = ../cudd
+CUDD_DIR := ../cudd
 
 ####################
 # Operating system #
@@ -41,37 +56,46 @@ CUDD_DIR = ../cudd
 #OSTYPE = cygwin
 #OSTYPE = darwin
 
-ifdef OSTYPE
+ifneq ($(OSTYPE),)
 	# Look for common variants, e.g. gnu-linux -> linux
 	ifneq (,$(findstring linux, $(OSTYPE)))
-	  OSTYPE = linux
+	  OSTYPE := linux
 	endif
 	ifneq (,$(findstring solaris, $(OSTYPE)))
-	  OSTYPE = solaris
+	  OSTYPE := solaris
 	endif
 	ifneq (,$(findstring cygwin, $(OSTYPE)))
-	  OSTYPE = cygwin
+	  OSTYPE := cygwin
 	endif
 	# For Cygwin , OSTYPE is sometimes set to "posix"
 	ifneq (,$(findstring posix, $(OSTYPE)))
-	  OSTYPE = cygwin
+	  OSTYPE := cygwin
 	endif
 	ifneq (,$(findstring darwin, $(OSTYPE)))
-	  OSTYPE = darwin
+	  OSTYPE := darwin
 	endif
 else
-	# If OSTYPE is not defined/available, try uname
-	ifneq (,$(findstring Linux, $(shell uname -s)))
-		OSTYPE = linux
-	endif
-	ifneq (,$(findstring SunOS, $(shell uname -s)))
-		OSTYPE = solaris
-	endif
-	ifneq (,$(findstring CYGWIN, $(shell uname -s)))
-		OSTYPE = cygwin
-	endif
-	ifneq (,$(findstring Darwin, $(shell uname -s)))
-		OSTYPE = darwin
+	# If OSTYPE is not defined/available,
+	# First try OS (on Windows), otherwise try uname
+	ifeq ($(OS),Windows_NT)
+		OSTYPE := cygwin
+	else
+		UNAME_STR := $(shell uname -s 2>/dev/null || echo unknown)
+		ifneq (,$(findstring Linux, $(UNAME_STR)))
+			OSTYPE := linux
+		endif
+		ifneq (,$(findstring SunOS, $(UNAME_STR)))
+			OSTYPE := solaris
+		endif
+		ifneq (,$(findstring CYGWIN, $(UNAME_STR)))
+			OSTYPE := cygwin
+		endif
+		ifneq (,$(findstring MINGW, $(UNAME_STR)))
+			OSTYPE := cygwin
+		endif
+		ifneq (,$(findstring Darwin, $(UNAME_STR)))
+			OSTYPE := darwin
+		endif
 	endif
 endif
 
@@ -82,37 +106,37 @@ endif
 # For Linux/Mac, we use uname to check the architecture
 ifeq ($(OSTYPE),linux)
 	ifneq (,$(findstring 86_64, $(shell uname -m)))
-		ARCH = amd64
+		ARCH := amd64
 	endif
 	ifneq (,$(findstring ia64, $(shell uname -m)))
-		ARCH = ia64
+		ARCH := ia64
 	endif
 	ifneq (,$(findstring aarch64, $(shell uname -m)))
-		ARCH = aarch64
+		ARCH := aarch64
 	endif
 endif
 ifeq ($(OSTYPE),darwin)
 	ifneq (,$(findstring x86_64, $(shell uname -m)))
-		ARCH = x86_64
+		ARCH := x86_64
 	endif
 	ifneq (,$(findstring arm64, $(shell uname -m)))
-		ARCH = arm64
+		ARCH := arm64
 	endif
 endif
 # For Windows, we decide whether to build in 64-bit mode based on
 # whether java is 32/64-bit (since these need to match)
 ifeq ($(OSTYPE),cygwin)
 	# Default to 64-bit, which is most likely these days
-	ARCH = x86_64
+	ARCH := x86_64
     ifeq ($(shell which java 2>/dev/null),)
         $(error "Could not find java executable. Please install Java or add it to your PATH.")
     endif
     JAVA_VERSION_STRING := $(shell java -version 2>&1)
 	ifneq (,$(findstring 32-bit, $(JAVA_VERSION_STRING)))
-        ARCH = 
+        ARCH := 
     endif
     ifneq (,$(findstring Client VM, $(JAVA_VERSION_STRING)))
-        ARCH = 
+        ARCH := 
     endif
 endif
 
@@ -141,13 +165,13 @@ DETECT_JAVAC = $(shell $(PRISM_SRC_DIR)/scripts/findjavac.sh 2> /dev/null)
 
 # Find directory containing javac
 ifeq ("$(DETECT_JAVAC)","")
-  JAVA_DIR =
+  JAVA_DIR :=
 else
-  JAVA_DIR = $(shell dirname "$(DETECT_JAVAC)" | sed -e 's/\/bin//' -e 's/\/Commands//')
+  JAVA_DIR := $(shell dirname "$(DETECT_JAVAC)" | sed -e 's/\/bin//' -e 's/\/Commands//')
 endif
 
 # As a backup way of detecting JAVA_DIR, run java_home
-JAVA_DIR_BACKUP = $(shell \
+JAVA_DIR_BACKUP := $(shell \
 	if [ -f /usr/libexec/java_home ]; then /usr/libexec/java_home; \
 	else echo ""; fi )
 
@@ -159,14 +183,14 @@ JAVA_DIR_BACKUP = $(shell \
 
 # Now we locate the JNI header files jni.h and jni_md.h
 # (in fact this is the only reason we need JAVA_DIR)
-JAVA_JNI_H_DIR = $(shell \
+JAVA_JNI_H_DIR := $(shell \
 	if [ -f "$(JAVA_DIR)"/include/jni.h ]; then echo "$(JAVA_DIR)"/include; \
 	elif [ -f "$(JAVA_DIR)"/Headers/jni.h ]; then echo "$(JAVA_DIR)"/Headers; \
 	elif [ -f "$(JAVA_DIR_BACKUP)"/include/jni.h ]; then echo "$(JAVA_DIR_BACKUP)"/include; \
 	elif [ -f "$(JAVA_DIR_BACKUP)"/Headers/jni.h ]; then echo "$(JAVA_DIR_BACKUP)"/Headers; \
 	else echo ""; fi )
-JAVA_JNI_MD_H_DIR = $(shell (ls "$(JAVA_JNI_H_DIR)"/jni_md.h "$(JAVA_JNI_H_DIR)"/*/jni_md.h | head -n 1 | sed 's/\/jni_md.h//') 2>/dev/null)
-JAVA_INCLUDES = -I $(JAVA_JNI_H_DIR) -I $(JAVA_JNI_MD_H_DIR)
+JAVA_JNI_MD_H_DIR := $(shell (ls "$(JAVA_JNI_H_DIR)"/jni_md.h "$(JAVA_JNI_H_DIR)"/*/jni_md.h | head -n 1 | sed 's/\/jni_md.h//') 2>/dev/null)
+JAVA_INCLUDES := -I $(JAVA_JNI_H_DIR) -I $(JAVA_JNI_MD_H_DIR)
 
 ##################
 # Compilers etc. #
@@ -174,21 +198,21 @@ JAVA_INCLUDES = -I $(JAVA_JNI_H_DIR) -I $(JAVA_JNI_MD_H_DIR)
 
 ifeq ($(OSTYPE),cygwin)
 	ifeq ($(ARCH),x86_64)
-		CC = /usr/bin/x86_64-w64-mingw32-gcc
-		CXX = /usr/bin/x86_64-w64-mingw32-g++
+		CC := /usr/bin/x86_64-w64-mingw32-gcc
+		CXX := /usr/bin/x86_64-w64-mingw32-g++
 	else
-		CC = /usr/bin/i686-w64-mingw32-gcc
-		CXX = /usr/bin/i686-w64-mingw32-g++
+		CC := /usr/bin/i686-w64-mingw32-gcc
+		CXX := /usr/bin/i686-w64-mingw32-g++
 	endif
-	JAVACC = javacc.bat
+	JAVACC := javacc.bat
 else
-	CC = gcc
-	CXX = g++
-	JAVACC = javacc
+	CC := gcc
+	CXX := g++
+	JAVACC := javacc
 endif
-LD = $(CXX)
-JAVAC = javac
-JAVA = java
+LD := $(CXX)
+JAVAC := javac
+JAVA := java
 
 export CC CXX LD JAVAC JAVACC
 
@@ -198,17 +222,17 @@ export CC CXX LD JAVAC JAVACC
 
 # Tell compiler to generate debug information?
 # (WARNING: must not contain a % symbol!)
-DEBUG = 
-#DEBUG = -g
+DEBUG := 
+#DEBUG := -g
 
 # Compiler optimisation level:
 # (WARNING: must not contain a % symbol!)
-OPTIMISE = -O3
-#OPTIMISE =
+OPTIMISE := -O3
+#OPTIMISE :=
 
 # Compiler warnings to enable:
 # (WARNING: must not contain a % symbol!)
-WARNINGS = #-Wformat
+WARNINGS := #-Wformat
 
 # Flags for compilation/linking
 # Flags to generate shared libraries
@@ -220,62 +244,62 @@ WARNINGS = #-Wformat
 ifeq ($(OSTYPE),linux)
 	ifeq ($(ARCH),amd64)
 		# Position Independent Code required on AMD64/Itanium
-		CFLAGS = -m64 -fPIC -DPIC $(DEBUG) $(OPTIMISE) $(WARNINGS)
-		CXXFLAGS = --std=c++11 $(CFLAGS)
-		LDFLAGS =
-		BINDISTSUFFIX = linux64
-		BINDISTARCH = x86
+		CFLAGS := -m64 -fPIC -DPIC $(DEBUG) $(OPTIMISE) $(WARNINGS)
+		CXXFLAGS := --std=c++11 $(CFLAGS)
+		LDFLAGS :=
+		BINDISTSUFFIX := linux64
+		BINDISTARCH := x86
 	else
 	ifeq ($(ARCH),ia64)
 		# Position Independent Code required on AMD64/Itanium
 		# Note: We omit the -m64 flag from here since it seems to be unsupported by gcc on IA64
-		CFLAGS = -fPIC -DPIC $(DEBUG) $(OPTIMISE) $(WARNINGS)
-		CXXFLAGS = --std=c++11 $(CFLAGS)
-		LDFLAGS =
-		BINDISTSUFFIX = linux64
-		BINDISTARCH = ia64
+		CFLAGS := -fPIC -DPIC $(DEBUG) $(OPTIMISE) $(WARNINGS)
+		CXXFLAGS := --std=c++11 $(CFLAGS)
+		LDFLAGS :=
+		BINDISTSUFFIX := linux64
+		BINDISTARCH := ia64
 	else
 	ifeq ($(ARCH),aarch64)
 		# Position Independent Code required on Aarch64
-		CFLAGS = -fPIC -DPIC $(DEBUG) $(OPTIMISE) $(WARNINGS)
-		CXXFLAGS = --std=c++11 $(CFLAGS)
-		LDFLAGS =
-		BINDISTSUFFIX = linux64
-		BINDISTARCH = arm
+		CFLAGS := -fPIC -DPIC $(DEBUG) $(OPTIMISE) $(WARNINGS)
+		CXXFLAGS := --std=c++11 $(CFLAGS)
+		LDFLAGS :=
+		BINDISTSUFFIX := linux64
+		BINDISTARCH := arm
 	else
-		CFLAGS = -m32 $(DEBUG) $(OPTIMISE) $(WARNINGS)
-		CXXFLAGS = --std=c++11 $(CFLAGS)
-		LDFLAGS =
-		BINDISTSUFFIX = linux32
-		BINDISTARCH = x86
+		CFLAGS := -m32 $(DEBUG) $(OPTIMISE) $(WARNINGS)
+		CXXFLAGS := --std=c++11 $(CFLAGS)
+		LDFLAGS :=
+		BINDISTSUFFIX := linux32
+		BINDISTARCH := x86
 	endif
 	endif
 	endif
-	BIN_TARGETS=prism.linux xprism.linux
+	BIN_TARGETS := prism.linux xprism.linux
 	JFLAGS := -encoding UTF8
-	SHARED = -shared
-	#SHARED = -G
-	EXE =
-	LIBPREFIX = lib
-	LIBSUFFIX = .so
-	LIBMATH = -lm
-	CLASSPATHSEP = :
+	SHARED := -shared
+	#SHARED := -G
+	EXE :=
+	LIBPREFIX := lib
+	LIBSUFFIX := .so
+	LIBMATH := -lm
+	CLASSPATHSEP := :
 endif
 # Solaris
 ifeq ($(OSTYPE),solaris)
-	CFLAGS = -mcpu=ultrasparc $(DEBUG) $(OPTIMISE) $(WARNINGS)
-	CXXFLAGS = --std=c++11 $(CFLAGS)
-	LDFLAGS =
-	BINDISTSUFFIX = solaris
-	BINDISTARCH = solaris
-	BIN_TARGETS=prism.linux xprism.linux
+	CFLAGS := -mcpu=ultrasparc $(DEBUG) $(OPTIMISE) $(WARNINGS)
+	CXXFLAGS := --std=c++11 $(CFLAGS)
+	LDFLAGS :=
+	BINDISTSUFFIX := solaris
+	BINDISTARCH := solaris
+	BIN_TARGETS := prism.linux xprism.linux
 	JFLAGS := -encoding UTF8
-	SHARED = -shared -mimpure-text
-	EXE =
-	LIBPREFIX = lib
-	LIBSUFFIX = .so
-	LIBMATH = -lm
-	CLASSPATHSEP = :
+	SHARED := -shared -mimpure-text
+	EXE :=
+	LIBPREFIX := lib
+	LIBSUFFIX := .so
+	LIBMATH := -lm
+	CLASSPATHSEP := :
 endif
 # Cygwin
 ifeq ($(OSTYPE),cygwin)
@@ -284,61 +308,61 @@ ifeq ($(OSTYPE),cygwin)
 	# -Wl,--add-stdcall-alias needed so shared libraries can be read from JNI
 	# -Wl ... -lpthread ... --no-whole-archive needed to statically include pthread in case missing
 	ifeq ($(ARCH),x86_64)
-		CFLAGS = $(DEBUG) $(OPTIMISE) $(WARNINGS)
-		CXXFLAGS = --std=c++11 -DWIN32 $(CFLAGS)
-		LDFLAGS = -static-libgcc -static-libstdc++ -Wl,--add-stdcall-alias -Wl,-Bstatic,--whole-archive -lpthread -Wl,-Bdynamic,--no-whole-archive
-		BINDISTSUFFIX = win64
-		BINDISTARCH = x86
+		CFLAGS := $(DEBUG) $(OPTIMISE) $(WARNINGS)
+		CXXFLAGS := --std=c++11 -DWIN32 $(CFLAGS)
+		LDFLAGS := -static-libgcc -static-libstdc++ -Wl,--add-stdcall-alias -Wl,-Bstatic,--whole-archive -lpthread -Wl,-Bdynamic,--no-whole-archive
+		BINDISTSUFFIX := win64
+		BINDISTARCH := x86
 	else
-		CFLAGS = -march=i686 $(DEBUG) $(OPTIMISE) $(WARNINGS)
-		CXXFLAGS = --std=c++11 -DWIN32 $(CFLAGS)
-		LDFLAGS = -static-libgcc -static-libstdc++ -Wl,--add-stdcall-alias -Wl,-Bstatic,--whole-archive -lpthread -Wl,-Bdynamic,--no-whole-archive
-		BINDISTSUFFIX = win32
-		BINDISTARCH = x86
+		CFLAGS := -march=i686 $(DEBUG) $(OPTIMISE) $(WARNINGS)
+		CXXFLAGS := --std=c++11 -DWIN32 $(CFLAGS)
+		LDFLAGS := -static-libgcc -static-libstdc++ -Wl,--add-stdcall-alias -Wl,-Bstatic,--whole-archive -lpthread -Wl,-Bdynamic,--no-whole-archive
+		BINDISTSUFFIX := win32
+		BINDISTARCH := x86
 	endif
-	BIN_TARGETS=prism.cygwin xprism.linux prism.bat.win xprism.bat.win
+	BIN_TARGETS := prism.cygwin xprism.linux prism.bat.win xprism.bat.win
 	JFLAGS := -encoding UTF8
-	SHARED = -shared
-	#SHARED = -G
-	EXE = .exe
-	LIBPREFIX =
-	LIBSUFFIX = .dll
-	LIBMATH = 
-	CLASSPATHSEP = ;
+	SHARED := -shared
+	#SHARED := -G
+	EXE := .exe
+	LIBPREFIX :=
+	LIBSUFFIX := .dll
+	LIBMATH := 
+	CLASSPATHSEP := ;
 endif
 # Darwin
 ifeq ($(OSTYPE),darwin)
 	ifeq ($(ARCH),x86_64)
-		CFLAGS = -arch x86_64 -fPIC -DPIC $(DEBUG) $(OPTIMISE) $(WARNINGS)
-		CXXFLAGS = --std=c++11 $(CFLAGS)
-		LDFLAGS = -arch x86_64 -Wl,-search_paths_first
-		BINDISTSUFFIX = mac64
-		BINDISTARCH = x86
-		BIN_TARGETS=prism.darwin xprism.linux
+		CFLAGS := -arch x86_64 -fPIC -DPIC $(DEBUG) $(OPTIMISE) $(WARNINGS)
+		CXXFLAGS := --std=c++11 $(CFLAGS)
+		LDFLAGS := -arch x86_64 -Wl,-search_paths_first
+		BINDISTSUFFIX := mac64
+		BINDISTARCH := x86
+		BIN_TARGETS := prism.darwin xprism.linux
 	else
 	ifeq ($(ARCH),arm64)
-		CFLAGS = -arch arm64 -fPIC -DPIC $(DEBUG) $(OPTIMISE) $(WARNINGS)
-		CXXFLAGS = --std=c++11 $(CFLAGS)
-		LDFLAGS = -arch arm64 -Wl,-search_paths_first
-		BINDISTSUFFIX = mac64
-		BINDISTARCH = arm
-		BIN_TARGETS=prism.darwin xprism.linux
+		CFLAGS := -arch arm64 -fPIC -DPIC $(DEBUG) $(OPTIMISE) $(WARNINGS)
+		CXXFLAGS := --std=c++11 $(CFLAGS)
+		LDFLAGS := -arch arm64 -Wl,-search_paths_first
+		BINDISTSUFFIX := mac64
+		BINDISTARCH := arm
+		BIN_TARGETS := prism.darwin xprism.linux
 	else
-		CFLAGS = -arch i386 $(DEBUG) $(OPTIMISE) $(WARNINGS)
-		CXXFLAGS = --std=c++11 $(CFLAGS)
-		LDFLAGS = -arch i386 -Wl,-search_paths_first
-		BINDISTSUFFIX = mac32
-		BINDISTARCH = x86
-		BIN_TARGETS=prism.darwin xprism.linux
+		CFLAGS := -arch i386 $(DEBUG) $(OPTIMISE) $(WARNINGS)
+		CXXFLAGS := --std=c++11 $(CFLAGS)
+		LDFLAGS := -arch i386 -Wl,-search_paths_first
+		BINDISTSUFFIX := mac32
+		BINDISTARCH := x86
+		BIN_TARGETS := prism.darwin xprism.linux
 	endif
 	endif
 	JFLAGS := -encoding UTF8
-	SHARED = -dynamiclib
-	EXE =
-	LIBPREFIX = lib
-	LIBSUFFIX = .dylib
-	LIBMATH = -lm
-	CLASSPATHSEP = :
+	SHARED := -dynamiclib
+	EXE :=
+	LIBPREFIX := lib
+	LIBSUFFIX := .dylib
+	LIBMATH := -lm
+	CLASSPATHSEP := :
 endif
 
 # Java flags
@@ -350,9 +374,7 @@ export CFLAGS CXXFLAGS LDFLAGS JFLAGS LIBPREFIX LIBSUFFIX
 # Main part of Makefile: Compiling PRISM #
 ##########################################
 
-MAKE_DIRS = dd jdd odd dv prism mtbdd sparse hybrid parser settings userinterface pepa/compiler simulator jltl2ba jltl2dstar explicit pta param strat automata common cex
-
-EXT_PACKAGES = lpsolve55 lp_solve_5.5_java
+EXT_PACKAGES := lpsolve55 lp_solve_5.5_java
 
 .PHONY: clean javadoc tests release
 
@@ -370,14 +392,6 @@ all: cuddpackage extpackages prism
 cuddpackage: checks
 	@echo Making cudd ...; cd $(CUDD_DIR) && \
 	LD= LDFLAGS= ./install.sh
-
-# Use this to force a rebuild (with javacc) of the main parser
-parser:
-	@echo Making parser ...; \
-	cd $(PRISM_SRC_DIR)/parser && \
-	$(MAKE) touch && \
-	$(MAKE) \
-	CLASSPATHSEP="$(CLASSPATHSEP)"
 
 # Build various external libraries needed by PRISM
 extpackages: checks
@@ -399,25 +413,30 @@ extpackages: checks
 
 # Compile main PRISM code
 # (we also do some preparatory checks, and build launch scripts afterwards)
-prism: checks make_dirs bin_scripts
+prism: checks prism_java prism_lib prism_ng bin_scripts
 
-# Compile each (top-level) source directory separately
-make_dirs:
-	@mkdir -p bin $(PRISM_CLASSES_DIR) $(PRISM_OBJ_DIR)/dd $(PRISM_OBJ_DIR)/jdd $(PRISM_OBJ_DIR)/odd $(PRISM_OBJ_DIR)/dv $(PRISM_OBJ_DIR)/prism $(PRISM_OBJ_DIR)/mtbdd $(PRISM_OBJ_DIR)/sparse $(PRISM_OBJ_DIR)/hybrid $(PRISM_OBJ_DIR)/simulator
-	@for dir in $(MAKE_DIRS); do \
-	  echo Making $(PRISM_SRC_DIR)/$$dir ...; \
-	  (cd $(PRISM_SRC_DIR)/$$dir && \
-	  $(MAKE) \
-	  CUDD_DIR="$(CUDD_DIR)" \
-	  JAVA_INCLUDES="$(JAVA_INCLUDES)" \
-	  JAVA_JNI_H_DIR="$(JAVA_JNI_H_DIR)" \
-	  JAVA_JNI_MD_H_DIR="$(JAVA_JNI_MD_H_DIR)" \
-	  SHARED="$(SHARED)" \
-	  EXE="$(EXE)" \
-	  LIBMATH="$(LIBMATH)" \
-	  CLASSPATHSEP="$(CLASSPATHSEP)") \
-	  || exit 1; \
-	done
+# Compile all Java code, build JNI headers
+prism_java: $(JAVA_COMPILED_STAMP)
+
+$(JAVA_COMPILED_STAMP): $(JAVA_SRC_FILES)
+	@mkdir -p $(JAVA_CLASSES_DIR) $(PRISM_INCLUDE_DIR)/jni
+	@find $(JAVA_SRC_DIR) -name "*.java" > $(JAVA_SRC_FILES_LIST)
+	@echo "Compiling Java files..."
+	$(JAVAC) $(JFLAGS) -classpath "$(PRISM_LIB_DIR)/*" -d $(JAVA_CLASSES_DIR) -h $(PRISM_INCLUDE_DIR)/jni @$(JAVA_SRC_FILES_LIST)
+	@touch $@
+
+# Rebuild PRISM (JavaCC) compiler if needed
+# Just emit warning if javacc not available and fall back to pre-compiled .java
+$(JAVA_PARSER_JAVA): $(JAVA_PARSER_JJ)
+	@$(JAVACC) $< || echo "Warning: Did not recompile $@"
+
+# Use this to force a rebuild (with javacc) of the main parser
+parser: parser_force prism_java
+
+parser_force:
+	@ echo "Forcing parser rebuild"
+	@$(JAVACC) $(JAVA_PARSER_JJ)
+
 # On Windows, convert the generated JNI headers using dos2unix
 # and any scripts to be run from Cywgin, in case extracted with CRLF endings.
 	@if [ "$(OSTYPE)" = "cygwin" ]; then \
@@ -426,23 +445,71 @@ make_dirs:
 	  dos2unix "$(PRISM_SRC_DIR)"/bin/prism.cygwin; \
 	fi
 
-# Compile unit tests
-make_tests:
-	@echo Making $(PRISM_TESTS_DIR) ...; \
-	(cd $(PRISM_TESTS_DIR) && \
-	$(MAKE) \
-	CLASSPATHSEP="$(CLASSPATHSEP)") \
-	|| exit 1;
+PRISM_LIB_DIRS := dd jdd odd dv prism mtbdd sparse hybrid
+
+PRISM_LIB_EXCLUDE_FILES := $(PRISM_SRC_DIR)/dd/dd_test.cc
+PRISM_LIB_ALL_SRC_FILES := $(shell find $(foreach d,$(PRISM_LIB_DIRS),$(PRISM_SRC_DIR)/$(d)) -name "*.cc")
+PRISM_LIB_SRC_FILES := $(filter-out $(PRISM_LIB_EXCLUDE_FILES), $(PRISM_LIB_ALL_SRC_FILES))
+PRISM_LIB_OBJ_FILES := $(patsubst $(PRISM_SRC_DIR)/%.cc, $(PRISM_OBJ_DIR)/%.o, $(PRISM_LIB_SRC_FILES))
+
+OLD_SHARED_LIBS := dd jdd odd dv prismmtbdd prismsparse prismhybrid
+OLD_SHARED_LIB_FILES := $(patsubst %, $(PRISM_LIB_DIR)/$(LIBPREFIX)%$(LIBSUFFIX), $(OLD_SHARED_LIBS))
+
+INCLUDES := \
+-I$(CUDD_DIR)/include \
+-I"$(JAVA_JNI_H_DIR)" \
+-I"$(JAVA_JNI_MD_H_DIR)" \
+-I$(PRISM_INCLUDE_DIR) \
+-Iext/lpsolve55/include
+
+LIBRARIES := \
+-L$(PRISM_LIB_DIR) \
+-L$(CUDD_DIR)/lib \
+-lcudd \
+$(LIBMATH) \
+-llpsolve55
+
+# Compile the main native shared library
+prism_lib: prism_java $(PRISM_LIB_DIR)/$(LIBPREFIX)prism$(LIBSUFFIX)
+
+$(PRISM_LIB_DIR)/$(LIBPREFIX)prism$(LIBSUFFIX): $(PRISM_LIB_OBJ_FILES)
+	@echo "Linking shared library $@..."
+	$(LD) $(SHARED) $(LDFLAGS) -o $@ $^ $(LIBRARIES)
+
+$(PRISM_OBJ_DIR)/%.o: $(PRISM_SRC_DIR)/%.cc
+	@mkdir -p $(dir $@)
+	$(CXX) $(CXXFLAGS) -c $< -o $@ -I$(PRISM_INCLUDE_DIR)/jni $(INCLUDES)
+
+# Compile ngprism
+# (on Windows, link winsocket library, ws2_32)
+prism_ng: $(PRISM_OBJ_DIR)/prism/ngprism$(EXE)
+
+$(PRISM_OBJ_DIR)/prism/ngprism$(EXE): $(PRISM_SRC_DIR)/prism/ngprism.c
+	@echo "Bilding $@..."
+	@if [ "$(EXE)" = "" ]; then \
+	  $(CC) $(LDFLAGS) $(CFLAGS) -o $@ $<; \
+	else \
+		$(CC) $(LDFLAGS) $(CFLAGS) -o $@ $< -lws2_32; \
+	fi;
+
+# Compile (Java) unit tests
+$(JAVA_TESTS_COMPILED_STAMP): $(JAVA_TESTS_SRC_FILES)
+	@mkdir -p $(JAVA_TESTS_CLASSES_DIR)
+	@find $(JAVA_TESTS_SRC_DIR) -name "*.java" > $(JAVA_TESTS_SRC_FILES_LIST)
+	@echo "Compiling Java unit tests..."
+	$(JAVAC) $(JFLAGS) -sourcepath $(JAVA_SRC_DIR) -classpath $(PRISM_CLASSPATH) -d $(JAVA_TESTS_CLASSES_DIR) -h $(PRISM_INCLUDE_DIR)/jni @$(JAVA_TESTS_SRC_FILES_LIST)
+	@touch $@
 
 # Copy/modify the launch scripts and put in the bin directory
 bin_scripts:
+	@mkdir -p $(PRISM_BIN_DIR)
 	@for target in $(BIN_TARGETS); do \
 	  target_trunc=`echo $$target | sed 's/\.[^.]*$$//'` && \
-	  echo Copying "$(PRISM_SRC_DIR)/bin/$$target -> bin/$$target_trunc" && \
-	  cp $(PRISM_SRC_DIR)/bin/$$target bin/$$target_trunc; \
+	  echo Copying "$(PRISM_SRC_DIR)/bin/$$target -> $(PRISM_BIN_DIR)/$$target_trunc" && \
+	  cp $(PRISM_SRC_DIR)/bin/$$target "$(PRISM_BIN_DIR)/$$target_trunc"; \
 	done;
-	@echo Copying "$(PRISM_OBJ_DIR)/prism/ngprism$(EXE) -> bin/ngprism$(EXE)" && \
-	cp $(PRISM_OBJ_DIR)/prism/ngprism$(EXE) bin/ngprism$(EXE)
+	@echo Copying "$(PRISM_OBJ_DIR)/prism/ngprism$(EXE) -> $(PRISM_BIN_DIR)/ngprism$(EXE)" && \
+	cp $(PRISM_OBJ_DIR)/prism/ngprism$(EXE) $(PRISM_BIN_DIR)/ngprism$(EXE)
 	@./install.sh silent
 
 # Some checks to make sure that the main settings are valid
@@ -505,30 +572,30 @@ checks:
 
 # Misc: count the number of lines of code
 count_loc:
-	find $(PRISM_SRC_DIR) -name '*.java' -o -name '*.cc' | xargs wc -l
+	find $(PRISM_SRC_DIR) $(JAVA_SRC_DIR) -name '*.java' -o -name '*.cc' | xargs wc -l
 
 ###########
 # Testing #
 ###########
 
 # Run all unit tests
-unittests: make_tests
+unittests: $(JAVA_TESTS_COMPILED_STAMP)
 	# Provide Regex to match our test classes. If none is given, only certain test classes are excluded by default.
 	$(JAVA) -jar lib/junit-platform-console-standalone.jar -cp classes --include-classname '^(Test.*|.+[.$$]Test.*|.+Tests?[.$$].+|.*Tests?)$$' -scan-classpath --details=summary
 
 # Run a single test case from the test suite (useful quick check that the build was ok)
 test:
-	bin/prism etc/tests/dtmc_pctl.prism etc/tests/dtmc_pctl.prism.props -h -test
+	$(PRISM_BIN_DIR)/prism etc/tests/dtmc_pctl.prism etc/tests/dtmc_pctl.prism.props -h -test
 
 # Run a single test case from the test suite that relies on lpsolve being properly installed
 testlpsolve:
-	bin/prism etc/tests/test_lpsolve_mdpmo.prism etc/tests/test_lpsolve_mdpmo.prism.props -lp -test
+	$(PRISM_BIN_DIR)/prism etc/tests/test_lpsolve_mdpmo.prism etc/tests/test_lpsolve_mdpmo.prism.props -lp -test
 
 # Run all tests from the test suite (in ../prism-tests and ./tests)
 # Optionally, extra arguments for prism-auto are picked up via variable TESTS_ARGS
 tests: testslocal
 	@if [ -d ../prism-tests ]; then \
-	  etc/scripts/prism-auto -t -m ../prism-tests -p bin/prism --print-failures --nailgun --ngprism bin/ngprism $(TESTS_ARGS); \
+	  etc/scripts/prism-auto -t -m ../prism-tests -p $(PRISM_BIN_DIR)/prism --print-failures --nailgun --ngprism $(PRISM_BIN_DIR)/ngprism $(TESTS_ARGS); \
 	else \
 	  echo "Skipping tests"; \
 	fi
@@ -536,13 +603,13 @@ tests: testslocal
 # Just display the command to run the test suite on this version of PRISM
 # Optionally, extra arguments for prism-auto are picked up via variable TESTS_ARGS
 testsecho:
-	@echo etc/scripts/prism-auto -t -m ../prism-tests -p bin/prism --print-failures --nailgun --ngprism bin/ngprism $(TESTS_ARGS)
+	@echo etc/scripts/prism-auto -t -m ../prism-tests -p $(PRISM_BIN_DIR)/prism --print-failures --nailgun --ngprism $(PRISM_BIN_DIR)/ngprism $(TESTS_ARGS)
 
 # Run local tests (in ./tests)
 # Optionally, extra arguments for prism-auto are picked up via variable TESTS_ARGS
 testslocal:
 	@if [ -d tests ]; then \
-	  etc/scripts/prism-auto -t -m tests -p bin/prism --print-failures --nailgun --ngprism bin/ngprism $(TESTS_ARGS); \
+	  etc/scripts/prism-auto -t -m tests -p $(PRISM_BIN_DIR)/prism --print-failures --nailgun --ngprism $(PRISM_BIN_DIR)/ngprism $(TESTS_ARGS); \
 	else \
 	  echo "Skipping local tests"; \
 	fi
@@ -555,7 +622,7 @@ testslocal:
 testsfull:
 	etc/scripts/prism-auto -t -m ../prism-tests \
 	--skip-export-runs --skip-duplicate-runs --test-all -a ../prism-tests/all-engines.args --timeout 1m \
-	-p bin/prism --print-failures --nailgun $(TESTS_ARGS);
+	-p $(PRISM_BIN_DIR)/prism --print-failures --nailgun $(TESTS_ARGS);
 
 ##########################
 # Building distributions #
@@ -564,18 +631,18 @@ testsfull:
 # Build prism.jar
 binary:
 	@echo "Generating JAR file ($(PRISM_LIB_DIR)/prism.jar)..."
-	@jar cmf $(PRISM_SRC_DIR)/manifest.txt $(PRISM_LIB_DIR)/prism.jar -C $(PRISM_CLASSES_DIR) . -C . $(PRISM_IMAGES_DIR) $(PRISM_DTDS_DIR)
+	@jar cmf $(JAVA_SRC_DIR)/manifest.txt $(PRISM_LIB_DIR)/prism.jar -C $(JAVA_CLASSES_DIR) . -C . $(PRISM_IMAGES_DIR) $(PRISM_DTDS_DIR)
 
 # Build prism-sources.jar
 source-jar:
 	@echo "Generating sources JAR file ($(PRISM_LIB_DIR)/prism-sources.jar)..."
-	@find $(PRISM_SRC_DIR) -type f -name '*.java' -o -name '*.form' -o -name '*.jj' | sed -e "s/^$(PRISM_SRC_DIR)./-C $(PRISM_SRC_DIR) /" > prism-sources.txt
+	@find $(JAVA_SRC_DIR) -type f -name '*.java' -o -name '*.form' -o -name '*.jj' | sed -e "s/^$(JAVA_SRC_DIR)./-C $(JAVA_SRC_DIR) /" > prism-sources.txt
 	@jar cf $(PRISM_LIB_DIR)/prism-sources.jar @prism-sources.txt
 	@rm -f prism-sources.txt
 
 # Download a local html copy of the manual
-#PRISM_MANUAL_WEBSITE = http://prismmodelchecker.localhost/manual/
-PRISM_MANUAL_WEBSITE = http://www.prismmodelchecker.org/manual/
+#PRISM_MANUAL_WEBSITE := http://prismmodelchecker.localhost/manual/
+PRISM_MANUAL_WEBSITE := http://www.prismmodelchecker.org/manual/
 doc: clean_doc
 	(cd .. && wget -r -np -k -E -nH --no-cookies --header "Cookie: setskin=offline" --restrict-file-names=windows --reject '*action=sourceblock*' $(PRISM_MANUAL_WEBSITE) $(PRISM_MANUAL_WEBSITE)/pub/skins/offline/images/)
 clean_doc:
@@ -635,10 +702,18 @@ build_release_source:
 
 # Build Javadoc (and put in javadoc directory)
 
-PRISM_CLASSPATH = "$(PRISM_CLASSES_DIR)$(CLASSPATHSEP)$(PRISM_LIB_DIR)/*"
+PRISM_CLASSPATH := "$(JAVA_CLASSES_DIR)$(CLASSPATHSEP)$(PRISM_LIB_DIR)/*"
 
-javadoc:
-	@JAVADOC_DIRS=`echo $(MAKE_DIRS) | sed 's/\//./g' | sed 's/ /:/g'` && \mkdir -p javadoc; javadoc $(JFLAGS) -d javadoc -overview $(PRISM_SRC_DIR)/overview.html -sourcepath $(PRISM_SRC_DIR) -classpath $(PRISM_SRC_DIR)$(CLASSPATHSEP)$(PRISM_CLASSPATH) -subpackages $$JAVADOC_DIRS -exclude parser
+PRISM_JAVADOC_DIR := javadoc
+
+javadoc: prism_java
+	@mkdir -p $(PRISM_JAVADOC_DIR)
+	@echo "Generating Javadoc..."
+	javadoc -d $(PRISM_JAVADOC_DIR) \
+	        -classpath $(PRISM_CLASSPATH) \
+	        -quiet \
+	        -Xdoclint:none \
+	        @$(JAVA_SRC_FILES_LIST)
 
 ###############
 # Cleaning up #
@@ -646,22 +721,22 @@ javadoc:
 
 # Clean main PRISM build (not CUDD or external libs)
 clean: checks
-	@(for dir in $(MAKE_DIRS); do \
-	  echo Cleaning $(PRISM_SRC_DIR)/$$dir ...; \
-	  (cd $(PRISM_SRC_DIR)/$$dir && \
-	  $(MAKE) -s EXE="$(EXE)" clean) \
-	  || exit 1; \
-	done; \
-	find $(PRISM_CLASSES_DIR) -name '*.class' -exec rm {} \; ; \
-	rm -f $(PRISM_LIB_DIR)/*jnilib; \
-	rm -f $(PRISM_LIB_DIR)/prism.jar; \
-	rm -f $(PRISM_LIB_DIR)/prism-sources.jar; \
-	rm -f $(BIN_PRISM) $(BIN_XPRISM) $(BIN_PRISM_BAT) $(BIN_XPRISM_BAT) )
+	rm -rf $(JAVA_CLASSES_DIR)
+	rm -f $(JAVA_SRC_FILES_LIST) $(JAVA_COMPILED_STAMP)
+	rm -f $(JAVA_TESTS_SRC_FILES_LIST) $(JAVA_TESTS_COMPILED_STAMP)
+	rm -rf $(PRISM_OBJ_DIR)
+	rm -f $(PRISM_LIB_DIR)/$(LIBPREFIX)prism$(LIBSUFFIX)
+	rm -f $(OLD_SHARED_LIB_FILES)
+	rm -f $(PRISM_INCLUDE_DIR)/jni/*.h
+	rm -f $(PRISM_LIB_DIR)/*jnilib
+	rm -f $(PRISM_LIB_DIR)/prism.jar
+	rm -f $(PRISM_LIB_DIR)/prism-sources.jar
+	rm -f $(addprefix $(PRISM_BIN_DIR)/, $(notdir $(basename $(BIN_TARGETS)))) $(PRISM_BIN_DIR)/ngprism$(EXE)
 
 celan: clean
 
 # Clean PRISM + CUDD and external libs
-clean_all: checks clean_cudd clean_ext clean clean_tests
+clean_all: checks clean_cudd clean_ext clean
 
 clean_cudd:
 	@(cd $(CUDD_DIR) && ./clean.sh)
@@ -674,48 +749,9 @@ clean_ext:
 	  || exit 1; \
 	done )
 
-clean_tests:
-	@(cd $(PRISM_TESTS_DIR) && $(MAKE) clean)
-
 # Remove just the prism.jar binary
 clean_binary:
 	@echo "Removing JAR file ($(PRISM_LIB_DIR)/prism.jar)..."
 	@rm -f $(PRISM_LIB_DIR)/prism.jar
-
-# Clear individual directories (sometimes useful)
-clean_dd: checks
-	@(cd $(PRISM_SRC_DIR)/dd && $(MAKE) -s EXE="$(EXE)" clean)
-clean_jdd: checks
-	@(cd $(PRISM_SRC_DIR)/jdd && $(MAKE) -s EXE="$(EXE)" clean)
-clean_odd: checks
-	@(cd $(PRISM_SRC_DIR)/odd && $(MAKE) -s EXE="$(EXE)" clean)
-clean_dv: checks
-	@(cd $(PRISM_SRC_DIR)/dv && $(MAKE) -s EXE="$(EXE)" clean)
-clean_prism: checks
-	@(cd $(PRISM_SRC_DIR)/prism && $(MAKE) -s EXE="$(EXE)" clean)
-clean_mtbdd: checks
-	@(cd $(PRISM_SRC_DIR)/mtbdd && $(MAKE) -s EXE="$(EXE)" clean)
-clean_sparse: checks
-	@(cd $(PRISM_SRC_DIR)/sparse && $(MAKE) -s EXE="$(EXE)" clean)
-clean_hybrid: checks
-	@(cd $(PRISM_SRC_DIR)/hybrid && $(MAKE) -s EXE="$(EXE)" clean)
-clean_parser: checks
-	@(cd $(PRISM_SRC_DIR)/parser && $(MAKE) -s EXE="$(EXE)" clean)
-clean_userinterface: checks
-	@(cd $(PRISM_SRC_DIR)/userinterface && $(MAKE) -s EXE="$(EXE)" clean)
-clean_simulator: checks
-	@(cd $(PRISM_SRC_DIR)/simulator && $(MAKE) -s EXE="$(EXE)" clean)
-clean_jltl2ba: checks
-	@(cd $(PRISM_SRC_DIR)/jltl2ba && $(MAKE) -s EXE="$(EXE)" clean)
-clean_jltl2dstar: checks
-	@(cd $(PRISM_SRC_DIR)/jltl2dstar && $(MAKE) -s EXE="$(EXE)" clean)
-clean_explicit: checks
-	@(cd $(PRISM_SRC_DIR)/explicit && $(MAKE) -s EXE="$(EXE)" clean)
-clean_pta: checks
-	@(cd $(PRISM_SRC_DIR)/pta && $(MAKE) -s EXE="$(EXE)" clean)
-clean_param: checks
-	@(cd $(PRISM_SRC_DIR)/param && $(MAKE) -s EXE="$(EXE)" clean)
-clean_strat: checks
-	@(cd $(PRISM_SRC_DIR)/strat && $(MAKE) -s EXE="$(EXE)" clean)
 
 #################################################

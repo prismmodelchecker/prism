@@ -35,7 +35,7 @@
 #include <dv.h>
 #include "sparse.h"
 #include "hybrid.h"
-#include "PrismHybridGlob.h"
+#include "PrismNativeGlob.h"
 #include "IntervalIteration.h"
 #include "jnipointer.h"
 #include <new>
@@ -126,10 +126,10 @@ jint flags
 
 	IntervalIteration helper(flags);
 	if (!helper.flag_ensure_monotonic_from_above()) {
-		PH_PrintToMainLog(env, "Note: Interval iteration is configured to not enforce monotonicity from above.\n");
+		PN_PrintToMainLog(env, "Note: Interval iteration is configured to not enforce monotonicity from above.\n");
 	}
 	if (!helper.flag_ensure_monotonic_from_below()) {
-		PH_PrintToMainLog(env, "Note: Interval iteration is configured to not enforce monotonicity from below.\n");
+		PN_PrintToMainLog(env, "Note: Interval iteration is configured to not enforce monotonicity from below.\n");
 	}
 
 	// call iterative method
@@ -170,7 +170,7 @@ jint flags
 	
 	// catch exceptions: register error, free memory
 	} catch (std::bad_alloc e) {
-		PH_SetErrorMessage("Out of memory");
+		PN_SetErrorMessage("Out of memory");
 		if (soln) delete[] soln;
 		soln = 0;
 	}

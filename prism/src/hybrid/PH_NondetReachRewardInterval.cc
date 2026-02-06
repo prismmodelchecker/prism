@@ -35,7 +35,7 @@
 #include <dv.h>
 #include "sparse.h"
 #include "hybrid.h"
-#include "PrismHybridGlob.h"
+#include "PrismNativeGlob.h"
 #include "jnipointer.h"
 #include "prism.h"
 #include "ExportIterations.h"
@@ -126,10 +126,10 @@ jint flags
 
 	IntervalIteration helper(flags);
 	if (!helper.flag_ensure_monotonic_from_above()) {
-		PH_PrintToMainLog(env, "Note: Interval iteration is configured to not enforce monotonicity from above.\n");
+		PN_PrintToMainLog(env, "Note: Interval iteration is configured to not enforce monotonicity from above.\n");
 	}
 	if (!helper.flag_ensure_monotonic_from_below()) {
-		PH_PrintToMainLog(env, "Note: Interval iteration is configured to not enforce monotonicity from below.\n");
+		PN_PrintToMainLog(env, "Note: Interval iteration is configured to not enforce monotonicity from below.\n");
 	}
 
 	// exception handling around whole function
@@ -150,21 +150,21 @@ jint flags
 	a = DD_Apply(ddman, APPLY_TIMES, trans, maybe);
 	
 	// build hdds for matrix
-	PH_PrintToMainLog(env, "\nBuilding hybrid MTBDD matrices... ");
+	PN_PrintToMainLog(env, "\nBuilding hybrid MTBDD matrices... ");
 	hddms = build_hdd_matrices_mdp(a, NULL, rvars, cvars, num_rvars, ndvars, num_ndvars, odd);
 	nm = hddms->nm;
 	kb = hddms->mem_nodes;
 	kbt = kb;
-	PH_PrintToMainLog(env, "[nm=%d, levels=%d, nodes=%d] ", hddms->nm, hddms->num_levels, hddms->num_nodes);
-	PH_PrintMemoryToMainLog(env, "[", kb, "]\n");
+	PN_PrintToMainLog(env, "[nm=%d, levels=%d, nodes=%d] ", hddms->nm, hddms->num_levels, hddms->num_nodes);
+	PN_PrintMemoryToMainLog(env, "[", kb, "]\n");
 	
 	// add sparse bits
-	PH_PrintToMainLog(env, "Adding sparse bits... ");
+	PN_PrintToMainLog(env, "Adding sparse bits... ");
 	add_sparse_matrices_mdp(hddms, compact);
 	kb = hddms->mem_sm;
 	kbt += kb;
-	PH_PrintToMainLog(env, "[levels=%d-%d, num=%d, compact=%d/%d] ", hddms->l_sm_min, hddms->l_sm_max, hddms->num_sm, hddms->compact_sm, hddms->nm);
-	PH_PrintMemoryToMainLog(env, "[", kb, "]\n");
+	PN_PrintToMainLog(env, "[levels=%d-%d, num=%d, compact=%d/%d] ", hddms->l_sm_min, hddms->l_sm_max, hddms->num_sm, hddms->compact_sm, hddms->nm);
+	PN_PrintMemoryToMainLog(env, "[", kb, "]\n");
 	
 	// multiply transition rewards by transition probs and sum rows
 	// (note also filters out unwanted states at the same time)
@@ -175,20 +175,20 @@ jint flags
 	trans_rewards = DD_Apply(ddman, APPLY_TIMES, trans_rewards, DD_SetVectorElement(ddman, DD_Constant(ddman, 0), cvars, num_cvars, 0, 1));
 	
 	// build hdds for transition rewards matrix
-	PH_PrintToMainLog(env, "Building hybrid MTBDD matrices for rewards... ");
+	PN_PrintToMainLog(env, "Building hybrid MTBDD matrices for rewards... ");
 	hddms2 = build_hdd_matrices_mdp(trans_rewards, hddms, rvars, cvars, num_rvars, ndvars, num_ndvars, odd);
 	kb = hddms2->mem_nodes;
 	kbt = kb;
-	PH_PrintToMainLog(env, "[nm=%d, levels=%d, nodes=%d] ", hddms2->nm, hddms2->num_levels, hddms2->num_nodes);
-	PH_PrintMemoryToMainLog(env, "[", kb, "]\n");
+	PN_PrintToMainLog(env, "[nm=%d, levels=%d, nodes=%d] ", hddms2->nm, hddms2->num_levels, hddms2->num_nodes);
+	PN_PrintMemoryToMainLog(env, "[", kb, "]\n");
 	
 	// add sparse bits
-	PH_PrintToMainLog(env, "Adding sparse bits... ");
+	PN_PrintToMainLog(env, "Adding sparse bits... ");
 	add_sparse_matrices_mdp(hddms2, compact);
 	kb = hddms2->mem_sm;
 	kbt += kb;
-	PH_PrintToMainLog(env, "[levels=%d-%d, num=%d, compact=%d/%d] ", hddms2->l_sm_min, hddms2->l_sm_max, hddms2->num_sm, hddms2->compact_sm, hddms2->nm);
-	PH_PrintMemoryToMainLog(env, "[", kb, "]\n");
+	PN_PrintToMainLog(env, "[levels=%d-%d, num=%d, compact=%d/%d] ", hddms2->l_sm_min, hddms2->l_sm_max, hddms2->num_sm, hddms2->compact_sm, hddms2->nm);
+	PN_PrintMemoryToMainLog(env, "[", kb, "]\n");
 	
 	// remove goal and infinity states from state rewards vector
 	Cudd_Ref(state_rewards);
@@ -196,7 +196,7 @@ jint flags
 	state_rewards = DD_Apply(ddman, APPLY_TIMES, state_rewards, maybe);
 	
 	// put state rewards in a vector
-	PH_PrintToMainLog(env, "Creating rewards vector... ");
+	PN_PrintToMainLog(env, "Creating rewards vector... ");
 	rew_vec = mtbdd_to_double_vector(ddman, state_rewards, rvars, num_rvars, odd);
 	// try and convert to compact form if required
 	compact_r = false;
@@ -208,11 +208,11 @@ jint flags
 	}
 	kb = (!compact_r) ? n*8.0/1024.0 : (rew_dist->num_dist*8.0+n*2.0)/1024.0;
 	kbt += kb;
-	if (compact_r) PH_PrintToMainLog(env, "[dist=%d, compact] ", rew_dist->num_dist);
-	PH_PrintMemoryToMainLog(env, "[", kb, "]\n");
+	if (compact_r) PN_PrintToMainLog(env, "[dist=%d, compact] ", rew_dist->num_dist);
+	PN_PrintMemoryToMainLog(env, "[", kb, "]\n");
 	
 	// create solution/iteration vectors
-	PH_PrintToMainLog(env, "Allocating iteration vectors... ");
+	PN_PrintToMainLog(env, "Allocating iteration vectors... ");
 	// initial solution from below is lower
 	soln_below = mtbdd_to_double_vector(ddman, lower, rvars, num_rvars, odd);
 	soln_below2 = new double[n];
@@ -224,15 +224,15 @@ jint flags
 
 	kb = n*8.0/1024.0;
 	kbt += 6*kb;
-	PH_PrintMemoryToMainLog(env, "[6 x ", kb, "]\n");
+	PN_PrintMemoryToMainLog(env, "[6 x ", kb, "]\n");
 	
 	// print total memory usage
-	PH_PrintMemoryToMainLog(env, "TOTAL: [", kbt, "]\n");
+	PN_PrintMemoryToMainLog(env, "TOTAL: [", kbt, "]\n");
 
 	std::unique_ptr<ExportIterations> iterationExport;
-	if (PH_GetFlagExportIterations()) {
+	if (PN_GetFlagExportIterations()) {
 		iterationExport.reset(new ExportIterations("PH_NondetReachReward (interval)"));
-		PH_PrintToMainLog(env, "Exporting iterations to %s\n", iterationExport->getFileName().c_str());
+		PN_PrintToMainLog(env, "Exporting iterations to %s\n", iterationExport->getFileName().c_str());
 		iterationExport->exportVector(soln_below, n, 0);
 		iterationExport->exportVector(soln_above, n, 1);
 	}
@@ -246,7 +246,7 @@ jint flags
 	// start iterations
 	iters = 0;
 	done = false;
-	PH_PrintToMainLog(env, "\nStarting iterations (interval iteration)...\n");
+	PN_PrintToMainLog(env, "\nStarting iterations (interval iteration)...\n");
 	
 	while (!done && iters < max_iters) {
 		
@@ -352,14 +352,14 @@ jint flags
 		measure.reset();
 		measure.measure(soln_below2, soln_above2, n);
 		if (measure.value() < term_crit_param) {
-			PH_PrintToMainLog(env, "Max %sdiff between upper and lower bound on convergence: %G", measure.isRelative()?"relative ":"", measure.value());
+			PN_PrintToMainLog(env, "Max %sdiff between upper and lower bound on convergence: %G", measure.isRelative()?"relative ":"", measure.value());
 			done = true;
 		}
 
 		// print occasional status update
 		if ((util_cpu_time() - start3) > UPDATE_DELAY) {
-			PH_PrintToMainLog(env, "Iteration %d: max %sdiff=%f", iters, measure.isRelative()?"relative ":"", measure.value());
-			PH_PrintToMainLog(env, ", %.2f sec so far\n", ((double)(util_cpu_time() - start2)/1000));
+			PN_PrintToMainLog(env, "Iteration %d: max %sdiff=%f", iters, measure.isRelative()?"relative ":"", measure.value());
+			PN_PrintToMainLog(env, ", %.2f sec so far\n", ((double)(util_cpu_time() - start2)/1000));
 			start3 = util_cpu_time();
 		}
 
@@ -378,14 +378,14 @@ jint flags
 	time_taken = (double)(stop - start1)/1000;
 	
 	// print iterations/timing info
-	PH_PrintToMainLog(env, "\nIterative method: %d iterations in %.2f seconds (average %.6f, setup %.2f)\n", iters, time_taken, time_for_iters/iters, time_for_setup);
+	PN_PrintToMainLog(env, "\nIterative method: %d iterations in %.2f seconds (average %.6f, setup %.2f)\n", iters, time_taken, time_for_iters/iters, time_for_setup);
 	
 	// if the iterative method didn't terminate, this is an error
 	if (!done) {
 		delete[] soln_below;
 		soln_below = NULL;
-		PH_SetErrorMessage("Iterative method did not converge within %d iterations.\nConsider using a different numerical method or increasing the maximum number of iterations", iters);
-		PH_PrintToMainLog(env, "Max remaining %sdiff between upper and lower bound on convergence: %G", measure.isRelative()?"relative ":"", measure.value());
+		PN_SetErrorMessage("Iterative method did not converge within %d iterations.\nConsider using a different numerical method or increasing the maximum number of iterations", iters);
+		PN_PrintToMainLog(env, "Max remaining %sdiff between upper and lower bound on convergence: %G", measure.isRelative()?"relative ":"", measure.value());
 	}
 
 	if (helper.flag_select_midpoint() && soln_below) { // we did converge, select midpoint
@@ -401,7 +401,7 @@ jint flags
 
 	// catch exceptions: register error, free memory
 	} catch (std::bad_alloc e) {
-		PH_SetErrorMessage("Out of memory");
+		PN_SetErrorMessage("Out of memory");
 		if (soln_below) delete[] soln_below;
 		soln_below = 0;
 	}

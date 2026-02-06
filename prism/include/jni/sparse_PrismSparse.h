@@ -9,54 +9,6 @@ extern "C" {
 #endif
 /*
  * Class:     sparse_PrismSparse
- * Method:    PS_FreeGlobalRefs
- * Signature: ()V
- */
-JNIEXPORT void JNICALL Java_sparse_PrismSparse_PS_1FreeGlobalRefs
-  (JNIEnv *, jclass);
-
-/*
- * Class:     sparse_PrismSparse
- * Method:    PS_SetCUDDManager
- * Signature: (J)V
- */
-JNIEXPORT void JNICALL Java_sparse_PrismSparse_PS_1SetCUDDManager
-  (JNIEnv *, jclass, jlong);
-
-/*
- * Class:     sparse_PrismSparse
- * Method:    PS_SetMainLog
- * Signature: (Lprism/PrismLog;)V
- */
-JNIEXPORT void JNICALL Java_sparse_PrismSparse_PS_1SetMainLog
-  (JNIEnv *, jclass, jobject);
-
-/*
- * Class:     sparse_PrismSparse
- * Method:    PS_SetTechLog
- * Signature: (Lprism/PrismLog;)V
- */
-JNIEXPORT void JNICALL Java_sparse_PrismSparse_PS_1SetTechLog
-  (JNIEnv *, jclass, jobject);
-
-/*
- * Class:     sparse_PrismSparse
- * Method:    PS_SetExportIterations
- * Signature: (Z)V
- */
-JNIEXPORT void JNICALL Java_sparse_PrismSparse_PS_1SetExportIterations
-  (JNIEnv *, jclass, jboolean);
-
-/*
- * Class:     sparse_PrismSparse
- * Method:    PS_GetErrorMessage
- * Signature: ()Ljava/lang/String;
- */
-JNIEXPORT jstring JNICALL Java_sparse_PrismSparse_PS_1GetErrorMessage
-  (JNIEnv *, jclass);
-
-/*
- * Class:     sparse_PrismSparse
  * Method:    PS_ProbBoundedUntil
  * Signature: (JJJIJIJJI)J
  */

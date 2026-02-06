@@ -33,7 +33,7 @@
 #include <odd.h>
 #include <dv.h>
 #include "sparse.h"
-#include "PrismSparseGlob.h"
+#include "PrismNativeGlob.h"
 #include "jnipointer.h"
 #include <new>
 
@@ -100,7 +100,7 @@ jint num_cvars
 		q = DD_Apply(ddman, APPLY_PLUS, trans, DD_Apply(ddman, APPLY_TIMES, DD_Identity(ddman, rvars, cvars, num_rvars), diags));
 		
 		// build iteration matrix
-		PS_PrintToMainLog(env, "\nBuilding power method iteration matrix MTBDD... ");
+		PN_PrintToMainLog(env, "\nBuilding power method iteration matrix MTBDD... ");
 		// (includes a "fix" for when we are solving a subsystem e.g. BSCC)
 		// (although i don't think we actually need this for the power method)
 		Cudd_Ref(diags);
@@ -108,7 +108,7 @@ jint num_cvars
 		Cudd_Ref(q);
 		a = DD_Apply(ddman, APPLY_PLUS, DD_Apply(ddman, APPLY_TIMES, DD_Constant(ddman, deltat), q), DD_Apply(ddman, APPLY_TIMES, DD_Identity(ddman, rvars, cvars, num_rvars), tmp));
 		i = DD_GetNumNodes(ddman, a);
-		PS_PrintToMainLog(env, "[nodes=%d] [%.1f Kb]", i, i*20.0/1024.0);
+		PN_PrintToMainLog(env, "[nodes=%d] [%.1f Kb]", i, i*20.0/1024.0);
 		
 		// deref unneeded mtbdds
 		Cudd_RecursiveDeref(ddman, diags);
@@ -140,7 +140,7 @@ jint num_cvars
 		case LIN_EQ_METHOD_BSOR:
 			soln = jlong_to_double(Java_sparse_PrismSparse_PS_1SOR(env, cls, ptr_to_jlong(odd), ptr_to_jlong(rvars), num_rvars, ptr_to_jlong(cvars), num_cvars, ptr_to_jlong(a), 0, ptr_to_jlong(init), true, true, lin_eq_method_param, false)); break;
 		default:
-			PS_SetErrorMessage("Pseudo Gauss-Seidel/SOR methods are currently not supported by the sparse engine"); return 0;
+			PN_SetErrorMessage("Pseudo Gauss-Seidel/SOR methods are currently not supported by the sparse engine"); return 0;
 	}
 	
 	// normalise
@@ -156,7 +156,7 @@ jint num_cvars
 	
 	// catch exceptions: register error, free memory
 	} catch (std::bad_alloc e) {
-		PS_SetErrorMessage("Out of memory");
+		PN_SetErrorMessage("Out of memory");
 		if (soln) delete[] soln;
 		soln = 0;
 	}

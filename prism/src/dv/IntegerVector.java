@@ -42,7 +42,7 @@ public class IntegerVector
 	static
 	{
 		try {
-			System.loadLibrary("dv");
+			System.loadLibrary("prism");
 		}
 		catch (UnsatisfiedLinkError e) {
 			System.out.println(e);

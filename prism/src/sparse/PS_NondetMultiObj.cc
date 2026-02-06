@@ -36,7 +36,6 @@
 #include "sparse.h"
 #include "prism.h"
 #include "PrismNativeGlob.h"
-#include "PrismSparseGlob.h"
 #include "jnipointer.h"
 #include <new>
 #include <string>
@@ -202,10 +201,10 @@ JNIEXPORT jdoubleArray __jlongpointer JNICALL Java_sparse_PrismSparse_PS_1Nondet
 		for (int probi = 0; probi < lenProb; probi++) {
 			yes_vec[probi] = (double *) jlong_to_ptr(ptr_yes_vec[probi]);
 #ifdef MORE_OUTPUT
-		PS_PrintToMainLog(env, "yes_vec %d: ", probi);
+		PN_PrintToMainLog(env, "yes_vec %d: ", probi);
 		for (int o = 0; o < n; o++)
-			PS_PrintToMainLog(env, "%f, ", yes_vec[probi][o]);
-		PS_PrintToMainLog(env, "\n");
+			PN_PrintToMainLog(env, "%f, ", yes_vec[probi][o]);
+		PN_PrintToMainLog(env, "\n");
 #endif
 		}
 		
@@ -277,20 +276,20 @@ JNIEXPORT jdoubleArray __jlongpointer JNICALL Java_sparse_PrismSparse_PS_1Nondet
 		}
 		
 #ifdef MORE_OUTPUT
-		PS_PrintToMainLog(env, "Initial soln: ");
+		PN_PrintToMainLog(env, "Initial soln: ");
 		for (int o = 0; o < n; o++)
-			PS_PrintToMainLog(env, "%f, ", soln[o]);
-		PS_PrintToMainLog(env, "\n");
+			PN_PrintToMainLog(env, "%f, ", soln[o]);
+		PN_PrintToMainLog(env, "\n");
 		
 		
 		for (int it = 0; it < lenRew + lenProb; it++) {
 			if (it != ignoredWeight) {
-				PS_PrintToMainLog(env, "psoln: ");
+				PN_PrintToMainLog(env, "psoln: ");
 				for (int o = 0; o < n; o++)
-					PS_PrintToMainLog(env, "%f, ", psoln[it][o]);
-				PS_PrintToMainLog(env, "\n");
+					PN_PrintToMainLog(env, "%f, ", psoln[it][o]);
+				PN_PrintToMainLog(env, "\n");
 			} else {
-				PS_PrintToMainLog(env, "psoln: (ignored)\n");
+				PN_PrintToMainLog(env, "psoln: (ignored)\n");
 			}
 		}
 #endif
@@ -303,13 +302,13 @@ JNIEXPORT jdoubleArray __jlongpointer JNICALL Java_sparse_PrismSparse_PS_1Nondet
 		iters = 0;
 		done = false;
 		weightedDone = false;
-		//PS_PrintToMainLog(env, "Starting iterations...\n");
+		//PN_PrintToMainLog(env, "Starting iterations...\n");
 		
 		// open file to store adversary (if required)
 		if (export_adv_enabled != EXPORT_ADV_NONE) {
 			fp_adv = fopen(export_adv_filename, "w");
 			if (!fp_adv) {
-				PS_PrintWarningToMainLog(env, "Adversary generation cancelled (could not open file \"%s\").", export_adv_filename);
+				PN_PrintWarningToMainLog(env, "Adversary generation cancelled (could not open file \"%s\").", export_adv_filename);
 				export_adv_enabled = EXPORT_ADV_NONE;
 			}
 		}
@@ -571,14 +570,14 @@ JNIEXPORT jdoubleArray __jlongpointer JNICALL Java_sparse_PrismSparse_PS_1Nondet
 			soln2 = tmpsoln;
 			
 #ifdef MORE_OUTPUT
-			PS_PrintToMainLog(env, "Soln: ");
+			PN_PrintToMainLog(env, "Soln: ");
 			for (int o = 0; o < n; o++)
-				PS_PrintToMainLog(env, "%e, ", soln[o]);
-			PS_PrintToMainLog(env, "\n"); 
-			PS_PrintToMainLog(env, "Soln2: ");
+				PN_PrintToMainLog(env, "%e, ", soln[o]);
+			PN_PrintToMainLog(env, "\n"); 
+			PN_PrintToMainLog(env, "Soln2: ");
 			for (int o = 0; o < n; o++)
-				PS_PrintToMainLog(env, "%e, ", soln[o]);
-			PS_PrintToMainLog(env, "\n");   
+				PN_PrintToMainLog(env, "%e, ", soln[o]);
+			PN_PrintToMainLog(env, "\n");   
 #endif
 			
 			for (int it = 0; it < lenRew + lenProb; it++) {
@@ -588,16 +587,16 @@ JNIEXPORT jdoubleArray __jlongpointer JNICALL Java_sparse_PrismSparse_PS_1Nondet
 					psoln2[it] = tmpsoln;
 				}
 #ifdef MORE_OUTPUT
-				PS_PrintToMainLog(env, "psoln: ");
+				PN_PrintToMainLog(env, "psoln: ");
 				if (ignoredWeight != it)
 					for (int o = 0; o < n; o++)
-						PS_PrintToMainLog(env, "%e, ", psoln[it][o]);
-				PS_PrintToMainLog(env, "\n"); 
-				PS_PrintToMainLog(env, "psoln2: ");
+						PN_PrintToMainLog(env, "%e, ", psoln[it][o]);
+				PN_PrintToMainLog(env, "\n"); 
+				PN_PrintToMainLog(env, "psoln2: ");
 				if (ignoredWeight != it)
 					for (int o = 0; o < n; o++)
-						PS_PrintToMainLog(env, "%e, ", psoln2[it][o]);
-				PS_PrintToMainLog(env, "\n"); 
+						PN_PrintToMainLog(env, "%e, ", psoln2[it][o]);
+				PN_PrintToMainLog(env, "\n"); 
 #endif          
 			}
 		}
@@ -655,11 +654,11 @@ JNIEXPORT jdoubleArray __jlongpointer JNICALL Java_sparse_PrismSparse_PS_1Nondet
 		time_taken = (double)(stop - start1)/1000;
 		
 		// print iterations/timing info
-		PS_PrintToMainLog(env, "Iterative method: %d iterations in %.2f seconds (average %.6f, setup %.2f)\n", iters, time_taken, time_for_iters/iters, time_for_setup);
+		PN_PrintToMainLog(env, "Iterative method: %d iterations in %.2f seconds (average %.6f, setup %.2f)\n", iters, time_taken, time_for_iters/iters, time_for_setup);
 		
 		// if the iterative method didn't terminate, this is an error
 		if (!doneBeforeBounded) { // || !weightedDone) {
-			PS_SetErrorMessage("Iterative method did not converge within %d iterations.\nConsider using a different numerical method or increasing the maximum number of iterations", iters);
+			PN_SetErrorMessage("Iterative method did not converge within %d iterations.\nConsider using a different numerical method or increasing the maximum number of iterations", iters);
 			throw 1;
 		}
 
@@ -668,11 +667,11 @@ JNIEXPORT jdoubleArray __jlongpointer JNICALL Java_sparse_PrismSparse_PS_1Nondet
 		jdouble *retNative = env->GetDoubleArrayElements(ret, 0);
 		
 		// Display result
-		PS_PrintToMainLog(env, "Optimal value for weights [");
+		PN_PrintToMainLog(env, "Optimal value for weights [");
 		for (int it = 0; it < lenRew + lenProb; it++) {
-			PS_PrintToMainLog(env, "%s%f", (it>0?",":""), weights[it]);
+			PN_PrintToMainLog(env, "%s%f", (it>0?",":""), weights[it]);
 		}
-		PS_PrintToMainLog(env, "] from initial state: %f\n", soln[start_index]);
+		PN_PrintToMainLog(env, "] from initial state: %f\n", soln[start_index]);
 		
 		//copy all computed elements
 		for (int it = 0; it < lenRew + lenProb; it++)
@@ -692,7 +691,7 @@ JNIEXPORT jdoubleArray __jlongpointer JNICALL Java_sparse_PrismSparse_PS_1Nondet
 		// close file to store adversary (if required)
 		if (export_adv_enabled != EXPORT_ADV_NONE) {
 			fclose(fp_adv);
-			PS_PrintToMainLog(env, "\nAdversary written to file \"%s\".\n", export_adv_filename);
+			PN_PrintToMainLog(env, "\nAdversary written to file \"%s\".\n", export_adv_filename);
 		}
 
 		// export individual solution vectors
@@ -704,7 +703,7 @@ JNIEXPORT jdoubleArray __jlongpointer JNICALL Java_sparse_PrismSparse_PS_1Nondet
 					export_vect_filename += std::to_string(it);
 					FILE *fp_vect = fopen(export_vect_filename.c_str(), "w");
 					if (fp_vect) {
-						PS_PrintWarningToMainLog(env, "Exporting solution vector %d to file %s.", it, export_vect_filename.c_str());
+						PN_PrintWarningToMainLog(env, "Exporting solution vector %d to file %s.", it, export_vect_filename.c_str());
 						for (i = 0; i < n; i++) {
 							fprintf(fp_vect, "%d %g\n", i, psoln[it][i]);
 						}
@@ -716,13 +715,13 @@ JNIEXPORT jdoubleArray __jlongpointer JNICALL Java_sparse_PrismSparse_PS_1Nondet
 	
 	// catch exceptions: register error, free memory
 	} catch (std::bad_alloc e) {
-		PS_SetErrorMessage("Out of memory");
+		PN_SetErrorMessage("Out of memory");
 		ret = 0;
 	} catch (int e) {
 		if (e==1) //1 means error was set above and exception was thrown to end the computation
 			ret = 0;
 		else 
-			PS_SetErrorMessage("Unknown error.");
+			PN_SetErrorMessage("Unknown error.");
 	}
 
 	// free memory

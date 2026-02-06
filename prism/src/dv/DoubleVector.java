@@ -43,27 +43,13 @@ public class DoubleVector
 	static
 	{
 		try {
-			System.loadLibrary("dv");
+			System.loadLibrary("prism");
 		}
 		catch (UnsatisfiedLinkError e) {
 			System.out.println(e);
 			System.exit(1);
 		}
 	}
-	
-	//------------------------------------------------------------------------------
-	// CUDD manager
-	//------------------------------------------------------------------------------
-
-	// CUDD manager
-	
-	// JNI method to set CUDD manager for native code
-	public static void setCUDDManager()
-	{
-		DV_SetCUDDManager(JDD.GetCUDDManager());
-	}
-	
-	private static native void DV_SetCUDDManager(long ddm);
 	
 	//------------------------------------------------------------------------------
 	// Instance variables/methods

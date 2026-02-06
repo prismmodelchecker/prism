@@ -33,7 +33,7 @@
 #include <odd.h>
 #include <dv.h>
 #include "sparse.h"
-#include "PrismSparseGlob.h"
+#include "PrismNativeGlob.h"
 #include "jnipointer.h"
 #include "prism.h"
 #include <new>
@@ -92,7 +92,7 @@ jlong __jlongpointer in
 	n = odd->eoff + odd->toff;
 	
 	// build sparse matrix (probs)
-	PS_PrintToMainLog(env, "\nBuilding sparse matrix (transitions)... ");
+	PN_PrintToMainLog(env, "\nBuilding sparse matrix (transitions)... ");
 	ndsm = build_nd_sparse_matrix(ddman, trans, rvars, cvars, num_rvars, ndvars, num_ndvars, odd);
 	// get number of transitions/choices
 	nnz = ndsm->nnz;
@@ -100,20 +100,20 @@ jlong __jlongpointer in
 	kb = (nnz*12.0+nc*4.0+n*4.0)/1024.0;
 	kbt = kb;
 	// print out info
-	PS_PrintToMainLog(env, "[n=%d, nc=%d, nnz=%ld, k=%d] ", n, nc, nnz, ndsm->k);
-	PS_PrintMemoryToMainLog(env, "[", kb, "]\n");
+	PN_PrintToMainLog(env, "[n=%d, nc=%d, nnz=%ld, k=%d] ", n, nc, nnz, ndsm->k);
+	PN_PrintMemoryToMainLog(env, "[", kb, "]\n");
 	
 	// create solution/iteration vectors
 	// (solution is initialised to the state rewards)
-	PS_PrintToMainLog(env, "Allocating iteration vectors... ");
+	PN_PrintToMainLog(env, "Allocating iteration vectors... ");
 	soln = mtbdd_to_double_vector(ddman, state_rewards, rvars, num_rvars, odd);
 	soln2 = new double[n];
 	kb = n*8.0/1024.0;
 	kbt += 2*kb;
-	PS_PrintMemoryToMainLog(env, "[2 x ", kb, "]\n");
+	PN_PrintMemoryToMainLog(env, "[2 x ", kb, "]\n");
 
 	// print total memory usage
-	PS_PrintMemoryToMainLog(env, "TOTAL: [", kbt, "]\n");
+	PN_PrintMemoryToMainLog(env, "TOTAL: [", kbt, "]\n");
 
 	// get setup time
 	stop = util_cpu_time();
@@ -122,7 +122,7 @@ jlong __jlongpointer in
 	start3 = stop;
 
 	// start iterations
-	PS_PrintToMainLog(env, "\nStarting iterations...\n");
+	PN_PrintToMainLog(env, "\nStarting iterations...\n");
 	
 	// note that we ignore max_iters as we know how any iterations _should_ be performed
 	for (iters = 0; iters < bound; iters++) {
@@ -173,8 +173,8 @@ jlong __jlongpointer in
 		
 		// print occasional status update
 		if ((util_cpu_time() - start3) > UPDATE_DELAY) {
-			PS_PrintToMainLog(env, "Iteration %d (of %d): ", iters, (int)bound);
-			PS_PrintToMainLog(env, "%.2f sec so far\n", ((double)(util_cpu_time() - start2)/1000));
+			PN_PrintToMainLog(env, "Iteration %d (of %d): ", iters, (int)bound);
+			PN_PrintToMainLog(env, "%.2f sec so far\n", ((double)(util_cpu_time() - start2)/1000));
 			start3 = util_cpu_time();
 		}
 		
@@ -183,7 +183,7 @@ jlong __jlongpointer in
 		soln = soln2;
 		soln2 = tmpsoln;
 		
-//		PS_PrintToMainLog(env, "%i: %f\n", iters, get_first_from_bdd(ddman, soln, init, rvars, num_rvars, odd));
+//		PN_PrintToMainLog(env, "%i: %f\n", iters, get_first_from_bdd(ddman, soln, init, rvars, num_rvars, odd));
 	}
 	
 	// stop clocks
@@ -192,11 +192,11 @@ jlong __jlongpointer in
 	time_taken = (double)(stop - start1)/1000;
 	
 	// print iterations/timing info
-	PS_PrintToMainLog(env, "\nIterative method: %d iterations in %.2f seconds (average %.6f, setup %.2f)\n", iters, time_taken, time_for_iters/iters, time_for_setup);
+	PN_PrintToMainLog(env, "\nIterative method: %d iterations in %.2f seconds (average %.6f, setup %.2f)\n", iters, time_taken, time_for_iters/iters, time_for_setup);
 	
 	// catch exceptions: register error, free memory
 	} catch (std::bad_alloc e) {
-		PS_SetErrorMessage("Out of memory");
+		PN_SetErrorMessage("Out of memory");
 		if (soln) delete[] soln;
 		soln = 0;
 	}

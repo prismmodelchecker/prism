@@ -34,7 +34,7 @@
 #include <odd.h>
 #include <dv.h>
 #include "sparse.h"
-#include "PrismSparseGlob.h"
+#include "PrismNativeGlob.h"
 #include "jnipointer.h"
 #include <new>
 #include "eclipse.h"
@@ -146,17 +146,17 @@ JNIEXPORT jdouble __jlongpointer JNICALL Java_sparse_PrismSparse_PS_1NondetMulti
 	bounds = env->GetDoubleArrayElements(_bounds, 0);
 
 	// Display some target info (just a test)
-	PS_PrintToMainLog(env, "\n%d Targets:\n", num_targets);
+	PN_PrintToMainLog(env, "\n%d Targets:\n", num_targets);
 	for (i = 0; i < num_targets; i++) {
-		PS_PrintToMainLog(env, "#%d: ", i);
+		PN_PrintToMainLog(env, "#%d: ", i);
 		switch (relops[i]) {
-			case 0: PS_PrintToMainLog(env, "Pmax=?"); break;
-			case 1: PS_PrintToMainLog(env, ">%g", bounds[i]); break;
-			case 2: PS_PrintToMainLog(env, ">=%g", bounds[i]); break;
-			case 3: PS_PrintToMainLog(env, "Rmax=?"); break;
-			case 4: PS_PrintToMainLog(env, ">=%g", bounds[i]); break;
+			case 0: PN_PrintToMainLog(env, "Pmax=?"); break;
+			case 1: PN_PrintToMainLog(env, ">%g", bounds[i]); break;
+			case 2: PN_PrintToMainLog(env, ">=%g", bounds[i]); break;
+			case 3: PN_PrintToMainLog(env, "Rmax=?"); break;
+			case 4: PN_PrintToMainLog(env, ">=%g", bounds[i]); break;
 		}
-		PS_PrintToMainLog(env, " (%.0f states)\n", DD_GetNumMinterms(ddman, targets[i], num_rvars));
+		PN_PrintToMainLog(env, " (%.0f states)\n", DD_GetNumMinterms(ddman, targets[i], num_rvars));
 	}
 
 	//DdNode *yes1 = targets[0];
@@ -190,7 +190,7 @@ JNIEXPORT jdouble __jlongpointer JNICALL Java_sparse_PrismSparse_PS_1NondetMulti
 		n = odd->eoff + odd->toff;
 
 		// build sparse matrix
-		PS_PrintToMainLog(env, "\nBuilding sparse matrix... ");
+		PN_PrintToMainLog(env, "\nBuilding sparse matrix... ");
 		ndsm = build_nd_sparse_matrix(ddman, a, rvars, cvars, num_rvars, ndvars, num_ndvars, odd);
 		// get number of transitions/choices
 		nnz = ndsm->nnz;
@@ -198,34 +198,34 @@ JNIEXPORT jdouble __jlongpointer JNICALL Java_sparse_PrismSparse_PS_1NondetMulti
 		kb = ndsm->mem;
 		kbt = kb;
 		// print out info
-		PS_PrintToMainLog(env, "[n=%d, nc=%d, nnz=%d, k=%d] ", n, nc, nnz, ndsm->k);
-		PS_PrintMemoryToMainLog(env, "[", kb, "]\n");
+		PN_PrintToMainLog(env, "[n=%d, nc=%d, nnz=%d, k=%d] ", n, nc, nnz, ndsm->k);
+		PN_PrintMemoryToMainLog(env, "[", kb, "]\n");
 
 		// get vectors for yes/maybe
-		PS_PrintToMainLog(env, "Creating vectors for yes... ");
+		PN_PrintToMainLog(env, "Creating vectors for yes... ");
 		for(i=0; i<num_targets; i++) {
 			yes_vecs[i] = mtbdd_to_double_vector(ddman, yes[i], rvars, num_rvars, odd);
 			kb = n*8.0/1024.0;
 			kbt += kb;
-			PS_PrintMemoryToMainLog(env, "[", kb, "]\n");
+			PN_PrintMemoryToMainLog(env, "[", kb, "]\n");
 		}
-		/*PS_PrintToMainLog(env, "Creating vectors for yes2... ");
+		/*PN_PrintToMainLog(env, "Creating vectors for yes2... ");
 		 yes2_vec = mtbdd_to_double_vector(ddman, yes2, rvars, num_rvars, odd);
 		 kb = n*8.0/1024.0;
 		 kbt += kb;
-		 PS_PrintMemoryToMainLog(env, "[", kb, "]\n");*/
-		PS_PrintToMainLog(env, "Creating vector for maybe... ");
+		 PN_PrintMemoryToMainLog(env, "[", kb, "]\n");*/
+		PN_PrintToMainLog(env, "Creating vector for maybe... ");
 		maybe_vec = mtbdd_to_double_vector(ddman, maybe, rvars, num_rvars, odd);
 		kb = n*8.0/1024.0;
 		kbt += kb;
-		PS_PrintMemoryToMainLog(env, "[", kb, "]\n");
+		PN_PrintMemoryToMainLog(env, "[", kb, "]\n");
 
 		// get index of single (first) initial state
 		start_index = get_index_of_first_from_bdd(ddman, start, rvars, num_rvars, odd);
-		PS_PrintToMainLog(env, "Initial state index: %1d\n", start_index);
+		PN_PrintToMainLog(env, "Initial state index: %1d\n", start_index);
 
 		// print total memory usage
-		PS_PrintMemoryToMainLog(env, "TOTAL: [", kbt, "]\n");
+		PN_PrintMemoryToMainLog(env, "TOTAL: [", kbt, "]\n");
 
 		// store local copies of sparse matrix stuff
 		double *non_zeros = ndsm->non_zeros;
@@ -247,15 +247,15 @@ JNIEXPORT jdouble __jlongpointer JNICALL Java_sparse_PrismSparse_PS_1NondetMulti
 		 trans_rewards	= jlong_to_DdNode(trr);	// transition rewards		
 		 Cudd_Ref(trans_rewards);
 		 trans_rewards = DD_Apply(ddman, APPLY_TIMES, trans_rewards, maybe);
-		 PS_PrintToMainLog(env, "Building sparse matrix (transition rewards)... ");
+		 PN_PrintToMainLog(env, "Building sparse matrix (transition rewards)... ");
 		 ndsm_r = build_sub_nd_sparse_matrix(ddman, a, trans_rewards, rvars, cvars, num_rvars, ndvars, num_ndvars, odd);
 		 nnz_r = ndsm_r->nnz;
 		 nc_r = ndsm_r->nc;
 		 // print out info
-		 PS_PrintToMainLog(env, "[n=%d, nc=%d, nnz=%d, k=%d] ", n, nc_r, nnz_r, ndsm_r->k);
+		 PN_PrintToMainLog(env, "[n=%d, nc=%d, nnz=%d, k=%d] ", n, nc_r, nnz_r, ndsm_r->k);
 		 kb = (nnz_r*12.0+nc_r*4.0+n*4.0)/1024.0;
 		 kbt += kb;
-		 PS_PrintMemoryToMainLog(env, "[", kb, "]\n");
+		 PN_PrintMemoryToMainLog(env, "[", kb, "]\n");
 		 non_zeros_r = ndsm_r->non_zeros;
 		 choice_counts_r = ndsm_r->choice_counts;
 		 choice_starts_r = (int *)ndsm_r->choice_counts;
@@ -263,20 +263,20 @@ JNIEXPORT jdouble __jlongpointer JNICALL Java_sparse_PrismSparse_PS_1NondetMulti
 		 cols_r = ndsm_r->cols;
 		 //for(i=0; i<nnz_r; i++)
 		 //	printf("non_zeros_r[%1d] = %g\n", i, non_zeros_r[i]);
-		 / *PS_PrintToMainLog(env, "Creating vector for reward maybe... ");
+		 / *PN_PrintToMainLog(env, "Creating vector for reward maybe... ");
 		 maybe_vec_r = mtbdd_to_double_vector(ddman, maybe_r, rvars, num_rvars, odd);
 		 for(i=0; i<n; i++)
 		 if(maybe_vec_r[i] > 0)
 		 n_maybe_r ++;
 		 kb = n*8.0/1024.0;
 		 kbt += kb;
-		 PS_PrintMemoryToMainLog(env, "[", kb, "]\n");	* /
+		 PN_PrintMemoryToMainLog(env, "[", kb, "]\n");	* /
 		 //maybe_vec_r = maybe_vec;
 		 }*/
 		/***************** end of set up *******************/
 
 		// Set up LP problem
-		PS_PrintToMainLog(env, "\nBuilding LP problem...\n");
+		PN_PrintToMainLog(env, "\nBuilding LP problem...\n");
 		// Compute number of vars/constraints
 		int maybe_nc = 0;
 		for (i = 0; i < n; i++) {
@@ -392,7 +392,7 @@ JNIEXPORT jdouble __jlongpointer JNICALL Java_sparse_PrismSparse_PS_1NondetMulti
 		 start2 = stop;
 
 		 // Solve LP problem
-		 PS_PrintToMainLog(env, "Solving LP problem...\n");
+		 PN_PrintToMainLog(env, "Solving LP problem...\n");
 		 res = solve(lp);
 		 
 		 //Get LP solving time
@@ -414,7 +414,7 @@ JNIEXPORT jdouble __jlongpointer JNICALL Java_sparse_PrismSparse_PS_1NondetMulti
 		 time_taken = (double)(stop - start3)/1000;
 		 
 		 // print timing info
-		 PS_PrintToMainLog(env, "\nLP problem solved in %.2f seconds (setup %.2f, lpsolve %.2f)\n", time_taken, time_for_setup, time_for_lp);*/
+		 PN_PrintToMainLog(env, "\nLP problem solved in %.2f seconds (setup %.2f, lpsolve %.2f)\n", time_taken, time_for_setup, time_for_lp);*/
 
 		/*
 		 * Hongyang: Use Eclipse with COIN CBC solver 
@@ -452,7 +452,7 @@ JNIEXPORT jdouble __jlongpointer JNICALL Java_sparse_PrismSparse_PS_1NondetMulti
 		 }*/
 
 		if(checkReach) {
-			PS_PrintToMainLog(env, "Check reachability...\n");
+			PN_PrintToMainLog(env, "Check reachability...\n");
 			// Maps states to ECLiPSe variables. 
 			// Each yes state has a coresponding variable.
 			// Each maybe state has one or more variables.
@@ -472,7 +472,7 @@ JNIEXPORT jdouble __jlongpointer JNICALL Java_sparse_PrismSparse_PS_1NondetMulti
 			}
 
 			//if (arr_reals) delete[] arr_reals;
-			PS_PrintToMainLog(env, "Number of LP variables = %1d\n", num_lp_vars + n_maybe_r);
+			PN_PrintToMainLog(env, "Number of LP variables = %1d\n", num_lp_vars + n_maybe_r);
 			arr_reals = new REAL[num_lp_vars + n_maybe_r];
 
 			// create map vector
@@ -687,7 +687,7 @@ JNIEXPORT jdouble __jlongpointer JNICALL Java_sparse_PrismSparse_PS_1NondetMulti
 				}
 			}
 
-			PS_PrintToMainLog(env, "Adding extra constraints for probabilisitic bounds\n");
+			PN_PrintToMainLog(env, "Adding extra constraints for probabilisitic bounds\n");
 			for(i=0; i<num_targets; i++) {
 				pword tail = ec_nil();
 				for(k=n-1; k>=0; k--)
@@ -704,7 +704,7 @@ JNIEXPORT jdouble __jlongpointer JNICALL Java_sparse_PrismSparse_PS_1NondetMulti
 								ec_double(bounds[i])));
 			}
 
-			PS_PrintToMainLog(env, "Computing optimisation...\n");
+			PN_PrintToMainLog(env, "Computing optimisation...\n");
 			fflush(stdout);
 			pword tail = ec_nil();
 			x = 0;
@@ -727,7 +727,7 @@ JNIEXPORT jdouble __jlongpointer JNICALL Java_sparse_PrismSparse_PS_1NondetMulti
 				/*x = 1;
 				 arr_reals[0] = 1.0;
 				 tail = ec_list(ec_refs_get(Vars, map_var_r[start_index]+num_lp_vars), tail);*/
-				PS_PrintToMainLog(env, "computing max function for rewards ...\n");
+				PN_PrintToMainLog(env, "computing max function for rewards ...\n");
 				double *non_zeros_r;
 				unsigned char *choice_counts_r;
 				int *choice_starts_r;
@@ -736,15 +736,15 @@ JNIEXPORT jdouble __jlongpointer JNICALL Java_sparse_PrismSparse_PS_1NondetMulti
 				trans_rewards = jlong_to_DdNode(trr); // transition rewards		
 				Cudd_Ref(trans_rewards);
 				trans_rewards = DD_Apply(ddman, APPLY_TIMES, trans_rewards, maybe);
-				PS_PrintToMainLog(env, "Building sparse matrix (transition rewards)... ");
+				PN_PrintToMainLog(env, "Building sparse matrix (transition rewards)... ");
 				ndsm_r = build_sub_nd_sparse_matrix(ddman, a, trans_rewards, rvars, cvars, num_rvars, ndvars, num_ndvars, odd);
 				nnz_r = ndsm_r->nnz;
 				nc_r = ndsm_r->nc;
 				// print out info
-				PS_PrintToMainLog(env, "[n=%d, nc=%d, nnz=%d, k=%d] ", n, nc_r, nnz_r, ndsm_r->k);
+				PN_PrintToMainLog(env, "[n=%d, nc=%d, nnz=%d, k=%d] ", n, nc_r, nnz_r, ndsm_r->k);
 				kb = (nnz_r*12.0+nc_r*4.0+n*4.0)/1024.0;
 				kbt += kb;
-				PS_PrintMemoryToMainLog(env, "[", kb, "]\n");
+				PN_PrintMemoryToMainLog(env, "[", kb, "]\n");
 				non_zeros_r = ndsm_r->non_zeros;
 				choice_counts_r = ndsm_r->choice_counts;
 				choice_starts_r = (int *)ndsm_r->choice_counts;
@@ -795,9 +795,9 @@ JNIEXPORT jdouble __jlongpointer JNICALL Java_sparse_PrismSparse_PS_1NondetMulti
 						h2_r += choice_counts_r[j];
 					}
 				}
-				/*PS_PrintToMainLog(env, "		arr_reals:");
+				/*PN_PrintToMainLog(env, "		arr_reals:");
 				 for (k = 0; k < num_lp_vars; k++) 
-				 PS_PrintToMainLog(env, " %1.1f", arr_reals[k]); 
+				 PN_PrintToMainLog(env, " %1.1f", arr_reals[k]); 
 				 fflush(stdout);*/
 
 				for(k=num_lp_vars-1; k>=0; k--)
@@ -818,7 +818,7 @@ JNIEXPORT jdouble __jlongpointer JNICALL Java_sparse_PrismSparse_PS_1NondetMulti
 			 ec_term(ec_did("*",2), varlist, ec_listofdouble(num_lp_vars, pc))), 
 			 ec_ref_get(Cost)));*/
 		} else { // ------------------------------ LTL model checking ----------------------------
-			PS_PrintToMainLog(env, "Check LTL formulas...\n");
+			PN_PrintToMainLog(env, "Check LTL formulas...\n");
 
 			int num_map;
 			int yes_count = 0; // the number of target states
@@ -866,7 +866,7 @@ JNIEXPORT jdouble __jlongpointer JNICALL Java_sparse_PrismSparse_PS_1NondetMulti
 			}
 			num_lp_vars = maybe_nc + yes_nc + yes_count;
 			map_var[n] = num_lp_vars; // maybe need to be modified.		
-			PS_PrintToMainLog(env, "Number of LP variables = %1d\n", num_lp_vars);
+			PN_PrintToMainLog(env, "Number of LP variables = %1d\n", num_lp_vars);
 
 			for(i=0; i<n; i++)
 			yes_vec[i] = 0;
@@ -920,7 +920,7 @@ JNIEXPORT jdouble __jlongpointer JNICALL Java_sparse_PrismSparse_PS_1NondetMulti
 			double *constraints_reals;
 			unsigned long *constraints_int_ptr;
 			unsigned long *constraints_real_ptr;
-			//PS_PrintToMainLog(env, "Allocating memory space		\n");
+			//PN_PrintToMainLog(env, "Allocating memory space		\n");
 			constraints_sp = new int[n];
 			constraints_int_ptr = new unsigned long[n];
 			constraints_real_ptr = new unsigned long[n];
@@ -964,7 +964,7 @@ JNIEXPORT jdouble __jlongpointer JNICALL Java_sparse_PrismSparse_PS_1NondetMulti
 			/*f = fopen("LP.ecl", "w"); /* create a file for writing * /
 			 
 			 if(f==NULL) 
-			 PS_PrintToMainLog(env, "Cannot create LP.ecl!\n");
+			 PN_PrintToMainLog(env, "Cannot create LP.ecl!\n");
 			 
 			 fprintf(f, ":- lib(eplex).\n\n");
 			 fprintf(f, "main1(Cost, Vars) :-\n");
@@ -1143,11 +1143,11 @@ JNIEXPORT jdouble __jlongpointer JNICALL Java_sparse_PrismSparse_PS_1NondetMulti
 			delete[] constraints_sp;
 			delete[] constraints_int_ptr;
 			delete[] constraints_real_ptr;
-			PS_PrintToMainLog(env, "Adding extra constraints for probabilisitic bounds\n");
+			PN_PrintToMainLog(env, "Adding extra constraints for probabilisitic bounds\n");
 			for(i=0; i<num_targets; i++) {
 				if(relops[i]==0 || relops[i]>2)
 				continue;
-				//PS_PrintToMainLog(env, "num_map = %1d, i = %1d, bound = %1.1f\n", num_map, i, bounds[i]);
+				//PN_PrintToMainLog(env, "num_map = %1d, i = %1d, bound = %1.1f\n", num_map, i, bounds[i]);
 				for(k=0; k<num_lp_vars; k++)
 				arr_reals[k] = 0.0;
 
@@ -1265,7 +1265,7 @@ JNIEXPORT jdouble __jlongpointer JNICALL Java_sparse_PrismSparse_PS_1NondetMulti
 			 }
 			 }*/
 
-			PS_PrintToMainLog(env, "Computing optimisation...\n");
+			PN_PrintToMainLog(env, "Computing optimisation...\n");
 			fflush(stdout);
 			pword tail = ec_nil();
 			x = 0;
@@ -1301,7 +1301,7 @@ JNIEXPORT jdouble __jlongpointer JNICALL Java_sparse_PrismSparse_PS_1NondetMulti
 				/*x = 1;
 				 arr_reals[0] = 1.0;
 				 tail = ec_list(ec_refs_get(Vars, map_var_r[start_index]+num_lp_vars), tail);*/
-				PS_PrintToMainLog(env, "computing max function for rewards ...\n");
+				PN_PrintToMainLog(env, "computing max function for rewards ...\n");
 				double *non_zeros_r;
 				unsigned char *choice_counts_r;
 				int *choice_starts_r;
@@ -1310,15 +1310,15 @@ JNIEXPORT jdouble __jlongpointer JNICALL Java_sparse_PrismSparse_PS_1NondetMulti
 				trans_rewards = jlong_to_DdNode(trr); // transition rewards		
 				Cudd_Ref(trans_rewards);
 				trans_rewards = DD_Apply(ddman, APPLY_TIMES, trans_rewards, maybe);
-				PS_PrintToMainLog(env, "Building sparse matrix (transition rewards)... ");
+				PN_PrintToMainLog(env, "Building sparse matrix (transition rewards)... ");
 				ndsm_r = build_sub_nd_sparse_matrix(ddman, a, trans_rewards, rvars, cvars, num_rvars, ndvars, num_ndvars, odd);
 				nnz_r = ndsm_r->nnz;
 				nc_r = ndsm_r->nc;
 				// print out info
-				PS_PrintToMainLog(env, "[n=%d, nc=%d, nnz=%d, k=%d] ", n, nc_r, nnz_r, ndsm_r->k);
+				PN_PrintToMainLog(env, "[n=%d, nc=%d, nnz=%d, k=%d] ", n, nc_r, nnz_r, ndsm_r->k);
 				kb = (nnz_r*12.0+nc_r*4.0+n*4.0)/1024.0;
 				kbt += kb;
-				PS_PrintMemoryToMainLog(env, "[", kb, "]\n");
+				PN_PrintMemoryToMainLog(env, "[", kb, "]\n");
 				non_zeros_r = ndsm_r->non_zeros;
 				choice_counts_r = ndsm_r->choice_counts;
 				choice_starts_r = (int *)ndsm_r->choice_counts;
@@ -1369,10 +1369,10 @@ JNIEXPORT jdouble __jlongpointer JNICALL Java_sparse_PrismSparse_PS_1NondetMulti
 						h2_r += choice_counts_r[j];
 					}
 				}
-				/*PS_PrintToMainLog(env, "		arr_reals:");
+				/*PN_PrintToMainLog(env, "		arr_reals:");
 				 for (k = 0; k < num_lp_vars; k++) 
-				 PS_PrintToMainLog(env, " %1.1f", arr_reals[k]); 
-				 PS_PrintToMainLog(env, "\n");
+				 PN_PrintToMainLog(env, " %1.1f", arr_reals[k]); 
+				 PN_PrintToMainLog(env, "\n");
 				 fflush(stdout);*/
 
 				for(k=num_lp_vars-1; k>=0; k--)
@@ -1399,7 +1399,7 @@ JNIEXPORT jdouble __jlongpointer JNICALL Java_sparse_PrismSparse_PS_1NondetMulti
 		f = fopen("model.dot", "w"); /* create a file for writing */
 		f = NULL;
 		if(f==NULL) {
-			PS_PrintToMainLog(env, "\nWarning: Output of graph cancelled (could not open file \"%s\").\n", "model.dot");
+			PN_PrintToMainLog(env, "\nWarning: Output of graph cancelled (could not open file \"%s\").\n", "model.dot");
 		} else {
 			fprintf(f, "digraph model {\n");
 			for(i=0; i<n; i++)
@@ -1446,9 +1446,9 @@ JNIEXPORT jdouble __jlongpointer JNICALL Java_sparse_PrismSparse_PS_1NondetMulti
 		if (ec_resume1(0) == PSUCCEED) { /* solve */
 			stop = util_cpu_time();
 			if (ec_get_double(ec_ref_get(Cost), &lp_result) == PSUCCEED)
-			PS_PrintToMainLog(env, "Cost is %g\n", lp_result);
+			PN_PrintToMainLog(env, "Cost is %g\n", lp_result);
 			else
-			PS_PrintToMainLog(env, "Cost is ?\n");
+			PN_PrintToMainLog(env, "Cost is ?\n");
 
 			double *var_values;
 			var_values = new double[num_lp_vars+n_maybe_r];
@@ -1457,19 +1457,19 @@ JNIEXPORT jdouble __jlongpointer JNICALL Java_sparse_PrismSparse_PS_1NondetMulti
 				var_values[i] = 0.0;
 				if (ec_get_double(ec_refs_get(Vars,i), &var_values[i]) == PSUCCEED) {
 					if(var_values[i] != 0) {
-						PS_PrintToMainLog(env, "X%d = %g		", i, var_values[i]);
+						PN_PrintToMainLog(env, "X%d = %g		", i, var_values[i]);
 						count++;
 					}
 				}
 				//else
-				//	PS_PrintToMainLog(env, "X%d = ?		");
+				//	PN_PrintToMainLog(env, "X%d = ?		");
 				if(count == 8) {
-					PS_PrintToMainLog(env, "\n");
+					PN_PrintToMainLog(env, "\n");
 					count = 0;
 				}
 			}
 			if(count)
-			PS_PrintToMainLog(env, "\n");
+			PN_PrintToMainLog(env, "\n");
 
 			/***********************************************************************
 			 *
@@ -1538,7 +1538,7 @@ JNIEXPORT jdouble __jlongpointer JNICALL Java_sparse_PrismSparse_PS_1NondetMulti
 						if(yes_vec[head_node] == 0 && maybe_vec[head_node]> 0.0) {
 							// the number of branches in the current state
 							h1 = map_var[head_node+1] - map_var[head_node];
-							//PS_PrintToMainLog(env, "h1 = %1d\n", h1);
+							//PN_PrintToMainLog(env, "h1 = %1d\n", h1);
 
 							double sum = 0;
 							for(i=0; i<h1; i++)
@@ -1624,7 +1624,7 @@ JNIEXPORT jdouble __jlongpointer JNICALL Java_sparse_PrismSparse_PS_1NondetMulti
 					f = fopen("adversary.dot", "w"); /* create a file for writing */
 					f = NULL;
 					if(f==NULL) {
-						PS_PrintToMainLog(env, "\nWarning: Output of adversary cancelled (could not open file \"%s\").\n", "adversary.dot");
+						PN_PrintToMainLog(env, "\nWarning: Output of adversary cancelled (could not open file \"%s\").\n", "adversary.dot");
 					} else {
 						fprintf(f, "digraph adversary {\n");
 						for(i=0; i<sp_nodes; i++)
@@ -1789,7 +1789,7 @@ JNIEXPORT jdouble __jlongpointer JNICALL Java_sparse_PrismSparse_PS_1NondetMulti
 					// write to file
 					f = fopen("adversary.dot", "w"); /* create a file for writing */
 					if(f==NULL) {
-						PS_PrintToMainLog(env, "\nWarning: Output of adversary cancelled (could not open file \"%s\").\n", "adversary.dot");
+						PN_PrintToMainLog(env, "\nWarning: Output of adversary cancelled (could not open file \"%s\").\n", "adversary.dot");
 					} else {
 						fprintf(f, "digraph adversary {\n");
 						for(i=0; i<sp_nodes; i++)
@@ -1821,7 +1821,7 @@ JNIEXPORT jdouble __jlongpointer JNICALL Java_sparse_PrismSparse_PS_1NondetMulti
 			}
 			delete[] var_values;
 		}
-		else PS_PrintToMainLog(env, "No solution\n");
+		else PN_PrintToMainLog(env, "No solution\n");
 
 		// Destroy variables and clean up
 		ec_refs_destroy(Vars);
@@ -1831,20 +1831,20 @@ JNIEXPORT jdouble __jlongpointer JNICALL Java_sparse_PrismSparse_PS_1NondetMulti
 		//stop = util_cpu_time();
 		time_for_lp = (double)(stop - start2)/1000;
 		time_taken = (double)(stop - start3)/1000;
-		PS_PrintToMainLog(env, "\nCBC: LP problem solved in %.2f seconds (setup %.2f, lpsolve %.2f)\n", time_taken, time_for_setup, time_for_lp);
+		PN_PrintToMainLog(env, "\nCBC: LP problem solved in %.2f seconds (setup %.2f, lpsolve %.2f)\n", time_taken, time_for_setup, time_for_lp);
 
 		delete yes_vec;
 		delete map_var;
 		// catch exceptions: register error, free memory
 	} catch (std::bad_alloc e) {
-		PS_SetErrorMessage("Out of memory");
+		PN_SetErrorMessage("Out of memory");
 		if (yes2_vec) delete[] yes2_vec;
 		yes2_vec = 0;
 		if (target_ptrs) env->ReleaseLongArrayElements(_targets, target_ptrs, 0);
 		if (relops) env->ReleaseIntArrayElements(_relops, relops, 0);
 		if (bounds) env->ReleaseDoubleArrayElements(_bounds, bounds, 0);
 	} catch (const char *err) {
-		PS_SetErrorMessage(err);
+		PN_SetErrorMessage(err);
 		if (yes2_vec) delete yes2_vec;
 		yes2_vec = 0;
 		if (target_ptrs) env->ReleaseLongArrayElements(_targets, target_ptrs, 0);

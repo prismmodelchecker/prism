@@ -30,7 +30,7 @@
 #include <util.h>
 #include <cudd.h>
 #include <dd.h>
-#include "PrismMTBDDGlob.h"
+#include "PrismNativeGlob.h"
 #include "jnipointer.h"
 
 //------------------------------------------------------------------------------
@@ -82,9 +82,9 @@ jlong __jlongpointer s	// start state
 			iters++;
 			// output info on progress
 			if (info > 0) {
-				PM_PrintToMainLog(env, "Iteration %d:", iters);
-				PM_PrintToMainLog(env, " %0.f states", DD_GetNumMinterms(ddman, reach, num_rvars));
-				PM_PrintToMainLog(env, " (%d nodes)", DD_GetNumNodes(ddman, reach));
+				PN_PrintToMainLog(env, "Iteration %d:", iters);
+				PN_PrintToMainLog(env, " %0.f states", DD_GetNumMinterms(ddman, reach, num_rvars));
+				PN_PrintToMainLog(env, " (%d nodes)", DD_GetNumNodes(ddman, reach));
 				start2 = util_cpu_time();
 			}
 			// perform iteration
@@ -108,7 +108,7 @@ jlong __jlongpointer s	// start state
 			// output info on progress
 			if (info > 0) {
 				stop = util_cpu_time();
-				PM_PrintToMainLog(env, " (%.2f seconds)\n", (double)(stop - start2)/1000);
+				PN_PrintToMainLog(env, " (%.2f seconds)\n", (double)(stop - start2)/1000);
 			}
 		}
 		reach = DD_PermuteVariables(ddman, reach, cvars, rvars, num_cvars);
@@ -127,9 +127,9 @@ jlong __jlongpointer s	// start state
 			iters++;
 			// output info on progress
 			if (info > 0) {
-				PM_PrintToMainLog(env, "Iteration %d:", iters);
-				PM_PrintToMainLog(env, " %0.f states", DD_GetNumMinterms(ddman, reach, num_rvars));
-				PM_PrintToMainLog(env, " (%d nodes)", DD_GetNumNodes(ddman, reach));
+				PN_PrintToMainLog(env, "Iteration %d:", iters);
+				PN_PrintToMainLog(env, " %0.f states", DD_GetNumMinterms(ddman, reach, num_rvars));
+				PN_PrintToMainLog(env, " (%d nodes)", DD_GetNumNodes(ddman, reach));
 				start2 = util_cpu_time();
 			}
 			// perform iteration
@@ -158,7 +158,7 @@ jlong __jlongpointer s	// start state
 			// output info on progress
 			if (info > 0) {
 				stop = util_cpu_time();
-				PM_PrintToMainLog(env, " (%.2f seconds)\n", (double)(stop - start2)/1000);
+				PN_PrintToMainLog(env, " (%.2f seconds)\n", (double)(stop - start2)/1000);
 			}
 		}
 		reach = DD_PermuteVariables(ddman, reach, cvars, rvars, num_cvars);
@@ -173,7 +173,7 @@ jlong __jlongpointer s	// start state
 	time_for_iters = time_taken;
 
 	// print iterations/timing info
-	PM_PrintToMainLog(env, "\nReachability (%s): %d iterations in %.2f seconds (average %.6f, setup %.2f)\n", reach_method==REACH_BFS?"BFS":"frontier", iters, time_taken, time_for_iters/iters, time_for_setup);
+	PN_PrintToMainLog(env, "\nReachability (%s): %d iterations in %.2f seconds (average %.6f, setup %.2f)\n", reach_method==REACH_BFS?"BFS":"frontier", iters, time_taken, time_for_iters/iters, time_for_setup);
 
 	return ptr_to_jlong(reach);
 }

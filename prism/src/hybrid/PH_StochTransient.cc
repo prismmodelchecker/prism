@@ -35,7 +35,7 @@
 #include <prism.h>
 #include "sparse.h"
 #include "hybrid.h"
-#include "PrismHybridGlob.h"
+#include "PrismNativeGlob.h"
 #include "jnipointer.h"
 #include "Measures.h"
 #include <new>
@@ -110,18 +110,18 @@ jdouble time		// time bound
 	n = odd->eoff + odd->toff;
 	
 	// build hdd for matrix
-	PH_PrintToMainLog(env, "\nBuilding hybrid MTBDD matrix... ");
+	PN_PrintToMainLog(env, "\nBuilding hybrid MTBDD matrix... ");
 	hddm = build_hdd_matrix(trans, rvars, cvars, num_rvars, odd, false);
 	hdd = hddm->top;
 	zero = hddm->zero;
 	num_levels = hddm->num_levels;
 	kb = hddm->mem_nodes;
 	kbt = kb;
-	PH_PrintToMainLog(env, "[levels=%d, nodes=%d] ", hddm->num_levels, hddm->num_nodes);
-	PH_PrintMemoryToMainLog(env, "[", kb, "]\n");
+	PN_PrintToMainLog(env, "[levels=%d, nodes=%d] ", hddm->num_levels, hddm->num_nodes);
+	PN_PrintMemoryToMainLog(env, "[", kb, "]\n");
 	
 	// add sparse matrices
-	PH_PrintToMainLog(env, "Adding explicit sparse matrices... ");
+	PN_PrintToMainLog(env, "Adding explicit sparse matrices... ");
 	add_sparse_matrices(hddm, compact, false);
 	compact_sm = hddm->compact_sm;
 	if (compact_sm) {
@@ -131,11 +131,11 @@ jdouble time		// time bound
 	}
 	kb = hddm->mem_sm;
 	kbt += kb;
-	PH_PrintToMainLog(env, "[levels=%d, num=%d%s] ", hddm->l_sm, hddm->num_sm, compact_sm?", compact":"");
-	PH_PrintMemoryToMainLog(env, "[", kb, "]\n");
+	PN_PrintToMainLog(env, "[levels=%d, num=%d%s] ", hddm->l_sm, hddm->num_sm, compact_sm?", compact":"");
+	PN_PrintMemoryToMainLog(env, "[", kb, "]\n");
 	
 	// get vector of diagonals
-	PH_PrintToMainLog(env, "Creating vector for diagonals... ");
+	PN_PrintToMainLog(env, "Creating vector for diagonals... ");
 	diags = hdd_negative_row_sums(hddm, n);
 	compact_d = false;
 	// try and convert to compact form if required
@@ -147,8 +147,8 @@ jdouble time		// time bound
 	}
 	kb = (!compact_d) ? n*8.0/1024.0 : (diags_dist->num_dist*8.0+n*2.0)/1024.0;
 	kbt += kb;
-	if (compact_d) PH_PrintToMainLog(env, "[dist=%d, compact] ", diags_dist->num_dist);
-	PH_PrintMemoryToMainLog(env, "[", kb, "]\n");
+	if (compact_d) PN_PrintToMainLog(env, "[dist=%d, compact] ", diags_dist->num_dist);
+	PN_PrintMemoryToMainLog(env, "[", kb, "]\n");
 	//for(i = 0; i < n; i++) printf("%f ", (!compact_d)?(diags[i]):(diags_dist->dist[diags_dist->ptrs[i]])); printf("\n");
 	
 	// find max diagonal element
@@ -163,8 +163,7 @@ jdouble time		// time bound
 	
 	// constant for uniformization
 	unif = 1.02*max_diag;
-	last_unif = unif;
-	
+
 	// modify diagonals
 	if (!compact_d) {
 		for (i = 0; i < n; i++) diags[i] = diags[i] / unif + 1;
@@ -173,7 +172,7 @@ jdouble time		// time bound
 	}
 	
 	// create solution/iteration vectors
-	PH_PrintToMainLog(env, "Allocating iteration vectors... ");
+	PN_PrintToMainLog(env, "Allocating iteration vectors... ");
 	// for soln, we just use init (since we are free to modify/delete this vector)
 	// we also report the memory usage of this vector here, even though it has already been created
 	soln = init;
@@ -181,22 +180,22 @@ jdouble time		// time bound
 	sum = new double[n];
 	kb = n*8.0/1024.0;
 	kbt += 3*kb;
-	PH_PrintMemoryToMainLog(env, "[3 x ", kb, "]\n");
+	PN_PrintMemoryToMainLog(env, "[3 x ", kb, "]\n");
 	
 	// print total memory usage
-	PH_PrintMemoryToMainLog(env, "TOTAL: [", kbt, "]\n");
+	PN_PrintMemoryToMainLog(env, "TOTAL: [", kbt, "]\n");
 	
 	// compute new termination criterion parameter (epsilon/8)
 	term_crit_param_unif = term_crit_param / 8.0;
 	
 	// compute poisson probabilities (fox/glynn)
-	PH_PrintToMainLog(env, "\nUniformisation: q.t = %f x %f = %f\n", unif, time, unif * time);
+	PN_PrintToMainLog(env, "\nUniformisation: q.t = %f x %f = %f\n", unif, time, unif * time);
 	fgw = fox_glynn(unif * time, 1.0e-300, 1.0e+300, term_crit_param_unif);
 	if (fgw.right < 0) throw "Overflow in Fox-Glynn computation (time bound too big?)";
 	for (i = fgw.left; i <= fgw.right; i++) {
 		fgw.weights[i-fgw.left] /= fgw.total_weight;
 	}
-	PH_PrintToMainLog(env, "Fox-Glynn: left = %ld, right = %ld\n", fgw.left, fgw.right);
+	PN_PrintToMainLog(env, "Fox-Glynn: left = %ld, right = %ld\n", fgw.left, fgw.right);
 	
 	// set up vectors
 	for (i = 0; i < n; i++) {
@@ -212,7 +211,7 @@ jdouble time		// time bound
 	// start transient analysis
 	done = false;
 	num_iters = -1;
-	PH_PrintToMainLog(env, "\nStarting iterations...\n");
+	PN_PrintToMainLog(env, "\nStarting iterations...\n");
 	
 	// if necessary, do 0th element of summation (doesn't require any matrix powers)
 	if (fgw.left == 0) for (i = 0; i < n; i++) {
@@ -254,16 +253,16 @@ jdouble time		// time bound
 			}
 			// add to sum
 			for (i = 0; i < n; i++) sum[i] += weight * soln2[i];
-			PH_PrintToMainLog(env, "\nSteady state detected at iteration %ld\n", iters);
+			PN_PrintToMainLog(env, "\nSteady state detected at iteration %ld\n", iters);
 			num_iters = iters;
 			break;
 		}
 		
 		// print occasional status update
 		if ((util_cpu_time() - start3) > UPDATE_DELAY) {
-			PH_PrintToMainLog(env, "Iteration %ld (of %ld): ", iters, fgw.right);
-			if (do_ss_detect) PH_PrintToMainLog(env, "max %sdiff=%f, ", measure.isRelative()?"relative ":"", measure.value());
-			PH_PrintToMainLog(env, "%.2f sec so far\n", ((double)(util_cpu_time() - start2)/1000));
+			PN_PrintToMainLog(env, "Iteration %ld (of %ld): ", iters, fgw.right);
+			if (do_ss_detect) PN_PrintToMainLog(env, "max %sdiff=%f, ", measure.isRelative()?"relative ":"", measure.value());
+			PN_PrintToMainLog(env, "%.2f sec so far\n", ((double)(util_cpu_time() - start2)/1000));
 			start3 = util_cpu_time();
 		}
 		
@@ -285,15 +284,15 @@ jdouble time		// time bound
 	
 	// print iters/timing info
 	if (num_iters == -1) num_iters = fgw.right;
-	PH_PrintToMainLog(env, "\nIterative method: %ld iterations in %.2f seconds (average %.6f, setup %.2f)\n", num_iters, time_taken, time_for_iters/num_iters, time_for_setup);
+	PN_PrintToMainLog(env, "\nIterative method: %ld iterations in %.2f seconds (average %.6f, setup %.2f)\n", num_iters, time_taken, time_for_iters/num_iters, time_for_setup);
 	
 	// catch exceptions: register error, free memory
 	} catch (std::bad_alloc e) {
-		PH_SetErrorMessage("Out of memory");
+		PN_SetErrorMessage("Out of memory");
 		if (sum) delete[] sum;
 		sum = 0;
 	} catch (const char *err) {
-		PH_SetErrorMessage("%s", err);
+		PN_SetErrorMessage("%s", err);
 		if (sum) delete[] sum;
 		sum = 0;
 	}

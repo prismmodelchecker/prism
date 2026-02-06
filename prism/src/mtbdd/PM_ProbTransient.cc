@@ -32,7 +32,7 @@
 #include <dd.h>
 #include <odd.h>
 #include <prism.h>
-#include "PrismMTBDDGlob.h"
+#include "PrismNativeGlob.h"
 #include "jnipointer.h"
 
 //------------------------------------------------------------------------------
@@ -84,7 +84,7 @@ jint time		// time
 	// start iterations
 	iters = 0;
 	done = false;
-	PM_PrintToMainLog(env, "\nStarting iterations...\n");
+	PN_PrintToMainLog(env, "\nStarting iterations...\n");
 	
 	// note that we ignore max_iters as we know how any iterations _should_ be performed
 	for (iters = 0; iters < time && !done; iters++) {
@@ -111,8 +111,8 @@ jint time		// time
 		
 		// print occasional status update
 		if ((util_cpu_time() - start3) > UPDATE_DELAY) {
-			PM_PrintToMainLog(env, "Iteration %d (of %d): ", iters, (int)time);
-			PM_PrintToMainLog(env, "%.2f sec so far\n", ((double)(util_cpu_time() - start2)/1000));
+			PN_PrintToMainLog(env, "Iteration %d (of %d): ", iters, (int)time);
+			PN_PrintToMainLog(env, "%.2f sec so far\n", ((double)(util_cpu_time() - start2)/1000));
 			start3 = util_cpu_time();
 		}
 		
@@ -130,8 +130,8 @@ jint time		// time
 	time_taken = (double)(stop - start1)/1000;
 	
 	// print iterations/timing info
-	if (done) PM_PrintToMainLog(env, "\nSteady state detected at iteration %d\n", iters);
-	PM_PrintToMainLog(env, "\nIterative method: %d iterations in %.2f seconds (average %.6f, setup %.2f)\n", iters, time_taken, time_for_iters/iters, time_for_setup);
+	if (done) PN_PrintToMainLog(env, "\nSteady state detected at iteration %d\n", iters);
+	PN_PrintToMainLog(env, "\nIterative method: %d iterations in %.2f seconds (average %.6f, setup %.2f)\n", iters, time_taken, time_for_iters/iters, time_for_setup);
 	
 	// derefs
 	// nb: we deref init, even though it is passed in as a param

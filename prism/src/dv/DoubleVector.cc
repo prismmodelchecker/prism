@@ -27,30 +27,11 @@
 
 #include "dv.h"
 #include "DoubleVector.h"
-#include "DoubleVectorGlob.h"
+#include "PrismNativeGlob.h"
 #include "jnipointer.h"
 
 #include <cmath>
 #include <new>
-
-//------------------------------------------------------------------------------
-
-// cudd manager
-DdManager *ddman;
-
-//------------------------------------------------------------------------------
-// cudd manager
-//------------------------------------------------------------------------------
-
-JNIEXPORT void JNICALL Java_dv_DoubleVector_DV_1SetCUDDManager
-(
-JNIEnv *env,
-jclass cls,
-jlong __jlongpointer ddm
-)
-{
-	ddman = jlong_to_DdManager(ddm);
-}
 
 //------------------------------------------------------------------------------
 // DoubleVector methods

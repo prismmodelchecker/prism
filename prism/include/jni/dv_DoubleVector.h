@@ -9,14 +9,6 @@ extern "C" {
 #endif
 /*
  * Class:     dv_DoubleVector
- * Method:    DV_SetCUDDManager
- * Signature: (J)V
- */
-JNIEXPORT void JNICALL Java_dv_DoubleVector_DV_1SetCUDDManager
-  (JNIEnv *, jclass, jlong);
-
-/*
- * Class:     dv_DoubleVector
  * Method:    DV_CreateZeroVector
  * Signature: (I)J
  */

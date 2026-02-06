@@ -9,62 +9,6 @@ extern "C" {
 #endif
 /*
  * Class:     hybrid_PrismHybrid
- * Method:    PH_FreeGlobalRefs
- * Signature: ()V
- */
-JNIEXPORT void JNICALL Java_hybrid_PrismHybrid_PH_1FreeGlobalRefs
-  (JNIEnv *, jclass);
-
-/*
- * Class:     hybrid_PrismHybrid
- * Method:    PH_SetCUDDManager
- * Signature: (J)V
- */
-JNIEXPORT void JNICALL Java_hybrid_PrismHybrid_PH_1SetCUDDManager
-  (JNIEnv *, jclass, jlong);
-
-/*
- * Class:     hybrid_PrismHybrid
- * Method:    PH_SetMainLog
- * Signature: (Lprism/PrismLog;)V
- */
-JNIEXPORT void JNICALL Java_hybrid_PrismHybrid_PH_1SetMainLog
-  (JNIEnv *, jclass, jobject);
-
-/*
- * Class:     hybrid_PrismHybrid
- * Method:    PH_SetTechLog
- * Signature: (Lprism/PrismLog;)V
- */
-JNIEXPORT void JNICALL Java_hybrid_PrismHybrid_PH_1SetTechLog
-  (JNIEnv *, jclass, jobject);
-
-/*
- * Class:     hybrid_PrismHybrid
- * Method:    PH_SetExportIterations
- * Signature: (Z)V
- */
-JNIEXPORT void JNICALL Java_hybrid_PrismHybrid_PH_1SetExportIterations
-  (JNIEnv *, jclass, jboolean);
-
-/*
- * Class:     hybrid_PrismHybrid
- * Method:    PH_GetErrorMessage
- * Signature: ()Ljava/lang/String;
- */
-JNIEXPORT jstring JNICALL Java_hybrid_PrismHybrid_PH_1GetErrorMessage
-  (JNIEnv *, jclass);
-
-/*
- * Class:     hybrid_PrismHybrid
- * Method:    PH_GetLastUnif
- * Signature: ()D
- */
-JNIEXPORT jdouble JNICALL Java_hybrid_PrismHybrid_PH_1GetLastUnif
-  (JNIEnv *, jclass);
-
-/*
- * Class:     hybrid_PrismHybrid
  * Method:    PH_ProbBoundedUntil
  * Signature: (JJJIJIJJI)J
  */

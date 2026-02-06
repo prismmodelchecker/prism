@@ -32,7 +32,7 @@
 #include <cudd.h>
 #include <dd.h>
 #include <odd.h>
-#include "PrismMTBDDGlob.h"
+#include "PrismNativeGlob.h"
 #include "jnipointer.h"
 #include "prism.h"
 #include "ExportIterations.h"
@@ -85,12 +85,12 @@ jint flags
 	start1 = start2 = util_cpu_time();
 
 	// get a - filter out rows
-	PM_PrintToMainLog(env, "\nBuilding iteration matrix MTBDD... ");
+	PN_PrintToMainLog(env, "\nBuilding iteration matrix MTBDD... ");
 	Cudd_Ref(trans);
 	Cudd_Ref(maybe);
 	a = DD_Apply(ddman, APPLY_TIMES, trans, maybe);
 	i = DD_GetNumNodes(ddman, a);
-	PM_PrintToMainLog(env, "[nodes=%d] [%.1f Kb]\n", i, i*20.0/1024.0);
+	PN_PrintToMainLog(env, "[nodes=%d] [%.1f Kb]\n", i, i*20.0/1024.0);
 			
 	// initial solution
 	// (prob in 0 steps given by yes)
@@ -103,7 +103,7 @@ jint flags
 	sol_above = DD_Or(ddman, yes, maybe);
 
 	std::unique_ptr<ExportIterations> iterationExport;
-	if (PM_GetFlagExportIterations()) {
+	if (PN_GetFlagExportIterations()) {
 		iterationExport.reset(new ExportIterations("PM_NondetUntilInterval"));
 		iterationExport->exportVector(sol_below, rvars, num_rvars, odd, 0);
 		iterationExport->exportVector(sol_above, rvars, num_rvars, odd, 1);
@@ -118,7 +118,7 @@ jint flags
 	// start iterations
 	iters = 0;
 	done = false;
-	PM_PrintToMainLog(env, "\nStarting iterations (interval iteration)...\n");
+	PN_PrintToMainLog(env, "\nStarting iterations (interval iteration)...\n");
 
 	bool below_unchanged = false, above_unchanged = false;
 
@@ -126,7 +126,7 @@ jint flags
 		below_unchanged = above_unchanged = false;
 
 //		if (iters%20==0) {
-//			PM_PrintToMainLog(env, "Iteration %d:\n", iters);
+//			PN_PrintToMainLog(env, "Iteration %d:\n", iters);
 //			DD_PrintTerminalsAndNumbers(ddman, sol, num_rvars);
 //		}
 	
@@ -214,10 +214,10 @@ jint flags
 
 		// print occasional status update
 		if ((util_cpu_time() - start3) > UPDATE_DELAY) {
-			PM_PrintToMainLog(env, "Iteration %d: ", iters);
-			PM_PrintToMainLog(env, "sol_below=%d nodes sol_above=%d nodes", DD_GetNumNodes(ddman, sol_below), DD_GetNumNodes(ddman, sol_above));
+			PN_PrintToMainLog(env, "Iteration %d: ", iters);
+			PN_PrintToMainLog(env, "sol_below=%d nodes sol_above=%d nodes", DD_GetNumNodes(ddman, sol_below), DD_GetNumNodes(ddman, sol_above));
 			// NB: but tmp was probably bigger than sol (pre min/max-abstract)
-			PM_PrintToMainLog(env, ", %.2f sec so far\n", ((double)(util_cpu_time() - start2)/1000));
+			PN_PrintToMainLog(env, ", %.2f sec so far\n", ((double)(util_cpu_time() - start2)/1000));
 			start3 = util_cpu_time();
 		}
 		
@@ -234,7 +234,7 @@ jint flags
 	time_taken = (double)(stop - start1)/1000;
 
 	// print iterations/timing info
-	PM_PrintToMainLog(env, "\nIterative method (interval iteration): %d iterations in %.2f seconds (average %.6f, setup %.2f)\n", iters, time_taken, time_for_iters/iters, time_for_setup);
+	PN_PrintToMainLog(env, "\nIterative method (interval iteration): %d iterations in %.2f seconds (average %.6f, setup %.2f)\n", iters, time_taken, time_for_iters/iters, time_for_setup);
 
 	DdNode *result;
 	if (helper.flag_select_midpoint() && done) { // we did converge, select midpoint
@@ -277,9 +277,9 @@ jint flags
 	if (!done) {
 		Cudd_RecursiveDeref(ddman, result);
 		if (below_unchanged && above_unchanged) {
-			PM_SetErrorMessage("In interval iteration, after %d iterations, both lower and upper iteration did not change anymore but don't have the required precision yet.\nThis could be caused by the MTBDD's engine collapsing of similar constants, consider setting a smaller value for -cuddepsilon or -cuddepsilon 0 to disable collapsing", iters);
+			PN_SetErrorMessage("In interval iteration, after %d iterations, both lower and upper iteration did not change anymore but don't have the required precision yet.\nThis could be caused by the MTBDD's engine collapsing of similar constants, consider setting a smaller value for -cuddepsilon or -cuddepsilon 0 to disable collapsing", iters);
 		} else {
-			PM_SetErrorMessage("Iterative method (interval iteration) did not converge within %d iterations.\nConsider using a different numerical method or increasing the maximum number of iterations", iters);
+			PN_SetErrorMessage("Iterative method (interval iteration) did not converge within %d iterations.\nConsider using a different numerical method or increasing the maximum number of iterations", iters);
 		}
 		return 0;
 	}

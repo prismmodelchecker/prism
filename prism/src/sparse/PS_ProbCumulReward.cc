@@ -33,7 +33,7 @@
 #include <odd.h>
 #include <dv.h>
 #include "sparse.h"
-#include "PrismSparseGlob.h"
+#include "PrismNativeGlob.h"
 #include "jnipointer.h"
 #include "prism.h"
 #include <new>
@@ -93,7 +93,7 @@ jint bound			// time bound
 	n = odd->eoff + odd->toff;
 	
 	// build sparse matrix
-	PS_PrintToMainLog(env, "\nBuilding sparse matrix... ");
+	PN_PrintToMainLog(env, "\nBuilding sparse matrix... ");
 	// if requested, try and build a "compact" version
 	compact_tr = true;
 	cmsrsm = NULL;
@@ -111,8 +111,8 @@ jint bound			// time bound
 	}
 	kbt = kb;
 	// print some info
-	PS_PrintToMainLog(env, "[n=%d, nnz=%ld%s] ", n, nnz, compact_tr?", compact":"");
-	PS_PrintMemoryToMainLog(env, "[", kb, "]\n");
+	PN_PrintToMainLog(env, "[n=%d, nnz=%ld%s] ", n, nnz, compact_tr?", compact":"");
+	PN_PrintMemoryToMainLog(env, "[", kb, "]\n");
 	
 	// multiply transition rewards by transition probs and sum rows
 	// then combine state and transition rewards and put in a vector
@@ -124,7 +124,7 @@ jint bound			// time bound
 	all_rewards = DD_Apply(ddman, APPLY_PLUS, state_rewards, all_rewards);
 
 	// get vector of rewards
-	PS_PrintToMainLog(env, "Creating vector for rewards... ");
+	PN_PrintToMainLog(env, "Creating vector for rewards... ");
 	rew_vec = mtbdd_to_double_vector(ddman, all_rewards, rvars, num_rvars, odd);
 	// try and convert to compact form if required
 	compact_r = false;
@@ -136,19 +136,19 @@ jint bound			// time bound
 	}
 	kb = (!compact_r) ? n*8.0/1024.0 : (rew_dist->num_dist*8.0+n*2.0)/1024.0;
 	kbt += kb;
-	if (compact_r) PS_PrintToMainLog(env, "[dist=%d, compact] ", rew_dist->num_dist);
-	PS_PrintMemoryToMainLog(env, "[", kb, "]\n");
+	if (compact_r) PN_PrintToMainLog(env, "[dist=%d, compact] ", rew_dist->num_dist);
+	PN_PrintMemoryToMainLog(env, "[", kb, "]\n");
 	
 	// create solution/iteration vectors
-	PS_PrintToMainLog(env, "Allocating iteration vectors... ");
+	PN_PrintToMainLog(env, "Allocating iteration vectors... ");
 	soln = new double[n];
 	soln2 = new double[n];
 	kb = n*8.0/1024.0;
 	kbt += 2*kb;
-	PS_PrintMemoryToMainLog(env, "[2 x ", kb, "]\n");
+	PN_PrintMemoryToMainLog(env, "[2 x ", kb, "]\n");
 	
 	// print total memory usage
-	PS_PrintMemoryToMainLog(env, "TOTAL: [", kbt, "]\n");
+	PN_PrintMemoryToMainLog(env, "TOTAL: [", kbt, "]\n");
 	
 	// initial solution is zero
 	for (i = 0; i < n; i++) {
@@ -162,7 +162,7 @@ jint bound			// time bound
 	start3 = stop;
 	
 	// start iterations
-	PS_PrintToMainLog(env, "\nStarting iterations...\n");
+	PN_PrintToMainLog(env, "\nStarting iterations...\n");
 	
 	// note that we ignore max_iters as we know how any iterations _should_ be performed
 	for (iters = 0; iters < bound; iters++) {
@@ -215,8 +215,8 @@ jint bound			// time bound
 		
 		// print occasional status update
 		if ((util_cpu_time() - start3) > UPDATE_DELAY) {
-			PS_PrintToMainLog(env, "Iteration %d (of %d): ", iters, (int)bound);
-			PS_PrintToMainLog(env, "%.2f sec so far\n", ((double)(util_cpu_time() - start2)/1000));
+			PN_PrintToMainLog(env, "Iteration %d (of %d): ", iters, (int)bound);
+			PN_PrintToMainLog(env, "%.2f sec so far\n", ((double)(util_cpu_time() - start2)/1000));
 			start3 = util_cpu_time();
 		}
 		
@@ -232,11 +232,11 @@ jint bound			// time bound
 	time_taken = (double)(stop - start1)/1000;
 	
 	// print iterations/timing info
-	PS_PrintToMainLog(env, "\nIterative method: %d iterations in %.2f seconds (average %.6f, setup %.2f)\n", iters, time_taken, time_for_iters/iters, time_for_setup);
+	PN_PrintToMainLog(env, "\nIterative method: %d iterations in %.2f seconds (average %.6f, setup %.2f)\n", iters, time_taken, time_for_iters/iters, time_for_setup);
 	
 	// catch exceptions: register error, free memory
 	} catch (std::bad_alloc e) {
-		PS_SetErrorMessage("Out of memory");
+		PN_SetErrorMessage("Out of memory");
 		if (soln) delete[] soln;
 		soln = 0;
 	}

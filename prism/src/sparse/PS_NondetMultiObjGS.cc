@@ -36,7 +36,6 @@
 #include "sparse.h"
 #include "prism.h"
 #include "PrismNativeGlob.h"
-#include "PrismSparseGlob.h"
 #include "jnipointer.h"
 #include <new>
 
@@ -212,20 +211,20 @@ JNIEXPORT jdoubleArray __jlongpointer JNICALL Java_sparse_PrismSparse_PS_1Nondet
 		}
 		
 #ifdef MORE_OUTPUT
-		PS_PrintToMainLog(env, "Initial soln: ");
+		PN_PrintToMainLog(env, "Initial soln: ");
 		for (int o = 0; o < n; o++)
-			PS_PrintToMainLog(env, "%f, ", soln[o]);
-		PS_PrintToMainLog(env, "\n");
+			PN_PrintToMainLog(env, "%f, ", soln[o]);
+		PN_PrintToMainLog(env, "\n");
 		
 		
 		for (int it = 0; it < lenRew + lenProb; it++) {
 			if (it != ignoredWeight) {
-				PS_PrintToMainLog(env, "psoln: ");
+				PN_PrintToMainLog(env, "psoln: ");
 				for (int o = 0; o < n; o++)
-					PS_PrintToMainLog(env, "%f, ", psoln[it][o]);
-				PS_PrintToMainLog(env, "\n");
+					PN_PrintToMainLog(env, "%f, ", psoln[it][o]);
+				PN_PrintToMainLog(env, "\n");
 			} else {
-				PS_PrintToMainLog(env, "psoln: (ignored)\n");
+				PN_PrintToMainLog(env, "psoln: (ignored)\n");
 			}
 		}
 #endif
@@ -238,7 +237,7 @@ JNIEXPORT jdoubleArray __jlongpointer JNICALL Java_sparse_PrismSparse_PS_1Nondet
 		iters = 0;
 		done = false;
 		weightedDone = false;
-		//PS_PrintToMainLog(env, "Starting iterations...\n");
+		//PN_PrintToMainLog(env, "Starting iterations...\n");
 		
 		// store local copies of stuff
 		double *non_zeros = ndsm->non_zeros;
@@ -462,19 +461,19 @@ JNIEXPORT jdoubleArray __jlongpointer JNICALL Java_sparse_PrismSparse_PS_1Nondet
 			}
 
 #ifdef MORE_OUTPUT
-			PS_PrintToMainLog(env, "soln: ");
+			PN_PrintToMainLog(env, "soln: ");
 			for (int o = 0; o < n; o++)
-				PS_PrintToMainLog(env, "%e, ", soln[o]);
-			PS_PrintToMainLog(env, "\n");
+				PN_PrintToMainLog(env, "%e, ", soln[o]);
+			PN_PrintToMainLog(env, "\n");
 
 			for (int it = 0; it < lenRew + lenProb; it++) {
 				if (it != ignoredWeight) {
-					PS_PrintToMainLog(env, "psoln: ");
+					PN_PrintToMainLog(env, "psoln: ");
 					for (int o = 0; o < n; o++)
-						PS_PrintToMainLog(env, "%e, ", psoln[it][o]);
-					PS_PrintToMainLog(env, "\n");
+						PN_PrintToMainLog(env, "%e, ", psoln[it][o]);
+					PN_PrintToMainLog(env, "\n");
 				} else {
-					PS_PrintToMainLog(env, "psoln: (ignored)\n");
+					PN_PrintToMainLog(env, "psoln: (ignored)\n");
 				}
 			}
 #endif
@@ -499,11 +498,11 @@ JNIEXPORT jdoubleArray __jlongpointer JNICALL Java_sparse_PrismSparse_PS_1Nondet
 		time_taken = (double)(stop - start1)/1000;
 		
 		// print iterations/timing info
-		PS_PrintToMainLog(env, "Iterative method: %d iterations in %.2f seconds (average %.6f, setup %.2f)\n", iters, time_taken, time_for_iters/iters, time_for_setup);
+		PN_PrintToMainLog(env, "Iterative method: %d iterations in %.2f seconds (average %.6f, setup %.2f)\n", iters, time_taken, time_for_iters/iters, time_for_setup);
 		
 		// if the iterative method didn't terminate, this is an error
 		if (iters == max_iters) {
-			PS_SetErrorMessage("Iterative method did not converge within %d iterations.\nConsider using a different numerical method or increasing the maximum number of iterations", iters);
+			PN_SetErrorMessage("Iterative method did not converge within %d iterations.\nConsider using a different numerical method or increasing the maximum number of iterations", iters);
 			throw 1;
 		}
 
@@ -529,14 +528,14 @@ JNIEXPORT jdoubleArray __jlongpointer JNICALL Java_sparse_PrismSparse_PS_1Nondet
 		
 		// catch exceptions: register error, free memory
 	} catch (std::bad_alloc e) {
-		PS_SetErrorMessage("Out of memory");
+		PN_SetErrorMessage("Out of memory");
 		if (soln) delete[] soln;
 		soln = 0;
 	} catch (int e) {
 		if (e==1) //1 means error was set above and exception was thrown to end the computation
 			ret = 0;
 		else 
-			PS_SetErrorMessage("Unknown error.");
+			PN_SetErrorMessage("Unknown error.");
 	}
 	
 	if (soln) delete[] soln;

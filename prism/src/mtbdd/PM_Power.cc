@@ -31,7 +31,7 @@
 #include <cudd.h>
 #include <dd.h>
 #include <odd.h>
-#include "PrismMTBDDGlob.h"
+#include "PrismNativeGlob.h"
 #include "jnipointer.h"
 #include "prism.h"
 #include "ExportIterations.h"
@@ -83,7 +83,7 @@ jboolean transpose	// transpose A? (i.e. solve xA=b not Ax=b?)
 	
 	// print out some memory usage
 	i = DD_GetNumNodes(ddman, a);
-	PM_PrintToMainLog(env, "\nIteration matrix MTBDD... [nodes=%d] [%.1f Kb]\n", i, i*20.0/1024.0);
+	PN_PrintToMainLog(env, "\nIteration matrix MTBDD... [nodes=%d] [%.1f Kb]\n", i, i*20.0/1024.0);
 	
 	// transpose b if necessary
 	if (transpose) {
@@ -98,9 +98,9 @@ jboolean transpose	// transpose A? (i.e. solve xA=b not Ax=b?)
 	}
 
 	std::unique_ptr<ExportIterations> iterationExport;
-	if (PM_GetFlagExportIterations()) {
+	if (PN_GetFlagExportIterations()) {
 		iterationExport.reset(new ExportIterations("PM_Power"));
-		PM_PrintToMainLog(env, "Exporting iterations to %s\n", iterationExport->getFileName().c_str());
+		PN_PrintToMainLog(env, "Exporting iterations to %s\n", iterationExport->getFileName().c_str());
 		iterationExport->exportVector(sol, (transpose?cvars:rvars), num_rvars, odd, 0);
 	}
 
@@ -113,7 +113,7 @@ jboolean transpose	// transpose A? (i.e. solve xA=b not Ax=b?)
 	// start iterations
 	iters = 0;
 	done = false;
-	PM_PrintToMainLog(env, "\nStarting iterations...\n");
+	PN_PrintToMainLog(env, "\nStarting iterations...\n");
 	
 	while (!done && iters < max_iters) {
 		
@@ -146,8 +146,8 @@ jboolean transpose	// transpose A? (i.e. solve xA=b not Ax=b?)
 		
 		// print occasional status update
 		if ((util_cpu_time() - start3) > UPDATE_DELAY) {
-			PM_PrintToMainLog(env, "Iteration %d: ", iters);
-			PM_PrintToMainLog(env, "%.2f sec so far\n", ((double)(util_cpu_time() - start2)/1000));
+			PN_PrintToMainLog(env, "Iteration %d: ", iters);
+			PN_PrintToMainLog(env, "%.2f sec so far\n", ((double)(util_cpu_time() - start2)/1000));
 			start3 = util_cpu_time();
 		}
 		
@@ -186,13 +186,13 @@ jboolean transpose	// transpose A? (i.e. solve xA=b not Ax=b?)
 	time_taken = (double)(stop - start1)/1000;
 	
 	// print iters/timing info
-	PM_PrintToMainLog(env, "\nPower method: %d iterations in %.2f seconds (average %.6f, setup %.2f)\n", iters, time_taken, time_for_iters/iters, time_for_setup);
+	PN_PrintToMainLog(env, "\nPower method: %d iterations in %.2f seconds (average %.6f, setup %.2f)\n", iters, time_taken, time_for_iters/iters, time_for_setup);
 	
 	// free memory
 	Cudd_RecursiveDeref(ddman, b);
 	
 	// if the iterative method didn't terminate, this is an error
-	if (!done) { Cudd_RecursiveDeref(ddman, sol); PM_SetErrorMessage("Iterative method did not converge within %d iterations.\nConsider using a different numerical method or increasing the maximum number of iterations", iters); return 0; }
+	if (!done) { Cudd_RecursiveDeref(ddman, sol); PN_SetErrorMessage("Iterative method did not converge within %d iterations.\nConsider using a different numerical method or increasing the maximum number of iterations", iters); return 0; }
 	
 	return ptr_to_jlong(sol);
 }

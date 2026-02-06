@@ -34,7 +34,7 @@
 #include <dv.h>
 #include <prism.h>
 #include "sparse.h"
-#include "PrismSparseGlob.h"
+#include "PrismNativeGlob.h"
 #include "jnipointer.h"
 #include "Measures.h"
 #include <new>
@@ -100,7 +100,7 @@ jdouble time		// time bound
 	n = odd->eoff + odd->toff;
 	
 	// build sparse matrix
-	PS_PrintToMainLog(env, "\nBuilding sparse matrix... ");
+	PN_PrintToMainLog(env, "\nBuilding sparse matrix... ");
 	// if requested, try and build a "compact" version
 	compact_tr = true;
 	cmsrsm = NULL;
@@ -118,11 +118,11 @@ jdouble time		// time bound
 	}
 	kbt = kb;
 	// print some info
-	PS_PrintToMainLog(env, "[n=%d, nnz=%ld%s] ", n, nnz, compact_tr?", compact":"");
-	PS_PrintMemoryToMainLog(env, "[", kb, "]\n");
+	PN_PrintToMainLog(env, "[n=%d, nnz=%ld%s] ", n, nnz, compact_tr?", compact":"");
+	PN_PrintMemoryToMainLog(env, "[", kb, "]\n");
 	
 	// get vector of diagonals
-	PS_PrintToMainLog(env, "Creating vector for diagonals... ");
+	PN_PrintToMainLog(env, "Creating vector for diagonals... ");
 	diags = compact_tr ? cmsr_negative_row_sums(cmsrsm) : rm_negative_row_sums(rmsm);
 	// try and convert to compact form if required
 	compact_d = false;
@@ -134,8 +134,8 @@ jdouble time		// time bound
 	}
 	kb = (!compact_d) ? n*8.0/1024.0 : (diags_dist->num_dist*8.0+n*2.0)/1024.0;
 	kbt += kb;
-	if (compact_d) PS_PrintToMainLog(env, "[dist=%d, compact] ", diags_dist->num_dist);
-	PS_PrintMemoryToMainLog(env, "[", kb, "]\n");
+	if (compact_d) PN_PrintToMainLog(env, "[dist=%d, compact] ", diags_dist->num_dist);
+	PN_PrintMemoryToMainLog(env, "[", kb, "]\n");
 	
 	// find max diagonal element
 	if (!compact_d) {
@@ -180,29 +180,29 @@ jdouble time		// time bound
 	Cudd_RecursiveDeref(ddman, tmp);
 	
 	// create solution/iteration vectors
-	PS_PrintToMainLog(env, "Allocating iteration vectors... ");
+	PN_PrintToMainLog(env, "Allocating iteration vectors... ");
 	// soln has already been created and initialised to rewards vector as required
 	// need to create soln2 and sum
 	soln2 = new double[n];
 	sum = new double[n];
 	kb = n*8.0/1024.0;
 	kbt += 3*kb;
-	PS_PrintMemoryToMainLog(env, "[3 x ", kb, "]\n");
+	PN_PrintMemoryToMainLog(env, "[3 x ", kb, "]\n");
 	
 	// print total memory usage
-	PS_PrintMemoryToMainLog(env, "TOTAL: [", kbt, "]\n");
+	PN_PrintMemoryToMainLog(env, "TOTAL: [", kbt, "]\n");
 	
 	// compute new termination criterion parameter (epsilon/8)
 	term_crit_param_unif = term_crit_param / 8.0;
 	
 	// compute poisson probabilities (fox/glynn)
-	PS_PrintToMainLog(env, "\nUniformisation: q.t = %f x %f = %f\n", unif, time, unif * time);
+	PN_PrintToMainLog(env, "\nUniformisation: q.t = %f x %f = %f\n", unif, time, unif * time);
 	fgw = fox_glynn(unif * time, 1.0e-300, 1.0e+300, term_crit_param_unif);
 	if (fgw.right < 0) throw "Overflow in Fox-Glynn computation (time bound too big?)";
 	for (i = fgw.left; i <= fgw.right; i++) {
 		fgw.weights[i-fgw.left] /= fgw.total_weight;
 	}
-	PS_PrintToMainLog(env, "Fox-Glynn: left = %ld, right = %ld\n", fgw.left, fgw.right);
+	PN_PrintToMainLog(env, "Fox-Glynn: left = %ld, right = %ld\n", fgw.left, fgw.right);
 	
 	// modify the poisson probabilities to what we need for this computation
 	// first make the kth value equal to the sum of the values for 0...k
@@ -228,7 +228,7 @@ jdouble time		// time bound
 	// start transient analysis
 	done = false;
 	num_iters = -1;
-	PS_PrintToMainLog(env, "\nStarting iterations...\n");
+	PN_PrintToMainLog(env, "\nStarting iterations...\n");
 	
 	// do 0th element of summation (doesn't require any matrix powers)
 	if (fgw.left == 0) {
@@ -309,16 +309,16 @@ jdouble time		// time bound
 			// add to sum
 			for (i = 0; i < n; i++) sum[i] += weight * soln2[i];
 			
-			PS_PrintToMainLog(env, "\nSteady state detected at iteration %ld\n", iters);
+			PN_PrintToMainLog(env, "\nSteady state detected at iteration %ld\n", iters);
 			num_iters = iters;
 			break;
 		}
 		
 		// print occasional status update
 		if ((util_cpu_time() - start3) > UPDATE_DELAY) {
-			PS_PrintToMainLog(env, "Iteration %ld (of %ld): ", iters, fgw.right);
-			if (do_ss_detect) PS_PrintToMainLog(env, "max %sdiff=%f, ", measure.isRelative()?"relative ":"", measure.value());
-			PS_PrintToMainLog(env, "%.2f sec so far\n", ((double)(util_cpu_time() - start2)/1000));
+			PN_PrintToMainLog(env, "Iteration %ld (of %ld): ", iters, fgw.right);
+			if (do_ss_detect) PN_PrintToMainLog(env, "max %sdiff=%f, ", measure.isRelative()?"relative ":"", measure.value());
+			PN_PrintToMainLog(env, "%.2f sec so far\n", ((double)(util_cpu_time() - start2)/1000));
 			start3 = util_cpu_time();
 		}
 		
@@ -342,15 +342,15 @@ jdouble time		// time bound
 	
 	// print iters/timing info
 	if (num_iters == -1) num_iters = fgw.right;
-	PS_PrintToMainLog(env, "\nIterative method: %ld iterations in %.2f seconds (average %.6f, setup %.2f)\n", num_iters, time_taken, time_for_iters/num_iters, time_for_setup);
+	PN_PrintToMainLog(env, "\nIterative method: %ld iterations in %.2f seconds (average %.6f, setup %.2f)\n", num_iters, time_taken, time_for_iters/num_iters, time_for_setup);
 	
 	// catch exceptions: register error, free memory
 	} catch (std::bad_alloc e) {
-		PS_SetErrorMessage("Out of memory");
+		PN_SetErrorMessage("Out of memory");
 		if (sum) delete[] sum;
 		sum = 0;
 	} catch (const char *err) {
-		PS_SetErrorMessage("%s", err);
+		PN_SetErrorMessage("%s", err);
 		if (sum) delete[] sum;
 		sum = 0;
 	}

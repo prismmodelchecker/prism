@@ -53,7 +53,7 @@ public class JDDVars implements Iterable<JDDNode>
 	static
 	{
 		try {
-			System.loadLibrary("jdd");
+			System.loadLibrary("prism");
 		}
 		catch (UnsatisfiedLinkError e) {
 			System.out.println(e);

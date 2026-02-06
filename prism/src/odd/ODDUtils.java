@@ -39,7 +39,7 @@ public class ODDUtils
 	static
 	{
 		try {
-			System.loadLibrary("odd");
+			System.loadLibrary("prism");
 		}
 		catch (UnsatisfiedLinkError e) {
 			System.out.println(e);
@@ -47,19 +47,6 @@ public class ODDUtils
 		}
 	}
 
-	//------------------------------------------------------------------------------
-	// cudd manager
-	//------------------------------------------------------------------------------
-
-	// cudd manager
-	
-	// jni method to set cudd manager for native code
-	private static native void ODD_SetCUDDManager(long ddm);
-	public static void setCUDDManager()
-	{
-		ODD_SetCUDDManager(JDD.GetCUDDManager());
-	}
-	
 	//------------------------------------------------------------------------------
 	// JNI wrappers
 	//------------------------------------------------------------------------------

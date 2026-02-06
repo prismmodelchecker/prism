@@ -442,9 +442,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 		mainLog = l;
 		// pass to other components
 		JDD.SetOutputStream(mainLog.getFilePointer());
-		PrismMTBDD.setMainLog(mainLog);
-		PrismSparse.setMainLog(mainLog);
-		PrismHybrid.setMainLog(mainLog);
+		PrismNative.setMainLog(mainLog);
 	}
 
 	// Set methods for main prism settings
@@ -1102,9 +1100,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 			}
 		}
 		jdd.SanityJDD.enabled = settings.getBoolean(PrismSettings.PRISM_JDD_SANITY_CHECKS);
-		PrismSparse.SetExportIterations(settings.getBoolean(PrismSettings.PRISM_EXPORT_ITERATIONS));
-		PrismHybrid.SetExportIterations(settings.getBoolean(PrismSettings.PRISM_EXPORT_ITERATIONS));
-		PrismMTBDD.SetExportIterations(settings.getBoolean(PrismSettings.PRISM_EXPORT_ITERATIONS));
+		PrismNative.SetExportIterations(settings.getBoolean(PrismSettings.PRISM_EXPORT_ITERATIONS));
 	}
 
 	//------------------------------------------------------------------------------
@@ -1255,14 +1251,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 		JDD.SetOutputStream(mainLog.getFilePointer());
 
 		// initialise libraries/engines
-		PrismNative.initialise(this);
-		PrismMTBDD.initialise(mainLog, mainLog);
-		PrismSparse.initialise(mainLog, mainLog);
-		PrismHybrid.initialise(mainLog, mainLog);
-
-		// set cudd manager in other packages
-		DoubleVector.setCUDDManager();
-		ODDUtils.setCUDDManager();
+		PrismNative.initialise(this, mainLog);
 	}
 
 	/**
@@ -4223,9 +4212,6 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 		clearBuiltModel();
 		// Close down libraries/engines
 		PrismNative.closeDown();
-		PrismMTBDD.closeDown();
-		PrismSparse.closeDown();
-		PrismHybrid.closeDown();
 		ParamModelChecker.closeDown();
 		// Close down CUDD/JDD
 		if (cuddStarted) {

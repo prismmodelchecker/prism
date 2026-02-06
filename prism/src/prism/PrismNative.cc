@@ -37,6 +37,35 @@
 EXPORT jclass prism_cls = NULL;
 EXPORT jobject prism_obj = NULL;
 
+// CUDD manager: stored so that it doesn't have to be passed to every CUDD/dd call.
+// Set via (JNI) PN_SetCUDDManager, cached here and accessible across all native code.
+DdManager *ddman;
+
+// error messages
+static char error_message[MAX_ERR_STRING_LEN];
+
+// logs
+// global refs to log classes
+static jclass main_log_cls = NULL;
+// global refs to log objects
+static jobject main_log_obj = NULL;
+// method ids for print method in logs
+static jmethodID main_log_mid = NULL;
+static jmethodID main_log_warn = NULL;
+
+// Export stuff:
+
+EXPORT int export_type;
+EXPORT FILE *export_file;
+EXPORT JNIEnv *export_env;
+static bool exportIterations = false;
+// adversary export mode
+EXPORT int export_adv;
+// adversary export filename
+EXPORT const char *export_adv_filename;
+// export iterations filename
+EXPORT const char *export_iterations_filename = "iterations.html";
+
 // Options:
 // numerical method stuff
 EXPORT int lin_eq_method;
@@ -55,12 +84,6 @@ EXPORT int sor_max_mem;
 EXPORT int num_sor_levels;
 // use steady-state detection for transient computation?
 EXPORT bool do_ss_detect;
-// adversary export mode
-EXPORT int export_adv;
-// adversary export filename
-EXPORT const char *export_adv_filename;
-// export iterations filename
-EXPORT const char *export_iterations_filename = "iterations.html";
 
 // details from numerical computation which may be queried
 EXPORT double last_error_bound;
@@ -87,6 +110,132 @@ JNIEXPORT void JNICALL Java_prism_PrismNative_PN_1SetPrism(JNIEnv *env, jclass c
 	// We should also set the locale, to ensure consistent display of numerical values
 	// (e.g. 0.5 not 0,5). This seems as good a place as any to do it.
 	setlocale(LC_NUMERIC, "C");
+}
+
+//------------------------------------------------------------------------------
+// cudd manager
+//------------------------------------------------------------------------------
+
+JNIEXPORT void JNICALL Java_prism_PrismNative_PN_1SetCUDDManager(JNIEnv *env, jclass cls, jlong __jlongpointer ddm)
+{
+	ddman = jlong_to_DdManager(ddm);
+}
+
+//------------------------------------------------------------------------------
+// logs
+//------------------------------------------------------------------------------
+
+JNIEXPORT void JNICALL Java_prism_PrismNative_PN_1SetMainLog(JNIEnv *env, jclass cls, jobject log)
+{
+	// if main log has been set previously, we need to delete existing global refs first
+	if (main_log_obj != NULL) {
+		env->DeleteGlobalRef(main_log_cls);
+		main_log_cls = NULL;
+		env->DeleteGlobalRef(main_log_obj);
+		main_log_obj = NULL;
+	}
+	
+	// make a global reference to the log object
+	main_log_obj = env->NewGlobalRef(log);
+	// get the log class and make a global reference to it
+	main_log_cls = (jclass)env->NewGlobalRef(env->GetObjectClass(main_log_obj));
+	// get the method id for the print method
+	main_log_mid = env->GetMethodID(main_log_cls, "print", "(Ljava/lang/String;)V");
+    main_log_warn = env->GetMethodID(main_log_cls, "printWarning", "(Ljava/lang/String;)V");
+}
+
+//------------------------------------------------------------------------------
+
+void PN_PrintToMainLog(JNIEnv *env, const char *str, ...)
+{
+	va_list argptr;
+	char full_string[MAX_LOG_STRING_LEN];
+	
+	va_start(argptr, str);
+	vsnprintf(full_string, MAX_LOG_STRING_LEN, str, argptr);
+	va_end(argptr);
+	
+	if (env)
+		env->CallVoidMethod(main_log_obj, main_log_mid, env->NewStringUTF(full_string));
+	else
+		printf("%s", full_string);
+}
+
+//------------------------------------------------------------------------------
+
+void PN_PrintWarningToMainLog(JNIEnv *env, const char *str, ...)
+{
+	va_list argptr;
+	char full_string[MAX_LOG_STRING_LEN];
+	
+	va_start(argptr, str);
+	vsnprintf(full_string, MAX_LOG_STRING_LEN, str, argptr);
+	va_end(argptr);
+	
+	if (env)
+		env->CallVoidMethod(main_log_obj, main_log_warn, env->NewStringUTF(full_string));
+	else
+		printf("\nWarning: %s\n", full_string);
+}
+
+//------------------------------------------------------------------------------
+
+// Print formatted memory info to main log
+
+void PN_PrintMemoryToMainLog(JNIEnv *env, const char *before, double mem, const char *after)
+{
+	char full_string[MAX_LOG_STRING_LEN];
+	
+	if (mem > 1048576)
+		snprintf(full_string, MAX_LOG_STRING_LEN, "%s%.1f GB%s", before, mem/1048576.0, after);
+	else if (mem > 1024)
+		snprintf(full_string, MAX_LOG_STRING_LEN, "%s%.1f MB%s", before, mem/1024.0, after);
+	else
+		snprintf(full_string, MAX_LOG_STRING_LEN, "%s%.1f KB%s", before, mem, after);
+	
+	if (env) {
+		env->CallVoidMethod(main_log_obj, main_log_mid, env->NewStringUTF(full_string));
+	}
+	else {
+		printf("%s", full_string);
+	}
+}
+
+//------------------------------------------------------------------------------
+// error message handling
+//------------------------------------------------------------------------------
+
+void PN_SetErrorMessage(const char *str, ...)
+{
+	va_list argptr;
+
+	va_start(argptr, str);
+	vsnprintf(error_message, MAX_ERR_STRING_LEN, str, argptr);
+	va_end(argptr);
+}
+
+char *PN_GetErrorMessage()
+{
+	return error_message;
+}
+
+JNIEXPORT jstring JNICALL Java_prism_PrismNative_PN_1GetErrorMessage(JNIEnv *env, jclass cls)
+{
+	return env->NewStringUTF(error_message);
+}
+
+//------------------------------------------------------------------------------
+// Export stuff
+//------------------------------------------------------------------------------
+
+JNIEXPORT void JNICALL Java_prism_PrismNative_PN_1SetExportIterations(JNIEnv *env, jclass cls, jboolean value)
+{
+	exportIterations = value;
+}
+
+bool PN_GetFlagExportIterations()
+{
+	return exportIterations;
 }
 
 //------------------------------------------------------------------------------
@@ -217,6 +366,51 @@ JNIEXPORT jint JNICALL Java_prism_PrismNative_PN_1SetWorkingDirectory(JNIEnv *en
 }
 
 //------------------------------------------------------------------------------
+// export stuff
+//------------------------------------------------------------------------------
+
+// store export info globally
+// returns 0 on failure, 1 otherwise
+
+int store_export_info(int type, jstring fn, JNIEnv *env)
+{
+	export_type = type;
+	if (fn) {
+		const char *filename = env->GetStringUTFChars(fn, 0);
+		export_file = fopen(filename, "w");
+		if (!export_file) {
+			env->ReleaseStringUTFChars(fn, filename);
+			return 0;
+		}
+		env->ReleaseStringUTFChars(fn, filename);
+	} else {
+		export_file = NULL;
+	}
+	export_env = env;
+	return 1;
+}
+
+//------------------------------------------------------------------------------
+
+// export string (either to file or main log)
+
+void export_string(const char *str, ...)
+{
+	va_list argptr;
+	char full_string[MAX_LOG_STRING_LEN];
+	
+	va_start(argptr, str);
+	vsnprintf(full_string, MAX_LOG_STRING_LEN, str, argptr);
+	va_end(argptr);
+	
+	if (export_file) {
+		fprintf(export_file, "%s", full_string);
+	} else {
+		PN_PrintToMainLog(export_env, "%s", full_string);
+	}
+}
+
+//------------------------------------------------------------------------------
 // Some miscellaneous native methods
 //------------------------------------------------------------------------------
 
@@ -276,15 +470,10 @@ JNIEXPORT void JNICALL Java_prism_PrismNative_PN_1FlushFile(JNIEnv *env, jclass 
 
 //------------------------------------------------------------------------------
 
-
 JNIEXPORT void JNICALL Java_prism_PrismNative_PN_1CloseFile(JNIEnv *env, jclass cls, jlong __jlongpointer fp)
 {
 	fclose(jlong_to_FILE(fp));
 }
-
-
-
-
 
 JNIEXPORT void JNICALL Java_prism_PrismNative_PN_1SetLastErrorBound(JNIEnv *env, jclass cls,jdouble d)
 {
@@ -295,11 +484,6 @@ JNIEXPORT jdouble JNICALL Java_prism_PrismNative_PN_1GetLastErrorBound(JNIEnv *e
 {
 	return last_error_bound;
 }
-
-
-
-
-
 
 //------------------------------------------------------------------------------
 // tidy up
@@ -312,6 +496,10 @@ JNIEXPORT void JNICALL Java_prism_PrismNative_PN_1FreeGlobalRefs(JNIEnv *env, jc
 	prism_cls = NULL;
 	env->DeleteGlobalRef(prism_obj);
 	prism_obj = NULL;
+	env->DeleteGlobalRef(main_log_cls);
+	main_log_cls = NULL;
+	env->DeleteGlobalRef(main_log_obj);
+	main_log_obj = NULL;
 }
 
 //------------------------------------------------------------------------------

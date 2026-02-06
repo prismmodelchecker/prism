@@ -54,7 +54,7 @@ public class PrismSparse
 	static
 	{
 		try {
-			System.loadLibrary("prismsparse");
+			System.loadLibrary("prism");
 		}
 		catch (UnsatisfiedLinkError e) {
 			System.out.println(e);
@@ -65,22 +65,6 @@ public class PrismSparse
 	//----------------------------------------------------------------------------------------------
 	// initialise/close down methods
 	//----------------------------------------------------------------------------------------------
-
-	public static void initialise(PrismLog mainLog, PrismLog techLog)
-	{
-		setCUDDManager();
-		setMainLog(mainLog);
-		setTechLog(techLog);
-	}
-	
-	public static void closeDown()
-	{
-		// tidy up any JNI stuff
-		PS_FreeGlobalRefs();
-	}
-	
-	// tidy up in jni (free global references)
-	private static native void PS_FreeGlobalRefs();
 
 	/**
 	 * Check that number of reachable states is in a range that can be handled by
@@ -94,63 +78,13 @@ public class PrismSparse
 		ODDUtils.checkInt(odd, "Currently, the sparse engine cannot handle models");
 	}
 
-	//----------------------------------------------------------------------------------------------
-	// cudd manager
-	//----------------------------------------------------------------------------------------------
-
-	// cudd manager
-	
-	// jni method to set cudd manager for native code
-	private static native void PS_SetCUDDManager(long ddm);
-	public static void setCUDDManager()
-	{
-		PS_SetCUDDManager(JDD.GetCUDDManager());
-	}
-	
-	//----------------------------------------------------------------------------------------------
-	// logs
-	//----------------------------------------------------------------------------------------------
-
-	// main log
-	
-	// place to store main log for java code
-	private static PrismLog mainLog;
-	// jni method to set main log for native code
-	private static native void PS_SetMainLog(PrismLog log);
-	// method to set main log both in java and c++
-	public static void setMainLog(PrismLog log)
-	{
-		mainLog = log;
-		PS_SetMainLog(log);
-	}
-	
-	// tech log
-	
-	// place to store tech log for java code
-	private static PrismLog techLog;
-	// jni method to set tech log for native code
-	private static native void PS_SetTechLog(PrismLog log);
-	// method to set tech log both in java and c++
-	public static void setTechLog(PrismLog log)
-	{
-		techLog = log;
-		PS_SetTechLog(log);
-	}
-
-	private static native void PS_SetExportIterations(boolean value);
-	public static void SetExportIterations(boolean value)
-	{
-		PS_SetExportIterations(value);
-	}
-
 	//------------------------------------------------------------------------------
 	// error message
 	//------------------------------------------------------------------------------
 	
-	private static native String PS_GetErrorMessage();
 	public static String getErrorMessage()
 	{
-		return PS_GetErrorMessage();
+		return PrismNative.PN_GetErrorMessage();
 	}
 
 	/**

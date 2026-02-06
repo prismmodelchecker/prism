@@ -50,7 +50,7 @@ public class NDSparseMatrix
 
 	static {
 		try {
-			System.loadLibrary("prismsparse");
+			System.loadLibrary("prism");
 		} catch (UnsatisfiedLinkError e) {
 			System.out.println(e);
 			System.exit(1);
