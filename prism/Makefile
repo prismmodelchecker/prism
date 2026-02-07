@@ -718,4 +718,12 @@ clean_param: checks
 clean_strat: checks
 	@(cd $(PRISM_SRC_DIR)/strat && $(MAKE) -s EXE="$(EXE)" clean)
 
+###############
+# IDE support #
+###############
+
+# Set up for IntelliJ IDEA
+intellij:
+	etc/intellij/install.sh
+
 #################################################
