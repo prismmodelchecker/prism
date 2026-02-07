@@ -12,6 +12,14 @@ for arg in "$@"; do
   fi
 done
 
+# Check for symlink flag
+SYMLINK=false
+for arg in "$@"; do
+  if [ "$arg" == "--symlink" ] || [ "$arg" == "-s" ]; then
+    SYMLINK=true
+  fi
+done
+
 copy_file() {
     local src="$1"
     local dest="$2"
@@ -19,7 +27,11 @@ copy_file() {
     if [ -f "$dest" ] && [ "$FORCE" = false ]; then
         echo "⚠️  Skipping $display_path (already exists). Use -f to overwrite."
     else
-        cp "$src" "$dest" && echo "✅ Installed $display_path"
+	    if [ "$SYMLINK" = false ]; then
+            cp "$src" "$dest" && echo "✅ Installed $display_path"
+		else
+		    rm "$dest" && ln -s "$src" "$dest" && echo "✅ Installed $display_path (symlink)"
+    	fi
     fi
 }
 
