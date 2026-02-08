@@ -79,6 +79,13 @@ public class UMBFormat
 	/** Filename for storing valuation classes */
 	public static final String VALUATION_CLASSES = "valuation-to-class" + BIN_FILE_EXT;
 
+	// Default values for binary files
+
+	public enum BinFileDefaultValue
+	{
+		IDENTITY, ZERO, ONE
+	}
+
 	// Allowable compression formats
 
 	public enum CompressionFormat
