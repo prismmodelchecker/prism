@@ -512,7 +512,7 @@ count_loc:
 ###########
 
 # Run all unit tests
-JUNIT_JAR = $(wildcard $(PRISM_LIB_DIR)/junit-platform-console-standalone-*.jar)
+JUNIT_JAR = $(wildcard $(PRISM_LIB_DIR)/junit-platform-console-standalone*.jar)
 unittests: make_tests
 	# Provide Regex to match our test classes. If none is given, only certain test classes are excluded by default.
 	$(JAVA) -jar $(JUNIT_JAR) -cp classes --include-classname '^(Test.*|.+[.$$]Test.*|.+Tests?[.$$].+|.*Tests?)$$' -scan-classpath --details=summary
