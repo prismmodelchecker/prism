@@ -906,7 +906,7 @@ public class UMBReader
 			switch (value) {
 				case ZERO:
 					longValue1 = 0L;
-					longValue2 = 0L;
+					longValue2 = 1L;
 					break;
 				case ONE:
 					longValue1 = 1L;
