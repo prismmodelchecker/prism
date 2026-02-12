@@ -518,8 +518,12 @@ public class GUIPrism extends JFrame
 		    }
 		}*/
 
-		if (doExit)
+		if (doExit) {
+			if (prism != null) {
+				prism.closeDown(true);
+			}
 			System.exit(0);
+		}
 	}
 
 	//ACCESS METHODS
