@@ -436,15 +436,15 @@ public class GUIPrism extends JFrame
 				} else if (sw.equals("dir")) {
 					if (i < args.length - 1) {
 						String workingDir = args[++i];
-						// set working dir natively for PRISM stuff
-						if (PrismNative.setWorkingDirectory(workingDir) != 0) {
-							System.err.println("Error: Could not change working directory to " + workingDir);
+						// set working dir for PRISM
+						try {
+							Prism.setWorkingDirectory(workingDir);
+						} catch (PrismException ex) {
+							System.err.println("Error: " + ex.getMessage());
 							System.exit(1);
 						}
 						// also store locally to initialise file chooser
 						chooserDir = workingDir;
-						// NB: we avoid setting system property "user.dir"
-						// since this may break loading of shared libraries etc.
 					} else {
 						System.err.println("Error: No value specified for -" + sw + " switch");
 						System.exit(1);

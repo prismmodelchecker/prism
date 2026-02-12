@@ -45,14 +45,13 @@ public class PrismNative
 			System.exit(1);
 		}
 	}
-	
+
 	// Initialise/close down methods
 	
-	public static void initialise(Prism prism, PrismLog mainLog)
+	public static void initialise(Prism prism)
 	{
 		setPrism(prism);
 		setCUDDManager();
-		setMainLog(mainLog);
 	}
 	
 	public static void closeDown()

@@ -1117,10 +1117,7 @@ public class PrismCL implements PrismModelListener
 				// set working directory
 				else if (sw.equals("dir")) {
 					if (i < args.length - 1) {
-						String workingDir = args[++i];
-						if (PrismNative.setWorkingDirectory(workingDir) != 0) {
-							errorAndExit("Could not change working directory to " + workingDir);
-						}
+						Prism.setWorkingDirectory(args[++i]);
 					} else {
 						errorAndExit("No property specified for -" + sw + " switch");
 					}

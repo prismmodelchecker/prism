@@ -30,12 +30,14 @@ import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Pattern;
 
 import common.iterable.Range;
-import dv.DoubleVector;
 import explicit.CTMC;
 import explicit.CTMCModelChecker;
 import explicit.ConstructModel;
@@ -46,17 +48,15 @@ import explicit.ExplicitFiles2Rewards;
 import explicit.FastAdaptiveUniformisation;
 import explicit.FastAdaptiveUniformisationModelChecker;
 import explicit.ModelModelGenerator;
-import hybrid.PrismHybrid;
 import io.UMBImporter;
 import io.ExplicitModelImporter;
 import io.ModelExportOptions;
 import io.ModelExportTask;
 import io.ModelExportFormat;
 import jdd.JDD;
+import jdd.JDDLibrary;
 import jdd.JDDNode;
 import jdd.JDDVars;
-import mtbdd.PrismMTBDD;
-import odd.ODDUtils;
 import param.ParamMode;
 import param.ParamModelChecker;
 import parser.PrismParser;
@@ -74,7 +74,6 @@ import simulator.GenerateSimulationPath;
 import simulator.ModulesFileModelGenerator;
 import simulator.SimulatorEngine;
 import simulator.method.SimulationMethod;
-import sparse.PrismSparse;
 import strat.Strategy;
 import strat.StrategyExportOptions;
 import strat.StrategyExportOptions.StrategyExportType;
@@ -224,6 +223,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	// Parsers/translators/model checkers/simulators/etc.
 	//------------------------------------------------------------------------------
 
+	private final List<PrismLibrary> libraries = new ArrayList<>();
 	private static PrismParser thePrismParser = null;
 	private static boolean prismParserInUse = false;
 	private SimulatorEngine theSimulator = null;
@@ -240,6 +240,12 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	//------------------------------------------------------------------------------
 	// State
 	//------------------------------------------------------------------------------
+
+	/**
+	 * Working directory for resolving files (null = current working directory).
+	 * Since this is used by native shared libraries, and to ease access from other code, it is static.
+	 */
+	private static Path workingDirectory = null;
 
 	public enum ModelSource {
 		PRISM_MODEL, MODEL_GENERATOR, EXPLICIT_FILES, BUILT_MODEL;
@@ -369,9 +375,6 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	private String[] paramLowerBounds;
 	private String[] paramUpperBounds;
 
-	// Has the CUDD library been initialised yet?
-	private boolean cuddStarted = false;
-
 	// Info about automatic engine switching
 	private int engineOld = -1;
 	private boolean engineSwitched = false;
@@ -431,18 +434,73 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 		}
 	}
 
+	// Working directory
+
+	/**
+	 * Set the working directory, with respect to which filenames for reading/writing
+	 * will be resolved. If set to null, the existing current working directory is used.
+	 * If set, this should be called before {@link #initialise()} so that it is
+	 * passed to any other libraries that are initialised.
+	 *
+	 * @param dirname Name of working directory (null = current working directory)
+	 */
+	public static void setWorkingDirectory(String dirname) throws PrismException
+	{
+		if (dirname == null) {
+			workingDirectory = null;
+			return;
+		}
+		Path wd = Paths.get(dirname);
+		if (!Files.isDirectory(wd)) {
+			throw new PrismException("Working directory \"" + dirname + "\" is not a directory");
+		}
+		if (!Files.isReadable(wd)) {
+			throw new PrismException("Working directory \"" + dirname + "\" is not readable");
+		}
+		if (!Files.isWritable(wd)) {
+			throw new PrismException("Working directory \"" + dirname + "\" is not writeable");
+		}
+		workingDirectory = wd;
+	}
+
+	/**
+	 * Get the working directory, with respect to which filenames for reading/writing
+	 * will be resolved. If set to null, the existing current working directory is used.
+	 */
+	public static Path getWorkingDirectory()
+	{
+		return  workingDirectory;
+	}
+
+	/**
+	 * Resolve a filename. If relative, it will be resolved with respect to
+	 * {@link #getWorkingDirectory()} (or the current working directory if that is null).
+	 */
+	public static File resolveFile(String filename)
+	{
+		return resolveFile(new File(filename));
+	}
+
+	/**
+	 * Resolve a filename. If relative, it will be resolved with respect to
+	 * {@link #getWorkingDirectory()} (or the current working directory if that is null).
+	 */
+	public static File resolveFile(File file)
+	{
+		return workingDirectory == null ? file : workingDirectory.resolve(file.toPath()).toFile();
+	}
+
 	// Set methods
 
 	/**
 	 * Set the PrismLog where messages and model checking output will be sent.
 	 */
-	public void setMainLog(PrismLog l)
+	public void setMainLog(PrismLog mainLog) throws PrismException
 	{
-		// store new log
-		mainLog = l;
-		// pass to other components
-		JDD.SetOutputStream(mainLog.getFilePointer());
-		PrismNative.setMainLog(mainLog);
+		super.setLog(mainLog);
+		for (PrismLibrary lib : libraries) {
+			lib.setMainLog(mainLog);
+		}
 	}
 
 	// Set methods for main prism settings
@@ -1090,17 +1148,9 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	 */
 	public void notifySettings(PrismSettings settings)
 	{
-		if (cuddStarted) {
-			JDD.SetCUDDEpsilon(settings.getDouble(PrismSettings.PRISM_CUDD_EPSILON));
-			try {
-				long cuddMaxMem = PrismUtils.convertMemoryStringtoKB(getCUDDMaxMem());
-				JDD.SetCUDDMaxMem(cuddMaxMem);
-			} catch (PrismException e) {
-				// Fail silently if memory string is invalid 
-			}
+		for (PrismLibrary lib : libraries) {
+			lib.notifySettings(settings);
 		}
-		jdd.SanityJDD.enabled = settings.getBoolean(PrismSettings.PRISM_JDD_SANITY_CHECKS);
-		PrismNative.SetExportIterations(settings.getBoolean(PrismSettings.PRISM_EXPORT_ITERATIONS));
 	}
 
 	//------------------------------------------------------------------------------
@@ -1244,14 +1294,13 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 		mainLog.print("Memory limits: cudd=" + getCUDDMaxMem());
 		mainLog.println(", java(heap)=" + PrismUtils.convertBytesToMemoryString(Runtime.getRuntime().maxMemory()));
 
-		// initialise cudd/jdd
-		long cuddMaxMem = PrismUtils.convertMemoryStringtoKB(getCUDDMaxMem());
-		JDD.InitialiseCUDD(cuddMaxMem, getCUDDEpsilon());
-		cuddStarted = true;
-		JDD.SetOutputStream(mainLog.getFilePointer());
-
-		// initialise libraries/engines
-		PrismNative.initialise(this, mainLog);
+		// Add/initialise components/libraries
+		libraries.add(new JDDLibrary());
+		libraries.add(new PrismNativeLibrary());
+		for (PrismLibrary lib : libraries) {
+			lib.initialise(this);
+		}
+		setMainLog(mainLog);
 	}
 
 	/**
@@ -4211,13 +4260,10 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 		// Clear any built model(s)
 		clearBuiltModel();
 		// Close down libraries/engines
-		PrismNative.closeDown();
 		ParamModelChecker.closeDown();
-		// Close down CUDD/JDD
-		if (cuddStarted) {
-			JDD.CloseDownCUDD(check);
-			// reset CUDD status
-			cuddStarted = false;
+		int numLibs = libraries.size();
+		for (int i = numLibs - 1; i >= 0; i--) {
+			libraries.get(i).closeDown(check);
 		}
 	}
 
