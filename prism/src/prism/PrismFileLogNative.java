@@ -1,8 +1,10 @@
 package prism;
 
+import java.io.ByteArrayOutputStream;
 import java.io.FileNotFoundException;
 import java.io.OutputStream;
 import java.io.PrintStream;
+import java.nio.charset.StandardCharsets;
 
 /**
  * A PrintStream that will write to a file (or stdout) using native code,
@@ -13,6 +15,9 @@ public class PrismFileLogNative extends PrintStream
     protected long fp;
     /** Are we writing to stdout? */
     protected boolean stdout;
+
+    /** Line buffer to accumulate bytes until a newline */
+    private final ByteArrayOutputStream lineBuffer = new ByteArrayOutputStream(128);
 
     /**
      * Create a stream that will write to {@code filename}, overwriting any previous contents.
@@ -62,29 +67,49 @@ public class PrismFileLogNative extends PrintStream
     // Methods to overwrite the PrintStream implementation
 
     @Override
-    public void write(byte[] buf, int off, int len)
+    public synchronized void write(byte[] buf, int off, int len)
     {
-        if (fp == 0) {
-            throw new IllegalStateException("Trying to write to an invalid file handle (already closed?)");
+        int start = off;
+        for (int i = off; i < off + len; i++) {
+            if (buf[i] == '\n') {
+                // Print up to a newline
+                lineBuffer.write(buf, start, (i - start) + 1);
+                if (fp == 0) {
+                    throw new IllegalStateException("Trying to write to an invalid file handle (already closed?)");
+                }
+                PrismNative.PN_PrintToFile(fp, lineBuffer.toString(StandardCharsets.UTF_8));
+                lineBuffer.reset();
+                start = i + 1;
+            }
         }
-        // Convert the byte array to a String and pass to the native method
-        if (len > 0) {
-            String s = new String(buf, off, len, java.nio.charset.StandardCharsets.UTF_8);
-            PrismNative.PN_PrintToFile(fp, s);
+        // Buffer any remaining bytes after the last newline
+        if (start < off + len) {
+            lineBuffer.write(buf, start, (off + len) - start);
         }
     }
 
     @Override
-    public void write(int b)
+    public synchronized void write(int b)
     {
-        write(new byte[]{(byte) b}, 0, 1);
+        lineBuffer.write(b);
+        if (b == '\n') {
+            if (fp == 0) {
+                throw new IllegalStateException("Trying to write to an invalid file handle (already closed?)");
+            }
+            PrismNative.PN_PrintToFile(fp, lineBuffer.toString(StandardCharsets.UTF_8));
+            lineBuffer.reset();
+        }
     }
 
     @Override
-    public void flush()
+    public synchronized void flush()
     {
         if (fp == 0) {
             throw new IllegalStateException("Trying to flush an invalid file handle (already closed?)");
+        }
+        if (lineBuffer.size() > 0) {
+            PrismNative.PN_PrintToFile(fp, lineBuffer.toString(StandardCharsets.UTF_8));
+            lineBuffer.reset();
         }
         PrismNative.PN_FlushFile(fp);
     }
@@ -96,6 +121,7 @@ public class PrismFileLogNative extends PrintStream
         if (fp == 0) {
             return;
         }
+        flush();
         // We never close stdout
         if (stdout) {
             return;
