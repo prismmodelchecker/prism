@@ -50,7 +50,7 @@ public class ReactionsText2Prism extends Reactions2Prism
 
 	// Constructors
 
-	public ReactionsText2Prism()
+	public ReactionsText2Prism() throws PrismException
 	{
 		super();
 	}

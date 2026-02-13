@@ -1685,9 +1685,6 @@ public class SimulatorEngine extends PrismComponent
 			// create new file log or use main log
 			if (file != null) {
 				log = new PrismFileLog(file.getPath());
-				if (!log.ready()) {
-					throw new PrismException("Could not open file \"" + file + "\" for output");
-				}
 				mainLog.println("\nExporting path to file \"" + file + "\"...");
 			} else {
 				log = mainLog;

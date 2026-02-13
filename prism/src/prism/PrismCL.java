@@ -485,18 +485,15 @@ public class PrismCL implements PrismModelListener
 							mainLog.print("\nExporting vector of results for all states ");
 							mainLog.println(exportVectorFilename.equals("stdout") ? "below:" : "to file \"" + exportVectorFilename + "\"...");
 							boolean toStdout = exportVectorFilename.equals("stdout");
-							PrismLog tmpLog = toStdout ? prism.getMainLog() : new PrismFileLog(exportVectorFilename);
-							if (!tmpLog.ready()) {
-								errorAndExit("Couldn't open file \"" + exportVectorFilename + "\" for output");
-							}
 							try {
+								PrismLog tmpLog = toStdout ? prism.getMainLog() : new PrismFileLog(exportVectorFilename);
 								res.getVector().print(tmpLog, false, false, toStdout, toStdout);
+								res.getVector().clear();
+								if (!toStdout) {
+									tmpLog.close();
+								}
 							} catch (PrismException e) {
 								error(e.getMessage());
-							}
-							res.getVector().clear();
-							if (!toStdout) {
-								tmpLog.close();
 							}
 						}
 						
@@ -1820,13 +1817,14 @@ public class PrismCL implements PrismModelListener
 				else if (sw.equals("mainlog")) {
 					if (i < args.length - 1) {
 						mainLogFilename = args[++i];
-						// use temporary storage because an error would go to the old log
-						log = new PrismFileLog(mainLogFilename);
-						if (!log.ready()) {
+						try {
+							// use temporary storage because an error would go to the old log
+							log = new PrismFileLog(mainLogFilename);
+							mainLog = log;
+							prism.setMainLog(mainLog);
+						} catch (PrismException e) {
 							errorAndExit("Couldn't open log file \"" + mainLogFilename + "\"");
 						}
-						mainLog = log;
-						prism.setMainLog(mainLog);
 					} else {
 						errorAndExit("No file specified for -" + sw + " switch");
 					}

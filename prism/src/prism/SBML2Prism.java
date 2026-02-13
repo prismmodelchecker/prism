@@ -55,7 +55,7 @@ public class SBML2Prism extends Reactions2Prism implements EntityResolver
 
 	// Constructors
 
-	public SBML2Prism()
+	public SBML2Prism() throws PrismException
 	{
 		super();
 	}

@@ -487,8 +487,8 @@ public class Preprocessor
 	{
 		if (args.length < 1)
 			return;
-		Prism p = new Prism(new PrismFileLog("stdout"));
 		try {
+			Prism p = new Prism(new PrismFileLog("stdout"));
 			Preprocessor pp = new Preprocessor(p, new File(args[0]));
 			pp.setParameters(args);
 			String s = pp.preprocess();

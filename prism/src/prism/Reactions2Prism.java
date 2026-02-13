@@ -66,7 +66,7 @@ public abstract class Reactions2Prism extends PrismLanguageTranslator
 
 	// Constructors
 
-	public Reactions2Prism()
+	public Reactions2Prism() throws PrismException
 	{
 		this(new PrismFileLog("stdout"));
 	}

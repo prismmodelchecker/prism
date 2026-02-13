@@ -46,9 +46,10 @@ public class PrismFileLog extends PrismLog
 	/**
 	 * Create a {@link PrismLog} which will write to {@code filename}, overwriting any previous contents.
 	 * If {@code filename} is "stdout", then output will be written to standard output.
+	 * Throw a PRISM exception if there is a problem opening the file for writing.
 	 * @param filename Filename of log file
 	 */
-	public PrismFileLog(String filename)
+	public PrismFileLog(String filename) throws PrismException
 	{
 		this(filename, false);
 	}
@@ -56,10 +57,11 @@ public class PrismFileLog extends PrismLog
 	/**
 	 * Create a {@link PrismLog} which will write to {@code filename}, appending to an existing file if requested.
 	 * If {@code filename} is "stdout", then output will be written to standard output.
+	 * Throw a PRISM exception if there is a problem opening the file for writing.
 	 * @param filename Filename of log file
 	 * @param append Append to the existing file?
 	 */
-	public PrismFileLog(String filename, boolean append)
+	public PrismFileLog(String filename, boolean append) throws PrismException
 	{
 		this(filename, append, true);
 	}
@@ -67,11 +69,12 @@ public class PrismFileLog extends PrismLog
 	/**
 	 * Create a {@link PrismLog} which will write to {@code filename}, appending to an existing file if requested.
 	 * If {@code filename} is "stdout", then output will be written to standard output.
+	 * Throw a PRISM exception if there is a problem opening the file for writing.
 	 * @param filename Filename of log file
 	 * @param append Append to the existing file?
 	 * @param nativeCode Use native code to write to the file?
 	 */
-	public PrismFileLog(String filename, boolean append, boolean nativeCode)
+	public PrismFileLog(String filename, boolean append, boolean nativeCode) throws PrismException
 	{
 		createLogStream(filename, append, nativeCode);
 	}
@@ -82,7 +85,7 @@ public class PrismFileLog extends PrismLog
 	 * @param append Append to the existing file?
 	 * @param nativeCode Use native code to write to the file?
 	 */
-	private void createLogStream(String filename, boolean append, boolean nativeCode)
+	private void createLogStream(String filename, boolean append, boolean nativeCode) throws PrismException
 	{
 		this.filename = filename;
 		this.stdout = "stdout".equals(filename);
@@ -97,9 +100,7 @@ public class PrismFileLog extends PrismLog
 				}
 			}
 		} catch (FileNotFoundException e) {
-			// If file opening fails, just set the stream to null
-			// (the status is accessible by calling ready())
-			logStream = null;
+			throw new PrismException("Could not open file \"" + filename + "\" for output");
 		}
 	}
 
@@ -213,7 +214,7 @@ public class PrismFileLog extends PrismLog
 	 */
 	public static PrismFileLog create(String filename) throws PrismException
 	{
-		return create(filename, false);
+		return new PrismFileLog(filename);
 	}
 
 	/**
@@ -225,11 +226,7 @@ public class PrismFileLog extends PrismLog
 	 */
 	public static PrismFileLog create(String filename, boolean append) throws PrismException
 	{
-		PrismFileLog log = new PrismFileLog(filename, append);
-		if (!log.ready()) {
-			throw new PrismException("Could not open file \"" + filename + "\" for output");
-		}
-		return log;
+		return new PrismFileLog(filename, append);
 	}
 
 	/**
