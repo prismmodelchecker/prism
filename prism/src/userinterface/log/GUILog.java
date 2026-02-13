@@ -79,11 +79,6 @@ public class GUILog extends GUIPlugin implements MouseListener, PrismSettingsLis
 			GUIWindowLog win = (GUIWindowLog)theLog;
 			initComponentsAsWindowLog(win);
 		}
-		else if(theLog instanceof GUIVisualLogModel)
-		{
-			GUIVisualLogModel vis = (GUIVisualLogModel)theLog;
-			initComponentsAsVisualLog(vis);
-		}
 		else
 		{
 			//other types of log handles here
@@ -258,13 +253,6 @@ public class GUILog extends GUIPlugin implements MouseListener, PrismSettingsLis
 		logMenu.add(clearAction);
 		
 		logFilter = new FileNameExtensionFilter("Plain text files (*.txt)", "txt"); 
-	}
-	
-	private void initComponentsAsVisualLog(GUIVisualLogModel log)
-	{
-		GUIVisualLogger logger = new GUIVisualLogger(log);
-		setLayout(new BorderLayout());
-		add(logger,BorderLayout.CENTER);
 	}
 	
 	public void mouseClicked(MouseEvent e)

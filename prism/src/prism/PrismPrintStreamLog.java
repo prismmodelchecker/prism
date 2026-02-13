@@ -26,97 +26,117 @@
 
 package prism;
 
-import java.io.*;
+import java.io.PrintStream;
 
 /**
- * Implementation of the PrismLog interface that passed all output to a PrintStream object.
+ * A {@link PrismFileLog} that passes all output to a PrintStream object.
  */
 public class PrismPrintStreamLog extends PrismLog
 {
-	PrintStream out = null;
-	
+	/** PrintStream used for the log writing */
+	protected PrintStream logStream = null;
+
+	/**
+	 * Create a {@link PrismPrintStreamLog} which will write to the given PrintStream.
+	 */
 	public PrismPrintStreamLog(PrintStream out)
 	{
 		setPrintStream(out);
 	}
 
-	public PrintStream getPrintStream()
-	{
-		return out;
-	}
-
+	/**
+	 * Set the underlying PrintStream.
+	 */
 	public void setPrintStream(PrintStream out)
 	{
-		this.out = out;
+		this.logStream = out;
 	}
-	
+
+	/**
+	 * Get the underlying PrintStream.
+	 */
+	public PrintStream getPrintStream()
+	{
+		return logStream;
+	}
+
+	// Methods to implement PrismLog
+
+	@Override
 	public boolean ready()
 	{
-		return out != null;
+		return logStream != null;
 	}
 
-	public long getFilePointer()
-	{
-		// This implementation is Java only so does not return a file pointer.
-		return -1;
-	}
-	
+	@Override
 	public void flush()
 	{
-		out.flush();
+		logStream.flush();
 	}
 
+	@Override
 	public void close()
 	{
-		out.close();
+		if (logStream != null) {
+			flush();
+			if (logStream != System.out && logStream != System.err) {
+				logStream.close();
+			}
+			logStream = null;
+		}
 	}
-	
-	// Basic print methods
-	
+
+	@Override
 	public void print(boolean b)
 	{
-		out.print(b);
+		logStream.print(b);
 	}
 
+	@Override
 	public void print(char c)
 	{
-		out.print(c);
+		logStream.print(c);
 	}
 
+	@Override
 	public void print(double d)
 	{
-		out.print(d);
+		logStream.print(d);
 	}
 
+	@Override
 	public void print(float f)
 	{
-		out.print(f);
+		logStream.print(f);
 	}
 
+	@Override
 	public void print(int i)
 	{
-		out.print(i);
+		logStream.print(i);
 	}
 
+	@Override
 	public void print(long l)
 	{
-		out.print(l);
+		logStream.print(l);
 	}
 
+	@Override
 	public void print(Object obj)
 	{
-		out.print(obj);
+		logStream.print(obj);
 	}
 
+	@Override
 	public void print(String s)
 	{
-		out.print(s);
+		logStream.print(s);
 	}
 
+	@Override
 	public void println()
 	{
-		out.println();
+		logStream.println();
 	}
 }
-
-//------------------------------------------------------------------------------

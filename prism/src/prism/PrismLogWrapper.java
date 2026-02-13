@@ -21,6 +21,8 @@ public class PrismLogWrapper extends PrismLog
         this.log = log;
     }
 
+    // Methods to implement PrismLog
+
     @Override
     public boolean ready()
     {
@@ -42,7 +44,8 @@ public class PrismLogWrapper extends PrismLog
     @Override
     public void close()
     {
-        // Do nothing. In particular, do not close the wrapped log.
+        // Flush the wrapped log but do not close it
+        flush();
     }
 
     @Override

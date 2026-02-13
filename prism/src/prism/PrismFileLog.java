@@ -146,6 +146,7 @@ public class PrismFileLog extends PrismLog
 	@Override
 	public void close()
 	{
+		flush();
 		logStream.close();
 	}
 	
