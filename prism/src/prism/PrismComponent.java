@@ -129,8 +129,12 @@ public class PrismComponent
 	/**
 	 * Either create a new PrismFileLog for {@code file} or,
 	 * if {@code file} is null, return the log.
+	 * In the former case, if {@code append} is true,
+	 * the file should be opened in "append" mode.
+	 * In the latter case, a wrapper around the log is returned,
+	 * which can be {@code close()}ed without closing the underlying log.
+	 * The {@code append} parameter is ignored if {@code file} is null.
 	 * Throws a {@code PrismException} if there is a problem opening the file.
-	 * If {@code append} is true, file should be opened in "append" mode.
 	 */
 	public PrismLog getPrismLogForFile(File file, boolean append) throws PrismException
 	{
@@ -139,7 +143,7 @@ public class PrismComponent
 		if (file != null) {
 			tmpLog = PrismFileLog.create(file.getPath(), append);
 		} else {
-			tmpLog = mainLog;
+			tmpLog = new PrismLogWrapper(mainLog);
 		}
 		return tmpLog;
 	}
