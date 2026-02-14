@@ -29,27 +29,42 @@ package prism;
 
 import java.io.Closeable;
 
+/**
+ * Base class for PRISM logs: PrintStream-like objects which can write messages, warnings, etc.
+ *
+ * . A log is an output stream to which PRISM can write messages, warnings, etc.
+ * <br>
+ * The log also has a verbosity level, which determines what messages will be printed. The verbosity level can be changed at any time.
+ * <br>
+ * The log also keeps track of the number of warnings that have been printed, so that this can be queried at the end of computation and the user informed if there were any warnings.
+ */
 public abstract class PrismLog implements Closeable, AutoCloseable
 {
-	/**
-	 * Specifies that only more important messages should be printed
-	 */
+	// Verbosity settings + log state
+
+	/** Specifies that only more important messages should be printed */
 	public static final int VL_DEFAULT = 0;
-	/**
-	 * Specifies that the output should be more verbose
-	 */
+	/** Specifies that the output should be more verbose */
 	public static final int VL_HIGH = 1;
-	/**
-	 * Specifies that all messages should be printed
-	 */
+	/** Specifies that all messages should be printed */
 	public static final int VL_ALL = 2;
 
+	/** Verbosity level of this log */
 	protected int verbosityLevel = VL_DEFAULT;
 
-	/**
-	 * Keeps the count of warnings printed so far.
-	 */
+	/** Number of warnings printed so far */
 	protected int numberOfWarnings = 0;
+
+	// Setters
+
+	/**
+	 * Changes the verbosity level of this log. The verbosity level determines what messages will be printed.
+	 * @param verbosityLevel Should be one of {@link #VL_DEFAULT}, {@link #VL_HIGH} or {@link #VL_ALL}.
+	 */
+	public void setVerbosityLevel(int verbosityLevel)
+	{
+		this.verbosityLevel = verbosityLevel;
+	}
 
 	/**
 	 * Sets the counter of warnings printed to 0.
@@ -57,6 +72,16 @@ public abstract class PrismLog implements Closeable, AutoCloseable
 	public void resetNumberOfWarnings()
 	{
 		this.numberOfWarnings = 0;
+	}
+
+	// Getters
+
+	/**
+	 * Returns the verbosity level of this log. The verbosity level determines what messages will be printed.
+	 */
+	public int getVerbosityLevel()
+	{
+		return verbosityLevel;
 	}
 
 	/**
@@ -68,50 +93,106 @@ public abstract class PrismLog implements Closeable, AutoCloseable
 		return this.numberOfWarnings;
 	}
 
-	/**
-	 * Returns the verbosity level of this log. The verbosity level determines what messages will be printed.
-	 * @return
-	 */
-	public int getVerbosityLevel()
-	{
-		return verbosityLevel;
-	}
+	// Core log methods to be implemented by subclasses
 
 	/**
-	 * Changes the verbosity level of this log. The verbosity level determines what messages will be printed.
-	 * @param verbosityLevel Should be one of {@link #VL_DEFAULT}, {@link #VL_HIGH} or {@link #VL_ALL}.
+	 * Returns true if this log is ready to be written to, and false otherwise.
 	 */
-	public void setVerbosityLevel(int verbosityLevel)
-	{
-		this.verbosityLevel = verbosityLevel;
-	}
-
 	public abstract boolean ready();
 
-	public abstract long getFilePointer();
+	/**
+	 * For a log with a native implementation, returns the underlying file pointer,
+	 * cast to a long (or 0 if the log is not ready). Returns -1 for non-native logs.
+	 */
+	public long getFilePointer()
+	{
+		// Default implementation assumes non-native log
+		return -1;
+	}
 
+	/**
+	 * Flushes this log, ensuring that all buffered output is output.
+	 */
 	public abstract void flush();
 
 	@Override
 	public abstract void close();
 
+	/**
+	 * Prints a Boolean value.
+	 */
 	public abstract void print(boolean b);
-
+	/**
+	 * Prints a character.
+	 */
 	public abstract void print(char c);
 
+	/**
+	 * Prints a double-precision floating point number.
+	 */
 	public abstract void print(double d);
 
+	/**
+	 * Prints a single-precision floating point number.
+	 */
 	public abstract void print(float f);
 
+	/**
+	 * Prints an integer.
+	 */
 	public abstract void print(int i);
 
+	/**
+	 * Prints a long integer.
+	 */
 	public abstract void print(long l);
 
+	/**
+	 * Prints an object.
+	 */
 	public abstract void print(Object obj);
 
+	/**
+	 * Prints a string.
+	 */
 	public abstract void print(String s);
 
+	/**
+	 * Prints a newline character.
+	 */
 	public abstract void println();
+
+	// Additional print methods (other objects)
+
+	/**
+	 * Prints a double array in a human-readable format, e.g. "[1.0, 2.0, 3.0]".
+	 */
+	public void print(double arr[])
+	{
+		int i, n = arr.length;
+		print("[");
+		for (i = 0; i < n; i++) {
+			print(i > 0 ? ", " : "");
+			print(arr[i]);
+		}
+		print("]");
+	}
+
+	/**
+	 * Prints an integer array in a human-readable format, e.g. "[1, 2, 3]".
+	 */
+	public void print(int arr[])
+	{
+		int i, n = arr.length;
+		print("[");
+		for (i = 0; i < n; i++) {
+			print(i > 0 ? ", " : "");
+			print(arr[i]);
+		}
+		print("]");
+	}
+
+	// Additional print methods (checking verbosity level)
 
 	/**
 	 * Prints out the value of {@code b} if the log's verbosity level is at least {@code level}
@@ -194,87 +275,99 @@ public abstract class PrismLog implements Closeable, AutoCloseable
 			print(arr);
 	}
 
-	public void print(double arr[])
-	{
-		int i, n = arr.length;
-		print("[");
-		for (i = 0; i < n; i++) {
-			print(i > 0 ? ", " : "");
-			print(arr[i]);
-		}
-		print("]");
-	}
+	// Additional print methods (println)
 
-	public void print(int arr[])
-	{
-		int i, n = arr.length;
-		print("[");
-		for (i = 0; i < n; i++) {
-			print(i > 0 ? ", " : "");
-			print(arr[i]);
-		}
-		print("]");
-	}
-
+	/**
+	 * Prints a Boolean value followed by a newline character.
+	 */
 	public void println(boolean b)
 	{
 		print(b);
 		println();
 	}
 
+	/**
+	 * Prints a character followed by a newline character.
+	 */
 	public void println(char c)
 	{
 		print(c);
 		println();
 	}
 
+	/**
+	 * Prints a double-precision floating point number followed by a newline character.
+	 */
 	public void println(double d)
 	{
 		print(d);
 		println();
 	}
 
+	/**
+	 * Prints a single-precision floating point number followed by a newline character.
+	 */
 	public void println(float f)
 	{
 		print(f);
 		println();
 	}
 
+	/**
+	 * Prints an integer followed by a newline character.
+	 */
 	public void println(int i)
 	{
 		print(i);
 		println();
 	}
 
+	/**
+	 * Prints a long integer followed by a newline character.
+	 */
 	public void println(long l)
 	{
 		print(l);
 		println();
 	}
 
+	/**
+	 * Prints an object followed by a newline character.
+	 */
 	public void println(Object o)
 	{
 		print(o);
 		println();
 	}
 
+	/**
+	 * Prints a string followed by a newline character.
+	 */
 	public void println(String s)
 	{
 		print(s);
 		println();
 	}
 
+	/**
+	 * Prints a double array followed by a newline character.
+	 */
 	public void println(double arr[])
 	{
 		print(arr);
 		println();
 	}
 
+	/**
+	 * Prints an integer array followed by a newline character.
+	 */
 	public void println(int arr[])
 	{
 		print(arr);
 		println();
 	}
+
+	// Additional print methods (println, checking verbosity level)
 
 	/**
 	 * Prints out the value of {@code b} followed by a newline character, provided that the log's verbosity level is at least {@code level}
@@ -365,6 +458,8 @@ public abstract class PrismLog implements Closeable, AutoCloseable
 		if (level <= this.verbosityLevel)
 			println(arr);
 	}
+
+	// Other print methods
 
 	/**
 	 * Prints a separator between sections of log output.
