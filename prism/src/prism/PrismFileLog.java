@@ -34,15 +34,13 @@ import java.io.PrintStream;
 /**
  * A {@link PrismLog} that will write to a file (or stdout).
  */
-public class PrismFileLog extends PrismLog
+public class PrismFileLog extends PrismPrintStreamLog
 {
 	/** Filename (or "stdout") */
 	protected String filename;
 	/** Are we writing to stdout? */
 	protected boolean stdout;
-	/** PrintStream used for the log writing */
-	protected PrintStream logStream;
-	
+
 	/**
 	 * Create a {@link PrismLog} which will write to {@code filename}, overwriting any previous contents.
 	 * If {@code filename} is "stdout", then output will be written to standard output.
@@ -91,12 +89,12 @@ public class PrismFileLog extends PrismLog
 		this.stdout = "stdout".equals(filename);
 		try {
 			if (nativeCode) {
-				logStream = new PrismFileLogNative(filename, append);
+				setPrintStream(new PrismFileLogNative(filename, append));
 			} else {
 				if (stdout) {
-					logStream = System.out;
+					setPrintStream(System.out);
 				} else {
-					logStream = new PrintStream(new BufferedOutputStream(new FileOutputStream(filename, append)));
+					setPrintStream(new PrintStream(new BufferedOutputStream(new FileOutputStream(filename, append))));
 				}
 			}
 		} catch (FileNotFoundException e) {
@@ -135,73 +133,6 @@ public class PrismFileLog extends PrismLog
 		} else {
 			return -1;
 		}
-	}
-
-	@Override
-	public void flush()
-	{
-		logStream.flush();
-	}
-
-	@Override
-	public void close()
-	{
-		flush();
-		logStream.close();
-	}
-	
-	@Override
-	public void print(boolean b)
-	{
-		logStream.print(b);
-	}
-
-	@Override
-	public void print(char c)
-	{
-		logStream.print(c);
-	}
-
-	@Override
-	public void print(double d)
-	{
-		logStream.print(d);
-	}
-
-	@Override
-	public void print(float f)
-	{
-		logStream.print(f);
-	}
-
-	@Override
-	public void print(int i)
-	{
-		logStream.print(i);
-	}
-
-	@Override
-	public void print(long l)
-	{
-		logStream.print(l);
-	}
-
-	@Override
-	public void print(Object obj)
-	{
-		logStream.print(obj);
-	}
-
-	@Override
-	public void print(String s)
-	{
-		logStream.print(s);
-	}
-
-	@Override
-	public void println()
-	{
-		logStream.println();
 	}
 
 	// Static methods for creating logs

@@ -37,6 +37,13 @@ public class PrismPrintStreamLog extends PrismLog
 	protected PrintStream logStream = null;
 
 	/**
+	 * Create an as-yet unconfigured {@link PrismPrintStreamLog}. Mainly for subclasses.
+	 */
+	public PrismPrintStreamLog()
+	{
+	}
+
+	/**
 	 * Create a {@link PrismPrintStreamLog} which will write to the given PrintStream.
 	 */
 	public PrismPrintStreamLog(PrintStream out)
