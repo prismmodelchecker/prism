@@ -38,5 +38,7 @@ public class PrismNativeComponent extends PrismComponent
     {
         super(prism);
         this.prism = prism;
+        // Make sure PRISM is set up to use native code.
+        prism.useNative();
     }
 }

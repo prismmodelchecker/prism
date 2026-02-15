@@ -1293,14 +1293,31 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 		}
 		mainLog.print("Memory limits: cudd=" + getCUDDMaxMem());
 		mainLog.println(", java(heap)=" + PrismUtils.convertBytesToMemoryString(Runtime.getRuntime().maxMemory()));
+	}
 
-		// Add/initialise components/libraries
-		libraries.add(new JDDLibrary());
-		libraries.add(new PrismNativeLibrary());
-		for (PrismLibrary lib : libraries) {
-			lib.initialise(this);
+	/**
+	 * Ensure that the native libraries are loaded and initialised,
+	 * and that any relevant settings are passed to them.
+	 */
+	public void useNative() throws PrismException
+	{
+		// Add/initialise libraries for native code, if not already done
+		if (libraries.stream().noneMatch(JDDLibrary.class::isInstance)) {
+			addLibrary(new JDDLibrary());
 		}
-		setMainLog(mainLog);
+		if (libraries.stream().noneMatch(PrismNativeLibrary.class::isInstance)) {
+			addLibrary(new PrismNativeLibrary());
+		}
+	}
+
+	/**
+	 * Initialise a freshy created {@link PrismLibrary} and add to the list of libraries.
+	 */
+	private void addLibrary(PrismLibrary lib) throws PrismException
+	{
+		lib.initialise(this);
+		lib.setMainLog(mainLog);
+		libraries.add(lib);
 	}
 
 	/**
