@@ -42,21 +42,7 @@ import jdd.JDDVars;
 import mtbdd.PrismMTBDD;
 import parser.ast.Expression;
 import parser.ast.RelOp;
-import prism.MultiObjUtils;
-import prism.NativeIntArray;
-import prism.OpRelOpBound;
-import prism.Operator;
-import prism.OpsAndBoundsList;
-import prism.Point;
-import prism.Prism;
-import prism.PrismComponent;
-import prism.PrismException;
-import prism.PrismNative;
-import prism.PrismNotSupportedException;
-import prism.PrismSettings;
-import prism.PrismUtils;
-import prism.Tile;
-import prism.TileList;
+import prism.*;
 import sparse.NDSparseMatrix;
 import sparse.PrismSparse;
 import acceptance.AcceptanceRabin;
@@ -68,18 +54,16 @@ import symbolic.model.NondetModel;
 /**
  * Multi-objective model checking functionality
  */
-public class MultiObjModelChecker extends PrismComponent
+public class MultiObjModelChecker extends PrismNativeComponent
 {
-	protected Prism prism;
 	protected boolean verbose;
 
 	/**
 	 * Create a new MultiObjModelChecker, inherit basic state from parent (unless null).
 	 */
-	public MultiObjModelChecker(PrismComponent parent, Prism prism) throws PrismException
+	public MultiObjModelChecker(Prism prism) throws PrismException
 	{
-		super(parent);
-		this.prism = prism;
+		super(prism);
 		this.verbose = settings.getBoolean(PrismSettings.PRISM_VERBOSE);
 	}
 

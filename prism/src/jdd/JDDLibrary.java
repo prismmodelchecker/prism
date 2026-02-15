@@ -47,9 +47,13 @@ public class JDDLibrary implements PrismLibrary
     @Override
     public void setMainLog(PrismLog mainLog) throws PrismException
     {
-        // If possible, pass the (file/stdout) pointer to JDD.
+        // If possible, we ensure that the log is using native code
+        // and pass the (file/stdout) pointer to JDD.
         // This is mainly so that diagnostic/error messages from the
         // DD native code end up in the same place as the rest of the log output.
+        if (mainLog instanceof PrismFileLog) {
+            ((PrismFileLog) mainLog).useNative();
+        }
         long fp = mainLog.getFilePointer();
         if (fp > 0) {
             JDD.SetOutputStream(fp);

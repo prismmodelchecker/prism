@@ -40,6 +40,8 @@ public class PrismFileLog extends PrismPrintStreamLog
 	protected String filename;
 	/** Are we writing to stdout? */
 	protected boolean stdout;
+	/** Are we using native code to write to the file? */
+	protected boolean nativeCode;
 
 	/**
 	 * Create a {@link PrismLog} which will write to {@code filename}, overwriting any previous contents.
@@ -61,7 +63,7 @@ public class PrismFileLog extends PrismPrintStreamLog
 	 */
 	public PrismFileLog(String filename, boolean append) throws PrismException
 	{
-		this(filename, append, true);
+		this(filename, append, false);
 	}
 
 	/**
@@ -87,6 +89,7 @@ public class PrismFileLog extends PrismPrintStreamLog
 	{
 		this.filename = filename;
 		this.stdout = "stdout".equals(filename);
+		this.nativeCode = nativeCode;
 		try {
 			if (nativeCode) {
 				setPrintStream(new PrismFileLogNative(filename, append));
@@ -103,11 +106,33 @@ public class PrismFileLog extends PrismPrintStreamLog
 	}
 
 	/**
+	 * Ensure the log is using native code to write to the file.
+	 * If this is currently not the case, this method will {@code close()}
+	 * the current log and open a new equivalent one using native code.
+	 * Throw a PRISM exception if there is a problem opening the file for writing.
+	 */
+	public void useNative() throws PrismException
+	{
+		if (!nativeCode) {
+			close();
+			createLogStream(filename, true, true);
+		}
+	}
+
+	/**
 	 * Get the filename (or "stdout" if writing to standard output)
 	 **/
 	public String getFileName()
 	{
 		return stdout ? "stdout" : filename;
+	}
+
+	/**
+	 * Is this log using native code to write to the file?
+	 */
+	public boolean isNative()
+	{
+		return nativeCode;
 	}
 
 	// Methods for PrismLog
@@ -159,6 +184,19 @@ public class PrismFileLog extends PrismPrintStreamLog
 	public static PrismFileLog create(String filename, boolean append) throws PrismException
 	{
 		return new PrismFileLog(filename, append);
+	}
+
+	/**
+	 * Create a {@link PrismLog} which will write to {@code filename}, appending to an existing file if requested.
+	 * If {@code filename} is "stdout", then output will be written to standard output.
+	 * Throw a PRISM exception if there is a problem opening the file for writing.
+	 * @param filename Filename of log file
+	 * @param append Append to the existing file?
+	 * @param nativeCode Use native code to write to the file?
+	 */
+	public static PrismFileLog create(String filename, boolean append, boolean nativeCode) throws PrismException
+	{
+		return new PrismFileLog(filename, append, nativeCode);
 	}
 
 	/**

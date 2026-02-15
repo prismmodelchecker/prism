@@ -45,17 +45,11 @@ import symbolic.model.StochModel;
 
 // class to translate a modules description file into an MTBDD model
 
-public class Modules2MTBDD
+public class Modules2MTBDD extends PrismNativeComponent
 {
-	// Prism object
-	private Prism prism;
-	
 	// StateModelChecker for expression -> MTBDD conversion
 	private StateModelChecker expr2mtbdd;
 	
-	// logs
-	private PrismLog mainLog;		// main log
-
 	// ModulesFile object to store syntax tree from parser
 	private ModulesFile modulesFile;
 	
@@ -232,13 +226,12 @@ public class Modules2MTBDD
 	
 	// constructor
 	
-	public Modules2MTBDD(Prism p, ModulesFile mf)
+	public Modules2MTBDD(Prism prism, ModulesFile mf) throws PrismException
 	{
-		prism = p;
-		mainLog = p.getMainLog();
+		super(prism);
 		modulesFile = mf;
 		// get symmetry reduction info
-		String s = prism.getSettings().getString(PrismSettings.PRISM_SYMM_RED_PARAMS);
+		String s = settings.getString(PrismSettings.PRISM_SYMM_RED_PARAMS);
 		doSymmetry = !(s == null || s == "");
 	}
 	
@@ -482,7 +475,7 @@ public class Modules2MTBDD
 		case 1:
 		// ordering: (a ... a) (s ... s) (l ... l) (r c ... r c)
 		
-			modelVariables.preallocateExtraActionVariables(prism.getSettings().getInteger(PrismSettings.PRISM_DD_EXTRA_ACTION_VARS));
+			modelVariables.preallocateExtraActionVariables(settings.getInteger(PrismSettings.PRISM_DD_EXTRA_ACTION_VARS));
 
 			// create arrays/etc. first
 			
@@ -538,7 +531,7 @@ public class Modules2MTBDD
 			// create a gap in the dd variables
 			// this allows to prepend additional row/col vars, e.g. for constructing
 			// a product model when doing LTL model checking
-			modelVariables.preallocateExtraStateVariables(prism.getSettings().getInteger(PrismSettings.PRISM_DD_EXTRA_STATE_VARS));
+			modelVariables.preallocateExtraStateVariables(settings.getInteger(PrismSettings.PRISM_DD_EXTRA_STATE_VARS));
 
 			
 			// allocate dd variables for module variables (i.e. rows/cols)
@@ -562,7 +555,7 @@ public class Modules2MTBDD
 		case 2:
 		// ordering: (a ... a) (l ... l) (s r c ... r c) (s r c ... r c) ...
 	
-			modelVariables.preallocateExtraActionVariables(prism.getSettings().getInteger(PrismSettings.PRISM_DD_EXTRA_ACTION_VARS));
+			modelVariables.preallocateExtraActionVariables(settings.getInteger(PrismSettings.PRISM_DD_EXTRA_ACTION_VARS));
 
 			// create arrays/etc. first
 			
@@ -2216,7 +2209,7 @@ public class Modules2MTBDD
 		String ss[];
 		
 		// parse symmetry reduction parameters
-		ss = prism.getSettings().getString(PrismSettings.PRISM_SYMM_RED_PARAMS).split(" ");
+		ss = settings.getString(PrismSettings.PRISM_SYMM_RED_PARAMS).split(" ");
 		if (ss.length != 2) throw new PrismException ("Invalid parameters for symmetry reduction");
 		try {
 			numModulesBeforeSymm = Integer.parseInt(ss[0].trim());
