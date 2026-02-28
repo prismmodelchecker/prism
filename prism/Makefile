@@ -367,6 +367,7 @@ endif
 
 # Java flags
 JFLAGS += -proc:none # Remove annotation processing warnings due to log4j
+JFLAGS += --release 9 # Enforce Java language level
 
 export CFLAGS CXXFLAGS LDFLAGS JFLAGS LIBPREFIX LIBSUFFIX
 
@@ -674,10 +675,7 @@ BIN_DIST_INST = $(BIN_DIST_DIR)-installer.exe
 
 # Build a (binary) distribution in the release directory
 
-release: release_config clean_all all binary release_check_version build_release clean_binary
-
-release_config:
-	$(eval JFLAGS := --release 9 $(JFLAGS))
+release: clean_all all binary release_check_version build_release clean_binary
 
 release_check_version:
 	@if [ "$(VERSION)" = "" ]; then echo "Usage: make release VERSION=4.5"; exit 1; fi
