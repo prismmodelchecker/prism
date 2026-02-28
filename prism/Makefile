@@ -367,7 +367,7 @@ endif
 
 # Java flags
 JFLAGS += -proc:none # Remove annotation processing warnings due to log4j
-JFLAGS += --release 9 # Enforce Java language level
+JFLAGS += --release 11 # Enforce Java language level
 
 export CFLAGS CXXFLAGS LDFLAGS JFLAGS LIBPREFIX LIBSUFFIX
 
