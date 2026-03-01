@@ -194,12 +194,22 @@ public class JDD
 	public static JDDNode MINUS_INFINITY;
 		
 	// wrapper methods for dd
-	
+
+	/**
+	 * Set the default output stream for DD (native) code.
+	 * This mainly used for printing diagnostic/error messages.
+	 * @param fp C++ file pointer (e.g., to stdout or a file), cast to a long.
+	 */
 	public static void SetOutputStream(long fp)
 	{
 		DD_SetOutputStream(fp);
 	}
-	
+
+	/**
+	 * Get the default output stream for DD (native) code.
+	 * This mainly used for printing diagnostic/error messages.
+	 * It is a C++ file pointer (e.g., to stdout or a file), cast to a long.
+	 */
 	public static long GetOutputStream()
 	{
 		return DD_GetOutputStream();
@@ -1484,7 +1494,7 @@ public class JDD
  	 *
 	 * @param log the output log
 	 * @param dd the MTBDD
-	 * @param name an optional description to be printed ({@code null} for none)
+	 * @param description an optional description to be printed ({@code null} for none)
 	 */
 	public static void PrintMinterms(PrismLog log, JDDNode dd, String description)
 	{

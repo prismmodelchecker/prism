@@ -46,18 +46,8 @@ import parser.ast.*;
 import parser.ast.ExpressionFilter.FilterOperator;
 import parser.type.*;
 import parser.visitor.ReplaceLabels;
-import prism.Accuracy;
+import prism.*;
 import prism.Filter;
-import prism.ModelType;
-import prism.Prism;
-import prism.PrismComponent;
-import prism.PrismException;
-import prism.PrismLangException;
-import prism.PrismLog;
-import prism.PrismNotSupportedException;
-import prism.PrismSettings;
-import prism.PrismUtils;
-import prism.Result;
 import symbolic.model.ModelSymbolic;
 import symbolic.model.NondetModel;
 import symbolic.states.StateListMTBDD;
@@ -70,11 +60,8 @@ import symbolic.model.ProbModel;
 
 // Base class for model checkers - does state-based evaluations (no temporal/probabilistic)
 
-public class StateModelChecker extends PrismComponent implements ModelChecker
+public class StateModelChecker extends PrismNativeComponent implements ModelChecker
 {
-	// PRISM stuff
-	protected Prism prism;
-
 	// Properties file
 	protected PropertiesFile propertiesFile;
 
@@ -119,11 +106,8 @@ public class StateModelChecker extends PrismComponent implements ModelChecker
 
 	public StateModelChecker(Prism prism, Model m, PropertiesFile pf) throws PrismException
 	{
-		// Initialise PrismComponent
-		super(prism);
-
 		// Initialise
-		this.prism = prism;
+		super(prism);
 		model = m;
 		propertiesFile = pf;
 		constantValues = new Values();
@@ -147,7 +131,7 @@ public class StateModelChecker extends PrismComponent implements ModelChecker
 		// Store locally and/or pass onto engines
 		engine = prism.getEngine();
 		termCritParam = prism.getTermCritParam();
-		doIntervalIteration = prism.getSettings().getBoolean(PrismSettings.PRISM_INTERVAL_ITER);
+		doIntervalIteration = settings.getBoolean(PrismSettings.PRISM_INTERVAL_ITER);
 		verbose = prism.getVerbose();
 		storeVector = prism.getStoreVector();
 		genStrat = prism.getGenStrat();
@@ -163,11 +147,8 @@ public class StateModelChecker extends PrismComponent implements ModelChecker
 	 */
 	public StateModelChecker(Prism prism, VarList varList, JDDVars allDDRowVars, JDDVars[] varDDRowVars, Values constantValues) throws PrismException
 	{
-		// Initialise PrismComponent
-		super(prism);
-
 		// Initialise
-		this.prism = prism;
+		super(prism);
 		this.varList = varList;
 		this.allDDRowVars = allDDRowVars;
 		this.varDDRowVars = varDDRowVars;

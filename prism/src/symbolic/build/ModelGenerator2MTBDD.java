@@ -38,15 +38,7 @@ import parser.VarList;
 import parser.ast.DeclarationClock;
 import parser.ast.DeclarationIntUnbounded;
 import parser.ast.DeclarationType;
-import prism.ModelGenerator;
-import prism.ModelType;
-import prism.Prism;
-import prism.PrismException;
-import prism.PrismLangException;
-import prism.PrismLog;
-import prism.PrismNotSupportedException;
-import prism.PrismSettings;
-import prism.RewardGenerator;
+import prism.*;
 import symbolic.model.Model;
 import symbolic.model.ModelSymbolic;
 import symbolic.model.ModelVariablesDD;
@@ -57,12 +49,8 @@ import symbolic.model.StochModel;
 /**
  * Class to construct a symbolic representation from a ModelGenerator object.
  */
-public class ModelGenerator2MTBDD
+public class ModelGenerator2MTBDD extends PrismNativeComponent
 {
-	// Prism stuff
-	private Prism prism;
-	private PrismLog mainLog;
-
 	// Source model generators
 	private ModelGenerator<Double> modelGen;
 	private RewardGenerator<Double> rewardGen;
@@ -102,10 +90,9 @@ public class ModelGenerator2MTBDD
 	
 	private int maxNumChoices = 0;
 
-	public ModelGenerator2MTBDD(Prism prism)
+	public ModelGenerator2MTBDD(Prism prism) throws PrismException
 	{
-		this.prism = prism;
-		mainLog = prism.getMainLog();
+		super(prism);
 	}
 
 	/**
@@ -228,7 +215,7 @@ public class ModelGenerator2MTBDD
 		JDDNode vr, vc;
 		int i, j, n;
 
-		modelVariables.preallocateExtraActionVariables(prism.getSettings().getInteger(PrismSettings.PRISM_DD_EXTRA_ACTION_VARS));
+		modelVariables.preallocateExtraActionVariables(settings.getInteger(PrismSettings.PRISM_DD_EXTRA_ACTION_VARS));
 
 		// create arrays/etc. first
 

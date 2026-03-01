@@ -32,13 +32,7 @@ import jdd.*;
 import parser.*;
 import parser.ast.*;
 import explicit.*;
-import prism.ModelType;
-import prism.Prism;
-import prism.PrismException;
-import prism.PrismLangException;
-import prism.PrismLog;
-import prism.PrismSettings;
-import prism.ProgressDisplay;
+import prism.*;
 import symbolic.model.ModelVariablesDD;
 import symbolic.model.ProbModel;
 import symbolic.model.StochModel;
@@ -46,14 +40,8 @@ import symbolic.model.StochModel;
 /**
  * Class to convert explicit-state representation of a model to a symbolic one.
  */
-public class ExplicitModel2MTBDD
+public class ExplicitModel2MTBDD extends PrismNativeComponent
 {
-	// prism
-	private Prism prism;
-
-	// logs
-	private PrismLog mainLog; // main log
-
 	// Explicit-state model
 	private explicit.Model<Double> modelExpl;
 
@@ -96,10 +84,9 @@ public class ExplicitModel2MTBDD
 
 	// constructor
 
-	public ExplicitModel2MTBDD(Prism prism)
+	public ExplicitModel2MTBDD(Prism prism) throws PrismException
 	{
-		this.prism = prism;
-		mainLog = prism.getMainLog();
+		super(prism);
 	}
 
 	// Build model
@@ -249,7 +236,7 @@ public class ExplicitModel2MTBDD
 
 		modelVariables = new ModelVariablesDD();
 
-		modelVariables.preallocateExtraActionVariables(prism.getSettings().getInteger(PrismSettings.PRISM_DD_EXTRA_ACTION_VARS));
+		modelVariables.preallocateExtraActionVariables(settings.getInteger(PrismSettings.PRISM_DD_EXTRA_ACTION_VARS));
 
 		// create arrays/etc. first
 

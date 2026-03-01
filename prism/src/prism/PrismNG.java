@@ -64,8 +64,10 @@ public class PrismNG
 	public synchronized static void nailMain(NGContext context) throws InterruptedException
 	{
 		currentNailGunContext = context;
-		if (PrismNative.setWorkingDirectory(context.getWorkingDirectory()) != 0) {
-			System.err.println("Nailgun: Can not change working directory to " + context.getWorkingDirectory());
+		try {
+			Prism.setWorkingDirectory(context.getWorkingDirectory());
+		} catch (PrismException ex) {
+			System.err.println("Nailgun: " + ex.getMessage());
 			System.exit(1);
 		}
 

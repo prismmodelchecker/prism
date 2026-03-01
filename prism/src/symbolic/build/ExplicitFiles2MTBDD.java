@@ -38,16 +38,7 @@ import jdd.JDDVars;
 import parser.Values;
 import parser.VarList;
 import parser.ast.DeclarationType;
-import prism.Evaluator;
-import prism.ModelInfo;
-import prism.ModelType;
-import prism.Prism;
-import prism.PrismException;
-import prism.PrismLog;
-import prism.PrismNotSupportedException;
-import prism.PrismSettings;
-import prism.ProgressDisplay;
-import prism.RewardInfo;
+import prism.*;
 import symbolic.model.Model;
 import symbolic.model.ModelSymbolic;
 import symbolic.model.ModelVariablesDD;
@@ -58,12 +49,8 @@ import symbolic.model.StochModel;
 /**
  * Class to convert explicit-state file storage of a model to symbolic representation.
  */
-public class ExplicitFiles2MTBDD
+public class ExplicitFiles2MTBDD extends PrismNativeComponent
 {
-	// Prism stuff
-	private Prism prism;
-	private PrismLog mainLog;
-
 	// Importer / files to read in from
 	private ExplicitModelImporter importer;
 
@@ -112,10 +99,9 @@ public class ExplicitFiles2MTBDD
 	private ProgressDisplay progress;
 	private int transitionsImported;
 
-	public ExplicitFiles2MTBDD(Prism prism)
+	public ExplicitFiles2MTBDD(Prism prism) throws PrismException
 	{
-		this.prism = prism;
-		mainLog = prism.getMainLog();
+		super(prism);
 	}
 
 	/**
@@ -290,7 +276,7 @@ public class ExplicitFiles2MTBDD
 
 		modelVariables = new ModelVariablesDD();
 
-		modelVariables.preallocateExtraActionVariables(prism.getSettings().getInteger(PrismSettings.PRISM_DD_EXTRA_ACTION_VARS));
+		modelVariables.preallocateExtraActionVariables(settings.getInteger(PrismSettings.PRISM_DD_EXTRA_ACTION_VARS));
 		
 		// create arrays/etc. first
 
