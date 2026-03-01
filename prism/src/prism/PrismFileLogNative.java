@@ -72,12 +72,17 @@ public class PrismFileLogNative extends PrintStream
         int start = off;
         for (int i = off; i < off + len; i++) {
             if (buf[i] == '\n') {
-                // Print up to a newline
-                lineBuffer.write(buf, start, (i - start) + 1);
+                // Print up to (but not including) a newline
+                lineBuffer.write(buf, start, (i - start));
                 if (fp == 0) {
                     throw new IllegalStateException("Trying to write to an invalid file handle (already closed?)");
                 }
-                PrismNative.PN_PrintToFile(fp, lineBuffer.toString(StandardCharsets.UTF_8));
+                String line = lineBuffer.toString(StandardCharsets.UTF_8);
+                // On Windows, lines probably end with \r\n, so remove a trailing \r if it exists
+                if (line.endsWith("\r")) {
+                    line = line.substring(0, line.length() - 1);
+                }
+                PrismNative.PN_PrintToFile(fp, line + "\n");
                 lineBuffer.reset();
                 start = i + 1;
             }
