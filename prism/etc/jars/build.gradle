@@ -18,6 +18,16 @@ configurations {
     testRunner
 }
 
+configurations.all {
+    // Detect conflicts in JAR dependencies
+    resolutionStrategy {
+        failOnVersionConflict()
+        // Resolve JAR issue (JAS 2.7.200 may pull in too new log4j)
+        force 'org.apache.logging.log4j:log4j-api:2.24.0'
+        force 'org.apache.logging.log4j:log4j-core:2.24.0'
+    }
+}
+
 // Libraries not on Maven Central
 // Get from prismmodelchecker.org and cache in local-libs
 
@@ -52,23 +62,31 @@ tasks.register('downloadPrismJars') {
 
 dependencies {
 
+    // Colt (random number generation for simulator)
     implementation 'colt:colt:1.2.0'
-	implementation("de.uni-mannheim.rz.krum:jas:2.7.90")
-    implementation 'org.jfree:jfreechart:1.0.14'
-    implementation 'org.jfree:jcommon:1.0.17'
-	//implementation("com.martiansoftware:nailgun-server:0.9.1")
-    implementation 'it.unimi.dsi:fastutil:8.5.15'
+    // JAS: Java Algebra System (parametric engine)
+    implementation("de.uni-mannheim.rz.krum:jas:2.7.200")
+    // GSON (JSON reading/writing for UMB)
+    implementation 'com.google.code.gson:gson:2.11.0'
+    // Compression libraries (for import/export, e.g., UMB)
     implementation 'org.apache.commons:commons-compress:1.24.0'
     implementation 'org.tukaani:xz:1.10'
-    implementation 'com.google.code.gson:gson:2.11.0'
-    implementation 'org.apache.logging.log4j:log4j-api:2.17.1'
-    implementation 'org.apache.logging.log4j:log4j-core:2.17.1'
+    // fastutil (fast data structures, e.g., UMB import/export)
+    implementation 'it.unimi.dsi:fastutil:8.5.15'
+    // JFreeChart (graph plotting in GUI)
+    implementation 'org.jfree:jfreechart:1.0.14'
+    
+    // Log4j (needed by JAS, possibly others)
+    implementation 'org.apache.logging.log4j:log4j-api:2.24.0'
+    implementation 'org.apache.logging.log4j:log4j-core:2.24.0'
+    
+    //implementation("com.martiansoftware:nailgun-server:0.9.1")
 
     // JUnit: for simplicity, don't put in separate test group for now
     implementation 'org.junit.platform:junit-platform-console-standalone:1.7.2'
     //testRunner 'org.junit.platform:junit-platform-console-standalone:1.9.3'
     
-	// Grab anything we can't find online from our local stash
+    // Grab anything we can't find online from our local stash
     implementation fileTree(dir: 'local-libs', include: ['*.jar'])
 }
 
