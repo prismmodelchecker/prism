@@ -35,6 +35,7 @@ public class UMBBitString
 
 	/**
 	 * Store the value of an {@code n}-bit (signed) integer in a portion of the bit string.
+	 * This assumes that the integer needs at most 32 bits, so that it can be stored in an {@code int}.
 	 * @param offset The first bit of the bitstring portion
 	 * @param n The size (in bits) of the bitstring portion
 	 * @param value The value to store
@@ -55,6 +56,7 @@ public class UMBBitString
 
 	/**
 	 * Store the value of an {@code n}-bit unsigned integer in a portion of the bit string.
+	 * This assumes that the integer needs at most 32 bits, so that it can be stored in an {@code int}.
 	 * @param offset The first bit of the bitstring portion
 	 * @param n The size (in bits) of the bitstring portion
 	 * @param value The value to store
@@ -66,6 +68,43 @@ public class UMBBitString
 		}
 		// Storing (including bit truncation) is the same as for signed integers
 		setInt(offset, n, value);
+	}
+
+	/**
+	 * Store the value of an {@code n}-bit (signed) integer in a portion of the bit string.
+	 * This assumes that the integer needs at most 64 bits, so that it can be stored in a {@code long}.
+	 * @param offset The first bit of the bitstring portion
+	 * @param n The size (in bits) of the bitstring portion
+	 * @param value The value to store
+	 */
+	public void setLong(int offset, int n, long value) throws UMBException
+	{
+		if (n > 64) {
+			throw new UMBException("Cannot store integer of " + n + " bits (too large for Java long)");
+		}
+		// Store bits into the byte array
+		for (int i = 0; i < n; i++) {
+			// Copy the i-th (least significant) bit of value to the appropriate bit in bytes
+			char valueBitShifted = (char) (((value >>> i) & 1) << ((offset + i) & 7));
+			char byteMask = (char) ('\u0001' << ((offset + i) & 7));
+			bytes[(offset + i) >> 3] = (byte) ((bytes[(offset + i) >> 3] & ~(byteMask)) | (valueBitShifted));
+		}
+	}
+
+	/**
+	 * Store the value of an {@code n}-bit unsigned integer in a portion of the bit string.
+	 * This assumes that the integer needs at most 64 bits, so that it can be stored in a {@code long}.
+	 * @param offset The first bit of the bitstring portion
+	 * @param n The size (in bits) of the bitstring portion
+	 * @param value The value to store
+	 */
+	public void setULong(int offset, int n, long value) throws UMBException
+	{
+		if (n >= 64) {
+			throw new UMBException("Cannot store unsigned integer of " + n + " bits (too large for Java long)");
+		}
+		// Storing (including bit truncation) is the same as for signed integers
+		setLong(offset, n, value);
 	}
 
 	/**
@@ -140,6 +179,48 @@ public class UMBBitString
 		}
 		// Extract bits into an int
 		int value = 0;
+		for (int i = offset + n - 1; i >= offset; i--) {
+			value = (value << 1) | ((bytes[i >> 3] & (1L << (i & 7))) != 0 ? 1 : 0);
+		}
+		return value;
+	}
+
+	/**
+	 * Get the value of an {@code n}-bit (signed) integer, extracted from a portion of the bit string.
+	 * If the value does not fit into a standard Java (64-bit) signed long, an exception is thrown.
+	 * @param offset The first bit of the bitstring portion
+	 * @param n The size (in bits) of the bitstring portion
+	 */
+	public long getLong(int offset, int n) throws UMBException
+	{
+		if (n > 64) {
+			throw new UMBException("Cannot extract integer of " + n + " bits (too large for Java long)");
+		}
+		// Extract bits into a long
+		long value = 0;
+		for (int i = offset + n - 1; i >= offset; i--) {
+			value = (value << 1) | ((bytes[i >> 3] & (1L << (i & 7))) != 0 ? 1 : 0);
+		}
+		// Sign extend if necessary
+		if ((value & (1 << (n - 1))) != 0) {
+			value -= (1 << n);
+		}
+		return value;
+	}
+
+	/**
+	 * Get the value of an {@code n}-bit unsigned integer, extracted from a portion of the bit string.
+	 * If the value does not fit into a standard Java (64-bit) signed long, an exception is thrown.
+	 * @param offset The first bit of the bitstring portion
+	 * @param n The size (in bits) of the bitstring portion
+	 */
+	public long getULong(int offset, int n) throws UMBException
+	{
+		if (n >= 64) {
+			throw new UMBException("Cannot extract unsigned integer of " + n + " bits (too large for Java long)");
+		}
+		// Extract bits into a long
+		long value = 0;
 		for (int i = offset + n - 1; i >= offset; i--) {
 			value = (value << 1) | ((bytes[i >> 3] & (1L << (i & 7))) != 0 ? 1 : 0);
 		}
