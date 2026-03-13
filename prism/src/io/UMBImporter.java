@@ -353,15 +353,27 @@ public class UMBImporter extends ExplicitModelImporter
 						int varIntMin;
 						int varIntMax;
 						if (computeRange) {
-							UMBReader.IntRange varIntRange = umbReader.getValuationIntRange(entity, bitPacking, i);
-							varIntMin = varIntRange.getMin();
-							varIntMax = varIntRange.getMax();
+							UMBReader.LongRange varLongRange = umbReader.getValuationLongRange(entity, bitPacking, i);
+							long varLongMin = varLongRange.getMin();
+							long varLongMax = varLongRange.getMax();
+							try {
+								varIntMin = SafeCast.toIntExact(varLongMin);
+								varIntMax = SafeCast.toIntExact(varLongMax);
+							} catch (ArithmeticException e) {
+								throw new PrismException("UMB variable " + var.name + " exceeds the range of an int");
+							}
 						} else {
 							// Default to min/max values for (u)ints
 							if (var.getType().type == UMBType.Type.INT) {
+								if (bitPacking.getVariableSize(i) > 32) {
+									throw new PrismException("UMB variable " + var.name + " exceeds the range of an int");
+								}
 								varIntMin = -(1 << (bitPacking.getVariableSize(i) - 1));
 								varIntMax = (1 << (bitPacking.getVariableSize(i) - 1)) -1;
 							} else {
+								if (bitPacking.getVariableSize(i) >= 32) {
+									throw new PrismException("UMB variable " + var.name + " exceeds the range of an int");
+								}
 								varIntMin = 0;
 								varIntMax = (1 << bitPacking.getVariableSize(i)) - 1;
 							}
@@ -402,7 +414,7 @@ public class UMBImporter extends ExplicitModelImporter
 				try {
 					//System.out.println(s + ":" + bitPacking.decodeBitString(bitString));
 					for (int i = 0; i < numVars; i++) {
-						storeStateDefn.accept(s.get(), i, bitPacking.getVariableValue(bitString, i));
+						storeStateDefn.accept(s.get(), i, getBitStringValue(bitPacking, bitString, i));
 					}
 					s.incrementAndGet();
 				} catch (UMBException | PrismException e) {
@@ -431,7 +443,7 @@ public class UMBImporter extends ExplicitModelImporter
 				try {
 					//System.out.println(s + ":" + bitPacking.decodeBitString(bitString));
 					for (int i = 0; i < numVars; i++) {
-						storeObservationDefn.accept(s.get(), i, bitPacking.getVariableValue(bitString, i));
+						storeObservationDefn.accept(s.get(), i, getBitStringValue(bitPacking, bitString, i));
 					}
 					s.incrementAndGet();
 				} catch (UMBException | PrismException e) {
@@ -440,6 +452,34 @@ public class UMBImporter extends ExplicitModelImporter
 			});
 		} catch (UMBException | RuntimeException e) {
 			throw new PrismException("UMB import problem: " + e.getMessage());
+		}
+	}
+
+	/**
+	 * Get the value of the {@code i}th variable, from a bit string, as an Object
+	 */
+	private Object getBitStringValue(UMBBitPacking bitPacking, UMBBitString bitString, int i) throws UMBException
+	{
+		UMBBitPacking.BitPackedVariable var = bitPacking.getVariable(i);
+		switch (var.getType().type) {
+			case BOOL:
+				return bitPacking.getBooleanVariableValue(bitString, i);
+			case INT:
+				try {
+					return SafeCast.toIntExact(bitPacking.getLongVariableValue(bitString, i));
+				} catch (ArithmeticException e) {
+					throw new UMBException("UMB variable " + var.name + " exceeds the range of an int");
+				}
+			case UINT:
+				try {
+					return SafeCast.toIntExact(bitPacking.getULongVariableValue(bitString, i));
+				} catch (ArithmeticException e) {
+					throw new UMBException("UMB variable " + var.name + " exceeds the range of an int");
+				}
+			case DOUBLE:
+				return bitPacking.getDoubleVariableValue(bitString, i);
+			default:
+				throw new UMBException("Unknown UMB variable tyoe: " + var.getType().type);
 		}
 	}
 
