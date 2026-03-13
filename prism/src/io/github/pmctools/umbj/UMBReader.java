@@ -503,6 +503,7 @@ public class UMBReader
 
 	/**
 	 * Compute the range of a (signed or unsigned) integer variable, from the values stored for it in a list of valuations.
+	 * This assumes that the min/max values needs at most 32 bits, so that they can be stored in an {@code int}.
 	 * @param entity The entity to which the valuations apply
 	 * @param bitPacking The bit-packing for the valuations
 	 * @param i Index of the variable (in the bit-packing)
@@ -519,6 +520,39 @@ public class UMBReader
 							break;
 						case UINT:
 							varRange.accept(bitPacking.getUIntVariableValue(bitString, i));
+							break;
+						default:
+							throw new UMBException("Cannot compute the integer range of a " + bitPacking.getVariable(i).getType().type);
+					}
+				} catch (UMBException e) {
+					throw new RuntimeException(e.getMessage());
+				}
+			});
+		} catch (UMBException | RuntimeException e) {
+			throw new UMBException("UMB import problem: " + e.getMessage());
+		}
+		return varRange;
+	}
+
+	/**
+	 * Compute the range of a (signed or unsigned) integer variable, from the values stored for it in a list of valuations.
+	 * This assumes that the min/max values needs at most 64 bits, so that they can be stored in a {@code long}.
+	 * @param entity The entity to which the valuations apply
+	 * @param bitPacking The bit-packing for the valuations
+	 * @param i Index of the variable (in the bit-packing)
+	 */
+	public UMBReader.LongRange getValuationLongRange(UMBIndex.UMBEntity entity, UMBBitPacking bitPacking, int i) throws UMBException
+	{
+		UMBReader.LongRangeComputer varRange = new UMBReader.LongRangeComputer();
+		try {
+			extractValuations(entity, bitString -> {
+				try {
+					switch (bitPacking.getVariable(i).getType().type) {
+						case INT:
+							varRange.accept(bitPacking.getLongVariableValue(bitString, i));
+							break;
+						case UINT:
+							varRange.accept(bitPacking.getULongVariableValue(bitString, i));
 							break;
 						default:
 							throw new UMBException("Cannot compute the integer range of a " + bitPacking.getVariable(i).getType().type);
@@ -1251,6 +1285,25 @@ public class UMBReader
 	}
 
 	/**
+	 * Class to represent the minimum/maximum value of a set of longs.
+	 */
+	public static class LongRange
+	{
+		long min = Long.MAX_VALUE;
+		long max = Long.MIN_VALUE;
+
+		public long getMin()
+		{
+			return min;
+		}
+
+		public long getMax()
+		{
+			return max;
+		}
+	}
+
+	/**
 	 * Class to compute the minimum/maximum value of a sequence of ints, provided via a consumer.
 	 */
 	public static class IntRangeComputer extends IntRange implements IntConsumer
@@ -1259,6 +1312,18 @@ public class UMBReader
 		public void accept(int i)
 		{
 			min = Integer.min(min, i); max = Integer.max(max, i);
+		}
+	}
+
+	/**
+	 * Class to compute the minimum/maximum value of a sequence of longs, provided via a consumer.
+	 */
+	public static class LongRangeComputer extends LongRange implements LongConsumer
+	{
+		@Override
+		public void accept(long i)
+		{
+			min = Long.min(min, i); max = Long.max(max, i);
 		}
 	}
 

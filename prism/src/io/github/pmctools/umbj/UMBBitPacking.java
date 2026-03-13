@@ -229,7 +229,9 @@ public class UMBBitPacking
 		return new UMBBitString(getTotalNumBytes());
 	}
 
-	/** Set the value of the {@code i}th variable, which must be a (signed) integer, in a bit string.
+	/**
+	 * Set the value of the {@code i}th variable, which must be a (signed) integer, in a bit string.
+	 * This assumes that the integer needs at most 32 bits, so that it can be stored in an {@code int}.
 	 * @param bitString The bit string to modify
 	 * @param i The index of the variable
 	 * @param value The value to set
@@ -239,7 +241,9 @@ public class UMBBitPacking
 		bitString.setInt(getVariableOffset(i), getVariableSize(i), value);
 	}
 
-	/** Set the value of the {@code i}th variable, which must be an (unsigned) integer, in a bit string.
+	/**
+	 * Set the value of the {@code i}th variable, which must be an (unsigned) integer, in a bit string.
+	 * This assumes that the integer needs at most 32 bits, so that it can be stored in an {@code int}.
 	 * @param bitString The bit string to modify
 	 * @param i The index of the variable
 	 * @param value The value to set
@@ -247,6 +251,30 @@ public class UMBBitPacking
 	public void setUIntVariableValue(UMBBitString bitString, int i, int value) throws UMBException
 	{
 		bitString.setUInt(getVariableOffset(i), getVariableSize(i), value);
+	}
+
+	/**
+	 * Set the value of the {@code i}th variable, which must be a (signed) integer, in a bit string.
+	 * This assumes that the integer needs at most 64 bits, so that it can be stored in a {@code long}.
+	 * @param bitString The bit string to modify
+	 * @param i The index of the variable
+	 * @param value The value to set
+	 */
+	public void setLongVariableValue(UMBBitString bitString, int i, long value) throws UMBException
+	{
+		bitString.setLong(getVariableOffset(i), getVariableSize(i), value);
+	}
+
+	/**
+	 * Set the value of the {@code i}th variable, which must be an (unsigned) integer, in a bit string.
+	 * This assumes that the integer needs at most 64 bits, so that it can be stored in a {@code long}.
+	 * @param bitString The bit string to modify
+	 * @param i The index of the variable
+	 * @param value The value to set
+	 */
+	public void setULongVariableValue(UMBBitString bitString, int i, long value) throws UMBException
+	{
+		bitString.setULong(getVariableOffset(i), getVariableSize(i), value);
 	}
 
 	/** Set the value of the {@code i}th variable, which must be a double, in a bit string.
@@ -293,6 +321,7 @@ public class UMBBitPacking
 
 	/**
 	 * Get the value of the {@code i}th variable, which must be a (signed) integer, from a bit string.
+	 * This assumes that the integer needs at most 32 bits, so that it can be stored in an {@code int}.
 	 */
 	public int getIntVariableValue(UMBBitString bitString, int i) throws UMBException
 	{
@@ -301,10 +330,29 @@ public class UMBBitPacking
 
 	/**
 	 * Get the value of the {@code i}th variable, which must be an (unsigned) integer, from a bit string.
+	 * This assumes that the integer needs at most 32 bits, so that it can be stored in an {@code int}.
 	 */
 	public int getUIntVariableValue(UMBBitString bitString, int i) throws UMBException
 	{
 		return bitString.getUInt(getVariableOffset(i), getVariableSize(i));
+	}
+
+	/**
+	 * Get the value of the {@code i}th variable, which must be a (signed) integer, from a bit string.
+	 * This assumes that the integer needs at most 64 bits, so that it can be stored in a {@code long}.
+	 */
+	public long getLongVariableValue(UMBBitString bitString, int i) throws UMBException
+	{
+		return bitString.getLong(getVariableOffset(i), getVariableSize(i));
+	}
+
+	/**
+	 * Get the value of the {@code i}th variable, which must be an (unsigned) integer, from a bit string.
+	 * This assumes that the integer needs at most 64 bits, so that it can be stored in a {@code long}.
+	 */
+	public long getULongVariableValue(UMBBitString bitString, int i) throws UMBException
+	{
+		return bitString.getULong(getVariableOffset(i), getVariableSize(i));
 	}
 
 	/**
