@@ -1142,7 +1142,7 @@ public class PrismExplicitImporter extends ExplicitModelImporter
 								storeDeadlock.accept(s);
 							}
 						} else if (l == -1) {
-							initialStatesLab.set(i);
+							initialStatesLab.set(s);
 						} else if (l > -1) {
 							storeLabel.accept(s, l);
 						}

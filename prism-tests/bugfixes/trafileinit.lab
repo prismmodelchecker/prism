@@ -1,0 +1,4 @@
+0="init" 1="deadlock" 2="p2win" 3="done" 4="p1win"
+0: 2 3
+1: 0
+3: 3 4

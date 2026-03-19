@@ -1,0 +1,2 @@
+-importmodel trafileinit.all -exportmodel trafileinit.all
+-importmodel trafileinit.all -exportmodel trafileinit.all -ex
