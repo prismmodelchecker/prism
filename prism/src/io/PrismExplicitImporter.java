@@ -518,6 +518,7 @@ public class PrismExplicitImporter extends ExplicitModelImporter
 
 	/**
 	 * Extract variable/observable info from a states/observations file.
+	 * The info is stored in {@code basicModelInfo}, which should already exist.
 	 * @param file States/observations file
 	 * @param entity State or observations?
 	 */
@@ -664,9 +665,12 @@ public class PrismExplicitImporter extends ExplicitModelImporter
 
 	/**
 	 * Extract names of labels from the labels file.
-	 * These are stored in the label name list within basicModelInfo.
 	 * The "init" and "deadlock" labels are skipped, as they have special
 	 * meaning and are implicitly defined for all models.
+	 * The info is stored in {@code basicModelInfo} and {@code labelMap}.
+	 * {@code basicModelInfo} would usually already exist but is created if not
+	 * (this is only really for the case where this class is extracting labels in isolation);
+	 * {@code labelMap} is created by this method.
 	 */
 	private void extractLabelNamesFromLabelsFile(File labelsFile) throws PrismException
 	{
@@ -677,6 +681,9 @@ public class PrismExplicitImporter extends ExplicitModelImporter
 			String labelsString = in.readLine();
 			Pattern label = Pattern.compile("(\\d+)=\"([^\"]+)\"\\s*");
 			Matcher matcher = label.matcher(labelsString);
+			if (basicModelInfo == null) {
+				basicModelInfo = new BasicModelInfo();
+			}
 			List<String> labelNames = basicModelInfo.getLabelNameList();
 			labelMap = new ArrayList<>();
 			while (matcher.find()) {
@@ -855,7 +862,7 @@ public class PrismExplicitImporter extends ExplicitModelImporter
 			return;
 		}
 		// Otherwise extract from .sta file
-		extractStateDefinitions(statesFile, basicModelInfo.getNumVars(), storeStateDefn);
+		extractStateDefinitions(statesFile, getModelInfo().getNumVars(), storeStateDefn);
 	}
 
 	@Override
@@ -867,7 +874,7 @@ public class PrismExplicitImporter extends ExplicitModelImporter
 			return;
 		}
 		// Otherwise extract from .obs file
-		extractStateDefinitions(observationsFile, basicModelInfo.getNumObservables(), storeObservationDefn);
+		extractStateDefinitions(observationsFile, getModelInfo().getNumObservables(), storeObservationDefn);
 	}
 
 	/**
