@@ -1,2 +1,2 @@
--importmodel trafileinit.all -exportmodel trafileinit.all
--importmodel trafileinit.all -exportmodel trafileinit.all -ex
+-importmodel trafileinit.tra,lab -exportmodel trafileinit.tra,lab
+-importmodel trafileinit.tra,lab -exportmodel trafileinit.tra,lab -ex
