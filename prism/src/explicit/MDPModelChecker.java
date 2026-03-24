@@ -797,7 +797,7 @@ public class MDPModelChecker extends ProbModelChecker
 		mainLog.println("Starting value iteration (" + description + ")...");
 
 		ExportIterations iterationsExport = null;
-		if (settings.getBoolean(PrismSettings.PRISM_EXPORT_ITERATIONS)) {
+		if (settings != null && settings.getBoolean(PrismSettings.PRISM_EXPORT_ITERATIONS)) {
 			iterationsExport = new ExportIterations("Explicit MDP ReachProbs value iteration (" + description + ")");
 			mainLog.println("Exporting iterations to " + iterationsExport.getFileName());
 		}
