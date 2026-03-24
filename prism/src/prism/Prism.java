@@ -385,6 +385,15 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 
 	/**
 	 * Construct a new Prism object.
+	 * Output will be sent to stdout.
+	 */
+	public Prism() throws PrismException
+	{
+		this(new PrismFileLog("stdout"));
+	}
+
+	/**
+	 * Construct a new Prism object.
 	 * @param mainLog PrismLog where all output will be sent.
 	 */
 	public Prism(PrismLog mainLog)
