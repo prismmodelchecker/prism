@@ -479,7 +479,7 @@ public class UMBImporter extends ExplicitModelImporter
 			case DOUBLE:
 				return bitPacking.getDoubleVariableValue(bitString, i);
 			default:
-				throw new UMBException("Unknown UMB variable tyoe: " + var.getType().type);
+				throw new UMBException("Unknown UMB variable type: " + var.getType().type);
 		}
 	}
 
