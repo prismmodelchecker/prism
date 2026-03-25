@@ -202,8 +202,8 @@ public class UMBBitString
 			value = (value << 1) | ((bytes[i >> 3] & (1L << (i & 7))) != 0 ? 1 : 0);
 		}
 		// Sign extend if necessary
-		if ((value & (1 << (n - 1))) != 0) {
-			value -= (1 << n);
+		if (n < 64 && (value & (1L << (n - 1))) != 0) {
+			value -= (1L << n);
 		}
 		return value;
 	}
