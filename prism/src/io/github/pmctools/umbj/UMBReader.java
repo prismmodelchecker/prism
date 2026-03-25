@@ -525,7 +525,7 @@ public class UMBReader
 							throw new UMBException("Cannot compute the integer range of a " + bitPacking.getVariable(i).getType().type);
 					}
 				} catch (UMBException e) {
-					throw new RuntimeException(e.getMessage());
+					throw new RuntimeException(e);
 				}
 			});
 		} catch (UMBException | RuntimeException e) {
@@ -558,7 +558,7 @@ public class UMBReader
 							throw new UMBException("Cannot compute the integer range of a " + bitPacking.getVariable(i).getType().type);
 					}
 				} catch (UMBException e) {
-					throw new RuntimeException(e.getMessage());
+					throw new RuntimeException(e);
 				}
 			});
 		} catch (UMBException | RuntimeException e) {
