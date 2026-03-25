@@ -46,6 +46,12 @@ public abstract class ModelExplicitWrapper<Value> extends ModelExplicit<Value>
 	}
 
 	@Override
+	public void setActions(List<Object> actions)
+	{
+		this.model.setActions(actions);
+	}
+
+	@Override
 	public void addInitialState(int i)
 	{
 		this.model.addInitialState(i);

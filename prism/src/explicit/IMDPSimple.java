@@ -108,14 +108,6 @@ public class IMDPSimple<Value> extends ModelExplicitWrapper<Value> implements No
 		((IMDPSimple<Double>) this).setIntervalEvaluator(Evaluator.forDoubleInterval());
 	}
 
-	// Mutators (for ModelExplicit)
-
-	@Override
-	public void setActions(List<Object> actions)
-	{
-		mdp.setActions(actions);
-	}
-
 	// Mutators (for ModelSimple)
 
 	@Override

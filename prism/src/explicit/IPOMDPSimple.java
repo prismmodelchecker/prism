@@ -111,14 +111,6 @@ public class IPOMDPSimple<Value> extends ModelExplicitWrapper<Value> implements 
         ((IPOMDPSimple<Double>) this).setIntervalEvaluator(Evaluator.forDoubleInterval());
     }
 
-    // Mutators (for ModelExplicit)
-
-    @Override
-    public void setActions(List<Object> actions)
-    {
-        pomdp.setActions(actions);
-    }
-
     // Mutators (for ModelSimple)
 
     @Override
