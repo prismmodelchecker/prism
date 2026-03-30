@@ -36,9 +36,10 @@ public class MinMax
 	
 	protected boolean min;
 	
-	public void setMin(boolean min)
+	public MinMax setMin(boolean min)
 	{
 		this.min = min;
+		return this;
 	}
 	
 	public boolean isMin()
@@ -56,10 +57,11 @@ public class MinMax
 	protected boolean min1;
 	protected boolean min2;
 	
-	public void setMinMin(boolean min1, boolean min2)
+	public MinMax setMinMin(boolean min1, boolean min2)
 	{
 		this.min1 = min1;
 		this.min2 = min2;
+		return this;
 	}
 	
 	public boolean isMin1()
