@@ -884,4 +884,44 @@ public interface MDP<Value> extends NondetModel<Value>
 		}
 	}
 
+	/**
+	 * Generate a string representation for an MDP.
+	 */
+	default String toStringMDP()
+	{
+		StringBuilder str = new StringBuilder("[ ");
+		int numStates = getNumStates();
+		for (int s = 0; s < numStates; s++) {
+			if (s > 0) {
+				str.append(", ");
+			}
+			str.append(s).append(": ").append("[");
+			int numChoices = getNumChoices(s);
+			for (int i = 0; i < numChoices; i++) {
+				if (i > 0) {
+					str.append(",");
+				}
+				Object action = getAction(s, i);
+				if (action != null) {
+					str.append(action).append(":");
+				}
+				str.append("{");
+				Iterator<Entry<Integer, Value>> iter = getTransitionsIterator(s, i);
+				boolean first = true;
+				while (iter.hasNext()) {
+					if (first) {
+						first = false;
+					} else {
+						str.append(",");
+					}
+					Entry<Integer, Value> entry = iter.next();
+					str.append(entry.getValue()).append(":").append(entry.getKey());
+				}
+				str.append("}");
+			}
+			str.append("]");
+		}
+		str.append(" ]\n");
+		return str.toString();
+	}
 }

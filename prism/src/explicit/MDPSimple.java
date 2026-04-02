@@ -553,28 +553,7 @@ public class MDPSimple<Value> extends MDPExplicit<Value> implements NondetModelS
 	@Override
 	public String toString()
 	{
-		int i, j, n;
-		Object o;
-		String s = "";
-		s = "[ ";
-		for (i = 0; i < numStates; i++) {
-			if (i > 0)
-				s += ", ";
-			s += i + ": ";
-			s += "[";
-			n = getNumChoices(i);
-			for (j = 0; j < n; j++) {
-				if (j > 0)
-					s += ",";
-				o = getAction(i, j);
-				if (o != null)
-					s += o + ":";
-				s += trans.get(i).get(j);
-			}
-			s += "]";
-		}
-		s += " ]\n";
-		return s;
+		return toStringMDP();
 	}
 
 	@Override

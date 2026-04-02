@@ -1134,37 +1134,7 @@ public class MDPSparse extends MDPExplicit<Double>
 	@Override
 	public String toString()
 	{
-		int i, j, k, l1, h1, l2, h2;
-		Object o;
-		String s = "";
-		s = "[ ";
-		for (i = 0; i < numStates; i++) {
-			if (i > 0)
-				s += ", ";
-			s += i + ": [";
-			l1 = rowStarts[i];
-			h1 = rowStarts[i + 1];
-			for (j = l1; j < h1; j++) {
-				if (j > l1)
-					s += ",";
-				o = getAction(i, j - l1);
-				if (o != null)
-					s += o + ":";
-				s += "{";
-				l2 = choiceStarts[j];
-				h2 = choiceStarts[j + 1];
-				for (k = l2; k < h2; k++) {
-					if (k > l2)
-						s += ", ";
-					s += cols[k] + ":" + nonZeros[k];
-				}
-				s += "}";
-			}
-			s += "]";
-		}
-		s += " ]";
-
-		return s;
+		return toStringMDP();
 	}
 
 	@Override

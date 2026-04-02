@@ -803,4 +803,36 @@ public interface DTMC<Value> extends Model<Value>
 		}
 	}
 
+	/**
+	 * Generate a string representation for a DTMC.
+	 */
+	default String toStringDTMC()
+	{
+		StringBuilder str = new StringBuilder("[ ");
+		int numStates = getNumStates();
+		for (int s = 0; s < numStates; s++) {
+			if (s > 0) {
+				str.append(", ");
+			}
+			str.append(s).append(": ");
+			str.append("{");
+			Iterator<Entry<Integer, Pair<Value, Object>>> iter = getTransitionsAndActionsIterator(s);
+			boolean first = true;
+			while (iter.hasNext()) {
+				if (first) {
+					first = false;
+				} else {
+					str.append(",");
+				}
+				Entry<Integer, Pair<Value, Object>> entry = iter.next();
+				str.append(entry.getValue().first).append(":").append(entry.getKey());
+				if (entry.getValue().second != null) {
+					str.append(":").append(entry.getValue().second);
+				}
+			}
+			str.append("}");
+		}
+		str.append(" ]\n");
+		return str.toString();
+	}
 }

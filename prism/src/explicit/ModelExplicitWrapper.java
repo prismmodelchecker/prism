@@ -274,4 +274,12 @@ public abstract class ModelExplicitWrapper<Value> extends ModelExplicit<Value>
 	{
 		this.model.exportToPrismLanguage(filename, precision);
 	}
+
+	// Standard methods
+
+	@Override
+	public String toString()
+	{
+		return model.toString();
+	}
 }

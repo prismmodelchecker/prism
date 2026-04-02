@@ -530,33 +530,12 @@ public class DTMCSparse extends DTMCExplicit<Double>
 		}
 	}
 
-
-
 	//--- Object ---
 
 	@Override
 	public String toString()
 	{
-		final Function<Integer, Entry<Integer, Distribution<Double>>> getDistribution = new Function<Integer, Entry<Integer, Distribution<Double>>>()
-		{
-			@Override
-			public final Entry<Integer, Distribution<Double>> apply(final Integer state)
-			{
-				final Distribution<Double> distribution = new Distribution<>(getTransitionsIterator(state), getEvaluator());
-				return new AbstractMap.SimpleImmutableEntry<>(state, distribution);
-			}
-		};
-		String s = "trans: [ ";
-		IterableStateSet states = new IterableStateSet(numStates);
-		Iterator<Entry<Integer, Distribution<Double>>> distributions = states.iterator().map(getDistribution);
-		while (distributions.hasNext()) {
-			final Entry<Integer, Distribution<Double>> dist = distributions.next();
-			s += dist.getKey() + ": " + dist.getValue();
-			if (distributions.hasNext()) {
-				s += ", ";
-			}
-		}
-		return s + " ]";
+		return toStringDTMC();
 	}
 
 	@Override

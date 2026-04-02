@@ -425,41 +425,7 @@ public class DTMCSimple<Value> extends DTMCExplicit<Value> implements ModelSimpl
 	@Override
 	public String toString()
 	{
-		int i;
-		boolean first;
-		String s = "";
-		s = "[ ";
-		first = true;
-		for (i = 0; i < numStates; i++) {
-			if (first)
-				first = false;
-			else
-				s += ", ";
-			s += i + ": " + toStringDistr(i);
-		}
-		s += " ]";
-		return s;
-	}
-
-	protected String toStringDistr(int i)
-	{
-		String s = "";
-		boolean first = true;
-		s = "{";
-		int numSucc = succ.get(i).size();
-		for (int j = 0; j < numSucc; j++) {
-			if (first)
-				first = false;
-			else
-				s += ", ";
-			s += succ.get(i).get(j) + "=" + trans.get(i).get(j);
-			Object action = actions.getAction(i, j);
-			if (action != null) {
-				s += ":" + action;
-			}
-		}
-		s += "}";
-		return s;
+		return toStringDTMC();
 	}
 
 	@Override
