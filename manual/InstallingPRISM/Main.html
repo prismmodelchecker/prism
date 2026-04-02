@@ -233,9 +233,7 @@ a.varlink { text-decoration:none;}
 <h3>Prerequisites</h3>
 <p>PRISM is known to run on Linux, Windows and macOS, both 64-bit and 32-bit versions.
 </p>
-<p class='vspace'>You will need <strong>Java</strong>, version 9 or above
-(get it, for example from <a class='urllink' href='https://jdk.java.net/'>Oracle</a>
-or <a class='urllink' href='https://adoptopenjdk.net/'>AdoptOpenJDK</a>).
+<p class='vspace'>You will need <strong>Java</strong>, version 11 or above.
 To run binary versions of PRISM, you only need the Java Runtime Environment (JRE), not the full Java Development Kit (JDK).
 </p>
 <p class='vspace'>To compile PRISM from source, you need the Java Development Kit (JDK), GNU make and a C/C++ compiler (e.g. gcc/g++). For compilation under Windows, you will need Cygwin. See below for more information:
@@ -255,7 +253,9 @@ which install the required dependencies and PRISM itself. They can be found in t
 <p class='vspace'><a name='windows' id='windows'></a>
 <a name='windows64' id='windows64'></a>
 </p><h3>Installation on Windows</h3>
-<p>To install PRISM on Windows, just run the self-extracting installer which you <a class='urllink' href='http://www.prismmodelchecker.org/download.php'>downloaded</a>. You do <strong>not</strong> need administrator privileges for this, just write-access to the directory chosen for installation.
+<p>If you don't yet have <strong>Java</strong>, install it, for example with the <a class='urllink' href='https://adoptium.net/temurin/releases'>Temurin installer</a>.
+</p>
+<p class='vspace'>To install PRISM on Windows, just run the self-extracting installer which you <a class='urllink' href='http://www.prismmodelchecker.org/download.php'>downloaded</a>. You do <strong>not</strong> need administrator privileges for this, just write-access to the directory chosen for installation.
 </p>
 <p class='vspace'>If requested, the installer will place shortcuts to run PRISM on the desktop and/or start menu. If not, you can run by PRISM double-clicking the file <code>xprism.bat</code> (which may just appear as <code>xprism</code>) in the <code>bin</code> folder of your PRISM folder. If nothing happens, the most likely explanation is that Java is not installed or not in your path. To check, open a command prompt window, navigate to the PRISM directory, type <code>cd bin</code>, then <code>xprism.bat</code> and examine the resulting error. If you want to create shortcuts to <code>xprism.bat</code> manually, you will find some PRISM icons in the <code>etc</code> folder.
 </p>
@@ -312,7 +312,7 @@ which avoids <a class='urllink' href='https://support.apple.com/en-gb/102445'>ma
 </p>
 <div class='vspace'></div><ul><li>GNU make (sometimes called gmake)
 </li><li>a C/C++ compiler (e.g. gcc/g++)
-</li><li>a Java Development Kit, version 9 or above
+</li><li>a Java Development Kit, version 11 or above
 </li></ul><p class='vspace'>To check that you have the development kit, type <code>javac</code>. If you get an error message that <code>javac</code> cannot be found, you probably do not have the JDK installed (or your path is not set up correctly). To check what version you have, type <code>javac -version</code>. 
 </p>
 <p class='vspace'>Hopefully, you can build PRISM simply by entering the PRISM directory and running <code>make</code>, e.g.:
@@ -417,7 +417,7 @@ You can solve this as follows:
 </p>
 
     </div>
-    <div id='prism-man-lastmod'>Page last modified on January 07, 2025, at 12:32 pm</div>
+    <div id='prism-man-lastmod'>Page last modified on April 02, 2026, at 01:57 pm</div>
   </div>
 <!--/PageFooterFmt-->
 
