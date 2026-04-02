@@ -1,8 +1,29 @@
+This file contains details of the changes in each new version of PRISM.
+
+-----------------------------------------------------------------------------
+Version 4.10.1 (first released 2/4/2026)
+-----------------------------------------------------------------------------
+
+* Simplify and optimise Makefile and build process
+
+* Simplify and improve native shared libraries
+  - unify into a single native shared library: libprism.{so,dylib}
+  - fix soname/install_name/rpath (no need for (DY)LD_LIBRARY_PATH now)
+  - shared libraries can be absent when using the explicit engine
+
+* Update and document JAR file dependencies
+
+* Various bugfixes
+
+* Development and code-level changes:
+  - add Gradle-based maintenance of JAR files
+  - IntelliJ IDEA config files (run "make intellij")
+  - update Java language level from 9 to 11
+  - PrismLog fixes, tidying and optimisations
+
 -----------------------------------------------------------------------------
 Version 4.10 (first released 29/1/2026)
 -----------------------------------------------------------------------------
-
-This file contains details of the changes in each new version of PRISM.
 
 * Import/export functionality
   - import/export from/to UMB (Unified Markov Binary) format
