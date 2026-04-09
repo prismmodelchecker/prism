@@ -63,7 +63,8 @@ public class PathToText extends PathDisplayer
 	private boolean changed;
 
 	/**
-	 * Construct a {@link PathToText} object
+	 * Construct a {@link PathToText} object, which writes to a {@link PrismLog}.
+	 * The log will be {@code close()}d when {@link #close()} is called.
 	 * @param log Log to output path to
 	 * @param modelInfo Model associated with path
 	 * @param rewardGen Rewards associated with path
