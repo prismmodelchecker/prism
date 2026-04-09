@@ -3,10 +3,10 @@ name: Build/publish release binaries (Linux, Mac)
 # Also build/publish a prism-X.Y-src.tar.gz
 
 on:
-#   push:
-#     # Trigger on version tags: v4.10 etc.
-#     tags:
-#       - 'v*'
+  # Trigger on version tags: v4.10 etc.
+  push:
+    tags:
+      - 'v*'
   # Allows manual triggering
   workflow_dispatch:
       inputs:
@@ -148,4 +148,4 @@ jobs:
               release-assets/*.zip
             # These are safe even if the release exists; it won't overwrite your text
             generate_release_notes: false 
-            draft: false
+            draft: true
