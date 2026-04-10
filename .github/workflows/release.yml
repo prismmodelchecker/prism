@@ -1,6 +1,4 @@
-name: Build/publish release binaries (Linux, Mac)
-
-# Also build/publish a prism-X.Y-src.tar.gz
+name: Build/publish release source & binaries (Linux, Mac, Windows)
 
 on:
   # Trigger on version tags: v4.10 etc.
@@ -77,6 +75,52 @@ jobs:
         name: ${{ matrix.artifact_name }}
         path: prism/release/*.tar.gz
 
+  build_win:
+    strategy:
+      matrix:
+        include:
+          - os: windows-latest
+            artifact_name: prism-win64
+    runs-on: ${{ matrix.os }}
+
+    steps:
+    - run: git config --global core.autocrlf input
+    - uses: actions/checkout@v4
+      with:
+        # Use the tag from manual input, otherwise fall back to the git ref
+        ref: ${{ github.event.inputs.tag_name || github.ref }}
+        fetch-depth: 0 # Fetches all tags and history
+    - name: Set up JDK
+      uses: actions/setup-java@v4
+      with:
+        java-version: '17'
+        distribution: 'temurin'
+    - name: Install Cygwin Dependencies
+      uses: cygwin/cygwin-install-action@v4
+      with:
+        packages: |
+          make,
+          mingw64-x86_64-gcc-g++,
+          binutils,
+          dos2unix,
+          wget,
+          unzip,
+          python
+    - name: Install NSIS
+      uses: negrutiu/nsis-install@v2
+    - name: Build
+      shell: bash
+      env:
+        CYGWIN: winsymlinks:native
+      working-directory: ./prism
+      run: >-
+        make release
+    - name: Upload artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: ${{ matrix.artifact_name }}
+        path: prism/release/*.exe
+
   test_release:
     needs: build
     strategy:
@@ -111,7 +155,7 @@ jobs:
         etc/tests/run.sh
 
   publish:
-      needs: [build_src, build, test_release]
+      needs: [build_src, build, build_win, test_release]
       runs-on: ubuntu-latest
       permissions:
         # Crucial for creating releases
