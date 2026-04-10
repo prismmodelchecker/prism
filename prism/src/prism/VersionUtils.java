@@ -73,7 +73,7 @@ public final class VersionUtils
 			VersionPart p2 = parseVersionPart(i < ss2.length ? ss2[i] : "");
 			int cmp = p1.compareTo(p2);
 			if (cmp != 0) {
-				return cmp;
+				return Integer.signum(cmp);
 			}
 		}
 
