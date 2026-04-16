@@ -2338,15 +2338,19 @@ public class PrismCL implements PrismModelListener
 		String halves[] = splitFilesAndOptions(filesOptionsString);
 		String fileString = halves[0];
 		String optionsString = halves[1];
+		// Split file into basename/extension
+		int i = fileString.lastIndexOf('.');
+		String basename = i == -1 ? fileString : fileString.substring(0, i);
+		String ext = i == -1 ? "" : fileString.substring(i + 1);
 		// Store some settings (here and in PRISM)
 		exportstrat = true;
-		exportStratFilename = fileString;
+		exportStratFilename = basename.equals("stdout") ? "stdout" : fileString;
 		exportStratOptions = new StrategyExportOptions();
 		prism.setGenStrat(true);
 		// Default strategy export type is based on filename extension
-		if (exportStratFilename.endsWith("tra")) {
+		if (ext.equals("tra")) {
 			exportStratOptions.setType(StrategyExportOptions.StrategyExportType.INDUCED_MODEL);
-		} else if (exportStratFilename.endsWith("dot")) {
+		} else if (ext.equals("dot")) {
 			exportStratOptions.setType(StrategyExportOptions.StrategyExportType.DOT_FILE);
 		} else {
 			exportStratOptions.setType(StrategyExportOptions.StrategyExportType.ACTIONS);
