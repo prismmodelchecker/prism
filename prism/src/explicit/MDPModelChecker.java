@@ -408,6 +408,11 @@ public class MDPModelChecker extends ProbModelChecker
 			no = prob0(mdp, remain, target, min, strat);
 		} else {
 			no = new BitSet();
+			if (remain != null) {
+				no.or(remain);
+				no.or(target);
+				no.flip(0, n);
+			}
 		}
 		timerProb0 = System.currentTimeMillis() - timerProb0;
 		timerProb1 = System.currentTimeMillis();

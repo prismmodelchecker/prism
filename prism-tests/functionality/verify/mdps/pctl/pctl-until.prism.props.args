@@ -1,0 +1,13 @@
+-h
+-s
+-m
+-ex -valiter
+-ex -gs
+-ex -ii
+
+-h -nopre
+-s -nopre
+-m -nopre
+-ex -valiter -nopre
+-ex -gs -nopre
+-ex -ii -nopre

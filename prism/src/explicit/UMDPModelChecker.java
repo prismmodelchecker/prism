@@ -430,6 +430,11 @@ public class UMDPModelChecker extends ProbModelChecker
 			no = mcMDP.prob0(umdp, remain, target, minMax.isMin(), strat);
 		} else {
 			no = new BitSet();
+			if (remain != null) {
+				no.or(remain);
+				no.or(target);
+				no.flip(0, n);
+			}
 		}
 		if (precomp && prob1) {
 			yes = mcMDP.prob1(umdp, remain, target, minMax.isMin(), strat);

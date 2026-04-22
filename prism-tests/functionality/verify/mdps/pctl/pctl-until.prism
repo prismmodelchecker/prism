@@ -1,0 +1,21 @@
+mdp
+
+module M
+
+    s : [0..4] init 0;
+
+    [] s=0 -> 1:(s'=1);
+
+    // Nondeterministic choice at s=1 gives different probabilities
+    // for satisfying phi U target.
+    [] s=1 -> 0.6:(s'=2) + 0.4:(s'=3);
+    [] s=1 -> 0.2:(s'=2) + 0.8:(s'=4);
+
+    [] s=2 -> 1:(s'=2);
+    [] s=3 -> 1:(s'=3);
+    [] s=4 -> 1:(s'=4);
+
+endmodule
+
+label "phi" = s=0 | s=1 | s=3;
+label "target" = s=2;

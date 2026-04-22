@@ -1,0 +1,14 @@
+// RESULT: 0.6
+P=? [ "phi" U "target" ]
+
+// RESULT: 0
+P=? [ s=1 U "target" ]
+
+// RESULT: 0
+P=? [ "phi" U<=1 "target" ]
+
+// RESULT: 0.6
+P=? [ "phi" U<=2 "target" ]
+
+// RESULT: 0
+P=? [ "phi" U<2 "target" ]

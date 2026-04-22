@@ -612,6 +612,11 @@ public class DTMCModelChecker extends ProbModelChecker
 			}
 		} else {
 			no = new BitSet();
+			if (remain != null) {
+				no.or(remain);
+				no.or(target);
+				no.flip(0, n);
+			}
 		}
 		timerProb0 = System.currentTimeMillis() - timerProb0;
 		timerProb1 = System.currentTimeMillis();

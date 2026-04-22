@@ -1,0 +1,23 @@
+// RESULT: 0.6
+Pmax=? [ "phi" U "target" ]
+
+// RESULT: 0.2
+Pmin=? [ "phi" U "target" ]
+
+// RESULT: 0
+Pmax=? [ s=1 U "target" ]
+
+// RESULT: 0
+Pmin=? [ s=1 U "target" ]
+
+// RESULT: 0
+Pmax=? [ "phi" U<=1 "target" ]
+
+// RESULT: 0.6
+Pmax=? [ "phi" U<=2 "target" ]
+
+// RESULT: 0.2
+Pmin=? [ "phi" U<=2 "target" ]
+
+// RESULT: 0
+Pmax=? [ "phi" U<2 "target" ]

@@ -340,6 +340,11 @@ public class UDTMCModelChecker extends ProbModelChecker
 			}
 		} else {
 			no = new BitSet();
+			if (remain != null) {
+				no.or(remain);
+				no.or(target);
+				no.flip(0, n);
+			}
 		}
 		if (precomp && prob1) {
 			if (preRel) {
