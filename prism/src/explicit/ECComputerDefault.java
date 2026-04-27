@@ -50,6 +50,14 @@ public class ECComputerDefault extends ECComputer
 	private List<BitSet> mecs = new ArrayList<BitSet>();
 
 	/**
+	 * Functional interface for a consumer of MEC BitSets that may throw PrismException.
+	 */
+	@FunctionalInterface
+	private interface MECConsumer {
+		void accept(BitSet mec) throws PrismException;
+	}
+
+	/**
 	 * Build (M)EC computer for a given model.
 	 */
 	public ECComputerDefault(PrismComponent parent, NondetModel<?> model) throws PrismException
@@ -85,7 +93,7 @@ public class ECComputerDefault extends ECComputer
 	}
 
 	// Computation
-	
+
 	/**
 	 * Find all accepting maximal end components (MECs) in the submodel obtained
 	 * by restricting this one to the set of states {@code restrict},
@@ -103,39 +111,104 @@ public class ECComputerDefault extends ECComputer
 			restrict = new BitSet();
 			restrict.set(0, model.getNumStates());
 		}
-		// Initialise L with set of all candidate sets to process (if non-empty)
-		List<BitSet> L = new ArrayList<BitSet>();
 		if (restrict.isEmpty())
-			return L;
-		L.add(restrict);
-		// Find MECs: a candidate E is a MEC iff restrict() removes no states and
-		// the result is strongly connected (single SCC covering all remaining states).
-		// Otherwise split E into its SCCs and process each one further.
-		List<BitSet> MECs = new ArrayList<BitSet>();
-		while (!L.isEmpty()) {
-			BitSet E = L.remove(0);
-			SubNondetModel<?> submodel = restrict(model, E);
-			if (submodel.getNumStates() == 0)
-				continue;
-			List<BitSet> sccs = translateStates(submodel, computeSCCs(submodel));
-			if (sccs.size() == 1 && sccs.get(0).cardinality() == submodel.getNumStates()) {
-				MECs.add(sccs.get(0));
-			} else {
-				L.addAll(sccs);
-			}
-		}
+			return new ArrayList<>();
+
+		List<BitSet> MECs = new ArrayList<>();
+		findMECsStreaming(model, restrict, MECs::add);
+
 		// Filter and return those that contain a state in accept
 		if (accept != null) {
-			int i = 0;
-			while (i < MECs.size()) {
-				if (!MECs.get(i).intersects(accept)) {
-					MECs.remove(i);
-				} else {
-					i++;
-				}
-			}
+			MECs.removeIf(mec -> !mec.intersects(accept));
 		}
 		return MECs;
+	}
+
+	/**
+	 * Find all MECs within {@code states} of {@code currentModel}, calling
+	 * {@code mecConsumer} for each MEC found (in {@code currentModel}'s state space).
+	 *
+	 * SCCs are processed one at a time as Tarjan emits them, so at most one SCC
+	 * is alive at any given moment per recursion level. This avoids accumulating
+	 * O(numMECs) full-state-space BitSets simultaneously.
+	 */
+	private void findMECsStreaming(NondetModel<?> currentModel, BitSet states, MECConsumer mecConsumer)
+			throws PrismException
+	{
+		BitSet E = (BitSet) states.clone();
+		SubNondetModel<?> submodel = restrict(currentModel, E);
+		if (submodel.getNumStates() == 0)
+			return;
+		final int submodelSize = submodel.getNumStates();
+
+		// Translate a MEC in submodel's state space back to currentModel's state space.
+		MECConsumer childMecConsumer = subModelMEC -> {
+			BitSet currentModelMEC = new BitSet();
+			for (int i = subModelMEC.nextSetBit(0); i >= 0; i = subModelMEC.nextSetBit(i + 1)) {
+				currentModelMEC.set(submodel.translateState(i));
+			}
+			mecConsumer.accept(currentModelMEC);
+		};
+
+		// Streaming SCC consumer: immediately recurse into each completed SCC rather
+		// than collecting all SCCs before processing any. This keeps peak memory at
+		// O(recursion_depth x stateSpaceSize) instead of O(numMECs x stateSpaceSize).
+		int[] sccCount = {0};
+		BitSet[] firstSCC = {null};
+
+		SCCConsumer sccConsumer = new SCCConsumer() {
+			private BitSet current;
+
+			@Override
+			public void notifyStartSCC()
+			{
+				current = new BitSet();
+			}
+
+			@Override
+			public void notifyStateInSCC(int s)
+			{
+				current.set(s);
+			}
+
+			@Override
+			public void notifyEndSCC() throws PrismException
+			{
+				sccCount[0]++;
+				if (sccCount[0] == 1) {
+					// Buffer the first SCC: we don't yet know if it is the only one.
+					firstSCC[0] = current;
+				} else {
+					// A second SCC arrived, so we have multiple SCCs.
+					// Process the buffered first SCC immediately, then this one.
+					if (firstSCC[0] != null) {
+						findMECsStreaming(submodel, firstSCC[0], childMecConsumer);
+						firstSCC[0] = null;
+					}
+					findMECsStreaming(submodel, current, childMecConsumer);
+				}
+				current = null;
+			}
+
+			@Override
+			public void notifyDone() throws PrismException
+			{
+				if (sccCount[0] == 1 && firstSCC[0] != null) {
+					if (firstSCC[0].cardinality() == submodelSize) {
+						// Single SCC covering all states of the restricted submodel → MEC.
+						childMecConsumer.accept(firstSCC[0]);
+					} else {
+						// Single SCC that doesn't cover all restricted states (transient
+						// states survived restrict but are not in any SCC). Recurse.
+						findMECsStreaming(submodel, firstSCC[0], childMecConsumer);
+					}
+					firstSCC[0] = null;
+				}
+			}
+		};
+
+		SCCComputer sccc = SCCComputer.createSCCComputer(this, submodel, sccConsumer);
+		sccc.computeSCCs();
 	}
 
 	private SubNondetModel<?> restrict(NondetModel<?> model, BitSet states)
@@ -166,28 +239,4 @@ public class ECComputerDefault extends ECComputer
 
 		return new SubNondetModel<>(model, states, actions, initialStates);
 	}
-
-	private List<BitSet> computeSCCs(NondetModel<?> model) throws PrismException
-	{
-		SCCConsumerStore sccs = new SCCConsumerStore();
-		SCCComputer sccc = SCCComputer.createSCCComputer(this, model, sccs);
-		sccc.computeSCCs();
-		return sccs.getSCCs();
-	}
-
-	private List<BitSet> translateStates(SubNondetModel<?> model, List<BitSet> sccs)
-	{
-		List<BitSet> r = new ArrayList<BitSet>();
-		for (int i = 0; i < sccs.size(); i++) {
-			BitSet set = sccs.get(i);
-			BitSet set2 = new BitSet();
-			r.add(set2);
-			for (int j = set.nextSetBit(0); j >= 0; j = set.nextSetBit(j + 1)) {
-				set2.set(model.translateState(j));
-
-			}
-		}
-		return r;
-	}
-
 }
