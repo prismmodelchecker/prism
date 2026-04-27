@@ -111,6 +111,7 @@ public class ECComputerDefault extends ECComputer
 			return L;
 		L.add(restrict);
 		// Find MECs
+		Set<BitSet> processedSCCs = new HashSet<BitSet>();
 		boolean changed = true;
 		while (changed) {
 			changed = false;
@@ -118,7 +119,7 @@ public class ECComputerDefault extends ECComputer
 			SubNondetModel<?> submodel = restrict(model, E);
 			List<BitSet> sccs = translateStates(submodel, computeSCCs(submodel));
 			L = replaceEWithSCCs(L, E, sccs);
-			changed = canLBeChanged(L, E);
+			changed = canLBeChanged(L, E, processedSCCs);
 		}
 		// Filter and return those that contain a state in accept
 		if (accept != null) {
@@ -134,9 +135,7 @@ public class ECComputerDefault extends ECComputer
 		return L;
 	}
 
-	private Set<BitSet> processedSCCs = new HashSet<BitSet>();
-
-	private boolean canLBeChanged(List<BitSet> L, BitSet E)
+	private boolean canLBeChanged(List<BitSet> L, BitSet E, Set<BitSet> processedSCCs)
 	{
 		processedSCCs.add(E);
 		for (int i = 0; i < L.size(); i++) {
