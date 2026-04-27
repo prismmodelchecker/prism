@@ -30,10 +30,8 @@ package explicit;
 import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import prism.PrismComponent;
 import prism.PrismException;
@@ -105,61 +103,39 @@ public class ECComputerDefault extends ECComputer
 			restrict = new BitSet();
 			restrict.set(0, model.getNumStates());
 		}
-		// Initialise L with set of all states to look in (if non-empty)
+		// Initialise L with set of all candidate sets to process (if non-empty)
 		List<BitSet> L = new ArrayList<BitSet>();
 		if (restrict.isEmpty())
 			return L;
 		L.add(restrict);
-		// Find MECs
-		Set<BitSet> processedSCCs = new HashSet<BitSet>();
-		boolean changed = true;
-		while (changed) {
-			changed = false;
+		// Find MECs: a candidate E is a MEC iff restrict() removes no states and
+		// the result is strongly connected (single SCC covering all remaining states).
+		// Otherwise split E into its SCCs and process each one further.
+		List<BitSet> MECs = new ArrayList<BitSet>();
+		while (!L.isEmpty()) {
 			BitSet E = L.remove(0);
 			SubNondetModel<?> submodel = restrict(model, E);
+			if (submodel.getNumStates() == 0)
+				continue;
 			List<BitSet> sccs = translateStates(submodel, computeSCCs(submodel));
-			L = replaceEWithSCCs(L, E, sccs);
-			changed = canLBeChanged(L, E, processedSCCs);
+			if (sccs.size() == 1 && sccs.get(0).cardinality() == submodel.getNumStates()) {
+				MECs.add(sccs.get(0));
+			} else {
+				L.addAll(sccs);
+			}
 		}
 		// Filter and return those that contain a state in accept
 		if (accept != null) {
 			int i = 0;
-			while (i < L.size()) {
-				if (!L.get(i).intersects(accept)) {
-					L.remove(i);
+			while (i < MECs.size()) {
+				if (!MECs.get(i).intersects(accept)) {
+					MECs.remove(i);
 				} else {
 					i++;
 				}
 			}
 		}
-		return L;
-	}
-
-	private boolean canLBeChanged(List<BitSet> L, BitSet E, Set<BitSet> processedSCCs)
-	{
-		processedSCCs.add(E);
-		for (int i = 0; i < L.size(); i++) {
-			if (!processedSCCs.contains(L.get(i))) {
-				return true;
-			}
-		}
-		return false;
-	}
-
-	private List<BitSet> replaceEWithSCCs(List<BitSet> L, BitSet E, List<BitSet> sccs)
-	{
-		if (sccs.size() > 0) {
-			List<BitSet> toAdd = new ArrayList<BitSet>();
-			for (int i = 0; i < sccs.size(); i++) {
-				if (!L.contains(sccs.get(i))) {
-					toAdd.add(sccs.get(i));
-				}
-			}
-			if (toAdd.size() > 0) {
-				L.addAll(toAdd);
-			}
-		}
-		return L;
+		return MECs;
 	}
 
 	private SubNondetModel<?> restrict(NondetModel<?> model, BitSet states)
@@ -214,25 +190,4 @@ public class ECComputerDefault extends ECComputer
 		return r;
 	}
 
-	private boolean isMEC(BitSet b)
-	{
-		if (b.isEmpty())
-			return false;
-
-		int state = b.nextSetBit(0);
-		while (state != -1) {
-			boolean atLeastOneAction = false;
-			for (int i = 0; i < model.getNumChoices(state); i++) {
-				if (model.allSuccessorsInSet(state, i, b)) {
-					atLeastOneAction = true;
-				}
-			}
-			if (!atLeastOneAction) {
-				return false;
-			}
-			state = b.nextSetBit(state + 1);
-		}
-
-		return true;
-	}
 }
