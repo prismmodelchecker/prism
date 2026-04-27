@@ -50,14 +50,6 @@ public class ECComputerDefault extends ECComputer
 	private List<BitSet> mecs = new ArrayList<BitSet>();
 
 	/**
-	 * Functional interface for a consumer of MEC BitSets that may throw PrismException.
-	 */
-	@FunctionalInterface
-	private interface MECConsumer {
-		void accept(BitSet mec) throws PrismException;
-	}
-
-	/**
 	 * Build (M)EC computer for a given model.
 	 */
 	public ECComputerDefault(PrismComponent parent, NondetModel<?> model) throws PrismException
@@ -90,6 +82,14 @@ public class ECComputerDefault extends ECComputer
 	public List<BitSet> getMECStates()
 	{
 		return mecs;
+	}
+
+	@Override
+	public void computeMECStatesStreaming(MECConsumer consumer) throws PrismException
+	{
+		BitSet restrict = new BitSet();
+		restrict.set(0, model.getNumStates());
+		findMECsStreaming(model, restrict, consumer);
 	}
 
 	// Computation
