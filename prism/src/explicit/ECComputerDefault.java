@@ -172,18 +172,17 @@ public class ECComputerDefault extends ECComputer
 		while (changed) {
 			changed = false;
 			actions.clear();
-			for (int i = 0; i < model.getNumStates(); i++) {
+			for (int i = states.nextSetBit(0); i >= 0; i = states.nextSetBit(i + 1)) {
 				BitSet act = new BitSet();
-				if (states.get(i)) {
-					for (int j = 0; j < model.getNumChoices(i); j++) {
-						if (model.allSuccessorsInSet(i, j, states)) {
-							act.set(j);
-						}
+				for (int j = 0; j < model.getNumChoices(i); j++) {
+					if (model.allSuccessorsInSet(i, j, states)) {
+						act.set(j);
 					}
-					if (act.isEmpty()) {
-						states.clear(i);
-						changed = true;
-					}
+				}
+				if (act.isEmpty()) {
+					states.clear(i);
+					changed = true;
+				} else {
 					actions.put(i, act);
 				}
 			}
