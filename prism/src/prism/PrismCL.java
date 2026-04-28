@@ -126,7 +126,6 @@ public class PrismCL implements PrismModelListener
 	private String paramSwitch = null;
 
 	// files/filenames
-	private String mainLogFilename = "stdout";
 	private String settingsFilename = null;
 	private String modelFilename = null;
 	private String importInitDistFilename = null;
@@ -1813,15 +1812,7 @@ public class PrismCL implements PrismModelListener
 				// specify main log (hidden option)
 				else if (sw.equals("mainlog")) {
 					if (i < args.length - 1) {
-						mainLogFilename = args[++i];
-						try {
-							// use temporary storage because an error would go to the old log
-							log = new PrismFileLog(mainLogFilename);
-							mainLog = log;
-							prism.setMainLog(mainLog);
-						} catch (PrismException e) {
-							errorAndExit("Couldn't open log file \"" + mainLogFilename + "\"");
-						}
+						processMainLogSwitch(args[++i]);
 					} else {
 						errorAndExit("No file specified for -" + sw + " switch");
 					}
@@ -2424,6 +2415,35 @@ public class PrismCL implements PrismModelListener
 			else {
 				throw new PrismException("Unknown option \"" + opt + "\" for -exportstrat switch");
 			}
+		}
+	}
+
+	/**
+	 * Process the arguments (file, options) to the -mainlog switch
+	 */
+	private void processMainLogSwitch(String filesOptionsString) throws PrismException
+	{
+		// Split into file/options (on :)
+		String halves[] = splitFilesAndOptions(filesOptionsString);
+		String filename = halves[0];
+		String optionsString = halves[1];
+		// Process options
+		boolean append = false;
+		for (String opt : optionsString.split(",")) {
+			if (opt.equals("")) {
+				// ignore empty
+			} else if (opt.equals("append")) {
+				append = true;
+			} else {
+				throw new PrismException("Unknown option \"" + opt + "\" for -mainlog switch");
+			}
+		}
+		// Open the log
+		try {
+			mainLog = new PrismFileLog(filename, append);
+			prism.setMainLog(mainLog);
+		} catch (PrismException e) {
+			errorAndExit("Couldn't open log file \"" + filename + "\"");
 		}
 	}
 
