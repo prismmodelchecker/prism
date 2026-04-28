@@ -182,10 +182,10 @@ public class ECComputerDefault extends ECComputer
 					// A second SCC arrived, so we have multiple SCCs.
 					// Process the buffered first SCC immediately, then this one.
 					if (firstSCC[0] != null) {
-						findMECsStreaming(submodel, firstSCC[0], childMecConsumer);
+						processECSCC(firstSCC[0], submodel, childMecConsumer);
 						firstSCC[0] = null;
 					}
-					findMECsStreaming(submodel, current, childMecConsumer);
+					processECSCC(current, submodel, childMecConsumer);
 				}
 				current = null;
 			}
@@ -200,7 +200,7 @@ public class ECComputerDefault extends ECComputer
 					} else {
 						// Single SCC that doesn't cover all restricted states (transient
 						// states survived restrict but are not in any SCC). Recurse.
-						findMECsStreaming(submodel, firstSCC[0], childMecConsumer);
+						processECSCC(firstSCC[0], submodel, childMecConsumer);
 					}
 					firstSCC[0] = null;
 				}
@@ -209,6 +209,41 @@ public class ECComputerDefault extends ECComputer
 
 		SCCComputer sccc = SCCComputer.createSCCComputer(this, submodel, sccConsumer);
 		sccc.computeSCCs();
+	}
+
+	/**
+	 * Process one SCC from the streaming consumer: emit it directly if it is a
+	 * singleton MEC, or recurse via {@link #findMECsStreaming} otherwise.
+	 * Avoids creating a SubNondetModel for singleton non-MECs.
+	 */
+	private void processECSCC(BitSet scc, NondetModel<?> model, MECConsumer consumer) throws PrismException
+	{
+		if (scc.cardinality() == 1) {
+			int s = scc.nextSetBit(0);
+			if (isSingletonMEC(model, s)) {
+				consumer.accept(scc);
+			}
+			// Non-MEC singleton: restrict({s}) will be empty, so no recursion needed.
+		} else {
+			findMECsStreaming(model, scc, consumer);
+		}
+	}
+
+	/**
+	 * Returns true if state {@code s} in {@code model} has at least one action
+	 * whose entire successor set is {@code {s}} (a self-loop action), making it
+	 * a valid 1-state MEC on its own.
+	 */
+	private static boolean isSingletonMEC(NondetModel<?> model, int s)
+	{
+		BitSet singleton = new BitSet();
+		singleton.set(s);
+		for (int i = 0; i < model.getNumChoices(s); i++) {
+			if (model.allSuccessorsInSet(s, i, singleton)) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	private SubNondetModel<?> restrict(NondetModel<?> model, BitSet states)
