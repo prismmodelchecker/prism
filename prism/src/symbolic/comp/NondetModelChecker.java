@@ -2300,7 +2300,10 @@ public class NondetModelChecker extends NonProbModelChecker
 			                                          model.getAllDDRowVars(),
 			                                          model.getAllDDColVars(),
 			                                          model.getAllDDNondetVars());
+			StopWatch mecTimer = new StopWatch(mainLog);
+			mecTimer.start("MEC computation");
 			ecComp.computeMECStates();
+			mecTimer.stop("found " + ecComp.getMECStates().size() + " MECs");
 
 			JDDNode positiveECs = JDD.Constant(0);
 
@@ -2515,9 +2518,11 @@ public class NondetModelChecker extends NonProbModelChecker
 
 					ECComputer ecComp = new ECComputerDefault(prism, zeroReach, zeroTrans, zeroTrans01, model.getAllDDRowVars(), model.getAllDDColVars(),
 							model.getAllDDNondetVars());
+					StopWatch mecTimer = new StopWatch(mainLog);
+					mecTimer.start("zero-cost MEC computation");
 					ecComp.computeMECStates();
-
 					zeroCostEndComponents = ecComp.getMECStates();
+					mecTimer.stop("found " + zeroCostEndComponents.size() + " zero-cost MECs");
 
 					JDD.Deref(zeroReach);
 					JDD.Deref(zeroTrans);

@@ -2700,9 +2700,11 @@ public class MDPModelChecker extends ProbModelChecker
 		maybe.andNot(no);
 
 		ECComputer ec = ECComputer.createECComputer(this, mdp);
-
+		StopWatch mecTimer = new StopWatch(getLog());
+		mecTimer.start("MEC computation");
 		ec.computeMECStates(maybe);
 		List<BitSet> mecs = ec.getMECStates();
+		mecTimer.stop("found " + mecs.size() + " MECs");
 		mecs.add(yes);
 		mecs.add(no);
 
