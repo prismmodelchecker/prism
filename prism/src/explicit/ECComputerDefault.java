@@ -30,10 +30,8 @@ package explicit;
 import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import prism.PrismComponent;
 import prism.PrismException;
@@ -86,8 +84,16 @@ public class ECComputerDefault extends ECComputer
 		return mecs;
 	}
 
+	@Override
+	public void computeMECStatesStreaming(MECConsumer consumer) throws PrismException
+	{
+		BitSet restrict = new BitSet();
+		restrict.set(0, model.getNumStates());
+		findMECsStreaming(model, restrict, consumer);
+	}
+
 	// Computation
-	
+
 	/**
 	 * Find all accepting maximal end components (MECs) in the submodel obtained
 	 * by restricting this one to the set of states {@code restrict},
@@ -105,62 +111,139 @@ public class ECComputerDefault extends ECComputer
 			restrict = new BitSet();
 			restrict.set(0, model.getNumStates());
 		}
-		// Initialise L with set of all states to look in (if non-empty)
-		List<BitSet> L = new ArrayList<BitSet>();
 		if (restrict.isEmpty())
-			return L;
-		L.add(restrict);
-		// Find MECs
-		boolean changed = true;
-		while (changed) {
-			changed = false;
-			BitSet E = L.remove(0);
-			SubNondetModel<?> submodel = restrict(model, E);
-			List<BitSet> sccs = translateStates(submodel, computeSCCs(submodel));
-			L = replaceEWithSCCs(L, E, sccs);
-			changed = canLBeChanged(L, E);
-		}
+			return new ArrayList<>();
+
+		List<BitSet> MECs = new ArrayList<>();
+		findMECsStreaming(model, restrict, MECs::add);
+
 		// Filter and return those that contain a state in accept
 		if (accept != null) {
-			int i = 0;
-			while (i < L.size()) {
-				if (!L.get(i).intersects(accept)) {
-					L.remove(i);
-				} else {
-					i++;
-				}
-			}
+			MECs.removeIf(mec -> !mec.intersects(accept));
 		}
-		return L;
+		return MECs;
 	}
 
-	private Set<BitSet> processedSCCs = new HashSet<BitSet>();
-
-	private boolean canLBeChanged(List<BitSet> L, BitSet E)
+	/**
+	 * Find all MECs within {@code states} of {@code currentModel}, calling
+	 * {@code mecConsumer} for each MEC found (in {@code currentModel}'s state space).
+	 *
+	 * SCCs are processed one at a time as Tarjan emits them, so at most one SCC
+	 * is alive at any given moment per recursion level. This avoids accumulating
+	 * O(numMECs) full-state-space BitSets simultaneously.
+	 */
+	private void findMECsStreaming(NondetModel<?> currentModel, BitSet states, MECConsumer mecConsumer)
+			throws PrismException
 	{
-		processedSCCs.add(E);
-		for (int i = 0; i < L.size(); i++) {
-			if (!processedSCCs.contains(L.get(i))) {
+		BitSet E = (BitSet) states.clone();
+		SubNondetModel<?> submodel = restrict(currentModel, E);
+		if (submodel.getNumStates() == 0)
+			return;
+		final int submodelSize = submodel.getNumStates();
+
+		// Translate a MEC in submodel's state space back to currentModel's state space.
+		MECConsumer childMecConsumer = subModelMEC -> {
+			BitSet currentModelMEC = new BitSet();
+			for (int i = subModelMEC.nextSetBit(0); i >= 0; i = subModelMEC.nextSetBit(i + 1)) {
+				currentModelMEC.set(submodel.translateState(i));
+			}
+			mecConsumer.accept(currentModelMEC);
+		};
+
+		// Streaming SCC consumer: immediately recurse into each completed SCC rather
+		// than collecting all SCCs before processing any. This keeps peak memory at
+		// O(recursion_depth x stateSpaceSize) instead of O(numMECs x stateSpaceSize).
+		int[] sccCount = {0};
+		BitSet[] firstSCC = {null};
+
+		SCCConsumer sccConsumer = new SCCConsumer() {
+			private BitSet current;
+
+			@Override
+			public void notifyStartSCC()
+			{
+				current = new BitSet();
+			}
+
+			@Override
+			public void notifyStateInSCC(int s)
+			{
+				current.set(s);
+			}
+
+			@Override
+			public void notifyEndSCC() throws PrismException
+			{
+				sccCount[0]++;
+				if (sccCount[0] == 1) {
+					// Buffer the first SCC: we don't yet know if it is the only one.
+					firstSCC[0] = current;
+				} else {
+					// A second SCC arrived, so we have multiple SCCs.
+					// Process the buffered first SCC immediately, then this one.
+					if (firstSCC[0] != null) {
+						processECSCC(firstSCC[0], submodel, childMecConsumer);
+						firstSCC[0] = null;
+					}
+					processECSCC(current, submodel, childMecConsumer);
+				}
+				current = null;
+			}
+
+			@Override
+			public void notifyDone() throws PrismException
+			{
+				if (sccCount[0] == 1 && firstSCC[0] != null) {
+					if (firstSCC[0].cardinality() == submodelSize) {
+						// Single SCC covering all states of the restricted submodel → MEC.
+						childMecConsumer.accept(firstSCC[0]);
+					} else {
+						// Single SCC that doesn't cover all restricted states (transient
+						// states survived restrict but are not in any SCC). Recurse.
+						processECSCC(firstSCC[0], submodel, childMecConsumer);
+					}
+					firstSCC[0] = null;
+				}
+			}
+		};
+
+		SCCComputer sccc = SCCComputer.createSCCComputer(this, submodel, sccConsumer);
+		sccc.computeSCCs();
+	}
+
+	/**
+	 * Process one SCC from the streaming consumer: emit it directly if it is a
+	 * singleton MEC, or recurse via {@link #findMECsStreaming} otherwise.
+	 * Avoids creating a SubNondetModel for singleton non-MECs.
+	 */
+	private void processECSCC(BitSet scc, NondetModel<?> model, MECConsumer consumer) throws PrismException
+	{
+		if (scc.cardinality() == 1) {
+			int s = scc.nextSetBit(0);
+			if (isSingletonMEC(model, s)) {
+				consumer.accept(scc);
+			}
+			// Non-MEC singleton: restrict({s}) will be empty, so no recursion needed.
+		} else {
+			findMECsStreaming(model, scc, consumer);
+		}
+	}
+
+	/**
+	 * Returns true if state {@code s} in {@code model} has at least one action
+	 * whose entire successor set is {@code {s}} (a self-loop action), making it
+	 * a valid 1-state MEC on its own.
+	 */
+	private static boolean isSingletonMEC(NondetModel<?> model, int s)
+	{
+		BitSet singleton = new BitSet();
+		singleton.set(s);
+		for (int i = 0; i < model.getNumChoices(s); i++) {
+			if (model.allSuccessorsInSet(s, i, singleton)) {
 				return true;
 			}
 		}
 		return false;
-	}
-
-	private List<BitSet> replaceEWithSCCs(List<BitSet> L, BitSet E, List<BitSet> sccs)
-	{
-		if (sccs.size() > 0) {
-			List<BitSet> toAdd = new ArrayList<BitSet>();
-			for (int i = 0; i < sccs.size(); i++) {
-				if (!L.contains(sccs.get(i))) {
-					toAdd.add(sccs.get(i));
-				}
-			}
-			if (toAdd.size() > 0) {
-				L.addAll(toAdd);
-			}
-		}
-		return L;
 	}
 
 	private SubNondetModel<?> restrict(NondetModel<?> model, BitSet states)
@@ -173,68 +256,22 @@ public class ECComputerDefault extends ECComputer
 		while (changed) {
 			changed = false;
 			actions.clear();
-			for (int i = 0; i < model.getNumStates(); i++) {
+			for (int i = states.nextSetBit(0); i >= 0; i = states.nextSetBit(i + 1)) {
 				BitSet act = new BitSet();
-				if (states.get(i)) {
-					for (int j = 0; j < model.getNumChoices(i); j++) {
-						if (model.allSuccessorsInSet(i, j, states)) {
-							act.set(j);
-						}
+				for (int j = 0; j < model.getNumChoices(i); j++) {
+					if (model.allSuccessorsInSet(i, j, states)) {
+						act.set(j);
 					}
-					if (act.isEmpty()) {
-						states.clear(i);
-						changed = true;
-					}
+				}
+				if (act.isEmpty()) {
+					states.clear(i);
+					changed = true;
+				} else {
 					actions.put(i, act);
 				}
 			}
 		}
 
 		return new SubNondetModel<>(model, states, actions, initialStates);
-	}
-
-	private List<BitSet> computeSCCs(NondetModel<?> model) throws PrismException
-	{
-		SCCConsumerStore sccs = new SCCConsumerStore();
-		SCCComputer sccc = SCCComputer.createSCCComputer(this, model, sccs);
-		sccc.computeSCCs();
-		return sccs.getSCCs();
-	}
-
-	private List<BitSet> translateStates(SubNondetModel<?> model, List<BitSet> sccs)
-	{
-		List<BitSet> r = new ArrayList<BitSet>();
-		for (int i = 0; i < sccs.size(); i++) {
-			BitSet set = sccs.get(i);
-			BitSet set2 = new BitSet();
-			r.add(set2);
-			for (int j = set.nextSetBit(0); j >= 0; j = set.nextSetBit(j + 1)) {
-				set2.set(model.translateState(j));
-
-			}
-		}
-		return r;
-	}
-
-	private boolean isMEC(BitSet b)
-	{
-		if (b.isEmpty())
-			return false;
-
-		int state = b.nextSetBit(0);
-		while (state != -1) {
-			boolean atLeastOneAction = false;
-			for (int i = 0; i < model.getNumChoices(state); i++) {
-				if (model.allSuccessorsInSet(state, i, b)) {
-					atLeastOneAction = true;
-				}
-			}
-			if (!atLeastOneAction) {
-				return false;
-			}
-			state = b.nextSetBit(state + 1);
-		}
-
-		return true;
 	}
 }

@@ -64,6 +64,6 @@ public interface SCCConsumer {
 	/**
 	 * Call-back function. Will be called after SCC computation is complete.
 	 */
-	public default void notifyDone() {}
+	public default void notifyDone() throws PrismException {}
 
 }

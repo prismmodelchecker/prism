@@ -27,10 +27,8 @@
 
 package explicit;
 
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.BitSet;
-import java.util.LinkedList;
-import java.util.List;
 import java.util.function.IntPredicate;
 
 import prism.PrismComponent;
@@ -38,6 +36,11 @@ import prism.PrismException;
 
 /**
  * Tarjan's SCC algorithm operating on a Model object.
+ * Uses an iterative (non-recursive) DFS to avoid stack overflow on large models,
+ * and primitive int arrays throughout to minimise object allocation.
+ * The variable-depth stacks (DFS frame stack and Tarjan SCC stack) start small
+ * and grow on demand, so the only O(numStates) allocations are the two discovery
+ * index arrays that are intrinsic to the algorithm.
  */
 public class SCCComputerTarjan extends SCCComputer
 {
@@ -46,17 +49,20 @@ public class SCCComputerTarjan extends SCCComputer
 	/* Number of nodes (model states) */
 	private int numNodes;
 
-	/* Next index to give to a node */
+	/* Next discovery index to assign */
 	private int index = 0;
-	/* Stack of nodes */
-	private List<Integer> stack = new LinkedList<Integer>();
-	/* List of nodes in the graph. Invariant: {@code nodeList.get(i).id == i} */
-	private ArrayList<Node> nodeList;
-	/* Nodes currently on the stack. */
+	/* Per-node discovery index; -1 means unvisited */
+	private int[] nodeIndex;
+	/* Per-node lowlink value */
+	private int[] lowlink;
+	/* Nodes currently on the Tarjan SCC stack */
 	private BitSet onStack;
-	/** Should we filter trivial SCCs? */
+	/* Should we filter trivial SCCs? */
 	private boolean filterTrivialSCCs;
 	private IntPredicate restrict;
+
+	/** Initial capacity for the dynamically-sized stacks */
+	private static final int INITIAL_CAPACITY = 64;
 
 	/**
 	 * Build (B)SCC computer for a given model.
@@ -66,11 +72,10 @@ public class SCCComputerTarjan extends SCCComputer
 		super(parent, consumer);
 		this.model = model;
 		this.numNodes = model.getNumStates();
-		this.nodeList = new ArrayList<Node>(numNodes);
-		for (int i = 0; i < numNodes; i++) {
-			nodeList.add(new Node(i));
-		}
-		onStack = new BitSet();
+		this.nodeIndex = new int[numNodes];
+		this.lowlink = new int[numNodes];
+		Arrays.fill(nodeIndex, -1);
+		this.onStack = new BitSet(numNodes);
 	}
 
 	// Methods for SCCComputer interface
@@ -88,86 +93,131 @@ public class SCCComputerTarjan extends SCCComputer
 	// SCC Computation
 
 	/**
-	 * Execute Tarjan's algorithm. Determine maximal strongly connected components
-	 * (SCCS) for the graph of the model and stored in {@code sccs}.
+	 * Execute Tarjan's algorithm iteratively.
+	 * Uses an explicit frame stack instead of JVM recursion, so that large
+	 * models with long chains do not cause a StackOverflowError.
+	 * Both the DFS frame stack and the Tarjan SCC stack grow on demand
+	 * (doubling up to numNodes) so no large upfront allocation is needed.
 	 */
-	public void tarjan() throws PrismException
+	private void tarjan() throws PrismException
 	{
-		for (int i = 0; i < numNodes; i++) {
-			if (restrict != null && !restrict.test(i))
-				continue; // skip state if not one of the relevant states
-			if (nodeList.get(i).lowlink == -1)
-				tarjan(i);
-		}
+		int initCap = (numNodes == 0) ? 1 : Math.min(numNodes, INITIAL_CAPACITY);
 
-	}
+		// Tarjan SCC path stack: contains nodes whose SCC membership is not yet determined.
+		// Grows on demand up to numNodes (each node is pushed at most once).
+		int tarjanCap = initCap;
+		int[] tarjanStack = new int[tarjanCap];
+		int tarjanStackTop = 0;
 
-	private void tarjan(int i) throws PrismException
-	{
-		final Node v = nodeList.get(i);
-		v.index = index;
-		v.lowlink = index;
-		index++;
-		stack.add(0, i);
-		onStack.set(i);
+		// Explicit DFS call stack.  Each frame records:
+		//   frameNode[]        - the node v being explored
+		//   frameIter[]        - stateful successor iterator for v (resumes from where we left off)
+		//   frameHadSelfloop[] - whether a self-loop on v has been seen
+		// Depth is bounded by the longest DFS path, which is at most numNodes.
+		int frameCap = initCap;
+		int[] frameNode = new int[frameCap];
+		SuccessorsIterator[] frameIter = new SuccessorsIterator[frameCap];
+		boolean[] frameHadSelfloop = new boolean[frameCap];
+		int frameTop = 0;
 
-		boolean hadSelfloop = false;
-		SuccessorsIterator it = model.getSuccessors(i);
-		while (it.hasNext()) {
-			int e = it.nextInt();
-
-			if (e == i) {
-				hadSelfloop = true;
+		for (int startNode = 0; startNode < numNodes; startNode++) {
+			if (restrict != null && !restrict.test(startNode))
 				continue;
-			}
+			if (nodeIndex[startNode] != -1)
+				continue;
 
-			if (restrict != null && !restrict.test(e)) {
-				continue; // ignore edge to state that is not relevant
+			// Initialise startNode and push its frame
+			nodeIndex[startNode] = index;
+			lowlink[startNode] = index++;
+			if (tarjanStackTop == tarjanCap) {
+				tarjanCap = Math.min(numNodes, tarjanCap * 2);
+				tarjanStack = Arrays.copyOf(tarjanStack, tarjanCap);
 			}
+			tarjanStack[tarjanStackTop++] = startNode;
+			onStack.set(startNode);
+			if (frameTop == frameCap) {
+				frameCap = Math.min(numNodes, frameCap * 2);
+				frameNode = Arrays.copyOf(frameNode, frameCap);
+				frameIter = Arrays.copyOf(frameIter, frameCap);
+				frameHadSelfloop = Arrays.copyOf(frameHadSelfloop, frameCap);
+			}
+			frameNode[frameTop] = startNode;
+			frameIter[frameTop] = model.getSuccessors(startNode);
+			frameHadSelfloop[frameTop] = false;
+			frameTop++;
 
-			Node n = nodeList.get(e);
-			if (n.index == -1) {
-				tarjan(e);
-				v.lowlink = Math.min(v.lowlink, n.lowlink);
-			} else if (onStack.get(e)) {
-				v.lowlink = Math.min(v.lowlink, n.index);
-			}
-		}
-		if (v.lowlink == v.index) {
-			// this is a singleton SCC if the top of the stack equals i
-			boolean singletonSCC = (stack.get(0) == i);
-			if (singletonSCC && filterTrivialSCCs) {
-				if (!hadSelfloop) { // singleton SCC & no selfloop -> trivial
-					stack.remove(0);
-					onStack.set(i, false);
-					return;
+			while (frameTop > 0) {
+				int fi = frameTop - 1;
+				int v = frameNode[fi];
+				SuccessorsIterator it = frameIter[fi];
+
+				// Advance through successors of v until we push a new frame or exhaust them
+				boolean pushed = false;
+				while (it.hasNext()) {
+					int e = it.nextInt();
+					if (e == v) {
+						frameHadSelfloop[fi] = true;
+						continue;
+					}
+					if (restrict != null && !restrict.test(e))
+						continue;
+
+					if (nodeIndex[e] == -1) {
+						// Unvisited: push new frame for e (simulates recursive call)
+						nodeIndex[e] = index;
+						lowlink[e] = index++;
+						if (tarjanStackTop == tarjanCap) {
+							tarjanCap = Math.min(numNodes, tarjanCap * 2);
+							tarjanStack = Arrays.copyOf(tarjanStack, tarjanCap);
+						}
+						tarjanStack[tarjanStackTop++] = e;
+						onStack.set(e);
+						if (frameTop == frameCap) {
+							frameCap = Math.min(numNodes, frameCap * 2);
+							frameNode = Arrays.copyOf(frameNode, frameCap);
+							frameIter = Arrays.copyOf(frameIter, frameCap);
+							frameHadSelfloop = Arrays.copyOf(frameHadSelfloop, frameCap);
+						}
+						frameNode[frameTop] = e;
+						frameIter[frameTop] = model.getSuccessors(e);
+						frameHadSelfloop[frameTop] = false;
+						frameTop++;
+						pushed = true;
+						break;
+					} else if (onStack.get(e)) {
+						lowlink[v] = Math.min(lowlink[v], nodeIndex[e]);
+					}
+				}
+
+				if (!pushed) {
+					// All successors of v are processed; pop v's frame (simulates return)
+					frameIter[fi] = null; // release iterator for GC
+					frameTop--;
+					// Propagate lowlink to parent (the node that "called" v)
+					if (frameTop > 0) {
+						int parent = frameNode[frameTop - 1];
+						lowlink[parent] = Math.min(lowlink[parent], lowlink[v]);
+					}
+					// If v is the root of an SCC, pop the SCC from the Tarjan stack
+					if (lowlink[v] == nodeIndex[v]) {
+						boolean singletonSCC = (tarjanStack[tarjanStackTop - 1] == v);
+						if (singletonSCC && filterTrivialSCCs && !frameHadSelfloop[frameTop]) {
+							// Singleton with no self-loop: trivial SCC, skip it
+							tarjanStackTop--;
+							onStack.clear(v);
+						} else {
+							int n;
+							consumer.notifyStartSCC();
+							do {
+								n = tarjanStack[--tarjanStackTop];
+								onStack.clear(n);
+								consumer.notifyStateInSCC(n);
+							} while (n != v);
+							consumer.notifyEndSCC();
+						}
+					}
 				}
 			}
-
-			int n;
-			consumer.notifyStartSCC();
-			do {
-				n = stack.remove(0);
-				onStack.set(n, false);
-				consumer.notifyStateInSCC(n);
-			} while (n != i);
-			consumer.notifyEndSCC();
-		}
-	}
-
-	/**
-	 * A small class wrapping a node.
-	 * It carries extra information necessary for Tarjan's algorithm.
-	 */
-	protected static class Node
-	{
-		public int lowlink = -1;
-		public int index = -1;
-		public int id;
-
-		public Node(int id)
-		{
-			this.id = id;
 		}
 	}
 }

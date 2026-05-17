@@ -1972,9 +1972,12 @@ public class MDPModelChecker extends ProbModelChecker
 			timerPre = System.currentTimeMillis();
 
 			ECComputer ecs = ECComputer.createECComputer(this, mdp);
-			ecs.computeMECStates();
 			BitSet positiveECs = new BitSet();
-			for (BitSet ec : ecs.getMECStates()) {
+			int[] mecCount = {0};
+			StopWatch mecTimer = new StopWatch(getLog());
+			mecTimer.start("MEC computation");
+			ecs.computeMECStatesStreaming(ec -> {
+				mecCount[0]++;
 				// check if this MEC is positive
 				boolean positiveEC = false;
 				for (int state : new IterableStateSet(ec, n)) {
@@ -1995,7 +1998,9 @@ public class MDPModelChecker extends ProbModelChecker
 				if (positiveEC) {
 					positiveECs.or(ec);
 				}
-			}
+				// ec is eligible for GC once this callback returns
+			});
+			mecTimer.stop("found " + mecCount[0] + " MECs");
 
 			// inf = Pmax[ <> positiveECs ] > 0
 			//     = ! (Pmax[ <> positiveECs ] = 0)
@@ -2700,9 +2705,11 @@ public class MDPModelChecker extends ProbModelChecker
 		maybe.andNot(no);
 
 		ECComputer ec = ECComputer.createECComputer(this, mdp);
-
+		StopWatch mecTimer = new StopWatch(getLog());
+		mecTimer.start("MEC computation");
 		ec.computeMECStates(maybe);
 		List<BitSet> mecs = ec.getMECStates();
+		mecTimer.stop("found " + mecs.size() + " MECs");
 		mecs.add(yes);
 		mecs.add(no);
 

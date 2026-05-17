@@ -33,6 +33,14 @@ import prism.PrismComponent;
 import prism.PrismException;
 
 /**
+ * Functional interface for consuming MECs one at a time, allowing PrismException.
+ */
+@FunctionalInterface
+interface MECConsumer {
+	void accept(BitSet mec) throws PrismException;
+}
+
+/**
  * Abstract class for (explicit) classes that compute (M)ECs, i.e. (maximal) end components,
  * for a nondeterministic model such as an MDP.
  */
@@ -86,4 +94,18 @@ public abstract class ECComputer extends PrismComponent
 	 * Get the list of states for computed MECs.
 	 */
 	public abstract List<BitSet> getMECStates();
+
+	/**
+	 * Find all MECs and pass each one to {@code consumer} as it is found,
+	 * without accumulating them into a list. This avoids O(numMECs) peak memory
+	 * when the caller only needs to process MECs one at a time.
+	 * Default implementation collects then iterates; subclasses may override.
+	 */
+	public void computeMECStatesStreaming(MECConsumer consumer) throws PrismException
+	{
+		computeMECStates();
+		for (BitSet mec : getMECStates()) {
+			consumer.accept(mec);
+		}
+	}
 }
