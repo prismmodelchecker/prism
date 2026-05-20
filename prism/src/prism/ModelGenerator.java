@@ -88,7 +88,20 @@ public interface ModelGenerator<Value> extends ModelInfo
 	 * The returned State object should be fresh, i.e. can be kept/modified. 
 	 */
 	public State getInitialState() throws PrismException;
-	
+
+	/**
+	 * Is the provided state an initial state?
+	 */
+	public default boolean isInitialState(State state) throws PrismException
+	{
+		for (State initialState : getInitialStates()) {
+			if (initialState.equals(state)) {
+				return true;
+			}
+		}
+		return false;
+	}
+
 	/**
 	 * Explore a given state of the model. After a call to this method,
 	 * the class should be able to respond to the various methods that are

@@ -1,0 +1,11 @@
+// RESULT: 1.0
+P=? [ F "init" ]
+
+// RESULT: 1.0
+P=? [ F>1 "init" ]
+
+// RESULT: 0.0
+P=? [ F[1,5] "init" ]
+
+// RESULT: 1.0
+P=? [ F[1,N+1] "init" ]

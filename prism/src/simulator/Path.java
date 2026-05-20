@@ -232,7 +232,10 @@ public abstract class Path
 				try {
 					if ("deadlock".equals(name)) {
 						return modelGen.isDeadlock();
+					} else if ("init".equals(name)) {
+						return modelGen.isInitialState(getCurrentState());
 					}
+					// Non-special label
 					return modelGen.isLabelTrue(name);
 				} catch (PrismException e) {
 					throw new PrismLangException(e.getMessage());

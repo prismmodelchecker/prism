@@ -500,6 +500,20 @@ public class ModulesFileModelGenerator<Value> implements ModelGenerator<Value>, 
 	}
 
 	@Override
+	public boolean isInitialState(State state) throws PrismException
+	{
+		// One initial state
+		if (modulesFile.getInitialStates() == null) {
+			return modulesFile.getDefaultInitialState().equals(state);
+		}
+		// Possibly multiple initial states
+		else {
+			Expression init = modulesFile.getInitialStates();
+			return init.evaluateBoolean(ec.setState(state));
+		}
+	}
+
+	@Override
 	public void exploreState(State exploreState) throws PrismException
 	{
 		this.exploreState = exploreState;
