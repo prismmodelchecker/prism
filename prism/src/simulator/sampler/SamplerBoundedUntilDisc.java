@@ -106,7 +106,7 @@ public class SamplerBoundedUntilDisc extends SamplerBoolean
 		// Lower bound not yet exceeded but LHS of until violated
 		// (no need to check RHS because too early)
 		else if (pathSize < lb) {
-			if (!path.evaluateBooleanInCurrentState(left)) {
+			if (!path.evaluateBooleanInCurrentState(left, modelGen)) {
 				valueKnown = true;
 				value = false;
 			}
@@ -114,12 +114,12 @@ public class SamplerBoundedUntilDisc extends SamplerBoolean
 		// Current time is between lower/upper bounds...
 		else {
 			// Have we reached the target (i.e. RHS of until)?
-			if (path.evaluateBooleanInCurrentState(right)) {
+			if (path.evaluateBooleanInCurrentState(right, modelGen)) {
 				valueKnown = true;
 				value = true;
 			}
 			// Or, if not, have we violated the LHS of the until?
-			else if (!path.evaluateBooleanInCurrentState(left)) {
+			else if (!path.evaluateBooleanInCurrentState(left, modelGen)) {
 				valueKnown = true;
 				value = false;
 			}

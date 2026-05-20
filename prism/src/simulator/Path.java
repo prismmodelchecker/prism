@@ -32,6 +32,7 @@ import parser.State;
 import parser.ast.Expression;
 import parser.type.TypeBool;
 import prism.ModelGenerator;
+import prism.PrismException;
 import prism.PrismLangException;
 
 /**
@@ -200,7 +201,7 @@ public abstract class Path
 
 	/**
 	 * Evaluate an expression in the current state of the path.
-	 * This takes in to account both the state variables and observables.
+	 * This takes into account both the state variables and observables.
 	 */
 	public Object evaluateInCurrentState(Expression expr) throws PrismLangException
 	{
@@ -210,11 +211,34 @@ public abstract class Path
 	
 	/**
 	 * Evaluate a Boolean-valued expression in the current state of the path.
-	 * This takes in to account both the state variables and observables.
+	 * This takes into account both the state variables and observables.
 	 */
 	public boolean evaluateBooleanInCurrentState(Expression expr) throws PrismLangException
 	{
 		EvaluateContextFull ec = new EvaluateContextFull(getCurrentState(), getCurrentObservation());
+		return TypeBool.getInstance().castValueTo(expr.evaluate(ec), EvalMode.FP);
+	}
+
+	/**
+	 * Evaluate a Boolean-valued expression in the current state of the path,
+	 * with label evaluation supported via the provided ModelGenerator.
+	 * This handles built-in labels ("deadlock", "init") and model-defined labels.
+	 */
+	public boolean evaluateBooleanInCurrentState(Expression expr, ModelGenerator<?> modelGen) throws PrismException
+	{
+		EvaluateContextFull ec = new EvaluateContextFull(getCurrentState(), getCurrentObservation()) {
+			@Override
+			public Boolean getLabelValue(String name) throws PrismLangException {
+				try {
+					if ("deadlock".equals(name)) {
+						return modelGen.isDeadlock();
+					}
+					return modelGen.isLabelTrue(name);
+				} catch (PrismException e) {
+					throw new PrismLangException(e.getMessage());
+				}
+			}
+		};
 		return TypeBool.getInstance().castValueTo(expr.evaluate(ec), EvalMode.FP);
 	}
 

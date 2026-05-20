@@ -1,0 +1,27 @@
+// Tests for the "deadlock" label in simulation (statistical model checking).
+// Model: deterministic chain 0->1->...->N where state N has no outgoing transitions (deadlock).
+// All paths reach the deadlock state in exactly N steps, so results are exact.
+
+// "deadlock" as the reachability target (the primary bug fixed)
+// RESULT: 1.0
+P=? [ F "deadlock" ]
+
+// "deadlock" in the left-hand side of until
+// RESULT: 1.0
+P=? [ !"deadlock" U "done" ]
+
+// Bounded reachability: deadlock is reached within N steps
+// RESULT: 1.0
+P=? [ F<=N "deadlock" ]
+
+// Bounded reachability: cannot reach deadlock in fewer than N steps
+// RESULT: 0.0
+P=? [ F<N "deadlock" ]
+
+// Bounded global: no deadlock in the first N steps (states 0..N-1 all have transitions)
+// RESULT: 1.0
+P=? [ G<N !"deadlock" ]
+
+// Bounded reachability: deadlock is reached in exactly N steps
+// RESULT: 1.0
+P=? [ F[N,N] "deadlock" ]

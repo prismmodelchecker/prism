@@ -63,7 +63,7 @@ public class SamplerNext extends SamplerBoolean
 		// X "target" is true iff state 1 satisfies "target"
 		if (path.size() == 1) {
 			valueKnown = true;
-			value = path.evaluateBooleanInCurrentState(target);
+			value = path.evaluateBooleanInCurrentState(target, modelGen);
 		}
 		// Nothing else to do: if path size is 0, can't decide;
 		// if path size > 1 (should never happen), nothing changes

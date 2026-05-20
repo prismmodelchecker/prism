@@ -93,12 +93,12 @@ public class SamplerBoundedUntilCont extends SamplerBoolean
 		if (path.size() == 0) {
 			// Initially, zero time has elapsed so to satisfy the until,
 			// we need a lower time bound of 0 and the RHS to be satisfied 
-			if (lb == 0.0 && path.evaluateBooleanInCurrentState(right)) {
+			if (lb == 0.0 && path.evaluateBooleanInCurrentState(right, modelGen)) {
 				valueKnown = true;
 				value = true;
 			}
 			// If LHS of the until violated, will never be true
-			else if (!path.evaluateBooleanInCurrentState(left)) {
+			else if (!path.evaluateBooleanInCurrentState(left, modelGen)) {
 				valueKnown = true;
 				value = false;
 			}
@@ -123,7 +123,7 @@ public class SamplerBoundedUntilCont extends SamplerBoolean
 			// Lower bound not yet exceeded but LHS of until violated
 			// (no need to check RHS because too early)
 			else if (timeSoFar <= lb) {
-				if (!path.evaluateBooleanInCurrentState(left)) {
+				if (!path.evaluateBooleanInCurrentState(left, modelGen)) {
 					valueKnown = true;
 					value = false;
 				}
@@ -131,12 +131,12 @@ public class SamplerBoundedUntilCont extends SamplerBoolean
 			// Current time is between lower/upper bounds...
 			else {
 				// Have we reached the target (i.e. RHS of until)?
-				if (path.evaluateBooleanInCurrentState(right)) {
+				if (path.evaluateBooleanInCurrentState(right, modelGen)) {
 					valueKnown = true;
 					value = true;
 				}
 				// Or, if not, have we violated the LHS of the until?
-				else if (!path.evaluateBooleanInCurrentState(left)) {
+				else if (!path.evaluateBooleanInCurrentState(left, modelGen)) {
 					valueKnown = true;
 					value = false;
 				}

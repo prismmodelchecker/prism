@@ -63,12 +63,12 @@ public class SamplerUntil extends SamplerBoolean
 			return true;
 
 		// Have we reached the target (i.e. RHS of until)?
-		if (path.evaluateBooleanInCurrentState(right)) {
+		if (path.evaluateBooleanInCurrentState(right, modelGen)) {
 			valueKnown = true;
 			value = true;
 		}
 		// Or, if not, have we violated the LHS of the until?
-		else if (!path.evaluateBooleanInCurrentState(left)) {
+		else if (!path.evaluateBooleanInCurrentState(left, modelGen)) {
 			valueKnown = true;
 			value = false;
 		}

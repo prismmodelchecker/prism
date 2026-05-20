@@ -26,9 +26,12 @@
 
 package parser;
 
+import prism.PrismLangException;
+
 /**
  * Classes providing the information required to evaluate an expression.
- * Primarily, this means providing values for variables.
+ * Primarily, this means providing values for variables,
+ * but observables and labels can also be handled.
  * Optionally, values for constants can also be supplied.
  */
 public abstract class EvaluateContext
@@ -136,7 +139,16 @@ public abstract class EvaluateContext
 		// No observables defined by default
 		return null;
 	}
-	
+
+	/**
+	 * Return the Boolean value for a label (by name); null if label evaluation is not supported.
+	 */
+	public Boolean getLabelValue(String name) throws PrismLangException
+	{
+		// Label evaluation not supported by default
+		return null;
+	}
+
 	// Utility methods
 	
 	/**

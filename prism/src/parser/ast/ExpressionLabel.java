@@ -83,6 +83,10 @@ public class ExpressionLabel extends Expression
 	@Override
 	public Object evaluate(EvaluateContext ec) throws PrismLangException
 	{
+		Boolean labelVal = ec.getLabelValue(name);
+		if (labelVal != null) {
+			return labelVal;
+		}
 		throw new PrismLangException("Cannot evaluate labels", this);
 	}
 
