@@ -1,0 +1,17 @@
+// Tests for path properties whose evaluation in simulation
+// needs to look beyond a deadlock state in the model
+
+// RESULT: true
+P>0.5 [ F>N+5 x=N ]
+
+// RESULT: false
+P>0.5 [ F>N+5 x=N-1 ]
+
+// RESULT: true
+P>0.5 [ F<=N+5 x=N ]
+
+// RESULT: true
+P>0.5 [ F[N+1,N+2] x>0 ]
+
+// RESULT: false
+P>0.5 [ x=0 U[N+1,N+2] x>0 ]

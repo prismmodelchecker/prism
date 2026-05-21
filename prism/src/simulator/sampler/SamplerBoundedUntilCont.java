@@ -120,12 +120,17 @@ public class SamplerBoundedUntilCont extends SamplerBoolean
 					value = false;
 				}
 			}
-			// Lower bound not yet exceeded but LHS of until violated
-			// (no need to check RHS because too early)
+			// Lower bound not yet exceeded
 			else if (timeSoFar <= lb) {
+				// LHS of until violated
 				if (!path.evaluateBooleanInCurrentState(left, modelGen)) {
 					valueKnown = true;
 					value = false;
+				}
+				// If in a deadlock, nothing will change
+				else if (modelGen != null && modelGen.isDeadlock()) {
+					valueKnown = true;
+					value = path.evaluateBooleanInCurrentState(right, modelGen);
 				}
 			}
 			// Current time is between lower/upper bounds...

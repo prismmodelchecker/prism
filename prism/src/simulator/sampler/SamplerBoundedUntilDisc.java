@@ -103,12 +103,17 @@ public class SamplerBoundedUntilDisc extends SamplerBoolean
 			valueKnown = true;
 			value = false;
 		}
-		// Lower bound not yet exceeded but LHS of until violated
-		// (no need to check RHS because too early)
+		// Lower bound not yet exceeded
 		else if (pathSize < lb) {
+			// LHS of until violated
 			if (!path.evaluateBooleanInCurrentState(left, modelGen)) {
 				valueKnown = true;
 				value = false;
+			}
+			// If in a deadlock, nothing will change
+			else if (modelGen != null && modelGen.isDeadlock()) {
+				valueKnown = true;
+				value = path.evaluateBooleanInCurrentState(right, modelGen);
 			}
 		}
 		// Current time is between lower/upper bounds...
@@ -123,7 +128,7 @@ public class SamplerBoundedUntilDisc extends SamplerBoolean
 				valueKnown = true;
 				value = false;
 			}
-			// Or, if we are now at a deadlock
+			// Or, if we are now at a deadlock, nothing will change
 			else if (modelGen != null && modelGen.isDeadlock()) {
 				valueKnown = true;
 				value = false;

@@ -61,7 +61,7 @@ public class SamplerNext extends SamplerBoolean
 			return true;
 		
 		// X "target" is true iff state 1 satisfies "target"
-		if (path.size() == 1) {
+		if (path.size() == 1 || (path.size() == 0 && modelGen != null && modelGen.isDeadlock())) {
 			valueKnown = true;
 			value = path.evaluateBooleanInCurrentState(target, modelGen);
 		}

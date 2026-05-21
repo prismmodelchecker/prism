@@ -1,0 +1,17 @@
+// Deterministic DTMC chain: states 0..N-1 have one outgoing transition each;
+// state N has no outgoing transitions (deadlock).
+// Used to test evaluation of the "deadlock" label in simulation.
+
+dtmc
+
+const int N = 5;
+
+module M
+
+	x : [0..max(1,N)] init 0;
+
+	[] x < N -> (x' = x+1);
+
+endmodule
+
+label "done" = x = N;

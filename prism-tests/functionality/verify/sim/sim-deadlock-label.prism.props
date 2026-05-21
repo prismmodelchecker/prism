@@ -25,3 +25,11 @@ P=? [ G<N !"deadlock" ]
 // Bounded reachability: deadlock is reached in exactly N steps
 // RESULT: 1.0
 P=? [ F[N,N] "deadlock" ]
+
+// Bounded reachability: deadlock is reached in exactly N+1 steps
+// RESULT: 1.0
+P=? [ F[N+1,N+1] "deadlock" ]
+
+// Bounded reachability: deadlock is reached in > N+5 steps
+// RESULT: 1.0
+P=? [ F>N+5 "deadlock" ]
