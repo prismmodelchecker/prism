@@ -42,19 +42,7 @@ import parser.ast.ExpressionTemporal;
 import parser.ast.LabelList;
 import parser.ast.PropertiesFile;
 import parser.type.Type;
-import prism.ModelGenerator;
-import prism.ModelType;
-import prism.PrismComponent;
-import prism.PrismException;
-import prism.PrismFileLog;
-import prism.PrismLangException;
-import prism.PrismLog;
-import prism.PrismNotSupportedException;
-import prism.PrismUtils;
-import prism.Result;
-import prism.ResultsCollection;
-import prism.RewardGenerator;
-import prism.UndefinedConstants;
+import prism.*;
 import simulator.method.SimulationMethod;
 import simulator.sampler.Sampler;
 import strat.Strategy;
@@ -2004,8 +1992,10 @@ public class SimulatorEngine extends PrismComponent
 		int iters;
 		long i;
 		// Flags
+		boolean fixdl = getSettings().getBoolean(PrismSettings.PRISM_FIX_DEADLOCKS);
 		boolean stoppedEarly = false;
 		boolean deadlocksFound = false;
+		State deadlockState = null;
 		boolean allDone = false;
 		boolean allKnown = false;
 		boolean someUnknownButBounded = false;
@@ -2056,6 +2046,7 @@ public class SimulatorEngine extends PrismComponent
 
 			// Generate a path
 			allKnown = false;
+			deadlocksFound = false;
 			someUnknownButBounded = false;
 			i = 0;
 			while ((!allKnown && i < maxPathLength) || someUnknownButBounded) {
@@ -2069,16 +2060,22 @@ public class SimulatorEngine extends PrismComponent
 							someUnknownButBounded = true;
 					}
 				}
+				// If we found a deadlock (and they are not being fixed) stop
+				if (!fixdl && modelGen.isDeadlock()) {
+					deadlocksFound = true;
+					deadlockState = new State(path.getCurrentState());
+					shouldStopSampling = true;
+					break;
+				}
 				// Stop when all answers are known or we have reached max path length
 				// (but don't stop yet if there are "bounded" samplers with unkown values)
 				if ((allKnown || i >= maxPathLength) && !someUnknownButBounded)
 					break;
 				// Make a random transition
+				// (ignore return value; need to check deadlocks separately above)
 				automaticTransition();
 				i++;
 			}
-
-			// TODO: Detect deadlocks so we can report a warning
 
 			// Update path length statistics
 			avgPathLength = (avgPathLength * (iters - 1) + (i)) / iters;
@@ -2112,9 +2109,11 @@ public class SimulatorEngine extends PrismComponent
 			mainLog.print(" ...\n\nSampling terminated early after " + iters + " iterations.\n");
 		}
 
-		// Print a warning if deadlocks occurred at any point
-		if (deadlocksFound)
-			mainLog.printWarning("Deadlocks were found during simulation: self-loops were added.");
+		// If we found a deadlock (and they are not being fixed) report error
+		if (deadlocksFound) {
+			mainLog.println("\nDeadlock found in state " + deadlockState);
+			throw new PrismException("Deadlock state found");
+		}
 
 		// Print a warning if simulation was stopped by the user
 		if (shouldStopSampling)
