@@ -1,0 +1,38 @@
+// Tests for multi-objective queries using upper-bounded probability (P<=)
+// and three-probability-objective achievability.
+// Model: at state x=0, actions a/b/c lead deterministically to x=1/2/3.
+// With a randomised strategy using probabilities p_a/p_b/p_c (sum=1):
+//   P[F x=i] = p_i for i in {1,2,3}
+
+// RESULT: true
+// P[F x=1] <= 0.5 satisfied by p_a=0, p_b=1, p_c=0;  P[F x=2] >= 0.5 also satisfied.
+multi(P<=0.5[F x=1],P>=0.5[F x=2])
+
+// RESULT: true
+// P[F x=1] <= 0.3 and P[F x=2] >= 0.5: achievable with p_a=0, p_b=0.5, p_c=0.5.
+multi(P<=0.3[F x=1],P>=0.5[F x=2])
+
+// RESULT: false
+// P[F x=1] <= 0.5 and P[F x=1] >= 0.6: contradictory bounds on same objective.
+multi(P<=0.5[F x=1],P>=0.6[F x=1])
+
+// RESULT: 1.0
+// max P[F x=2] subject to P[F x=1] <= 0.3: set p_a=0, p_b=1, p_c=0.
+multi(Pmax=?[F x=2],P<=0.3[F x=1])
+
+// RESULT: 0.0
+// min P[F x=1] subject to P[F x=2] >= 0.5: min p_a = 0 (set p_a=0, p_b=0.5, p_c=0.5).
+multi(Pmin=?[F x=1],P>=0.5[F x=2])
+
+// RESULT: true
+// Three-objective achievability: sum of bounds = 0.9 <= 1, feasible.
+multi(P>=0.4[F x=1],P>=0.3[F x=2],P>=0.2[F x=3])
+
+// RESULT: false
+// Three-objective achievability: sum of bounds = 1.2 > 1, infeasible.
+multi(P>=0.4[F x=1],P>=0.4[F x=2],P>=0.4[F x=3])
+
+// RESULT: 0.5
+// max P[F x=1] with P[F x=2] >= 0.3 and P[F x=3] >= 0.2:
+// max p_a subject to p_b >= 0.3 and p_c >= 0.2, so max p_a = 1 - 0.3 - 0.2 = 0.5.
+multi(Pmax=?[F x=1],P>=0.3[F x=2],P>=0.2[F x=3])

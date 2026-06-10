@@ -66,6 +66,7 @@ import prism.IntegerBound;
 import symbolic.comp.LTLModelChecker.LTLProduct;
 import prism.OpRelOpBound;
 import prism.Operator;
+import prism.MultiObjModelCheckerUtils;
 import prism.OpsAndBoundsList;
 import prism.OptionsIntervalIteration;
 import prism.Prism;
@@ -764,8 +765,10 @@ public class NondetModelChecker extends NonProbModelChecker
 
 	/**
 	 * Extract the information from the operator defining one objective of a multi-objective query,
-	 * store the info in the passed in arrays and so some checks.
-	 *  
+	 * store the info in the provided lists and do some checks.
+	 * The symbolic-specific part (retrieving JDD reward structures) is handled here;
+	 * engine-agnostic parsing is delegated to {@link MultiObjModelCheckerUtils#extractOperatorAndStepBound}.
+	 *
 	 * @param exprQuant The operator for the objective
 	 * @param opsAndBounds Where to add info about ops/bounds
 	 * @param transRewardsList Where to add the transition rewards (R operators only)
@@ -773,110 +776,24 @@ public class NondetModelChecker extends NonProbModelChecker
 	 * @param origPosition The position (starting from 0) at which this operand occured in the call of multi(...)
 	 */
 	protected void extractInfoFromMultiObjectiveOperand(ExpressionQuant exprQuant, OpsAndBoundsList opsAndBounds, List<JDDNode> transRewardsList,
-			List<Expression> pathFormulas, int origPosition) throws PrismException
+	                                                     List<Expression> pathFormulas, int origPosition) throws PrismException
 	{
-		ExpressionProb exprProb = null;
-		ExpressionReward exprReward = null;
-		
-		// Check if it's a P or an R operator
-		if (exprQuant instanceof ExpressionProb) {
-			exprProb = (ExpressionProb) exprQuant;
-			exprReward = null;
-		} else if (exprQuant instanceof ExpressionReward) {
-			exprReward = (ExpressionReward) exprQuant;
-			exprProb = null;
-		} else {
-			throw new PrismException("Multi-objective properties can only contain P and R operators");
-		}
-
-		// For a reward objective, store the transition rewards
-		if (exprReward != null) {
+		// For a reward objective, retrieve the symbolic (JDD-based) reward structures
+		// Check there are no state rewards (which are not currently supported), and throw an exception if there are
+		if (exprQuant instanceof ExpressionReward) {
+			ExpressionReward exprReward = (ExpressionReward) exprQuant;
 			Object rs = exprReward.getRewardStructIndex();
-			// Check there are no state rewards (which are not currently supported), and throw an exception if there are
 			JDDNode stateRewards = getStateRewardsByIndexObject(rs, model, constantValues);
 			if (stateRewards != null && !stateRewards.equals(JDD.ZERO)) {
 				throw new PrismNotSupportedException("Multi-objective model checking does not support state rewards; please convert to transition rewards");
 			}
-			// Add transition rewards to list
 			JDDNode transRewards = getTransitionRewardsByIndexObject(rs, model, constantValues);
 			checkNegativeRewards(transRewards, "Transition");
 			transRewardsList.add(transRewards);
 		}
-		
-		// Check that the temporal/reward operator is supported, and store step bounds if present
-		int stepBound = 0;
-		if (exprProb != null) {
-			// F<=k is allowed
-			Expression expr = exprProb.getExpression();
-			if (expr.isSimplePathFormula() && Expression.isReach(expr)) {
-				ExpressionTemporal exprTemp = ((ExpressionTemporal) expr);
-				if (exprTemp.getLowerBound() != null) {
-					throw new PrismException("Lower time bounds are not supported in multi-objective queries");
-				}
-				if (exprTemp.getUpperBound() != null) {
-					stepBound = exprTemp.getUpperBound().evaluateInt(constantValues);
-				} else {
-					stepBound = -1;
-				}
-			} else {
-				if (Expression.containsTemporalTimeBounds(expr)) {
-					throw new PrismException("Time bounds in multi-objective queries can only be on F or C operators");
-				} else {
-					stepBound = -1;
-				}
-			}
-		}
-		if (exprReward != null) {
-			ExpressionTemporal exprTemp = ((ExpressionTemporal) exprReward.getExpression());
-			// We only allow C or C<=k reward operators, others such as F are not supported currently
-			if (exprTemp.getOperator() != ExpressionTemporal.R_C) {
-				throw new PrismException("Only the C and C>=k reward operators are currently supported for multi-objective properties (not "
-						+ exprTemp.getOperatorSymbol() + ")");
-			}
-			// R [ C<=k ]
-			if (exprTemp.getUpperBound() != null) {
-				stepBound = exprTemp.getUpperBound().evaluateInt(constantValues);
-			}
-			// R [ C ]
-			else {
-				stepBound = -1;
-			}
-		}
-		
-		// Get/check/store info about relational operator and bound
-		OpRelOpBound opInfo = exprQuant.getRelopBoundInfo(constantValues);
-		RelOp relOp = opInfo.getRelOp();
-		if (relOp.isStrict()) {
-			throw new PrismException("Multi-objective properties can not use strict inequalities on P/R operators");
-		}
-		Operator op;
-		if (relOp == RelOp.MAX) {
-			op = (exprProb != null) ? Operator.P_MAX : Operator.R_MAX;
-		} else if (relOp == RelOp.GEQ) {
-			op = (exprProb != null) ? Operator.P_GE : Operator.R_GE;
-		} else if (relOp == RelOp.MIN) {
-			op = (exprProb != null) ? Operator.P_MIN : Operator.R_MIN;
-		} else if (relOp == RelOp.LEQ) {
-			op = (exprProb != null) ? Operator.P_LE : Operator.R_LE;
-		} else {
-			throw new PrismException("Multi-objective properties can only contain P/R operators with max/min=? or lower/upper probability bounds");
-		}
-		// Find bound
-		double p = opInfo.isNumeric() ? -1.0 : opInfo.getBound();
-		// Subtract bound from 1 if of the form P<=p
-		if (opInfo.isProbabilistic() && opInfo.getRelOp().isUpperBound()) {
-			p = 1 - p;
-		}
-		// Store bound
-		opsAndBounds.add(opInfo, op, p, stepBound, origPosition);
 
-		// Finally, extract path formulas
-		if (exprProb != null) {
-			pathFormulas.add(exprProb.getExpression());
-		}
-		if (exprReward != null) {
-			pathFormulas.add(null);
-		}
+		// Parse operator, bound, step-bound and path formula (engine-agnostic)
+		MultiObjModelCheckerUtils.extractOperatorAndStepBound(exprQuant, opsAndBounds, pathFormulas, constantValues, origPosition);
 	}
 
 	protected void addDummyFormula(NondetModel modelProduct, LTLModelChecker mcLtl, List<JDDNode> targetDDs, OpsAndBoundsList opsAndBounds)
