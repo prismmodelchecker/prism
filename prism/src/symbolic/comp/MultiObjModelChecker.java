@@ -76,13 +76,13 @@ public class MultiObjModelChecker extends prism.MultiObjModelChecker
 	 * Construct the DRA for one LTL objective and build the product MDP.
 	 * Note: {@code dra[i]} is set as a side-effect (mutation of the array element).
 	 */
-	protected NondetModel constructDRAandProductMulti(NondetModel model, LTLModelChecker mcLtl, ModelChecker modelChecker, Expression ltl, int i,
-	                                                   DA<BitSet, AcceptanceRabin> dra[], Operator operator, Expression pathFormula, JDDVars draDDRowVars,
+	protected NondetModel constructDRAandProductMulti(NondetModel model, LTLModelChecker mcLtl, ModelChecker modelChecker, int i,
+	                                                   DA<BitSet, AcceptanceRabin>[] dra, Operator operator, Expression pathFormula, JDDVars draDDRowVars,
 	                                                   JDDVars draDDColVars, JDDNode ddStateIndex) throws PrismException
 	{
 		// Model check maximal state formulas
 		Vector<JDDNode> labelDDs = new Vector<>();
-		ltl = mcLtl.checkMaximalStateFormulas(modelChecker, model, pathFormula.deepCopy(), labelDDs);
+		Expression ltl = mcLtl.checkMaximalStateFormulas(modelChecker, model, pathFormula.deepCopy(), labelDDs);
 
 		// Convert LTL formula to deterministic Rabin automaton (DRA).
 		// For min probabilities, negate the formula.
@@ -260,7 +260,7 @@ public class MultiObjModelChecker extends prism.MultiObjModelChecker
 
 					ArrayList<JDDNode> tmprewards = new ArrayList<>(1);
 					tmprewards.add(rtarget);
-					double prob = (Double) computeMultiReachProbs(modelProduct, mcLtl, tmprewards, modelProduct.getStart(), tmptargetDDs, tmpmultitargetDDs,
+					double prob = (Double) computeMultiObjective(modelProduct, mcLtl, tmprewards, modelProduct.getStart(), tmptargetDDs, tmpmultitargetDDs,
 					                                              tmpmultitargetIDs, tmpOpsAndBounds, count > 1);
 					if (prob > 0.0) {
 						constraintViolated = true;
@@ -480,10 +480,27 @@ public class MultiObjModelChecker extends prism.MultiObjModelChecker
 	/**
 	 * Perform multi-objective model checking computation.
 	 * Solves achievability, numerical or Pareto queries over n objectives.
+	 * Dispatches to LP or value-iteration solvers depending on settings.
+	 *
+	 * @param model               The product MDP (after LTL-to-DRA product construction)
+	 * @param mcLtl               LTL model checker, used for MEC identification
+	 * @param transRewards        Transition reward DDs, one per reward objective (in objective order)
+	 * @param start               BDD for the initial state of the product MDP
+	 * @param targets             BDDs for accepting EC states, one per probability objective
+	 * @param combinations        BDDs for combined accepting EC states when objectives conflict
+	 *                            (null if no conflicts)
+	 * @param combinationIDs      Bitmasks identifying which objectives each combination satisfies
+	 *                            (null if no conflicts; same length as {@code combinations})
+	 * @param opsAndBounds        Operator/bound/step-bound info for all objectives
+	 * @param hasconflictobjectives True if any two probability objectives share accepting ECs,
+	 *                            requiring the conflict resolution path
+	 * @return For Pareto queries: a {@link TileList} under-approximation of the Pareto front.
+	 *         For achievability queries: {@code true}/{@code false} boxed as {@link Boolean}.
+	 *         For numerical queries: the optimal value as {@link Double}.
 	 */
-	protected Object computeMultiReachProbs(NondetModel model, LTLModelChecker mcLtl, List<JDDNode> transRewards, JDDNode start, List<JDDNode> targets,
-	                                         List<JDDNode> combinations, List<Integer> combinationIDs, OpsAndBoundsList opsAndBounds,
-	                                         boolean hasconflictobjectives) throws PrismException
+	protected Object computeMultiObjective(NondetModel model, LTLModelChecker mcLtl, List<JDDNode> transRewards, JDDNode start, List<JDDNode> targets,
+	                                        List<JDDNode> combinations, List<Integer> combinationIDs, OpsAndBoundsList opsAndBounds,
+	                                        boolean hasconflictobjectives) throws PrismException
 	{
 		JDDNode yes, no, maybe, bottomec = null;
 		Object value;
@@ -591,35 +608,12 @@ public class MultiObjModelChecker extends prism.MultiObjModelChecker
 			// Do computation
 			// Linear programming
 			if (method == Prism.MDP_MULTI_LP) {
-				if (opsAndBounds.numberOfStepBounded() > 0) {
-					throw new PrismNotSupportedException("Step-bounded objectives are not currently supported with linear programming");
-				}
-				if (opsAndBounds.rewardSize() > 0) {
-					if (hasconflictobjectives) {
-						value = PrismSparse.NondetMultiReachReward1(model.getTrans(), model.getTransActions(), model.getSynchs(), model.getODD(),
-						                                            model.getAllDDRowVars(), model.getAllDDColVars(), model.getAllDDNondetVars(), targets,
-						                                            combinations, combinationIDs, opsAndBounds, maybe, start, transRewards, bottomec);
-					} else {
-						value = PrismSparse.NondetMultiReachReward(model.getTrans(), model.getTransActions(), model.getSynchs(), model.getODD(),
-						                                           model.getAllDDRowVars(), model.getAllDDColVars(), model.getAllDDNondetVars(), targets,
-						                                           opsAndBounds, maybe, start, transRewards, bottomec);
-					}
-				} else {
-					if (hasconflictobjectives) {
-						value = PrismSparse.NondetMultiReach1(model.getTrans(), model.getTransActions(), model.getSynchs(), model.getODD(),
-						                                      model.getAllDDRowVars(), model.getAllDDColVars(), model.getAllDDNondetVars(), targets,
-						                                      combinations, combinationIDs, opsAndBounds, maybe, start);
-					} else {
-						value = PrismSparse.NondetMultiReach(model.getTrans(), model.getTransActions(), model.getSynchs(), model.getODD(),
-						                                     model.getAllDDRowVars(), model.getAllDDColVars(), model.getAllDDNondetVars(), targets,
-						                                     opsAndBounds, maybe, start);
-					}
-				}
+				value = computeMultiObjectiveLP(model, yes, maybe, start, targets, bottomec, transRewards, combinations, combinationIDs, opsAndBounds, hasconflictobjectives);
 			}
 			// Value iteration
 			else if (method == Prism.MDP_MULTI_GAUSSSEIDEL || method == Prism.MDP_MULTI_VALITER) {
 				double timePre = System.currentTimeMillis();
-				value = weightedMultiReachProbs(model, yes, maybe, start, labels, transRewards, opsAndBounds);
+				value = computeMultiObjectiveValIter(model, yes, maybe, start, labels, transRewards, opsAndBounds);
 				double timePost = System.currentTimeMillis();
 				mainLog.println("Multi-objective value iterations took " + ((timePost - timePre) / 1000.0) + " s.");
 			}
@@ -645,12 +639,73 @@ public class MultiObjModelChecker extends prism.MultiObjModelChecker
 		return value;
 	}
 
-	protected Object weightedMultiReachProbs(NondetModel modelProduct, JDDNode yes_ones, JDDNode maybe, JDDNode start, JDDNode[] targets,
-	                                          List<JDDNode> rewards, OpsAndBoundsList opsAndBounds) throws PrismException
+	/**
+	 * Perform multi-objective model checking computation with linear programming.
+	 * Solves achievability or numerical queries over n objectives.
+	 *
+	 * @param model
+	 * @param yes_ones
+	 * @param maybe
+	 * @param start
+	 * @param targets
+	 * @param bottomec
+	 * @param transRewards
+	 * @param combinations
+	 * @param combinationIDs
+	 * @param opsAndBounds
+	 * @param hasconflictobjectives
+	 * @return
+	 * @throws PrismException
+	 */
+	protected Object computeMultiObjectiveLP(NondetModel model, JDDNode yes_ones, JDDNode maybe, JDDNode start, List<JDDNode> targets, JDDNode bottomec,
+												  List<JDDNode> transRewards, List<JDDNode> combinations, List<Integer> combinationIDs, OpsAndBoundsList opsAndBounds, boolean hasconflictobjectives) throws PrismException
 	{
-		int numNumericalObjectives = opsAndBounds.numberOfNumerical();
+		if (opsAndBounds.numberOfStepBounded() > 0) {
+			throw new PrismNotSupportedException("Step-bounded objectives are not currently supported with linear programming");
+		}
+		Object value;
+		if (opsAndBounds.rewardSize() > 0) {
+			if (hasconflictobjectives) {
+				value = PrismSparse.NondetMultiReachReward1(model.getTrans(), model.getTransActions(), model.getSynchs(), model.getODD(),
+						model.getAllDDRowVars(), model.getAllDDColVars(), model.getAllDDNondetVars(), targets,
+						combinations, combinationIDs, opsAndBounds, maybe, start, transRewards, bottomec);
+			} else {
+				value = PrismSparse.NondetMultiReachReward(model.getTrans(), model.getTransActions(), model.getSynchs(), model.getODD(),
+						model.getAllDDRowVars(), model.getAllDDColVars(), model.getAllDDNondetVars(), targets,
+						opsAndBounds, maybe, start, transRewards, bottomec);
+			}
+		} else {
+			if (hasconflictobjectives) {
+				value = PrismSparse.NondetMultiReach1(model.getTrans(), model.getTransActions(), model.getSynchs(), model.getODD(),
+						model.getAllDDRowVars(), model.getAllDDColVars(), model.getAllDDNondetVars(), targets,
+						combinations, combinationIDs, opsAndBounds, maybe, start);
+			} else {
+				value = PrismSparse.NondetMultiReach(model.getTrans(), model.getTransActions(), model.getSynchs(), model.getODD(),
+						model.getAllDDRowVars(), model.getAllDDColVars(), model.getAllDDNondetVars(), targets,
+						opsAndBounds, maybe, start);
+			}
+		}
+		return value;
+	}
 
+	/**
+	 * Perform multi-objective model checking computation with value iteration.
+	 * Solves achievability or numerical queries over n objectives,
+	 * or Pareto queries over 2 objectives.
+	 *
+	 * @param modelProduct
+	 * @param yes_ones
+	 * @param maybe
+	 * @param start
+	 * @param targets
+	 * @param transRewards
+	 * @param opsAndBounds
+	 */
+	protected Object computeMultiObjectiveValIter(NondetModel modelProduct, JDDNode yes_ones, JDDNode maybe, JDDNode start, JDDNode[] targets,
+												  List<JDDNode> transRewards, OpsAndBoundsList opsAndBounds) throws PrismException
+	{
 		// Check for unsupported computations
+		int numNumericalObjectives = opsAndBounds.numberOfNumerical();
 		if (numNumericalObjectives > 2) {
 			throw new PrismException("Pareto curve generation is currently only supported for 2 objectives");
 		}
@@ -660,9 +715,9 @@ public class MultiObjModelChecker extends prism.MultiObjModelChecker
 
 		// Pareto computation or achievability/numerical computation
 		if (numNumericalObjectives >= 2) {
-			return generateParetoCurve(modelProduct, yes_ones, maybe, start, targets, rewards, opsAndBounds);
+			return generateParetoCurve(modelProduct, yes_ones, maybe, start, targets, transRewards, opsAndBounds);
 		} else {
-			return targetDrivenMultiReachProbs(modelProduct, yes_ones, maybe, start, targets, rewards, opsAndBounds);
+			return solveAchievabilityOrNUmerical(modelProduct, yes_ones, maybe, start, targets, transRewards, opsAndBounds);
 		}
 	}
 
@@ -824,8 +879,8 @@ public class MultiObjModelChecker extends prism.MultiObjModelChecker
 	 * Sets up sparse data structures, then delegates the iteration loop to
 	 * {@link #runAchievabilityIteration} in the base class.
 	 */
-	protected double targetDrivenMultiReachProbs(NondetModel modelProduct, JDDNode yes_ones, JDDNode maybe, final JDDNode st, JDDNode[] targets,
-	                                              List<JDDNode> rewards, OpsAndBoundsList opsAndBounds) throws PrismException
+	protected double solveAchievabilityOrNUmerical(NondetModel modelProduct, JDDNode yes_ones, JDDNode maybe, final JDDNode st, JDDNode[] targets,
+												   List<JDDNode> rewards, OpsAndBoundsList opsAndBounds) throws PrismException
 	{
 		int rewardStepBounds[] = new int[rewards.size()];
 		for (int i = 0; i < rewardStepBounds.length; i++)

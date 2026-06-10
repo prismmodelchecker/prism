@@ -35,17 +35,14 @@ import java.util.List;
  *
  * The instance keeps an ordered instance of (operator,bound) values.
  * These are currently held in two separate lists internally. A tuple
- * is added using {@link add(OpRelOpBound, Operator,double,int)} method, and retrieved using
- * {@link getOperator(int)} and {@link getBound(int)} methods.
+ * is added using {@link #add(OpRelOpBound, Operator, double, int, int)} method, and retrieved using
+ * {@link #getOperator} and {@link #getBound(int)} methods.
  * 
  * The class also provides methods for accessing i-th elements in the
- * subsequence containing only the tuples in which operator is a probabilistic
- * operator, and in the subsequence containing only the tuples in which operator
- * is a reward operator.
+ * subsequences containing only the probabilistic/reward operators.
  */
 public class OpsAndBoundsList
 {
- 
 	/**
 	 * Used when printing info to user.
 	 */
@@ -249,8 +246,6 @@ public class OpsAndBoundsList
 	 * True if the ith probabilistic objective is negation of what the user required
 	 * (i.e. formula is negated and we use &gt;= instead &lt;= or max instead of min).
 	 * Used to determine what values to display to the user.
-	 * @param i
-	 * @return
 	 */
 	public boolean isProbNegated(int i)
 	{
@@ -260,18 +255,24 @@ public class OpsAndBoundsList
 	/**
 	 *  Replace min by max and &lt;= by &gt;= in prob.
 	 */
-	//TODO: why not do prob also in main list?
 	public void makeAllProbUp()
 	{
+		for (int i = 0; i < relOps.size(); i++) {
+			if (isProbabilityObjective(i)) {
+				if (relOps.get(i) == Operator.P_MIN) {
+					relOps.set(i, Operator.P_MAX);
+				} else if (relOps.get(i) == Operator.P_LE) {
+					relOps.set(i, Operator.P_GE);
+				}
+			}
+		}
 		for (int i = 0; i < relOpsProb.size(); i++) {
 			if (relOpsProb.get(i) == Operator.P_MIN) {
-				relOpsProb.remove(i);
-				relOpsProb.add(i, Operator.P_MAX);
-			    probNegated.set(i);
+				relOpsProb.set(i, Operator.P_MAX);
+				probNegated.set(i);
 			} else if (relOpsProb.get(i) == Operator.P_LE) {
-				relOpsProb.remove(i);
-				relOpsProb.add(i, Operator.P_GE);
-			    probNegated.set(i);
+				relOpsProb.set(i, Operator.P_GE);
+				probNegated.set(i);
 			}
 		}
 	}

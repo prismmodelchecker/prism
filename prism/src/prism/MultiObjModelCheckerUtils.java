@@ -139,7 +139,7 @@ public class MultiObjModelCheckerUtils
 		// Allow: 1 numerical + any number of boolean objectives, OR multiple numericals with no booleans
 		if (opsAndBounds.numberOfNumerical() > 1
 		        && opsAndBounds.numberOfNumerical() < opsAndBounds.probSize() + opsAndBounds.rewardSize()) {
-			throw new PrismException("Multiple min/max queries cannot be combined with boolean queries.");
+			throw new PrismException("Cannot combine Pareto queries with constrained objectives");
 		}
 	}
 }

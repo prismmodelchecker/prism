@@ -485,6 +485,7 @@ public class NondetModelChecker extends NonProbModelChecker
 	
 	/**
 	 * Model check a multi-objective expression and return the result.
+	 * It is specified as a multi(...) query in the form of an ExpressionFunc.
 	 * For multi-objective queries, we only find the value for one state.
 	 * <br>[ REFS: <i>result</i>, DEREFS: statesOfInterest ]
 	 */
@@ -501,34 +502,18 @@ public class NondetModelChecker extends NonProbModelChecker
 	
 	/**
 	 * Model check a multi-objective expression and return the result.
+	 * It is specified as a list of ExpressionQuant expressions
+	 * (i.e., P or R operators), one for each objective.
 	 * For multi-objective queries, we only find the value for one state.
 	 * <br>[ REFS: <i>result</i>, DEREFS: statesOfInterest ]
 	 */
 	protected StateValues checkExpressionMultiObjective(List<Expression> exprs, JDDNode statesOfInterest) throws PrismException
 	{
-		// Objective/target info
-		List<JDDNode> multitargetDDs = null;
-		List<Integer> multitargetIDs = null;
-
-		// LTL/product model stuff
-		NondetModel modelProduct, modelNew;
-		JDDVars[] draDDRowVars, draDDColVars;
-		MultiObjModelChecker mcMo;
-		LTLModelChecker mcLtl;
-		Expression[] ltl;
-		DA<BitSet,AcceptanceRabin>[] dra;
-		// State index info
-		// Misc
-		boolean negateresult = false;
-		int conflictformulae = 0;
-		boolean hasMaxReward = false;
-		//boolean hasLTLconstraint = false;
-
+		// Check for some unsupported options
 		if (fairness) {
 			JDD.Deref(statesOfInterest);
 			throw new PrismNotSupportedException("Multi-objective reasoning under fairness currently not supported");
 		}
-
 		if (doIntervalIteration) {
 			JDD.Deref(statesOfInterest);
 			throw new PrismNotSupportedException("Interval iteration currently not supported for multi-objective reasoning");
@@ -540,62 +525,47 @@ public class NondetModelChecker extends NonProbModelChecker
 			JDD.Deref(statesOfInterest);
 			throw new PrismException("Multi-objective model checking can only compute values from a single state");
 		}
-		JDDNode stateOfInterest = statesOfInterest;
 
-		// Can't do LTL with time-bounded variants of the temporal operators
-		// TODO removed since it is allowed for valiter.
-		// TODO make sure it is treated correctly for all params
-		/*if (Expression.containsTemporalTimeBounds(expr)) {
-			throw new PrismException("Time-bounded operators not supported in LTL: " + expr);
-		}*/
+		// Misc
+		int conflictformulae = 0;
 
-		// Check format and extract bounds/etc.
+		// Extract information about the multi-objective query (bounds, formulas, rewards)
 		int numObjectives = exprs.size();
 		OpsAndBoundsList opsAndBounds = new OpsAndBoundsList();
-		List<JDDNode> transRewardsList = new ArrayList<JDDNode>();
-		List<Expression> pathFormulas = new ArrayList<Expression>(numObjectives);
+		List<JDDNode> transRewardsList = new ArrayList<>();
+		List<Expression> pathFormulas = new ArrayList<>(numObjectives);
 		for (int i = 0; i < numObjectives; i++) {
 			extractInfoFromMultiObjectiveOperand((ExpressionQuant) exprs.get(i), opsAndBounds, transRewardsList, pathFormulas, i);
 		}
 
-		//currently we do 1 numerical subject to booleans, or multiple numericals only 
-		if (opsAndBounds.numberOfNumerical() > 1 &&
-				opsAndBounds.numberOfNumerical() < opsAndBounds.probSize() + opsAndBounds.rewardSize()) {
-			JDD.Deref(stateOfInterest);
-			throw new PrismException("Multiple min/max queries cannot be combined with boolean queries.");
+		// Check the combination of objectives is supported
+		try {
+			MultiObjModelCheckerUtils.validateQueryStructure(opsAndBounds);
+		} catch (PrismException e) {
+			JDD.Deref(statesOfInterest);
+			throw e;
 		}
 		
-		negateresult = opsAndBounds.contains(Operator.P_MIN);
-		hasMaxReward = opsAndBounds.contains(Operator.R_GE) || opsAndBounds.contains(Operator.R_MAX);
-
-		// Multi-objective model checking
-
-		// Create arrays to store LTL/DRA info
-		ltl = new Expression[numObjectives];
-		dra = new DA[numObjectives];
-		draDDRowVars = new JDDVars[numObjectives];
-		draDDColVars = new JDDVars[numObjectives];
-
 		// For LTL/multi-obj model checking routines
-		mcLtl = new LTLModelChecker(prism);
-		mcMo = new MultiObjModelChecker(prism);
+		LTLModelChecker mcLtl = new LTLModelChecker(prism);
+		MultiObjModelChecker mcMo = new MultiObjModelChecker(prism);
 
-		// Product is initially just the original model (we build it recursively)
-		modelProduct = model;
-
-		// Go through probabilistic objectives and construct product MDP.
+		// Construct product MDP, adding a DRA for each probabilistic objective
+		NondetModel modelProduct = model;
+		DA<BitSet,AcceptanceRabin>[] dra = new DA[numObjectives];
+		JDDVars[] draDDRowVars = new JDDVars[numObjectives];
+		JDDVars[] draDDColVars = new JDDVars[numObjectives];
 		long l = System.currentTimeMillis();
 		boolean originalmodel = true;
 		for (int i = 0; i < numObjectives; i++) {
 			if (opsAndBounds.isProbabilityObjective(i)) {
 				draDDRowVars[i] = new JDDVars();
 				draDDColVars[i] = new JDDVars();
-				modelNew = mcMo.constructDRAandProductMulti(modelProduct, mcLtl, this, ltl[i], i, dra, opsAndBounds.getOperator(i), pathFormulas.get(i),
-						draDDRowVars[i], draDDColVars[i], stateOfInterest);
-				// Deref old product (unless is the original model)
-				if (i > 0 & !originalmodel)
+				NondetModel modelNew = mcMo.constructDRAandProductMulti(modelProduct, mcLtl, this, i, dra, opsAndBounds.getOperator(i), pathFormulas.get(i),
+						draDDRowVars[i], draDDColVars[i], statesOfInterest);
+				if (i > 0 & !originalmodel) {
 					modelProduct.clear();
-				// Store new product
+				}
 				modelProduct = modelNew;
 				originalmodel = false;
 			}
@@ -603,11 +573,13 @@ public class NondetModelChecker extends NonProbModelChecker
 		l = System.currentTimeMillis() - l;
 		mainLog.println("Total time for product construction: " + l / 1000.0 + " seconds.");
 
-		// TODO: move this above
-		// Replace min by max and <= by >=
+		// Minimising probabilistic objectives are negated and converted to maximising
+		// (this is already done in the product construction above)
+		// Remember whether final value of a numerical query needs to be negated as a result
+		boolean negateResult = opsAndBounds.contains(Operator.P_MIN);
 		opsAndBounds.makeAllProbUp();
 
-		// Print some info
+		// Print some info about the product model and export if required
 		outputProductMulti(modelProduct);
 
 		// Construct rewards for product model
@@ -619,7 +591,8 @@ public class NondetModelChecker extends NonProbModelChecker
 		}
 
 		// Removing actions with non-zero reward from the product for maximum cases
-		if (hasMaxReward /*& hasLTLconstraint*/) {
+		boolean hasMaxReward = opsAndBounds.contains(Operator.R_GE) || opsAndBounds.contains(Operator.R_MAX);
+		if (hasMaxReward) {
 			mcMo.removeNonZeroMecsForMax(modelProduct, mcLtl, transRewardsList, opsAndBounds, numObjectives, dra, draDDRowVars, draDDColVars);
 		}
 
@@ -686,7 +659,9 @@ public class NondetModelChecker extends NonProbModelChecker
 			}
 		}
 
-		// check if there are conflicts in objectives
+		// Check if there are conflicts in objectives
+		List<JDDNode> multitargetDDs = null;
+		List<Integer> multitargetIDs = null;
 		if (conflictformulae > 1) {
 			multitargetDDs = new ArrayList<JDDNode>();
 			multitargetIDs = new ArrayList<Integer>();
@@ -699,9 +674,6 @@ public class NondetModelChecker extends NonProbModelChecker
 
 		//new StateListMTBDD(modelProduct.getReach(), modelProduct).print(mainLog);
 		//try { prism.exportTransToFile(modelProduct, true, Prism.EXPORT_DOT_STATES, new java.io.File("product.dot")); } catch(Exception e) {}
-
-		// Note: for multi-objective model checking, we construct the product MDP for only a single initial state
-		// (unlike for normal LTL model checking) so it is safe to use modelProduct.getStart() here to pass in the initial states.
 
 		// Add a dummy LTL formula to get generate target states when there is no LTL formula in the query
 		// TODO most probably this is not needed for non-LP solution methods
@@ -718,11 +690,13 @@ public class NondetModelChecker extends NonProbModelChecker
 		Object value;
 		try {
 			// Do multi-objective computation
-			value = mcMo.computeMultiReachProbs(modelProduct, mcLtl, transRewardsListProduct, modelProduct.getStart(), targetDDs, multitargetDDs, multitargetIDs, opsAndBounds,
-			                                    conflictformulae > 1);
+			// Note: for multi-objective model checking, we construct the product MDP for only a single initial state
+			// (unlike for normal LTL model checking) so it is safe to use modelProduct.getStart() here to pass in the initial states.
+			value = mcMo.computeMultiObjective(modelProduct, mcLtl, transRewardsListProduct, modelProduct.getStart(), targetDDs, multitargetDDs, multitargetIDs, opsAndBounds,
+			                                   conflictformulae > 1);
 		} finally {
 			// Deref, clean up
-			JDD.Deref(stateOfInterest);
+			JDD.Deref(statesOfInterest);
 			if (modelProduct != null && modelProduct != model)
 				modelProduct.clear();
 			for (int i = 0; i < numObjectives; i++) {
@@ -753,7 +727,7 @@ public class NondetModelChecker extends NonProbModelChecker
 		}
 		else if (value instanceof Double) {
 			// Return result. Note: we only compute the value for a single state.
-			if (negateresult) {
+			if (negateResult) {
 				value = 1 - (Double) value;
 			}
 	
