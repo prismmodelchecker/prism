@@ -86,6 +86,7 @@ import strat.MDStrategyIV;
 import acceptance.AcceptanceOmega;
 import acceptance.AcceptanceOmegaDD;
 import acceptance.AcceptanceRabin;
+import acceptance.AcceptanceRabinDD;
 import acceptance.AcceptanceReach;
 import acceptance.AcceptanceReachDD;
 import acceptance.AcceptanceType;
@@ -601,62 +602,52 @@ public class NondetModelChecker extends NonProbModelChecker
 		JDDNode tmptrans01 = modelProduct.getTrans01();
 		boolean transchanged = mcMo.removeNonZeroRewardTrans(modelProduct, transRewardsList, opsAndBounds);
 
-		// Compute all maximal end components
-		ArrayList<ArrayList<JDDNode>> allstatesH = new ArrayList<ArrayList<JDDNode>>(numObjectives);
-		ArrayList<ArrayList<JDDNode>> allstatesL = new ArrayList<ArrayList<JDDNode>>(numObjectives);
-		JDDNode acceptanceVector_H = JDD.Constant(0);
-		JDDNode acceptanceVector_L = JDD.Constant(0);
+		// Build per-objective, per-Rabin-pair acceptance BDDs over product states.
+		// statesNotL[i][j] = states NOT in L_k (the forbidden set) for objective i's DRA;
+		// statesInK[i][j] = states IN K_k (good set) for objective i's DRA.
+		// Element i is null for non-probabilistic (reward) objectives.
+		// allStatesNotL/allStatesInK store the union of not-Ls and Ks
+		ArrayList<ArrayList<JDDNode>> statesNotL = new ArrayList<>(numObjectives);
+		ArrayList<ArrayList<JDDNode>> statesInK = new ArrayList<>(numObjectives);
+		JDDNode allStatesNotL = JDD.Constant(0);
+		JDDNode allStatesInK = JDD.Constant(0);
 		for (int i = 0; i < numObjectives; i++) {
 			if (opsAndBounds.isProbabilityObjective(i)) {
-				ArrayList<JDDNode> statesH = new ArrayList<JDDNode>();
-				ArrayList<JDDNode> statesL = new ArrayList<JDDNode>();
-				for (int k = 0; k < dra[i].getAcceptance().size(); k++) {
-					JDDNode tmpH = JDD.Constant(0);
-					JDDNode tmpL = JDD.Constant(0);
-					for (int j = 0; j < dra[i].size(); j++) {
-						if (!dra[i].getAcceptance().get(k).getL().get(j)) {
-							tmpH = JDD.SetVectorElement(tmpH, draDDRowVars[i], j, 1.0);
-						}
-						if (dra[i].getAcceptance().get(k).getK().get(j)) {
-							tmpL = JDD.SetVectorElement(tmpL, draDDRowVars[i], j, 1.0);
-						}
-					}
-					statesH.add(tmpH);
-					JDD.Ref(tmpH);
-					acceptanceVector_H = JDD.Or(acceptanceVector_H, tmpH);
-					statesL.add(tmpL);
-					JDD.Ref(tmpL);
-					acceptanceVector_L = JDD.Or(acceptanceVector_L, tmpL);
+				ArrayList<JDDNode> statesNotL_i = new ArrayList<>();
+				ArrayList<JDDNode> statesInK_i = new ArrayList<>();
+				AcceptanceRabinDD acc = dra[i].getAcceptance().toAcceptanceDD(draDDRowVars[i]);
+				for (AcceptanceRabinDD.RabinPairDD pair : acc) {
+					JDDNode tmpNotL = JDD.Not(pair.getL());
+					JDDNode tmpInK = pair.getK();
+					statesNotL_i.add(tmpNotL);
+					statesInK_i.add(tmpInK);
+					allStatesNotL = JDD.Or(allStatesNotL, tmpNotL.copy());
+					allStatesInK = JDD.Or(allStatesInK, tmpInK.copy());
 				}
-				allstatesH.add(i, statesH);
-				allstatesL.add(i, statesL);
+				acc.clear();
+				statesNotL.add(statesNotL_i);
+				statesInK.add(statesInK_i);
 			} else {
-				allstatesH.add(i, null);
-				allstatesL.add(i, null);
+				statesNotL.add(null);
+				statesInK.add(null);
 			}
 		}
 
-		// Find accepting maximum end components for each LTL formula
-		List<JDDNode> allecs = mcMo.computeAllEcs(modelProduct, mcLtl, allstatesH, allstatesL, acceptanceVector_H, acceptanceVector_L, draDDRowVars, draDDColVars,
-				opsAndBounds, numObjectives);
-
-		// Create array to store BDDs for targets (i.e. accepting EC states); probability objectives only 
+		// Find accepting end components for each LTL formula
+		// First compute an overapproximation of candidate MECs for all objectives
+		List<JDDNode> candidateMECs = mcMo.computeCandidateMECs(modelProduct, mcLtl, allStatesNotL, allStatesInK, draDDRowVars, draDDColVars,
+				opsAndBounds);
+		// Then find accepting ECs for each (probabilistic) objective
 		List<JDDNode> targetDDs = new ArrayList<JDDNode>(numObjectives);
 		for (int i = 0; i < numObjectives; i++) {
 			if (opsAndBounds.isProbabilityObjective(i)) {
 				mainLog.println("\nFinding accepting end components for " + pathFormulas.get(i).toString() + "...");
-				targetDDs.add(mcMo.computeAcceptingEndComponent(dra[i], modelProduct, draDDRowVars[i], draDDColVars[i], allecs, allstatesH.get(i),
-						allstatesL.get(i), mcLtl, conflictformulae > 1));
-			} else {
-				// (not used currently)
-				// Fixme: maybe not efficient
-				if (pathFormulas.get(i) != null) {
-					JDDNode dd = checkExpressionDD(pathFormulas.get(i), model.getReach().copy());
-					JDD.Ref(modelProduct.getReach());
-					dd = JDD.And(dd, modelProduct.getReach());
-					targetDDs.add(dd);
-				}
+				targetDDs.add(mcMo.computeAcceptingEndComponent(dra[i], modelProduct, draDDRowVars[i], draDDColVars[i], candidateMECs, statesNotL.get(i),
+						statesInK.get(i), mcLtl, conflictformulae > 1));
 			}
+		}
+		for (JDDNode mec : candidateMECs) {
+			JDD.Deref(mec);
 		}
 
 		// Check if there are conflicts in objectives
@@ -665,12 +656,9 @@ public class NondetModelChecker extends NonProbModelChecker
 		if (conflictformulae > 1) {
 			multitargetDDs = new ArrayList<JDDNode>();
 			multitargetIDs = new ArrayList<Integer>();
-			mcMo.checkConflictsInObjectives(modelProduct, mcLtl, conflictformulae, numObjectives, opsAndBounds, dra, draDDRowVars, draDDColVars, targetDDs, allstatesH,
-					allstatesL, multitargetDDs, multitargetIDs);
+			mcMo.checkConflictsInObjectives(modelProduct, mcLtl, conflictformulae, numObjectives, opsAndBounds, dra, draDDRowVars, draDDColVars, targetDDs, statesNotL,
+					statesInK, multitargetDDs, multitargetIDs);
 		}
-
-		for (JDDNode ec : allecs)
-			JDD.Deref(ec);
 
 		//new StateListMTBDD(modelProduct.getReach(), modelProduct).print(mainLog);
 		//try { prism.exportTransToFile(modelProduct, true, Prism.EXPORT_DOT_STATES, new java.io.File("product.dot")); } catch(Exception e) {}
@@ -770,6 +758,11 @@ public class NondetModelChecker extends NonProbModelChecker
 		MultiObjModelCheckerUtils.extractOperatorAndStepBound(exprQuant, opsAndBounds, pathFormulas, constantValues, origPosition);
 	}
 
+	/**
+	 * Add a trivial P≥0 dummy objective so that the LP solver always has at least one probability target.
+	 * The target is the union of all MECs in the product (trivially reachable with probability 1).
+	 * Only needed when there are no LTL probability objectives in the query.
+	 */
 	protected void addDummyFormula(NondetModel modelProduct, LTLModelChecker mcLtl, List<JDDNode> targetDDs, OpsAndBoundsList opsAndBounds)
 			throws PrismException
 	{
@@ -782,7 +775,9 @@ public class NondetModelChecker extends NonProbModelChecker
 		opsAndBounds.add(opInfo, Operator.P_GE, 0.0, -1, -1);
 	}
 
-	//Prints info about the product model in multi-objective
+	/**
+	 * Log product MDP statistics and export it to files if the relevant export options are set.
+	 */
 	protected void outputProductMulti(NondetModel modelProduct) throws PrismException
 	{
 		// Print product info

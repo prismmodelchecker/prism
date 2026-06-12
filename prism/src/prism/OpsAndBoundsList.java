@@ -124,6 +124,14 @@ public class OpsAndBoundsList
 	}
 
 	/**
+	 * Return the number of (operator,bound) tuples in the list.
+	 */
+	public int size()
+	{
+		return opInfos.size();
+	}
+
+	/**
 	 * Returns the original position (starting from 0) of the operator that is now at i-th position among the reward properties.
 	 */
 	public int getOrigPositionReward(int i)

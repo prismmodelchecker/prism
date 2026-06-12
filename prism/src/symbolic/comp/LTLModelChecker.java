@@ -1342,38 +1342,53 @@ public class LTLModelChecker extends PrismComponent
 		return allAcceptingStates;
 	}
 
+	/**
+	 * Find the union of states in accepting MECs for a single Rabin automaton, given a pre-filtered MEC list.
+	 * For each Rabin pair (L_i, K_i): restricts each pre-computed EC to states outside L_i,
+	 * recomputes MECs within that restriction if needed, and keeps those that intersect K_i.
+	 *
+	 * @param allecs     Pre-filtered MEC list (from {@link #findMECStates}); not modified or deref'd by this method
+	 * @param statesNotL Per-pair BDDs for product states outside the Rabin L (forbidden) set; deref'd on return
+	 * @param statesInK  Per-pair BDDs for product states inside the Rabin K (good) set; deref'd on return
+	 * @return Referenced BDD of all states in accepting MECs (caller must deref)
+	 */
 	public JDDNode findMultiAcceptingStates(DA<BitSet,AcceptanceRabin> dra, NondetModel model, JDDVars draDDRowVars, JDDVars draDDColVars, boolean fairness,
-			List<JDDNode> allecs, List<JDDNode> statesH, List<JDDNode> statesL) throws PrismException
+			List<JDDNode> allecs, List<JDDNode> statesNotL, List<JDDNode> statesInK) throws PrismException
 	{
+		//  For each Rabin pair (L_i, K_i) and each EC in allecs:
+		//  - If the EC is entirely outside L_i (i.e. within statesNotL): use it as-is.
+		//  - If the EC is entirely inside L_i: skip it.
+		//  - Otherwise: restrict it to the states outside L_i and recompute MECs within that restriction.
+		//  - Keep the ECs that intersect K_i (statesInK), which must be visited infinitely often.
+		//  The union of all kept ECs is returned.
+
 		JDDNode acceptingStates = null, allAcceptingStates, candidateStates;
-		JDDNode acceptanceVector_H, acceptanceVector_L;
-		int i;
+		JDDNode acceptanceVectorNotL, acceptanceVectorInK;
 
 		allAcceptingStates = JDD.Constant(0);
 
-		// for each acceptance pair (H_i, L_i) in the DRA, build H'_i = S x H_i
-		// and compute the maximal ECs in H'_i
-		for (i = 0; i < dra.getAcceptance().size(); i++) {
-			// build the acceptance vectors H_i and L_i
-			acceptanceVector_H = statesH.get(i);
-			acceptanceVector_L = statesL.get(i);
+		// For each Rabin pair (L_i,K_i): restrict to states outside L_i, find MECs,
+		// then keep those that intersect K_i (which must be visited infinitely often).
+		for (int i = 0; i < dra.getAcceptance().size(); i++) {
+			acceptanceVectorNotL = statesNotL.get(i);
+			acceptanceVectorInK = statesInK.get(i);
 			for (JDDNode ec : allecs) {
-				// build bdd of accepting states (under H_i) in the product model
+				// Restrict the EC to states outside L_i
 				List<JDDNode> ecs = null;
 				JDD.Ref(ec);
-				JDD.Ref(acceptanceVector_H);
-				candidateStates = JDD.And(ec, acceptanceVector_H);
+				JDD.Ref(acceptanceVectorNotL);
+				candidateStates = JDD.And(ec, acceptanceVectorNotL);
 				if (candidateStates.equals(ec)) {
-					//mainLog.println(" ------------- ec is not modified ------------- ");
+					// EC is already fully outside L_i — no recomputation needed
 					ecs = new Vector<JDDNode>();
 					ecs.add(ec.copy());
 					JDD.Deref(candidateStates);
 				} else if (candidateStates.equals(JDD.ZERO)) {
-					//mainLog.println(" ------------- ec is ZERO ------------- ");
+					// EC is entirely inside L_i — skip
 					JDD.Deref(candidateStates);
 					continue;
-				} else { // recompute maximal end components
-					//mainLog.println(" ------------- ec is recomputed ------------- ");
+				} else {
+					// Recompute MECs within the restricted (outside-L_i) portion
 					JDD.Ref(model.getTrans01());
 					JDD.Ref(candidateStates);
 					JDDNode newcandidateStates = JDD.Apply(JDD.TIMES, model.getTrans01(), candidateStates);
@@ -1381,31 +1396,41 @@ public class LTLModelChecker extends PrismComponent
 					newcandidateStates = JDD.Apply(JDD.TIMES, candidateStates, newcandidateStates);
 					newcandidateStates = JDD.ThereExists(newcandidateStates, model.getAllDDColVars());
 					candidateStates = JDD.ThereExists(newcandidateStates, model.getAllDDNondetVars());
-					ecs = findMECStates(model, candidateStates, acceptanceVector_L);
+					ecs = findMECStates(model, candidateStates, acceptanceVectorInK);
 					JDD.Deref(candidateStates);
 				}
 
-				//StateListMTBDD vl;
-				//int count = 0;
 				acceptingStates = JDD.Constant(0);
 				for (JDDNode set : ecs) {
-					if (JDD.AreIntersecting(set, acceptanceVector_L))
+					if (JDD.AreIntersecting(set, acceptanceVectorInK))
 						acceptingStates = JDD.Or(acceptingStates, set);
 					else
 						JDD.Deref(set);
 				}
-				// Add states to our destination BDD
 				allAcceptingStates = JDD.Or(allAcceptingStates, acceptingStates);
 			}
-			JDD.Deref(acceptanceVector_L);
-			JDD.Deref(acceptanceVector_H);
+			JDD.Deref(acceptanceVectorInK);
+			JDD.Deref(acceptanceVectorNotL);
 		}
 
 		return allAcceptingStates;
 	}
 
+	/**
+	 * Find ECs that simultaneously satisfy combinations of Rabin acceptance conditions across multiple DRAs.
+	 * Uses a queue-based algorithm (via {@link #computeCombinations}) that iterates over all pairs and
+	 * supersets of objectives, computing accepting ECs for each combination.
+	 * On return, {@code targetDDs} is updated with refined per-DRA accepting-state sets (with
+	 * simultaneously-satisfying ECs subtracted), and the output lists are populated with the combined sets.
+	 *
+	 * @param targetDDs      In/out: per-DRA accepting EC BDDs; updated to exclude states in {@code combinations}
+	 * @param allStatesNotL  Per-DRA, per-pair BDDs for states outside the Rabin L set
+	 * @param allStatesInK   Per-DRA, per-pair BDDs for states inside the Rabin K set
+	 * @param combinations   Output: BDDs for ECs satisfying two or more DRA objectives simultaneously
+	 * @param combinationIDs Output: per-entry list of DRA indices whose acceptance is satisfied
+	 */
 	public void findMultiConflictAcceptingStates(DA<BitSet,AcceptanceRabin>[] dra, NondetModel model, JDDVars[] draDDRowVars, JDDVars[] draDDColVars, List<JDDNode> targetDDs,
-			List<List<JDDNode>> allstatesH, List<List<JDDNode>> allstatesL, List<JDDNode> combinations, List<List<Integer>> combinationIDs)
+			List<List<JDDNode>> allStatesNotL, List<List<JDDNode>> allStatesInK, List<JDDNode> combinations, List<List<Integer>> combinationIDs)
 			throws PrismException
 	{
 		List<queueElement> queue = new ArrayList<queueElement>();
@@ -1414,12 +1439,12 @@ public class LTLModelChecker extends PrismComponent
 		for (int i = 0; i < dra.length; i++) {
 			List<Integer> ids = new ArrayList<Integer>();
 			ids.add(i);
-			queueElement e = new queueElement(allstatesH.get(i), allstatesL.get(i), targetDDs.get(i), ids, i + 1);
+			queueElement e = new queueElement(allStatesNotL.get(i), allStatesInK.get(i), targetDDs.get(i), ids, i + 1);
 			queue.add(e);
 		}
 
 		while (sp < queue.size()) {
-			computeCombinations(dra, model, draDDRowVars, draDDColVars, targetDDs, allstatesH, allstatesL, queue, sp);
+			computeCombinations(dra, model, draDDRowVars, draDDColVars, targetDDs, allStatesNotL, allStatesInK, queue, sp);
 			sp++;
 		}
 
@@ -1445,35 +1470,39 @@ public class LTLModelChecker extends PrismComponent
 		}
 	}
 
+	/**
+	 * One step of the {@link #findMultiConflictAcceptingStates} queue algorithm.
+	 * For the queue element at index {@code sp}, finds accepting ECs for every extension of that
+	 * element's DRA set by one additional DRA (indices {@code sp.next} to {@code dra.length-1}).
+	 * Newly found combined EC sets are appended to the queue and linked as children of {@code sp}.
+	 *
+	 * @param queue Queue of elements being processed; may be appended to by this call
+	 * @param sp    Index of the current queue element to process
+	 */
 	private void computeCombinations(DA<BitSet,AcceptanceRabin>[] dra, NondetModel model, JDDVars[] draDDRowVars, JDDVars[] draDDColVars, List<JDDNode> targetDDs,
-			List<List<JDDNode>> allstatesH, List<List<JDDNode>> allstatesL, List<queueElement> queue, int sp) throws PrismException
+			List<List<JDDNode>> allStatesNotL, List<List<JDDNode>> allStatesInK, List<queueElement> queue, int sp) throws PrismException
 	{
 		queueElement e = queue.get(sp);
 		int bound = queue.size();
-		//StateListMTBDD vl = null;
-		//mainLog.println("  ------------- Processing " + e.draIDs + ": -------------");
 
 		for (int i = e.next; i < dra.length; i++) {
-			List<JDDNode> newstatesH = new ArrayList<JDDNode>();
-			List<JDDNode> newstatesL = new ArrayList<JDDNode>();
-			//if(e.draIDs.size() >= 2 || sp > 0 /*|| queue.size() > 3*/)
-			//	break;
-			//mainLog.println("             combinations " + e.draIDs + ", " + i + ": ");
+			List<JDDNode> newStatesNotL = new ArrayList<JDDNode>();
+			List<JDDNode> newStatesInK = new ArrayList<JDDNode>();
 			JDDNode allAcceptingStates = JDD.Constant(0);
 			// compute conjunction of e and next
-			List<JDDNode> nextstatesH = allstatesH.get(i);
-			List<JDDNode> nextstatesL = allstatesL.get(i);
+			List<JDDNode> nextStatesNotL = allStatesNotL.get(i);
+			List<JDDNode> nextStatesInK = allStatesInK.get(i);
 			JDD.Ref(e.targetDD);
 			JDD.Ref(targetDDs.get(i));
 			JDDNode intersection = JDD.And(e.targetDD, targetDDs.get(i));
-			for (int j = 0; j < e.statesH.size(); j++) {
+			for (int j = 0; j < e.statesNotL.size(); j++) {
 				JDD.Ref(intersection);
-				JDD.Ref(e.statesH.get(j));
-				JDDNode candidateStates = JDD.And(intersection, e.statesH.get(j));
-				for (int k = 0; k < nextstatesH.size(); k++) {
+				JDD.Ref(e.statesNotL.get(j));
+				JDDNode candidateStates = JDD.And(intersection, e.statesNotL.get(j));
+				for (int k = 0; k < nextStatesNotL.size(); k++) {
 					JDD.Ref(candidateStates);
-					JDD.Ref(nextstatesH.get(k));
-					JDDNode candidateStates1 = JDD.And(candidateStates, nextstatesH.get(k));
+					JDD.Ref(nextStatesNotL.get(k));
+					JDDNode candidateStates1 = JDD.And(candidateStates, nextStatesNotL.get(k));
 
 					// Find end components in candidateStates1
 					JDD.Ref(model.getTrans01());
@@ -1486,57 +1515,48 @@ public class LTLModelChecker extends PrismComponent
 					newcandidateStates = JDD.Apply(JDD.TIMES, candidateStates1, newcandidateStates);
 					newcandidateStates = JDD.ThereExists(newcandidateStates, model.getAllDDColVars());
 					candidateStates1 = JDD.ThereExists(newcandidateStates, model.getAllDDNondetVars());
-					JDD.Ref(e.statesL.get(j));
-					JDD.Ref(nextstatesL.get(k));
-					JDDNode acceptanceVector_L = JDD.And(e.statesL.get(j), nextstatesL.get(k));
+					JDD.Ref(e.statesInK.get(j));
+					JDD.Ref(nextStatesInK.get(k));
+					JDDNode combinedInK = JDD.And(e.statesInK.get(j), nextStatesInK.get(k));
 					List<JDDNode> ecs = null;
-					ecs = findMECStates(model, candidateStates1, acceptanceVector_L);
+					ecs = findMECStates(model, candidateStates1, combinedInK);
 					JDD.Deref(candidateStates1);
 
-					// For each ec, test if it has non-empty intersection with L states
+					// For each ec, test if it has non-empty intersection with the InK set
 					if (ecs != null) {
 						boolean valid = false;
 						for (JDDNode set : ecs) {
-							if (JDD.AreIntersecting(set, acceptanceVector_L)) {
+							if (JDD.AreIntersecting(set, combinedInK)) {
 								allAcceptingStates = JDD.Or(allAcceptingStates, set);
 								valid = true;
 							} else
 								JDD.Deref(set);
 						}
 						if (valid) {
-							//mainLog.println("          adding j = " + j + ", k = " + k + " to nextstateH & L ");
-							JDD.Ref(e.statesH.get(j));
-							JDD.Ref(nextstatesH.get(k));
-							JDDNode ttt = JDD.And(e.statesH.get(j), nextstatesH.get(k));
-							newstatesH.add(ttt);
-							JDD.Ref(acceptanceVector_L);
-							newstatesL.add(acceptanceVector_L);
+							JDD.Ref(e.statesNotL.get(j));
+							JDD.Ref(nextStatesNotL.get(k));
+							JDDNode ttt = JDD.And(e.statesNotL.get(j), nextStatesNotL.get(k));
+							newStatesNotL.add(ttt);
+							JDD.Ref(combinedInK);
+							newStatesInK.add(combinedInK);
 						}
 					}
-					//if(!valid)
-					JDD.Deref(acceptanceVector_L);
+					JDD.Deref(combinedInK);
 				}
 				JDD.Deref(candidateStates);
 			}
 			JDD.Deref(intersection);
 
-			if (!newstatesH.isEmpty() /*&& i+1 < dra.length*/) {
+			if (!newStatesNotL.isEmpty()) {
 				// generate a new element and put it into queue
 				List<Integer> ids = new ArrayList<Integer>(e.draIDs);
 				ids.add(i);
-				queueElement e1 = new queueElement(newstatesH, newstatesL, allAcceptingStates, ids, i + 1);
+				queueElement e1 = new queueElement(newStatesNotL, newStatesInK, allAcceptingStates, ids, i + 1);
 				queue.add(e1);
 				// add link to e
 				e.addChildren(e1);
 			} else
 				JDD.Deref(allAcceptingStates);
-
-			/*String s = "";
-			for(int j=0; j<e.draIDs.size(); j++) 
-				s += e.draIDs.*/
-			/*vl = new StateListMTBDD(allAcceptingStates, model);
-			vl.print(mainLog);
-			mainLog.flush();*/
 		}
 
 		// add children generated by other elements to e
@@ -1549,10 +1569,9 @@ public class LTLModelChecker extends PrismComponent
 		}
 
 		if (e.draIDs.size() > 1) {
-			//mainLog.println("          releaseing statesH & L ");
-			for (int i = 0; i < e.statesH.size(); i++) {
-				JDD.Deref(e.statesH.get(i));
-				JDD.Deref(e.statesL.get(i));
+			for (int i = 0; i < e.statesNotL.size(); i++) {
+				JDD.Deref(e.statesNotL.get(i));
+				JDD.Deref(e.statesInK.get(i));
 			}
 		}
 	}
@@ -1745,17 +1764,17 @@ public class LTLModelChecker extends PrismComponent
 
 	class queueElement
 	{
-		List<JDDNode> statesH;
-		List<JDDNode> statesL;
+		List<JDDNode> statesNotL;
+		List<JDDNode> statesInK;
 		JDDNode targetDD;
 		List<Integer> draIDs;
 		int next;
 		List<queueElement> children;
 
-		public queueElement(List<JDDNode> statesH, List<JDDNode> statesL, JDDNode targetDD, List<Integer> draIDs, int next)
+		public queueElement(List<JDDNode> statesNotL, List<JDDNode> statesInK, JDDNode targetDD, List<Integer> draIDs, int next)
 		{
-			this.statesH = statesH;
-			this.statesL = statesL;
+			this.statesNotL = statesNotL;
+			this.statesInK = statesInK;
 			this.targetDD = targetDD;
 			this.draIDs = draIDs;
 			this.next = next;

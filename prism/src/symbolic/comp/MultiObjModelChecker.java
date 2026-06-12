@@ -46,6 +46,7 @@ import prism.*;
 import sparse.NDSparseMatrix;
 import sparse.PrismSparse;
 import acceptance.AcceptanceRabin;
+import acceptance.AcceptanceRabinDD;
 import automata.DA;
 import automata.LTL2DA;
 import dv.DoubleVector;
@@ -139,47 +140,80 @@ public class MultiObjModelChecker extends prism.MultiObjModelChecker
 		return transchanged;
 	}
 
-	protected List<JDDNode> computeAllEcs(NondetModel modelProduct, LTLModelChecker mcLtl, ArrayList<ArrayList<JDDNode>> allstatesH,
-	                                       ArrayList<ArrayList<JDDNode>> allstatesL, JDDNode acceptanceVector_H, JDDNode acceptanceVector_L,
-	                                       JDDVars draDDRowVars[], JDDVars draDDColVars[], OpsAndBoundsList opsAndBounds, int numTargets)
+	/**
+	 * Find all MECs in the product MDP that are candidates for being accepting ECs across all probability objectives.
+	 * Restricts the search to states reachable by transitions staying within the union of all NotL regions
+	 * ({@code allStatesNotL}), then keeps only MECs that intersect the union of all InK sets
+	 * ({@code allStatesInK}). The result is a coarse pre-filter; per-objective refinement is done
+	 * by {@link #computeAcceptingEndComponent}.
+	 *
+	 * @param allStatesNotL Union of all {@code statesNotL} BDDs across all objectives and pairs
+	 * @param allStatesInK  Union of all {@code statesInK} BDDs across all objectives and pairs
+	 * @return List of referenced BDDs, one per MEC (caller must deref)
+	 */
+	protected List<JDDNode> computeCandidateMECs(NondetModel modelProduct, LTLModelChecker mcLtl,
+												 JDDNode allStatesNotL, JDDNode allStatesInK,
+												 JDDVars[] draDDRowVars, JDDVars[] draDDColVars,
+												 OpsAndBoundsList opsAndBounds)
 	        throws PrismException
 	{
-		// Use acceptanceVector_H and acceptanceVector_L to speed up SCC computation
-		JDD.Ref(acceptanceVector_H);
+		// Restrict candidate states to those with transitions entirely within the NotL region,
+		// then find all MECs that intersect the InK (good) set.
+		JDD.Ref(allStatesNotL);
 		JDD.Ref(modelProduct.getTrans01());
-		JDDNode candidateStates = JDD.Apply(JDD.TIMES, modelProduct.getTrans01(), acceptanceVector_H);
+		JDDNode candidateStates = JDD.Apply(JDD.TIMES, modelProduct.getTrans01(), allStatesNotL);
+		int numTargets = opsAndBounds.size();
 		for (int i = 0; i < numTargets; i++)
 			if (opsAndBounds.isProbabilityObjective(i)) {
-				acceptanceVector_H = JDD.PermuteVariables(acceptanceVector_H, draDDRowVars[i], draDDColVars[i]);
+				allStatesNotL = JDD.PermuteVariables(allStatesNotL, draDDRowVars[i], draDDColVars[i]);
 			}
-		candidateStates = JDD.Apply(JDD.TIMES, candidateStates, acceptanceVector_H);
+		candidateStates = JDD.Apply(JDD.TIMES, candidateStates, allStatesNotL);
 		candidateStates = JDD.ThereExists(candidateStates, modelProduct.getAllDDColVars());
 		candidateStates = JDD.ThereExists(candidateStates, modelProduct.getAllDDNondetVars());
 		// Find all maximal end components
-		List<JDDNode> allecs = mcLtl.findMECStates(modelProduct, candidateStates, acceptanceVector_L);
+		List<JDDNode> allecs = mcLtl.findMECStates(modelProduct, candidateStates, allStatesInK);
 		JDD.Deref(candidateStates);
-		JDD.Deref(acceptanceVector_L);
+		JDD.Deref(allStatesInK);
 		return allecs;
 	}
 
-	/** Compute accepting end component for one Rabin objective. */
+	/**
+	 * Find the union of states in accepting MECs for a single Rabin objective, using the pre-computed MEC list.
+	 * Delegates to {@link LTLModelChecker#findMultiAcceptingStates}. When conflict resolution is active
+	 * ({@code conflictformulaeGtOne}), the per-pair BDDs are ref-bumped so they survive being consumed
+	 * by the conflict-checking pass that follows.
+	 *
+	 * @param allecs              Pre-filtered MEC list from {@link #computeCandidateMECs}
+	 * @param statesNotL          Per-pair BDDs for states outside the Rabin L set for this objective
+	 * @param statesInK           Per-pair BDDs for states inside the Rabin K set for this objective
+	 * @param conflictformulaeGtOne True if conflict resolution will run after this call
+	 * @return Referenced BDD of accepting EC states for this objective (caller must deref)
+	 */
 	protected JDDNode computeAcceptingEndComponent(DA<BitSet, AcceptanceRabin> dra, NondetModel modelProduct, JDDVars draDDRowVars, JDDVars draDDColVars,
-	                                                List<JDDNode> allecs, List<JDDNode> statesH, List<JDDNode> statesL, LTLModelChecker mcLtl,
+	                                                List<JDDNode> allecs, List<JDDNode> statesNotL, List<JDDNode> statesInK, LTLModelChecker mcLtl,
 	                                                boolean conflictformulaeGtOne) throws PrismException
 	{
 		long l = System.currentTimeMillis();
 		if (conflictformulaeGtOne) {
-			for (JDDNode n : statesH)
+			for (JDDNode n : statesNotL)
 				JDD.Ref(n);
-			for (JDDNode n : statesL)
+			for (JDDNode n : statesInK)
 				JDD.Ref(n);
 		}
-		JDDNode ret = mcLtl.findMultiAcceptingStates(dra, modelProduct, draDDRowVars, draDDColVars, false, allecs, statesH, statesL);
+		JDDNode ret = mcLtl.findMultiAcceptingStates(dra, modelProduct, draDDRowVars, draDDColVars, false, allecs, statesNotL, statesInK);
 		l = System.currentTimeMillis() - l;
 		mainLog.println("Time for end component identification: " + l / 1000.0 + " seconds.");
 		return ret;
 	}
 
+	/**
+	 * Remove actions inside MECs that carry positive reward under any maximising reward objective.
+	 * Such MECs make the max-reward value infinite and are not supported. If any positive-reward MEC
+	 * is reachable from the initial state (determined by a subsidiary multi-objective solve), an
+	 * exception is thrown. Otherwise the offending actions are zeroed out in the product's transition relation.
+	 *
+	 * @param rewardsIndex Transition reward DDs, one per reward objective
+	 */
 	protected void removeNonZeroMecsForMax(NondetModel modelProduct, LTLModelChecker mcLtl, List<JDDNode> rewardsIndex, OpsAndBoundsList opsAndBounds,
 	                                        int numTargets, DA<BitSet, AcceptanceRabin> dra[], JDDVars draDDRowVars[], JDDVars draDDColVars[])
 	        throws PrismException
@@ -289,17 +323,30 @@ public class MultiObjModelChecker extends prism.MultiObjModelChecker
 		}
 	}
 
+	/**
+	 * Identify ECs that simultaneously satisfy multiple probability objectives (conflicting objectives)
+	 * and produce combined target sets for use in the solver.
+	 * Delegates to {@link LTLModelChecker#findMultiConflictAcceptingStates}.
+	 * On return, {@code targetDDs} is updated with refined per-objective target sets (with conflict
+	 * states subtracted), and {@code multitargetDDs}/{@code multitargetIDs} are populated with the
+	 * combined EC sets and their objective bitmasks.
+	 * Also derefs the per-pair acceptance BDDs in {@code allStatesNotL}/{@code allStatesInK}.
+	 *
+	 * @param numConflictFormulas Number of probability objectives that may conflict
+	 * @param multitargetDDs      Output: BDDs for ECs satisfying two or more objectives simultaneously
+	 * @param multitargetIDs      Output: bitmask per entry in {@code multitargetDDs} indicating which objectives it satisfies
+	 */
 	protected void checkConflictsInObjectives(NondetModel modelProduct, LTLModelChecker mcLtl, int numConflictFormulas, int numTargets,
 	                                           OpsAndBoundsList opsAndBounds, DA<BitSet, AcceptanceRabin> dra[], JDDVars draDDRowVars[], JDDVars draDDColVars[],
-	                                           List<JDDNode> targetDDs, List<ArrayList<JDDNode>> allstatesH, List<ArrayList<JDDNode>> allstatesL,
+	                                           List<JDDNode> targetDDs, List<ArrayList<JDDNode>> allStatesNotL, List<ArrayList<JDDNode>> allStatesInK,
 	                                           List<JDDNode> multitargetDDs, List<Integer> multitargetIDs) throws PrismException
 	{
 		DA<BitSet, AcceptanceRabin>[] tmpdra = new DA[numConflictFormulas];
 		JDDVars[] tmpdraDDRowVars = new JDDVars[numConflictFormulas];
 		JDDVars[] tmpdraDDColVars = new JDDVars[numConflictFormulas];
 		List<JDDNode> tmptargetDDs = new ArrayList<>(numConflictFormulas);
-		List<List<JDDNode>> tmpallstatesH = new ArrayList<>(numConflictFormulas);
-		List<List<JDDNode>> tmpallstatesL = new ArrayList<>(numConflictFormulas);
+		List<List<JDDNode>> tmpAllStatesNotL = new ArrayList<>(numConflictFormulas);
+		List<List<JDDNode>> tmpAllStatesInK = new ArrayList<>(numConflictFormulas);
 		int count = 0;
 		for (int i = 0; i < numTargets; i++)
 			if (opsAndBounds.isProbabilityObjective(i)) {
@@ -307,13 +354,13 @@ public class MultiObjModelChecker extends prism.MultiObjModelChecker
 				tmpdraDDRowVars[count] = draDDRowVars[i];
 				tmpdraDDColVars[count] = draDDColVars[i];
 				tmptargetDDs.add(targetDDs.get(count));
-				tmpallstatesH.add(allstatesH.get(i));
-				tmpallstatesL.add(allstatesL.get(i));
+				tmpAllStatesNotL.add(allStatesNotL.get(i));
+				tmpAllStatesInK.add(allStatesInK.get(i));
 				count++;
 			}
 		List<List<Integer>> tmpmultitargetIDs = new ArrayList<>();
 
-		mcLtl.findMultiConflictAcceptingStates(tmpdra, modelProduct, tmpdraDDRowVars, tmpdraDDColVars, tmptargetDDs, tmpallstatesH, tmpallstatesL,
+		mcLtl.findMultiConflictAcceptingStates(tmpdra, modelProduct, tmpdraDDRowVars, tmpdraDDColVars, tmptargetDDs, tmpAllStatesNotL, tmpAllStatesInK,
 		                                        multitargetDDs, tmpmultitargetIDs);
 		count = 0;
 		for (int i = 0; i < numTargets; i++)
@@ -329,15 +376,25 @@ public class MultiObjModelChecker extends prism.MultiObjModelChecker
 
 		for (int i = 0; i < numTargets; i++)
 			if (opsAndBounds.isProbabilityObjective(i)) {
-				List<JDDNode> tmpLH = allstatesH.get(i);
-				for (JDDNode n : tmpLH)
+				for (JDDNode n : allStatesNotL.get(i))
 					JDD.Deref(n);
-				tmpLH = allstatesL.get(i);
-				for (JDDNode n : tmpLH)
+				for (JDDNode n : allStatesInK.get(i))
 					JDD.Deref(n);
 			}
 	}
 
+	/**
+	 * Compute accepting EC target states for all probability objectives and, when objectives conflict,
+	 * also compute combined target sets. Called internally by {@link #removeNonZeroMecsForMax}.
+	 *
+	 * @param numTargets          Total number of objectives
+	 * @param numConflictFormulas Number of probability objectives that may conflict with each other
+	 * @param reachExpr           Per-objective flag: true if the objective uses a simple reachability
+	 *                            formula (no EC computation needed)
+	 * @param targetDDs           Output: per-objective BDDs of accepting EC states
+	 * @param multitargetDDs      Output: BDDs for ECs satisfying multiple objectives simultaneously
+	 * @param multitargetIDs      Output: bitmask per entry in {@code multitargetDDs}
+	 */
 	protected void findTargetStates(NondetModel modelProduct, LTLModelChecker mcLtl, int numTargets, int numConflictFormulas, boolean reachExpr[],
 	                                 DA<BitSet, AcceptanceRabin> dra[], JDDVars draDDRowVars[], JDDVars draDDColVars[], List<JDDNode> targetDDs,
 	                                 List<JDDNode> multitargetDDs, List<Integer> multitargetIDs) throws PrismException
@@ -345,68 +402,61 @@ public class MultiObjModelChecker extends prism.MultiObjModelChecker
 		int i, j;
 		long l;
 
-		// Compute all maximal end components
-		ArrayList<ArrayList<JDDNode>> allstatesH = new ArrayList<>(numTargets);
-		ArrayList<ArrayList<JDDNode>> allstatesL = new ArrayList<>(numTargets);
-		JDDNode acceptanceVector_H = JDD.Constant(0);
-		JDDNode acceptanceVector_L = JDD.Constant(0);
+		// Build per-Rabin-pair acceptance BDDs: statesNotL[k] = states NOT in L_k (forbidden),
+		// statesInK[k] = states IN K_k (good/accepting set, must be visited infinitely often).
+		ArrayList<ArrayList<JDDNode>> allStatesNotL = new ArrayList<>(numTargets);
+		ArrayList<ArrayList<JDDNode>> allStatesInK = new ArrayList<>(numTargets);
+		JDDNode acceptanceVectorNotL = JDD.Constant(0);
+		JDDNode acceptanceVectorInK = JDD.Constant(0);
 		for (i = 0; i < numTargets; i++) {
 			if (!reachExpr[i]) {
-				ArrayList<JDDNode> statesH = new ArrayList<>();
-				ArrayList<JDDNode> statesL = new ArrayList<>();
-				for (int k = 0; k < dra[i].getAcceptance().size(); k++) {
-					JDDNode tmpH = JDD.Constant(0);
-					JDDNode tmpL = JDD.Constant(0);
-					for (j = 0; j < dra[i].size(); j++) {
-						if (!dra[i].getAcceptance().get(k).getL().get(j)) {
-							tmpH = JDD.SetVectorElement(tmpH, draDDRowVars[i], j, 1.0);
-						}
-						if (dra[i].getAcceptance().get(k).getK().get(j)) {
-							tmpL = JDD.SetVectorElement(tmpL, draDDRowVars[i], j, 1.0);
-						}
-					}
-					statesH.add(tmpH);
-					JDD.Ref(tmpH);
-					acceptanceVector_H = JDD.Or(acceptanceVector_H, tmpH);
-					statesL.add(tmpL);
-					JDD.Ref(tmpL);
-					acceptanceVector_L = JDD.Or(acceptanceVector_L, tmpL);
+				ArrayList<JDDNode> statesNotL = new ArrayList<>();
+				ArrayList<JDDNode> statesInK = new ArrayList<>();
+				AcceptanceRabinDD acc = dra[i].getAcceptance().toAcceptanceDD(draDDRowVars[i]);
+				for (AcceptanceRabinDD.RabinPairDD pair : acc) {
+					JDDNode tmpNotL = JDD.Not(pair.getL());
+					JDDNode tmpInK = pair.getK();
+					statesNotL.add(tmpNotL);
+					JDD.Ref(tmpNotL);
+					acceptanceVectorNotL = JDD.Or(acceptanceVectorNotL, tmpNotL);
+					statesInK.add(tmpInK);
+					JDD.Ref(tmpInK);
+					acceptanceVectorInK = JDD.Or(acceptanceVectorInK, tmpInK);
 				}
-				allstatesH.add(i, statesH);
-				allstatesL.add(i, statesL);
+				acc.clear();
+				allStatesNotL.add(i, statesNotL);
+				allStatesInK.add(i, statesInK);
 			} else {
-				allstatesH.add(i, null);
-				allstatesL.add(i, null);
+				allStatesNotL.add(i, null);
+				allStatesInK.add(i, null);
 			}
 		}
 
-		JDD.Ref(acceptanceVector_H);
+		JDD.Ref(acceptanceVectorNotL);
 		JDD.Ref(modelProduct.getTrans01());
-		JDDNode candidateStates = JDD.Apply(JDD.TIMES, modelProduct.getTrans01(), acceptanceVector_H);
+		JDDNode candidateStates = JDD.Apply(JDD.TIMES, modelProduct.getTrans01(), acceptanceVectorNotL);
 		for (i = 0; i < numTargets; i++)
 			if (!reachExpr[i]) {
-				acceptanceVector_H = JDD.PermuteVariables(acceptanceVector_H, draDDRowVars[i], draDDColVars[i]);
+				acceptanceVectorNotL = JDD.PermuteVariables(acceptanceVectorNotL, draDDRowVars[i], draDDColVars[i]);
 			}
-		candidateStates = JDD.Apply(JDD.TIMES, candidateStates, acceptanceVector_H);
+		candidateStates = JDD.Apply(JDD.TIMES, candidateStates, acceptanceVectorNotL);
 		candidateStates = JDD.ThereExists(candidateStates, modelProduct.getAllDDColVars());
 		candidateStates = JDD.ThereExists(candidateStates, modelProduct.getAllDDNondetVars());
-		List<JDDNode> allecs = mcLtl.findMECStates(modelProduct, candidateStates, acceptanceVector_L);
+		List<JDDNode> allecs = mcLtl.findMECStates(modelProduct, candidateStates, acceptanceVectorInK);
 		JDD.Deref(candidateStates);
-		JDD.Deref(acceptanceVector_L);
+		JDD.Deref(acceptanceVectorInK);
 
 		for (i = 0; i < numTargets; i++) {
 			if (!reachExpr[i]) {
 				l = System.currentTimeMillis();
 				if (numConflictFormulas > 1) {
-					List<JDDNode> tmpLH = allstatesH.get(i);
-					for (JDDNode n : tmpLH)
+					for (JDDNode n : allStatesNotL.get(i))
 						JDD.Ref(n);
-					tmpLH = allstatesL.get(i);
-					for (JDDNode n : tmpLH)
+					for (JDDNode n : allStatesInK.get(i))
 						JDD.Ref(n);
 				}
-				targetDDs.add(mcLtl.findMultiAcceptingStates(dra[i], modelProduct, draDDRowVars[i], draDDColVars[i], false, allecs, allstatesH.get(i),
-				                                              allstatesL.get(i)));
+				targetDDs.add(mcLtl.findMultiAcceptingStates(dra[i], modelProduct, draDDRowVars[i], draDDColVars[i], false, allecs, allStatesNotL.get(i),
+				                                              allStatesInK.get(i)));
 				l = System.currentTimeMillis() - l;
 				mainLog.println("Time for end component identification: " + l / 1000.0 + " seconds.");
 			}
@@ -417,8 +467,8 @@ public class MultiObjModelChecker extends prism.MultiObjModelChecker
 			JDDVars[] tmpdraDDRowVars = new JDDVars[numConflictFormulas];
 			JDDVars[] tmpdraDDColVars = new JDDVars[numConflictFormulas];
 			List<JDDNode> tmptargetDDs = new ArrayList<>(numConflictFormulas);
-			List<List<JDDNode>> tmpallstatesH = new ArrayList<>(numConflictFormulas);
-			List<List<JDDNode>> tmpallstatesL = new ArrayList<>(numConflictFormulas);
+			List<List<JDDNode>> tmpAllStatesNotL = new ArrayList<>(numConflictFormulas);
+			List<List<JDDNode>> tmpAllStatesInK = new ArrayList<>(numConflictFormulas);
 			int count = 0;
 			for (i = 0; i < numTargets; i++)
 				if (!reachExpr[i]) {
@@ -426,13 +476,13 @@ public class MultiObjModelChecker extends prism.MultiObjModelChecker
 					tmpdraDDRowVars[count] = draDDRowVars[i];
 					tmpdraDDColVars[count] = draDDColVars[i];
 					tmptargetDDs.add(targetDDs.get(count));
-					tmpallstatesH.add(allstatesH.get(i));
-					tmpallstatesL.add(allstatesL.get(i));
+					tmpAllStatesNotL.add(allStatesNotL.get(i));
+					tmpAllStatesInK.add(allStatesInK.get(i));
 					count++;
 				}
 			List<List<Integer>> tmpmultitargetIDs = new ArrayList<>();
 
-			mcLtl.findMultiConflictAcceptingStates(tmpdra, modelProduct, tmpdraDDRowVars, tmpdraDDColVars, tmptargetDDs, tmpallstatesH, tmpallstatesL,
+			mcLtl.findMultiConflictAcceptingStates(tmpdra, modelProduct, tmpdraDDRowVars, tmpdraDDColVars, tmptargetDDs, tmpAllStatesNotL, tmpAllStatesInK,
 			                                        multitargetDDs, tmpmultitargetIDs);
 			count = 0;
 			for (i = 0; i < numTargets; i++)
@@ -448,11 +498,9 @@ public class MultiObjModelChecker extends prism.MultiObjModelChecker
 
 			for (i = 0; i < numTargets; i++)
 				if (!reachExpr[i]) {
-					List<JDDNode> tmpLH = allstatesH.get(i);
-					for (JDDNode n : tmpLH)
+					for (JDDNode n : allStatesNotL.get(i))
 						JDD.Deref(n);
-					tmpLH = allstatesL.get(i);
-					for (JDDNode n : tmpLH)
+					for (JDDNode n : allStatesInK.get(i))
 						JDD.Deref(n);
 				}
 		}
