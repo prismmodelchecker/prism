@@ -280,8 +280,30 @@ public class PrismSparse
 		return new DoubleVector(ptr, (int)(odd.getEOff() + odd.getTOff()));
 	}
 
-	private static native double[] PS_NondetMultiObj(long odd, long rv, int nrv, long cv, int ncv, long ndv, int nndv, boolean minmax, long start, long ptr_adversary, long ptr_TransSparseMatrix, List<String> synchs, long[] ptr_yes_vec, int[] probStepBounds, long[] ptr_RewSparseMatrix, double[] rewardWeights, int[] rewardStepBounds);
-	public static double[] NondetMultiObj(ODDNode odd, JDDVars rows, JDDVars cols, JDDVars nondet, boolean minmax, JDDNode start, NativeIntArray adversary, NDSparseMatrix transSparseMatrix, List<String> synchs, DoubleVector[] yes_vec, int[] probStepBounds, NDSparseMatrix[] rewSparseMatrix, double[] rewardWeights, int[] rewardStepBounds) throws PrismException
+	private static native double[] PS_NondetMultiObj(long odd, long rv, int nrv, long cv, int ncv, long ndv, int nndv, boolean min, long start, long ptr_adversary, long ptr_TransSparseMatrix, List<String> synchs, long[] ptr_yes_vec, int[] probStepBounds, long[] ptr_RewSparseMatrix, double[] rewardWeights, int[] rewardStepBounds);
+	/**
+	 * Optimise a weighted sum of probability/reward objectives for an MDP using value iteration.
+	 * Probabilistic objectives are specified by the set of target states to reach,
+	 * provided as 0.0/1.0 vectors in the yes_vec array.
+	 * Reward objectives are specified by reward structures in rewSparseMatrix.
+	 * Both probability/reward objectives can be step-bounded (i.e., F<=k/C<=k).
+	 *
+	 * @param odd The ODD
+	 * @param rows DD row variables
+	 * @param cols DD column variables
+	 * @param nondet DD nondet variables
+	 * @param min Minimise (true) or maximise (false) the weighted sum
+	 * @param start DD for the initial state
+	 * @param adversary Storage for an optimal strategy (currently unused)
+	 * @param transSparseMatrix Pre-built sparse matrix or the MDP
+	 * @param synchs Action names for the MDP
+	 * @param yes_vec Target states for probabilistic objectives, as 0.0/1.0 vectors
+	 * @param probStepBounds Step bounds for probabilistic objectives (-1 for unbounded)
+	 * @param rewSparseMatrix Pre-built sparse matrices for the (transition) rewards
+	 * @param rewardWeights The weights
+	 * @param rewardStepBounds Step bounds for reward objectives (-1 for unbounded)
+	 */
+	public static double[] NondetMultiObj(ODDNode odd, JDDVars rows, JDDVars cols, JDDVars nondet, boolean min, JDDNode start, NativeIntArray adversary, NDSparseMatrix transSparseMatrix, List<String> synchs, DoubleVector[] yes_vec, int[] probStepBounds, NDSparseMatrix[] rewSparseMatrix, double[] rewardWeights, int[] rewardStepBounds) throws PrismException
 	{
 		checkNumStates(odd);
 		PrismNative.resetModelCheckingInfo();
@@ -299,7 +321,7 @@ public class PrismSparse
 				ptr_yes_vec[i] = (yes_vec[i]!=null) ? yes_vec[i].getPtr() : 0;
 		}
 		
-		double[] ret = PS_NondetMultiObj(odd.ptr(), rows.array(), rows.n(), cols.array(), cols.n(), nondet.array(), nondet.n(), minmax, start.ptr(), adversary.getPtr(), transSparseMatrix.getPtr(), synchs, ptr_yes_vec, probStepBounds, ptr_ndsp_r, rewardWeights, rewardStepBounds);
+		double[] ret = PS_NondetMultiObj(odd.ptr(), rows.array(), rows.n(), cols.array(), cols.n(), nondet.array(), nondet.n(), min, start.ptr(), adversary.getPtr(), transSparseMatrix.getPtr(), synchs, ptr_yes_vec, probStepBounds, ptr_ndsp_r, rewardWeights, rewardStepBounds);
 		if (ret == null)
 			throw new PrismException(getErrorMessage());
 		else
@@ -307,8 +329,26 @@ public class PrismSparse
 	
 	}
 	
-	private static native double[] PS_NondetMultiObjGS(long odd, long rv, int nrv, long cv, int ncv, long ndv, int nndv, boolean minmax, long start, long ptr_adversary, long ptr_TransSparseMatrix, long[] ptr_yes_vec, long[] ptr_RewSparseMatrix, double[] rewardWeights);
-	public static double[] NondetMultiObjGS(ODDNode odd, JDDVars rows, JDDVars cols, JDDVars nondet, boolean minmax, JDDNode start, NativeIntArray adversary, NDSparseMatrix transSparseMatrix, DoubleVector[] yes_vec, NDSparseMatrix[] rewSparseMatrix, double[] rewardWeights) throws PrismException
+	private static native double[] PS_NondetMultiObjGS(long odd, long rv, int nrv, long cv, int ncv, long ndv, int nndv, boolean min, long start, long ptr_adversary, long ptr_TransSparseMatrix, long[] ptr_yes_vec, long[] ptr_RewSparseMatrix, double[] rewardWeights);
+	/**
+	 * Optimise a weighted sum of probability/reward objectives for an MDP using (Gauss-Seidel) value iteration.
+	 * Probabilistic objectives are specified by the set of target states to reach,
+	 * provided as 0.0/1.0 vectors in the yes_vec array.
+	 * Reward objectives are specified by reward structures in rewSparseMatrix.
+	 *
+	 * @param odd The ODD
+	 * @param rows DD row variables
+	 * @param cols DD column variables
+	 * @param nondet DD nondet variables
+	 * @param min Minimise (true) or maximise (false) the weighted sum
+	 * @param start DD for the initial state
+	 * @param adversary Storage for an optimal strategy (currently unused)
+	 * @param transSparseMatrix Pre-built sparse matrix or the MDP
+	 * @param yes_vec Target states for probabilistic objectives, as 0.0/1.0 vectors
+	 * @param rewSparseMatrix Pre-built sparse matrices for the (transition) rewards
+	 * @param rewardWeights The weights
+	 */
+	public static double[] NondetMultiObjGS(ODDNode odd, JDDVars rows, JDDVars cols, JDDVars nondet, boolean min, JDDNode start, NativeIntArray adversary, NDSparseMatrix transSparseMatrix, DoubleVector[] yes_vec, NDSparseMatrix[] rewSparseMatrix, double[] rewardWeights) throws PrismException
 	{
 		checkNumStates(odd);
 		PrismNative.resetModelCheckingInfo();
@@ -326,7 +366,7 @@ public class PrismSparse
 				ptr_yes_vec[i] = (yes_vec[i]!=null) ? yes_vec[i].getPtr() : 0;
 		}
 		
-		double[] ret = PS_NondetMultiObjGS(odd.ptr(), rows.array(), rows.n(), cols.array(), cols.n(), nondet.array(), nondet.n(), minmax, start.ptr(), adversary.getPtr(), transSparseMatrix.getPtr(), ptr_yes_vec, ptr_ndsp_r, rewardWeights);
+		double[] ret = PS_NondetMultiObjGS(odd.ptr(), rows.array(), rows.n(), cols.array(), cols.n(), nondet.array(), nondet.n(), min, start.ptr(), adversary.getPtr(), transSparseMatrix.getPtr(), ptr_yes_vec, ptr_ndsp_r, rewardWeights);
 		if (ret == null)
 			throw new PrismException(getErrorMessage());
 		else
