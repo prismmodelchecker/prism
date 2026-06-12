@@ -758,7 +758,7 @@ public class MultiObjModelChecker extends prism.MultiObjModelChecker
 		if (numNumericalObjectives >= 2) {
 			return generateParetoCurve(modelProduct, start, targets, transRewards, opsAndBounds);
 		} else {
-			return solveAchievabilityOrNUmerical(modelProduct, start, targets, transRewards, opsAndBounds);
+			return solveAchievabilityOrNumerical(modelProduct, start, targets, transRewards, opsAndBounds);
 		}
 	}
 
@@ -868,7 +868,7 @@ public class MultiObjModelChecker extends prism.MultiObjModelChecker
 	 * Sets up sparse data structures, then delegates the iteration loop to
 	 * {@link #runAchievabilityIteration} in the base class.
 	 */
-	protected double solveAchievabilityOrNUmerical(NondetModel modelProduct, final JDDNode st, JDDNode[] targets,
+	protected double solveAchievabilityOrNumerical(NondetModel modelProduct, final JDDNode st, JDDNode[] targets,
 												   List<JDDNode> rewards, OpsAndBoundsList opsAndBounds) throws PrismException
 	{
 		int rewardStepBounds[] = new int[rewards.size()];
@@ -891,13 +891,6 @@ public class MultiObjModelChecker extends prism.MultiObjModelChecker
 				rewards.set(i, JDD.Apply(JDD.TIMES, JDD.Constant(-1), rewards.get(i)));
 			}
 		}
-
-		boolean maximizingProb = (opsAndBounds.probSize() > 0
-		        && (opsAndBounds.getProbOperator(0) == Operator.P_MAX || opsAndBounds.getProbOperator(0) == Operator.P_MIN));
-		boolean maximizingReward = (opsAndBounds.rewardSize() > 0
-		        && (opsAndBounds.getRewardOperator(0) == Operator.R_MAX || opsAndBounds.getRewardOperator(0) == Operator.R_MIN));
-		boolean maximizingNegated = (maximizingProb && opsAndBounds.getProbOperator(0) == Operator.P_MIN)
-		        || (maximizingReward && opsAndBounds.getRewardOperator(0) == Operator.R_MIN);
 
 		int maxIters = settings.getInteger(PrismSettings.PRISM_MULTI_MAX_POINTS);
 		boolean exportAdv = (settings.getChoice(PrismSettings.PRISM_EXPORT_ADV) != Prism.EXPORT_ADV_NONE);
@@ -935,19 +928,6 @@ public class MultiObjModelChecker extends prism.MultiObjModelChecker
 
 		JDD.Deref(a);
 
-		// Initialise target point
-		Point targetPoint = new Point(dimProb + dimReward);
-		for (int i = 0; i < dimProb; i++) {
-			targetPoint.setCoord(i, opsAndBounds.getProbBound(i));
-		}
-		if (maximizingProb) {
-			targetPoint.setCoord(0, 1.0);
-		}
-		for (int i = 0; i < dimReward; i++) {
-			double t = (opsAndBounds.getRewardOperator(i) == Operator.R_LE) ? -opsAndBounds.getRewardBound(i) : opsAndBounds.getRewardBound(i);
-			targetPoint.setCoord(i + dimProb, t);
-		}
-
 		final boolean useGSfinal = useGS;
 		final int[] advCounter = {0};
 
@@ -966,32 +946,6 @@ public class MultiObjModelChecker extends prism.MultiObjModelChecker
 			}
 		};
 
-		// For a maximising reward objective, compute an initial upper bound using the reward alone
-		// (no probability objectives, pure reward optimisation with weight 1.0)
-		if (maximizingReward) {
-			if (verbose) {
-				mainLog.println("Getting an upper bound on maximizing objective");
-			}
-			double[] result;
-			if (exportAdv) {
-				PrismNative.setExportAdvFilename(PrismUtils.addCounterSuffixToFilename(advFileNameBase, ++advCounter[0]));
-			}
-			if (useGS) {
-				result = PrismSparse.NondetMultiObjGS(modelProduct.getODD(), modelProduct.getAllDDRowVars(), modelProduct.getAllDDColVars(),
-				                                      modelProduct.getAllDDNondetVars(), false, st, adversary, trans_matrix,
-				                                      null, new NDSparseMatrix[] { rewSparseMatrices[0] }, new double[] { 1.0 });
-			} else {
-				result = PrismSparse.NondetMultiObj(modelProduct.getODD(), modelProduct.getAllDDRowVars(), modelProduct.getAllDDColVars(),
-				                                    modelProduct.getAllDDNondetVars(), false, st, adversary, trans_matrix, modelProduct.getSynchs(),
-				                                    null, null, new NDSparseMatrix[] { rewSparseMatrices[0] }, new double[] { 1.0 },
-				                                    new int[] { rewardStepBounds[0] });
-			}
-			targetPoint.setCoord(dimProb, result[0]);
-			if (verbose) {
-				mainLog.println("Upper bound is " + result[0]);
-			}
-		}
-
-		return runAchievabilityIteration(solver, opsAndBounds, targetPoint, maximizingProb, maximizingReward, maximizingNegated, maxIters);
+		return runAchievabilityIteration(solver, opsAndBounds, maxIters);
 	}
 }

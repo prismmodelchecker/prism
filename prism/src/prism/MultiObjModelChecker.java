@@ -153,24 +153,55 @@ public abstract class MultiObjModelChecker extends PrismComponent
 	/**
 	 * Run the achievability/numerical iteration loop.
 	 *
-	 * <p>Iteratively finds separating hyperplanes to determine whether a target point is
-	 * achievable, or (for maximising queries) to compute the optimal achievable value.
+	 * <p>Derives maximising/negation flags from {@code opsAndBounds}, builds the initial target
+	 * point, optionally tightens it with a pure reward-axis solve when a reward is being maximised,
+	 * then iteratively finds separating hyperplanes to determine whether the target is achievable
+	 * or (for maximising queries) to compute the optimal value.
 	 *
-	 * @param solver              Engine-specific weighted solver
-	 * @param opsAndBounds        Objective operators/bounds
-	 * @param targetPoint         Initial target point (modified in place for maximising objectives)
-	 * @param maximizingProb      True if the first probability objective is a maximising (max/min=?) query
-	 * @param maximizingReward    True if the first reward objective is a maximising (max/min=?) query
-	 * @param maximizingNegated   True if the maximising objective is P_MIN or R_MIN (negate the result)
-	 * @param maxIters            Maximum number of iterations
+	 * @param solver     Engine-specific weighted solver
+	 * @param opsAndBounds Objective operators/bounds
+	 * @param maxIters   Maximum number of iterations
 	 * @return For achievability: 1.0 (achievable) or 0.0 (not). For numerical: the optimal value.
 	 */
 	protected double runAchievabilityIteration(WeightedObjectiveSolver solver, OpsAndBoundsList opsAndBounds,
-	                                            Point targetPoint, boolean maximizingProb, boolean maximizingReward,
-	                                            boolean maximizingNegated, int maxIters) throws PrismException
+	                                            int maxIters) throws PrismException
 	{
 		int dimProb = opsAndBounds.probSize();
 		int dimReward = opsAndBounds.rewardSize();
+
+		boolean maximizingProb = dimProb > 0
+		        && (opsAndBounds.getProbOperator(0) == Operator.P_MAX || opsAndBounds.getProbOperator(0) == Operator.P_MIN);
+		boolean maximizingReward = dimReward > 0
+		        && (opsAndBounds.getRewardOperator(0) == Operator.R_MAX || opsAndBounds.getRewardOperator(0) == Operator.R_MIN);
+		boolean maximizingNegated = (maximizingProb && opsAndBounds.getProbOperator(0) == Operator.P_MIN)
+		        || (maximizingReward && opsAndBounds.getRewardOperator(0) == Operator.R_MIN);
+
+		// Build initial target point from operator bounds
+		Point targetPoint = new Point(dimProb + dimReward);
+		for (int i = 0; i < dimProb; i++) {
+			targetPoint.setCoord(i, opsAndBounds.getProbBound(i));
+		}
+		if (maximizingProb) {
+			targetPoint.setCoord(0, 1.0);
+		}
+		for (int i = 0; i < dimReward; i++) {
+			double t = (opsAndBounds.getRewardOperator(i) == Operator.R_LE) ? -opsAndBounds.getRewardBound(i) : opsAndBounds.getRewardBound(i);
+			targetPoint.setCoord(i + dimProb, t);
+		}
+
+		// For a maximising reward objective, tighten the initial target point with a pure reward-axis solve
+		if (maximizingReward) {
+			if (verbose) {
+				mainLog.println("Getting an upper bound on maximizing objective");
+			}
+			double[] axisDir = new double[dimProb + dimReward];
+			axisDir[dimProb] = 1.0;
+			double[] result = solver.solve(axisDir);
+			targetPoint.setCoord(dimProb, result[dimProb]);
+			if (verbose) {
+				mainLog.println("Upper bound is " + result[dimProb]);
+			}
+		}
 
 		ArrayList<Point> computedPoints = new ArrayList<>();
 		ArrayList<Point> computedDirections = new ArrayList<>();
