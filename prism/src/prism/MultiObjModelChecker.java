@@ -28,6 +28,7 @@
 package prism;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -42,6 +43,9 @@ import java.util.List;
 public abstract class MultiObjModelChecker extends PrismComponent
 {
 	protected boolean verbose;
+
+	/** Weight scale used in the error-recovery fallback when a solver call fails to converge on an axis direction. */
+	protected static final double FALLBACK_WEIGHT_SCALE = 1e4;
 
 	/**
 	 * Functional interface for the engine-specific part of multi-objective solving:
@@ -267,5 +271,55 @@ public abstract class MultiObjModelChecker extends PrismComponent
 		} else {
 			return isAchievable ? 1.0 : 0.0;
 		}
+	}
+
+	/**
+	 * Compute one extreme point per objective by optimising along each axis direction.
+	 * These points seed the initial tile of the Pareto curve computation.
+	 *
+	 * <p>For each objective {@code k} (probability objectives first, then reward objectives),
+	 * a unit weight vector with weight 1 on axis {@code k} is solved. If the solver throws,
+	 * the direction is replaced by a strongly-skewed normalised fallback that still strongly
+	 * favours objective {@code k}, and the solve is retried.
+	 *
+	 * @param solver    Engine-specific weighted-sum solver
+	 * @param dimProb   Number of probability objectives
+	 * @param dimReward Number of reward objectives
+	 * @return List of extreme points, one per objective (prob axes first, then reward axes)
+	 * @throws PrismException if a fallback solve also fails
+	 */
+	protected List<Point> buildAxisInitialPoints(WeightedObjectiveSolver solver, int dimProb, int dimReward)
+	        throws PrismException
+	{
+		int dim = dimProb + dimReward;
+		List<Point> points = new ArrayList<>();
+		for (int k = 0; k < dim; k++) {
+			boolean isProb = k < dimProb;
+			String objType = isProb ? "probability" : "reward";
+			int objNum = isProb ? (k + 1) : (k - dimProb + 1);
+			int objTotal = isProb ? dimProb : dimReward;
+
+			double[] axisDir = new double[dim];
+			axisDir[k] = 1.0;
+			double[] result;
+			try {
+				mainLog.println("Optimising weighted sum for " + objType + " objective " + objNum + "/" + objTotal + ": weights " + Arrays.toString(axisDir));
+				result = solver.solve(axisDir);
+			} catch (PrismException e) {
+				mainLog.println("Ignoring the last multi-objective computation since it did not complete successfully");
+				for (int j = 0; j < dim; j++) {
+					axisDir[j] = (j == k) ? FALLBACK_WEIGHT_SCALE : 1.0;
+				}
+				Point fallback = new Point(axisDir);
+				fallback = fallback.normalize();
+				axisDir = fallback.getCoords();
+				mainLog.println("Optimising weighted sum for " + objType + " objective " + objNum + "/" + objTotal + ": weights " + Arrays.toString(axisDir));
+				result = solver.solve(axisDir);
+			}
+			Point pt = new Point(result);
+			mainLog.println("Computed point: " + pt);
+			points.add(pt);
+		}
+		return points;
 	}
 }

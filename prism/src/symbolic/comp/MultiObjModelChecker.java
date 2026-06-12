@@ -59,9 +59,6 @@ import symbolic.model.NondetModel;
  */
 public class MultiObjModelChecker extends prism.MultiObjModelChecker
 {
-	/** Weight scale used in the error-recovery fallback when a solver call fails to converge. */
-	private static final double FALLBACK_WEIGHT_SCALE = 1e4;
-
 	/** The Prism instance, needed for symbolic-engine-specific operations. */
 	protected Prism prism;
 
@@ -836,11 +833,10 @@ public class MultiObjModelChecker extends prism.MultiObjModelChecker
 
 		JDD.Deref(a);
 
-		// Build axis-direction extreme points (one per objective) to seed the TileList
 		final boolean useGSfinal = useGS;
 		final int[] advCounter = {0};
 
-		// Helper to call the solver for a single direction with error recovery
+		// Single weighted-sum solver capturing the sparse data structures
 		WeightedObjectiveSolver singleSolve = direction -> {
 			if (exportAdv) {
 				PrismNative.setExportAdvFilename(PrismUtils.addCounterSuffixToFilename(advFileNameBase, ++advCounter[0]));
@@ -856,59 +852,8 @@ public class MultiObjModelChecker extends prism.MultiObjModelChecker
 			}
 		};
 
-		List<Point> pointsForInitialTile = new ArrayList<>();
-
-		// Optimise along each probability axis
-		for (int i = 0; i < dimProb; i++) {
-			double[] axisDir = new double[dimProb + dimReward];
-			axisDir[i] = 1.0;
-			double[] result;
-			try {
-				mainLog.println("Optimising weighted sum for probability objective " + (i + 1) + "/" + dimProb + ": weights " + java.util.Arrays.toString(axisDir));
-				result = singleSolve.solve(axisDir);
-			} catch (PrismException e) {
-				mainLog.println("Ignoring the last multi-objective computation since it did not complete successfully");
-				// Fall back to a direction that strongly favours objective i
-				for (int j = 0; j < dimProb + dimReward; j++) {
-					axisDir[j] = (j == i) ? FALLBACK_WEIGHT_SCALE : 1.0;
-				}
-				Point fallback = new Point(axisDir);
-				fallback = fallback.normalize();
-				axisDir = fallback.getCoords();
-				mainLog.println("Optimising weighted sum for probability objective " + (i + 1) + "/" + dimProb + ": weights " + java.util.Arrays.toString(axisDir));
-				result = singleSolve.solve(axisDir);
-			}
-			Point pt = new Point(result);
-			mainLog.println("Computed point: " + pt);
-			pointsForInitialTile.add(pt);
-		}
-
-		// Optimise along each reward axis
-		for (int i = 0; i < dimReward; i++) {
-			double[] axisDir = new double[dimProb + dimReward];
-			axisDir[dimProb + i] = 1.0;
-			double[] result;
-			try {
-				mainLog.println("Optimising weighted sum for reward objective " + (i + 1) + "/" + dimReward + ": weights " + java.util.Arrays.toString(axisDir));
-				result = singleSolve.solve(axisDir);
-			} catch (PrismException e) {
-				mainLog.println("Ignoring the last multi-objective computation since it did not complete successfully");
-				for (int j = 0; j < dimProb + dimReward; j++) {
-					axisDir[j] = (j == dimProb + i) ? FALLBACK_WEIGHT_SCALE : 1.0;
-				}
-				Point fallback = new Point(axisDir);
-				fallback = fallback.normalize();
-				axisDir = fallback.getCoords();
-				mainLog.println("Optimising weighted sum for reward objective " + (i + 1) + "/" + dimReward + ": weights " + java.util.Arrays.toString(axisDir));
-				result = singleSolve.solve(axisDir);
-			}
-			Point pt = new Point(result);
-			mainLog.println("Computed point: " + pt);
-			if (verbose) {
-				mainLog.println("Upper bound is " + java.util.Arrays.toString(result));
-			}
-			pointsForInitialTile.add(pt);
-		}
+		// Build axis-direction extreme points (one per objective) to seed the TileList
+		List<Point> pointsForInitialTile = buildAxisInitialPoints(singleSolve, dimProb, dimReward);
 
 		if (verbose) {
 			mainLog.println("Points for the initial tile: " + pointsForInitialTile);
