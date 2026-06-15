@@ -293,7 +293,7 @@ public class PrismSparse
 	 * @param cols DD column variables
 	 * @param nondet DD nondet variables
 	 * @param min Minimise (true) or maximise (false) the weighted sum
-	 * @param start DD for the initial state
+	 * @param start DD for the initial state (to report value for)
 	 * @param adversary Storage for an optimal strategy (currently unused)
 	 * @param transSparseMatrix Pre-built sparse matrix or the MDP
 	 * @param synchs Action names for the MDP
@@ -341,7 +341,7 @@ public class PrismSparse
 	 * @param cols DD column variables
 	 * @param nondet DD nondet variables
 	 * @param min Minimise (true) or maximise (false) the weighted sum
-	 * @param start DD for the initial state
+	 * @param start DD for the initial state (to report value for)
 	 * @param adversary Storage for an optimal strategy (currently unused)
 	 * @param transSparseMatrix Pre-built sparse matrix or the MDP
 	 * @param yes_vec Target states for probabilistic objectives, as 0.0/1.0 vectors

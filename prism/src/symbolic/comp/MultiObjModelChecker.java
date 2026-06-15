@@ -766,8 +766,14 @@ public class MultiObjModelChecker extends prism.MultiObjModelChecker
 	 * Generate a Pareto curve under-approximation (2 objectives only).
 	 * Sets up sparse data structures, then delegates the iteration loop to
 	 * {@link #runParetoCurveIteration} in the base class.
+	 *
+	 * @param modelProduct The product MDP to solve
+	 * @param start BDD for a single initial state for which the result will be returned
+	 * @param targets
+	 * @param rewards
+	 * @param opsAndBounds Info about the objectives and their bounds
 	 */
-	protected TileList generateParetoCurve(NondetModel modelProduct, final JDDNode st, JDDNode[] targets,
+	protected TileList generateParetoCurve(NondetModel modelProduct, final JDDNode start, JDDNode[] targets,
 	                                        List<JDDNode> rewards, OpsAndBoundsList opsAndBounds) throws PrismException
 	{
 		int rewardStepBounds[] = new int[rewards.size()];
@@ -801,20 +807,15 @@ public class MultiObjModelChecker extends prism.MultiObjModelChecker
 
 		NativeIntArray adversary = new NativeIntArray(modelProduct.getNumStates());
 
-		// Build sparse transition matrix
-		JDD.Ref(modelProduct.getTrans());
-		JDD.Ref(modelProduct.getReach());
-		JDDNode a = JDD.Apply(JDD.TIMES, modelProduct.getTrans(), modelProduct.getReach());
-
+		// Build sparse matrix for transition matrix,
+		// after first removing self-loops for the case of probabilistic objectives only
+		JDDNode a = modelProduct.getTrans().copy();
 		if (dimReward == 0) {
-			JDD.Ref(a);
-			JDDNode tmp = JDD.And(JDD.Equals(a, 1.0), JDD.Identity(modelProduct.getAllDDRowVars(), modelProduct.getAllDDColVars()));
+			JDDNode tmp = JDD.And(JDD.Equals(a.copy(), 1.0), JDD.Identity(modelProduct.getAllDDRowVars(), modelProduct.getAllDDColVars()));
 			a = JDD.ITE(tmp, JDD.Constant(0), a);
 		}
-
 		NDSparseMatrix trans_matrix = NDSparseMatrix.BuildNDSparseMatrix(a, modelProduct.getODD(), modelProduct.getAllDDRowVars(),
 		                                                                   modelProduct.getAllDDColVars(), modelProduct.getAllDDNondetVars());
-
 		if (exportAdv) {
 			NDSparseMatrix.AddActionsToNDSparseMatrix(a, modelProduct.getTransActions(), modelProduct.getODD(), modelProduct.getAllDDRowVars(),
 			                                          modelProduct.getAllDDColVars(), modelProduct.getAllDDNondetVars(), trans_matrix);
@@ -843,11 +844,11 @@ public class MultiObjModelChecker extends prism.MultiObjModelChecker
 			}
 			if (useGSfinal) {
 				return PrismSparse.NondetMultiObjGS(modelProduct.getODD(), modelProduct.getAllDDRowVars(), modelProduct.getAllDDColVars(),
-				                                    modelProduct.getAllDDNondetVars(), false, st, adversary, trans_matrix,
+				                                    modelProduct.getAllDDNondetVars(), false, start, adversary, trans_matrix,
 				                                    probDoubleVectors, rewSparseMatrices, direction);
 			} else {
 				return PrismSparse.NondetMultiObj(modelProduct.getODD(), modelProduct.getAllDDRowVars(), modelProduct.getAllDDColVars(),
-				                                  modelProduct.getAllDDNondetVars(), false, st, adversary, trans_matrix, modelProduct.getSynchs(),
+				                                  modelProduct.getAllDDNondetVars(), false, start, adversary, trans_matrix, modelProduct.getSynchs(),
 				                                  probDoubleVectors, probStepBounds, rewSparseMatrices, direction, rewardStepBounds);
 			}
 		};
@@ -867,8 +868,14 @@ public class MultiObjModelChecker extends prism.MultiObjModelChecker
 	 * Achievability/numerical query computation.
 	 * Sets up sparse data structures, then delegates the iteration loop to
 	 * {@link #runAchievabilityIteration} in the base class.
+	 *
+	 * @param modelProduct The product MDP to solve
+	 * @param start BDD for a single initial state for which the result will be returned
+	 * @param targets
+	 * @param rewards
+	 * @param opsAndBounds Info about the objectives and their bounds
 	 */
-	protected double solveAchievabilityOrNumerical(NondetModel modelProduct, final JDDNode st, JDDNode[] targets,
+	protected double solveAchievabilityOrNumerical(NondetModel modelProduct, final JDDNode start, JDDNode[] targets,
 												   List<JDDNode> rewards, OpsAndBoundsList opsAndBounds) throws PrismException
 	{
 		int rewardStepBounds[] = new int[rewards.size()];
@@ -901,17 +908,13 @@ public class MultiObjModelChecker extends prism.MultiObjModelChecker
 
 		NativeIntArray adversary = new NativeIntArray(modelProduct.getNumStates());
 
-		// Build sparse transition matrix
-		JDD.Ref(modelProduct.getTrans());
-		JDD.Ref(modelProduct.getReach());
-		JDDNode a = JDD.Apply(JDD.TIMES, modelProduct.getTrans(), modelProduct.getReach());
-
+		// Build sparse matrix for transition matrix,
+		// after first removing self-loops for the case of probabilistic objectives only
+		JDDNode a = modelProduct.getTrans().copy();
 		if (dimReward == 0) {
-			JDD.Ref(a);
-			JDDNode tmp = JDD.And(JDD.Equals(a, 1.0), JDD.Identity(modelProduct.getAllDDRowVars(), modelProduct.getAllDDColVars()));
+			JDDNode tmp = JDD.And(JDD.Equals(a.copy(), 1.0), JDD.Identity(modelProduct.getAllDDRowVars(), modelProduct.getAllDDColVars()));
 			a = JDD.ITE(tmp, JDD.Constant(0), a);
 		}
-
 		NDSparseMatrix trans_matrix = NDSparseMatrix.BuildNDSparseMatrix(a, modelProduct.getODD(), modelProduct.getAllDDRowVars(),
 		                                                                   modelProduct.getAllDDColVars(), modelProduct.getAllDDNondetVars());
 
@@ -937,11 +940,11 @@ public class MultiObjModelChecker extends prism.MultiObjModelChecker
 			}
 			if (useGSfinal) {
 				return PrismSparse.NondetMultiObjGS(modelProduct.getODD(), modelProduct.getAllDDRowVars(), modelProduct.getAllDDColVars(),
-				                                    modelProduct.getAllDDNondetVars(), false, st, adversary, trans_matrix,
+				                                    modelProduct.getAllDDNondetVars(), false, start, adversary, trans_matrix,
 				                                    probDoubleVectors, rewSparseMatrices, weights);
 			} else {
 				return PrismSparse.NondetMultiObj(modelProduct.getODD(), modelProduct.getAllDDRowVars(), modelProduct.getAllDDColVars(),
-				                                  modelProduct.getAllDDNondetVars(), false, st, adversary, trans_matrix, modelProduct.getSynchs(),
+				                                  modelProduct.getAllDDNondetVars(), false, start, adversary, trans_matrix, modelProduct.getSynchs(),
 				                                  probDoubleVectors, probStepBounds, rewSparseMatrices, weights, rewardStepBounds);
 			}
 		};

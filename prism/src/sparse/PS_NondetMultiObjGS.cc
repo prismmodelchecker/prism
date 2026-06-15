@@ -513,10 +513,10 @@ JNIEXPORT jdoubleArray __jlongpointer JNICALL Java_sparse_PrismSparse_PS_1Nondet
 		//copy all computed elements
 		for (int it = 0; it < lenRew + lenProb; it++)		
 			if (it != ignoredWeight)
-				retNative[it] = max_double_vector_over_bdd(ddman, psoln[it], start, rvars, num_rvars, odd);
+				retNative[it] = psoln[it][start_index];
 		//compute the last element
 		if (ignoredWeight != -1) {
-			double last = max_double_vector_over_bdd(ddman, soln, start, rvars, num_rvars, odd);
+			double last = soln[start_index];
 			for (int it = 0; it < lenRew + lenProb; it++) {
 				if (it != ignoredWeight) {
 					last -= weights[it] * retNative[it];
