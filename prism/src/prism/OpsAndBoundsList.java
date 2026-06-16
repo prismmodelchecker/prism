@@ -232,7 +232,29 @@ public class OpsAndBoundsList
 	{
 		return stepBoundsReward.get(i);
 	}
-	
+
+	/**
+	 * Returns an array of step bounds for all probability objectives.
+	 */
+	public int[] getProbStepBounds()
+	{
+		int[] result = new int[stepBoundsProb.size()];
+		for (int i = 0; i < result.length; i++)
+			result[i] = stepBoundsProb.get(i);
+		return result;
+	}
+
+	/**
+	 * Returns an array of step bounds for all reward objectives.
+	 */
+	public int[] getRewardStepBounds()
+	{
+		int[] result = new int[stepBoundsReward.size()];
+		for (int i = 0; i < result.length; i++)
+			result[i] = stepBoundsReward.get(i);
+		return result;
+	}
+
 	/**
 	 * Returns true iff the i-th objective is probability objective.
 	 */

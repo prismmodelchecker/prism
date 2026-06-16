@@ -764,8 +764,8 @@ public class MultiObjModelChecker extends prism.MultiObjModelChecker
 
 	/**
 	 * Generate a Pareto curve under-approximation (2 objectives only).
-	 * Sets up sparse data structures, then delegates the iteration loop to
-	 * {@link #runParetoCurveIteration} in the base class.
+	 * Builds the sparse solver via {@link #buildSparseWeightedSolver}, then delegates
+	 * the iteration loop to {@link #runParetoCurveIteration} in the base class.
 	 *
 	 * @param modelProduct The product MDP to solve
 	 * @param start BDD for a single initial state for which the result will be returned
@@ -776,13 +776,62 @@ public class MultiObjModelChecker extends prism.MultiObjModelChecker
 	protected TileList generateParetoCurve(NondetModel modelProduct, final JDDNode start, JDDNode[] targets,
 	                                        List<JDDNode> rewards, OpsAndBoundsList opsAndBounds) throws PrismException
 	{
-		int rewardStepBounds[] = new int[rewards.size()];
-		for (int i = 0; i < rewardStepBounds.length; i++)
-			rewardStepBounds[i] = opsAndBounds.getRewardStepBound(i);
+		WeightedObjectiveSolver singleSolve = buildSparseWeightedSolver(modelProduct, start, targets, rewards, opsAndBounds);
+		double tolerance = settings.getDouble(PrismSettings.PRISM_PARETO_EPSILON);
+		int maxIters = settings.getInteger(PrismSettings.PRISM_MULTI_MAX_POINTS);
 
-		int probStepBounds[] = new int[targets.length];
-		for (int i = 0; i < probStepBounds.length; i++)
-			probStepBounds[i] = opsAndBounds.getProbStepBound(i);
+		// Build axis-direction extreme points (one per objective) to seed the TileList
+		List<Point> pointsForInitialTile = buildAxisInitialPoints(singleSolve, targets.length, rewards.size());
+		if (verbose) {
+			mainLog.println("Points for the initial tile: " + pointsForInitialTile);
+		}
+
+		// Delegate the main iteration loop to the engine-agnostic base class
+		return runParetoCurveIteration(singleSolve, opsAndBounds, pointsForInitialTile, tolerance, maxIters);
+	}
+
+	/**
+	 * Achievability/numerical query computation.
+	 * Builds the sparse solver via {@link #buildSparseWeightedSolver}, then delegates
+	 * the iteration loop to {@link #runAchievabilityIteration} in the base class.
+	 *
+	 * @param modelProduct The product MDP to solve
+	 * @param start BDD for a single initial state for which the result will be returned
+	 * @param targets
+	 * @param rewards
+	 * @param opsAndBounds Info about the objectives and their bounds
+	 */
+	protected double solveAchievabilityOrNumerical(NondetModel modelProduct, final JDDNode start, JDDNode[] targets,
+	                                               List<JDDNode> rewards, OpsAndBoundsList opsAndBounds) throws PrismException
+	{
+		WeightedObjectiveSolver solver = buildSparseWeightedSolver(modelProduct, start, targets, rewards, opsAndBounds);
+		int maxIters = settings.getInteger(PrismSettings.PRISM_MULTI_MAX_POINTS);
+		return runAchievabilityIteration(solver, opsAndBounds, maxIters);
+	}
+
+	/**
+	 * Build a {@link WeightedObjectiveSolver} backed by sparse data structures for the given product MDP.
+	 *
+	 * <p>Performs all one-time setup: selects GS vs VI, negates minimising rewards in place,
+	 * reads adversary-export settings, builds the sparse transition and reward matrices, and
+	 * returns a solver lambda that closes over those structures.
+	 *
+	 * <p><b>Note:</b> this method mutates {@code rewards} in place by negating minimising reward
+	 * matrices (R_LE / R_MIN objectives). Callers must not reuse the list after this call.
+	 *
+	 * @param modelProduct The product MDP to solve
+	 * @param start BDD for a single initial state
+	 * @param targets BDD target sets for each probability objective
+	 * @param rewards Transition-reward BDDs for each reward objective (mutated: minimising rewards are negated)
+	 * @param opsAndBounds Objective operators and bounds
+	 * @return A configured solver ready for repeated weighted-sum queries
+	 */
+	private WeightedObjectiveSolver buildSparseWeightedSolver(NondetModel modelProduct, final JDDNode start,
+	                                                          JDDNode[] targets, List<JDDNode> rewards,
+	                                                          OpsAndBoundsList opsAndBounds) throws PrismException
+	{
+		int[] rewardStepBounds = opsAndBounds.getRewardStepBounds();
+		int[] probStepBounds = opsAndBounds.getProbStepBounds();
 
 		boolean useGS = (settings.getChoice(PrismSettings.PRISM_MDP_SOLN_METHOD) == Prism.MDP_MULTI_GAUSSSEIDEL);
 		if (opsAndBounds.numberOfStepBounded() > 0) {
@@ -797,8 +846,6 @@ public class MultiObjModelChecker extends prism.MultiObjModelChecker
 			}
 		}
 
-		double tolerance = settings.getDouble(PrismSettings.PRISM_PARETO_EPSILON);
-		int maxIters = settings.getInteger(PrismSettings.PRISM_MULTI_MAX_POINTS);
 		boolean exportAdv = (settings.getChoice(PrismSettings.PRISM_EXPORT_ADV) != Prism.EXPORT_ADV_NONE);
 		String advFileNameBase = settings.getString(PrismSettings.PRISM_EXPORT_ADV_FILENAME);
 
@@ -837,104 +884,7 @@ public class MultiObjModelChecker extends prism.MultiObjModelChecker
 		final boolean useGSfinal = useGS;
 		final int[] advCounter = {0};
 
-		// Single weighted-sum solver capturing the sparse data structures
-		WeightedObjectiveSolver singleSolve = direction -> {
-			if (exportAdv) {
-				PrismNative.setExportAdvFilename(PrismUtils.addCounterSuffixToFilename(advFileNameBase, ++advCounter[0]));
-			}
-			if (useGSfinal) {
-				return PrismSparse.NondetMultiObjGS(modelProduct.getODD(), modelProduct.getAllDDRowVars(), modelProduct.getAllDDColVars(),
-				                                    modelProduct.getAllDDNondetVars(), false, start, adversary, trans_matrix,
-				                                    probDoubleVectors, rewSparseMatrices, direction);
-			} else {
-				return PrismSparse.NondetMultiObj(modelProduct.getODD(), modelProduct.getAllDDRowVars(), modelProduct.getAllDDColVars(),
-				                                  modelProduct.getAllDDNondetVars(), false, start, adversary, trans_matrix, modelProduct.getSynchs(),
-				                                  probDoubleVectors, probStepBounds, rewSparseMatrices, direction, rewardStepBounds);
-			}
-		};
-
-		// Build axis-direction extreme points (one per objective) to seed the TileList
-		List<Point> pointsForInitialTile = buildAxisInitialPoints(singleSolve, dimProb, dimReward);
-
-		if (verbose) {
-			mainLog.println("Points for the initial tile: " + pointsForInitialTile);
-		}
-
-		// Delegate the main iteration loop to the engine-agnostic base class
-		return runParetoCurveIteration(singleSolve, opsAndBounds, pointsForInitialTile, tolerance, maxIters);
-	}
-
-	/**
-	 * Achievability/numerical query computation.
-	 * Sets up sparse data structures, then delegates the iteration loop to
-	 * {@link #runAchievabilityIteration} in the base class.
-	 *
-	 * @param modelProduct The product MDP to solve
-	 * @param start BDD for a single initial state for which the result will be returned
-	 * @param targets
-	 * @param rewards
-	 * @param opsAndBounds Info about the objectives and their bounds
-	 */
-	protected double solveAchievabilityOrNumerical(NondetModel modelProduct, final JDDNode start, JDDNode[] targets,
-												   List<JDDNode> rewards, OpsAndBoundsList opsAndBounds) throws PrismException
-	{
-		int rewardStepBounds[] = new int[rewards.size()];
-		for (int i = 0; i < rewardStepBounds.length; i++)
-			rewardStepBounds[i] = opsAndBounds.getRewardStepBound(i);
-
-		int probStepBounds[] = new int[targets.length];
-		for (int i = 0; i < probStepBounds.length; i++)
-			probStepBounds[i] = opsAndBounds.getProbStepBound(i);
-
-		boolean useGS = (settings.getChoice(PrismSettings.PRISM_MDP_SOLN_METHOD) == Prism.MDP_MULTI_GAUSSSEIDEL);
-		if (opsAndBounds.numberOfStepBounded() > 0) {
-			mainLog.println("Not using Gauss-Seidel since there are step-bounded objectives");
-			useGS = false;
-		}
-
-		// Convert minimising rewards to maximising by negation
-		for (int i = 0; i < opsAndBounds.rewardSize(); i++) {
-			if (opsAndBounds.getRewardOperator(i) == Operator.R_LE || opsAndBounds.getRewardOperator(i) == Operator.R_MIN) {
-				rewards.set(i, JDD.Apply(JDD.TIMES, JDD.Constant(-1), rewards.get(i)));
-			}
-		}
-
-		int maxIters = settings.getInteger(PrismSettings.PRISM_MULTI_MAX_POINTS);
-		boolean exportAdv = (settings.getChoice(PrismSettings.PRISM_EXPORT_ADV) != Prism.EXPORT_ADV_NONE);
-		String advFileNameBase = settings.getString(PrismSettings.PRISM_EXPORT_ADV_FILENAME);
-
-		int dimProb = targets.length;
-		int dimReward = rewards.size();
-
-		NativeIntArray adversary = new NativeIntArray(modelProduct.getNumStates());
-
-		// Build sparse matrix for transition matrix,
-		// after first removing self-loops for the case of probabilistic objectives only
-		JDDNode a = modelProduct.getTrans().copy();
-		if (dimReward == 0) {
-			JDDNode tmp = JDD.And(JDD.Equals(a.copy(), 1.0), JDD.Identity(modelProduct.getAllDDRowVars(), modelProduct.getAllDDColVars()));
-			a = JDD.ITE(tmp, JDD.Constant(0), a);
-		}
-		NDSparseMatrix trans_matrix = NDSparseMatrix.BuildNDSparseMatrix(a, modelProduct.getODD(), modelProduct.getAllDDRowVars(),
-		                                                                   modelProduct.getAllDDColVars(), modelProduct.getAllDDNondetVars());
-
-		final DoubleVector[] probDoubleVectors = new DoubleVector[dimProb];
-		for (int i = 0; i < dimProb; i++) {
-			probDoubleVectors[i] = new DoubleVector(targets[i], modelProduct.getAllDDRowVars(), modelProduct.getODD());
-		}
-
-		final NDSparseMatrix[] rewSparseMatrices = new NDSparseMatrix[dimReward];
-		for (int i = 0; i < dimReward; i++) {
-			rewSparseMatrices[i] = NDSparseMatrix.BuildSubNDSparseMatrix(a, modelProduct.getODD(), modelProduct.getAllDDRowVars(),
-			                                                              modelProduct.getAllDDColVars(), modelProduct.getAllDDNondetVars(), rewards.get(i));
-		}
-
-		JDD.Deref(a);
-
-		final boolean useGSfinal = useGS;
-		final int[] advCounter = {0};
-
-		WeightedObjectiveSolver solver = weights -> {
+		return weights -> {
 			if (exportAdv) {
 				PrismNative.setExportAdvFilename(PrismUtils.addCounterSuffixToFilename(advFileNameBase, ++advCounter[0]));
 			}
@@ -948,7 +898,5 @@ public class MultiObjModelChecker extends prism.MultiObjModelChecker
 				                                  probDoubleVectors, probStepBounds, rewSparseMatrices, weights, rewardStepBounds);
 			}
 		};
-
-		return runAchievabilityIteration(solver, opsAndBounds, maxIters);
 	}
 }
