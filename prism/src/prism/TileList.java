@@ -55,57 +55,20 @@ public class TileList
 	}
 
 	/**
-	 * This is where a TileLists are stored to be later retrieved in GUI.
-	 * It is a workaround for the fact that Pareto curve can't be 
-	 * returned in any reasonable way.
-	 * 
-	 * To ensure correct concurrent behaviour, object accessing any stored tile lists
-	 * or elements should synchronise on this object;
+	 * The objective formulas (expressions) corresponding to each axis of this Pareto curve.
+	 * For a 2D curve, index 0 is the X-axis formula and index 1 is the Y-axis formula.
+	 * Set after construction by the engine that computed the curve.
 	 */
-	public static List<TileList> storedTileLists;
+	private List<Expression> formulas;
 
-	public static List<TileList> getStoredTileLists()
+	public List<Expression> getFormulas()
 	{
-		return storedTileLists;
+		return formulas;
 	}
 
-	/**
-	 * Formulas for X and Y axes (or multi-obj formulas) of the corresponding
-	 * elements of storedTileLists.
-	 */
-	public static List<Expression> storedFormulasX;
-	public static List<Expression> storedFormulasY;
-	public static List<List<Expression>> storedFormulas;
-
-	public static List<Expression> getStoredFormulasX()
+	public void setFormulas(List<Expression> formulas)
 	{
-		return storedFormulasX;
-	}
-
-	public static List<Expression> getStoredFormulasY()
-	{
-		return storedFormulasY;
-	}
-
-	public static List<List<Expression>> getStoredFormulas()
-	{
-		return storedFormulas;
-	}
-
-	/** Removes all stored tile list and associated formulas */
-	public static void clearStoredTileLists()
-	{
-		TileList.storedFormulasX.clear();
-		TileList.storedFormulasY.clear();
-		TileList.storedFormulas.clear();
-		TileList.storedTileLists.clear();
-	}
-
-	static {
-		storedFormulasX = new ArrayList<Expression>();
-		storedFormulasY = new ArrayList<Expression>();
-		storedFormulas = new ArrayList<List<Expression>>();
-		storedTileLists = new ArrayList<TileList>();
+		this.formulas = formulas;
 	}
 
 	protected int currentProjectionIndex = 0;

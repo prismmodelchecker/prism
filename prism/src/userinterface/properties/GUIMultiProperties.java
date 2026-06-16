@@ -100,6 +100,7 @@ import parser.type.TypeInterval;
 import prism.PrismException;
 import prism.PrismSettings;
 import prism.PrismSettingsListener;
+import prism.Result;
 import prism.ResultsExporter.ResultsExportShape;
 import prism.TileList;
 import prism.UndefinedConstants;
@@ -973,41 +974,35 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 			}
 		}
 
-		//print Pareto curves for all available TileLists, then clear the storage
-		synchronized (TileList.getStoredTileLists()) {
-			for (int i = 0; i < TileList.getStoredTileLists().size(); i++) {
-				TileList tl = TileList.getStoredTileLists().get(i);
-				if (tl != null && tl.getDimension() == 2) {
-					Graph graph = new Graph(TileList.getStoredFormulas().get(i).toString());
-					graph.getXAxisSettings().setHeading(TileList.getStoredFormulasX().get(i).toString());
-					graph.getYAxisSettings().setHeading(TileList.getStoredFormulasY().get(i).toString());
-					SeriesKey sk = graph.addSeries("Pareto curve");
+		// Plot Pareto curves for any verified properties that returned a TileList
+		for (GUIProperty gp : propertiesToBeVerified) {
+			Result gpResult = gp.getResult();
+			if (gpResult == null || !(gpResult.getResult() instanceof TileList))
+				continue;
+			TileList tl = (TileList) gpResult.getResult();
+			if (tl.getDimension() != 2)
+				continue;
+			List<parser.ast.Expression> formulas = tl.getFormulas();
+			Graph graph = new Graph(formulas.toString());
+			graph.getXAxisSettings().setHeading(formulas.get(0).toString());
+			graph.getYAxisSettings().setHeading(formulas.get(1).toString());
+			SeriesKey sk = graph.addSeries("Pareto curve");
 
-					//Get points in tilelist and sort them. This is required for the graph to show them right
-					List<prism.Point> l = tl.getPoints();
-					Comparator<prism.Point> c = new Comparator<prism.Point>()
-					{
-						public int compare(prism.Point o1, prism.Point o2)
-						{
-							if (o1.getCoord(0) == o2.getCoord(0))
-								return Double.compare(o1.getCoord(1), o2.getCoord(1));
-							else
-								return Double.compare(o1.getCoord(0), o2.getCoord(0));
-						};
-					};
+			// Sort points so the graph renders them left-to-right
+			List<prism.Point> l = tl.getPoints();
+			Collections.sort(l, (o1, o2) -> {
+				if (o1.getCoord(0) == o2.getCoord(0))
+					return Double.compare(o1.getCoord(1), o2.getCoord(1));
+				else
+					return Double.compare(o1.getCoord(0), o2.getCoord(0));
+			});
 
-					Collections.sort(l, c);
-
-					for (prism.Point p : l) {
-						prism.Point pReal = p.toRealProperties(tl.getOpsAndBoundsList());
-						XYDataItem di = new XYDataItem(pReal.getCoord(0), pReal.getCoord(1));
-						graph.addPointToSeries(sk, di);
-					}
-					this.getGraphHandler().addGraph(graph);
-				}
+			for (prism.Point p : l) {
+				prism.Point pReal = p.toRealProperties(tl.getOpsAndBoundsList());
+				XYDataItem di = new XYDataItem(pReal.getCoord(0), pReal.getCoord(1));
+				graph.addPointToSeries(sk, di);
 			}
-
-			TileList.clearStoredTileLists();
+			this.getGraphHandler().addGraph(graph);
 		}
 	}
 

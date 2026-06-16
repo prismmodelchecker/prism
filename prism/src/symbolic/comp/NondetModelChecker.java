@@ -701,16 +701,7 @@ public class NondetModelChecker extends NonProbModelChecker
 		}
 
 		if (value instanceof TileList) {
-			if (opsAndBounds.numberOfNumerical() == 2) {			
-				synchronized(TileList.getStoredTileLists()) {
-					TileList.storedFormulasX.add(exprs.get(0));
-					TileList.storedFormulasY.add(exprs.get(1));
-
-					TileList.storedFormulas.add(exprs);
-					TileList.storedTileLists.add((TileList) value);
-				}
-			} //else, i.e. in 3D, the output was treated in the algorithm itself.
-
+			((TileList) value).setFormulas(exprs);
 			return new StateValuesVoid(value);
 		}
 		else if (value instanceof Double) {
