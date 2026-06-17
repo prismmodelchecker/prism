@@ -284,10 +284,10 @@ public class MultiObjModelChecker extends prism.MultiObjModelChecker
 					for (int i = 0; i < moQuery.probSize(); i++) {
 						if (moQuery.getProbOperator(i) != Operator.P_MAX) {
 							tmpMoQuery.add(moQuery.getOpRelOpBound(i), moQuery.getProbOperator(i), moQuery.getProbBound(i),
-							                    moQuery.getProbStepBound(i), i);
+							                    moQuery.getProbStepBound(i), i, null);
 						}
 					}
-					tmpMoQuery.add(new OpRelOpBound("R", RelOp.MAX, -1.0), Operator.R_MAX, -1.0, -1, moQuery.probSize());
+					tmpMoQuery.add(new OpRelOpBound("R", RelOp.MAX, -1.0), Operator.R_MAX, -1.0, -1, moQuery.probSize(), null);
 
 					ArrayList<JDDNode> tmprewards = new ArrayList<>(1);
 					tmprewards.add(rtarget);

@@ -27,8 +27,6 @@
 
 package prism;
 
-import java.util.List;
-
 import parser.Values;
 import parser.ast.Expression;
 import parser.ast.ExpressionProb;
@@ -44,17 +42,15 @@ public class MultiObjModelCheckerUtils
 {
 	/**
 	 * Extract operator, bound, step-bound and path formula from one operand of a multi-obj
-	 * query, and store the results in {@code moQuery} and {@code pathFormulas}.
+	 * query, and store the results in {@code moQuery}.
 	 *
 	 * @param exprQuant      The P or R operator defining one objective
-	 * @param moQuery        Accumulator for operator/bound/step-bound info
-	 * @param pathFormulas   Accumulator for path formulas (null entry for R objectives)
+	 * @param moQuery        Accumulator for operator/bound/step-bound/formula info
 	 * @param constantValues Model constant values for evaluating step bounds
 	 * @param origPosition   Position of this operand in the multi(...) argument list
 	 */
 	public static void extractOperatorAndStepBound(ExpressionQuant exprQuant, MultiObjQuery moQuery,
-	                                                List<Expression> pathFormulas, Values constantValues,
-	                                                int origPosition) throws PrismException
+	                                                Values constantValues, int origPosition) throws PrismException
 	{
 		ExpressionProb exprProb = null;
 		ExpressionReward exprReward = null;
@@ -120,14 +116,8 @@ public class MultiObjModelCheckerUtils
 		if (opInfo.isProbabilistic() && opInfo.getRelOp().isUpperBound()) {
 			p = 1 - p;
 		}
-		moQuery.add(opInfo, op, p, stepBound, origPosition);
-
-		if (exprProb != null) {
-			pathFormulas.add(exprProb.getExpression());
-		}
-		if (exprReward != null) {
-			pathFormulas.add(null);
-		}
+		Expression pathFormula = (exprProb != null) ? exprProb.getExpression() : null;
+		moQuery.add(opInfo, op, p, stepBound, origPosition, pathFormula);
 	}
 
 	/**

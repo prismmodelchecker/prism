@@ -534,9 +534,8 @@ public class NondetModelChecker extends NonProbModelChecker
 		int numObjectives = exprs.size();
 		MultiObjQuery moQuery = new MultiObjQuery();
 		List<JDDNode> transRewardsList = new ArrayList<>();
-		List<Expression> pathFormulas = new ArrayList<>(numObjectives);
 		for (int i = 0; i < numObjectives; i++) {
-			extractInfoFromMultiObjectiveOperand((ExpressionQuant) exprs.get(i), moQuery, transRewardsList, pathFormulas, i);
+			extractInfoFromMultiObjectiveOperand((ExpressionQuant) exprs.get(i), moQuery, transRewardsList, i);
 		}
 
 		// Check the combination of objectives is supported
@@ -562,7 +561,7 @@ public class NondetModelChecker extends NonProbModelChecker
 			if (moQuery.isProbabilityObjective(i)) {
 				draDDRowVars[i] = new JDDVars();
 				draDDColVars[i] = new JDDVars();
-				NondetModel modelNew = mcMo.constructDRAandProductMulti(modelProduct, mcLtl, this, i, dra, moQuery.getOperator(i), pathFormulas.get(i),
+				NondetModel modelNew = mcMo.constructDRAandProductMulti(modelProduct, mcLtl, this, i, dra, moQuery.getOperator(i), moQuery.getPathFormula(i),
 						draDDRowVars[i], draDDColVars[i], statesOfInterest);
 				if (i > 0 & !originalmodel) {
 					modelProduct.clear();
@@ -641,7 +640,7 @@ public class NondetModelChecker extends NonProbModelChecker
 		List<JDDNode> targetDDs = new ArrayList<JDDNode>(numObjectives);
 		for (int i = 0; i < numObjectives; i++) {
 			if (moQuery.isProbabilityObjective(i)) {
-				mainLog.println("\nFinding accepting end components for " + pathFormulas.get(i).toString() + "...");
+				mainLog.println("\nFinding accepting end components for " + moQuery.getPathFormula(i).toString() + "...");
 				targetDDs.add(mcMo.computeAcceptingEndComponent(dra[i], modelProduct, draDDRowVars[i], draDDColVars[i], candidateMECs, statesNotL.get(i),
 						statesInK.get(i), mcLtl, conflictformulae > 1));
 			}
@@ -725,11 +724,10 @@ public class NondetModelChecker extends NonProbModelChecker
 	 * @param exprQuant The operator for the objective
 	 * @param moQuery Where to add info about ops/bounds
 	 * @param transRewardsList Where to add the transition rewards (R operators only)
-	 * @param pathFormulas Where to store the path formulas (for P operators; null for R operators)
 	 * @param origPosition The position (starting from 0) at which this operand occured in the call of multi(...)
 	 */
 	protected void extractInfoFromMultiObjectiveOperand(ExpressionQuant exprQuant, MultiObjQuery moQuery, List<JDDNode> transRewardsList,
-	                                                     List<Expression> pathFormulas, int origPosition) throws PrismException
+	                                                     int origPosition) throws PrismException
 	{
 		// For a reward objective, retrieve the symbolic (JDD-based) reward structures
 		// Check there are no state rewards (which are not currently supported), and throw an exception if there are
@@ -746,7 +744,7 @@ public class NondetModelChecker extends NonProbModelChecker
 		}
 
 		// Parse operator, bound, step-bound and path formula (engine-agnostic)
-		MultiObjModelCheckerUtils.extractOperatorAndStepBound(exprQuant, moQuery, pathFormulas, constantValues, origPosition);
+		MultiObjModelCheckerUtils.extractOperatorAndStepBound(exprQuant, moQuery, constantValues, origPosition);
 	}
 
 	/**
@@ -763,7 +761,7 @@ public class NondetModelChecker extends NonProbModelChecker
 			acceptingStates = JDD.Or(acceptingStates, set);
 		targetDDs.add(acceptingStates);
 		OpRelOpBound opInfo = new OpRelOpBound("P", RelOp.GEQ, 0.0);
-		moQuery.add(opInfo, Operator.P_GE, 0.0, -1, -1);
+		moQuery.add(opInfo, Operator.P_GE, 0.0, -1, -1, null);
 	}
 
 	/**

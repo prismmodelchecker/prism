@@ -30,6 +30,8 @@ package prism;
 import java.util.ArrayList;
 import java.util.List;
 
+import parser.ast.Expression;
+
 /**
  * Represents a multi-objective model checking query as an ordered list of objectives.
  *
@@ -66,14 +68,17 @@ public class MultiObjQuery
 		double bound;
 		/** True if this objective's operator was flipped during canonicalisation. */
 		boolean negated;
+		/** LTL path formula (P objectives) or cosafe formula (R objectives); null if absent. */
+		public final Expression pathFormula;
 
-		protected Objective(OpRelOpBound opInfo, Operator op, double bound, int stepBound, int origPosition)
+		protected Objective(OpRelOpBound opInfo, Operator op, double bound, int stepBound, int origPosition, Expression pathFormula)
 		{
 			this.opInfo = opInfo;
 			this.op = op;
 			this.bound = bound;
 			this.stepBound = stepBound;
 			this.origPosition = origPosition;
+			this.pathFormula = pathFormula;
 		}
 
 		/** Returns true iff this is a probabilistic (P) objective. */
@@ -83,9 +88,9 @@ public class MultiObjQuery
 	/** A probabilistic (P) objective. */
 	public static final class ProbObjective extends Objective
 	{
-		public ProbObjective(OpRelOpBound opInfo, Operator op, double bound, int stepBound, int origPosition)
+		public ProbObjective(OpRelOpBound opInfo, Operator op, double bound, int stepBound, int origPosition, Expression pathFormula)
 		{
-			super(opInfo, op, bound, stepBound, origPosition);
+			super(opInfo, op, bound, stepBound, origPosition, pathFormula);
 		}
 
 		@Override
@@ -95,9 +100,9 @@ public class MultiObjQuery
 	/** A reward (R) objective. */
 	public static final class RewardObjective extends Objective
 	{
-		public RewardObjective(OpRelOpBound opInfo, Operator op, double bound, int stepBound, int origPosition)
+		public RewardObjective(OpRelOpBound opInfo, Operator op, double bound, int stepBound, int origPosition, Expression pathFormula)
 		{
-			super(opInfo, op, bound, stepBound, origPosition);
+			super(opInfo, op, bound, stepBound, origPosition, pathFormula);
 		}
 
 		@Override
@@ -137,15 +142,16 @@ public class MultiObjQuery
 	 *                     normalisation, e.g. P_LE is flipped to {@code 1-bound})
 	 * @param stepBound    Step bound, or -1 if unbounded
 	 * @param origPosition 0-based position in the {@code multi(...)} argument list
+	 * @param pathFormula  LTL/cosafe path formula; null for reward objectives without one
 	 */
-	public void add(OpRelOpBound opInfo, Operator op, double bound, int stepBound, int origPosition)
+	public void add(OpRelOpBound opInfo, Operator op, double bound, int stepBound, int origPosition, Expression pathFormula)
 	{
 		if (opInfo.isProbabilistic()) {
-			ProbObjective obj = new ProbObjective(opInfo, op, bound, stepBound, origPosition);
+			ProbObjective obj = new ProbObjective(opInfo, op, bound, stepBound, origPosition, pathFormula);
 			objectives.add(obj);
 			probObjectives.add(obj);
 		} else {
-			RewardObjective obj = new RewardObjective(opInfo, op, bound, stepBound, origPosition);
+			RewardObjective obj = new RewardObjective(opInfo, op, bound, stepBound, origPosition, pathFormula);
 			objectives.add(obj);
 			rewardObjectives.add(obj);
 		}
@@ -182,6 +188,9 @@ public class MultiObjQuery
 
 	/** Returns the original query spec of the i-th objective. */
 	public OpRelOpBound getOpRelOpBound(int i) { return objectives.get(i).opInfo; }
+
+	/** Returns the path formula of the i-th objective (null for reward objectives without one). */
+	public Expression getPathFormula(int i) { return objectives.get(i).pathFormula; }
 
 	// -------------------------------------------------------------------------
 	// Prob-only accessors (indexed within the probabilistic sub-sequence)
