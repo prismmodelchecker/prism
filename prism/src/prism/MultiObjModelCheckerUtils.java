@@ -44,15 +44,15 @@ public class MultiObjModelCheckerUtils
 {
 	/**
 	 * Extract operator, bound, step-bound and path formula from one operand of a multi-obj
-	 * query, and store the results in {@code opsAndBounds} and {@code pathFormulas}.
+	 * query, and store the results in {@code moQuery} and {@code pathFormulas}.
 	 *
 	 * @param exprQuant      The P or R operator defining one objective
-	 * @param opsAndBounds   Accumulator for operator/bound/step-bound info
+	 * @param moQuery        Accumulator for operator/bound/step-bound info
 	 * @param pathFormulas   Accumulator for path formulas (null entry for R objectives)
 	 * @param constantValues Model constant values for evaluating step bounds
 	 * @param origPosition   Position of this operand in the multi(...) argument list
 	 */
-	public static void extractOperatorAndStepBound(ExpressionQuant exprQuant, OpsAndBoundsList opsAndBounds,
+	public static void extractOperatorAndStepBound(ExpressionQuant exprQuant, MultiObjQuery moQuery,
 	                                                List<Expression> pathFormulas, Values constantValues,
 	                                                int origPosition) throws PrismException
 	{
@@ -120,7 +120,7 @@ public class MultiObjModelCheckerUtils
 		if (opInfo.isProbabilistic() && opInfo.getRelOp().isUpperBound()) {
 			p = 1 - p;
 		}
-		opsAndBounds.add(opInfo, op, p, stepBound, origPosition);
+		moQuery.add(opInfo, op, p, stepBound, origPosition);
 
 		if (exprProb != null) {
 			pathFormulas.add(exprProb.getExpression());
@@ -134,11 +134,11 @@ public class MultiObjModelCheckerUtils
 	 * Validate the structure of a multi-objective query after all objectives have been parsed.
 	 * Throws a {@link PrismException} if the combination of objectives is not supported.
 	 */
-	public static void validateQueryStructure(OpsAndBoundsList opsAndBounds) throws PrismException
+	public static void validateQueryStructure(MultiObjQuery moQuery) throws PrismException
 	{
 		// Allow: 1 numerical + any number of boolean objectives, OR multiple numericals with no booleans
-		if (opsAndBounds.numberOfNumerical() > 1
-		        && opsAndBounds.numberOfNumerical() < opsAndBounds.probSize() + opsAndBounds.rewardSize()) {
+		if (moQuery.numberOfNumerical() > 1
+		        && moQuery.numberOfNumerical() < moQuery.probSize() + moQuery.rewardSize()) {
 			throw new PrismException("Cannot combine Pareto queries with constrained objectives");
 		}
 	}

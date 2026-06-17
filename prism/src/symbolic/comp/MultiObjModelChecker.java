@@ -117,11 +117,11 @@ public class MultiObjModelChecker extends prism.MultiObjModelChecker
 	 * Remove transitions with non-zero reward for minimising/upper-bounded reward objectives.
 	 * @return True if any transitions were removed
 	 */
-	protected boolean removeNonZeroRewardTrans(NondetModel modelProduct, List<JDDNode> rewardsIndex, OpsAndBoundsList opsAndBounds)
+	protected boolean removeNonZeroRewardTrans(NondetModel modelProduct, List<JDDNode> rewardsIndex, MultiObjQuery moQuery)
 	{
 		boolean transchanged = false;
 		for (int i = 0; i < rewardsIndex.size(); i++)
-			if (opsAndBounds.getRewardOperator(i) == Operator.R_MIN || opsAndBounds.getRewardOperator(i) == Operator.R_LE) {
+			if (moQuery.getRewardOperator(i) == Operator.R_MIN || moQuery.getRewardOperator(i) == Operator.R_LE) {
 				JDD.Ref(rewardsIndex.get(i));
 				JDDNode actions = JDD.GreaterThan(rewardsIndex.get(i), 0.0);
 				if (!actions.equals(JDD.ZERO)) {
@@ -151,7 +151,7 @@ public class MultiObjModelChecker extends prism.MultiObjModelChecker
 	protected List<JDDNode> computeCandidateMECs(NondetModel modelProduct, LTLModelChecker mcLtl,
 												 JDDNode allStatesNotL, JDDNode allStatesInK,
 												 JDDVars[] draDDRowVars, JDDVars[] draDDColVars,
-												 OpsAndBoundsList opsAndBounds)
+												 MultiObjQuery moQuery)
 	        throws PrismException
 	{
 		// Restrict candidate states to those with transitions entirely within the NotL region,
@@ -159,9 +159,9 @@ public class MultiObjModelChecker extends prism.MultiObjModelChecker
 		JDD.Ref(allStatesNotL);
 		JDD.Ref(modelProduct.getTrans01());
 		JDDNode candidateStates = JDD.Apply(JDD.TIMES, modelProduct.getTrans01(), allStatesNotL);
-		int numTargets = opsAndBounds.size();
+		int numTargets = moQuery.size();
 		for (int i = 0; i < numTargets; i++)
-			if (opsAndBounds.isProbabilityObjective(i)) {
+			if (moQuery.isProbabilityObjective(i)) {
 				allStatesNotL = JDD.PermuteVariables(allStatesNotL, draDDRowVars[i], draDDColVars[i]);
 			}
 		candidateStates = JDD.Apply(JDD.TIMES, candidateStates, allStatesNotL);
@@ -211,7 +211,7 @@ public class MultiObjModelChecker extends prism.MultiObjModelChecker
 	 *
 	 * @param rewardsIndex Transition reward DDs, one per reward objective
 	 */
-	protected void removeNonZeroMecsForMax(NondetModel modelProduct, LTLModelChecker mcLtl, List<JDDNode> rewardsIndex, OpsAndBoundsList opsAndBounds,
+	protected void removeNonZeroMecsForMax(NondetModel modelProduct, LTLModelChecker mcLtl, List<JDDNode> rewardsIndex, MultiObjQuery moQuery,
 	                                        int numTargets, DA<BitSet, AcceptanceRabin> dra[], JDDVars draDDRowVars[], JDDVars draDDColVars[])
 	        throws PrismException
 	{
@@ -219,7 +219,7 @@ public class MultiObjModelChecker extends prism.MultiObjModelChecker
 		JDDNode removedActions = JDD.Constant(0);
 		JDDNode rmecs = JDD.Constant(0);
 		for (int i = 0; i < rewardsIndex.size(); i++)
-			if (opsAndBounds.getRewardOperator(i) == Operator.R_MAX || opsAndBounds.getRewardOperator(i) == Operator.R_GE) {
+			if (moQuery.getRewardOperator(i) == Operator.R_MAX || moQuery.getRewardOperator(i) == Operator.R_GE) {
 				JDD.Ref(rewardsIndex.get(i));
 				JDDNode actions = JDD.GreaterThan(rewardsIndex.get(i), 0.0);
 				if (!actions.equals(JDD.ZERO))
@@ -261,8 +261,8 @@ public class MultiObjModelChecker extends prism.MultiObjModelChecker
 				ArrayList<JDDVars> tmpdraDDColVars = new ArrayList<>();
 				int count = 0;
 				for (int i = 0; i < numTargets; i++)
-					if (opsAndBounds.isProbabilityObjective(i) && opsAndBounds.getOperator(i) != Operator.P_MAX
-					        && opsAndBounds.getOperator(i) != Operator.P_MIN) {
+					if (moQuery.isProbabilityObjective(i) && moQuery.getOperator(i) != Operator.P_MAX
+					        && moQuery.getOperator(i) != Operator.P_MIN) {
 						tmpdra.add(dra[i]);
 						tmpdraDDRowVars.add(draDDRowVars[i]);
 						tmpdraDDColVars.add(draDDColVars[i]);
@@ -280,19 +280,19 @@ public class MultiObjModelChecker extends prism.MultiObjModelChecker
 					findTargetStates(modelProduct, mcLtl, count, count, new boolean[count], newdra, newdraDDRowVars, newdraDDColVars, tmptargetDDs,
 					                  tmpmultitargetDDs, tmpmultitargetIDs);
 
-					OpsAndBoundsList tmpOpsAndBounds = new OpsAndBoundsList();
-					for (int i = 0; i < opsAndBounds.probSize(); i++) {
-						if (opsAndBounds.getProbOperator(i) != Operator.P_MAX) {
-							tmpOpsAndBounds.add(opsAndBounds.getOpRelOpBound(i), opsAndBounds.getProbOperator(i), opsAndBounds.getProbBound(i),
-							                    opsAndBounds.getProbStepBound(i), i);
+					MultiObjQuery tmpMoQuery = new MultiObjQuery();
+					for (int i = 0; i < moQuery.probSize(); i++) {
+						if (moQuery.getProbOperator(i) != Operator.P_MAX) {
+							tmpMoQuery.add(moQuery.getOpRelOpBound(i), moQuery.getProbOperator(i), moQuery.getProbBound(i),
+							                    moQuery.getProbStepBound(i), i);
 						}
 					}
-					tmpOpsAndBounds.add(new OpRelOpBound("R", RelOp.MAX, -1.0), Operator.R_MAX, -1.0, -1, opsAndBounds.probSize());
+					tmpMoQuery.add(new OpRelOpBound("R", RelOp.MAX, -1.0), Operator.R_MAX, -1.0, -1, moQuery.probSize());
 
 					ArrayList<JDDNode> tmprewards = new ArrayList<>(1);
 					tmprewards.add(rtarget);
 					double prob = (Double) computeMultiObjective(modelProduct, mcLtl, tmprewards, modelProduct.getStart(), tmptargetDDs, tmpmultitargetDDs,
-					                                              tmpmultitargetIDs, tmpOpsAndBounds, count > 1);
+					                                              tmpmultitargetIDs, tmpMoQuery, count > 1);
 					if (prob > 0.0) {
 						constraintViolated = true;
 					} else if (Double.isNaN(prob))
@@ -334,7 +334,7 @@ public class MultiObjModelChecker extends prism.MultiObjModelChecker
 	 * @param multitargetIDs      Output: bitmask per entry in {@code multitargetDDs} indicating which objectives it satisfies
 	 */
 	protected void checkConflictsInObjectives(NondetModel modelProduct, LTLModelChecker mcLtl, int numConflictFormulas, int numTargets,
-	                                           OpsAndBoundsList opsAndBounds, DA<BitSet, AcceptanceRabin> dra[], JDDVars draDDRowVars[], JDDVars draDDColVars[],
+	                                           MultiObjQuery moQuery, DA<BitSet, AcceptanceRabin> dra[], JDDVars draDDRowVars[], JDDVars draDDColVars[],
 	                                           List<JDDNode> targetDDs, List<ArrayList<JDDNode>> allStatesNotL, List<ArrayList<JDDNode>> allStatesInK,
 	                                           List<JDDNode> multitargetDDs, List<Integer> multitargetIDs) throws PrismException
 	{
@@ -346,7 +346,7 @@ public class MultiObjModelChecker extends prism.MultiObjModelChecker
 		List<List<JDDNode>> tmpAllStatesInK = new ArrayList<>(numConflictFormulas);
 		int count = 0;
 		for (int i = 0; i < numTargets; i++)
-			if (opsAndBounds.isProbabilityObjective(i)) {
+			if (moQuery.isProbabilityObjective(i)) {
 				tmpdra[count] = dra[i];
 				tmpdraDDRowVars[count] = draDDRowVars[i];
 				tmpdraDDColVars[count] = draDDColVars[i];
@@ -361,7 +361,7 @@ public class MultiObjModelChecker extends prism.MultiObjModelChecker
 		                                        multitargetDDs, tmpmultitargetIDs);
 		count = 0;
 		for (int i = 0; i < numTargets; i++)
-			if (opsAndBounds.isProbabilityObjective(i)) {
+			if (moQuery.isProbabilityObjective(i)) {
 				targetDDs.remove(count);
 				targetDDs.add(count, tmptargetDDs.get(count));
 				count++;
@@ -372,7 +372,7 @@ public class MultiObjModelChecker extends prism.MultiObjModelChecker
 		}
 
 		for (int i = 0; i < numTargets; i++)
-			if (opsAndBounds.isProbabilityObjective(i)) {
+			if (moQuery.isProbabilityObjective(i)) {
 				for (JDDNode n : allStatesNotL.get(i))
 					JDD.Deref(n);
 				for (JDDNode n : allStatesInK.get(i))
@@ -536,7 +536,7 @@ public class MultiObjModelChecker extends prism.MultiObjModelChecker
 	 *                            (null if no conflicts)
 	 * @param combinationIDs      Bitmasks identifying which objectives each combination satisfies
 	 *                            (null if no conflicts; same length as {@code combinations})
-	 * @param opsAndBounds        Operator/bound/step-bound info for all objectives
+	 * @param moQuery             Operator/bound/step-bound info for all objectives
 	 * @param hasconflictobjectives True if any two probability objectives share accepting ECs,
 	 *                            requiring the conflict resolution path
 	 * @return For Pareto queries: a {@link TileList} under-approximation of the Pareto front.
@@ -544,7 +544,7 @@ public class MultiObjModelChecker extends prism.MultiObjModelChecker
 	 *         For numerical queries: the optimal value as {@link Double}.
 	 */
 	protected Object computeMultiObjective(NondetModel model, LTLModelChecker mcLtl, List<JDDNode> transRewards, JDDNode start, List<JDDNode> targets,
-	                                        List<JDDNode> combinations, List<Integer> combinationIDs, OpsAndBoundsList opsAndBounds,
+	                                        List<JDDNode> combinations, List<Integer> combinationIDs, MultiObjQuery moQuery,
 	                                        boolean hasconflictobjectives) throws PrismException
 	{
 		Object value;
@@ -600,19 +600,19 @@ public class MultiObjModelChecker extends prism.MultiObjModelChecker
 			if (engine != Prism.SPARSE) {
 				throw new PrismNotSupportedException("Currently only sparse engine supports multi-objective properties");
 			}
-			if (method == Prism.MDP_MULTI_LP && opsAndBounds.numberOfNumerical() > 1) {
+			if (method == Prism.MDP_MULTI_LP && moQuery.numberOfNumerical() > 1) {
 				throw new PrismNotSupportedException("Pareto curve generation is not currently supported using linear programming");
 			}
 
 			// Do computation
 			// Linear programming
 			if (method == Prism.MDP_MULTI_LP) {
-				value = computeMultiObjectiveLP(model, mcLtl, start, targets, transRewards, combinations, combinationIDs, opsAndBounds, hasconflictobjectives);
+				value = computeMultiObjectiveLP(model, mcLtl, start, targets, transRewards, combinations, combinationIDs, moQuery, hasconflictobjectives);
 			}
 			// Value iteration
 			else if (method == Prism.MDP_MULTI_GAUSSSEIDEL || method == Prism.MDP_MULTI_VALITER) {
 				double timePre = System.currentTimeMillis();
-				value = computeMultiObjectiveValIter(model, start, labels, transRewards, opsAndBounds);
+				value = computeMultiObjectiveValIter(model, start, labels, transRewards, moQuery);
 				double timePost = System.currentTimeMillis();
 				mainLog.println("Multi-objective value iterations took " + ((timePost - timePre) / 1000.0) + " s.");
 			}
@@ -644,16 +644,16 @@ public class MultiObjModelChecker extends prism.MultiObjModelChecker
 	 * @param transRewards        Transition reward DDs, one per reward objective (refs owned by caller)
 	 * @param combinations        BDDs for combined accepting EC states when objectives conflict, or null
 	 * @param combinationIDs      Bitmasks identifying which objectives each combination satisfies, or null
-	 * @param opsAndBounds        Operator/bound/step-bound info for all objectives
+	 * @param moQuery             Operator/bound/step-bound info for all objectives
 	 * @param hasconflictobjectives True if conflict objectives are present
 	 * @return achievability/numerical result
 	 * @throws PrismException if computation fails or options are unsupported
 	 */
 	protected Object computeMultiObjectiveLP(NondetModel model, LTLModelChecker mcLtl, JDDNode start, List<JDDNode> targets,
 	                                          List<JDDNode> transRewards, List<JDDNode> combinations, List<Integer> combinationIDs,
-	                                          OpsAndBoundsList opsAndBounds, boolean hasconflictobjectives) throws PrismException
+	                                          MultiObjQuery moQuery, boolean hasconflictobjectives) throws PrismException
 	{
-		if (opsAndBounds.numberOfStepBounded() > 0) {
+		if (moQuery.numberOfStepBounded() > 0) {
 			throw new PrismNotSupportedException("Step-bounded objectives are not currently supported with linear programming");
 		}
 
@@ -675,7 +675,7 @@ public class MultiObjModelChecker extends prism.MultiObjModelChecker
 		// used as explicit absorbing sinks in the LP formulation.
 		JDDNode no;
 		JDDNode bottomec = null;
-		if (opsAndBounds.rewardSize() == 0) {
+		if (moQuery.rewardSize() == 0) {
 			no = PrismMTBDD.Prob0A(model.getTrans01(), model.getReach(), model.getAllDDRowVars(), model.getAllDDColVars(), model.getAllDDNondetVars(),
 					model.getReach(), yes);
 		} else {
@@ -700,32 +700,32 @@ public class MultiObjModelChecker extends prism.MultiObjModelChecker
 
 		Object value;
 		try {
-			if (opsAndBounds.rewardSize() > 0) {
+			if (moQuery.rewardSize() > 0) {
 				if (hasconflictobjectives) {
 					value = PrismSparse.NondetMultiReachReward1(model.getTrans(), model.getTransActions(), model.getSynchs(), model.getODD(),
 							model.getAllDDRowVars(), model.getAllDDColVars(), model.getAllDDNondetVars(), targets,
-							combinations, combinationIDs, opsAndBounds, maybe, start, transRewards, bottomec);
+							combinations, combinationIDs, moQuery, maybe, start, transRewards, bottomec);
 				} else {
 					value = PrismSparse.NondetMultiReachReward(model.getTrans(), model.getTransActions(), model.getSynchs(), model.getODD(),
 							model.getAllDDRowVars(), model.getAllDDColVars(), model.getAllDDNondetVars(), targets,
-							opsAndBounds, maybe, start, transRewards, bottomec);
+							moQuery, maybe, start, transRewards, bottomec);
 				}
 			} else {
 				if (hasconflictobjectives) {
 					value = PrismSparse.NondetMultiReach1(model.getTrans(), model.getTransActions(), model.getSynchs(), model.getODD(),
 							model.getAllDDRowVars(), model.getAllDDColVars(), model.getAllDDNondetVars(), targets,
-							combinations, combinationIDs, opsAndBounds, maybe, start);
+							combinations, combinationIDs, moQuery, maybe, start);
 				} else {
 					value = PrismSparse.NondetMultiReach(model.getTrans(), model.getTransActions(), model.getSynchs(), model.getODD(),
 							model.getAllDDRowVars(), model.getAllDDColVars(), model.getAllDDNondetVars(), targets,
-							opsAndBounds, maybe, start);
+							moQuery, maybe, start);
 				}
 			}
 		} finally {
 			JDD.Deref(yes);
 			JDD.Deref(no);
 			JDD.Deref(maybe);
-			if (opsAndBounds.rewardSize() > 0)
+			if (moQuery.rewardSize() > 0)
 				JDD.Deref(bottomec);
 		}
 		return value;
@@ -737,11 +737,11 @@ public class MultiObjModelChecker extends prism.MultiObjModelChecker
 	 * {@link #solveAchievabilityOrNumerical} (all other cases).
 	 *
 	 * <p><b>Convention on entry:</b> probabilistic operators have already been canonicalised to
-	 * P_MAX / P_GE by {@link OpsAndBoundsList#makeAllProbUp()}, and minimising prob DDs have been
+	 * P_MAX / P_GE by {@link MultiObjQuery#makeAllProbUp()}, and minimising prob DDs have been
 	 * built for the negated formula. Reward operators are still raw (R_MAX, R_MIN, R_GE, R_LE).
 	 *
 	 * <p>This method negates minimising reward DDs in place and canonicalises reward operators
-	 * to R_MAX / R_GE via {@link OpsAndBoundsList#makeAllRewardUp()} before dispatching, so
+	 * to R_MAX / R_GE via {@link MultiObjQuery#makeAllRewardUp()} before dispatching, so
 	 * all sub-calls operate under the all-maximising convention described by
 	 * {@link #runParetoCurveIteration} and {@link #runAchievabilityIteration}.
 	 *
@@ -749,35 +749,35 @@ public class MultiObjModelChecker extends prism.MultiObjModelChecker
 	 * @param start         BDD for the initial state
 	 * @param targets       Accepting EC state BDDs, one per probability objective
 	 * @param transRewards  Transition reward DDs, one per reward objective (mutated: minimising rewards are negated)
-	 * @param opsAndBounds  Objective operators/bounds (mutated: reward operators canonicalised to R_MAX/R_GE)
+	 * @param moQuery       Objective operators/bounds (mutated: reward operators canonicalised to R_MAX/R_GE)
 	 */
 	protected Object computeMultiObjectiveValIter(NondetModel modelProduct, JDDNode start, JDDNode[] targets,
-												  List<JDDNode> transRewards, OpsAndBoundsList opsAndBounds) throws PrismException
+												  List<JDDNode> transRewards, MultiObjQuery moQuery) throws PrismException
 	{
 		// Check for unsupported computations
-		int numNumericalObjectives = opsAndBounds.numberOfNumerical();
+		int numNumericalObjectives = moQuery.numberOfNumerical();
 		if (numNumericalObjectives > 2) {
 			throw new PrismException("Pareto curve generation is currently only supported for 2 objectives");
 		}
-		if (numNumericalObjectives >= 2 && opsAndBounds.probSize() + opsAndBounds.rewardSize() > numNumericalObjectives) {
+		if (numNumericalObjectives >= 2 && moQuery.probSize() + moQuery.rewardSize() > numNumericalObjectives) {
 			throw new PrismException("Pareto curve generation is currently not allowed if there are other (bounded) objectives");
 		}
 
 		// Convert minimising reward DDs to maximising by negation, then canonicalise
-		// opsAndBounds to use only R_MAX/R_GE. The LP path does not go through here;
+		// moQuery to use only R_MAX/R_GE. The LP path does not go through here;
 		// it handles sign conventions internally via the native solver.
-		for (int i = 0; i < opsAndBounds.rewardSize(); i++) {
-			if (opsAndBounds.getRewardOperator(i) == Operator.R_LE || opsAndBounds.getRewardOperator(i) == Operator.R_MIN) {
+		for (int i = 0; i < moQuery.rewardSize(); i++) {
+			if (moQuery.getRewardOperator(i) == Operator.R_LE || moQuery.getRewardOperator(i) == Operator.R_MIN) {
 				transRewards.set(i, JDD.Apply(JDD.TIMES, JDD.Constant(-1), transRewards.get(i)));
 			}
 		}
-		opsAndBounds.makeAllRewardUp();
+		moQuery.makeAllRewardUp();
 
 		// Pareto computation or achievability/numerical computation
 		if (numNumericalObjectives >= 2) {
-			return generateParetoCurve(modelProduct, start, targets, transRewards, opsAndBounds);
+			return generateParetoCurve(modelProduct, start, targets, transRewards, moQuery);
 		} else {
-			return solveAchievabilityOrNumerical(modelProduct, start, targets, transRewards, opsAndBounds);
+			return solveAchievabilityOrNumerical(modelProduct, start, targets, transRewards, moQuery);
 		}
 	}
 
@@ -789,21 +789,21 @@ public class MultiObjModelChecker extends prism.MultiObjModelChecker
 	 * <p><b>Pre-conditions (all-maximising convention):</b>
 	 * <ul>
 	 *   <li>Probabilistic operators are P_MAX / P_GE (canonicalised by
-	 *       {@link OpsAndBoundsList#makeAllProbUp()}); minimising prob DDs were built for ¬φ.
+	 *       {@link MultiObjQuery#makeAllProbUp()}); minimising prob DDs were built for ¬φ.
 	 *   <li>Reward operators are R_MAX / R_GE (canonicalised by
-	 *       {@link OpsAndBoundsList#makeAllRewardUp()}); minimising reward DDs have been negated.
+	 *       {@link MultiObjQuery#makeAllRewardUp()}); minimising reward DDs have been negated.
 	 * </ul>
 	 *
 	 * @param modelProduct The product MDP to solve
 	 * @param start        BDD for a single initial state
 	 * @param targets      Accepting EC state BDDs, one per probability objective
 	 * @param rewards      Transition reward DDs, one per reward objective (already negated for R_LE/R_MIN)
-	 * @param opsAndBounds Canonicalised objective operators/bounds (P_MAX/P_GE, R_MAX/R_GE)
+	 * @param moQuery      Canonicalised objective operators/bounds (P_MAX/P_GE, R_MAX/R_GE)
 	 */
 	protected TileList generateParetoCurve(NondetModel modelProduct, final JDDNode start, JDDNode[] targets,
-	                                        List<JDDNode> rewards, OpsAndBoundsList opsAndBounds) throws PrismException
+	                                        List<JDDNode> rewards, MultiObjQuery moQuery) throws PrismException
 	{
-		WeightedObjectiveSolver singleSolve = buildSparseWeightedSolver(modelProduct, start, targets, rewards, opsAndBounds);
+		WeightedObjectiveSolver singleSolve = buildSparseWeightedSolver(modelProduct, start, targets, rewards, moQuery);
 		double tolerance = settings.getDouble(PrismSettings.PRISM_PARETO_EPSILON);
 		int maxIters = settings.getInteger(PrismSettings.PRISM_MULTI_MAX_POINTS);
 
@@ -814,7 +814,7 @@ public class MultiObjModelChecker extends prism.MultiObjModelChecker
 		}
 
 		// Delegate the main iteration loop to the engine-agnostic base class
-		return runParetoCurveIteration(singleSolve, opsAndBounds, pointsForInitialTile, tolerance, maxIters);
+		return runParetoCurveIteration(singleSolve, moQuery, pointsForInitialTile, tolerance, maxIters);
 	}
 
 	/**
@@ -825,14 +825,14 @@ public class MultiObjModelChecker extends prism.MultiObjModelChecker
 	 * <p><b>Pre-conditions (all-maximising convention):</b>
 	 * <ul>
 	 *   <li>Probabilistic operators are P_MAX / P_GE (canonicalised by
-	 *       {@link OpsAndBoundsList#makeAllProbUp()}); minimising prob DDs were built for ¬φ.
+	 *       {@link MultiObjQuery#makeAllProbUp()}); minimising prob DDs were built for ¬φ.
 	 *   <li>Reward operators are R_MAX / R_GE (canonicalised by
-	 *       {@link OpsAndBoundsList#makeAllRewardUp()}); minimising reward DDs have been negated.
+	 *       {@link MultiObjQuery#makeAllRewardUp()}); minimising reward DDs have been negated.
 	 * </ul>
 	 *
 	 * <p>The returned value is in user-space for reward objectives: this method negates the
 	 * {@link #runAchievabilityIteration} result for objectives where
-	 * {@link OpsAndBoundsList#isRewardNegated} is true, converting solver-space (max of −reward)
+	 * {@link MultiObjQuery#isRewardNegated} is true, converting solver-space (max of −reward)
 	 * back to user-space (min reward). For a P_MIN numerical query the returned value
 	 * is max P(¬φ); the caller must apply the 1−value correction.
 	 *
@@ -840,19 +840,19 @@ public class MultiObjModelChecker extends prism.MultiObjModelChecker
 	 * @param start        BDD for a single initial state
 	 * @param targets      Accepting EC state BDDs, one per probability objective
 	 * @param rewards      Transition reward DDs, one per reward objective (already negated for R_LE/R_MIN)
-	 * @param opsAndBounds Canonicalised objective operators/bounds (P_MAX/P_GE, R_MAX/R_GE)
+	 * @param moQuery      Canonicalised objective operators/bounds (P_MAX/P_GE, R_MAX/R_GE)
 	 */
 	protected double solveAchievabilityOrNumerical(NondetModel modelProduct, final JDDNode start, JDDNode[] targets,
-	                                               List<JDDNode> rewards, OpsAndBoundsList opsAndBounds) throws PrismException
+	                                               List<JDDNode> rewards, MultiObjQuery moQuery) throws PrismException
 	{
-		WeightedObjectiveSolver solver = buildSparseWeightedSolver(modelProduct, start, targets, rewards, opsAndBounds);
+		WeightedObjectiveSolver solver = buildSparseWeightedSolver(modelProduct, start, targets, rewards, moQuery);
 		int maxIters = settings.getInteger(PrismSettings.PRISM_MULTI_MAX_POINTS);
-		double result = runAchievabilityIteration(solver, opsAndBounds, maxIters);
+		double result = runAchievabilityIteration(solver, moQuery, maxIters);
 		// Convert solver-space result to user-space: negate if the numerical objective is a
 		// reward that was originally R_MIN (the solver maximised −reward, so result = −user-space
 		// value). Numerical objectives come first, so a numerical reward is always reward 0;
 		// an R_LE bound is also negated but is never the numerical objective.
-		if (opsAndBounds.rewardSize() > 0 && opsAndBounds.getRewardOperator(0) == Operator.R_MAX && opsAndBounds.isRewardNegated(0)) {
+		if (moQuery.rewardSize() > 0 && moQuery.getRewardOperator(0) == Operator.R_MAX && moQuery.isRewardNegated(0)) {
 			result = -result;
 		}
 		return result;
@@ -866,25 +866,25 @@ public class MultiObjModelChecker extends prism.MultiObjModelChecker
 	 * closes over those structures.
 	 *
 	 * <p>Callers must ensure that reward DDs have already been negated for minimising objectives
-	 * and that {@code opsAndBounds} has been canonicalised to R_MAX/R_GE via
-	 * {@link OpsAndBoundsList#makeAllRewardUp()} before calling this method.
+	 * and that {@code moQuery} has been canonicalised to R_MAX/R_GE via
+	 * {@link MultiObjQuery#makeAllRewardUp()} before calling this method.
 	 *
 	 * @param modelProduct The product MDP to solve
 	 * @param start BDD for a single initial state
 	 * @param targets BDD target sets for each probability objective
 	 * @param rewards Transition-reward BDDs for each reward objective (already negated for R_LE/R_MIN)
-	 * @param opsAndBounds Objective operators and bounds (already canonicalised to R_MAX/R_GE)
+	 * @param moQuery Objective operators and bounds (already canonicalised to R_MAX/R_GE)
 	 * @return A configured solver ready for repeated weighted-sum queries
 	 */
 	private WeightedObjectiveSolver buildSparseWeightedSolver(NondetModel modelProduct, final JDDNode start,
 	                                                          JDDNode[] targets, List<JDDNode> rewards,
-	                                                          OpsAndBoundsList opsAndBounds) throws PrismException
+	                                                          MultiObjQuery moQuery) throws PrismException
 	{
-		int[] rewardStepBounds = opsAndBounds.getRewardStepBounds();
-		int[] probStepBounds = opsAndBounds.getProbStepBounds();
+		int[] rewardStepBounds = moQuery.getRewardStepBounds();
+		int[] probStepBounds = moQuery.getProbStepBounds();
 
 		boolean useGS = (settings.getChoice(PrismSettings.PRISM_MDP_SOLN_METHOD) == Prism.MDP_MULTI_GAUSSSEIDEL);
-		if (opsAndBounds.numberOfStepBounded() > 0) {
+		if (moQuery.numberOfStepBounded() > 0) {
 			mainLog.println("Not using Gauss-Seidel since there are step-bounded objectives");
 			useGS = false;
 		}

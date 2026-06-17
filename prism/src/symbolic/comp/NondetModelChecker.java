@@ -67,7 +67,7 @@ import symbolic.comp.LTLModelChecker.LTLProduct;
 import prism.OpRelOpBound;
 import prism.Operator;
 import prism.MultiObjModelCheckerUtils;
-import prism.OpsAndBoundsList;
+import prism.MultiObjQuery;
 import prism.OptionsIntervalIteration;
 import prism.Prism;
 import prism.PrismException;
@@ -532,16 +532,16 @@ public class NondetModelChecker extends NonProbModelChecker
 
 		// Extract information about the multi-objective query (bounds, formulas, rewards)
 		int numObjectives = exprs.size();
-		OpsAndBoundsList opsAndBounds = new OpsAndBoundsList();
+		MultiObjQuery moQuery = new MultiObjQuery();
 		List<JDDNode> transRewardsList = new ArrayList<>();
 		List<Expression> pathFormulas = new ArrayList<>(numObjectives);
 		for (int i = 0; i < numObjectives; i++) {
-			extractInfoFromMultiObjectiveOperand((ExpressionQuant) exprs.get(i), opsAndBounds, transRewardsList, pathFormulas, i);
+			extractInfoFromMultiObjectiveOperand((ExpressionQuant) exprs.get(i), moQuery, transRewardsList, pathFormulas, i);
 		}
 
 		// Check the combination of objectives is supported
 		try {
-			MultiObjModelCheckerUtils.validateQueryStructure(opsAndBounds);
+			MultiObjModelCheckerUtils.validateQueryStructure(moQuery);
 		} catch (PrismException e) {
 			JDD.Deref(statesOfInterest);
 			throw e;
@@ -559,10 +559,10 @@ public class NondetModelChecker extends NonProbModelChecker
 		long l = System.currentTimeMillis();
 		boolean originalmodel = true;
 		for (int i = 0; i < numObjectives; i++) {
-			if (opsAndBounds.isProbabilityObjective(i)) {
+			if (moQuery.isProbabilityObjective(i)) {
 				draDDRowVars[i] = new JDDVars();
 				draDDColVars[i] = new JDDVars();
-				NondetModel modelNew = mcMo.constructDRAandProductMulti(modelProduct, mcLtl, this, i, dra, opsAndBounds.getOperator(i), pathFormulas.get(i),
+				NondetModel modelNew = mcMo.constructDRAandProductMulti(modelProduct, mcLtl, this, i, dra, moQuery.getOperator(i), pathFormulas.get(i),
 						draDDRowVars[i], draDDColVars[i], statesOfInterest);
 				if (i > 0 & !originalmodel) {
 					modelProduct.clear();
@@ -577,8 +577,8 @@ public class NondetModelChecker extends NonProbModelChecker
 		// Minimising probabilistic objectives are negated and converted to maximising
 		// (this is already done in the product construction above)
 		// Remember whether final value of a numerical query needs to be negated as a result
-		boolean negateResult = opsAndBounds.contains(Operator.P_MIN);
-		opsAndBounds.makeAllProbUp();
+		boolean negateResult = moQuery.contains(Operator.P_MIN);
+		moQuery.makeAllProbUp();
 
 		// Print some info about the product model and export if required
 		outputProductMulti(modelProduct);
@@ -592,15 +592,15 @@ public class NondetModelChecker extends NonProbModelChecker
 		}
 
 		// Removing actions with non-zero reward from the product for maximum cases
-		boolean hasMaxReward = opsAndBounds.contains(Operator.R_GE) || opsAndBounds.contains(Operator.R_MAX);
+		boolean hasMaxReward = moQuery.contains(Operator.R_GE) || moQuery.contains(Operator.R_MAX);
 		if (hasMaxReward) {
-			mcMo.removeNonZeroMecsForMax(modelProduct, mcLtl, transRewardsList, opsAndBounds, numObjectives, dra, draDDRowVars, draDDColVars);
+			mcMo.removeNonZeroMecsForMax(modelProduct, mcLtl, transRewardsList, moQuery, numObjectives, dra, draDDRowVars, draDDColVars);
 		}
 
 		// Remove all non-zero reward from trans in order to search for zero reward end components
 		JDDNode tmptrans = modelProduct.getTrans();
 		JDDNode tmptrans01 = modelProduct.getTrans01();
-		boolean transchanged = mcMo.removeNonZeroRewardTrans(modelProduct, transRewardsList, opsAndBounds);
+		boolean transchanged = mcMo.removeNonZeroRewardTrans(modelProduct, transRewardsList, moQuery);
 
 		// Build per-objective, per-Rabin-pair acceptance BDDs over product states.
 		// statesNotL[i][j] = states NOT in L_k (the forbidden set) for objective i's DRA;
@@ -612,7 +612,7 @@ public class NondetModelChecker extends NonProbModelChecker
 		JDDNode allStatesNotL = JDD.Constant(0);
 		JDDNode allStatesInK = JDD.Constant(0);
 		for (int i = 0; i < numObjectives; i++) {
-			if (opsAndBounds.isProbabilityObjective(i)) {
+			if (moQuery.isProbabilityObjective(i)) {
 				ArrayList<JDDNode> statesNotL_i = new ArrayList<>();
 				ArrayList<JDDNode> statesInK_i = new ArrayList<>();
 				AcceptanceRabinDD acc = dra[i].getAcceptance().toAcceptanceDD(draDDRowVars[i]);
@@ -636,11 +636,11 @@ public class NondetModelChecker extends NonProbModelChecker
 		// Find accepting end components for each LTL formula
 		// First compute an overapproximation of candidate MECs for all objectives
 		List<JDDNode> candidateMECs = mcMo.computeCandidateMECs(modelProduct, mcLtl, allStatesNotL, allStatesInK, draDDRowVars, draDDColVars,
-				opsAndBounds);
+				moQuery);
 		// Then find accepting ECs for each (probabilistic) objective
 		List<JDDNode> targetDDs = new ArrayList<JDDNode>(numObjectives);
 		for (int i = 0; i < numObjectives; i++) {
-			if (opsAndBounds.isProbabilityObjective(i)) {
+			if (moQuery.isProbabilityObjective(i)) {
 				mainLog.println("\nFinding accepting end components for " + pathFormulas.get(i).toString() + "...");
 				targetDDs.add(mcMo.computeAcceptingEndComponent(dra[i], modelProduct, draDDRowVars[i], draDDColVars[i], candidateMECs, statesNotL.get(i),
 						statesInK.get(i), mcLtl, conflictformulae > 1));
@@ -656,7 +656,7 @@ public class NondetModelChecker extends NonProbModelChecker
 		if (conflictformulae > 1) {
 			multitargetDDs = new ArrayList<JDDNode>();
 			multitargetIDs = new ArrayList<Integer>();
-			mcMo.checkConflictsInObjectives(modelProduct, mcLtl, conflictformulae, numObjectives, opsAndBounds, dra, draDDRowVars, draDDColVars, targetDDs, statesNotL,
+			mcMo.checkConflictsInObjectives(modelProduct, mcLtl, conflictformulae, numObjectives, moQuery, dra, draDDRowVars, draDDColVars, targetDDs, statesNotL,
 					statesInK, multitargetDDs, multitargetIDs);
 		}
 
@@ -666,7 +666,7 @@ public class NondetModelChecker extends NonProbModelChecker
 		// Add a dummy LTL formula to get generate target states when there is no LTL formula in the query
 		// TODO most probably this is not needed for non-LP solution methods
 		if (targetDDs.isEmpty() && prism.getMDPSolnMethod() == Prism.MDP_MULTI_LP) {
-			addDummyFormula(modelProduct, mcLtl, targetDDs, opsAndBounds);
+			addDummyFormula(modelProduct, mcLtl, targetDDs, moQuery);
 		}
 
 		// Put unmodified trans and trans01 to modelProduct
@@ -680,7 +680,7 @@ public class NondetModelChecker extends NonProbModelChecker
 			// Do multi-objective computation
 			// Note: for multi-objective model checking, we construct the product MDP for only a single initial state
 			// (unlike for normal LTL model checking) so it is safe to use modelProduct.getStart() here to pass in the initial states.
-			value = mcMo.computeMultiObjective(modelProduct, mcLtl, transRewardsListProduct, modelProduct.getStart(), targetDDs, multitargetDDs, multitargetIDs, opsAndBounds,
+			value = mcMo.computeMultiObjective(modelProduct, mcLtl, transRewardsListProduct, modelProduct.getStart(), targetDDs, multitargetDDs, multitargetIDs, moQuery,
 			                                   conflictformulae > 1);
 		} finally {
 			// Deref, clean up
@@ -688,7 +688,7 @@ public class NondetModelChecker extends NonProbModelChecker
 			if (modelProduct != null && modelProduct != model)
 				modelProduct.clear();
 			for (int i = 0; i < numObjectives; i++) {
-				if (opsAndBounds.isProbabilityObjective(i)) {
+				if (moQuery.isProbabilityObjective(i)) {
 					draDDRowVars[i].derefAll();
 					draDDColVars[i].derefAll();
 				}
@@ -723,12 +723,12 @@ public class NondetModelChecker extends NonProbModelChecker
 	 * engine-agnostic parsing is delegated to {@link MultiObjModelCheckerUtils#extractOperatorAndStepBound}.
 	 *
 	 * @param exprQuant The operator for the objective
-	 * @param opsAndBounds Where to add info about ops/bounds
+	 * @param moQuery Where to add info about ops/bounds
 	 * @param transRewardsList Where to add the transition rewards (R operators only)
 	 * @param pathFormulas Where to store the path formulas (for P operators; null for R operators)
 	 * @param origPosition The position (starting from 0) at which this operand occured in the call of multi(...)
 	 */
-	protected void extractInfoFromMultiObjectiveOperand(ExpressionQuant exprQuant, OpsAndBoundsList opsAndBounds, List<JDDNode> transRewardsList,
+	protected void extractInfoFromMultiObjectiveOperand(ExpressionQuant exprQuant, MultiObjQuery moQuery, List<JDDNode> transRewardsList,
 	                                                     List<Expression> pathFormulas, int origPosition) throws PrismException
 	{
 		// For a reward objective, retrieve the symbolic (JDD-based) reward structures
@@ -746,7 +746,7 @@ public class NondetModelChecker extends NonProbModelChecker
 		}
 
 		// Parse operator, bound, step-bound and path formula (engine-agnostic)
-		MultiObjModelCheckerUtils.extractOperatorAndStepBound(exprQuant, opsAndBounds, pathFormulas, constantValues, origPosition);
+		MultiObjModelCheckerUtils.extractOperatorAndStepBound(exprQuant, moQuery, pathFormulas, constantValues, origPosition);
 	}
 
 	/**
@@ -754,7 +754,7 @@ public class NondetModelChecker extends NonProbModelChecker
 	 * The target is the union of all MECs in the product (trivially reachable with probability 1).
 	 * Only needed when there are no LTL probability objectives in the query.
 	 */
-	protected void addDummyFormula(NondetModel modelProduct, LTLModelChecker mcLtl, List<JDDNode> targetDDs, OpsAndBoundsList opsAndBounds)
+	protected void addDummyFormula(NondetModel modelProduct, LTLModelChecker mcLtl, List<JDDNode> targetDDs, MultiObjQuery moQuery)
 			throws PrismException
 	{
 		List<JDDNode> tmpecs = mcLtl.findMECStates(modelProduct, modelProduct.getReach());
@@ -763,7 +763,7 @@ public class NondetModelChecker extends NonProbModelChecker
 			acceptingStates = JDD.Or(acceptingStates, set);
 		targetDDs.add(acceptingStates);
 		OpRelOpBound opInfo = new OpRelOpBound("P", RelOp.GEQ, 0.0);
-		opsAndBounds.add(opInfo, Operator.P_GE, 0.0, -1, -1);
+		moQuery.add(opInfo, Operator.P_GE, 0.0, -1, -1);
 	}
 
 	/**

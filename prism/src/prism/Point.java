@@ -262,34 +262,27 @@ public class Point
 	}
 
 	/**
-	 *  This methods ensures that the point's values corresponds to the properties
-	 *  the user did input. Namely, (i) the order of properties is restored, and
-	 *  (ii) when the rewards were minimizing, the value
-	 *  is multiplied by -1, and when the probabilities were minimizing,
-	 *  a new value is obtained by 1-value.
-	 * @return
+	 * Converts this solver-space point back to user-space: restores the original
+	 * objective ordering and undoes sign flips introduced by canonicalisation
+	 * (1−value for negated prob, −value for negated reward).
 	 */
-	public Point toRealProperties(OpsAndBoundsList obl)
+	public Point toRealProperties(MultiObjQuery query)
 	{
 		double[] oldCoords = coords.clone();
 		double[] newCoords = new double[oldCoords.length];
 
-		for (int i = 0; i < obl.probSize(); i++) {
-			int newIndex = obl.getOrigPositionProb(i);
-			if (obl.isProbNegated(i))
-				newCoords[newIndex] = 1-oldCoords[i];
-			else
-				newCoords[newIndex] = oldCoords[i];
-
+		for (int i = 0; i < query.probSize(); i++) {
+			int newIndex = query.getOrigPositionProb(i);
+			newCoords[newIndex] = query.isProbNegated(i) ? 1 - oldCoords[i] : oldCoords[i];
 		}
 
-		for (int i = 0; i < obl.rewardSize(); i++) {
-			int newIndex = obl.getOrigPositionReward(i);
-			newCoords[newIndex] = obl.isRewardNegated(i)
-					? -oldCoords[i + obl.probSize()]
-					: oldCoords[i + obl.probSize()];
+		for (int i = 0; i < query.rewardSize(); i++) {
+			int newIndex = query.getOrigPositionReward(i);
+			newCoords[newIndex] = query.isRewardNegated(i)
+					? -oldCoords[i + query.probSize()]
+					: oldCoords[i + query.probSize()];
 		}
-		
+
 		return new Point(newCoords);
 	}
 	

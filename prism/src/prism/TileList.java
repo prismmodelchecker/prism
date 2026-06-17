@@ -42,17 +42,8 @@ public class TileList
 	 */
 	private double tolerance;
 
-	/**
-	 * This is used when printing the tileList to the user. The information
-	 * we need are whether the reward is min (to multiply by -1) and
-	 * whether the probability is min (to do 1-value) 
-	 */
-	private OpsAndBoundsList opsAndBoundsList;
-
-	public OpsAndBoundsList getOpsAndBoundsList()
-	{
-		return this.opsAndBoundsList;
-	}
+	/** Query spec used to convert solver-space points to user-space in {@link #getRealPoints()}. */
+	private MultiObjQuery query;
 
 	/**
 	 * The objective formulas (expressions) corresponding to each axis of this Pareto curve.
@@ -91,13 +82,13 @@ public class TileList
 	 * tile, {@code initialTile}.
 	 * @param initialTile The first {@link Tile} to put in a list.
 	 */
-	public TileList(Tile initialTile, OpsAndBoundsList opsAndBounds, double tolerance)
+	public TileList(Tile initialTile, MultiObjQuery query, double tolerance)
 	{
 		this.dim = initialTile.cornerPoints.get(0).getDimension();
 		this.initialTile = initialTile;
 		this.list = new ArrayList<Tile>();
 		this.list.add(initialTile);
-		this.opsAndBoundsList = opsAndBounds;
+		this.query = query;
 		this.tolerance = tolerance;
 
 		//this is a HACK so that we don't try projections in 2 dimensions.
@@ -242,10 +233,10 @@ public class TileList
 	public List<Point> getRealPoints()
 	{
 		List<Point> a = this.getPointsWithoutCovered();
-		if (this.opsAndBoundsList != null) {
+		if (this.query != null) {
 			for (int i = 0; i < a.size(); i++) {
-				Point p = a.get(i).toRealProperties(this.opsAndBoundsList);
-				a.set(i,p);
+				Point p = a.get(i).toRealProperties(this.query);
+				a.set(i, p);
 			}
 		}
 		return a;
