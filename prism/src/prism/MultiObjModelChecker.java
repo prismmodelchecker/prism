@@ -75,8 +75,17 @@ public abstract class MultiObjModelChecker extends PrismComponent
 	 * front. The algorithm terminates when the TileList reports no direction that can still
 	 * be improved by more than {@code tolerance}, or when {@code maxIters} is reached.
 	 *
+	 * <p><b>Convention:</b> {@code opsAndBounds} must be fully canonicalised before this method
+	 * is called — probabilistic operators P_MAX / P_GE (via {@link OpsAndBoundsList#makeAllProbUp()})
+	 * and reward operators R_MAX / R_GE (via {@link OpsAndBoundsList#makeAllRewardUp()}).
+	 * The solver must be configured so that it always maximises: minimising reward DDs must
+	 * have been pre-negated, and minimising prob DDs must have been built for the negated formula.
+	 * Points returned by the solver are in this solver-space; the resulting {@link TileList}
+	 * uses {@link OpsAndBoundsList#isProbNegated} and {@link OpsAndBoundsList#isRewardNegated}
+	 * (via {@link Point#toRealProperties}) to convert points back to user-space on output.
+	 *
 	 * @param solver              Engine-specific weighted solver (captures product model, targets, rewards)
-	 * @param opsAndBounds        Objective operators/bounds (used by TileList)
+	 * @param opsAndBounds        Canonicalised objective operators/bounds (P_MAX/P_GE, R_MAX/R_GE)
 	 * @param pointsForInitialTile Extreme points computed during axis initialisation (one per objective)
 	 * @param tolerance           Pareto epsilon tolerance
 	 * @param maxIters            Maximum number of weight-direction iterations
@@ -153,15 +162,33 @@ public abstract class MultiObjModelChecker extends PrismComponent
 	/**
 	 * Run the achievability/numerical iteration loop.
 	 *
-	 * <p>Derives maximising/negation flags from {@code opsAndBounds}, builds the initial target
-	 * point, optionally tightens it with a pure reward-axis solve when a reward is being maximised,
-	 * then iteratively finds separating hyperplanes to determine whether the target is achievable
-	 * or (for maximising queries) to compute the optimal value.
+	 * <p>Builds the initial target point, optionally tightens it with a pure reward-axis solve
+	 * when a reward is being maximised, then iteratively finds separating hyperplanes to
+	 * determine whether the target is achievable or (for numerical queries) to compute the
+	 * optimal value.
 	 *
-	 * @param solver     Engine-specific weighted solver
-	 * @param opsAndBounds Objective operators/bounds
-	 * @param maxIters   Maximum number of iterations
-	 * @return For achievability: 1.0 (achievable) or 0.0 (not). For numerical: the optimal value.
+	 * <p><b>Convention:</b> {@code opsAndBounds} must be fully canonicalised before this method
+	 * is called — probabilistic operators P_MAX / P_GE (via {@link OpsAndBoundsList#makeAllProbUp()})
+	 * and reward operators R_MAX / R_GE (via {@link OpsAndBoundsList#makeAllRewardUp()}).
+	 * The solver must always maximise: minimising reward DDs must have been pre-negated;
+	 * minimising prob DDs must have been built for the negated formula.
+	 *
+	 * <p><b>Result conventions:</b> the returned value is in <em>solver-space</em>:
+	 * <ul>
+	 *   <li>For a negated reward (originally R_MIN/R_LE): the solver maximised −reward,
+	 *       so the returned coordinate is the negated minimum. The caller must negate it
+	 *       (check {@link OpsAndBoundsList#isRewardNegated}) to recover the user-space value.
+	 *   <li>For a negated probability (originally P_MIN): the DRA was built for ¬φ and the
+	 *       returned coordinate is max P(¬φ). The caller must apply 1−value to recover
+	 *       the user-space probability.
+	 * </ul>
+	 *
+	 * @param solver       Engine-specific weighted solver
+	 * @param opsAndBounds Canonicalised objective operators/bounds (P_MAX/P_GE, R_MAX/R_GE)
+	 * @param maxIters     Maximum number of iterations
+	 * @return For achievability: 1.0 (achievable) or 0.0 (not achievable).
+	 *         For numerical: the solver-space coordinate of the optimised objective
+	 *         (sign correction for negated objectives is the caller's responsibility).
 	 */
 	protected double runAchievabilityIteration(WeightedObjectiveSolver solver, OpsAndBoundsList opsAndBounds,
 	                                            int maxIters) throws PrismException
@@ -169,14 +196,18 @@ public abstract class MultiObjModelChecker extends PrismComponent
 		int dimProb = opsAndBounds.probSize();
 		int dimReward = opsAndBounds.rewardSize();
 
-		boolean maximizingProb = dimProb > 0
-		        && (opsAndBounds.getProbOperator(0) == Operator.P_MAX || opsAndBounds.getProbOperator(0) == Operator.P_MIN);
-		boolean maximizingReward = dimReward > 0
-		        && (opsAndBounds.getRewardOperator(0) == Operator.R_MAX || opsAndBounds.getRewardOperator(0) == Operator.R_MIN);
-		boolean maximizingNegated = (maximizingProb && opsAndBounds.getProbOperator(0) == Operator.P_MIN)
-		        || (maximizingReward && opsAndBounds.getRewardOperator(0) == Operator.R_MIN);
+		// After makeAllProbUp/makeAllRewardUp, prob operators are P_MAX or P_GE,
+		// and reward operators are R_MAX or R_GE.
+		boolean maximizingProb = dimProb > 0 && opsAndBounds.getProbOperator(0) == Operator.P_MAX;
+		boolean maximizingReward = dimReward > 0 && opsAndBounds.getRewardOperator(0) == Operator.R_MAX;
+		// Used only for the infeasibility-direction check inside the iteration loop:
+		// when a reward was negated (R_MIN/R_LE → maximise −reward), the "decided infeasible"
+		// condition is rest > 0 rather than rest < 0. Sign correction of the returned value
+		// is the caller's responsibility.
+		boolean maximizingNegated = maximizingReward && opsAndBounds.isRewardNegated(0);
 
-		// Build initial target point from operator bounds
+		// Build initial target point from operator bounds.
+		// Bounds for negated objectives are already stored with the correct sign by makeAllRewardUp.
 		Point targetPoint = new Point(dimProb + dimReward);
 		for (int i = 0; i < dimProb; i++) {
 			targetPoint.setCoord(i, opsAndBounds.getProbBound(i));
@@ -185,8 +216,7 @@ public abstract class MultiObjModelChecker extends PrismComponent
 			targetPoint.setCoord(0, 1.0);
 		}
 		for (int i = 0; i < dimReward; i++) {
-			double t = (opsAndBounds.getRewardOperator(i) == Operator.R_LE) ? -opsAndBounds.getRewardBound(i) : opsAndBounds.getRewardBound(i);
-			targetPoint.setCoord(i + dimProb, t);
+			targetPoint.setCoord(i + dimProb, opsAndBounds.getRewardBound(i));
 		}
 
 		// For a maximising reward objective, tighten the initial target point with a pure reward-axis solve
@@ -298,7 +328,7 @@ public abstract class MultiObjModelChecker extends PrismComponent
 		}
 		if (maximizingProb || maximizingReward) {
 			int maximizingCoord = maximizingProb ? 0 : dimProb;
-			return maximizingNegated ? -targetPoint.getCoord(maximizingCoord) : targetPoint.getCoord(maximizingCoord);
+			return targetPoint.getCoord(maximizingCoord);
 		} else {
 			return isAchievable ? 1.0 : 0.0;
 		}

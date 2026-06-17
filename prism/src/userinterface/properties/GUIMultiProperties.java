@@ -988,8 +988,8 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 			graph.getYAxisSettings().setHeading(formulas.get(1).toString());
 			SeriesKey sk = graph.addSeries("Pareto curve");
 
-			// Sort points so the graph renders them left-to-right
-			List<prism.Point> l = tl.getPoints();
+			// Sort non-dominated user-space points so the graph renders them left-to-right
+			List<prism.Point> l = tl.getRealPoints();
 			Collections.sort(l, (o1, o2) -> {
 				if (o1.getCoord(0) == o2.getCoord(0))
 					return Double.compare(o1.getCoord(1), o2.getCoord(1));
@@ -998,8 +998,7 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 			});
 
 			for (prism.Point p : l) {
-				prism.Point pReal = p.toRealProperties(tl.getOpsAndBoundsList());
-				XYDataItem di = new XYDataItem(pReal.getCoord(0), pReal.getCoord(1));
+				XYDataItem di = new XYDataItem(p.getCoord(0), p.getCoord(1));
 				graph.addPointToSeries(sk, di);
 			}
 			this.getGraphHandler().addGraph(graph);

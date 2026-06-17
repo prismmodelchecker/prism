@@ -1,0 +1,15 @@
+// RESULT: 0.5
+multi(Pmax=? [ F "goal" ], R{"c"}<=5 [ C ]);
+
+// RESULT: 0.125
+multi(Pmax=? [ F "goal" ], R{"c"}<=1.5 [ C ]);
+
+// RESULT: 0
+multi(Pmin=? [ F "goal" ], R{"c"}<=5 [ C ]);
+
+// Numerical reward objectives, for comparison
+// RESULT: 2.6
+multi(R{"c"}min=? [ C ], P>=0.4 [ F "goal" ]);
+
+// RESULT: 3
+multi(R{"c"}max=? [ C ], P>=0.4 [ F "goal" ]);

@@ -1,0 +1,22 @@
+// Numerical multi-objective queries on a probability, combined with an upper bound on a
+// reward (R<=). The reward bound is negated internally for solving, but the numerical
+// result must not be: value iteration used to report e.g. -0.5 instead of 0.5.
+// From s=0: action a (reward 3) reaches the goal with probability 0.5; action b (reward 1)
+// never does. So with R<=b, the goal probability is up to 0.5*min(1,(b-1)/2).
+
+mdp
+
+module M
+	s : [0..2] init 0;
+
+	[a] s=0 -> 0.5:(s'=1) + 0.5:(s'=2);
+	[b] s=0 -> (s'=2);
+	[] s>0 -> true;
+endmodule
+
+rewards "c"
+	[a] true : 3;
+	[b] true : 1;
+endrewards
+
+label "goal" = s=1;

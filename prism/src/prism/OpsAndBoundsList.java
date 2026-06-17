@@ -47,7 +47,13 @@ public class OpsAndBoundsList
 	 * Used when printing info to user.
 	 */
 	private BitSet probNegated;
-	
+
+	/**
+	 * Tracks which reward objectives have been negated by {@link #makeAllRewardUp()}.
+	 * Used to undo the negation when converting solver-space values back to user-space.
+	 */
+	private BitSet rewardNegated;
+
 	protected List<OpRelOpBound> opInfos;
 	protected List<Operator> relOps, relOpsProb, relOpsReward;
 	protected List<Double> bounds,  boundsProb, boundsReward;
@@ -69,6 +75,7 @@ public class OpsAndBoundsList
 	public OpsAndBoundsList(int numObjectives)
 	{
 		probNegated = new BitSet();
+		rewardNegated = new BitSet();
 		opInfos = new ArrayList<OpRelOpBound>(numObjectives);
 		relOps = new ArrayList<Operator>(numObjectives);
 		bounds = new ArrayList<Double>(numObjectives);
@@ -281,9 +288,18 @@ public class OpsAndBoundsList
 	{
 		return this.probNegated.get(i);
 	}
-	
+
 	/**
-	 *  Replace min by max and &lt;= by &gt;= in prob.
+	 * True if the ith reward objective has been negated by {@link #makeAllRewardUp()}.
+	 * Used to undo the negation when converting solver-space values back to user-space.
+	 */
+	public boolean isRewardNegated(int i)
+	{
+		return this.rewardNegated.get(i);
+	}
+
+	/**
+	 * Replace min by max and &lt;= by &gt;= in prob.
 	 */
 	public void makeAllProbUp()
 	{
@@ -306,7 +322,34 @@ public class OpsAndBoundsList
 			}
 		}
 	}
-	
+
+	/**
+	 * Replace min by max and &lt;= by &gt;= in reward, negating the stored bound for R_LE objectives.
+	 * Records which objectives were negated so that {@link #isRewardNegated} returns true for them.
+	 * Must be called after the corresponding reward DDs have been negated (multiplied by -1).
+	 */
+	public void makeAllRewardUp()
+	{
+		for (int i = 0; i < relOps.size(); i++) {
+			if (relOps.get(i) == Operator.R_MIN) {
+				relOps.set(i, Operator.R_MAX);
+			} else if (relOps.get(i) == Operator.R_LE) {
+				relOps.set(i, Operator.R_GE);
+				bounds.set(i, -bounds.get(i));
+			}
+		}
+		for (int i = 0; i < relOpsReward.size(); i++) {
+			if (relOpsReward.get(i) == Operator.R_MIN) {
+				relOpsReward.set(i, Operator.R_MAX);
+				rewardNegated.set(i);
+			} else if (relOpsReward.get(i) == Operator.R_LE) {
+				relOpsReward.set(i, Operator.R_GE);
+				boundsReward.set(i, -boundsReward.get(i));
+				rewardNegated.set(i);
+			}
+		}
+	}
+
 	/**
 	 * Returns the number of reward (R) operators added so far.
 	 */

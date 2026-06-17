@@ -285,12 +285,9 @@ public class Point
 
 		for (int i = 0; i < obl.rewardSize(); i++) {
 			int newIndex = obl.getOrigPositionReward(i);
-			if (obl.getRewardOperator(i) == Operator.R_MIN
-					|| obl.getRewardOperator(i) == Operator.R_LE)
-				newCoords[newIndex] = -oldCoords[i + obl.probSize()];			
-			else
-				newCoords[newIndex] = oldCoords[i + obl.probSize()];			
-
+			newCoords[newIndex] = obl.isRewardNegated(i)
+					? -oldCoords[i + obl.probSize()]
+					: oldCoords[i + obl.probSize()];
 		}
 		
 		return new Point(newCoords);

@@ -732,15 +732,24 @@ public class MultiObjModelChecker extends prism.MultiObjModelChecker
 	}
 
 	/**
-	 * Perform multi-objective model checking computation with value iteration.
-	 * Solves achievability or numerical queries over n objectives,
-	 * or Pareto queries over 2 objectives.
+	 * Perform multi-objective model checking using value iteration.
+	 * Dispatches to {@link #generateParetoCurve} (2 numerical objectives) or
+	 * {@link #solveAchievabilityOrNumerical} (all other cases).
 	 *
-	 * @param modelProduct
-	 * @param start
-	 * @param targets
-	 * @param transRewards
-	 * @param opsAndBounds
+	 * <p><b>Convention on entry:</b> probabilistic operators have already been canonicalised to
+	 * P_MAX / P_GE by {@link OpsAndBoundsList#makeAllProbUp()}, and minimising prob DDs have been
+	 * built for the negated formula. Reward operators are still raw (R_MAX, R_MIN, R_GE, R_LE).
+	 *
+	 * <p>This method negates minimising reward DDs in place and canonicalises reward operators
+	 * to R_MAX / R_GE via {@link OpsAndBoundsList#makeAllRewardUp()} before dispatching, so
+	 * all sub-calls operate under the all-maximising convention described by
+	 * {@link #runParetoCurveIteration} and {@link #runAchievabilityIteration}.
+	 *
+	 * @param modelProduct  The product MDP to solve
+	 * @param start         BDD for the initial state
+	 * @param targets       Accepting EC state BDDs, one per probability objective
+	 * @param transRewards  Transition reward DDs, one per reward objective (mutated: minimising rewards are negated)
+	 * @param opsAndBounds  Objective operators/bounds (mutated: reward operators canonicalised to R_MAX/R_GE)
 	 */
 	protected Object computeMultiObjectiveValIter(NondetModel modelProduct, JDDNode start, JDDNode[] targets,
 												  List<JDDNode> transRewards, OpsAndBoundsList opsAndBounds) throws PrismException
@@ -754,6 +763,16 @@ public class MultiObjModelChecker extends prism.MultiObjModelChecker
 			throw new PrismException("Pareto curve generation is currently not allowed if there are other (bounded) objectives");
 		}
 
+		// Convert minimising reward DDs to maximising by negation, then canonicalise
+		// opsAndBounds to use only R_MAX/R_GE. The LP path does not go through here;
+		// it handles sign conventions internally via the native solver.
+		for (int i = 0; i < opsAndBounds.rewardSize(); i++) {
+			if (opsAndBounds.getRewardOperator(i) == Operator.R_LE || opsAndBounds.getRewardOperator(i) == Operator.R_MIN) {
+				transRewards.set(i, JDD.Apply(JDD.TIMES, JDD.Constant(-1), transRewards.get(i)));
+			}
+		}
+		opsAndBounds.makeAllRewardUp();
+
 		// Pareto computation or achievability/numerical computation
 		if (numNumericalObjectives >= 2) {
 			return generateParetoCurve(modelProduct, start, targets, transRewards, opsAndBounds);
@@ -763,15 +782,23 @@ public class MultiObjModelChecker extends prism.MultiObjModelChecker
 	}
 
 	/**
-	 * Generate a Pareto curve under-approximation (2 objectives only).
-	 * Builds the sparse solver via {@link #buildSparseWeightedSolver}, then delegates
-	 * the iteration loop to {@link #runParetoCurveIteration} in the base class.
+	 * Generate a Pareto curve under-approximation for exactly 2 numerical objectives.
+	 * Builds a sparse weighted-sum solver via {@link #buildSparseWeightedSolver}, then
+	 * delegates the iteration loop to {@link #runParetoCurveIteration} in the base class.
+	 *
+	 * <p><b>Pre-conditions (all-maximising convention):</b>
+	 * <ul>
+	 *   <li>Probabilistic operators are P_MAX / P_GE (canonicalised by
+	 *       {@link OpsAndBoundsList#makeAllProbUp()}); minimising prob DDs were built for ¬φ.
+	 *   <li>Reward operators are R_MAX / R_GE (canonicalised by
+	 *       {@link OpsAndBoundsList#makeAllRewardUp()}); minimising reward DDs have been negated.
+	 * </ul>
 	 *
 	 * @param modelProduct The product MDP to solve
-	 * @param start BDD for a single initial state for which the result will be returned
-	 * @param targets
-	 * @param rewards
-	 * @param opsAndBounds Info about the objectives and their bounds
+	 * @param start        BDD for a single initial state
+	 * @param targets      Accepting EC state BDDs, one per probability objective
+	 * @param rewards      Transition reward DDs, one per reward objective (already negated for R_LE/R_MIN)
+	 * @param opsAndBounds Canonicalised objective operators/bounds (P_MAX/P_GE, R_MAX/R_GE)
 	 */
 	protected TileList generateParetoCurve(NondetModel modelProduct, final JDDNode start, JDDNode[] targets,
 	                                        List<JDDNode> rewards, OpsAndBoundsList opsAndBounds) throws PrismException
@@ -791,39 +818,62 @@ public class MultiObjModelChecker extends prism.MultiObjModelChecker
 	}
 
 	/**
-	 * Achievability/numerical query computation.
-	 * Builds the sparse solver via {@link #buildSparseWeightedSolver}, then delegates
-	 * the iteration loop to {@link #runAchievabilityIteration} in the base class.
+	 * Achievability or numerical query computation.
+	 * Builds a sparse weighted-sum solver via {@link #buildSparseWeightedSolver}, then
+	 * delegates the iteration loop to {@link #runAchievabilityIteration} in the base class.
+	 *
+	 * <p><b>Pre-conditions (all-maximising convention):</b>
+	 * <ul>
+	 *   <li>Probabilistic operators are P_MAX / P_GE (canonicalised by
+	 *       {@link OpsAndBoundsList#makeAllProbUp()}); minimising prob DDs were built for ¬φ.
+	 *   <li>Reward operators are R_MAX / R_GE (canonicalised by
+	 *       {@link OpsAndBoundsList#makeAllRewardUp()}); minimising reward DDs have been negated.
+	 * </ul>
+	 *
+	 * <p>The returned value is in user-space for reward objectives: this method negates the
+	 * {@link #runAchievabilityIteration} result for objectives where
+	 * {@link OpsAndBoundsList#isRewardNegated} is true, converting solver-space (max of −reward)
+	 * back to user-space (min reward). For a P_MIN numerical query the returned value
+	 * is max P(¬φ); the caller must apply the 1−value correction.
 	 *
 	 * @param modelProduct The product MDP to solve
-	 * @param start BDD for a single initial state for which the result will be returned
-	 * @param targets
-	 * @param rewards
-	 * @param opsAndBounds Info about the objectives and their bounds
+	 * @param start        BDD for a single initial state
+	 * @param targets      Accepting EC state BDDs, one per probability objective
+	 * @param rewards      Transition reward DDs, one per reward objective (already negated for R_LE/R_MIN)
+	 * @param opsAndBounds Canonicalised objective operators/bounds (P_MAX/P_GE, R_MAX/R_GE)
 	 */
 	protected double solveAchievabilityOrNumerical(NondetModel modelProduct, final JDDNode start, JDDNode[] targets,
 	                                               List<JDDNode> rewards, OpsAndBoundsList opsAndBounds) throws PrismException
 	{
 		WeightedObjectiveSolver solver = buildSparseWeightedSolver(modelProduct, start, targets, rewards, opsAndBounds);
 		int maxIters = settings.getInteger(PrismSettings.PRISM_MULTI_MAX_POINTS);
-		return runAchievabilityIteration(solver, opsAndBounds, maxIters);
+		double result = runAchievabilityIteration(solver, opsAndBounds, maxIters);
+		// Convert solver-space result to user-space: negate if the numerical objective is a
+		// reward that was originally R_MIN (the solver maximised −reward, so result = −user-space
+		// value). Numerical objectives come first, so a numerical reward is always reward 0;
+		// an R_LE bound is also negated but is never the numerical objective.
+		if (opsAndBounds.rewardSize() > 0 && opsAndBounds.getRewardOperator(0) == Operator.R_MAX && opsAndBounds.isRewardNegated(0)) {
+			result = -result;
+		}
+		return result;
 	}
 
 	/**
 	 * Build a {@link WeightedObjectiveSolver} backed by sparse data structures for the given product MDP.
 	 *
-	 * <p>Performs all one-time setup: selects GS vs VI, negates minimising rewards in place,
-	 * reads adversary-export settings, builds the sparse transition and reward matrices, and
-	 * returns a solver lambda that closes over those structures.
+	 * <p>Performs all one-time setup: selects GS vs VI, reads adversary-export settings,
+	 * builds the sparse transition and reward matrices, and returns a solver lambda that
+	 * closes over those structures.
 	 *
-	 * <p><b>Note:</b> this method mutates {@code rewards} in place by negating minimising reward
-	 * matrices (R_LE / R_MIN objectives). Callers must not reuse the list after this call.
+	 * <p>Callers must ensure that reward DDs have already been negated for minimising objectives
+	 * and that {@code opsAndBounds} has been canonicalised to R_MAX/R_GE via
+	 * {@link OpsAndBoundsList#makeAllRewardUp()} before calling this method.
 	 *
 	 * @param modelProduct The product MDP to solve
 	 * @param start BDD for a single initial state
 	 * @param targets BDD target sets for each probability objective
-	 * @param rewards Transition-reward BDDs for each reward objective (mutated: minimising rewards are negated)
-	 * @param opsAndBounds Objective operators and bounds
+	 * @param rewards Transition-reward BDDs for each reward objective (already negated for R_LE/R_MIN)
+	 * @param opsAndBounds Objective operators and bounds (already canonicalised to R_MAX/R_GE)
 	 * @return A configured solver ready for repeated weighted-sum queries
 	 */
 	private WeightedObjectiveSolver buildSparseWeightedSolver(NondetModel modelProduct, final JDDNode start,
@@ -837,13 +887,6 @@ public class MultiObjModelChecker extends prism.MultiObjModelChecker
 		if (opsAndBounds.numberOfStepBounded() > 0) {
 			mainLog.println("Not using Gauss-Seidel since there are step-bounded objectives");
 			useGS = false;
-		}
-
-		// Convert minimising rewards to maximising by negation
-		for (int i = 0; i < opsAndBounds.rewardSize(); i++) {
-			if (opsAndBounds.getRewardOperator(i) == Operator.R_LE || opsAndBounds.getRewardOperator(i) == Operator.R_MIN) {
-				rewards.set(i, JDD.Apply(JDD.TIMES, JDD.Constant(-1), rewards.get(i)));
-			}
 		}
 
 		boolean exportAdv = (settings.getChoice(PrismSettings.PRISM_EXPORT_ADV) != Prism.EXPORT_ADV_NONE);
