@@ -1422,7 +1422,7 @@ public class StateModelChecker extends PrismComponent
 			// Look up property and recurse
 			Property prop = propertiesFile.lookUpPropertyObjectByName(e.getName());
 			if (prop != null) {
-				return e.accept(this);
+				return prop.getExpression().accept(this);
 			} else {
 				throw new PrismLangException("Unknown property reference " + e, e);
 			}
