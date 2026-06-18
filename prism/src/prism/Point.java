@@ -271,16 +271,16 @@ public class Point
 		double[] oldCoords = coords.clone();
 		double[] newCoords = new double[oldCoords.length];
 
-		for (int i = 0; i < query.probSize(); i++) {
+		for (int i = 0; i < query.numProbObjectives(); i++) {
 			int newIndex = query.getOrigPositionProb(i);
 			newCoords[newIndex] = query.isProbNegated(i) ? 1 - oldCoords[i] : oldCoords[i];
 		}
 
-		for (int i = 0; i < query.rewardSize(); i++) {
+		for (int i = 0; i < query.numRewardObjectives(); i++) {
 			int newIndex = query.getOrigPositionReward(i);
 			newCoords[newIndex] = query.isRewardNegated(i)
-					? -oldCoords[i + query.probSize()]
-					: oldCoords[i + query.probSize()];
+					? -oldCoords[i + query.numProbObjectives()]
+					: oldCoords[i + query.numProbObjectives()];
 		}
 
 		return new Point(newCoords);

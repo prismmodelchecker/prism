@@ -162,13 +162,13 @@ public class MultiObjQuery
 	// -------------------------------------------------------------------------
 
 	/** Returns the total number of objectives. */
-	public int size() { return objectives.size(); }
+	public int numObjectives() { return objectives.size(); }
 
-	/** Returns the number of probabilistic objectives. */
-	public int probSize() { return probObjectives.size(); }
+	/** Returns the number of probabilistic (P) objectives. */
+	public int numProbObjectives() { return probObjectives.size(); }
 
-	/** Returns the number of reward objectives. */
-	public int rewardSize() { return rewardObjectives.size(); }
+	/** Returns the number of reward (R) objectives. */
+	public int numRewardObjectives() { return rewardObjectives.size(); }
 
 	// -------------------------------------------------------------------------
 	// Full-list accessors (indexed over all objectives in original order)

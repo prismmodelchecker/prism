@@ -437,19 +437,19 @@ public class PrismSparse
 		// Convert lists to arrays for passing to JNI
 		int i;//, n = targets.size();
 		long targetsArr[] = new long[targets.size()];
-		int relOpsProbArr[] = new int[moQuery.probSize()];
-		double boundsProbArr[] = new double[moQuery.probSize()];
-		int relOpsRewardArr[] = new int[moQuery.rewardSize()];
-		double boundsRewardArr[] = new double[moQuery.rewardSize()];
+		int relOpsProbArr[] = new int[moQuery.numProbObjectives()];
+		double boundsProbArr[] = new double[moQuery.numProbObjectives()];
+		int relOpsRewardArr[] = new int[moQuery.numRewardObjectives()];
+		double boundsRewardArr[] = new double[moQuery.numRewardObjectives()];
 		long trrArr[] = new long[trr.size()];
 		long becsArr = becs.ptr();
 		for (i = 0; i < targets.size(); i++) 
 			targetsArr[i] = targets.get(i).ptr();
-		for (i = 0; i < moQuery.probSize(); i++) {
+		for (i = 0; i < moQuery.numProbObjectives(); i++) {
 			relOpsProbArr[i] = moQuery.getProbOperator(i).toNumber();
 			boundsProbArr[i] = moQuery.getProbBound(i);
 		}
-		for (i = 0; i < moQuery.rewardSize(); i++) {
+		for (i = 0; i < moQuery.numRewardObjectives(); i++) {
 			relOpsRewardArr[i] = moQuery.getRewardOperator(i).toNumber();
 			boundsRewardArr[i] = moQuery.getRewardBound(i);
 		}
@@ -473,19 +473,19 @@ public class PrismSparse
 		// Convert lists to arrays for passing to JNI
 		int i;//, n = targets.size();
 		long targetsArr[] = new long[targets.size()];
-		int relOpsProbArr[] = new int[moQuery.probSize()];
-		double boundsProbArr[] = new double[moQuery.probSize()];
-		int relOpsRewardArr[] = new int[moQuery.rewardSize()];
-		double boundsRewardArr[] = new double[moQuery.rewardSize()];
+		int relOpsProbArr[] = new int[moQuery.numProbObjectives()];
+		double boundsProbArr[] = new double[moQuery.numProbObjectives()];
+		int relOpsRewardArr[] = new int[moQuery.numRewardObjectives()];
+		double boundsRewardArr[] = new double[moQuery.numRewardObjectives()];
 		long trrArr[] = new long[trr.size()];
 		long becsArr = becs.ptr();
 		for (i = 0; i < targets.size(); i++) 
 			targetsArr[i] = targets.get(i).ptr();
-		for (i = 0; i < moQuery.probSize(); i++) {
+		for (i = 0; i < moQuery.numProbObjectives(); i++) {
 			relOpsProbArr[i] = moQuery.getProbOperator(i).toNumber();
 			boundsProbArr[i] = moQuery.getProbBound(i);
 		}
-		for (i = 0; i < moQuery.rewardSize(); i++) {
+		for (i = 0; i < moQuery.numRewardObjectives(); i++) {
 			relOpsRewardArr[i] = moQuery.getRewardOperator(i).toNumber();
 			boundsRewardArr[i] = moQuery.getRewardBound(i);
 		}

@@ -159,7 +159,7 @@ public class MultiObjModelChecker extends prism.MultiObjModelChecker
 		JDD.Ref(allStatesNotL);
 		JDD.Ref(modelProduct.getTrans01());
 		JDDNode candidateStates = JDD.Apply(JDD.TIMES, modelProduct.getTrans01(), allStatesNotL);
-		int numTargets = moQuery.size();
+		int numTargets = moQuery.numObjectives();
 		for (int i = 0; i < numTargets; i++)
 			if (moQuery.isProbabilityObjective(i)) {
 				allStatesNotL = JDD.PermuteVariables(allStatesNotL, draDDRowVars[i], draDDColVars[i]);
@@ -209,19 +209,20 @@ public class MultiObjModelChecker extends prism.MultiObjModelChecker
 	 * is reachable from the initial state (determined by a subsidiary multi-objective solve), an
 	 * exception is thrown. Otherwise the offending actions are zeroed out in the product's transition relation.
 	 *
-	 * @param rewardsIndex Transition reward DDs, one per reward objective
+	 * @param rewardsPreProduct Transition reward DDs restricted to the pre-product model, one per reward objective
+	 * @param instance          Query and associated engine-specific data (moQuery, dra used here; rewards/targets not used)
 	 */
-	protected void removeNonZeroMecsForMax(NondetModel modelProduct, LTLModelChecker mcLtl, List<JDDNode> rewardsIndex, MultiObjQuery moQuery,
-	                                        int numTargets, DA<BitSet, AcceptanceRabin> dra[], JDDVars draDDRowVars[], JDDVars draDDColVars[])
+	protected void removeNonZeroMecsForMax(NondetModel modelProduct, LTLModelChecker mcLtl, List<JDDNode> rewardsPreProduct,
+	                                        MultiObjQueryInstance<JDDNode, JDDNode> instance, JDDVars[] draDDRowVars, JDDVars[] draDDColVars)
 	        throws PrismException
 	{
 		List<JDDNode> mecs = mcLtl.findMECStates(modelProduct, modelProduct.getReach());
 		JDDNode removedActions = JDD.Constant(0);
 		JDDNode rmecs = JDD.Constant(0);
-		for (int i = 0; i < rewardsIndex.size(); i++)
-			if (moQuery.getRewardOperator(i) == Operator.R_MAX || moQuery.getRewardOperator(i) == Operator.R_GE) {
-				JDD.Ref(rewardsIndex.get(i));
-				JDDNode actions = JDD.GreaterThan(rewardsIndex.get(i), 0.0);
+		for (int i = 0; i < rewardsPreProduct.size(); i++)
+			if (instance.moQuery.getRewardOperator(i) == Operator.R_MAX || instance.moQuery.getRewardOperator(i) == Operator.R_GE) {
+				JDD.Ref(rewardsPreProduct.get(i));
+				JDDNode actions = JDD.GreaterThan(rewardsPreProduct.get(i), 0.0);
 				if (!actions.equals(JDD.ZERO))
 					for (int j = 0; j < mecs.size(); j++) {
 						JDDNode mec = mecs.get(j);
@@ -260,10 +261,10 @@ public class MultiObjModelChecker extends prism.MultiObjModelChecker
 				ArrayList<JDDVars> tmpdraDDRowVars = new ArrayList<>();
 				ArrayList<JDDVars> tmpdraDDColVars = new ArrayList<>();
 				int count = 0;
-				for (int i = 0; i < numTargets; i++)
-					if (moQuery.isProbabilityObjective(i) && moQuery.getOperator(i) != Operator.P_MAX
-					        && moQuery.getOperator(i) != Operator.P_MIN) {
-						tmpdra.add(dra[i]);
+				for (int i = 0; i < instance.numObjectives(); i++)
+					if (instance.moQuery.isProbabilityObjective(i) && instance.moQuery.getOperator(i) != Operator.P_MAX
+					        && instance.moQuery.getOperator(i) != Operator.P_MIN) {
+						tmpdra.add(instance.dra[i]);
 						tmpdraDDRowVars.add(draDDRowVars[i]);
 						tmpdraDDColVars.add(draDDColVars[i]);
 						count++;
@@ -281,18 +282,22 @@ public class MultiObjModelChecker extends prism.MultiObjModelChecker
 					                  tmpmultitargetDDs, tmpmultitargetIDs);
 
 					MultiObjQuery tmpMoQuery = new MultiObjQuery();
-					for (int i = 0; i < moQuery.probSize(); i++) {
-						if (moQuery.getProbOperator(i) != Operator.P_MAX) {
-							tmpMoQuery.add(moQuery.getOpRelOpBound(i), moQuery.getProbOperator(i), moQuery.getProbBound(i),
-							                    moQuery.getProbStepBound(i), i, null);
+					for (int i = 0; i < instance.moQuery.numProbObjectives(); i++) {
+						if (instance.moQuery.getProbOperator(i) != Operator.P_MAX) {
+							tmpMoQuery.add(instance.moQuery.getOpRelOpBound(i), instance.moQuery.getProbOperator(i), instance.moQuery.getProbBound(i),
+							               instance.moQuery.getProbStepBound(i), i, null);
 						}
 					}
-					tmpMoQuery.add(new OpRelOpBound("R", RelOp.MAX, -1.0), Operator.R_MAX, -1.0, -1, moQuery.probSize(), null);
+					tmpMoQuery.add(new OpRelOpBound("R", RelOp.MAX, -1.0), Operator.R_MAX, -1.0, -1, instance.moQuery.numProbObjectives(), null);
 
 					ArrayList<JDDNode> tmprewards = new ArrayList<>(1);
 					tmprewards.add(rtarget);
-					double prob = (Double) computeMultiObjective(modelProduct, mcLtl, tmprewards, modelProduct.getStart(), tmptargetDDs, tmpmultitargetDDs,
-					                                              tmpmultitargetIDs, tmpMoQuery, count > 1);
+					MultiObjQueryInstance<JDDNode, JDDNode> tmpInstance = new MultiObjQueryInstance<>(tmpMoQuery, newdra, tmprewards);
+					tmpInstance.targets = tmptargetDDs;
+					tmpInstance.combinations = tmpmultitargetDDs;
+					tmpInstance.combinationIDs = tmpmultitargetIDs;
+					tmpInstance.conflictCount = count;
+					double prob = (Double) computeMultiObjective(modelProduct, mcLtl, modelProduct.getStart(), tmpInstance);
 					if (prob > 0.0) {
 						constraintViolated = true;
 					} else if (Double.isNaN(prob))
@@ -324,55 +329,56 @@ public class MultiObjModelChecker extends prism.MultiObjModelChecker
 	 * Identify ECs that simultaneously satisfy multiple probability objectives (conflicting objectives)
 	 * and produce combined target sets for use in the solver.
 	 * Delegates to {@link LTLModelChecker#findMultiConflictAcceptingStates}.
-	 * On return, {@code targetDDs} is updated with refined per-objective target sets (with conflict
-	 * states subtracted), and {@code multitargetDDs}/{@code multitargetIDs} are populated with the
-	 * combined EC sets and their objective bitmasks.
+	 * On return, {@code instance.targets} is updated with refined per-objective target sets (with
+	 * conflict states subtracted), and {@code instance.combinations}/{@code instance.combinationIDs}
+	 * are populated with the combined EC sets and their objective bitmasks.
 	 * Also derefs the per-pair acceptance BDDs in {@code allStatesNotL}/{@code allStatesInK}.
 	 *
-	 * @param numConflictFormulas Number of probability objectives that may conflict
-	 * @param multitargetDDs      Output: BDDs for ECs satisfying two or more objectives simultaneously
-	 * @param multitargetIDs      Output: bitmask per entry in {@code multitargetDDs} indicating which objectives it satisfies
+	 * @param instance     Query instance ({@code moQuery}, {@code dra}, {@code targets} used/updated;
+	 *                     {@code combinations}, {@code combinationIDs} set as output)
 	 */
-	protected void checkConflictsInObjectives(NondetModel modelProduct, LTLModelChecker mcLtl, int numConflictFormulas, int numTargets,
-	                                           MultiObjQuery moQuery, DA<BitSet, AcceptanceRabin> dra[], JDDVars draDDRowVars[], JDDVars draDDColVars[],
-	                                           List<JDDNode> targetDDs, List<ArrayList<JDDNode>> allStatesNotL, List<ArrayList<JDDNode>> allStatesInK,
-	                                           List<JDDNode> multitargetDDs, List<Integer> multitargetIDs) throws PrismException
+	protected void checkConflictsInObjectives(NondetModel modelProduct, LTLModelChecker mcLtl,
+	                                           MultiObjQueryInstance<JDDNode, JDDNode> instance,
+	                                           JDDVars[] draDDRowVars, JDDVars[] draDDColVars,
+	                                           List<ArrayList<JDDNode>> allStatesNotL, List<ArrayList<JDDNode>> allStatesInK) throws PrismException
 	{
-		DA<BitSet, AcceptanceRabin>[] tmpdra = new DA[numConflictFormulas];
-		JDDVars[] tmpdraDDRowVars = new JDDVars[numConflictFormulas];
-		JDDVars[] tmpdraDDColVars = new JDDVars[numConflictFormulas];
-		List<JDDNode> tmptargetDDs = new ArrayList<>(numConflictFormulas);
-		List<List<JDDNode>> tmpAllStatesNotL = new ArrayList<>(numConflictFormulas);
-		List<List<JDDNode>> tmpAllStatesInK = new ArrayList<>(numConflictFormulas);
+		DA<BitSet, AcceptanceRabin>[] tmpdra = new DA[instance.conflictCount];
+		JDDVars[] tmpdraDDRowVars = new JDDVars[instance.conflictCount];
+		JDDVars[] tmpdraDDColVars = new JDDVars[instance.conflictCount];
+		List<JDDNode> tmptargetDDs = new ArrayList<>(instance.conflictCount);
+		List<List<JDDNode>> tmpAllStatesNotL = new ArrayList<>(instance.conflictCount);
+		List<List<JDDNode>> tmpAllStatesInK = new ArrayList<>(instance.conflictCount);
 		int count = 0;
-		for (int i = 0; i < numTargets; i++)
-			if (moQuery.isProbabilityObjective(i)) {
-				tmpdra[count] = dra[i];
+		for (int i = 0; i < instance.numObjectives(); i++)
+			if (instance.moQuery.isProbabilityObjective(i)) {
+				tmpdra[count] = instance.dra[i];
 				tmpdraDDRowVars[count] = draDDRowVars[i];
 				tmpdraDDColVars[count] = draDDColVars[i];
-				tmptargetDDs.add(targetDDs.get(count));
+				tmptargetDDs.add(instance.targets.get(count));
 				tmpAllStatesNotL.add(allStatesNotL.get(i));
 				tmpAllStatesInK.add(allStatesInK.get(i));
 				count++;
 			}
 		List<List<Integer>> tmpmultitargetIDs = new ArrayList<>();
 
+		instance.combinations = new ArrayList<>();
 		mcLtl.findMultiConflictAcceptingStates(tmpdra, modelProduct, tmpdraDDRowVars, tmpdraDDColVars, tmptargetDDs, tmpAllStatesNotL, tmpAllStatesInK,
-		                                        multitargetDDs, tmpmultitargetIDs);
+		                                        instance.combinations, tmpmultitargetIDs);
 		count = 0;
-		for (int i = 0; i < numTargets; i++)
-			if (moQuery.isProbabilityObjective(i)) {
-				targetDDs.remove(count);
-				targetDDs.add(count, tmptargetDDs.get(count));
+		for (int i = 0; i < instance.numObjectives(); i++)
+			if (instance.moQuery.isProbabilityObjective(i)) {
+				instance.targets.remove(count);
+				instance.targets.add(count, tmptargetDDs.get(count));
 				count++;
 			}
 
+		instance.combinationIDs = new ArrayList<>();
 		for (int i = 0; i < tmpmultitargetIDs.size(); i++) {
-			multitargetIDs.add(changeToInteger(tmpmultitargetIDs.get(i)));
+			instance.combinationIDs.add(changeToInteger(tmpmultitargetIDs.get(i)));
 		}
 
-		for (int i = 0; i < numTargets; i++)
-			if (moQuery.isProbabilityObjective(i)) {
+		for (int i = 0; i < instance.numObjectives(); i++)
+			if (instance.moQuery.isProbabilityObjective(i)) {
 				for (JDDNode n : allStatesNotL.get(i))
 					JDD.Deref(n);
 				for (JDDNode n : allStatesInK.get(i))
@@ -527,39 +533,35 @@ public class MultiObjModelChecker extends prism.MultiObjModelChecker
 	 * Solves achievability, numerical or Pareto queries over n objectives.
 	 * Dispatches to LP or value-iteration solvers depending on settings.
 	 *
-	 * @param model               The product MDP (after LTL-to-DRA product construction)
-	 * @param mcLtl               LTL model checker, used for MEC identification
-	 * @param transRewards        Transition reward DDs, one per reward objective (in objective order)
-	 * @param start               BDD for the initial state of the product MDP
-	 * @param targets             BDDs for accepting EC states, one per probability objective
-	 * @param combinations        BDDs for combined accepting EC states when objectives conflict
-	 *                            (null if no conflicts)
-	 * @param combinationIDs      Bitmasks identifying which objectives each combination satisfies
-	 *                            (null if no conflicts; same length as {@code combinations})
-	 * @param moQuery             Operator/bound/step-bound info for all objectives
-	 * @param hasconflictobjectives True if any two probability objectives share accepting ECs,
-	 *                            requiring the conflict resolution path
+	 * <p>Takes ownership of {@code instance.rewards}: all entries are deref'd in the finally block.
+	 *
+	 * @param model    The product MDP (after LTL-to-DRA product construction)
+	 * @param mcLtl    LTL model checker, used for MEC identification
+	 * @param start    BDD for the initial state of the product MDP
+	 * @param instance Bundles the query and all engine-specific data:
+	 *                 {@code rewards} (transition reward DDs, owned by this method),
+	 *                 {@code targets} (accepting-EC BDDs, refs owned by caller),
+	 *                 {@code combinations}/{@code combinationIDs} (conflict handling, owned by caller)
 	 * @return For Pareto queries: a {@link TileList} under-approximation of the Pareto front.
 	 *         For achievability queries: {@code true}/{@code false} boxed as {@link Boolean}.
 	 *         For numerical queries: the optimal value as {@link Double}.
 	 */
-	protected Object computeMultiObjective(NondetModel model, LTLModelChecker mcLtl, List<JDDNode> transRewards, JDDNode start, List<JDDNode> targets,
-	                                        List<JDDNode> combinations, List<Integer> combinationIDs, MultiObjQuery moQuery,
-	                                        boolean hasconflictobjectives) throws PrismException
+	protected Object computeMultiObjective(NondetModel model, LTLModelChecker mcLtl, JDDNode start,
+	                                        MultiObjQueryInstance<JDDNode, JDDNode> instance) throws PrismException
 	{
 		Object value;
-		int numTargets = targets.size();
+		int numTargets = instance.targets.size();
 
 		JDDNode labels[] = new JDDNode[numTargets];
 		// Build combined targets: per-objective union of target + any compatible combination ECs
 		for (int i = 0; i < numTargets; i++) {
-			JDD.Ref(targets.get(i));
-			JDDNode tmp = targets.get(i);
-			if (combinations != null) {
-				for (int j = 0; j < combinations.size(); j++) {
-					if ((combinationIDs.get(j) & (1 << i)) > 0) {
-						JDD.Ref(combinations.get(j));
-						tmp = JDD.Or(tmp, combinations.get(j));
+			JDD.Ref(instance.targets.get(i));
+			JDDNode tmp = instance.targets.get(i);
+			if (instance.combinations != null) {
+				for (int j = 0; j < instance.combinations.size(); j++) {
+					if ((instance.combinationIDs.get(j) & (1 << i)) > 0) {
+						JDD.Ref(instance.combinations.get(j));
+						tmp = JDD.Or(tmp, instance.combinations.get(j));
 					}
 				}
 			}
@@ -600,19 +602,19 @@ public class MultiObjModelChecker extends prism.MultiObjModelChecker
 			if (engine != Prism.SPARSE) {
 				throw new PrismNotSupportedException("Currently only sparse engine supports multi-objective properties");
 			}
-			if (method == Prism.MDP_MULTI_LP && moQuery.numberOfNumerical() > 1) {
+			if (method == Prism.MDP_MULTI_LP && instance.moQuery.numberOfNumerical() > 1) {
 				throw new PrismNotSupportedException("Pareto curve generation is not currently supported using linear programming");
 			}
 
 			// Do computation
 			// Linear programming
 			if (method == Prism.MDP_MULTI_LP) {
-				value = computeMultiObjectiveLP(model, mcLtl, start, targets, transRewards, combinations, combinationIDs, moQuery, hasconflictobjectives);
+				value = computeMultiObjectiveLP(model, mcLtl, start, instance);
 			}
 			// Value iteration
 			else if (method == Prism.MDP_MULTI_GAUSSSEIDEL || method == Prism.MDP_MULTI_VALITER) {
 				double timePre = System.currentTimeMillis();
-				value = computeMultiObjectiveValIter(model, start, labels, transRewards, moQuery);
+				value = computeMultiObjectiveValIter(model, start, labels, instance);
 				double timePost = System.currentTimeMillis();
 				mainLog.println("Multi-objective value iterations took " + ((timePost - timePre) / 1000.0) + " s.");
 			}
@@ -623,8 +625,8 @@ public class MultiObjModelChecker extends prism.MultiObjModelChecker
 		} finally {
 			for (int i = 0; i < labels.length; i++)
 				JDD.Deref(labels[i]);
-			for (int i = 0; i < transRewards.size(); i++) {
-				JDD.Deref(transRewards.get(i));
+			for (int i = 0; i < instance.rewards.size(); i++) {
+				JDD.Deref(instance.rewards.get(i));
 			}
 		}
 
@@ -637,36 +639,30 @@ public class MultiObjModelChecker extends prism.MultiObjModelChecker
 	 * Computes yes/no/maybe state sets from the product model and target DDs, then delegates
 	 * to the native sparse solver.
 	 *
-	 * @param model               The product MDP
-	 * @param mcLtl               LTL model checker (used for MEC computation when reward objectives are present)
-	 * @param start               BDD for the initial state of the product MDP
-	 * @param targets             Per-objective target state BDDs (refs owned by caller)
-	 * @param transRewards        Transition reward DDs, one per reward objective (refs owned by caller)
-	 * @param combinations        BDDs for combined accepting EC states when objectives conflict, or null
-	 * @param combinationIDs      Bitmasks identifying which objectives each combination satisfies, or null
-	 * @param moQuery             Operator/bound/step-bound info for all objectives
-	 * @param hasconflictobjectives True if conflict objectives are present
+	 * @param model    The product MDP
+	 * @param mcLtl    LTL model checker (used for MEC computation when reward objectives are present)
+	 * @param start    BDD for the initial state of the product MDP
+	 * @param instance Bundles the query and all engine-specific data (refs owned by caller except rewards)
 	 * @return achievability/numerical result
 	 * @throws PrismException if computation fails or options are unsupported
 	 */
-	protected Object computeMultiObjectiveLP(NondetModel model, LTLModelChecker mcLtl, JDDNode start, List<JDDNode> targets,
-	                                          List<JDDNode> transRewards, List<JDDNode> combinations, List<Integer> combinationIDs,
-	                                          MultiObjQuery moQuery, boolean hasconflictobjectives) throws PrismException
+	protected Object computeMultiObjectiveLP(NondetModel model, LTLModelChecker mcLtl, JDDNode start,
+	                                          MultiObjQueryInstance<JDDNode, JDDNode> instance) throws PrismException
 	{
-		if (moQuery.numberOfStepBounded() > 0) {
+		if (instance.moQuery.numberOfStepBounded() > 0) {
 			throw new PrismNotSupportedException("Step-bounded objectives are not currently supported with linear programming");
 		}
 
 		// Compute yes: union of all target and combination states
 		JDDNode yes = JDD.Constant(0);
-		for (int i = 0; i < targets.size(); i++) {
-			JDD.Ref(targets.get(i));
-			yes = JDD.Or(yes, targets.get(i));
+		for (int i = 0; i < instance.targets.size(); i++) {
+			JDD.Ref(instance.targets.get(i));
+			yes = JDD.Or(yes, instance.targets.get(i));
 		}
-		if (combinations != null) {
-			for (int i = 0; i < combinations.size(); i++) {
-				JDD.Ref(combinations.get(i));
-				yes = JDD.Or(yes, combinations.get(i));
+		if (instance.combinations != null) {
+			for (int i = 0; i < instance.combinations.size(); i++) {
+				JDD.Ref(instance.combinations.get(i));
+				yes = JDD.Or(yes, instance.combinations.get(i));
 			}
 		}
 
@@ -675,7 +671,7 @@ public class MultiObjModelChecker extends prism.MultiObjModelChecker
 		// used as explicit absorbing sinks in the LP formulation.
 		JDDNode no;
 		JDDNode bottomec = null;
-		if (moQuery.rewardSize() == 0) {
+		if (instance.moQuery.numRewardObjectives() == 0) {
 			no = PrismMTBDD.Prob0A(model.getTrans01(), model.getReach(), model.getAllDDRowVars(), model.getAllDDColVars(), model.getAllDDNondetVars(),
 					model.getReach(), yes);
 		} else {
@@ -700,32 +696,32 @@ public class MultiObjModelChecker extends prism.MultiObjModelChecker
 
 		Object value;
 		try {
-			if (moQuery.rewardSize() > 0) {
-				if (hasconflictobjectives) {
+			if (instance.moQuery.numRewardObjectives() > 0) {
+				if (instance.hasConflicts()) {
 					value = PrismSparse.NondetMultiReachReward1(model.getTrans(), model.getTransActions(), model.getSynchs(), model.getODD(),
-							model.getAllDDRowVars(), model.getAllDDColVars(), model.getAllDDNondetVars(), targets,
-							combinations, combinationIDs, moQuery, maybe, start, transRewards, bottomec);
+							model.getAllDDRowVars(), model.getAllDDColVars(), model.getAllDDNondetVars(), instance.targets,
+							instance.combinations, instance.combinationIDs, instance.moQuery, maybe, start, instance.rewards, bottomec);
 				} else {
 					value = PrismSparse.NondetMultiReachReward(model.getTrans(), model.getTransActions(), model.getSynchs(), model.getODD(),
-							model.getAllDDRowVars(), model.getAllDDColVars(), model.getAllDDNondetVars(), targets,
-							moQuery, maybe, start, transRewards, bottomec);
+							model.getAllDDRowVars(), model.getAllDDColVars(), model.getAllDDNondetVars(), instance.targets,
+							instance.moQuery, maybe, start, instance.rewards, bottomec);
 				}
 			} else {
-				if (hasconflictobjectives) {
+				if (instance.hasConflicts()) {
 					value = PrismSparse.NondetMultiReach1(model.getTrans(), model.getTransActions(), model.getSynchs(), model.getODD(),
-							model.getAllDDRowVars(), model.getAllDDColVars(), model.getAllDDNondetVars(), targets,
-							combinations, combinationIDs, moQuery, maybe, start);
+							model.getAllDDRowVars(), model.getAllDDColVars(), model.getAllDDNondetVars(), instance.targets,
+							instance.combinations, instance.combinationIDs, instance.moQuery, maybe, start);
 				} else {
 					value = PrismSparse.NondetMultiReach(model.getTrans(), model.getTransActions(), model.getSynchs(), model.getODD(),
-							model.getAllDDRowVars(), model.getAllDDColVars(), model.getAllDDNondetVars(), targets,
-							moQuery, maybe, start);
+							model.getAllDDRowVars(), model.getAllDDColVars(), model.getAllDDNondetVars(), instance.targets,
+							instance.moQuery, maybe, start);
 				}
 			}
 		} finally {
 			JDD.Deref(yes);
 			JDD.Deref(no);
 			JDD.Deref(maybe);
-			if (moQuery.rewardSize() > 0)
+			if (instance.moQuery.numRewardObjectives() > 0)
 				JDD.Deref(bottomec);
 		}
 		return value;
@@ -747,37 +743,38 @@ public class MultiObjModelChecker extends prism.MultiObjModelChecker
 	 *
 	 * @param modelProduct  The product MDP to solve
 	 * @param start         BDD for the initial state
-	 * @param targets       Accepting EC state BDDs, one per probability objective
-	 * @param transRewards  Transition reward DDs, one per reward objective (mutated: minimising rewards are negated)
-	 * @param moQuery       Objective operators/bounds (mutated: reward operators canonicalised to R_MAX/R_GE)
+	 * @param labels        Combined accepting-EC BDDs (target ∪ compatible combinations), one per probability objective
+	 * @param instance      Bundles the query and engine-specific data:
+	 *                      {@code moQuery} (mutated: reward operators canonicalised to R_MAX/R_GE),
+	 *                      {@code rewards} (mutated: minimising reward DDs are negated in place)
 	 */
-	protected Object computeMultiObjectiveValIter(NondetModel modelProduct, JDDNode start, JDDNode[] targets,
-												  List<JDDNode> transRewards, MultiObjQuery moQuery) throws PrismException
+	protected Object computeMultiObjectiveValIter(NondetModel modelProduct, JDDNode start, JDDNode[] labels,
+	                                               MultiObjQueryInstance<JDDNode, JDDNode> instance) throws PrismException
 	{
 		// Check for unsupported computations
-		int numNumericalObjectives = moQuery.numberOfNumerical();
+		int numNumericalObjectives = instance.moQuery.numberOfNumerical();
 		if (numNumericalObjectives > 2) {
 			throw new PrismException("Pareto curve generation is currently only supported for 2 objectives");
 		}
-		if (numNumericalObjectives >= 2 && moQuery.probSize() + moQuery.rewardSize() > numNumericalObjectives) {
+		if (numNumericalObjectives >= 2 && instance.moQuery.numProbObjectives() + instance.moQuery.numRewardObjectives() > numNumericalObjectives) {
 			throw new PrismException("Pareto curve generation is currently not allowed if there are other (bounded) objectives");
 		}
 
 		// Convert minimising reward DDs to maximising by negation, then canonicalise
 		// moQuery to use only R_MAX/R_GE. The LP path does not go through here;
 		// it handles sign conventions internally via the native solver.
-		for (int i = 0; i < moQuery.rewardSize(); i++) {
-			if (moQuery.getRewardOperator(i) == Operator.R_LE || moQuery.getRewardOperator(i) == Operator.R_MIN) {
-				transRewards.set(i, JDD.Apply(JDD.TIMES, JDD.Constant(-1), transRewards.get(i)));
+		for (int i = 0; i < instance.moQuery.numRewardObjectives(); i++) {
+			if (instance.moQuery.getRewardOperator(i) == Operator.R_LE || instance.moQuery.getRewardOperator(i) == Operator.R_MIN) {
+				instance.rewards.set(i, JDD.Apply(JDD.TIMES, JDD.Constant(-1), instance.rewards.get(i)));
 			}
 		}
-		moQuery.makeAllRewardUp();
+		instance.moQuery.makeAllRewardUp();
 
 		// Pareto computation or achievability/numerical computation
 		if (numNumericalObjectives >= 2) {
-			return generateParetoCurve(modelProduct, start, targets, transRewards, moQuery);
+			return generateParetoCurve(modelProduct, start, labels, instance.rewards, instance.moQuery);
 		} else {
-			return solveAchievabilityOrNumerical(modelProduct, start, targets, transRewards, moQuery);
+			return solveAchievabilityOrNumerical(modelProduct, start, labels, instance.rewards, instance.moQuery);
 		}
 	}
 
@@ -852,7 +849,7 @@ public class MultiObjModelChecker extends prism.MultiObjModelChecker
 		// reward that was originally R_MIN (the solver maximised −reward, so result = −user-space
 		// value). Numerical objectives come first, so a numerical reward is always reward 0;
 		// an R_LE bound is also negated but is never the numerical objective.
-		if (moQuery.rewardSize() > 0 && moQuery.getRewardOperator(0) == Operator.R_MAX && moQuery.isRewardNegated(0)) {
+		if (moQuery.numRewardObjectives() > 0 && moQuery.getRewardOperator(0) == Operator.R_MAX && moQuery.isRewardNegated(0)) {
 			result = -result;
 		}
 		return result;

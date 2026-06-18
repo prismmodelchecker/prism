@@ -193,8 +193,8 @@ public abstract class MultiObjModelChecker extends PrismComponent
 	protected double runAchievabilityIteration(WeightedObjectiveSolver solver, MultiObjQuery moQuery,
 	                                            int maxIters) throws PrismException
 	{
-		int dimProb = moQuery.probSize();
-		int dimReward = moQuery.rewardSize();
+		int dimProb = moQuery.numProbObjectives();
+		int dimReward = moQuery.numRewardObjectives();
 
 		// After makeAllProbUp/makeAllRewardUp, prob operators are P_MAX or P_GE,
 		// and reward operators are R_MAX or R_GE.

@@ -128,7 +128,7 @@ public class MultiObjModelCheckerUtils
 	{
 		// Allow: 1 numerical + any number of boolean objectives, OR multiple numericals with no booleans
 		if (moQuery.numberOfNumerical() > 1
-		        && moQuery.numberOfNumerical() < moQuery.probSize() + moQuery.rewardSize()) {
+		        && moQuery.numberOfNumerical() < moQuery.numProbObjectives() + moQuery.numRewardObjectives()) {
 			throw new PrismException("Cannot combine Pareto queries with constrained objectives");
 		}
 	}
