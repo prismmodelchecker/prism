@@ -39,6 +39,7 @@ import java.util.function.IntPredicate;
 
 import common.IterableStateSet;
 import common.IteratorTools;
+import explicit.rewards.Rewards;
 import io.DotExporter;
 import io.ModelExportOptions;
 import io.PrismExplicitExporter;
@@ -153,7 +154,43 @@ public interface Model<Value> extends prism.Model<Value>
 		}
 		return labels;
 	}
-	
+
+	/**
+	 * Get an attached reward structure, by its (optional) name.
+	 * Returns null if it does not exist.
+	 */
+	Rewards<Value> getRewardsByName(String name);
+
+	/**
+	 * Get an attached reward structure, by its (optional) position.
+	 * By convention, positions are assumed to be indexed from 0.
+	 * Returns null if it does not exist.
+	 */
+	Rewards<Value> getRewardsByPosition(int r);
+
+	/**
+	 * Get the number of reward structures that are attached to the model.
+	 */
+	int getNumRewards();
+
+	/**
+	 * Get the {@code i}th stored reward structure.
+	 */
+	Rewards<Value> getRewards(int i);
+
+	/**
+	 * Get the name of the {@code i}th stored reward structure.
+	 * This is optionally stored and "" if absent.
+	 */
+	String getRewardName(int i);
+
+	/**
+	 * Get the position of the {@code i}th stored reward structure.
+	 * This is optionally stored, and refers to the order within its original source,
+	 * e.g., a properties file. By convention, positions are 0-indexed. Null if absent.
+	 */
+	Integer getRewardPosition(int i);
+
 	@Override
 	default int getNumTransitions()
 	{

@@ -37,6 +37,7 @@ import java.util.Set;
 import common.functions.PairPredicateInt;
 import explicit.Distribution;
 import explicit.MDP;
+import explicit.rewards.Rewards;
 import parser.State;
 import parser.Values;
 import parser.VarList;
@@ -150,6 +151,42 @@ public class MDPDroppedChoicesCached<Value> extends MDPView<Value>
 	public BitSet getLabelStates(final String name)
 	{
 		return model.getLabelStates(name);
+	}
+
+	@Override
+	public Rewards<Value> getRewardsByName(String name)
+	{
+		return model.getRewardsByName(name);
+	}
+
+	@Override
+	public Rewards<Value> getRewardsByPosition(int r)
+	{
+		return model.getRewardsByPosition(r);
+	}
+
+	@Override
+	public int getNumRewards()
+	{
+		return model.getNumRewards();
+	}
+
+	@Override
+	public Rewards<Value> getRewards(int i)
+	{
+		return model.getRewards(i);
+	}
+
+	@Override
+	public String getRewardName(int i)
+	{
+		return model.getRewardName(i);
+	}
+
+	@Override
+	public Integer getRewardPosition(int i)
+	{
+		return model.getRewardPosition(i);
 	}
 
 	@Override

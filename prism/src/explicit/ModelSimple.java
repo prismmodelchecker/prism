@@ -31,6 +31,7 @@ import java.util.BitSet;
 import java.util.List;
 import java.util.function.Function;
 
+import explicit.rewards.Rewards;
 import io.ExplicitModelImporter;
 import io.PrismExplicitImporter;
 import parser.State;
@@ -98,6 +99,33 @@ public interface ModelSimple<Value> extends Model<Value>
 	 * @param states The states that satisfy the label 
 	 */
 	public void addLabel(String name, BitSet states);
+
+	/**
+	 * Attach a reward structure with optional name and position.
+	 * @param name Name of reward structure ("" for unnamed; null also accepted)
+	 * @param position Position of reward structure (0-indexed; null if not stored)
+	 * @param rews The rewards
+	 * @return The index of the attached reward
+	 */
+	public int addRewards(String name, Integer position, Rewards<Value> rews);
+
+	/**
+	 * Attach a reward structure with optional name.
+	 * @param name Name of reward structure ("" for unnamed; null also accepted)
+	 * @param rews The rewards
+	 * @return The index of the attached reward
+	 */
+	public int addRewards(String name, Rewards<Value> rews);
+
+	/**
+	 * Copy the rewards from an existing model.
+	 */
+	public void copyRewards(Model<Value> model);
+
+	/**
+	 * Copy the rewards from an existing model after first applying a function to them.
+	 */
+	public void copyRewardsMapped(Model<Value> model, Function<Rewards<Value>, Rewards<Value>> map);
 
 	// Static helper methods
 

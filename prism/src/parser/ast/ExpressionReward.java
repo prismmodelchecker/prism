@@ -135,6 +135,18 @@ public class ExpressionReward extends ExpressionQuant
 	}
 
 	/**
+	 * Get the index of a reward structure (within a model) corresponding to the index of this R operator.
+	 * This is 0-indexed (as used e.g. in ModulesFile), not 1-indexed (as seen by user)
+	 * @param rewardStructNames List of reward struct names
+	 * @param constantValues Values of constants which may be needed to evaluate the index
+	 * @param errorIfAbsent Whether to throw an error if the reward structure is not found (true) or return -1 (false)
+	 */
+	public int getRewardStructIndexByIndexObject(List<String> rewardStructNames, Values constantValues, boolean errorIfAbsent) throws PrismException
+	{
+		return getRewardStructIndexByIndexObject(rewardStructIndex, rewardStructNames, constantValues, errorIfAbsent);
+	}
+
+	/**
 	 * Get the index of a reward structure (within a model) corresponding to the rsi reward structure index object.
 	 * This is 0-indexed (as used e.g. in ModulesFile), not 1-indexed (as seen by user)
 	 * Throws an exception (with explanatory message) if it cannot be found.
@@ -162,8 +174,25 @@ public class ExpressionReward extends ExpressionQuant
 	 */
 	public static int getRewardStructIndexByIndexObject(Object rsi, List<String> rewardStructNames, Values constantValues) throws PrismException
 	{
-		if (rewardStructNames.size() == 0) {
-			throw new PrismException("Model has no rewards specified");
+		return getRewardStructIndexByIndexObject(rsi, rewardStructNames, constantValues, true);
+	}
+
+	/**
+	 * Get the index of a reward structure (within a model) corresponding to the rsi reward structure index object.
+	 * This is 0-indexed (as used e.g. in ModulesFile), not 1-indexed (as seen by user)
+	 * @param rsi The reward structure index: Expression (evaluating to index, starting from 1) or String (name)
+	 * @param rewardStructNames List of reward struct names
+	 * @param constantValues Values of constants which may be needed to evaluate the index
+	 * @param errorIfAbsent Whether to throw an error if the reward structure is not found (true) or return -1 (false)
+	 */
+	public static int getRewardStructIndexByIndexObject(Object rsi, List<String> rewardStructNames, Values constantValues, boolean errorIfAbsent) throws PrismException
+	{
+		if (rewardStructNames.isEmpty()) {
+			if (errorIfAbsent) {
+				throw new PrismException("Model has no rewards specified");
+			} else {
+				return -1;
+			}
 		}
 		// Recall: the index is an Object which is either an Integer, denoting the index (starting from 0) directly,
 		// or an expression, which can be evaluated (possibly using the passed in constants) to an index. 
@@ -183,7 +212,7 @@ public class ExpressionReward extends ExpressionQuant
 		else if (rsi instanceof String) {
 			rewStruct = rewardStructNames.indexOf((String) rsi);
 		}
-		if (rewStruct == -1) {
+		if (rewStruct == -1 && errorIfAbsent) {
 			throw new PrismException("Invalid reward structure index \"" + rsi + "\"");
 		}
 		return rewStruct;

@@ -42,6 +42,7 @@ import parser.State;
 import parser.Values;
 import parser.VarList;
 import explicit.DTMC;
+import explicit.rewards.Rewards;
 
 /**
  * A view of a DTMC where for selected states the transitions are changed.
@@ -144,6 +145,42 @@ public class DTMCAlteredDistributions<Value> extends DTMCView<Value>
 	public BitSet getLabelStates(final String name)
 	{
 		return model.getLabelStates(name);
+	}
+
+	@Override
+	public Rewards<Value> getRewardsByName(String name)
+	{
+		return model.getRewardsByName(name);
+	}
+
+	@Override
+	public Rewards<Value> getRewardsByPosition(int r)
+	{
+		return model.getRewardsByPosition(r);
+	}
+
+	@Override
+	public int getNumRewards()
+	{
+		return model.getNumRewards();
+	}
+
+	@Override
+	public Rewards<Value> getRewards(int i)
+	{
+		return model.getRewards(i);
+	}
+
+	@Override
+	public String getRewardName(int i)
+	{
+		return model.getRewardName(i);
+	}
+
+	@Override
+	public Integer getRewardPosition(int i)
+	{
+		return model.getRewardPosition(i);
 	}
 
 	@Override

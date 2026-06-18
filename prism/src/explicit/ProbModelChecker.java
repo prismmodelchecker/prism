@@ -960,10 +960,31 @@ public class ProbModelChecker extends NonProbModelChecker
 		OpRelOpBound opInfo = expr.getRelopBoundInfo(constantValues);
 		MinMax minMax = opInfo.getMinMax(model.getModelType(), forAll);
 
-		// Build rewards
-		int r = expr.getRewardStructIndexByIndexObject(rewardGen, constantValues);
-		mainLog.println("Building reward structure...");
-		Rewards<?> rewards = Expression.usesInstantaneousReward(expr.getExpression()) ? constructRewards(model, r) : constructExpectedRewards(model, r);
+		// First look at rewards attached directly to model:
+		// resolve by name, or by position (reward structure indices are 1-based at this point,
+		// i.e. as written by the user, so convert to a 0-based position), or, if neither is
+		// specified, the one at position 0.
+		Object rsi = expr.getRewardStructIndex();
+		Rewards<?> rewards;
+		if (rsi instanceof String) {
+			rewards = model.getRewardsByName((String) rsi);
+		} else if (rsi instanceof Expression) {
+			int i = ((Expression) rsi).evaluateInt(constantValues);
+			rewards = model.getRewardsByPosition(i - 1);
+		} else {
+			rewards = model.getRewardsByPosition(0);
+			// If neither the model nor the reward generator can provide a reward structure
+			// at position 0, but the model has some attached rewards, just use the first one
+			if (rewards == null && model.getNumRewards() > 0 && (rewardGen == null || rewardGen.getNumRewardStructs() == 0)) {
+				rewards = model.getRewards(0);
+			}
+		}
+		// Failing that, build rewards via reward generator
+		if (rewards == null) {
+			int r = expr.getRewardStructIndexByIndexObject(rewardGen, constantValues);
+			mainLog.println("Building reward structure...");
+			rewards = Expression.usesInstantaneousReward(expr.getExpression()) ? constructRewards(model, r) : constructExpectedRewards(model, r);
+		}
 
 		// Compute rewards
 		StateValues rews = checkRewardFormula(model, rewards, expr.getExpression(), minMax, statesOfInterest);

@@ -34,7 +34,9 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
+import java.util.function.Function;
 
+import explicit.rewards.Rewards;
 import io.ExplicitModelImporter;
 import io.PrismExplicitImporter;
 import parser.State;
@@ -99,6 +101,23 @@ public abstract class ModelExplicit<Value> implements Model<Value>, ActionListOw
 	protected Map<String, BitSet> labels = new TreeMap<String, BitSet>();
 
 	/**
+	 * (Optionally) some attached reward structures.
+	 * Each can have a name (set to "" if it is unnamed).
+	 * Each can have a position, referring to the order within its original source,
+	 * e.g., a properties file (null if undefined).
+	 * By convention, positions are assumed to be indexed from 0.
+	 * Both names and positions must be unique if defined.
+	 */
+	protected List<IndexedRewards<Value>> rewards = new ArrayList<>();
+
+	static protected class IndexedRewards<Value>
+	{
+		String name = "";
+		Integer position = null;
+		Rewards<Value> rews;
+	}
+
+	/**
 	 * (Optionally) the stored predecessor relation. Becomes inaccurate after the model is changed!
 	 */
 	protected PredecessorRelation predecessorRelation = null;
@@ -117,6 +136,7 @@ public abstract class ModelExplicit<Value> implements Model<Value>, ActionListOw
 	 * Copy data from another Model (used by superclass copy constructors).
 	 * Assumes that this has already been initialise()ed.
 	 */
+	@SuppressWarnings("unchecked")
 	public void copyFrom(Model<?> model)
 	{
 		setEvaluator((Evaluator<Value>) model.getEvaluator());
@@ -134,6 +154,7 @@ public abstract class ModelExplicit<Value> implements Model<Value>, ActionListOw
 		statesList = model.getStatesList();
 		constantValues = model.getConstantValues();
 		labels = model.getLabelToStatesMap();
+		copyRewards((Model<Value>) model);
 		varList = model.getVarList();
 	}
 
@@ -162,6 +183,7 @@ public abstract class ModelExplicit<Value> implements Model<Value>, ActionListOw
 		statesList = null;
 		constantValues = model.getConstantValues();
 		labels.clear();
+		rewards.clear();
 		varList = model.getVarList();
 	}
 
@@ -177,6 +199,7 @@ public abstract class ModelExplicit<Value> implements Model<Value>, ActionListOw
 		constantValues = null;
 		varList = null;
 		labels = new TreeMap<String, BitSet>();
+		rewards = new ArrayList<>();
 	}
 
 	/**
@@ -311,6 +334,87 @@ public abstract class ModelExplicit<Value> implements Model<Value>, ActionListOw
 
 		addLabel(label, labelStates);
 		return label;
+	}
+
+	/**
+	 * Attach a reward structure with optional name and position.
+	 * If a reward structure already exists with the same (non-empty) name or the same
+	 * (non-null) position, it is overwritten. If both name and position are provided,
+	 * and they do not identify the same existing reward structure (or lack thereof),
+	 * this is an error.
+	 * @param name Name of reward structure ("" for unnamed; null also accepted)
+	 * @param position Position of reward structure (0-indexed; null if not stored)
+	 * @param rews The rewards
+	 * @return The index of the attached reward
+	 */
+	public int addRewards(String name, Integer position, Rewards<Value> rews)
+	{
+		String rewName = name == null ? "" : name;
+		int i = findRewardsIndex(rewName, position);
+		if (i == -1) {
+			i = rewards.size();
+			rewards.add(new IndexedRewards<>());
+		}
+		IndexedRewards<Value> ir = rewards.get(i);
+		ir.name = rewName;
+		ir.position = position;
+		ir.rews = rews;
+		return i;
+	}
+
+	/**
+	 * Find the index of a stored reward structure matching a (non-empty) name
+	 * or a (non-null) position, if any. Returns -1 if there is no match.
+	 * If both name and position are provided, but match different existing reward
+	 * structures, this is an error (they should either both be absent or agree).
+	 */
+	private int findRewardsIndex(String name, Integer position)
+	{
+		int nameMatch = -1;
+		int positionMatch = -1;
+		for (int i = 0; i < rewards.size(); i++) {
+			IndexedRewards<Value> ir = rewards.get(i);
+			if (!name.isEmpty() && name.equals(ir.name)) {
+				nameMatch = i;
+			}
+			if (position != null && position.equals(ir.position)) {
+				positionMatch = i;
+			}
+		}
+		if (nameMatch != -1 && positionMatch != -1 && nameMatch != positionMatch) {
+			throw new RuntimeException("Reward structure name \"" + name + "\" and position " + position + " refer to different existing reward structures");
+		}
+		return nameMatch != -1 ? nameMatch : positionMatch;
+	}
+
+	/**
+	 * Attach a reward structure with optional name.
+	 * @param name Name of reward structure ("" for unnamed; null also accepted)
+	 * @param rews The rewards
+	 * @return The index of the attached reward
+	 */
+	public int addRewards(String name, Rewards<Value> rews)
+	{
+		return addRewards(name, null, rews);
+	}
+
+	/**
+	 * Copy the rewards from an existing model.
+	 */
+	public void copyRewards(Model<Value> model)
+	{
+		copyRewardsMapped(model, rews -> rews);
+	}
+
+	/**
+	 * Copy the rewards from an existing model after first applying a function to them.
+	 */
+	public void copyRewardsMapped(Model<Value> model, Function<Rewards<Value>, Rewards<Value>> map)
+	{
+		int numRewards = model.getNumRewards();
+		for (int i = 0; i < numRewards; i++) {
+			addRewards(model.getRewardName(i), model.getRewardPosition(i), map.apply(model.getRewards(i)));
+		}
 	}
 
 	// Accessors (for Model interface)
@@ -448,6 +552,55 @@ public abstract class ModelExplicit<Value> implements Model<Value>, ActionListOw
 	public Map<String, BitSet> getLabelToStatesMap()
 	{
 		return labels;
+	}
+
+	@Override
+	public Rewards<Value> getRewardsByName(String name)
+	{
+		if (name == null || name.isEmpty()) {
+			return null;
+		}
+		for (IndexedRewards<Value> ir : rewards) {
+			if (name.equals(ir.name)) {
+				return ir.rews;
+			}
+		}
+		return null;
+	}
+
+	@Override
+	public Rewards<Value> getRewardsByPosition(int r)
+	{
+		for (IndexedRewards<Value> ir : rewards) {
+			if (ir.position != null && ir.position == r) {
+				return ir.rews;
+			}
+		}
+		return null;
+	}
+
+	@Override
+	public int getNumRewards()
+	{
+		return rewards.size();
+	}
+
+	@Override
+	public Rewards<Value> getRewards(int i)
+	{
+		return rewards.get(i).rews;
+	}
+
+	@Override
+	public String getRewardName(int i)
+	{
+		return rewards.get(i).name;
+	}
+
+	@Override
+	public Integer getRewardPosition(int i)
+	{
+		return rewards.get(i).position;
 	}
 
 	@Override

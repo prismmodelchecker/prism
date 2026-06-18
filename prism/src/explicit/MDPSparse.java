@@ -98,14 +98,7 @@ public class MDPSparse extends MDPExplicit<Double>
 	public MDPSparse(final MDP<Double> mdp, boolean sort)
 	{
 		initialise(mdp.getNumStates());
-		if (mdp instanceof ActionListOwner) {
-			actionList.copyFrom(((ActionListOwner) mdp).getActionList());
-		}
-		setStatesList(mdp.getStatesList());
-		setConstantValues(mdp.getConstantValues());
-		for (String label : mdp.getLabels()) {
-			addLabel(label, mdp.getLabelStates(label));
-		}
+		copyFrom(mdp);
 
 		// Copy stats
 		numDistrs = mdp.getNumChoices();
@@ -122,13 +115,6 @@ public class MDPSparse extends MDPExplicit<Double>
 		final TreeMap<Integer, Double> sorted = sort ? new TreeMap<Integer, Double>() : null;
 		int rowIndex = 0, choiceIndex = 0;
 		for (int state = 0; state < numStates; state++) {
-			if (mdp.isInitialState(state)) {
-				addInitialState(state);
-			}
-			if (mdp.isDeadlockState(state)) {
-				deadlocks.add(state);
-			}
-
 			rowStarts[state] = rowIndex;
 			if (actions != null) {
 				for (int choice = 0, numChoices = mdp.getNumChoices(state); choice < numChoices; choice++) {

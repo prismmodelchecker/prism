@@ -72,21 +72,7 @@ public class DTMCSparse extends DTMCExplicit<Double>
 	public DTMCSparse(final DTMC<Double> dtmc)
 	{
 		initialise(dtmc.getNumStates());
-		if (dtmc instanceof ActionListOwner) {
-			actionList.copyFrom(((ActionListOwner) dtmc).getActionList());
-		}
-		for (Integer state : dtmc.getDeadlockStates()) {
-			deadlocks.add(state);
-		}
-		for (Integer state : dtmc.getInitialStates()) {
-			initialStates.add(state);
-		}
-		constantValues = dtmc.getConstantValues();
-		varList = dtmc.getVarList();
-		statesList = dtmc.getStatesList();
-		for (String label : dtmc.getLabels()) {
-			labels.put(label, dtmc.getLabelStates(label));
-		}
+		copyFrom(dtmc);
 
 		// Copy transition function
 		final int numTransitions = dtmc.getNumTransitions();

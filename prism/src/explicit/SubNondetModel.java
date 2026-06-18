@@ -35,6 +35,7 @@ import java.util.Map;
 import java.util.Set;
 
 import common.IterableStateSet;
+import explicit.rewards.Rewards;
 import io.ModelExportOptions;
 import parser.State;
 import parser.Values;
@@ -223,6 +224,42 @@ public class SubNondetModel<Value> implements NondetModel<Value>, ActionListOwne
 
 	@Override
 	public boolean hasLabel(String name)
+	{
+		throw new UnsupportedOperationException();
+	}
+
+	@Override
+	public Rewards<Value> getRewardsByName(String name)
+	{
+		throw new UnsupportedOperationException();
+	}
+
+	@Override
+	public Rewards<Value> getRewardsByPosition(int r)
+	{
+		throw new UnsupportedOperationException();
+	}
+
+	@Override
+	public int getNumRewards()
+	{
+		throw new UnsupportedOperationException();
+	}
+
+	@Override
+	public Rewards<Value> getRewards(int i)
+	{
+		throw new UnsupportedOperationException();
+	}
+
+	@Override
+	public String getRewardName(int i)
+	{
+		throw new UnsupportedOperationException();
+	}
+
+	@Override
+	public Integer getRewardPosition(int i)
 	{
 		throw new UnsupportedOperationException();
 	}
