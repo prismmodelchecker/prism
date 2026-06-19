@@ -301,8 +301,9 @@ public class NonProbModelChecker extends StateModelChecker
 		int iters, i;
 		long l;
 
-		// currently, ignore statesOfInterest
-		JDD.Deref(statesOfInterest);
+		// Note: statesOfInterest is used for counterexample generation
+		// but the computation itself is not optimised to return values
+		// only for those states.
 
 		// Model check operands first, statesOfInterest = all
 		b1 = checkExpressionDD(expr.getOperand1(), model.getReach().copy());
@@ -310,6 +311,7 @@ public class NonProbModelChecker extends StateModelChecker
 			b2 = checkExpressionDD(expr.getOperand2(), model.getReach().copy());
 		} catch (PrismException e) {
 			JDD.Deref(b1);
+			JDD.Deref(statesOfInterest);
 			throw e;
 		}
 
@@ -319,7 +321,7 @@ public class NonProbModelChecker extends StateModelChecker
 		if (doGenCex) {
 			cexDDs = new ArrayList<JDDNode>();
 			cexDone = false;
-			init = model.getStart();
+			init = statesOfInterest.copy();
 		}
 
 		// Get transition relation
@@ -447,6 +449,8 @@ public class NonProbModelChecker extends StateModelChecker
 		JDD.Deref(b1);
 		JDD.Deref(b2);
 		JDD.Deref(transRel);
+		JDD.Deref(statesOfInterest);
+		JDD.DerefNonNull(init);
 
 		return new StateValuesMTBDD(tmp, model);
 	}

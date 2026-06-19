@@ -141,7 +141,7 @@ public class NonProbModelChecker extends StateModelChecker
 			                            Expression.Not(exprTemp.getOperand2()));
 		} else {
 			// compute E[ a U b ]
-			result = checkExistsUntil(model, exprTemp.getOperand1(), exprTemp.getOperand2());
+			result = checkExistsUntil(model, exprTemp.getOperand1(), exprTemp.getOperand2(), statesOfInterest);
 		}
 
 		return result;
@@ -251,9 +251,15 @@ public class NonProbModelChecker extends StateModelChecker
 	 * @param model the model
 	 * @param exprA the expression for 'a'
 	 * @param exprB the expression for 'b'
+	 * @param statesOfInterest the states of interest ({@code null} = all states)
 	 * @return a boolean StateValues, with {@code true} for all states satisfying E[ a U b ]
 	 */
-	protected StateValues checkExistsUntil(Model<?> model, Expression exprA, Expression exprB) throws PrismException {
+	protected StateValues checkExistsUntil(Model<?> model, Expression exprA, Expression exprB, BitSet statesOfInterest) throws PrismException
+	{
+		// Note: statesOfInterest is used for counterexample generation
+		// but the computation itself is not optimised to return values
+		// only for those states.
+
 		// the set of states satisfying exprA
 		BitSet A = checkExpression(model, exprA, null).getBitSet();
 		// the set of states satisfying exprB
@@ -265,7 +271,7 @@ public class NonProbModelChecker extends StateModelChecker
 			int[] witness = new int[model.getNumStates()];
 			PredecessorRelation pre = model.getPredecessorRelation(this, true);
 			reach = pre.calculatePreStarWithWitness(A, B, B, witness);
-			buildAndStoreWitness(model, reach, witness);
+			buildAndStoreWitness(model, statesOfInterest, reach, witness);
 		} else {
 			reach = computeExistsUntil(model, A, B);
 		}
@@ -279,19 +285,32 @@ public class NonProbModelChecker extends StateModelChecker
 	 * {@code this.result} as a counterexample.
 	 *
 	 * @param model   the model (used to look up state variable values and initial states)
+	 * @param init    possible start states for witness (initial states if null)
 	 * @param reach   states satisfying E[a U b], i.e. the result of calculatePreStarWithWitness
 	 * @param witness next-hop array: witness[s] == s for target states (self-sentinel),
 	 *                witness[s] == t (forward successor toward target) for other reachable states
 	 */
-	private void buildAndStoreWitness(Model<?> model, BitSet reach, int[] witness)
+	private void buildAndStoreWitness(Model<?> model, BitSet init, BitSet reach, int[] witness)
 	{
 		List<State> statesList = model.getStatesList();
 		if (statesList == null) return; // no state variable info available
 
 		// Find first initial state that satisfies the formula
 		int start = -1;
-		for (int s : model.getInitialStates()) {
-			if (reach.get(s)) { start = s; break; }
+		if (init == null) {
+			for (int s : model.getInitialStates()) {
+				if (reach.get(s)) {
+					start = s;
+					break;
+				}
+			}
+		} else {
+			for (int s = init.nextSetBit(0); s >= 0; s = init.nextSetBit(s + 1)) {
+				if (reach.get(s)) {
+					start = s;
+					break;
+				}
+			}
 		}
 		if (start == -1) return; // formula is false at all initial states
 
