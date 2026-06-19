@@ -26,7 +26,9 @@
 
 package explicit;
 
+import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.BitSet;
 import java.util.Iterator;
 import java.util.List;
@@ -185,6 +187,57 @@ public class PredecessorRelation
 						// add to stack
 						todo.add(p);
 					}
+				}
+			}
+		}
+
+		return result;
+	}
+
+	/**
+	 * Like {@link #calculatePreStar} but also records, for each state in the result,
+	 * a forward successor toward the target, enabling single-pass witness path reconstruction.
+	 * <p>
+	 * On return, {@code witness[s] >= 0} iff {@code s} is in Pre*(target).
+	 * For target states, {@code witness[s] = s} (self-sentinel: stop here).
+	 * For other reachable states, {@code witness[s] = t} where {@code t} is a
+	 * forward successor of {@code s} that is already in Pre*(target).
+	 * <p>
+	 * Path reconstruction from an initial state {@code init} in Pre*(target):
+	 * <pre>
+	 *   int s = init;
+	 *   while (witness[s] != s) { collect s; s = witness[s]; }
+	 *   collect s; // target state
+	 * </pre>
+	 * The chain is acyclic because each state's witness was already in Pre*(target)
+	 * before the state itself was discovered (BFS ensures strictly decreasing distance).
+	 *
+	 * @param remain    restriction on states allowed on the path; {@code null} = all states
+	 * @param target    the set of target states
+	 * @param absorbing states treated as absorbing (outgoing edges ignored); {@code null} = none
+	 * @param witness   pre-allocated {@code int[]} of size = number of model states, filled here
+	 * @return          the set Pre*(target) as a BitSet
+	 */
+	public BitSet calculatePreStarWithWitness(BitSet remain, BitSet target, BitSet absorbing, int[] witness)
+	{
+		Arrays.fill(witness, -1);
+
+		BitSet result = (BitSet) target.clone();
+
+		ArrayDeque<Integer> queue = new ArrayDeque<>();
+		for (int s : IterableBitSet.getSetBits(target)) {
+			witness[s] = s; // self-sentinel: already at target
+			queue.add(s);
+		}
+
+		while (!queue.isEmpty()) {
+			int s = queue.poll();
+			for (int p : getPre(s)) {
+				if (absorbing != null && absorbing.get(p)) continue;
+				if (witness[p] == -1 && (remain == null || remain.get(p))) {
+					witness[p] = s; // to go forward from p toward B, take the edge p -> s
+					result.set(p);
+					queue.add(p);
 				}
 			}
 		}

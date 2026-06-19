@@ -30,12 +30,15 @@ package explicit;
 import java.io.PrintStream;
 import java.util.BitSet;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Vector;
 
 import automata.LTL2NBA;
 import jltl2dstar.NBA;
+import cex.CexPathStates;
 import common.IterableBitSet;
 import common.IterableStateSet;
+import parser.State;
 import parser.ast.Expression;
 import parser.ast.ExpressionExists;
 import parser.ast.ExpressionForAll;
@@ -256,9 +259,52 @@ public class NonProbModelChecker extends StateModelChecker
 		// the set of states satisfying exprB
 		BitSet B = checkExpression(model, exprB, null).getBitSet();
 
-		BitSet result = computeExistsUntil(model, A, B);
+		BitSet reach;
+		if (this.result != null && this.result.getCounterexample() == null) {
+			// Single-pass backward BFS: compute reach and next-hop witness pointers together
+			int[] witness = new int[model.getNumStates()];
+			PredecessorRelation pre = model.getPredecessorRelation(this, true);
+			reach = pre.calculatePreStarWithWitness(A, B, B, witness);
+			buildAndStoreWitness(model, reach, witness);
+		} else {
+			reach = computeExistsUntil(model, A, B);
+		}
 
-		return StateValues.createFromBitSet(result, model);
+		return StateValues.createFromBitSet(reach, model);
+	}
+
+	/**
+	 * Reconstruct a witness path using the next-hop {@code witness} array (from
+	 * {@link PredecessorRelation#calculatePreStarWithWitness}) and attach it to
+	 * {@code this.result} as a counterexample.
+	 *
+	 * @param model   the model (used to look up state variable values and initial states)
+	 * @param reach   states satisfying E[a U b], i.e. the result of calculatePreStarWithWitness
+	 * @param witness next-hop array: witness[s] == s for target states (self-sentinel),
+	 *                witness[s] == t (forward successor toward target) for other reachable states
+	 */
+	private void buildAndStoreWitness(Model<?> model, BitSet reach, int[] witness)
+	{
+		List<State> statesList = model.getStatesList();
+		if (statesList == null) return; // no state variable info available
+
+		// Find first initial state that satisfies the formula
+		int start = -1;
+		for (int s : model.getInitialStates()) {
+			if (reach.get(s)) { start = s; break; }
+		}
+		if (start == -1) return; // formula is false at all initial states
+
+		// Follow witness pointers to reconstruct the path
+		CexPathStates cex = new CexPathStates(model);
+		int s = start;
+		while (witness[s] != s) {
+			cex.addState(statesList.get(s));
+			s = witness[s];
+		}
+		cex.addState(statesList.get(s)); // add the target state
+
+		this.result.setCounterexample(cex);
 	}
 
 	/**
@@ -457,7 +503,7 @@ public class NonProbModelChecker extends StateModelChecker
 	 * The LTL formula can have nested P or R operators, as well as nested CTL formulas.
 	 * @param model the model
 	 * @param expr the LTL formula
-	 * @param statesofInterest the states of interest
+	 * @param statesOfInterest the states of interest
 	 * @return a boolean StateValues, with {@code true} for all states satisfying E[ phi ]
 	 */
 	protected StateValues checkExistsLTL(Model<?> model, Expression expr, BitSet statesOfInterest) throws PrismException
@@ -538,13 +584,59 @@ public class NonProbModelChecker extends StateModelChecker
 		// compute the set of states that can reach an accepting cycle,
 		// i.e., satisfy E[ true U acceptingSCCs ], using the CTL checker
 		mainLog.println("Computing reachability of accepting SCCs...");
-		BitSet resultProduct = computeExistsUntil(product.getProductModel(), allStates, acceptingSCCs);
+		BitSet resultProduct;
+		if (this.result != null && this.result.getCounterexample() == null) {
+			// Single-pass backward BFS with witness tracking for LTL counterexample
+			int[] witness = new int[product.getProductModel().getNumStates()];
+			PredecessorRelation pre = product.getProductModel().getPredecessorRelation(this, true);
+			resultProduct = pre.calculatePreStarWithWitness(allStates, acceptingSCCs, null, witness);
+			buildAndStoreWitnessViaProduct(product, resultProduct, witness);
+		} else {
+			resultProduct = computeExistsUntil(product.getProductModel(), allStates, acceptingSCCs);
+		}
 		StateValues svProduct = StateValues.createFromBitSet(resultProduct, product.getProductModel());
 
 		// we project to the original model
 		StateValues result = product.projectToOriginalModel(svProduct);
 
 		return result;
+	}
+
+	/**
+	 * Like {@link #buildAndStoreWitness} but for the LTL case: reconstructs a witness
+	 * path in the product model (Model x NBA) and projects it back to original model states.
+	 *
+	 * @param product   the LTS-NBA product
+	 * @param reach     product states that can reach an accepting SCC
+	 * @param witness   next-hop array from calculatePreStarWithWitness on the product model
+	 */
+	private void buildAndStoreWitnessViaProduct(LTSNBAProduct product, BitSet reach, int[] witness)
+	{
+		List<State> origStatesList = product.getOriginalModel().getStatesList();
+		if (origStatesList == null) return;
+
+		// Find first initial product state in reach
+		int start = -1;
+		for (int s : product.getProductModel().getInitialStates()) {
+			if (reach.get(s)) { start = s; break; }
+		}
+		if (start == -1) return;
+
+		// Follow witness pointers through the product model, projecting each step to original model.
+		// Skip consecutive duplicates: when the NBA advances but the model state is unchanged,
+		// the projected step is a no-op in the original model and need not be shown.
+		CexPathStates cex = new CexPathStates(product.getOriginalModel());
+		int ps = start;
+		State prev = null;
+		while (witness[ps] != ps) {
+			State s = origStatesList.get(product.getModelState(ps));
+			if (!s.equals(prev)) { cex.addState(s); prev = s; }
+			ps = witness[ps];
+		}
+		State s = origStatesList.get(product.getModelState(ps)); // accepting SCC state
+		if (!s.equals(prev)) cex.addState(s);
+
+		this.result.setCounterexample(cex);
 	}
 
 }

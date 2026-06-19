@@ -30,7 +30,7 @@ import java.util.ArrayList;
 
 import parser.State;
 import simulator.PathFullInfo;
-import symbolic.model.Model;;
+import prism.Model;;
 
 /**
  * Class to store a counterexample/witness comprising a single path,
@@ -38,13 +38,13 @@ import symbolic.model.Model;;
  */
 public class CexPathStates implements PathFullInfo
 {
-	protected Model model;
+	protected Model<?> model;
 	protected ArrayList<State> states;
 
 	/**
 	 * Construct empty path.
 	 */
-	public CexPathStates(Model model)
+	public CexPathStates(Model<?> model)
 	{
 		this.model = model;
 		states = new ArrayList<State>();
