@@ -85,9 +85,8 @@ done
 #  - PRISM jar file (for binary versions) (gets priority)
 #  - classes directory (most PRISM classes)
 #  - top-level directory (for images, dtds)
-#  - lib/pepa.zip (PEPA stuff)
 #  - lib/*.jar (all other jars)
-PRISM_CLASSPATH="$PRISM_DIR"/lib/prism.jar:"$PRISM_DIR"/classes:"$PRISM_DIR":"$PRISM_DIR"/lib/pepa.zip:"$PRISM_DIR"/lib/*
+PRISM_CLASSPATH="$PRISM_DIR"/lib/prism.jar:"$PRISM_DIR"/classes:"$PRISM_DIR":"$PRISM_DIR"/lib/*
 
 # Set up pointers to libraries
 PRISM_LIB_PATH="$PRISM_DIR"/lib

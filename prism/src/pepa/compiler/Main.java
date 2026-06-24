@@ -58,7 +58,7 @@ public class Main {
 
             return PRISM_result;
 	} catch (ClassNotFoundException cnfe) {
-	    throw new InternalError("Could not load the PEPA compiler class from pepa.zip");
+	    throw new InternalError("Could not load the PEPA compiler class from pepa.jar");
 	} catch (SecurityException se) {
 	    throw new InternalError("Could not secure the PEPA compiler class");
 	} catch (IllegalAccessException iae) {
