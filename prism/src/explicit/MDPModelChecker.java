@@ -49,9 +49,9 @@ import explicit.rewards.MCRewardsFromMDPRewards;
 import explicit.rewards.MDPRewards;
 import explicit.rewards.Rewards;
 import io.ModelExportFormat;
-import lpsolve.LpSolve;
-import lpsolve.LpSolveException;
 import parser.ast.Expression;
+import solver.LPSolver;
+import solver.LpSolveSolver;
 import parser.type.TypeDouble;
 import prism.Accuracy;
 import prism.Accuracy.AccuracyLevel;
@@ -1224,75 +1224,48 @@ public class MDPModelChecker extends ProbModelChecker
 		unknown.andNot(yes);
 		unknown.andNot(no);
 
+		LPSolver lp = new LpSolveSolver(n);
+		double[] coeffs = new double[n + 1];
+		int[] vars = new int[n + 1];
 		try {
-			// Initialise LP solver
-			LpSolve solver = LpSolve.makeLp(0, n);
-			try {
-				solver.setVerbose(lpsolve.LpSolve.CRITICAL);
-				solver.setAddRowmode(true);
-				// Set up arrays for passing LP to solver
-				double[] row = new double[n + 1];
-				int[] colno = new int[n + 1];
-				// Set objective function
-				if (min) {
-					solver.setMaxim();
+			// Variables: bounds [0,1]; objective 1.0 for unknown states (0 for yes/no)
+			for (int s = 0; s < n; s++) {
+				lp.addVar(0.0, 1.0, unknown.get(s) ? 1.0 : 0.0);
+			}
+			// Constraints: one equality per yes/no state; one inequality per choice of unknown states.
+			// The constraint for choice i of state s is: x_s - sum_t p(s,i,t)*x_t <= 0 (Pmin)
+			//                                        or: x_s - sum_t p(s,i,t)*x_t >= 0 (Pmax)
+			for (int s = 0; s < n; s++) {
+				if (yes.get(s)) {
+					coeffs[0] = 1.0; vars[0] = s;
+					lp.addConstraint(1, coeffs, vars, '=', 1.0);
+				} else if (no.get(s)) {
+					coeffs[0] = 1.0; vars[0] = s;
+					lp.addConstraint(1, coeffs, vars, '=', 0.0);
 				} else {
-					solver.setMinim();
-				}
-				for (int s : new IterableBitSet(unknown)) {
-					row[s + 1] = 1.0;
-				}
-				solver.setObjFn(row);
-				// Add constraints
-				for (int s = 0; s < n; s++) {
-					solver.setBounds(s + 1, 0, 1);
-					if (yes.get(s)) {
-						row[0] = 1.0;
-						colno[0] = s + 1;
-						solver.addConstraintex(1, row, colno, LpSolve.EQ, 1.0);
-					} else if (no.get(s)) {
-						row[0] = 1.0;
-						colno[0] = s + 1;
-						solver.addConstraintex(1, row, colno, LpSolve.EQ, 0.0);
-					} else {
-						int numChoices = mdp.getNumChoices(s);
-						for (int i = 0; i < numChoices; i++) {
-							int count = 0;
-							row[count] = 1.0;
-							colno[count] = s + 1;
-							count++;
-							Iterator<Map.Entry<Integer, Double>> iter = mdp.getTransitionsIterator(s, i);
-							while (iter.hasNext()) {
-								Map.Entry<Integer, Double> e = iter.next();
-								int t = e.getKey();
-								double p = e.getValue();
-								if (t == s) {
-									row[0] -= p;
-								} else {
-									row[count] = -p;
-									colno[count] = t + 1;
-									count++;
-								}
+					int numChoices = mdp.getNumChoices(s);
+					for (int i = 0; i < numChoices; i++) {
+						int count = 0;
+						coeffs[count] = 1.0; vars[count] = s; count++;
+						Iterator<Map.Entry<Integer, Double>> iter = mdp.getTransitionsIterator(s, i);
+						while (iter.hasNext()) {
+							Map.Entry<Integer, Double> e = iter.next();
+							int t = e.getKey();
+							double p = e.getValue();
+							if (t == s) {
+								coeffs[0] -= p;
+							} else {
+								coeffs[count] = -p; vars[count] = t; count++;
 							}
-							solver.addConstraintex(count, row, colno, min ? LpSolve.LE : LpSolve.GE, 0.0);
 						}
+						lp.addConstraint(count, coeffs, vars, min ? '<' : '>', 0.0);
 					}
 				}
-				// Solve LP
-				solver.setAddRowmode(false);
-				//solver.printLp();
-				int lpRes = solver.solve();
-				if (lpRes == lpsolve.LpSolve.OPTIMAL) {
-					soln = solver.getPtrVariables();
-				} else {
-					String detail = lpRes == LpSolve.INFEASIBLE ? " (infeasible)" : lpRes == LpSolve.UNBOUNDED ? " (unbounded)" : "";
-					throw new PrismException("Error solving LP" + detail);
-				}
-			} finally {
-				solver.deleteLp();
 			}
-		} catch (LpSolveException e) {
-			throw new PrismException("Error solving LP: " + e.getMessage());
+			// Pmin uses the dual (maximise); Pmax minimises directly
+			soln = lp.solve(min);
+		} finally {
+			lp.dispose();
 		}
 
 		// We do an extra iteration of VI (using GS since we have just one solution vector)
@@ -2798,84 +2771,54 @@ public class MDPModelChecker extends ProbModelChecker
 		unknown.andNot(target);
 		unknown.andNot(inf);
 
+		LPSolver lp = new LpSolveSolver(n);
+		double[] coeffs = new double[n + 1];
+		int[] vars = new int[n + 1];
 		try {
-			// Initialise LP solver
-			LpSolve solver = LpSolve.makeLp(0, n);
-			try {
-				solver.setVerbose(lpsolve.LpSolve.CRITICAL);
-				solver.setAddRowmode(true);
-				// Set up arrays for passing LP to solver
-				double[] row = new double[n + 1];
-				int[] colno = new int[n + 1];
-				// Set objective function
-				if (min) {
-					solver.setMaxim();
+			// Variables: lower bound 0, no upper bound; objective 1.0 for unknown states
+			for (int s = 0; s < n; s++) {
+				lp.addVar(0.0, Double.POSITIVE_INFINITY, unknown.get(s) ? 1.0 : 0.0);
+			}
+			// Constraints: target/inf states pinned to 0; unknown states get one constraint per choice.
+			// The constraint for choice i of state s is:
+			//   x_s - sum_t p(s,i,t)*x_t <= stateRew + transRew  (Rmin, maximise dual)
+			//   x_s - sum_t p(s,i,t)*x_t >= stateRew + transRew  (Rmax, minimise)
+			// Choices that lead to an inf state are skipped: inf states are pinned to 0 in the LP
+			// (restored afterward), so including such a choice would add an incorrectly tight bound.
+			for (int s = 0; s < n; s++) {
+				if (!unknown.get(s)) {
+					// Target and inf states pinned to 0
+					coeffs[0] = 1.0; vars[0] = s;
+					lp.addConstraint(1, coeffs, vars, '=', 0.0);
 				} else {
-					solver.setMinim();
-				}
-				for (int s : new IterableBitSet(unknown)) {
-					row[s + 1] = 1.0;
-				}
-				solver.setObjFn(row);
-				// Add constraints
-				for (int s = 0; s < n; s++) {
-					solver.setLowbo(s + 1, 0);
-					if (!unknown.get(s)) {
-						row[0] = 1.0;
-						colno[0] = s + 1;
-						solver.addConstraintex(1, row, colno, LpSolve.EQ, 0.0);
-					} else {
-						int numChoices = mdp.getNumChoices(s);
-						for (int i = 0; i < numChoices; i++) {
-							int count = 0;
-							row[count] = 1.0;
-							colno[count] = s + 1;
-							count++;
-							boolean toInf = false;
-							Iterator<Map.Entry<Integer, Double>> iter = mdp.getTransitionsIterator(s, i);
-							while (iter.hasNext()) {
-								Map.Entry<Integer, Double> e = iter.next();
-								int t = e.getKey();
-								double p = e.getValue();
-								if (t == s) {
-									row[0] -= p;
-								} else {
-									row[count] = -p;
-									colno[count] = t + 1;
-									count++;
-								}
-								toInf = toInf || inf.get(t);
+					int numChoices = mdp.getNumChoices(s);
+					for (int i = 0; i < numChoices; i++) {
+						int count = 0;
+						coeffs[count] = 1.0; vars[count] = s; count++;
+						boolean toInf = false;
+						Iterator<Map.Entry<Integer, Double>> iter = mdp.getTransitionsIterator(s, i);
+						while (iter.hasNext()) {
+							Map.Entry<Integer, Double> e = iter.next();
+							int t = e.getKey();
+							double p = e.getValue();
+							if (t == s) {
+								coeffs[0] -= p;
+							} else {
+								coeffs[count] = -p; vars[count] = t; count++;
 							}
-							// Skip choices that can lead to an inf state.
-							// Inf states are pinned to 0 in the LP (their true value +inf is
-							// only restored after solving), so including such a choice would
-							// add an incorrectly tight bound on x_s, corrupting the solution.
-							// This guard is genuinely necessary for Rmin: an unknown state can
-							// have a "bad" choice to an inf state alongside a "good" choice that
-							// guarantees reaching the target (prob1 precomputation only ensures
-							// unknown states have max-prob-1, not that all choices do).
-							if (!toInf) {
-								double rew = mdpRewards.getStateReward(s) + mdpRewards.getTransitionReward(s, i);
-								solver.addConstraintex(count, row, colno, min ? LpSolve.LE : LpSolve.GE, rew);
-							}
+							toInf = toInf || inf.get(t);
+						}
+						if (!toInf) {
+							double rew = mdpRewards.getStateReward(s) + mdpRewards.getTransitionReward(s, i);
+							lp.addConstraint(count, coeffs, vars, min ? '<' : '>', rew);
 						}
 					}
 				}
-				// Solve LP
-				solver.setAddRowmode(false);
-				//solver.printLp();
-				int lpRes = solver.solve();
-				if (lpRes == lpsolve.LpSolve.OPTIMAL) {
-					soln = solver.getPtrVariables();
-				} else {
-					String detail = lpRes == LpSolve.INFEASIBLE ? " (infeasible)" : lpRes == LpSolve.UNBOUNDED ? " (unbounded)" : "";
-					throw new PrismException("Error solving LP" + detail);
-				}
-			} finally {
-				solver.deleteLp();
 			}
-		} catch (LpSolveException e) {
-			throw new PrismException("Error solving LP: " + e.getMessage());
+			// Rmin uses the dual (maximise); Rmax minimises directly
+			soln = lp.solve(min);
+		} finally {
+			lp.dispose();
 		}
 
 		// Set value for states with infinite rewards
