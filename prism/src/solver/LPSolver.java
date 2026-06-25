@@ -39,6 +39,12 @@ import prism.PrismException;
  */
 public interface LPSolver
 {
+	/** Short identifier for this backend, e.g. "lpsolve" or "gurobi". */
+	String getId();
+
+	/** Human-readable name for logging, e.g. "lpsolve" or "Gurobi". */
+	String getDisplayName();
+
 	/**
 	 * Add a variable with bounds [lb, ub] and the given objective coefficient.
 	 * Variables are indexed 0, 1, ... in the order they are added.

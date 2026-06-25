@@ -51,7 +51,6 @@ import explicit.rewards.Rewards;
 import io.ModelExportFormat;
 import parser.ast.Expression;
 import solver.LPSolver;
-import solver.LpSolveSolver;
 import parser.type.TypeDouble;
 import prism.Accuracy;
 import prism.Accuracy.AccuracyLevel;
@@ -1211,12 +1210,13 @@ public class MDPModelChecker extends ProbModelChecker
 		double[] soln = null;
 		long timer;
 
-		// Start solution
-		timer = System.currentTimeMillis();
-		mainLog.println("Starting linear programming (" + (min ? "min" : "max") + ")...");
-
 		// Store num states
 		int n = mdp.getNumStates();
+
+		// Start solution
+		timer = System.currentTimeMillis();
+		LPSolver lp = createLPSolver(n);
+		mainLog.println("Starting linear programming (" + (min ? "min" : "max") + ", " + lp.getDisplayName() + ")...");
 
 		// Determine set of states actually need to perform computation for
 		BitSet unknown = new BitSet();
@@ -1224,7 +1224,6 @@ public class MDPModelChecker extends ProbModelChecker
 		unknown.andNot(yes);
 		unknown.andNot(no);
 
-		LPSolver lp = new LpSolveSolver(n);
 		double[] coeffs = new double[n + 1];
 		int[] vars = new int[n + 1];
 		try {
@@ -2758,12 +2757,13 @@ public class MDPModelChecker extends ProbModelChecker
 		double[] soln = null;
 		long timer;
 
-		// Start solution
-		timer = System.currentTimeMillis();
-		mainLog.println("Starting linear programming (" + (min ? "min" : "max") + ")...");
-
 		// Store num states
 		int n = mdp.getNumStates();
+
+		// Start solution
+		timer = System.currentTimeMillis();
+		LPSolver lp = createLPSolver(n);
+		mainLog.println("Starting linear programming (" + (min ? "min" : "max") + ", " + lp.getDisplayName() + ")...");
 
 		// Determine set of states actually need to perform computation for
 		BitSet unknown = new BitSet();
@@ -2771,7 +2771,6 @@ public class MDPModelChecker extends ProbModelChecker
 		unknown.andNot(target);
 		unknown.andNot(inf);
 
-		LPSolver lp = new LpSolveSolver(n);
 		double[] coeffs = new double[n + 1];
 		int[] vars = new int[n + 1];
 		try {

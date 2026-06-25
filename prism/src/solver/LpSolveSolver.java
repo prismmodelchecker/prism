@@ -35,6 +35,12 @@ import prism.PrismException;
  */
 public class LpSolveSolver implements LPSolver
 {
+	public static final String ID           = "lpsolve";
+	public static final String DISPLAY_NAME = "lpsolve";
+
+	@Override public String getId()          { return ID; }
+	@Override public String getDisplayName() { return DISPLAY_NAME; }
+
 	private final int numVars;
 	private final LpSolve solver;
 	// 1-based objective row (index 0 unused, indices 1..numVars are variable coefficients)
