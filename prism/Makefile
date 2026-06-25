@@ -371,6 +371,10 @@ JFLAGS += --release 11 # Enforce Java language level
 
 export CFLAGS CXXFLAGS LDFLAGS JFLAGS LIBPREFIX LIBSUFFIX
 
+# Variables for optional plugin compilation (targets defined later, after default goal)
+PLUGIN_TMP      := .plugin_build_tmp
+PLUGIN_SRC_DIRS := $(wildcard plugins/*/src)
+
 ##########################################
 # Main part of Makefile: Compiling PRISM #
 ##########################################
@@ -419,11 +423,42 @@ prism: checks prism_java prism_lib prism_ng bin_scripts
 # Compile all Java code, build JNI headers
 prism_java: $(JAVA_COMPILED_STAMP)
 
+# Optional plugins: any plugins/xxx/ with Java source in src/ is compiled into
+# lib/prism-xxx.jar. If optional SDK jars are absent, compilation is skipped
+# with a warning rather than failing the build.
+ifneq ($(PLUGIN_SRC_DIRS),)
+prism_java: compile-plugins
+endif
+
+.PHONY: compile-plugins
+compile-plugins: $(JAVA_COMPILED_STAMP)
+	@for src_dir in $(PLUGIN_SRC_DIRS); do \
+	    plugin=$$(basename $$(dirname $$src_dir)); \
+	    jar_out=$(PRISM_LIB_DIR)/prism-$$plugin.jar; \
+	    java_files=$$(find $$src_dir -name "*.java" 2>/dev/null | tr '\n' ' '); \
+	    [ -z "$$java_files" ] && continue; \
+	    echo "Compiling plugin: $$plugin"; \
+	    rm -rf $(PLUGIN_TMP) && mkdir -p $(PLUGIN_TMP); \
+	    if javac_out=$$($(JAVAC) $(JFLAGS) \
+	            -classpath "$(PRISM_LIB_DIR)/*:$(JAVA_CLASSES_DIR)" \
+	            -d $(PLUGIN_TMP) $$java_files 2>&1); then \
+	        [ -n "$$javac_out" ] && echo "$$javac_out"; \
+	        [ -d $$src_dir/META-INF ] && cp -r $$src_dir/META-INF $(PLUGIN_TMP)/; \
+	        jar cf $$jar_out -C $(PLUGIN_TMP) .; \
+	        echo "  -> $$jar_out"; \
+	    else \
+	        echo "Skipping plugin '$$plugin': compilation failed (optional dependencies may be missing from lib/)"; \
+	        rm -f $$jar_out; \
+	    fi; \
+	    rm -rf $(PLUGIN_TMP); \
+	done
+
 $(JAVA_COMPILED_STAMP): $(JAVA_SRC_FILES)
 	@mkdir -p $(JAVA_CLASSES_DIR) $(PRISM_INCLUDE_DIR)/jni
 	@find $(JAVA_SRC_DIR) -name "*.java" > $(JAVA_SRC_FILES_LIST)
 	@echo "Compiling Java files..."
 	$(JAVAC) $(JFLAGS) -classpath "$(PRISM_LIB_DIR)/*" -d $(JAVA_CLASSES_DIR) -h $(PRISM_INCLUDE_DIR)/jni @$(JAVA_SRC_FILES_LIST)
+	@if [ -d $(JAVA_SRC_DIR)/META-INF ]; then cp -r $(JAVA_SRC_DIR)/META-INF $(JAVA_CLASSES_DIR)/; fi
 	@touch $@
 
 # Rebuild PRISM (JavaCC) compiler if needed
@@ -732,6 +767,12 @@ clean: checks
 	rm -f $(JAVA_SRC_FILES_LIST) $(JAVA_COMPILED_STAMP)
 	rm -f $(JAVA_TESTS_SRC_FILES_LIST) $(JAVA_TESTS_COMPILED_STAMP)
 	rm -rf $(PRISM_OBJ_DIR)
+	@for src_dir in $(PLUGIN_SRC_DIRS); do \
+	    plugin=$$(basename $$(dirname $$src_dir)); \
+	    rm -f $(PRISM_LIB_DIR)/prism-$$plugin.jar; \
+	done
+	rm -f $(PRISM_LIB_DIR)/gurobi-plugin.jar
+	rm -rf $(PLUGIN_TMP)
 	rm -f $(PRISM_LIB_DIR)/$(LIBPREFIX)prism$(LIBSUFFIX)
 	rm -f $(OLD_SHARED_LIB_FILES)
 	rm -f $(PRISM_INCLUDE_DIR)/jni/*.h

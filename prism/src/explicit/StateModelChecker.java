@@ -94,6 +94,8 @@ import prism.PrismNotSupportedException;
 import prism.PrismSettings;
 import prism.Result;
 import prism.RewardGenerator;
+import solver.LPSolver;
+import solver.LPSolverRegistry;
 
 /**
  * Super class for explicit-state model checkers.
@@ -144,6 +146,9 @@ public class StateModelChecker extends PrismComponent
 	// Do interval iteration?
 	protected boolean doIntervalIteration = false;
 
+	// LP solver backend to use (identified by id, e.g. "lpsolve" or "gurobi")
+	protected String lpSolver = "lpsolve";
+
 	// Model info (for reward structures, etc.)
 	protected ModulesFile modulesFile = null;
 	protected ModelInfo modelInfo = null;
@@ -180,6 +185,7 @@ public class StateModelChecker extends PrismComponent
 			setDoIntervalIteration(settings.getBoolean(PrismSettings.PRISM_INTERVAL_ITER));
 			setDoTopologicalValueIteration(settings.getBoolean(PrismSettings.PRISM_TOPOLOGICAL_VI));
 			setDoPmaxQuotient(settings.getBoolean(PrismSettings.PRISM_PMAX_QUOTIENT));
+			setLPSolver(settings.getString(PrismSettings.PRISM_LP_SOLVER));
 		}
 	}
 
@@ -262,6 +268,7 @@ public class StateModelChecker extends PrismComponent
 		setDoBisim(other.getDoBisim());
 		setDoIntervalIteration(other.getDoIntervalIteration());
 		setDoPmaxQuotient(other.getDoPmaxQuotient());
+		setLPSolver(other.getLPSolver());
 	}
 
 	/**
@@ -378,6 +385,11 @@ public class StateModelChecker extends PrismComponent
 		this.doIntervalIteration = doIntervalIteration;
 	}
 
+	public void setLPSolver(String lpSolver)
+	{
+		this.lpSolver = lpSolver;
+	}
+
 	// Get methods for flags/settings
 
 	public int getVerbosity()
@@ -479,6 +491,20 @@ public class StateModelChecker extends PrismComponent
 	public boolean getDoIntervalIteration()
 	{
 		return doIntervalIteration;
+	}
+
+	public String getLPSolver()
+	{
+		return lpSolver;
+	}
+
+	/**
+	 * Create an LP solver backend of the type selected by {@link #lpSolver}.
+	 * Backends are discovered at runtime via Java SPI (see {@link LPSolverRegistry}).
+	 */
+	public LPSolver createLPSolver(int numVars) throws PrismException
+	{
+		return LPSolverRegistry.create(lpSolver, numVars);
 	}
 
 	/** Get the constant values (both from the modules file and the properties file) */
