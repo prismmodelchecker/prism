@@ -2,10 +2,8 @@
 //	
 //	Copyright (c) 2002-
 //	Authors:
-//	* Dave Parker <david.parker@comlab.ox.ac.uk> (University of Oxford, formerly University of Birmingham)
-//	* Andrew Hinton <ug60axh@cs.bham.ac.uk> (University of Birmingham)
-//	* Vincent Nimal <vincent.nimal@comlab.ox.ac.uk> (University of Oxford)
-//	
+//	* Dave Parker <david.parker@cs.ox.ac.uk> (University of Oxford)
+//
 //------------------------------------------------------------------------------
 //	
 //	This file is part of PRISM.
@@ -949,7 +947,10 @@ public class PrismSettings implements Observer
 	protected boolean exportPropAut = false;
 	protected String exportPropAutType = "txt";
 	protected String exportPropAutFilename = "da.txt";
-	
+
+	// CLI switch handler map (populated lazily by initSwitchHandlers)
+	private Map<String, SwitchHandler> settingsSwitchHandlers;
+
 	public void setExportPropAut(boolean b) throws PrismException
 	{
 		exportPropAut = b;
@@ -981,795 +982,326 @@ public class PrismSettings implements Observer
 	}
 
 	/**
-	 * Set an option by parsing one or more command-line arguments.
-	 * Reads the ith argument (assumed to be in the form "-switch")
-	 * and also any subsequent arguments required as parameters.
-	 * Return the index of the next argument to be read.
-	 * @param args Full list of arguments
-	 * @param i Index of first argument to read
+	 * Handle a command-line switch by dispatching to the registered settings handler.
+	 * @param sw   Switch name (without leading {@code -}, colon sub-options already in {@code consumer})
+	 * @param consumer Argument consumer positioned at the switch token
 	 */
-	public synchronized int setFromCommandLineSwitch(String args[], int i) throws PrismException
+	public synchronized void setFromCommandLineSwitch(String sw, ArgConsumer consumer) throws PrismException
 	{
-		String s;
-		int j;
-		double d;
-		
-		// Process string (remove - and extract any options) 
-		Pair<String, String> pair = splitSwitch(args[i]);
-		String sw = pair.first;
-		String optionsString = pair.second;
-		Map<String, String> options = splitOptionsString(optionsString);
-		
-		// Note: the order of these switches should match the -help output (just to help keep track of things).
-		
-		// ENGINES/METHODS:
-		
-		// Main model checking engine
-		if (sw.equals("mtbdd") || sw.equals("m")) {
-			set(PRISM_ENGINE, "MTBDD");
-		}
-		else if (sw.equals("sparse") || sw.equals("s")) {
-			set(PRISM_ENGINE, "Sparse");
-		}
-		else if (sw.equals("hybrid") || sw.equals("h")) {
-			set(PRISM_ENGINE, "Hybrid");
-		}
-		else if (sw.equals("explicit") || sw.equals("ex")) {
-			set(PRISM_ENGINE, "Explicit");
-		}
-		// Exact model checking
-		else if (sw.equals("exact")) {
-			set(PRISM_EXACT_ENABLED, true);
-		}
-		// PTA model checking methods
-		else if (sw.equals("ptamethod")) {
-			if (i < args.length - 1) {
-				s = args[++i];
-				if (s.equals("digital"))
-					set(PRISM_PTA_METHOD, "Digital clocks");
-				else if (s.equals("games"))
-					set(PRISM_PTA_METHOD, "Stochastic games");
-				else if (s.equals("backwards") || s.equals("bw"))
-					set(PRISM_PTA_METHOD, "Backwards reachability");
-				else
-					throw new PrismException("Unrecognised option for -" + sw + " switch (options are: digital, games, backwards)");
-			} else {
-				throw new PrismException("No parameter specified for -" + sw + " switch");
-			}
-		}
-		// Transient methods
-		else if (sw.equals("transientmethod")) {
-			if (i < args.length - 1) {
-				s = args[++i];
-				if (s.equals("unif"))
-					set(PRISM_TRANSIENT_METHOD, "Uniformisation");
-				else if (s.equals("fau"))
-					set(PRISM_TRANSIENT_METHOD, "Fast adaptive uniformisation");
-				else
-					throw new PrismException("Unrecognised option for -" + sw + " switch (options are: unif, fau)");
-			} else {
-				throw new PrismException("No parameter specified for -" + sw + " switch");
-			}
-		}
-		// Heuristic modes
-		else if (sw.equals("heuristic")) {
-			if (i < args.length - 1) {
-				s = args[++i];
-				if (s.equals("none"))
-					set(PRISM_HEURISTIC, "None");
-				else if (s.equals("speed"))
-					set(PRISM_HEURISTIC, "Speed");
-				else if (s.equals("memory"))
-					set(PRISM_HEURISTIC, "Memory");
-				else
-					throw new PrismException("Unrecognised option for -" + sw + " switch (options are: none, speed, memory)");
-			} else {
-				throw new PrismException("No parameter specified for -" + sw + " switch");
-			}
+		// Lazy init (method is synchronized, so no race condition)
+		if (settingsSwitchHandlers == null) initSwitchHandlers();
+
+		SwitchHandler handler = settingsSwitchHandlers.get(sw);
+		if (handler != null) {
+			handler.handle(sw, consumer);
+			return;
 		}
 
+		throw new PrismException("Invalid switch -" + sw + " (type \"prism -help\" for full list)");
+	}
+
+	/** Populate {@link #settingsSwitchHandlers} with a handler for every switch recognised here. */
+	private void initSwitchHandlers()
+	{
+		settingsSwitchHandlers = new LinkedHashMap<>();
+
+		// ENGINES/METHODS:
+		addSwitch("mtbdd",    "m",  new FlagSwitch(() -> set(PRISM_ENGINE, "MTBDD")));
+		addSwitch("sparse",   "s",  new FlagSwitch(() -> set(PRISM_ENGINE, "Sparse")));
+		addSwitch("hybrid",   "h",  new FlagSwitch(() -> set(PRISM_ENGINE, "Hybrid")));
+		addSwitch("explicit", "ex", new FlagSwitch(() -> set(PRISM_ENGINE, "Explicit")));
+		addSwitch("exact", new FlagSwitch(() -> set(PRISM_EXACT_ENABLED, true)));
+		addSwitch("ptamethod", new EnumSwitch()
+			.when("digital",         () -> set(PRISM_PTA_METHOD, "Digital clocks"))
+			.when("games",           () -> set(PRISM_PTA_METHOD, "Stochastic games"))
+			.when("backwards", "bw", () -> set(PRISM_PTA_METHOD, "Backwards reachability")));
+		addSwitch("transientmethod", new EnumSwitch()
+			.when("unif", () -> set(PRISM_TRANSIENT_METHOD, "Uniformisation"))
+			.when("fau",  () -> set(PRISM_TRANSIENT_METHOD, "Fast adaptive uniformisation")));
+		addSwitch("heuristic", new EnumSwitch()
+			.when("none",   () -> set(PRISM_HEURISTIC, "None"))
+			.when("speed",  () -> set(PRISM_HEURISTIC, "Speed"))
+			.when("memory", () -> set(PRISM_HEURISTIC, "Memory")));
+
 		// NUMERICAL SOLUTION OPTIONS:
-		
-		// Linear equation solver + MDP soln method
-		else if (sw.equals("power") || sw.equals("pow") || sw.equals("pwr")) {
-			set(PRISM_LIN_EQ_METHOD, "Power");
-		} else if (sw.equals("jacobi") || sw.equals("jac")) {
-			set(PRISM_LIN_EQ_METHOD, "Jacobi");
-		} else if (sw.equals("gaussseidel") || sw.equals("gs")) {
+		addSwitch("power", "pow", "pwr", new FlagSwitch(() -> set(PRISM_LIN_EQ_METHOD, "Power")));
+		addSwitch("jacobi", "jac",       new FlagSwitch(() -> set(PRISM_LIN_EQ_METHOD, "Jacobi")));
+		addSwitch("gaussseidel", "gs",   new FlagSwitch(() -> {
 			set(PRISM_LIN_EQ_METHOD, "Gauss-Seidel");
 			set(PRISM_MDP_SOLN_METHOD, "Gauss-Seidel");
 			set(PRISM_MDP_MULTI_SOLN_METHOD, "Gauss-Seidel");
 			set(PRISM_IMDP_SOLN_METHOD, "Gauss-Seidel");
-		} else if (sw.equals("bgaussseidel") || sw.equals("bgs")) {
-			set(PRISM_LIN_EQ_METHOD, "Backwards Gauss-Seidel");
-		} else if (sw.equals("pgaussseidel") || sw.equals("pgs")) {
-			set(PRISM_LIN_EQ_METHOD, "Pseudo-Gauss-Seidel");
-		} else if (sw.equals("bpgaussseidel") || sw.equals("bpgs")) {
-			set(PRISM_LIN_EQ_METHOD, "Backwards Pseudo-Gauss-Seidel");
-		} else if (sw.equals("jor")) {
-			set(PRISM_LIN_EQ_METHOD, "JOR");
-		} else if (sw.equals("sor")) {
-			set(PRISM_LIN_EQ_METHOD, "SOR");
-		} else if (sw.equals("bsor")) {
-			set(PRISM_LIN_EQ_METHOD, "Backwards SOR");
-		} else if (sw.equals("psor")) {
-			set(PRISM_LIN_EQ_METHOD, "Pseudo-SOR");
-		} else if (sw.equals("bpsor")) {
-			set(PRISM_LIN_EQ_METHOD, "Backwards Pseudo-SOR");
-		} else if (sw.equals("valiter")) {
+		}));
+		addSwitch("bgaussseidel",  "bgs",  new FlagSwitch(() -> set(PRISM_LIN_EQ_METHOD, "Backwards Gauss-Seidel")));
+		addSwitch("pgaussseidel",  "pgs",  new FlagSwitch(() -> set(PRISM_LIN_EQ_METHOD, "Pseudo-Gauss-Seidel")));
+		addSwitch("bpgaussseidel", "bpgs", new FlagSwitch(() -> set(PRISM_LIN_EQ_METHOD, "Backwards Pseudo-Gauss-Seidel")));
+		addSwitch("jor",  new FlagSwitch(() -> set(PRISM_LIN_EQ_METHOD, "JOR")));
+		addSwitch("sor",  new FlagSwitch(() -> set(PRISM_LIN_EQ_METHOD, "SOR")));
+		addSwitch("bsor", new FlagSwitch(() -> set(PRISM_LIN_EQ_METHOD, "Backwards SOR")));
+		addSwitch("psor", new FlagSwitch(() -> set(PRISM_LIN_EQ_METHOD, "Pseudo-SOR")));
+		addSwitch("bpsor", new FlagSwitch(() -> set(PRISM_LIN_EQ_METHOD, "Backwards Pseudo-SOR")));
+		addSwitch("valiter", new FlagSwitch(() -> {
 			set(PRISM_MDP_SOLN_METHOD, "Value iteration");
 			set(PRISM_MDP_MULTI_SOLN_METHOD, "Value iteration");
 			set(PRISM_IMDP_SOLN_METHOD, "Value iteration");
-		} else if (sw.equals("politer")) {
-			set(PRISM_MDP_SOLN_METHOD, "Policy iteration");
-		} else if (sw.equals("modpoliter")) {
-			set(PRISM_MDP_SOLN_METHOD, "Modified policy iteration");
-		} else if (sw.equals("linprog") || sw.equals("lp")) {
+		}));
+		addSwitch("politer",    new FlagSwitch(() -> set(PRISM_MDP_SOLN_METHOD, "Policy iteration")));
+		addSwitch("modpoliter", new FlagSwitch(() -> set(PRISM_MDP_SOLN_METHOD, "Modified policy iteration")));
+		addSwitch("linprog", "lp", new FlagSwitch(() -> {
 			set(PRISM_MDP_SOLN_METHOD, "Linear programming");
 			set(PRISM_MDP_MULTI_SOLN_METHOD, "Linear programming");
-		}
-
-		// Interval iterations
-		else if (sw.equals("intervaliter") ||
-		         sw.equals("ii")) {
+		}));
+		addSwitch("intervaliter", "ii", (sw, a) -> {
 			set(PRISM_INTERVAL_ITER, true);
-
-			if (optionsString != null) {
-				optionsString = optionsString.trim();
+			String opts = a.optionsString();
+			if (opts != null) {
+				opts = opts.trim();
 				try {
-					OptionsIntervalIteration.validate(optionsString);
+					OptionsIntervalIteration.validate(opts);
 				} catch (PrismException e) {
 					throw new PrismException("In options for -" + sw + " switch: " + e.getMessage());
 				}
-
-				// append options to existing ones
-				String iiOptions = getString(PRISM_INTERVAL_ITER_OPTIONS);
-				if ("".equals(iiOptions))
-					iiOptions = optionsString;
-				else
-					iiOptions += "," + optionsString;
-				set(PRISM_INTERVAL_ITER_OPTIONS, iiOptions);
+				String existing = getString(PRISM_INTERVAL_ITER_OPTIONS);
+				set(PRISM_INTERVAL_ITER_OPTIONS, "".equals(existing) ? opts : existing + "," + opts);
 			}
-		}
-
-		// Pmax quotient
-		else if (sw.equals("pmaxquotient")) {
-			set(PRISM_PMAX_QUOTIENT, true);
-		}
-
-		// Topological VI
-		else if (sw.equals("topological")) {
-			set(PRISM_TOPOLOGICAL_VI, true);
-		}
-
-		// Linear equation solver over-relaxation parameter
-		else if (sw.equals("omega")) {
-			if (i < args.length - 1) {
-				try {
-					d = Double.parseDouble(args[++i]);
-					set(PRISM_LIN_EQ_METHOD_PARAM, d);
-				} catch (NumberFormatException e) {
-					throw new PrismException("Invalid value for -" + sw + " switch");
-				}
-			} else {
-				throw new PrismException("No value specified for -" + sw + " switch");
-			}
-		}
-		// Termination criterion (iterative methods)
-		else if (sw.equals("relative") || sw.equals("rel")) {
-			set(PRISM_TERM_CRIT, "Relative");
-		}
-		else if (sw.equals("absolute") || sw.equals("abs")) {
-			set(PRISM_TERM_CRIT, "Absolute");
-		}
-		// Termination criterion parameter
-		else if (sw.equals("epsilon") || sw.equals("e")) {
-			if (i < args.length - 1) {
-				try {
-					d = Double.parseDouble(args[++i]);
-					if (d < 0)
-						throw new NumberFormatException("");
-					set(PRISM_TERM_CRIT_PARAM, d);
-				} catch (NumberFormatException e) {
-					throw new PrismException("Invalid value for -" + sw + " switch");
-				}
-			} else {
-				throw new PrismException("No value specified for -" + sw + " switch");
-			}
-		}
-		// Max iters
-		else if (sw.equals("maxiters")) {
-			if (i < args.length - 1) {
-				try {
-					j = Integer.parseInt(args[++i]);
-					if (j < 0)
-						throw new NumberFormatException("");
-					set(PRISM_MAX_ITERS, j);
-				} catch (NumberFormatException e) {
-					throw new PrismException("Invalid value for -" + sw + " switch");
-				}
-			} else {
-				throw new PrismException("No value specified for -" + sw + " switch");
-			}
-		}
-		// export iterations
-		else if (sw.equals("exportiterations")) {
-			set(PRISM_EXPORT_ITERATIONS, true);
-		}
-		// fixed grid resolution
-		else if (sw.equals("gridresolution")) {
-			if (i < args.length - 1) {
-				try {
-					j = Integer.parseInt(args[++i]);
-					if (j < 0)
-						throw new NumberFormatException("");
-					set(PRISM_GRID_RESOLUTION, j);
-				} catch (NumberFormatException e) {
-					throw new PrismException("Invalid value for -" + sw + " switch");
-				}
-			} else {
-				throw new PrismException("No value specified for -" + sw + " switch");
-			}
-		}
-		// export probabilities/rewards with up to n significant decimal places
-		else if (sw.equals("exportmodelprecision")) {
-			if (i < args.length - 1) {
-				try {
-					int precision = Integer.parseInt(args[++i]);
-					if (!RANGE_EXPORT_DOUBLE_PRECISION.contains(precision))
-						throw new NumberFormatException("");
-					set(PRISM_EXPORT_MODEL_PRECISION, precision);
-				} catch (NumberFormatException e) {
-					throw new PrismException("Invalid value for -" + sw + " switch");
-				}
-			} else {
-				throw new PrismException("No value specified for -" + sw + " switch");
-			}
-		}
-		// export headers off
-		else if (sw.equals("noexportheaders")) {
-			set(PRISM_EXPORT_MODEL_HEADERS, false);
-		}
+		});
+		addSwitch("pmaxquotient", new FlagSwitch(() -> set(PRISM_PMAX_QUOTIENT, true)));
+		addSwitch("topological",  new FlagSwitch(() -> set(PRISM_TOPOLOGICAL_VI, true)));
+		addSwitch("omega", new DoubleSwitch(d -> set(PRISM_LIN_EQ_METHOD_PARAM, d)));
+		addSwitch("relative", "rel", new FlagSwitch(() -> set(PRISM_TERM_CRIT, "Relative")));
+		addSwitch("absolute", "abs", new FlagSwitch(() -> set(PRISM_TERM_CRIT, "Absolute")));
+		addSwitch("epsilon", "e", (sw, a) -> {
+			double d = a.nextDouble(sw);
+			if (d < 0) throw new PrismException("Invalid value for -" + sw + " switch");
+			set(PRISM_TERM_CRIT_PARAM, d);
+		});
+		addSwitch("maxiters", (sw, a) -> {
+			int n = a.nextInt(sw);
+			if (n < 0) throw new PrismException("Invalid value for -" + sw + " switch");
+			set(PRISM_MAX_ITERS, n);
+		});
+		addSwitch("exportiterations", new FlagSwitch(() -> set(PRISM_EXPORT_ITERATIONS, true)));
+		addSwitch("gridresolution", (sw, a) -> {
+			int n = a.nextInt(sw);
+			if (n < 0) throw new PrismException("Invalid value for -" + sw + " switch");
+			set(PRISM_GRID_RESOLUTION, n);
+		});
+		addSwitch("exportmodelprecision", (sw, a) -> {
+			int n = a.nextInt(sw);
+			if (!RANGE_EXPORT_DOUBLE_PRECISION.contains(n))
+				throw new PrismException("Invalid value for -" + sw + " switch");
+			set(PRISM_EXPORT_MODEL_PRECISION, n);
+		});
+		addSwitch("noexportheaders", new FlagSwitch(() -> set(PRISM_EXPORT_MODEL_HEADERS, false)));
 
 		// MODEL CHECKING OPTIONS:
-		
-		// Precomputation algs off
-		else if (sw.equals("nopre")) {
-			set(PRISM_PRECOMPUTATION, false);
-		}
-		else if (sw.equals("noprob0")) {
-			set(PRISM_PROB0, false);
-		}
-		else if (sw.equals("noprob1")) {
-			set(PRISM_PROB1, false);
-		}
-		// Use predecessor relation? (e.g. for precomputation)
-		else if (sw.equals("noprerel")) {
-			set(PRISM_PRE_REL, false);
-		}
-		// Fix deadlocks on/off
-		else if (sw.equals("fixdl")) {
-			set(PRISM_FIX_DEADLOCKS, true);
-		}
-		else if (sw.equals("nofixdl")) {
-			set(PRISM_FIX_DEADLOCKS, false);
-		}
-		// Fairness on/off
-		else if (sw.equals("fair")) {
-			set(PRISM_FAIRNESS, true);
-		}
-		else if (sw.equals("nofair")) {
-			set(PRISM_FAIRNESS, false);
-		}
-		// Prob/rate checks off
-		else if (sw.equals("noprobchecks")) {
-			set(PRISM_DO_PROB_CHECKS, false);
-		}
-		// Sum round-off threshold
-		else if (sw.equals("sumroundoff")) {
-			if (i < args.length - 1) {
-				try {
-					d = Double.parseDouble(args[++i]);
-					if (d < 0)
-						throw new NumberFormatException("");
-					set(PRISM_SUM_ROUND_OFF, d);
-				} catch (NumberFormatException e) {
-					throw new PrismException("Invalid value for -" + sw + " switch");
-				}
-			} else {
-				throw new PrismException("No value specified for -" + sw + " switch");
-			}
-		}
-		// No steady-state detection
-		else if (sw.equals("nossdetect")) {
-			set(PRISM_DO_SS_DETECTION, false);
-		}
-		// SCC computation algorithm
-		else if (sw.equals("sccmethod") || sw.equals("bsccmethod")) {
-			if (i < args.length - 1) {
-				s = args[++i];
-				if (s.equals("xiebeerel"))
-					set(PRISM_SCC_METHOD, "Xie-Beerel");
-				else if (s.equals("lockstep"))
-					set(PRISM_SCC_METHOD, "Lockstep");
-				else if (s.equals("sccfind"))
-					set(PRISM_SCC_METHOD, "SCC-Find");
-				else
-					throw new PrismException("Unrecognised option for -" + sw + " switch (options are: xiebeerel, lockstep, sccfind)");
-			} else {
-				throw new PrismException("No parameter specified for -" + sw + " switch");
-			}
-		}
-		// Enable symmetry reduction
-		else if (sw.equals("symm")) {
-			if (i < args.length - 2) {
-				set(PRISM_SYMM_RED_PARAMS, args[++i] + " " + args[++i]);
-			} else {
-				throw new PrismException("-symm switch requires two parameters (num. modules before/after symmetric ones)");
-			}
-		}
-		// Abstraction-refinement engine options string (append if already partially specified)
-		else if (sw.equals("aroptions")) {
-			if (i < args.length - 1) {
-				String arOptions = getString(PRISM_AR_OPTIONS);
-				if ("".equals(arOptions))
-					arOptions = args[++i].trim();
-				else
-					arOptions += "," + args[++i].trim();
-				set(PRISM_AR_OPTIONS, arOptions);
-			} else {
-				throw new PrismException("No parameter specified for -" + sw + " switch");
-			}
-		}
-		// Handle all path formulas via automata constructions
-		else if (sw.equals("pathviaautomata")) {
-			set(PRISM_PATH_VIA_AUTOMATA, true);
-		}
-		// Don't simplify deterministic automata
-		else if (sw.equals("nodasimplify")) {
-			set(PRISM_NO_DA_SIMPLIFY, true);
-		}
+		addSwitch("nopre",       new FlagSwitch(() -> set(PRISM_PRECOMPUTATION, false)));
+		addSwitch("noprob0",     new FlagSwitch(() -> set(PRISM_PROB0, false)));
+		addSwitch("noprob1",     new FlagSwitch(() -> set(PRISM_PROB1, false)));
+		addSwitch("noprerel",    new FlagSwitch(() -> set(PRISM_PRE_REL, false)));
+		addSwitch("fixdl",       new FlagSwitch(() -> set(PRISM_FIX_DEADLOCKS, true)));
+		addSwitch("nofixdl",     new FlagSwitch(() -> set(PRISM_FIX_DEADLOCKS, false)));
+		addSwitch("fair",        new FlagSwitch(() -> set(PRISM_FAIRNESS, true)));
+		addSwitch("nofair",      new FlagSwitch(() -> set(PRISM_FAIRNESS, false)));
+		addSwitch("noprobchecks", new FlagSwitch(() -> set(PRISM_DO_PROB_CHECKS, false)));
+		addSwitch("sumroundoff", (sw, a) -> {
+			double d = a.nextDouble(sw);
+			if (d < 0) throw new PrismException("Invalid value for -" + sw + " switch");
+			set(PRISM_SUM_ROUND_OFF, d);
+		});
+		addSwitch("nossdetect", new FlagSwitch(() -> set(PRISM_DO_SS_DETECTION, false)));
+		addSwitch("sccmethod", "bsccmethod", new EnumSwitch()
+			.when("xiebeerel", () -> set(PRISM_SCC_METHOD, "Xie-Beerel"))
+			.when("lockstep",  () -> set(PRISM_SCC_METHOD, "Lockstep"))
+			.when("sccfind",   () -> set(PRISM_SCC_METHOD, "SCC-Find")));
+		addSwitch("symm", (sw, a) -> {
+			String p1 = a.next(sw);
+			String p2 = a.next(sw);
+			set(PRISM_SYMM_RED_PARAMS, p1 + " " + p2);
+		});
+		addSwitch("aroptions", (sw, a) -> {
+			String v = a.next(sw).trim();
+			String existing = getString(PRISM_AR_OPTIONS);
+			set(PRISM_AR_OPTIONS, "".equals(existing) ? v : existing + "," + v);
+		});
+		addSwitch("pathviaautomata", new FlagSwitch(() -> set(PRISM_PATH_VIA_AUTOMATA, true)));
+		addSwitch("nodasimplify",   new FlagSwitch(() -> set(PRISM_NO_DA_SIMPLIFY, true)));
 
-		
 		// MULTI-OBJECTIVE MODEL CHECKING OPTIONS:
-		
-		// Max different corner points that will be generated when performing
-		// target driven multi-obj verification.
-		else if (sw.equals("multimaxpoints")) {
-			if (i < args.length - 1) {
-				try {
-					j = Integer.parseInt(args[++i]);
-					if (j < 0)
-						throw new NumberFormatException("");
-					set(PRISM_MULTI_MAX_POINTS, j);
-				} catch (NumberFormatException e) {
-					throw new PrismException("Invalid value for -" + sw + " switch");
-				}
-			} else {
-				throw new PrismException("No value specified for -" + sw + " switch");
-			}
-		}
-		// Threshold for approximate Pareto curve generation
-		else if (sw.equals("paretoepsilon")) {
-			if (i < args.length - 1) {
-				try {
-					d = Double.parseDouble(args[++i]);
-					if (d < 0)
-						throw new PrismException("Value for -" + sw + " switch must be non-negative");
-					set(PRISM_PARETO_EPSILON, d);
-				} catch (NumberFormatException e) {
-					throw new PrismException("Invalid value for -" + sw + " switch");
-				}
-			} else {
-				throw new PrismException("No value specified for -" + sw + " switch");
-			}
-		}
-		else if (sw.equals("exportpareto")) {
-			if (i < args.length - 1) {
-				set(PRISM_EXPORT_PARETO_FILENAME, args[++i]);
-			} else {
-				throw new PrismException("No file specified for -" + sw + " switch");
-			}
-		}
-		
-		// OUTPUT OPTIONS:
-		
-		// Verbosity
-		else if (sw.equals("verbose") || sw.equals("v")) {
-			set(PRISM_VERBOSE, true);
-		}
-		// Extra dd info on
-		else if (sw.equals("extraddinfo")) {
-			set(PRISM_EXTRA_DD_INFO, true);
-		}
-		// Extra reach info on
-		else if (sw.equals("extrareachinfo")) {
-			set(PRISM_EXTRA_REACH_INFO, true);
-		}
-		
-		// SPARSE/HYBRID/MTBDD OPTIONS:
-		
-		// Turn off compact option for sparse matrix storage
-		else if (sw.equals("nocompact")) {
-			set(PRISM_COMPACT, false);
-		}
-		// Sparse bits info
-		else if (sw.equals("sbl")) {
-			if (i < args.length - 1) {
-				try {
-					j = Integer.parseInt(args[++i]);
-					if (j < -1)
-						throw new NumberFormatException();
-					set(PRISM_NUM_SB_LEVELS, j);
-				} catch (NumberFormatException e) {
-					throw new PrismException("Invalid value for -" + sw + " switch");
-				}
-			} else {
-				throw new PrismException("No value specified for -" + sw + " switch");
-			}
-		}
-		else if (sw.equals("sbmax")) {
-			if (i < args.length - 1) {
-				try {
-					j = Integer.parseInt(args[++i]);
-					if (j < 0)
-						throw new NumberFormatException();
-					set(PRISM_SB_MAX_MEM, j);
-				} catch (NumberFormatException e) {
-					throw new PrismException("Invalid value for -" + sw + " switch");
-				}
-			} else {
-				throw new PrismException("No value specified for -" + sw + " switch");
-			}
-		}
-		// Hybrid SOR info
-		else if (sw.equals("sorl") || sw.equals("gsl")) {
-			if (i < args.length - 1) {
-				try {
-					j = Integer.parseInt(args[++i]);
-					if (j < -1)
-						throw new NumberFormatException();
-					set(PRISM_NUM_SOR_LEVELS, j);
-				} catch (NumberFormatException e) {
-					throw new PrismException("Invalid value for -" + sw + " switch");
-				}
-			} else {
-				throw new PrismException("No value specified for -" + sw + " switch");
-			}
-		}
-		else if (sw.equals("sormax") || sw.equals("gsmax")) {
-			if (i < args.length - 1) {
-				try {
-					j = Integer.parseInt(args[++i]);
-					if (j < 0)
-						throw new NumberFormatException();
-					set(PRISM_SOR_MAX_MEM, j);
-				} catch (NumberFormatException e) {
-					throw new PrismException("Invalid value for -" + sw + " switch");
-				}
-			} else {
-				throw new PrismException("No value specified for -" + sw + " switch");
-			}
-		}
-		// CUDD settings
-		else if (sw.equals("cuddmaxmem")) {
-			if (i < args.length - 1) {
-				set(PRISM_CUDD_MAX_MEM, args[++i]);
-			} else {
-				throw new PrismException("No value specified for -" + sw + " switch");
-			}
-		}
-		else if (sw.equals("cuddepsilon")) {
-			if (i < args.length - 1) {
-				try {
-					d = Double.parseDouble(args[++i]);
-					if (d < 0)
-						throw new NumberFormatException("");
-					set(PRISM_CUDD_EPSILON, d);
-				} catch (NumberFormatException e) {
-					throw new PrismException("Invalid value for -" + sw + " switch");
-				}
-			} else {
-				throw new PrismException("No value specified for -" + sw + " switch");
-			}
-		} else if (sw.equals("ddextrastatevars")) {
-			if (i < args.length - 1) {
-				try {
-					int v = Integer.parseInt(args[++i]);
-					if (v < 0)
-						throw new NumberFormatException("");
-					set(PRISM_DD_EXTRA_STATE_VARS, v);
-				} catch (NumberFormatException e) {
-					throw new PrismException("Invalid value for -" + sw + " switch");
-				}
-			} else {
-				throw new PrismException("No value specified for -" + sw + " switch");
-			}
-		} else if (sw.equals("ddextraactionvars")) {
-			if (i < args.length - 1) {
-				try {
-					int v = Integer.parseInt(args[++i]);
-					if (v < 0)
-						throw new NumberFormatException("");
-					set(PRISM_DD_EXTRA_ACTION_VARS, v);
-				} catch (NumberFormatException e) {
-					throw new PrismException("Invalid value for -" + sw + " switch");
-				}
-			} else {
-				throw new PrismException("No value specified for -" + sw + " switch");
-			}
-		}
-		
-		// ADVERSARIES/COUNTEREXAMPLES:
-		
-		// Export adversary to file
-		else if (sw.equals("exportadv")) {
-			if (i < args.length - 1) {
-				set(PRISM_EXPORT_ADV, "DTMC");
-				set(PRISM_EXPORT_ADV_FILENAME, args[++i]);
-			} else {
-				throw new PrismException("No file specified for -" + sw + " switch");
-			}
-		}
-		// Export adversary to file, as an MDP
-		else if (sw.equals("exportadvmdp")) {
-			if (i < args.length - 1) {
-				set(PRISM_EXPORT_ADV, "MDP");
-				set(PRISM_EXPORT_ADV_FILENAME, args[++i]);
-			} else {
-				throw new PrismException("No file specified for -" + sw + " switch");
-			}
-		}
-		
-		// LTL2DA TOOLS
-		
-		else if (sw.equals("ltl2datool")) {
-			if (i < args.length - 1) {
-				String filename = args[++i];
-				set(PRISM_LTL2DA_TOOL, filename);
-			} else {
-				throw new PrismException("The -" + sw + " switch requires one argument (path to the executable)");
-			}
-		}
-		else if (sw.equals("ltl2dasyntax")) {
-			if (i < args.length - 1) {
-				String syntax = args[++i];
-				switch (syntax) {
-				case "lbt":
-					set(PRISM_LTL2DA_SYNTAX, "LBT");
-					break;
-				case "spin":
-					set(PRISM_LTL2DA_SYNTAX, "Spin");
-					break;
-				case "spot":
-					set(PRISM_LTL2DA_SYNTAX, "Spot");
-					break;
-				case "rabinizer":
-					set(PRISM_LTL2DA_SYNTAX, "Rabinizer");
-					break;
-				default:
-					throw new PrismException("Unrecognised option for -" + sw + " switch (options are: lbt, spin, spot, rabinizer)");
-				}
-			} else {
-				throw new PrismException("The -" + sw + " switch requires one argument (options are: lbt, spin, spot, rabinizer)");
-			}
-		}
+		addSwitch("multimaxpoints", (sw, a) -> {
+			int n = a.nextInt(sw);
+			if (n < 0) throw new PrismException("Invalid value for -" + sw + " switch");
+			set(PRISM_MULTI_MAX_POINTS, n);
+		});
+		addSwitch("paretoepsilon", (sw, a) -> {
+			double d = a.nextDouble(sw);
+			if (d < 0) throw new PrismException("Value for -" + sw + " switch must be non-negative");
+			set(PRISM_PARETO_EPSILON, d);
+		});
+		addSwitch("exportpareto", new StringSwitch(s -> set(PRISM_EXPORT_PARETO_FILENAME, s)));
 
-		// DEBUGGING / SANITY CHECKS
-		else if (sw.equals("ddsanity")) {
-			set(PRISM_JDD_SANITY_CHECKS, true);
-		}
+		// OUTPUT OPTIONS:
+		addSwitch("verbose", "v",  new FlagSwitch(() -> set(PRISM_VERBOSE, true)));
+		addSwitch("extraddinfo",   new FlagSwitch(() -> set(PRISM_EXTRA_DD_INFO, true)));
+		addSwitch("extrareachinfo", new FlagSwitch(() -> set(PRISM_EXTRA_REACH_INFO, true)));
+
+		// SPARSE/HYBRID/MTBDD OPTIONS:
+		addSwitch("nocompact", new FlagSwitch(() -> set(PRISM_COMPACT, false)));
+		addSwitch("sbl", (sw, a) -> {
+			int n = a.nextInt(sw);
+			if (n < -1) throw new PrismException("Invalid value for -" + sw + " switch");
+			set(PRISM_NUM_SB_LEVELS, n);
+		});
+		addSwitch("sbmax", (sw, a) -> {
+			int n = a.nextInt(sw);
+			if (n < 0) throw new PrismException("Invalid value for -" + sw + " switch");
+			set(PRISM_SB_MAX_MEM, n);
+		});
+		addSwitch("sorl", "gsl", (sw, a) -> {
+			int n = a.nextInt(sw);
+			if (n < -1) throw new PrismException("Invalid value for -" + sw + " switch");
+			set(PRISM_NUM_SOR_LEVELS, n);
+		});
+		addSwitch("sormax", "gsmax", (sw, a) -> {
+			int n = a.nextInt(sw);
+			if (n < 0) throw new PrismException("Invalid value for -" + sw + " switch");
+			set(PRISM_SOR_MAX_MEM, n);
+		});
+		addSwitch("cuddmaxmem", new StringSwitch(s -> set(PRISM_CUDD_MAX_MEM, s)));
+		addSwitch("cuddepsilon", (sw, a) -> {
+			double d = a.nextDouble(sw);
+			if (d < 0) throw new PrismException("Invalid value for -" + sw + " switch");
+			set(PRISM_CUDD_EPSILON, d);
+		});
+		addSwitch("ddextrastatevars", (sw, a) -> {
+			int n = a.nextInt(sw);
+			if (n < 0) throw new PrismException("Invalid value for -" + sw + " switch");
+			set(PRISM_DD_EXTRA_STATE_VARS, n);
+		});
+		addSwitch("ddextraactionvars", (sw, a) -> {
+			int n = a.nextInt(sw);
+			if (n < 0) throw new PrismException("Invalid value for -" + sw + " switch");
+			set(PRISM_DD_EXTRA_ACTION_VARS, n);
+		});
+
+		// ADVERSARIES/COUNTEREXAMPLES:
+		addSwitch("exportadv", (sw, a) -> {
+			set(PRISM_EXPORT_ADV, "DTMC");
+			set(PRISM_EXPORT_ADV_FILENAME, a.next(sw));
+		});
+		addSwitch("exportadvmdp", (sw, a) -> {
+			set(PRISM_EXPORT_ADV, "MDP");
+			set(PRISM_EXPORT_ADV_FILENAME, a.next(sw));
+		});
+
+		// LTL2DA TOOLS:
+		addSwitch("ltl2datool", new StringSwitch(s -> set(PRISM_LTL2DA_TOOL, s)));
+		addSwitch("ltl2dasyntax", new EnumSwitch()
+			.when("lbt",       () -> set(PRISM_LTL2DA_SYNTAX, "LBT"))
+			.when("spin",      () -> set(PRISM_LTL2DA_SYNTAX, "Spin"))
+			.when("spot",      () -> set(PRISM_LTL2DA_SYNTAX, "Spot"))
+			.when("rabinizer", () -> set(PRISM_LTL2DA_SYNTAX, "Rabinizer")));
+
+		// DEBUGGING / SANITY CHECKS:
+		addSwitch("ddsanity", new FlagSwitch(() -> set(PRISM_JDD_SANITY_CHECKS, true)));
 
 		// PARAMETRIC MODEL CHECKING:
-		
-		else if (sw.equals("param")) {
-			set(PRISM_PARAM_ENABLED, true);
-		}
-		else if (sw.equals("paramprecision")) {
-			if (i < args.length - 1) {
-				set(PRISM_PARAM_PRECISION, args[++i]);
-			} else {
-				throw new PrismException("No value specified for -" + sw + " switch");
-			}
-		}
-		else if (sw.equals("paramsplit")) {
-			if (i < args.length - 1) {
-				s = args[++i];
-				if (s.equals("longest"))
-					set(PRISM_PARAM_SPLIT, "Longest");
-				else if (s.equals("all"))
-					set(PRISM_PARAM_SPLIT, "All");
-				else
-					throw new PrismException("Unrecognised option for -" + sw + " switch (options are: longest, all)");
-			} else {
-				throw new PrismException("No value specified for -" + sw + " switch");
-			}
-		}
-		else if (sw.equals("parambisim")) {
-			if (i < args.length - 1) {
-				s = args[++i];
-				if (s.equals("strong"))
-					set(PRISM_PARAM_BISIM, "Strong");
-				else if (s.equals("weak"))
-					set(PRISM_PARAM_BISIM, "Weak");
-				else if (s.equals("none"))
-					set(PRISM_PARAM_BISIM, "None");
-				else
-					throw new PrismException("Unrecognised option for -" + sw + " switch (options are: strong, weak, none)");
-			} else {
-				throw new PrismException("No value specified for -" + sw + " switch");
-			}
-		}
-		else if (sw.equals("paramfunction")) {
-			if (i < args.length - 1) {
-				s = args[++i];
-				if (s.equals("jascached"))
-					set(PRISM_PARAM_FUNCTION, "JAS-cached");
-				else if (s.equals("jas"))
-					set(PRISM_PARAM_FUNCTION, "JAS");
-				else if (s.equals("dag"))
-					set(PRISM_PARAM_FUNCTION, "DAG");
-				else
-					throw new PrismException("Unrecognised option for -" + sw + " switch (options are: jascached, jas, dag)");
-			} else {
-				throw new PrismException("No value specified for -" + sw + " switch");
-			}
-		}
-		else if (sw.equals("paramelimorder")) {
-			if (i < args.length - 1) {
-				s = args[++i];
-				if (s.equals("arb"))
-					set(PRISM_PARAM_ELIM_ORDER, "Arbitrary");
-				else if (s.equals("fw"))
-					set(PRISM_PARAM_ELIM_ORDER, "Forward");
-				else if (s.equals("fwrev"))
-					set(PRISM_PARAM_ELIM_ORDER, "Forward-reversed");
-				else if (s.equals("bw"))
-					set(PRISM_PARAM_ELIM_ORDER, "Backward");
-				else if (s.equals("bwrev"))
-					set(PRISM_PARAM_ELIM_ORDER, "Backward-reversed");
-				else if (s.equals("rand"))
-					set(PRISM_PARAM_ELIM_ORDER, "Random");
-				else
-					throw new PrismException("Unrecognised option for -" + sw + " switch (options are: arb,fw,fwrev,bw,bwrev,rand)");
-			} else {
-				throw new PrismException("No value specified for -" + sw + " switch");
-			}
-		}
-		else if (sw.equals("paramrandompoints")) {
-			try {
-				j = Integer.parseInt(args[++i]);
-				if (j < 0)
-					throw new NumberFormatException();
-				set(PRISM_PARAM_RANDOM_POINTS, j);
-			} catch (NumberFormatException e) {
-				throw new PrismException("Invalid value for -" + sw + " switch");
-			}
-		}
-		else if (sw.equals("paramsubsumeregions")) {
-			boolean b = Boolean.parseBoolean(args[++i]);
-			set(PRISM_PARAM_SUBSUME_REGIONS, b);
-		}
-		else if (sw.equals("paramdagmaxerror")) {
-			try {
-				d = Double.parseDouble(args[++i]);
-				if (d < 0)
-					throw new NumberFormatException();
-				set(PRISM_PARAM_DAG_MAX_ERROR, d);
-			} catch (NumberFormatException e) {
-				throw new PrismException("Invalid value for -" + sw + " switch");
-			}
-		}
-		
-		// FAST ADAPTIVE UNIFORMISATION
-		
-		// Epsilon for fast adaptive uniformisation
-		else if (sw.equals("fauepsilon")) {
-			if (i < args.length - 1) {
-				try {
-					d = Double.parseDouble(args[++i]);
-					if (d < 0)
-						throw new NumberFormatException("");
-					set(PRISM_FAU_EPSILON, d);
-				} catch (NumberFormatException e) {
-					throw new PrismException("Invalid value for -" + sw + " switch");
-				}
-			} else {
-				throw new PrismException("No value specified for -" + sw + " switch");
-			}
-		}
-		// Delta for fast adaptive uniformisation
-		else if (sw.equals("faudelta")) {
-			if (i < args.length - 1) {
-				try {
-					d = Double.parseDouble(args[++i]);
-					if (d < 0)
-						throw new NumberFormatException("");
-					set(PRISM_FAU_DELTA, d);
-				} catch (NumberFormatException e) {
-					throw new PrismException("Invalid value for -" + sw + " switch");
-				}
-			} else {
-				throw new PrismException("No value specified for -" + sw + " switch");
-			}
-		}
-		// Array threshold for fast adaptive uniformisation
-		else if (sw.equals("fauarraythreshold")) {
-			if (i < args.length - 1) {
-				try {
-					j = Integer.parseInt(args[++i]);
-					if (j < 0)
-						throw new NumberFormatException("");
-					set(PRISM_FAU_ARRAYTHRESHOLD, j);
-				} catch (NumberFormatException e) {
-					throw new PrismException("Invalid value for -" + sw + " switch");
-				}
-			} else {
-				throw new PrismException("No value specified for -" + sw + " switch");
-			}			
-		}
-		// Number of intervals for fast adaptive uniformisation
-		else if (sw.equals("fauintervals")) {
-			if (i < args.length - 1) {
-				try {
-					j = Integer.parseInt(args[++i]);
-					if (j < 0)
-						throw new NumberFormatException("");
-					set(PRISM_FAU_INTERVALS, j);
-				} catch (NumberFormatException e) {
-					throw new PrismException("Invalid value for -" + sw + " switch");
-				}
-			} else {
-				throw new PrismException("No value specified for -" + sw + " switch");
-			}
-		}
-		else if (sw.equals("fauinitival")) {
-			if (i < args.length - 1) {
-				try {
-					d = Double.parseDouble(args[++i]);
-					if (d < 0.0)
-						throw new NumberFormatException("");
-					set(PRISM_FAU_INITIVAL, d);
-				} catch (NumberFormatException e) {
-					throw new PrismException("Invalid value for -" + sw + " switch");
-				}
-			} else {
-				throw new PrismException("No value specified for -" + sw + " switch");
-			}
-		}
+		addSwitch("param",         new FlagSwitch(() -> set(PRISM_PARAM_ENABLED, true)));
+		addSwitch("paramprecision", new StringSwitch(s -> set(PRISM_PARAM_PRECISION, s)));
+		addSwitch("paramsplit", new EnumSwitch()
+			.when("longest", () -> set(PRISM_PARAM_SPLIT, "Longest"))
+			.when("all",     () -> set(PRISM_PARAM_SPLIT, "All")));
+		addSwitch("parambisim", new EnumSwitch()
+			.when("strong", () -> set(PRISM_PARAM_BISIM, "Strong"))
+			.when("weak",   () -> set(PRISM_PARAM_BISIM, "Weak"))
+			.when("none",   () -> set(PRISM_PARAM_BISIM, "None")));
+		addSwitch("paramfunction", new EnumSwitch()
+			.when("jascached", () -> set(PRISM_PARAM_FUNCTION, "JAS-cached"))
+			.when("jas",       () -> set(PRISM_PARAM_FUNCTION, "JAS"))
+			.when("dag",       () -> set(PRISM_PARAM_FUNCTION, "DAG")));
+		addSwitch("paramelimorder", new EnumSwitch()
+			.when("arb",   () -> set(PRISM_PARAM_ELIM_ORDER, "Arbitrary"))
+			.when("fw",    () -> set(PRISM_PARAM_ELIM_ORDER, "Forward"))
+			.when("fwrev", () -> set(PRISM_PARAM_ELIM_ORDER, "Forward-reversed"))
+			.when("bw",    () -> set(PRISM_PARAM_ELIM_ORDER, "Backward"))
+			.when("bwrev", () -> set(PRISM_PARAM_ELIM_ORDER, "Backward-reversed"))
+			.when("rand",  () -> set(PRISM_PARAM_ELIM_ORDER, "Random")));
+		addSwitch("paramrandompoints", (sw, a) -> {
+			int n = a.nextInt(sw);
+			if (n < 0) throw new PrismException("Invalid value for -" + sw + " switch");
+			set(PRISM_PARAM_RANDOM_POINTS, n);
+		});
+		addSwitch("paramsubsumeregions", (sw, a) -> {
+			set(PRISM_PARAM_SUBSUME_REGIONS, Boolean.parseBoolean(a.next(sw)));
+		});
+		addSwitch("paramdagmaxerror", (sw, a) -> {
+			double d = a.nextDouble(sw);
+			if (d < 0) throw new PrismException("Invalid value for -" + sw + " switch");
+			set(PRISM_PARAM_DAG_MAX_ERROR, d);
+		});
 
-		// HIDDEN OPTIONS
-		
-		// export property automaton to file (hidden option)
-		else if (sw.equals("exportpropaut")) {
-			if (i < args.length - 1) {
-				setExportPropAut(true);
-				setExportPropAutFilename(args[++i]);
-				setExportPropAutType("txt");  // default
-				for (Map.Entry<String, String> option : options.entrySet()) {
-				    if (option.getKey().equals("txt")) {
-						setExportPropAutType("txt");
-				    } else if (option.getKey().equals("dot")) {
-						setExportPropAutType("dot");
-				    } else if (option.getKey().equals("hoa")) {
-						setExportPropAutType("hoa");
-				    } else {
-				    		throw new PrismException("Unknown option \"" + option.getKey() + "\" for -" + sw + " switch"); 
-				    }
+		// FAST ADAPTIVE UNIFORMISATION:
+		addSwitch("fauepsilon", (sw, a) -> {
+			double d = a.nextDouble(sw);
+			if (d < 0) throw new PrismException("Invalid value for -" + sw + " switch");
+			set(PRISM_FAU_EPSILON, d);
+		});
+		addSwitch("faudelta", (sw, a) -> {
+			double d = a.nextDouble(sw);
+			if (d < 0) throw new PrismException("Invalid value for -" + sw + " switch");
+			set(PRISM_FAU_DELTA, d);
+		});
+		addSwitch("fauarraythreshold", (sw, a) -> {
+			int n = a.nextInt(sw);
+			if (n < 0) throw new PrismException("Invalid value for -" + sw + " switch");
+			set(PRISM_FAU_ARRAYTHRESHOLD, n);
+		});
+		addSwitch("fauintervals", (sw, a) -> {
+			int n = a.nextInt(sw);
+			if (n < 0) throw new PrismException("Invalid value for -" + sw + " switch");
+			set(PRISM_FAU_INTERVALS, n);
+		});
+		addSwitch("fauinitival", (sw, a) -> {
+			double d = a.nextDouble(sw);
+			if (d < 0.0) throw new PrismException("Invalid value for -" + sw + " switch");
+			set(PRISM_FAU_INITIVAL, d);
+		});
+
+		addSwitch("exportpropaut", (sw, a) -> {
+			Map<String, String> options = splitOptionsString(a.optionsString());
+			setExportPropAut(true);
+			setExportPropAutFilename(a.next(sw));
+			setExportPropAutType("txt"); // default
+			for (Map.Entry<String, String> option : options.entrySet()) {
+				switch (option.getKey()) {
+				case "txt": setExportPropAutType("txt"); break;
+				case "dot": setExportPropAutType("dot"); break;
+				case "hoa": setExportPropAutType("hoa"); break;
+				default: throw new PrismException("Unknown option \"" + option.getKey() + "\" for -" + sw + " switch");
 				}
-			} else {
-				throw new PrismException("No file specified for -" + sw + " switch");
 			}
-		}
-		
-		// unknown switch - error
-		else {
-			throw new PrismException("Invalid switch -" + sw + " (type \"prism -help\" for full list)");
-		}
-		
-		return i + 1;
+		});
 	}
-	
+
+	private void addSwitch(String name, SwitchHandler h)
+	{
+		settingsSwitchHandlers.put(name, h);
+	}
+
+	private void addSwitch(String n1, String n2, SwitchHandler h)
+	{
+		settingsSwitchHandlers.put(n1, h);
+		settingsSwitchHandlers.put(n2, h);
+	}
+
+	private void addSwitch(String n1, String n2, String n3, SwitchHandler h)
+	{
+		settingsSwitchHandlers.put(n1, h);
+		settingsSwitchHandlers.put(n2, h);
+		settingsSwitchHandlers.put(n3, h);
+	}
+
+
 	/**
 	 * Split a switch of the form -switch:options into parts.
 	 * The latter can be empty, in which case the : is optional.

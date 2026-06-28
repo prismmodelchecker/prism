@@ -2,7 +2,7 @@
 //	
 //	Copyright (c) 2002-
 //	Authors:
-//	* Dave Parker <david.parker@comlab.ox.ac.uk> (University of Oxford, formerly University of Birmingham)
+//	* Dave Parker <david.parker@cs.ox.ac.uk> (University of Oxford)
 //	
 //------------------------------------------------------------------------------
 //	
@@ -36,7 +36,9 @@ import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
 
 import common.StackTraceHelper;
@@ -143,6 +145,9 @@ public class PrismCL implements PrismModelListener
 	private String exportTransientFilename = null;
 	private String exportStratFilename = null;
 	private String simpathFilename = null;
+
+	// CLI switch handler map (populated by initSwitchHandlers)
+	private Map<String, SwitchHandler> switchHandlers;
 
 	// logs
 	private PrismLog mainLog = null;
@@ -1050,827 +1055,302 @@ public class PrismCL implements PrismModelListener
 	 */
 	private void parseArguments(String[] args) throws PrismException
 	{
-		int i, j;
-		String sw, s;
-		PrismLog log;
-
 		constSwitch = "";
 		paramSwitch = "";
 		List<String> filenameArgs = new ArrayList<>();
+		initSwitchHandlers();
 
-		for (i = 0; i < args.length; i++) {
-
-			// if is a switch...
-			if (args[i].length() > 0 && args[i].charAt(0) == '-') {
-
-				// Remove "-"
-				sw = args[i].substring(1);
-				if (sw.length() == 0) {
-					errorAndExit("Invalid empty switch");
-				}
-				// Remove optional second "-" (i.e. we allow switches of the form --sw too)
-				if (sw.charAt(0) == '-')
-					sw = sw.substring(1);
-
-				// Note: the order of these switches should match the -help output (just to help keep track of things).
-				// But: processing of "PRISM" options is done elsewhere in PrismSettings
-				// Any "hidden" options, i.e. not in -help text/manual, are indicated as such.
-
-				// print help
-				if (sw.equals("help") || sw.equals("?")) {
-					// see if user requested help for a specific switch, e.g. -help simpath
-					// note: this is one of the few places where a second argument is optional,
-					// which is possible here because -help should usually be the only switch provided
-					if (i < args.length - 1) {
-						printHelpSwitch(args[++i]);
-					} else {
-						printHelp();
-					}
-					exit();
-				}
-				// java max mem & java stack size & java parameters
-				else if (sw.equals("javamaxmem") || sw.equals("javastack") || sw.equals("javaparams")) {
-					// ignore argument and subsequent value, this is dealt with before java is launched
-					i++;
-				}
-				// timeout
-				else if (sw.equals("timeout")) {
-					if (i < args.length - 1) {
-						int timeout = PrismUtils.convertTimeStringtoSeconds(args[++i]);
-						if (timeout < 0) {
-							errorAndExit("Negative timeout value \"" + timeout + "\" for -" + sw + " switch");
-						}
-						if (timeout > 0) {
-							setTimeout(timeout);
-						}
-						// timeout == 0 -> no timeout
-					} else {
-						errorAndExit("Missing timeout value for -" + sw + " switch");
-					}
-				}
-				// print version
-				else if (sw.equals("version")) {
-					printVersion();
-					exit();
-				}
-				// set working directory
-				else if (sw.equals("dir")) {
-					if (i < args.length - 1) {
-						Prism.setWorkingDirectory(args[++i]);
-					} else {
-						errorAndExit("No property specified for -" + sw + " switch");
-					}
-				}
-				// load settings
-				else if (sw.equals("settings")) {
-					if (i < args.length - 1) {
-						settingsFilename = args[++i].trim();
-					} else {
-						errorAndExit("Incomplete -" + sw + " switch");
-					}
-				}
-				// print a list of all keywords (hidden option)
-				else if (sw.equals("keywords")) {
-					printListOfKeywords();
-					exit();
-				}
-
-				// property/properties given in command line
-				else if (sw.equals("pf") || sw.equals("pctl") || sw.equals("csl")) {
-					if (i < args.length - 1) {
-						propertyString = args[++i];
-					} else {
-						errorAndExit("No property specified for -" + sw + " switch");
-					}
-				}
-				// which property to check (int index or string name)
-				else if (sw.equals("prop") || sw.equals("property")) {
-					if (i < args.length - 1) {
-						String[] props = args[++i].trim().split(",");
-						propertyIndices = new ArrayList<Object>();
-						for (String p : props) {
-							if (!p.isEmpty()) {
-								try {
-									propertyIndices.add(Integer.parseInt(p));
-								} catch (NumberFormatException e) {
-									propertyIndices.add(p);
-								}
-							}
-						}
-					} else {
-						errorAndExit("No value specified for -" + sw + " switch");
-					}
-				}
-				// definition of undefined constants
-				else if (sw.equals("const")) {
-					if (i < args.length - 1) {
-						// store argument for later use (append if already partially specified)
-						if ("".equals(constSwitch))
-							constSwitch = args[++i].trim();
-						else
-							constSwitch += "," + args[++i].trim();
-					} else {
-						errorAndExit("Incomplete -" + sw + " switch");
-					}
-				}
-				// defining a parameter
-				else if (sw.equals("param")) {
-					param = true;
-					if (i < args.length - 1) {
-						// store argument for later use (append if already partially specified)
-						if ("".equals(paramSwitch)) {
-							paramSwitch = args[++i].trim();
-						} else {
-							paramSwitch += "," + args[++i].trim();
-						}
-					} else {
-						errorAndExit("Incomplete -" + sw + " switch");
-					}
-				}
-				// do steady-state probability computation
-				else if (sw.equals("steadystate") || sw.equals("ss")) {
-					steadystate = true;
-				}
-				// do transient probability computation
-				else if (sw.equals("transient") || sw.equals("tr")) {
-					if (i < args.length - 1) {
-						dotransient = true;
-						transientTime = args[++i];
-					} else {
-						errorAndExit("No value specified for -" + sw + " switch");
-					}
-				}
-				// generate random path with simulator
-				else if (sw.equals("simpath")) {
-					if (i < args.length - 2) {
-						simpath = true;
-						simpathDetails = args[++i];
-						simpathFilename = args[++i];
-					} else {
-						errorAndExit("The -" + sw + " switch requires two arguments (path details, filename)");
-					}
-				}
-				// disable model construction
-				else if (sw.equals("nobuild")) {
-					nobuild = true;
-				}
-				// enable "testing" mode
-				else if (sw.equals("test")) {
-					test = true;
-				}
-				// enable "test all" mode (don't stop on errors)
-				// (overrides -test switch)
-				else if (sw.equals("testall")) {
-					test = true;
-					testExitsOnFail = false;
-				}
-				// enable UMB test mode
-				else if (sw.equals("test:umb")) {
-					prism.setTestUMB(true);
-				}
-
-				// DD Debugging options
-				else if (sw.equals("dddebug")) {
-					jdd.DebugJDD.enable();
-				}
-				else if (sw.equals("ddtraceall")) {
-					jdd.DebugJDD.traceAll = true;
-				}
-				else if (sw.equals("ddtracefollowcopies")) {
-					jdd.DebugJDD.traceFollowCopies = true;
-				}
-				else if (sw.equals("dddebugwarnfatal")) {
-					jdd.DebugJDD.warningsAreFatal = true;
-				}
-				else if (sw.equals("dddebugwarnoff")) {
-					jdd.DebugJDD.warningsOff = true;
-				}
-				else if (sw.equals("ddtrace")) {
-					if (i < args.length - 1) {
-						String idString = args[++i];
-						try {
-							int id = Integer.parseInt(idString);
-							jdd.DebugJDD.enableTracingForID(id);
-						} catch (NumberFormatException e) {
-							errorAndExit("The -" + sw + " switch requires an integer argument (JDDNode ID)");
-						}
-					} else {
-						errorAndExit("The -" + sw + " switch requires an additional argument (JDDNode ID)");
-					}
-				}
-
-				// IMPORT OPTIONS:
-
-				// change model type to pepa
-				else if (sw.equals("importpepa")) {
-					importpepa = true;
-				}
-				// Import model from PRISM preprocessor (hidden option)
-				else if (sw.equals("importprismpp")) {
-					if (i < args.length - 1) {
-						importprismpp = true;
-						prismppParams = args[++i];
-					} else {
-						errorAndExit("No parameters specified for -" + sw + " switch");
-					}
-				}
-				// import model from explicit file(s)
-				else if (sw.equals("importmodel")) {
-					if (i < args.length - 1) {
-						processImportModelSwitch(args[++i]);
-					} else {
-						errorAndExit("No file/options specified for -" + sw + " switch");
-					}
-				}
-				// import transition matrix from explicit format
-				else if (sw.equals("importtrans")) {
-					if (i < args.length - 1) {
-						// Recall model name in case needed as basename for model exprts
-						modelFilename = args[++i];
-						modelImportSources.add(new ModelImportSource(ModelExportTask.ModelExportEntity.MODEL, ModelExportFormat.EXPLICIT, new File(modelFilename)));
-					} else {
-						errorAndExit("No file specified for -" + sw + " switch");
-					}
-				}
-				// import states for explicit model import
-				else if (sw.equals("importstates")) {
-					if (i < args.length - 1) {
-						modelImportSources.add(new ModelImportSource(ModelExportTask.ModelExportEntity.STATES, ModelExportFormat.EXPLICIT, new File(args[++i])));
-					} else {
-						errorAndExit("No file specified for -" + sw + " switch");
-					}
-				}
-				// import observations for explicit model import
-				else if (sw.equals("importobs")) {
-					if (i < args.length - 1) {
-						modelImportSources.add(new ModelImportSource(ModelExportTask.ModelExportEntity.OBSERVATIONS, ModelExportFormat.EXPLICIT, new File(args[++i])));
-					} else {
-						errorAndExit("No file specified for -" + sw + " switch");
-					}
-				}
-				// import labels for explicit model import
-				else if (sw.equals("importlabels")) {
-					if (i < args.length - 1) {
-						modelImportSources.add(new ModelImportSource(ModelExportTask.ModelExportEntity.LABELS, ModelExportFormat.EXPLICIT, new File(args[++i])));
-					} else {
-						errorAndExit("No file specified for -" + sw + " switch");
-					}
-				}
-				// import state rewards for explicit model import
-				else if (sw.equals("importstaterewards")) {
-					if (i < args.length - 1) {
-						modelImportSources.add(new ModelImportSource(ModelExportTask.ModelExportEntity.STATE_REWARDS, ModelExportFormat.EXPLICIT, new File(args[++i])));
-					} else {
-						errorAndExit("No file specified for -" + sw + " switch");
-					}
-				}
-				// import trans rewards for explicit model import
-				else if (sw.equals("importtransrewards")) {
-					if (i < args.length - 1) {
-						modelImportSources.add(new ModelImportSource(ModelExportTask.ModelExportEntity.TRANSITION_REWARDS, ModelExportFormat.EXPLICIT, new File(args[++i])));
-					} else {
-						errorAndExit("No file specified for -" + sw + " switch");
-					}
-				}
-				// import initial distribution e.g. for transient probability distribution
-				else if (sw.equals("importinitdist")) {
-					if (i < args.length - 1) {
-						importinitdist = true;
-						importInitDistFilename = args[++i];
-					} else {
-						errorAndExit("No file specified for -" + sw + " switch");
-					}
-				}
-				// import results
-				else if (sw.equals("importresults")) {
-					if (i < args.length - 1) {
-						importresults = true;
-						modelFilename = "no-model-file.prism";
-						importResultsFilename = args[++i];
-					} else {
-						errorAndExit("No file specified for -" + sw + " switch");
-					}
-				}
-				// override model type to dtmc
-				else if (sw.equals("dtmc")) {
-					typeOverride = ModelType.DTMC;
-				}
-				// override model type to mdp
-				else if (sw.equals("mdp")) {
-					typeOverride = ModelType.MDP;
-				}
-				// override model type to ctmc
-				else if (sw.equals("ctmc")) {
-					typeOverride = ModelType.CTMC;
-				}
-
-				// EXPORT OPTIONS:
-
-				// export prism model to file
-				else if (sw.equals("exportprism")) {
-					if (i < args.length - 1) {
-						exportprism = true;
-						exportPrismFilename = args[++i];
-					} else {
-						errorAndExit("No file specified for -" + sw + " switch");
-					}
-				}
-				// export prism model to file (with consts expanded)
-				else if (sw.equals("exportprismconst")) {
-					if (i < args.length - 1) {
-						exportprismconst = true;
-						exportPrismConstFilename = args[++i];
-					} else {
-						errorAndExit("No file specified for -" + sw + " switch");
-					}
-				}
-				// export results
-				else if (sw.equals("exportresults")) {
-					if (i < args.length - 1) {
-						exportresults = true;
-						// Parse filename/options
-						s = args[++i];
-						// Assume use of : to split filename/options but check for , if : not found
-						// (this was the old notation)
-						String halves[] = splitFilesAndOptions(s);
-						if (halves[1].length() == 0 && halves[0].indexOf(',') > -1) {
-							int comma = halves[0].indexOf(',');
-							halves[1] = halves[0].substring(comma + 1);
-							halves[0] = halves[0].substring(0, comma);
-						}
-						exportResultsFilename = halves[0];
-						String ss[] = halves[1].split(",");
-						exportShape = ResultsExportShape.LIST_PLAIN;
-						for (j = 0; j < ss.length; j++) {
-							if (ss[j].equals("")) {
-							} else if (ss[j].equals("csv"))
-								exportShape = exportShape.isMatrix ? ResultsExportShape.MATRIX_CSV : ResultsExportShape.LIST_CSV;
-							else if (ss[j].equals("matrix"))
-								switch (exportShape) {
-								case LIST_PLAIN:
-									exportShape = ResultsExportShape.MATRIX_PLAIN;
-									break;
-								case LIST_CSV:
-									exportShape = ResultsExportShape.MATRIX_CSV;
-									break;
-								default:
-									// switch does not apply
-								}
-							else if (ss[j].equals("dataframe"))
-								exportShape = ResultsExportShape.DATA_FRAME;
-							else if (ss[j].equals("comment"))
-								exportShape = ResultsExportShape.COMMENT;
-							else
-								errorAndExit("Unknown option \"" + ss[j] + "\" for -" + sw + " switch");
-						}
-					} else {
-						errorAndExit("No file/options specified for -" + sw + " switch");
-					}
-				}
-				// export vector of results
-				else if (sw.equals("exportvector")) {
-					if (i < args.length - 1) {
-						exportvector = true;
-						exportVectorFilename = args[++i];
-						prism.setStoreVector(true);
-					} else {
-						errorAndExit("No file specified for -" + sw + " switch");
-					}
-				}
-				// export model to explicit file(s)
-				else if (sw.equals("exportmodel")) {
-					if (i < args.length - 1) {
-						processExportModelSwitch(args[++i]);
-					} else {
-						errorAndExit("No file/options specified for -" + sw + " switch");
-					}
-				}
-				// process -exportmodelprecision in PrismSettings
-				// export transition matrix to file
-				else if (sw.equals("exporttrans")) {
-					if (i < args.length - 1) {
-						modelExportTasks.add(new ModelExportTask(ModelExportTask.ModelExportEntity.MODEL, args[++i]));
-					} else {
-						errorAndExit("No file specified for -" + sw + " switch");
-					}
-				}
-				// export state rewards to file
-				else if (sw.equals("exportstaterewards")) {
-					if (i < args.length - 1) {
-						modelExportTasks.add(new ModelExportTask(ModelExportTask.ModelExportEntity.STATE_REWARDS, args[++i]));
-					} else {
-						errorAndExit("No file specified for -" + sw + " switch");
-					}
-				}
-				// export transition rewards to file
-				else if (sw.equals("exporttransrewards")) {
-					if (i < args.length - 1) {
-						modelExportTasks.add(new ModelExportTask(ModelExportTask.ModelExportEntity.TRANSITION_REWARDS, args[++i]));
-					} else {
-						errorAndExit("No file specified for -" + sw + " switch");
-					}
-				}
-				// export both state/transition rewards to file
-				else if (sw.equals("exportrewards")) {
-					if (i < args.length - 2) {
-						modelExportTasks.add(new ModelExportTask(ModelExportTask.ModelExportEntity.STATE_REWARDS, args[++i]));
-						modelExportTasks.add(new ModelExportTask(ModelExportTask.ModelExportEntity.TRANSITION_REWARDS, args[++i]));
-					} else {
-						errorAndExit("Two files must be specified for -" + sw + " switch");
-					}
-				}
-				// export states
-				else if (sw.equals("exportstates")) {
-					if (i < args.length - 1) {
-						modelExportTasks.add(new ModelExportTask(ModelExportTask.ModelExportEntity.STATES, args[++i]));
-					} else {
-						errorAndExit("No file specified for -" + sw + " switch");
-					}
-				}
-				// export observations
-				else if (sw.equals("exportobs")) {
-					if (i < args.length - 1) {
-						modelExportTasks.add(new ModelExportTask(ModelExportTask.ModelExportEntity.OBSERVATIONS, args[++i]));
-					} else {
-						errorAndExit("No file specified for -" + sw + " switch");
-					}
-				}
-				// export labels/states
-				else if (sw.equals("exportlabels")) {
-					if (i < args.length - 1) {
-						processExportLabelsSwitch(args[++i]);
-					} else {
-						errorAndExit("No file specified for -" + sw + " switch");
-					}
-				}
-				// export labels/states from properties file
-				else if (sw.equals("exportproplabels")) {
-					if (i < args.length - 1) {
-						processExportPropLabelsSwitch(args[++i]);
-					} else {
-						errorAndExit("No file specified for -" + sw + " switch");
-					}
-				}
-				// switch export mode to "matlab"
-				else if (sw.equals("exportmatlab")) {
-					exportType = Prism.EXPORT_MATLAB;
-					modelExportOptionsGlobal.setFormat(ModelExportFormat.MATLAB);
-				}
-				// switch export mode to "mrmc"
-				else if (sw.equals("exportmrmc")) {
-					errorAndExit("Export to MRMC format no longer supported");
-				}
-				// switch export mode to "rows"
-				else if (sw.equals("exportrows")) {
-					exportType = Prism.EXPORT_ROWS;
-					modelExportOptionsGlobal.setExplicitRows(true);
-				}
-				// exported matrix entries are ordered
-				else if (sw.equals("exportordered") || sw.equals("ordered")) {
-					// this is always done now, so ignore
-				}
-				// exported matrix entries are unordered
-				else if (sw.equals("exportunordered") || sw.equals("unordered")) {
-					errorAndExit("Switch -" + sw + " is no longer supported");
-				}
-				// export transition matrix graph to dot file
-				else if (sw.equals("exporttransdot")) {
-					if (i < args.length - 1) {
-						ModelExportOptions exportOptions = new ModelExportOptions().setFormat(ModelExportFormat.DOT).setShowStates(false).setShowObservations(false);
-						modelExportTasks.add(new ModelExportTask(ModelExportTask.ModelExportEntity.MODEL, args[++i], exportOptions));
-					} else {
-						errorAndExit("No file specified for -" + sw + " switch");
-					}
-				}
-				// export transition matrix graph to dot file (with states)
-				else if (sw.equals("exporttransdotstates")) {
-					if (i < args.length - 1) {
-						ModelExportOptions exportOptions = new ModelExportOptions().setFormat(ModelExportFormat.DOT).setShowStates(true).setShowObservations(true);
-						modelExportTasks.add(new ModelExportTask(ModelExportTask.ModelExportEntity.MODEL, args[++i], exportOptions));
-					} else {
-						errorAndExit("No file specified for -" + sw + " switch");
-					}
-				}
-				// export transition matrix MTBDD to dot file
-				else if (sw.equals("exportdot")) {
-					if (i < args.length - 1) {
-						ModelExportOptions exportOptions = new ModelExportOptions().setFormat(ModelExportFormat.DD_DOT);
-						modelExportTasks.add(new ModelExportTask(ModelExportTask.ModelExportEntity.MODEL, args[++i], exportOptions));
-					} else {
-						errorAndExit("No file specified for -" + sw + " switch");
-					}
-				}
-				// export sccs to file
-				else if (sw.equals("exportsccs")) {
-					if (i < args.length - 1) {
-						exportsccs = true;
-						exportSCCsFilename = args[++i];
-					} else {
-						errorAndExit("No file specified for -" + sw + " switch");
-					}
-				}
-				// export bsccs to file
-				else if (sw.equals("exportbsccs")) {
-					if (i < args.length - 1) {
-						exportbsccs = true;
-						exportBSCCsFilename = args[++i];
-					} else {
-						errorAndExit("No file specified for -" + sw + " switch");
-					}
-				}
-				// export mecs to file
-				else if (sw.equals("exportmecs")) {
-					if (i < args.length - 1) {
-						exportmecs = true;
-						exportMECsFilename = args[++i];
-					} else {
-						errorAndExit("No file specified for -" + sw + " switch");
-					}
-				}
-				// export steady-state probs (as opposed to displaying on screen) 
-				else if (sw.equals("exportsteadystate") || sw.equals("exportss")) {
-					if (i < args.length - 1) {
-						exportSteadyStateFilename = args[++i];
-					} else {
-						errorAndExit("No file specified for -" + sw + " switch");
-					}
-					// if we are asked to export the steady-state probs, we should compute them
-					steadystate = true;
-				}
-				// export transient probs (as opposed to displaying on screen) 
-				else if (sw.equals("exporttransient") || sw.equals("exporttr")) {
-					if (i < args.length - 1) {
-						exportTransientFilename = args[++i];
-					} else {
-						errorAndExit("No file specified for -" + sw + " switch");
-					}
-				}
-				// export strategy
-				else if (sw.equals("exportstrat")) {
-					if (i < args.length - 1) {
-						processExportStratSwitch(args[++i]);
-					} else {
-						errorAndExit("No file/options specified for -" + sw + " switch");
-					}
-				}
-				// export digital clocks translation prism model to file
-				else if (sw.equals("exportdigital")) {
-					if (i < args.length - 1) {
-						String filename = args[++i];
-						File f = (filename.equals("stdout")) ? null : new File(filename);
-						prism.setExportDigital(true);
-						prism.setExportDigitalFile(f);
-					} else {
-						errorAndExit("No file specified for -" + sw + " switch");
-					}
-				}
-				// export reachability target info to file (hidden option)
-				else if (sw.equals("exporttarget")) {
-					if (i < args.length - 1) {
-						prism.setExportTarget(true);
-						prism.setExportTargetFilename(args[++i]);
-					} else {
-						errorAndExit("No file specified for -" + sw + " switch");
-					}
-				}
-				// export product transition matrix to file (hidden option)
-				else if (sw.equals("exportprodtrans")) {
-					if (i < args.length - 1) {
-						prism.setExportProductTrans(true);
-						prism.setExportProductTransFilename(args[++i]);
-					} else {
-						errorAndExit("No file specified for -" + sw + " switch");
-					}
-				}
-				// export product states to file (hidden option)
-				else if (sw.equals("exportprodstates")) {
-					if (i < args.length - 1) {
-						prism.setExportProductStates(true);
-						prism.setExportProductStatesFilename(args[++i]);
-					} else {
-						errorAndExit("No file specified for -" + sw + " switch");
-					}
-				}
-				// export product vector to file (hidden option)
-				else if (sw.equals("exportprodvector")) {
-					if (i < args.length - 1) {
-						prism.setExportProductVector(true);
-						prism.setExportProductVectorFilename(args[++i]);
-					} else {
-						errorAndExit("No file specified for -" + sw + " switch");
-					}
-				}
-
-				// NB: Following the ordering of the -help text, more options go here,
-				// but these are processed in the PrismSettings class; see below 
-
-				// SIMULATION OPTIONS:
-
-				// use simulator for approximate/statistical model checking
-				else if (sw.equals("sim")) {
-					simulate = true;
-				}
-				// simulation-based model checking methods
-				else if (sw.equals("simmethod")) {
-					if (i < args.length - 1) {
-						s = args[++i];
-						if (s.equals("ci") || s.equals("aci") || s.equals("apmc") || s.equals("sprt"))
-							simMethodName = s;
-						else
-							errorAndExit("Unrecognised option for -" + sw + " switch (options are: ci, aci, apmc, sprt)");
-					} else {
-						errorAndExit("No parameter specified for -" + sw + " switch");
-					}
-				}
-				// simulation number of samples
-				else if (sw.equals("simsamples")) {
-					if (i < args.length - 1) {
-						try {
-							simNumSamples = Integer.parseInt(args[++i]);
-							if (simNumSamples <= 0)
-								throw new NumberFormatException("");
-							simNumSamplesGiven = true;
-						} catch (NumberFormatException e) {
-							errorAndExit("Invalid value for -" + sw + " switch");
-						}
-					} else {
-						errorAndExit("No value specified for -" + sw + " switch");
-					}
-				}
-				// simulation confidence parameter
-				else if (sw.equals("simconf")) {
-					if (i < args.length - 1) {
-						try {
-							simConfidence = Double.parseDouble(args[++i]);
-							if (simConfidence <= 0 || simConfidence >= 1)
-								throw new NumberFormatException("");
-							simConfidenceGiven = true;
-						} catch (NumberFormatException e) {
-							errorAndExit("Invalid value for -" + sw + " switch");
-						}
-					} else {
-						errorAndExit("No value specified for -" + sw + " switch");
-					}
-				}
-				// simulation confidence interval width
-				else if (sw.equals("simwidth")) {
-					if (i < args.length - 1) {
-						try {
-							simWidth = Double.parseDouble(args[++i]);
-							if (simWidth <= 0)
-								throw new NumberFormatException("");
-							simWidthGiven = true;
-						} catch (NumberFormatException e) {
-							errorAndExit("Invalid value for -" + sw + " switch");
-						}
-					} else {
-						errorAndExit("No value specified for -" + sw + " switch");
-					}
-				}
-				// simulation approximation parameter
-				else if (sw.equals("simapprox")) {
-					if (i < args.length - 1) {
-						try {
-							simApprox = Double.parseDouble(args[++i]);
-							if (simApprox <= 0)
-								throw new NumberFormatException("");
-							simApproxGiven = true;
-						} catch (NumberFormatException e) {
-							errorAndExit("Invalid value for -" + sw + " switch");
-						}
-					} else {
-						errorAndExit("No value specified for -" + sw + " switch");
-					}
-				}
-				// use the number of iterations given instead of automatically deciding whether the variance is null ot not
-				else if (sw.equals("simmanual")) {
-					simManual = true;
-				}
-				// simulation number of samples to conclude S^2=0 or not
-				else if (sw.equals("simvar")) {
-					if (i < args.length - 1) {
-						try {
-							reqIterToConclude = Integer.parseInt(args[++i]);
-							if (reqIterToConclude <= 0)
-								throw new NumberFormatException("");
-							reqIterToConcludeGiven = true;
-						} catch (NumberFormatException e) {
-							errorAndExit("Invalid value for -" + sw + " switch");
-						}
-					} else {
-						errorAndExit("No value specified for -" + sw + " switch");
-					}
-				}
-				// maximum value of reward
-				else if (sw.equals("simmaxrwd")) {
-					if (i < args.length - 1) {
-						try {
-							simMaxReward = Double.parseDouble(args[++i]);
-							if (simMaxReward <= 0.0)
-								throw new NumberFormatException("");
-							simMaxRewardGiven = true;
-						} catch (NumberFormatException e) {
-							errorAndExit("Invalid value for -" + sw + " switch");
-						}
-					} else {
-						errorAndExit("No value specified for -" + sw + " switch");
-					}
-				}
-				// simulation max path length
-				else if (sw.equals("simpathlen")) {
-					if (i < args.length - 1) {
-						try {
-							simMaxPath = Long.parseLong(args[++i]);
-							if (simMaxPath <= 0)
-								throw new NumberFormatException("");
-							simMaxPathGiven = true;
-						} catch (NumberFormatException e) {
-							errorAndExit("Invalid value for -" + sw + " switch");
-						}
-					} else {
-						errorAndExit("No value specified for -" + sw + " switch");
-					}
-				}
-
-				// FURTHER OPTIONS - NEED TIDYING/FIXING
-
-				// zero-reward loops check on
-				else if (sw.equals("zerorewardcheck")) {
-					prism.setCheckZeroLoops(true);
-				}
-				// explicit-state model construction
-				else if (sw.equals("explicitbuild")) {
-					explicitbuild = true;
-				}
-				// (hidden) option for testing of prototypical explicit-state model construction
-				else if (sw.equals("explicitbuildtest")) {
-					explicitbuildtest = true;
-				}
-
-				// MISCELLANEOUS UNDOCUMENTED/UNUSED OPTIONS:
-
-				// specify main log (hidden option)
-				else if (sw.equals("mainlog")) {
-					if (i < args.length - 1) {
-						processMainLogSwitch(args[++i]);
-					} else {
-						errorAndExit("No file specified for -" + sw + " switch");
-					}
-				}
-				// export transition matrix graph to dot file and view it (hidden option, for now)
-				else if (sw.equals("exportmodeldotview")) {
-					exportmodeldotview = true;
-				}
-				// mtbdd construction method (hidden option)
-				else if (sw.equals("c1")) {
-					prism.setConstruction(1);
-				} else if (sw.equals("c2")) {
-					prism.setConstruction(2);
-				} else if (sw.equals("c3")) {
-					prism.setConstruction(3);
-				}
-				// mtbdd variable ordering (hidden option)
-				else if (sw.equals("o1")) {
-					prism.setOrdering(1);
-					orderingOverride = true;
-				} else if (sw.equals("o2")) {
-				} else if (sw.equals("o2")) {
-					prism.setOrdering(2);
-					orderingOverride = true;
-				} else if (sw.equals("o2")) {
-				}
-				// reachability off (hidden option)
-				else if (sw.equals("noreach")) {
-					prism.setDoReach(false);
-				}
-				// no bscc computation (hidden option)
-				else if (sw.equals("nobscc")) {
-					prism.setBSCCComp(false);
-				}
-				// reachability options (hidden options)
-				else if (sw.equals("frontier")) {
-					prism.setReachMethod(Prism.REACH_FRONTIER);
-				} else if (sw.equals("bfs")) {
-					prism.setReachMethod(Prism.REACH_BFS);
-				}
-				// enable bisimulation minimisation before model checking (hidden option)
-				else if (sw.equals("bisim")) {
-					prism.setDoBisim(true);
-				}
-
-				// Other switches - pass to PrismSettings
-
-				else {
-					i = prism.getSettings().setFromCommandLineSwitch(args, i) - 1;
-				}
-			}
-			// otherwise argument is assumed to be a (model/properties) filename
-			else {
-				filenameArgs.add(args[i]);
+		ArgConsumer consumer = new ArgConsumer(args);
+		while (consumer.hasNext()) {
+			String arg = consumer.advance();
+			String sw = consumer.parseSwitch(arg);
+			if (sw != null) {
+				SwitchHandler handler = switchHandlers.get(sw);
+				if (handler != null)
+					handler.handle(sw, consumer);
+				else
+					prism.getSettings().setFromCommandLineSwitch(sw, consumer);
+			} else {
+				// argument is assumed to be a (model/properties) filename
+				filenameArgs.add(arg);
 			}
 		}
 
 		processFileNames(filenameArgs);
+	}
+
+	/**
+	 * Populate {@link #switchHandlers} with a handler for every switch recognised by PrismCL.
+	 * Switches not registered here fall through to {@link PrismSettings#setFromCommandLineSwitch}.
+	 * The insertion order matches the -help output ordering.
+	 */
+	private void initSwitchHandlers()
+	{
+		switchHandlers = new LinkedHashMap<>();
+
+		// Help / version / meta
+		addSwitch("help", "?", (sw, a) -> {
+			// -help [switch] is one of the few cases where the value arg is optional
+			if (a.hasNext()) printHelpSwitch(a.next(sw)); else printHelp();
+			exit();
+		});
+		addSwitch("javamaxmem",
+				(sw, a) -> a.next(sw)); // consumed before JVM launch; value discarded
+		addSwitch("javastack",
+				(sw, a) -> a.next(sw)); // consumed before JVM launch; value discarded
+		addSwitch("javaparams",
+				(sw, a) -> a.next(sw)); // consumed before JVM launch; value discarded
+		addSwitch("timeout", (sw, a) -> {
+			int t = PrismUtils.convertTimeStringtoSeconds(a.next(sw));
+			if (t < 0) errorAndExit("Negative timeout value \"" + t + "\" for -" + sw + " switch");
+			if (t > 0) setTimeout(t);
+			// t == 0 -> no timeout
+		});
+		addSwitch("version", new FlagSwitch(() -> { printVersion(); exit(); }));
+		addSwitch("dir", new StringSwitch(Prism::setWorkingDirectory));
+		addSwitch("settings", new StringSwitch(s -> settingsFilename = s.trim()));
+		addSwitch("keywords", new FlagSwitch(() -> { printListOfKeywords(); exit(); })); // hidden
+
+		// Property / constant / parameter info
+		addSwitch("pf", "pctl", "csl", new StringSwitch(s -> propertyString = s));
+		addSwitch("prop", "property", (sw, a) -> {
+			String[] props = a.next(sw).trim().split(",");
+			propertyIndices = new ArrayList<>();
+			for (String p : props) {
+				if (!p.isEmpty()) {
+					try { propertyIndices.add(Integer.parseInt(p)); }
+					catch (NumberFormatException e) { propertyIndices.add(p); }
+				}
+			}
+		});
+		addSwitch("const", (sw, a) -> {
+			String v = a.next(sw).trim();
+			if ("".equals(constSwitch)) constSwitch = v; else constSwitch += "," + v;
+		});
+		addSwitch("param", (sw, a) -> {
+			param = true;
+			String v = a.next(sw).trim();
+			if ("".equals(paramSwitch)) paramSwitch = v; else paramSwitch += "," + v;
+		});
+
+		// Computation modes
+		addSwitch("steadystate", "ss", new FlagSwitch(() -> steadystate = true));
+		addSwitch("transient", "tr", (sw, a) -> { dotransient = true; transientTime = a.next(sw); });
+		addSwitch("simpath", (sw, a) -> {
+			simpath = true;
+			simpathDetails = a.next(sw);
+			simpathFilename = a.next(sw);
+		});
+		addSwitch("nobuild", new FlagSwitch(() -> nobuild = true));
+		addSwitch("test", new FlagSwitch(() -> test = true));
+		addSwitch("testall", new FlagSwitch(() -> { test = true; testExitsOnFail = false; }));
+		addSwitch("test:umb", new FlagSwitch(() -> prism.setTestUMB(true)));
+
+		// DD debugging (hidden)
+		addSwitch("dddebug", new FlagSwitch(() -> jdd.DebugJDD.enable()));
+		addSwitch("ddtraceall", new FlagSwitch(() -> jdd.DebugJDD.traceAll = true));
+		addSwitch("ddtracefollowcopies", new FlagSwitch(() -> jdd.DebugJDD.traceFollowCopies = true));
+		addSwitch("dddebugwarnfatal", new FlagSwitch(() -> jdd.DebugJDD.warningsAreFatal = true));
+		addSwitch("dddebugwarnoff", new FlagSwitch(() -> jdd.DebugJDD.warningsOff = true));
+		addSwitch("ddtrace", (sw, a) -> {
+			String idStr = a.next(sw);
+			try {
+				jdd.DebugJDD.enableTracingForID(Integer.parseInt(idStr));
+			} catch (NumberFormatException e) {
+				errorAndExit("The -" + sw + " switch requires an integer argument (JDDNode ID)");
+			}
+		});
+
+		// IMPORT OPTIONS:
+		addSwitch("importpepa", new FlagSwitch(() -> importpepa = true));
+		addSwitch("importprismpp", (sw, a) -> { importprismpp = true; prismppParams = a.next(sw); }); // hidden
+		addSwitch("importmodel", new StringSwitch(this::processImportModelSwitch));
+		addSwitch("importtrans", (sw, a) -> {
+			// Recall model name in case needed as basename for model exports
+			modelFilename = a.next(sw);
+			modelImportSources.add(new ModelImportSource(ModelExportTask.ModelExportEntity.MODEL, ModelExportFormat.EXPLICIT, new File(modelFilename)));
+		});
+		addSwitch("importstates", new StringSwitch(s -> modelImportSources.add(
+			new ModelImportSource(ModelExportTask.ModelExportEntity.STATES, ModelExportFormat.EXPLICIT, new File(s)))));
+		addSwitch("importobs", new StringSwitch(s -> modelImportSources.add(
+			new ModelImportSource(ModelExportTask.ModelExportEntity.OBSERVATIONS, ModelExportFormat.EXPLICIT, new File(s)))));
+		addSwitch("importlabels", new StringSwitch(s -> modelImportSources.add(
+			new ModelImportSource(ModelExportTask.ModelExportEntity.LABELS, ModelExportFormat.EXPLICIT, new File(s)))));
+		addSwitch("importstaterewards", new StringSwitch(s -> modelImportSources.add(
+			new ModelImportSource(ModelExportTask.ModelExportEntity.STATE_REWARDS, ModelExportFormat.EXPLICIT, new File(s)))));
+		addSwitch("importtransrewards", new StringSwitch(s -> modelImportSources.add(
+			new ModelImportSource(ModelExportTask.ModelExportEntity.TRANSITION_REWARDS, ModelExportFormat.EXPLICIT, new File(s)))));
+		addSwitch("importinitdist", (sw, a) -> { importinitdist = true; importInitDistFilename = a.next(sw); });
+		addSwitch("importresults", (sw, a) -> {
+			importresults = true;
+			modelFilename = "no-model-file.prism";
+			importResultsFilename = a.next(sw);
+		});
+		addSwitch("dtmc", new FlagSwitch(() -> typeOverride = ModelType.DTMC));
+		addSwitch("mdp",  new FlagSwitch(() -> typeOverride = ModelType.MDP));
+		addSwitch("ctmc", new FlagSwitch(() -> typeOverride = ModelType.CTMC));
+
+		// EXPORT OPTIONS:
+		addSwitch("exportprism", (sw, a) -> { exportprism = true; exportPrismFilename = a.next(sw); });
+		addSwitch("exportprismconst", (sw, a) -> { exportprismconst = true; exportPrismConstFilename = a.next(sw); });
+		addSwitch("exportresults", new StringSwitch(this::processExportResultsSwitch));
+		addSwitch("exportvector", (sw, a) -> {
+			exportvector = true; exportVectorFilename = a.next(sw); prism.setStoreVector(true);
+		});
+		addSwitch("exportmodel", new StringSwitch(this::processExportModelSwitch));
+		// process -exportmodelprecision in PrismSettings
+		addSwitch("exporttrans", new StringSwitch(s -> modelExportTasks.add(
+			new ModelExportTask(ModelExportTask.ModelExportEntity.MODEL, s))));
+		addSwitch("exportstaterewards", new StringSwitch(s -> modelExportTasks.add(
+			new ModelExportTask(ModelExportTask.ModelExportEntity.STATE_REWARDS, s))));
+		addSwitch("exporttransrewards", new StringSwitch(s -> modelExportTasks.add(
+			new ModelExportTask(ModelExportTask.ModelExportEntity.TRANSITION_REWARDS, s))));
+		addSwitch("exportrewards", (sw, a) -> {
+			modelExportTasks.add(new ModelExportTask(ModelExportTask.ModelExportEntity.STATE_REWARDS, a.next(sw)));
+			modelExportTasks.add(new ModelExportTask(ModelExportTask.ModelExportEntity.TRANSITION_REWARDS, a.next(sw)));
+		});
+		addSwitch("exportstates", new StringSwitch(s -> modelExportTasks.add(
+			new ModelExportTask(ModelExportTask.ModelExportEntity.STATES, s))));
+		addSwitch("exportobs", new StringSwitch(s -> modelExportTasks.add(
+			new ModelExportTask(ModelExportTask.ModelExportEntity.OBSERVATIONS, s))));
+		addSwitch("exportlabels", new StringSwitch(this::processExportLabelsSwitch));
+		addSwitch("exportproplabels", new StringSwitch(this::processExportPropLabelsSwitch));
+		addSwitch("exportmatlab", new FlagSwitch(() -> {
+			exportType = Prism.EXPORT_MATLAB;
+			modelExportOptionsGlobal.setFormat(ModelExportFormat.MATLAB);
+		}));
+		addSwitch("exportmrmc", new FlagSwitch(() -> errorAndExit("Export to MRMC format no longer supported")));
+		addSwitch("exportrows", new FlagSwitch(() -> {
+			exportType = Prism.EXPORT_ROWS;
+			modelExportOptionsGlobal.setExplicitRows(true);
+		}));
+		addSwitch("exportordered", "ordered", new FlagSwitch(() -> {})); // always done now, no-op
+		addSwitch("exportunordered", "unordered", new FlagSwitch(() -> errorAndExit("Switch -exportunordered is no longer supported")));
+		addSwitch("exporttransdot", new StringSwitch(s -> {
+			ModelExportOptions exportOptions = new ModelExportOptions().setFormat(ModelExportFormat.DOT).setShowStates(false).setShowObservations(false);
+			modelExportTasks.add(new ModelExportTask(ModelExportTask.ModelExportEntity.MODEL, s, exportOptions));
+		}));
+		addSwitch("exporttransdotstates", new StringSwitch(s -> {
+			ModelExportOptions exportOptions = new ModelExportOptions().setFormat(ModelExportFormat.DOT).setShowStates(true).setShowObservations(true);
+			modelExportTasks.add(new ModelExportTask(ModelExportTask.ModelExportEntity.MODEL, s, exportOptions));
+		}));
+		addSwitch("exportdot", new StringSwitch(s -> {
+			ModelExportOptions exportOptions = new ModelExportOptions().setFormat(ModelExportFormat.DD_DOT);
+			modelExportTasks.add(new ModelExportTask(ModelExportTask.ModelExportEntity.MODEL, s, exportOptions));
+		}));
+		addSwitch("exportsccs", (sw, a) -> { exportsccs = true; exportSCCsFilename = a.next(sw); });
+		addSwitch("exportbsccs", (sw, a) -> { exportbsccs = true; exportBSCCsFilename = a.next(sw); });
+		addSwitch("exportmecs", (sw, a) -> { exportmecs = true; exportMECsFilename = a.next(sw); });
+		addSwitch("exportsteadystate", "exportss", (sw, a) -> {
+			exportSteadyStateFilename = a.next(sw);
+			steadystate = true; // compute if asked to export
+		});
+		addSwitch("exporttransient", "exporttr", new StringSwitch(s -> exportTransientFilename = s));
+		addSwitch("exportstrat", new StringSwitch(this::processExportStratSwitch));
+		addSwitch("exportdigital", new StringSwitch(s -> {
+			File f = s.equals("stdout") ? null : new File(s);
+			prism.setExportDigital(true);
+			prism.setExportDigitalFile(f);
+		}));
+		addSwitch("exporttarget", new StringSwitch(s -> {      // hidden
+			prism.setExportTarget(true); prism.setExportTargetFilename(s);
+		}));
+		addSwitch("exportprodtrans", new StringSwitch(s -> {   // hidden
+			prism.setExportProductTrans(true); prism.setExportProductTransFilename(s);
+		}));
+		addSwitch("exportprodstates", new StringSwitch(s -> {  // hidden
+			prism.setExportProductStates(true); prism.setExportProductStatesFilename(s);
+		}));
+		addSwitch("exportprodvector", new StringSwitch(s -> {  // hidden
+			prism.setExportProductVector(true); prism.setExportProductVectorFilename(s);
+		}));
+
+		// NB: Following the ordering of the -help text, more options go here,
+		// but these are processed in the PrismSettings class; see below.
+
+		// SIMULATION OPTIONS:
+		addSwitch("sim", new FlagSwitch(() -> simulate = true));
+		addSwitch("simmethod", new EnumSwitch()
+			.when("ci",   () -> simMethodName = "ci")
+			.when("aci",  () -> simMethodName = "aci")
+			.when("apmc", () -> simMethodName = "apmc")
+			.when("sprt", () -> simMethodName = "sprt"));
+		addSwitch("simsamples", (sw, a) -> {
+			int n = a.nextInt(sw);
+			if (n <= 0) errorAndExit("Invalid value for -" + sw + " switch");
+			simNumSamples = n; simNumSamplesGiven = true;
+		});
+		addSwitch("simconf", (sw, a) -> {
+			double d = a.nextDouble(sw);
+			if (d <= 0 || d >= 1) errorAndExit("Invalid value for -" + sw + " switch");
+			simConfidence = d; simConfidenceGiven = true;
+		});
+		addSwitch("simwidth", (sw, a) -> {
+			double d = a.nextDouble(sw);
+			if (d <= 0) errorAndExit("Invalid value for -" + sw + " switch");
+			simWidth = d; simWidthGiven = true;
+		});
+		addSwitch("simapprox", (sw, a) -> {
+			double d = a.nextDouble(sw);
+			if (d <= 0) errorAndExit("Invalid value for -" + sw + " switch");
+			simApprox = d; simApproxGiven = true;
+		});
+		addSwitch("simmanual", new FlagSwitch(() -> simManual = true));
+		addSwitch("simvar", (sw, a) -> {
+			int n = a.nextInt(sw);
+			if (n <= 0) errorAndExit("Invalid value for -" + sw + " switch");
+			reqIterToConclude = n; reqIterToConcludeGiven = true;
+		});
+		addSwitch("simmaxrwd", (sw, a) -> {
+			double d = a.nextDouble(sw);
+			if (d <= 0.0) errorAndExit("Invalid value for -" + sw + " switch");
+			simMaxReward = d; simMaxRewardGiven = true;
+		});
+		addSwitch("simpathlen", (sw, a) -> {
+			long n = a.nextLong(sw);
+			if (n <= 0) errorAndExit("Invalid value for -" + sw + " switch");
+			simMaxPath = n; simMaxPathGiven = true;
+		});
+
+		// FURTHER OPTIONS:
+		addSwitch("zerorewardcheck", new FlagSwitch(() -> prism.setCheckZeroLoops(true)));
+		addSwitch("explicitbuild", new FlagSwitch(() -> explicitbuild = true));
+		addSwitch("explicitbuildtest", new FlagSwitch(() -> explicitbuildtest = true)); // hidden
+
+		// MISCELLANEOUS HIDDEN OPTIONS:
+		addSwitch("mainlog", new StringSwitch(this::processMainLogSwitch));
+		addSwitch("exportmodeldotview", new FlagSwitch(() -> exportmodeldotview = true));
+		addSwitch("c1", new FlagSwitch(() -> prism.setConstruction(1)));
+		addSwitch("c2", new FlagSwitch(() -> prism.setConstruction(2)));
+		addSwitch("c3", new FlagSwitch(() -> prism.setConstruction(3)));
+		addSwitch("o1", new FlagSwitch(() -> { prism.setOrdering(1); orderingOverride = true; }));
+		addSwitch("o2", new FlagSwitch(() -> { prism.setOrdering(2); orderingOverride = true; }));
+		addSwitch("noreach", new FlagSwitch(() -> prism.setDoReach(false)));
+		addSwitch("nobscc",  new FlagSwitch(() -> prism.setBSCCComp(false)));
+		addSwitch("frontier", new FlagSwitch(() -> prism.setReachMethod(Prism.REACH_FRONTIER)));
+		addSwitch("bfs",      new FlagSwitch(() -> prism.setReachMethod(Prism.REACH_BFS)));
+		addSwitch("bisim",    new FlagSwitch(() -> prism.setDoBisim(true)));
+	}
+
+	/** Register a switch handler under a single name. */
+	private void addSwitch(String name, SwitchHandler h)
+	{
+		switchHandlers.put(name, h);
+	}
+
+	/** Register a switch handler under two names (primary + alias). */
+	private void addSwitch(String n1, String n2, SwitchHandler h)
+	{
+		switchHandlers.put(n1, h);
+		switchHandlers.put(n2, h);
+	}
+
+	/** Register a switch handler under three names (primary + two aliases). */
+	private void addSwitch(String n1, String n2, String n3, SwitchHandler h)
+	{
+		switchHandlers.put(n1, h);
+		switchHandlers.put(n2, h);
+		switchHandlers.put(n3, h);
 	}
 
 	/**
@@ -1899,6 +1379,31 @@ public class PrismCL implements PrismModelListener
 				propertiesFilename = filenameArgs.get(1);
 			}
 		}
+	}
+
+	/** Process the argument to the -exportresults switch. */
+	private void processExportResultsSwitch(String filesOptionsString) throws PrismException
+	{
+		exportresults = true;
+		// Split into filename/options; also accept , as a legacy separator if : is absent
+		String[] halves = splitFilesAndOptions(filesOptionsString);
+		if (halves[1].isEmpty() && halves[0].indexOf(',') > -1) {
+			int comma = halves[0].indexOf(',');
+			halves[1] = halves[0].substring(comma + 1);
+			halves[0] = halves[0].substring(0, comma);
+		}
+		exportResultsFilename = halves[0];
+		exportShape = ResultsExportShape.LIST_PLAIN;
+		boolean[] isCsv = {false}, isMatrix = {false};
+		new OptionParser()
+			.flag("csv",       () -> isCsv[0] = true)
+			.flag("matrix",    () -> isMatrix[0] = true)
+			.flag("dataframe", () -> exportShape = ResultsExportShape.DATA_FRAME)
+			.flag("comment",   () -> exportShape = ResultsExportShape.COMMENT)
+			.parse(halves[1], "exportresults");
+		if (exportShape == ResultsExportShape.LIST_PLAIN)
+			exportShape = isCsv[0] ? (isMatrix[0] ? ResultsExportShape.MATRIX_CSV   : ResultsExportShape.LIST_CSV)
+			                       : (isMatrix[0] ? ResultsExportShape.MATRIX_PLAIN  : ResultsExportShape.LIST_PLAIN);
 	}
 
 	/**
@@ -1954,38 +1459,11 @@ public class PrismCL implements PrismModelListener
 			}
 		}
 		// Process options
-		String options[] = optionsString.split(",");
-		for (String opt : options) {
-			// Ignore ""
-			if (opt.equals("")) {
-			}
-			// Import format
-			else if (opt.startsWith("format")) {
-				if (!opt.startsWith("format=")) {
-					throw new PrismException("No value provided for \"format\" option of -importmodel");
-				}
-				String optVal = opt.substring(7);
-				ModelExportFormat importFormat = null;
-				switch (optVal) {
-					case "explicit":
-						importFormat = ModelExportFormat.EXPLICIT;
-						break;
-					case "umb":
-						importFormat = ModelExportFormat.UMB;
-						break;
-					default:
-						throw new PrismException("Unknown value \"" + optVal + "\" provided for \"format\" option of -importmodel");
-				}
-				// Apply format to the import sources
-				for (ModelImportSource source : modelImportSources) {
-					source.format = importFormat;
-				}
-			}
-			// Unknown option
-			else {
-				throw new PrismException("Unknown option \"" + opt + "\" for -importmodel switch");
-			}
-		}
+		new OptionParser()
+			.choice("format", new OptionParser.Choice()
+				.when("explicit", () -> { for (ModelImportSource s : modelImportSources) s.format = ModelExportFormat.EXPLICIT; })
+				.when("umb",      () -> { for (ModelImportSource s : modelImportSources) s.format = ModelExportFormat.UMB; }))
+			.parse(optionsString, "importmodel");
 	}
 
 	/**
@@ -2073,22 +1551,10 @@ public class PrismCL implements PrismModelListener
 		// Split into files/options (on :)
 		String pair[] = splitFilesAndOptions(filesOptionsString);
 		ModelExportTask newExportTask = new ModelExportTask(ModelExportTask.ModelExportEntity.LABELS, pair[0]);
-		String options[] = pair[1].split(",");
-		for (String opt : options) {
-			// Ignore ""
-			if (opt.equals("")) {
-			}
-			// Export type
-			else if (opt.equals("matlab")) {
-				newExportTask.getExportOptions().setFormat(ModelExportFormat.MATLAB);
-			} else if (opt.equals("proplabels")) {
-				newExportTask.setLabelExportSet(ModelExportTask.LabelExportSet.ALL);
-			}
-			// Unknown option
-			else {
-				throw new PrismException("Unknown option \"" + opt + "\" for -exportlabels switch");
-			}
-		}
+		new OptionParser()
+			.flag("matlab",     () -> newExportTask.getExportOptions().setFormat(ModelExportFormat.MATLAB))
+			.flag("proplabels", () -> newExportTask.setLabelExportSet(ModelExportTask.LabelExportSet.ALL))
+			.parse(pair[1], "exportlabels");
 		modelExportTasks.add(newExportTask);
 	}
 
@@ -2101,20 +1567,9 @@ public class PrismCL implements PrismModelListener
 		String pair[] = splitFilesAndOptions(filesOptionsString);
 		ModelExportTask newExportTask = new ModelExportTask(ModelExportTask.ModelExportEntity.LABELS, pair[0]);
 		newExportTask.setLabelExportSet(ModelExportTask.LabelExportSet.EXTRA);
-		String options[] = pair[1].split(",");
-		for (String opt : options) {
-			// Ignore ""
-			if (opt.equals("")) {
-			}
-			// Export type
-			else if (opt.equals("matlab")) {
-				newExportTask.getExportOptions().setFormat(ModelExportFormat.MATLAB);
-			}
-			// Unknown option
-			else {
-				throw new PrismException("Unknown option \"" + opt + "\" for -exportproplabels switch");
-			}
-		}
+		new OptionParser()
+			.flag("matlab", () -> newExportTask.getExportOptions().setFormat(ModelExportFormat.MATLAB))
+			.parse(pair[1], "exportproplabels");
 		modelExportTasks.add(newExportTask);
 	}
 
@@ -2157,161 +1612,42 @@ public class PrismCL implements PrismModelListener
 		}
 		// Process options
 		ModelExportOptions exportOptions = new ModelExportOptions();
-		String options[] = optionsString.split(",");
-		for (String opt : options) {
-			String sOpt;
-			// Ignore ""
-			if (opt.equals("")) {
-			}
-			// Export format
-			else if (opt.startsWith("format")) {
-				if (!opt.startsWith("format=")) {
-					throw new PrismException("No value provided for \"format\" option of -exportmodel");
-				}
-				String optVal = opt.substring(7);
-				switch (optVal) {
-					case "explicit":
-						exportOptions.setFormat(ModelExportFormat.EXPLICIT);
-						break;
-					case "matlab":
-						exportOptions.setFormat(ModelExportFormat.MATLAB);
-						break;
-					case "dot":
-						exportOptions.setFormat(ModelExportFormat.DOT);
-						break;
-					case "drn":
-						exportOptions.setFormat(ModelExportFormat.DRN);
-						break;
-					case "umb":
-						exportOptions.setFormat(ModelExportFormat.UMB);
-						break;
-					default:
-						throw new PrismException("Unknown value \"" + optVal + "\" provided for \"format\" option of -exportmodel");
-				}
-			}
-			// Export type
-			else if (opt.equals("matlab")) {
-				exportOptions.setFormat(ModelExportFormat.MATLAB);
-				exportType = Prism.EXPORT_MATLAB;
-			} else if (opt.equals("rows")) {
-				exportOptions.setExplicitRows(true);
-				exportType = Prism.EXPORT_ROWS;
-			} else if (opt.equals("text")) {
-				exportOptions.setBinaryAsText(true);
-			}
-			else if (opt.equals("proplabels")) {
-				for (ModelExportTask exportTask : newModelExportTasks) {
-					if (exportTask.getEntity() == ModelExportTask.ModelExportEntity.LABELS) {
-						exportTask.setLabelExportSet(ModelExportTask.LabelExportSet.ALL);
-					}
-				}
-			}
-			else if (opt.startsWith(sOpt = "labels")) {
-				if (!opt.startsWith(sOpt + "="))
-					throw new PrismException("No value provided for \"" + sOpt + "\" option of -exportmodel");
-				String optVal = opt.substring(sOpt.length() + 1);
-				if (optVal.equals("true"))
-					exportOptions.setShowLabels(true);
-				else if (optVal.equals("false"))
-					exportOptions.setShowLabels(false);
-				else
-					throw new PrismException("Unknown value \"" + optVal + "\" provided for \"" + sOpt + "\" option of -exportmodel");
-			}
-			else if (opt.startsWith(sOpt = "rewards")) {
-				if (!opt.startsWith(sOpt + "="))
-					throw new PrismException("No value provided for \"" + sOpt + "\" option of -exportmodel");
-				String optVal = opt.substring(sOpt.length() + 1);
-				if (optVal.equals("true"))
-					exportOptions.setShowRewards(true);
-				else if (optVal.equals("false"))
-					exportOptions.setShowRewards(false);
-				else
-					throw new PrismException("Unknown value \"" + optVal + "\" provided for \"" + sOpt + "\" option of -exportmodel");
-			}
-			else if (opt.startsWith(sOpt = "states")) {
-				if (!opt.startsWith(sOpt + "="))
-					throw new PrismException("No value provided for \"" + sOpt + "\" option of -exportmodel");
-				String optVal = opt.substring(sOpt.length() + 1);
-				if (optVal.equals("true"))
-					exportOptions.setShowStates(true);
-				else if (optVal.equals("false"))
-					exportOptions.setShowStates(false);
-				else
-					throw new PrismException("Unknown value \"" + optVal + "\" provided for \"" + sOpt + "\" option of -exportmodel");
-			}
-			else if (opt.startsWith(sOpt = "obs")) {
-				if (!opt.startsWith(sOpt + "="))
-					throw new PrismException("No value provided for \"" + sOpt + "\" option of -exportmodel");
-				String optVal = opt.substring(sOpt.length() + 1);
-				if (optVal.equals("true"))
-					exportOptions.setShowObservations(true);
-				else if (optVal.equals("false"))
-					exportOptions.setShowObservations(false);
-				else
-					throw new PrismException("Unknown value \"" + optVal + "\" provided for \"" + sOpt + "\" option of -exportmodel");
-			}
-			else if (opt.startsWith(sOpt = "actions")) {
-				if (!opt.startsWith(sOpt + "="))
-					throw new PrismException("No value provided for \"" + sOpt + "\" option of -exportmodel");
-				String optVal = opt.substring(sOpt.length() + 1);
-				if (optVal.equals("true")) {
-					exportOptions.setShowActions(true);
-				} else if (optVal.equals("false")) {
-					exportOptions.setShowActions(false);
-				}
-				else {
-					throw new PrismException("Unknown value \"" + optVal + "\" provided for \"" + sOpt + "\" option of -exportmodel");
-				}
-			}
-			else if (opt.startsWith(sOpt = "headers")) {
-				if (!opt.startsWith(sOpt + "="))
-					throw new PrismException("No value provided for \"" + sOpt + "\" option of -exportmodel");
-				String optVal = opt.substring(sOpt.length() + 1);
-				if (optVal.equals("true")) {
-					exportOptions.setPrintHeaders(true);
-				} else if (optVal.equals("false")) {
-					exportOptions.setPrintHeaders(false);
-				}
-				else {
-					throw new PrismException("Unknown value \"" + optVal + "\" provided for \"" + sOpt + "\" option of -exportmodel");
-				}
-			}
-			else if (opt.startsWith(sOpt = "precision")) {
-				if (!opt.startsWith(sOpt + "="))
-					throw new PrismException("No value provided for \"" + sOpt + "\" option of -exportmodel");
-				String optVal = opt.substring(sOpt.length() + 1);
+		new OptionParser()
+			.flag("matlab",     () -> { exportOptions.setFormat(ModelExportFormat.MATLAB); exportType = Prism.EXPORT_MATLAB; })
+			.flag("rows",       () -> { exportOptions.setExplicitRows(true); exportType = Prism.EXPORT_ROWS; })
+			.flag("text",       () -> exportOptions.setBinaryAsText(true))
+			.flag("proplabels", () -> {
+				for (ModelExportTask t : newModelExportTasks)
+					if (t.getEntity() == ModelExportTask.ModelExportEntity.LABELS)
+						t.setLabelExportSet(ModelExportTask.LabelExportSet.ALL);
+			})
+			.choice("format", new OptionParser.Choice()
+				.when("explicit", () -> exportOptions.setFormat(ModelExportFormat.EXPLICIT))
+				.when("matlab",   () -> exportOptions.setFormat(ModelExportFormat.MATLAB))
+				.when("dot",      () -> exportOptions.setFormat(ModelExportFormat.DOT))
+				.when("drn",      () -> exportOptions.setFormat(ModelExportFormat.DRN))
+				.when("umb",      () -> exportOptions.setFormat(ModelExportFormat.UMB)))
+			.bool("labels",   v -> exportOptions.setShowLabels(v))
+			.bool("rewards",  v -> exportOptions.setShowRewards(v))
+			.bool("states",   v -> exportOptions.setShowStates(v))
+			.bool("obs",      v -> exportOptions.setShowObservations(v))
+			.bool("actions",  v -> exportOptions.setShowActions(v))
+			.bool("headers",  v -> exportOptions.setPrintHeaders(v))
+			.string("precision", v -> {
 				try {
-					int precision = Integer.parseInt(optVal);
-					if (!RANGE_EXPORT_DOUBLE_PRECISION.contains(precision)) {
-						throw new NumberFormatException("");
-					}
-					exportOptions.setModelPrecision(precision);
+					int n = Integer.parseInt(v);
+					if (!RANGE_EXPORT_DOUBLE_PRECISION.contains(n)) throw new NumberFormatException();
+					exportOptions.setModelPrecision(n);
 				} catch (NumberFormatException e) {
-					throw new PrismException("Invalid value \"" + optVal + "\" provided for \"" + sOpt + "\" option of -exportmodel");
+					throw new PrismException("Invalid value \"" + v + "\" for \"precision\" option of -exportmodel");
 				}
-			}
-			else if (opt.startsWith(sOpt = "zip")) {
-				if (!opt.startsWith(sOpt + "="))
-					throw new PrismException("No value provided for \"" + sOpt + "\" option of -exportmodel");
-				String optVal = opt.substring(sOpt.length() + 1);
-				if (optVal.equals("true")) {
-					exportOptions.setZipped(true);
-				} else if (optVal.equals("false")) {
-					exportOptions.setZipped(false);
-				} else if (optVal.equals("gzip") || optVal.equals("gz")) {
-					exportOptions.setZipped(true).setCompressionFormat(ModelExportOptions.CompressionFormat.GZIP);
-				} else if (optVal.equals("xz")) {
-					exportOptions.setZipped(true).setCompressionFormat(ModelExportOptions.CompressionFormat.XZ);
-				}
-				else {
-					throw new PrismException("Unknown value \"" + optVal + "\" provided for \"" + sOpt + "\" option of -exportmodel");
-				}
-			}
-			// Unknown option
-			else {
-				throw new PrismException("Unknown option \"" + opt + "\" for -exportmodel switch");
-			}
-		}
+			})
+			.choice("zip", new OptionParser.Choice()
+				.when("true",       () -> exportOptions.setZipped(true))
+				.when("false",      () -> exportOptions.setZipped(false))
+				.when("gzip", "gz", () -> exportOptions.setZipped(true).setCompressionFormat(ModelExportOptions.CompressionFormat.GZIP))
+				.when("xz",         () -> exportOptions.setZipped(true).setCompressionFormat(ModelExportOptions.CompressionFormat.XZ)))
+			.parse(optionsString, "exportmodel");
 		// Apply options from this switch to each export task
 		for (ModelExportTask exportTask : newModelExportTasks) {
 			exportTask.getExportOptions().apply(exportOptions);
@@ -2347,75 +1683,19 @@ public class PrismCL implements PrismModelListener
 			exportStratOptions.setType(StrategyExportOptions.StrategyExportType.ACTIONS);
 		}
 		// Process options
-		String options[] = optionsString.split(",");
-		for (String opt : options) {
-			// Ignore ""
-			if (opt.equals("")) {
-			}
-			else if (opt.startsWith("type")) {
-				if (!opt.startsWith("type="))
-					throw new PrismException("No value provided for \"type\" option of -exportstrat");
-				String optVal = opt.substring(5);
-				if (optVal.equals("actions"))
-					exportStratOptions.setType(StrategyExportOptions.StrategyExportType.ACTIONS);
-				else if (optVal.equals("indices"))
-					exportStratOptions.setType(StrategyExportOptions.StrategyExportType.INDICES);
-				else if (optVal.equals("model") || optVal.equals("induced"))
-					exportStratOptions.setType(StrategyExportOptions.StrategyExportType.INDUCED_MODEL);
-				else if (optVal.equals("dot"))
-					exportStratOptions.setType(StrategyExportOptions.StrategyExportType.DOT_FILE);
-				else
-					throw new PrismException("Unknown value \"" + optVal + "\" provided for \"type\" option of -exportstrat");
-			}
-			else if (opt.startsWith("mode")) {
-				if (!opt.startsWith("mode="))
-					throw new PrismException("No value provided for \"mode\" option of -exportstrat");
-				String optVal = opt.substring(5);
-				if (optVal.equals("restrict"))
-					exportStratOptions.setMode(StrategyExportOptions.InducedModelMode.RESTRICT);
-				else if (optVal.equals("reduce"))
-					exportStratOptions.setMode(StrategyExportOptions.InducedModelMode.REDUCE);
-				else
-					throw new PrismException("Unknown value \"" + optVal + "\" provided for \"mode\" option of -exportstrat");
-			}
-			else if (opt.startsWith("reach")) {
-				if (!opt.startsWith("reach="))
-					throw new PrismException("No value provided for \"reach\" option of -exportstrat");
-				String optVal = opt.substring(6);
-				if (optVal.equals("true"))
-					exportStratOptions.setReachOnly(true);
-				else if (optVal.equals("false"))
-					exportStratOptions.setReachOnly(false);
-				else
-					throw new PrismException("Unknown value \"" + optVal + "\" provided for \"reach\" option of -exportstrat");
-			}
-			else if (opt.startsWith("states")) {
-				if (!opt.startsWith("states="))
-					throw new PrismException("No value provided for \"states\" option of -exportstrat");
-				String optVal = opt.substring(7);
-				if (optVal.equals("true"))
-					exportStratOptions.setShowStates(true);
-				else if (optVal.equals("false"))
-					exportStratOptions.setShowStates(false);
-				else
-					throw new PrismException("Unknown value \"" + optVal + "\" provided for \"reach\" option of -exportstrat");
-			}
-			else if (opt.startsWith("obs")) {
-				if (!opt.startsWith("obs="))
-					throw new PrismException("No value provided for \"obs\" option of -exportstrat");
-				String optVal = opt.substring(4);
-				if (optVal.equals("true"))
-					exportStratOptions.setMergeObservations(true);
-				else if (optVal.equals("false"))
-					exportStratOptions.setMergeObservations(false);
-				else
-					throw new PrismException("Unknown value \"" + optVal + "\" provided for \"reach\" option of -exportstrat");
-			}
-			// Unknown option
-			else {
-				throw new PrismException("Unknown option \"" + opt + "\" for -exportstrat switch");
-			}
-		}
+		new OptionParser()
+			.choice("type", new OptionParser.Choice()
+				.when("actions",          () -> exportStratOptions.setType(StrategyExportOptions.StrategyExportType.ACTIONS))
+				.when("indices",          () -> exportStratOptions.setType(StrategyExportOptions.StrategyExportType.INDICES))
+				.when("model", "induced", () -> exportStratOptions.setType(StrategyExportOptions.StrategyExportType.INDUCED_MODEL))
+				.when("dot",              () -> exportStratOptions.setType(StrategyExportOptions.StrategyExportType.DOT_FILE)))
+			.choice("mode", new OptionParser.Choice()
+				.when("restrict", () -> exportStratOptions.setMode(StrategyExportOptions.InducedModelMode.RESTRICT))
+				.when("reduce",   () -> exportStratOptions.setMode(StrategyExportOptions.InducedModelMode.REDUCE)))
+			.bool("reach",  v -> exportStratOptions.setReachOnly(v))
+			.bool("states", v -> exportStratOptions.setShowStates(v))
+			.bool("obs",    v -> exportStratOptions.setMergeObservations(v))
+			.parse(optionsString, "exportstrat");
 	}
 
 	/**
@@ -2428,19 +1708,13 @@ public class PrismCL implements PrismModelListener
 		String filename = halves[0];
 		String optionsString = halves[1];
 		// Process options
-		boolean append = false;
-		for (String opt : optionsString.split(",")) {
-			if (opt.equals("")) {
-				// ignore empty
-			} else if (opt.equals("append")) {
-				append = true;
-			} else {
-				throw new PrismException("Unknown option \"" + opt + "\" for -mainlog switch");
-			}
-		}
+		boolean[] append = { false };
+		new OptionParser()
+			.flag("append", () -> append[0] = true)
+			.parse(optionsString, "mainlog");
 		// Open the log
 		try {
-			mainLog = new PrismFileLog(filename, append);
+			mainLog = new PrismFileLog(filename, append[0]);
 			prism.setMainLog(mainLog);
 		} catch (PrismException e) {
 			errorAndExit("Couldn't open log file \"" + filename + "\"");
