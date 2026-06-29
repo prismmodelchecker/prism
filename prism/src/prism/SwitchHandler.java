@@ -208,6 +208,21 @@ class SwitchEntry
 		this.shortText = shortText;
 		this.longDesc = longDesc;
 	}
+
+	/** Print detailed help: auto-generates the "Switch: -name [aliases] [argHint]" header, then delegates to {@code longDesc}. */
+	void printLongDesc(PrismLog log)
+	{
+		StringBuilder header = new StringBuilder("Switch: -").append(primaryName);
+		if (shownAliases != null && shownAliases.length > 0) {
+			header.append(" (or");
+			for (String alias : shownAliases) header.append(" -").append(alias);
+			header.append(")");
+		}
+		if (argHint != null && !argHint.isEmpty())
+			header.append(" ").append(argHint);
+		log.println(header + "\n");
+		longDesc.accept(log);
+	}
 }
 
 /**

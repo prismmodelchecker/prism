@@ -1085,7 +1085,7 @@ public class PrismSettings implements Observer
 			}
 		}, "", "Use interval iteration to solve MDPs/MCs (see -help -ii)",
 			log -> {
-				log.println("Switch: -intervaliter (or -ii) optionally takes a comma-separated list of options:\n");
+				log.println("Optionally takes a comma-separated list of options:\n");
 				log.println(" -intervaliter:option1,option2,...\n");
 				log.println("where the options are one of the following:\n");
 				log.println(OptionsIntervalIteration.getOptionsDescription());
@@ -1162,7 +1162,6 @@ public class PrismSettings implements Observer
 			set(PRISM_AR_OPTIONS, "".equals(existing) ? v : existing + "," + v);
 		}, "<string>", "Abstraction-refinement engine options string",
 			log -> {
-				log.println("Switch: -aroptions <string>\n");
 				log.println("<string> is a comma-separated list of options regarding abstraction-refinement:");
 				QuantAbstractRefine.printOptions(log);
 			});
