@@ -209,7 +209,7 @@ class SwitchEntry
 		this.longDesc = longDesc;
 	}
 
-	/** Print detailed help: auto-generates the "Switch: -name [aliases] [argHint]" header, then delegates to {@code longDesc}. */
+	/** Print detailed help: auto-generates the "Switch: -name [aliases] [argHint]" header, then the body. */
 	void printLongDesc(PrismLog log)
 	{
 		StringBuilder header = new StringBuilder("Switch: -").append(primaryName);
@@ -221,7 +221,14 @@ class SwitchEntry
 		if (argHint != null && !argHint.isEmpty())
 			header.append(" ").append(argHint);
 		log.println(header + "\n");
-		longDesc.accept(log);
+		if (longDesc != null) {
+			longDesc.accept(log);
+		} else {
+			if (shortText != null && !shortText.isEmpty())
+				log.println(shortText);
+			if (handler instanceof EnumSwitch)
+				((EnumSwitch) handler).printOptions(log);
+		}
 	}
 }
 
@@ -258,4 +265,6 @@ class EnumSwitch implements SwitchHandler
 				" (options are: " + String.join(", ", choices.keySet()) + ")");
 		action.run();
 	}
+
+	void printOptions(PrismLog log) { log.println("Valid options: " + String.join(", ", choices.keySet())); }
 }

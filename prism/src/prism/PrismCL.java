@@ -2103,7 +2103,7 @@ public class PrismCL implements PrismModelListener
 		if (sw.charAt(0) == '-')
 			sw = sw.substring(1);
 		SwitchEntry entry = switchHandlers.get(sw);
-		if (entry != null && entry.longDesc != null)
+		if (entry != null && entry.argHint != null)
 			entry.printLongDesc(mainLog);
 		else
 			mainLog.println("Sorry - no help available for switch -" + sw);
