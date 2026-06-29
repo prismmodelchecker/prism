@@ -948,9 +948,6 @@ public class PrismSettings implements Observer
 	protected String exportPropAutType = "txt";
 	protected String exportPropAutFilename = "da.txt";
 
-	// CLI switch handler map (populated lazily by initSwitchHandlers)
-	private Map<String, SwitchHandler> settingsSwitchHandlers;
-
 	public void setExportPropAut(boolean b) throws PrismException
 	{
 		exportPropAut = b;
@@ -982,76 +979,98 @@ public class PrismSettings implements Observer
 	}
 
 	/**
-	 * Handle a command-line switch by dispatching to the registered settings handler.
-	 * @param sw   Switch name (without leading {@code -}, colon sub-options already in {@code consumer})
-	 * @param consumer Argument consumer positioned at the switch token
+	 * Register all PrismSettings switch handlers with the unified CLI switch registry.
+	 * Called from {@link PrismCL#initSwitchHandlers()} to contribute PrismSettings switches
+	 * in the correct help-output position (between EXPORTS and SIMULATION OPTIONS).
+	 *
+	 * @param reg         the shared switch registry
+	 * @param prism       the Prism instance (for switches that set Prism-level state)
+	 * @param paramHandler PrismCL-owned handler for {@code -param}; registered here so that
+	 *                    {@code -param} appears in the PARAMETRIC section of {@code -help}
 	 */
-	public synchronized void setFromCommandLineSwitch(String sw, ArgConsumer consumer) throws PrismException
+	void registerSwitchHandlers(SwitchRegistry reg, Prism prism, SwitchHandler paramHandler)
 	{
-		// Lazy init (method is synchronized, so no race condition)
-		if (settingsSwitchHandlers == null) initSwitchHandlers();
+		// ── EXPORT OPTIONS ───────────────────────────────────────────────────
+		reg.beginGroup("EXPORT OPTIONS");
+		reg.addSwitch("exportmodelprecision", (sw, a) -> {
+			int n = a.nextInt(sw);
+			if (!RANGE_EXPORT_DOUBLE_PRECISION.contains(n))
+				throw new PrismException("Invalid value for -" + sw + " switch");
+			set(PRISM_EXPORT_MODEL_PRECISION, n);
+		}, "<n>", "Export probabilities/rewards with n significant decimal places");
+		reg.addSwitch("noexportheaders", new FlagSwitch(() -> set(PRISM_EXPORT_MODEL_HEADERS, false)),
+			"", "Don't include headers when exporting rewards");
 
-		SwitchHandler handler = settingsSwitchHandlers.get(sw);
-		if (handler != null) {
-			handler.handle(sw, consumer);
-			return;
-		}
-
-		throw new PrismException("Invalid switch -" + sw + " (type \"prism -help\" for full list)");
-	}
-
-	/** Populate {@link #settingsSwitchHandlers} with a handler for every switch recognised here. */
-	private void initSwitchHandlers()
-	{
-		settingsSwitchHandlers = new LinkedHashMap<>();
-
-		// ENGINES/METHODS:
-		addSwitch("mtbdd",    "m",  new FlagSwitch(() -> set(PRISM_ENGINE, "MTBDD")));
-		addSwitch("sparse",   "s",  new FlagSwitch(() -> set(PRISM_ENGINE, "Sparse")));
-		addSwitch("hybrid",   "h",  new FlagSwitch(() -> set(PRISM_ENGINE, "Hybrid")));
-		addSwitch("explicit", "ex", new FlagSwitch(() -> set(PRISM_ENGINE, "Explicit")));
-		addSwitch("exact", new FlagSwitch(() -> set(PRISM_EXACT_ENABLED, true)));
-		addSwitch("ptamethod", new EnumSwitch()
+		// ── ENGINES/METHODS ──────────────────────────────────────────────────
+		reg.beginGroup("ENGINES/METHODS");
+		reg.addSwitch("mtbdd",    "m",  new FlagSwitch(() -> set(PRISM_ENGINE, "MTBDD")),
+			"", "Use the MTBDD engine");
+		reg.addSwitch("sparse",   "s",  new FlagSwitch(() -> set(PRISM_ENGINE, "Sparse")),
+			"", "Use the Sparse engine");
+		reg.addSwitch("hybrid",   "h",  new FlagSwitch(() -> set(PRISM_ENGINE, "Hybrid")),
+			"", "Use the Hybrid engine [default]");
+		reg.addSwitch("explicit", "ex", new FlagSwitch(() -> set(PRISM_ENGINE, "Explicit")),
+			"", "Use the explicit engine");
+		reg.addSwitch("exact", new FlagSwitch(() -> set(PRISM_EXACT_ENABLED, true)),
+			"", "Perform exact (arbitrary precision) model checking");
+		reg.addSwitch("ptamethod", new EnumSwitch()
 			.when("digital",         () -> set(PRISM_PTA_METHOD, "Digital clocks"))
 			.when("games",           () -> set(PRISM_PTA_METHOD, "Stochastic games"))
-			.when("backwards", "bw", () -> set(PRISM_PTA_METHOD, "Backwards reachability")));
-		addSwitch("transientmethod", new EnumSwitch()
+			.when("backwards", "bw", () -> set(PRISM_PTA_METHOD, "Backwards reachability")),
+			"<name>", "Specify PTA engine (games, digital, backwards) [default: games]");
+		reg.addSwitch("transientmethod", new EnumSwitch()
 			.when("unif", () -> set(PRISM_TRANSIENT_METHOD, "Uniformisation"))
-			.when("fau",  () -> set(PRISM_TRANSIENT_METHOD, "Fast adaptive uniformisation")));
-		addSwitch("heuristic", new EnumSwitch()
+			.when("fau",  () -> set(PRISM_TRANSIENT_METHOD, "Fast adaptive uniformisation")),
+			"<name>", "CTMC transient analysis method (unif, fau) [default: unif]");
+		reg.addSwitch("heuristic", new EnumSwitch()
 			.when("none",   () -> set(PRISM_HEURISTIC, "None"))
 			.when("speed",  () -> set(PRISM_HEURISTIC, "Speed"))
-			.when("memory", () -> set(PRISM_HEURISTIC, "Memory")));
+			.when("memory", () -> set(PRISM_HEURISTIC, "Memory")),
+			"<mode>", "Automatic choice of engines/settings (none, speed, memory) [default: none]");
 
-		// NUMERICAL SOLUTION OPTIONS:
-		addSwitch("power", "pow", "pwr", new FlagSwitch(() -> set(PRISM_LIN_EQ_METHOD, "Power")));
-		addSwitch("jacobi", "jac",       new FlagSwitch(() -> set(PRISM_LIN_EQ_METHOD, "Jacobi")));
-		addSwitch("gaussseidel", "gs",   new FlagSwitch(() -> {
+		// ── SOLUTION METHODS (LINEAR EQUATIONS) ──────────────────────────────
+		reg.beginGroup("SOLUTION METHODS (LINEAR EQUATIONS)");
+		reg.addSwitch("power", "pow", "pwr", new FlagSwitch(() -> set(PRISM_LIN_EQ_METHOD, "Power")),
+			"", "Use the Power method for numerical computation");
+		reg.addSwitch("jacobi", "jac", new FlagSwitch(() -> set(PRISM_LIN_EQ_METHOD, "Jacobi")),
+			"", "Use Jacobi for numerical computation [default]");
+		reg.addSwitch("gaussseidel", "gs", new FlagSwitch(() -> {
 			set(PRISM_LIN_EQ_METHOD, "Gauss-Seidel");
 			set(PRISM_MDP_SOLN_METHOD, "Gauss-Seidel");
 			set(PRISM_MDP_MULTI_SOLN_METHOD, "Gauss-Seidel");
 			set(PRISM_IMDP_SOLN_METHOD, "Gauss-Seidel");
-		}));
-		addSwitch("bgaussseidel",  "bgs",  new FlagSwitch(() -> set(PRISM_LIN_EQ_METHOD, "Backwards Gauss-Seidel")));
-		addSwitch("pgaussseidel",  "pgs",  new FlagSwitch(() -> set(PRISM_LIN_EQ_METHOD, "Pseudo-Gauss-Seidel")));
-		addSwitch("bpgaussseidel", "bpgs", new FlagSwitch(() -> set(PRISM_LIN_EQ_METHOD, "Backwards Pseudo-Gauss-Seidel")));
-		addSwitch("jor",  new FlagSwitch(() -> set(PRISM_LIN_EQ_METHOD, "JOR")));
-		addSwitch("sor",  new FlagSwitch(() -> set(PRISM_LIN_EQ_METHOD, "SOR")));
-		addSwitch("bsor", new FlagSwitch(() -> set(PRISM_LIN_EQ_METHOD, "Backwards SOR")));
-		addSwitch("psor", new FlagSwitch(() -> set(PRISM_LIN_EQ_METHOD, "Pseudo-SOR")));
-		addSwitch("bpsor", new FlagSwitch(() -> set(PRISM_LIN_EQ_METHOD, "Backwards Pseudo-SOR")));
-		addSwitch("valiter", new FlagSwitch(() -> {
+		}), "", "Use Gauss-Seidel for numerical computation");
+		reg.addSwitch("bgaussseidel",  "bgs",  new FlagSwitch(() -> set(PRISM_LIN_EQ_METHOD, "Backwards Gauss-Seidel")),
+			"", "Use Backwards Gauss-Seidel for numerical computation");
+		reg.addSwitch("pgaussseidel",  "pgs",  new FlagSwitch(() -> set(PRISM_LIN_EQ_METHOD, "Pseudo-Gauss-Seidel")),
+			"", "Use Pseudo Gauss-Seidel for numerical computation");
+		reg.addSwitch("bpgaussseidel", "bpgs", new FlagSwitch(() -> set(PRISM_LIN_EQ_METHOD, "Backwards Pseudo-Gauss-Seidel")),
+			"", "Use Backwards Pseudo Gauss-Seidel for numerical computation");
+		reg.addSwitch("jor",  new FlagSwitch(() -> set(PRISM_LIN_EQ_METHOD, "JOR")),
+			"", "Use JOR for numerical computation");
+		reg.addSwitch("sor",  new FlagSwitch(() -> set(PRISM_LIN_EQ_METHOD, "SOR")),
+			"", "Use SOR for numerical computation");
+		reg.addSwitch("bsor", new FlagSwitch(() -> set(PRISM_LIN_EQ_METHOD, "Backwards SOR")),
+			"", "Use Backwards SOR for numerical computation");
+		reg.addSwitch("psor", new FlagSwitch(() -> set(PRISM_LIN_EQ_METHOD, "Pseudo-SOR")),
+			"", "Use Pseudo SOR for numerical computation");
+		reg.addSwitch("bpsor", new FlagSwitch(() -> set(PRISM_LIN_EQ_METHOD, "Backwards Pseudo-SOR")),
+			"", "Use Backwards Pseudo SOR for numerical computation");
+		reg.addSwitch("omega", new DoubleSwitch(d -> set(PRISM_LIN_EQ_METHOD_PARAM, d)),
+			"<x>", "Set over-relaxation parameter (for JOR/SOR/...) [default: 0.9]");
+
+		// ── SOLUTION METHODS (MDPS) ───────────────────────────────────────────
+		reg.beginGroup("SOLUTION METHODS (MDPS)");
+		reg.addSwitch("valiter", new FlagSwitch(() -> {
 			set(PRISM_MDP_SOLN_METHOD, "Value iteration");
 			set(PRISM_MDP_MULTI_SOLN_METHOD, "Value iteration");
 			set(PRISM_IMDP_SOLN_METHOD, "Value iteration");
-		}));
-		addSwitch("politer",    new FlagSwitch(() -> set(PRISM_MDP_SOLN_METHOD, "Policy iteration")));
-		addSwitch("modpoliter", new FlagSwitch(() -> set(PRISM_MDP_SOLN_METHOD, "Modified policy iteration")));
-		addSwitch("linprog", "lp", new FlagSwitch(() -> {
-			set(PRISM_MDP_SOLN_METHOD, "Linear programming");
-			set(PRISM_MDP_MULTI_SOLN_METHOD, "Linear programming");
-		}));
-		addSwitch("intervaliter", "ii", (sw, a) -> {
+		}), "", "Use value iteration for solving MDPs [default]");
+		reg.addSwitch("politer",    new FlagSwitch(() -> set(PRISM_MDP_SOLN_METHOD, "Policy iteration")),
+			"", "Use policy iteration for solving MDPs");
+		reg.addSwitch("modpoliter", new FlagSwitch(() -> set(PRISM_MDP_SOLN_METHOD, "Modified policy iteration")),
+			"", "Use modified policy iteration for solving MDPs");
+		reg.addSwitch("intervaliter", "ii", (sw, a) -> {
 			set(PRISM_INTERVAL_ITER, true);
 			String opts = a.optionsString();
 			if (opts != null) {
@@ -1064,210 +1083,258 @@ public class PrismSettings implements Observer
 				String existing = getString(PRISM_INTERVAL_ITER_OPTIONS);
 				set(PRISM_INTERVAL_ITER_OPTIONS, "".equals(existing) ? opts : existing + "," + opts);
 			}
-		});
-		addSwitch("pmaxquotient", new FlagSwitch(() -> set(PRISM_PMAX_QUOTIENT, true)));
-		addSwitch("topological",  new FlagSwitch(() -> set(PRISM_TOPOLOGICAL_VI, true)));
-		addSwitch("omega", new DoubleSwitch(d -> set(PRISM_LIN_EQ_METHOD_PARAM, d)));
-		addSwitch("relative", "rel", new FlagSwitch(() -> set(PRISM_TERM_CRIT, "Relative")));
-		addSwitch("absolute", "abs", new FlagSwitch(() -> set(PRISM_TERM_CRIT, "Absolute")));
-		addSwitch("epsilon", "e", (sw, a) -> {
+		}, "", "Use interval iteration to solve MDPs/MCs (see -help -ii)",
+			log -> {
+				log.println("Switch: -intervaliter (or -ii) optionally takes a comma-separated list of options:\n");
+				log.println(" -intervaliter:option1,option2,...\n");
+				log.println("where the options are one of the following:\n");
+				log.println(OptionsIntervalIteration.getOptionsDescription());
+			});
+		reg.addSwitch("topological", new FlagSwitch(() -> set(PRISM_TOPOLOGICAL_VI, true)),
+			"", "Use topological value iteration");
+
+		// ── SOLUTION METHOD SETTINGS ──────────────────────────────────────────
+		reg.beginGroup("SOLUTION METHOD SETTINGS");
+		reg.addSwitch("relative", "rel", new FlagSwitch(() -> set(PRISM_TERM_CRIT, "Relative")),
+			"", "Use relative error for detecting convergence [default]");
+		reg.addSwitch("absolute", "abs", new FlagSwitch(() -> set(PRISM_TERM_CRIT, "Absolute")),
+			"", "Use absolute error for detecting convergence");
+		reg.addSwitch("epsilon", "e", (sw, a) -> {
 			double d = a.nextDouble(sw);
 			if (d < 0) throw new PrismException("Invalid value for -" + sw + " switch");
 			set(PRISM_TERM_CRIT_PARAM, d);
-		});
-		addSwitch("maxiters", (sw, a) -> {
+		}, "<x>", "Set value of epsilon (for convergence check) [default: 1e-6]");
+		reg.addSwitch("maxiters", (sw, a) -> {
 			int n = a.nextInt(sw);
 			if (n < 0) throw new PrismException("Invalid value for -" + sw + " switch");
 			set(PRISM_MAX_ITERS, n);
-		});
-		addSwitch("exportiterations", new FlagSwitch(() -> set(PRISM_EXPORT_ITERATIONS, true)));
-		addSwitch("gridresolution", (sw, a) -> {
+		}, "<n>", "Set max number of iterations [default: 10000]");
+		reg.addSwitch("gridresolution", (sw, a) -> {
 			int n = a.nextInt(sw);
 			if (n < 0) throw new PrismException("Invalid value for -" + sw + " switch");
 			set(PRISM_GRID_RESOLUTION, n);
-		});
-		addSwitch("exportmodelprecision", (sw, a) -> {
-			int n = a.nextInt(sw);
-			if (!RANGE_EXPORT_DOUBLE_PRECISION.contains(n))
-				throw new PrismException("Invalid value for -" + sw + " switch");
-			set(PRISM_EXPORT_MODEL_PRECISION, n);
-		});
-		addSwitch("noexportheaders", new FlagSwitch(() -> set(PRISM_EXPORT_MODEL_HEADERS, false)));
+		}, "<n>", "Set resolution for fixed grid approximation (POMDP) [default: 10]");
 
-		// MODEL CHECKING OPTIONS:
-		addSwitch("nopre",       new FlagSwitch(() -> set(PRISM_PRECOMPUTATION, false)));
-		addSwitch("noprob0",     new FlagSwitch(() -> set(PRISM_PROB0, false)));
-		addSwitch("noprob1",     new FlagSwitch(() -> set(PRISM_PROB1, false)));
-		addSwitch("noprerel",    new FlagSwitch(() -> set(PRISM_PRE_REL, false)));
-		addSwitch("fixdl",       new FlagSwitch(() -> set(PRISM_FIX_DEADLOCKS, true)));
-		addSwitch("nofixdl",     new FlagSwitch(() -> set(PRISM_FIX_DEADLOCKS, false)));
-		addSwitch("fair",        new FlagSwitch(() -> set(PRISM_FAIRNESS, true)));
-		addSwitch("nofair",      new FlagSwitch(() -> set(PRISM_FAIRNESS, false)));
-		addSwitch("noprobchecks", new FlagSwitch(() -> set(PRISM_DO_PROB_CHECKS, false)));
-		addSwitch("sumroundoff", (sw, a) -> {
+		// ── MODEL CHECKING OPTIONS ────────────────────────────────────────────
+		reg.beginGroup("MODEL CHECKING OPTIONS");
+		reg.addSwitch("nopre",       new FlagSwitch(() -> set(PRISM_PRECOMPUTATION, false)),
+			"", "Skip precomputation algorithms (where optional)");
+		reg.addSwitch("noprob0",     new FlagSwitch(() -> set(PRISM_PROB0, false)),
+			"", "Skip precomputation algorithm Prob0 (where optional)");
+		reg.addSwitch("noprob1",     new FlagSwitch(() -> set(PRISM_PROB1, false)),
+			"", "Skip precomputation algorithm Prob1 (where optional)");
+		reg.addSwitch("noprerel",    new FlagSwitch(() -> set(PRISM_PRE_REL, false)),
+			"", "Do not pre-compute/use predecessor relation, e.g. for precomputation");
+		reg.addSwitch("fair",        new FlagSwitch(() -> set(PRISM_FAIRNESS, true)),
+			"", "Use fairness (for model checking of MDPs)");
+		reg.addSwitch("nofair",      new FlagSwitch(() -> set(PRISM_FAIRNESS, false)),
+			"", "Don't use fairness (for model checking of MDPs) [default]");
+		reg.addSwitch("fixdl",       new FlagSwitch(() -> set(PRISM_FIX_DEADLOCKS, true)),
+			"", "Automatically put self-loops in deadlock states [default]");
+		reg.addSwitch("nofixdl",     new FlagSwitch(() -> set(PRISM_FIX_DEADLOCKS, false)),
+			"", "Do not automatically put self-loops in deadlock states");
+		reg.addSwitch("noprobchecks", new FlagSwitch(() -> set(PRISM_DO_PROB_CHECKS, false)),
+			"", "Disable checks on model probabilities/rates");
+		reg.addSwitch("sumroundoff", (sw, a) -> {
 			double d = a.nextDouble(sw);
 			if (d < 0) throw new PrismException("Invalid value for -" + sw + " switch");
 			set(PRISM_SUM_ROUND_OFF, d);
-		});
-		addSwitch("nossdetect", new FlagSwitch(() -> set(PRISM_DO_SS_DETECTION, false)));
-		addSwitch("sccmethod", "bsccmethod", new EnumSwitch()
+		}, "<x>", "Set probability sum threshold [default: 1-e5]");
+		reg.addSwitch("zerorewardcheck", new FlagSwitch(() -> prism.setCheckZeroLoops(true)),
+			"", "Check for absence of zero-reward loops");
+		reg.addSwitch("nossdetect", new FlagSwitch(() -> set(PRISM_DO_SS_DETECTION, false)),
+			"", "Disable steady-state detection for CTMC transient computations");
+		SwitchHandler sccMethodHandler = new EnumSwitch()
 			.when("xiebeerel", () -> set(PRISM_SCC_METHOD, "Xie-Beerel"))
 			.when("lockstep",  () -> set(PRISM_SCC_METHOD, "Lockstep"))
-			.when("sccfind",   () -> set(PRISM_SCC_METHOD, "SCC-Find")));
-		addSwitch("symm", (sw, a) -> {
+			.when("sccfind",   () -> set(PRISM_SCC_METHOD, "SCC-Find"));
+		reg.addSwitch("sccmethod", sccMethodHandler,
+			"<name>", "Specify (symbolic) SCC computation method (xiebeerel, lockstep, sccfind)");
+		reg.addSwitch("bsccmethod", sccMethodHandler); // hidden alias
+		reg.addSwitch("symm", (sw, a) -> {
 			String p1 = a.next(sw);
 			String p2 = a.next(sw);
 			set(PRISM_SYMM_RED_PARAMS, p1 + " " + p2);
-		});
-		addSwitch("aroptions", (sw, a) -> {
+		}, "<string>", "Symmetry reduction options string");
+		reg.addSwitch("aroptions", (sw, a) -> {
 			String v = a.next(sw).trim();
 			String existing = getString(PRISM_AR_OPTIONS);
 			set(PRISM_AR_OPTIONS, "".equals(existing) ? v : existing + "," + v);
-		});
-		addSwitch("pathviaautomata", new FlagSwitch(() -> set(PRISM_PATH_VIA_AUTOMATA, true)));
-		addSwitch("nodasimplify",   new FlagSwitch(() -> set(PRISM_NO_DA_SIMPLIFY, true)));
-
-		// MULTI-OBJECTIVE MODEL CHECKING OPTIONS:
-		addSwitch("multimaxpoints", (sw, a) -> {
-			int n = a.nextInt(sw);
-			if (n < 0) throw new PrismException("Invalid value for -" + sw + " switch");
-			set(PRISM_MULTI_MAX_POINTS, n);
-		});
-		addSwitch("paretoepsilon", (sw, a) -> {
-			double d = a.nextDouble(sw);
-			if (d < 0) throw new PrismException("Value for -" + sw + " switch must be non-negative");
-			set(PRISM_PARETO_EPSILON, d);
-		});
-		addSwitch("exportpareto", new StringSwitch(s -> set(PRISM_EXPORT_PARETO_FILENAME, s)));
-
-		// OUTPUT OPTIONS:
-		addSwitch("verbose", "v",  new FlagSwitch(() -> set(PRISM_VERBOSE, true)));
-		addSwitch("extraddinfo",   new FlagSwitch(() -> set(PRISM_EXTRA_DD_INFO, true)));
-		addSwitch("extrareachinfo", new FlagSwitch(() -> set(PRISM_EXTRA_REACH_INFO, true)));
-
-		// SPARSE/HYBRID/MTBDD OPTIONS:
-		addSwitch("nocompact", new FlagSwitch(() -> set(PRISM_COMPACT, false)));
-		addSwitch("sbl", (sw, a) -> {
-			int n = a.nextInt(sw);
-			if (n < -1) throw new PrismException("Invalid value for -" + sw + " switch");
-			set(PRISM_NUM_SB_LEVELS, n);
-		});
-		addSwitch("sbmax", (sw, a) -> {
-			int n = a.nextInt(sw);
-			if (n < 0) throw new PrismException("Invalid value for -" + sw + " switch");
-			set(PRISM_SB_MAX_MEM, n);
-		});
-		addSwitch("sorl", "gsl", (sw, a) -> {
-			int n = a.nextInt(sw);
-			if (n < -1) throw new PrismException("Invalid value for -" + sw + " switch");
-			set(PRISM_NUM_SOR_LEVELS, n);
-		});
-		addSwitch("sormax", "gsmax", (sw, a) -> {
-			int n = a.nextInt(sw);
-			if (n < 0) throw new PrismException("Invalid value for -" + sw + " switch");
-			set(PRISM_SOR_MAX_MEM, n);
-		});
-		addSwitch("cuddmaxmem", new StringSwitch(s -> set(PRISM_CUDD_MAX_MEM, s)));
-		addSwitch("cuddepsilon", (sw, a) -> {
-			double d = a.nextDouble(sw);
-			if (d < 0) throw new PrismException("Invalid value for -" + sw + " switch");
-			set(PRISM_CUDD_EPSILON, d);
-		});
-		addSwitch("ddextrastatevars", (sw, a) -> {
-			int n = a.nextInt(sw);
-			if (n < 0) throw new PrismException("Invalid value for -" + sw + " switch");
-			set(PRISM_DD_EXTRA_STATE_VARS, n);
-		});
-		addSwitch("ddextraactionvars", (sw, a) -> {
-			int n = a.nextInt(sw);
-			if (n < 0) throw new PrismException("Invalid value for -" + sw + " switch");
-			set(PRISM_DD_EXTRA_ACTION_VARS, n);
-		});
-
-		// ADVERSARIES/COUNTEREXAMPLES:
-		addSwitch("exportadv", (sw, a) -> {
+		}, "<string>", "Abstraction-refinement engine options string",
+			log -> {
+				log.println("Switch: -aroptions <string>\n");
+				log.println("<string> is a comma-separated list of options regarding abstraction-refinement:");
+				QuantAbstractRefine.printOptions(log);
+			});
+		reg.addSwitch("pathviaautomata", new FlagSwitch(() -> set(PRISM_PATH_VIA_AUTOMATA, true)),
+			"", "Handle all path formulas via automata constructions");
+		reg.addSwitch("nodasimplify",   new FlagSwitch(() -> set(PRISM_NO_DA_SIMPLIFY, true)),
+			"", "Do not attempt to simplify deterministic automata, acceptance conditions");
+		reg.addSwitch("exportadv", (sw, a) -> {
 			set(PRISM_EXPORT_ADV, "DTMC");
 			set(PRISM_EXPORT_ADV_FILENAME, a.next(sw));
-		});
-		addSwitch("exportadvmdp", (sw, a) -> {
+		}, "<file>", "Export an adversary from MDP model checking (as a DTMC)");
+		reg.addSwitch("exportadvmdp", (sw, a) -> {
 			set(PRISM_EXPORT_ADV, "MDP");
 			set(PRISM_EXPORT_ADV_FILENAME, a.next(sw));
-		});
-
-		// LTL2DA TOOLS:
-		addSwitch("ltl2datool", new StringSwitch(s -> set(PRISM_LTL2DA_TOOL, s)));
-		addSwitch("ltl2dasyntax", new EnumSwitch()
+		}, "<file>", "Export an adversary from MDP model checking (as an MDP)");
+		reg.addSwitch("ltl2datool", new StringSwitch(s -> set(PRISM_LTL2DA_TOOL, s)),
+			"<exec>", "Run executable <exec> to convert LTL formulas to deterministic automata");
+		reg.addSwitch("ltl2dasyntax", new EnumSwitch()
 			.when("lbt",       () -> set(PRISM_LTL2DA_SYNTAX, "LBT"))
 			.when("spin",      () -> set(PRISM_LTL2DA_SYNTAX, "Spin"))
 			.when("spot",      () -> set(PRISM_LTL2DA_SYNTAX, "Spot"))
-			.when("rabinizer", () -> set(PRISM_LTL2DA_SYNTAX, "Rabinizer")));
+			.when("rabinizer", () -> set(PRISM_LTL2DA_SYNTAX, "Rabinizer")),
+			"<x>", "Specify output format for -ltl2datool switch (lbt, spin, spot, rabinizer)");
+		reg.addSwitch("exportiterations", new FlagSwitch(() -> set(PRISM_EXPORT_ITERATIONS, true)),
+			"", "Export vectors for iteration algorithms to file");
+		reg.addSwitch("pmaxquotient", new FlagSwitch(() -> set(PRISM_PMAX_QUOTIENT, true)),
+			"", "For Pmax computations in MDPs, compute in the MEC quotient");
 
-		// DEBUGGING / SANITY CHECKS:
-		addSwitch("ddsanity", new FlagSwitch(() -> set(PRISM_JDD_SANITY_CHECKS, true)));
+		// ── MULTI-OBJECTIVE MODEL CHECKING ───────────────────────────────────
+		reg.beginGroup("MULTI-OBJECTIVE MODEL CHECKING");
+		reg.addSwitch("linprog", "lp", new FlagSwitch(() -> {
+			set(PRISM_MDP_SOLN_METHOD, "Linear programming");
+			set(PRISM_MDP_MULTI_SOLN_METHOD, "Linear programming");
+		}), "", "Use linear programming for multi-objective model checking");
+		reg.addSwitch("multimaxpoints", (sw, a) -> {
+			int n = a.nextInt(sw);
+			if (n < 0) throw new PrismException("Invalid value for -" + sw + " switch");
+			set(PRISM_MULTI_MAX_POINTS, n);
+		}, "<n>", "Maximal number of corner points for (valiter-based) multi-objective");
+		reg.addSwitch("paretoepsilon", (sw, a) -> {
+			double d = a.nextDouble(sw);
+			if (d < 0) throw new PrismException("Value for -" + sw + " switch must be non-negative");
+			set(PRISM_PARETO_EPSILON, d);
+		}, "<x>", "Threshold for Pareto curve approximation");
+		reg.addSwitch("exportpareto", new StringSwitch(s -> set(PRISM_EXPORT_PARETO_FILENAME, s)),
+			"<file>", "When computing Pareto curves, export points to a file");
 
-		// PARAMETRIC MODEL CHECKING:
-		addSwitch("param",         new FlagSwitch(() -> set(PRISM_PARAM_ENABLED, true)));
-		addSwitch("paramprecision", new StringSwitch(s -> set(PRISM_PARAM_PRECISION, s)));
-		addSwitch("paramsplit", new EnumSwitch()
+		// ── OUTPUT OPTIONS ────────────────────────────────────────────────────
+		reg.beginGroup("OUTPUT OPTIONS");
+		reg.addSwitch("verbose", "v",  new FlagSwitch(() -> set(PRISM_VERBOSE, true)),
+			"", "Verbose mode: print out state lists and probability vectors");
+		reg.addSwitch("extraddinfo",   new FlagSwitch(() -> set(PRISM_EXTRA_DD_INFO, true)),
+			"", "Display extra info about some (MT)BDDs");
+		reg.addSwitch("extrareachinfo", new FlagSwitch(() -> set(PRISM_EXTRA_REACH_INFO, true)),
+			"", "Display extra info about progress of reachability");
+
+		// ── SPARSE/HYBRID/MTBDD OPTIONS ──────────────────────────────────────
+		reg.beginGroup("SPARSE/HYBRID/MTBDD OPTIONS");
+		reg.addSwitch("nocompact", new FlagSwitch(() -> set(PRISM_COMPACT, false)),
+			"", "Switch off \"compact\" sparse storage schemes");
+		reg.addSwitch("sbl", (sw, a) -> {
+			int n = a.nextInt(sw);
+			if (n < -1) throw new PrismException("Invalid value for -" + sw + " switch");
+			set(PRISM_NUM_SB_LEVELS, n);
+		}, "<n>", "Set number of levels (for hybrid engine) [default: -1]");
+		reg.addSwitch("sbmax", (sw, a) -> {
+			int n = a.nextInt(sw);
+			if (n < 0) throw new PrismException("Invalid value for -" + sw + " switch");
+			set(PRISM_SB_MAX_MEM, n);
+		}, "<n>", "Set memory limit (KB) (for hybrid engine) [default: 1024]");
+		reg.addSwitch("gsl", "sorl", (sw, a) -> {
+			int n = a.nextInt(sw);
+			if (n < -1) throw new PrismException("Invalid value for -" + sw + " switch");
+			set(PRISM_NUM_SOR_LEVELS, n);
+		}, "<n>", "Set number of levels for hybrid GS/SOR [default: -1]");
+		reg.addSwitch("gsmax", "sormax", (sw, a) -> {
+			int n = a.nextInt(sw);
+			if (n < 0) throw new PrismException("Invalid value for -" + sw + " switch");
+			set(PRISM_SOR_MAX_MEM, n);
+		}, "<n>", "Set memory limit (KB) for hybrid GS/SOR [default: 1024]");
+		reg.addSwitch("cuddmaxmem", new StringSwitch(s -> set(PRISM_CUDD_MAX_MEM, s)),
+			"<n>", "Set max memory for CUDD package, e.g. 125k, 50m, 4g [default: 1g]");
+		reg.addSwitch("cuddepsilon", (sw, a) -> {
+			double d = a.nextDouble(sw);
+			if (d < 0) throw new PrismException("Invalid value for -" + sw + " switch");
+			set(PRISM_CUDD_EPSILON, d);
+		}, "<x>", "Set epsilon value for CUDD package [default: 1e-15]");
+		reg.addSwitch("ddsanity", new FlagSwitch(() -> set(PRISM_JDD_SANITY_CHECKS, true)),
+			"", "Enable internal sanity checks (causes slow-down)");
+		reg.addSwitch("ddextrastatevars", (sw, a) -> {
+			int n = a.nextInt(sw);
+			if (n < 0) throw new PrismException("Invalid value for -" + sw + " switch");
+			set(PRISM_DD_EXTRA_STATE_VARS, n);
+		}, "<n>", "Set the number of preallocated state vars [default: 20]");
+		reg.addSwitch("ddextraactionvars", (sw, a) -> {
+			int n = a.nextInt(sw);
+			if (n < 0) throw new PrismException("Invalid value for -" + sw + " switch");
+			set(PRISM_DD_EXTRA_ACTION_VARS, n);
+		}, "<n>", "Set the number of preallocated action vars [default: 20]");
+
+		// ── PARAMETRIC MODEL CHECKING OPTIONS ────────────────────────────────
+		reg.beginGroup("PARAMETRIC MODEL CHECKING OPTIONS");
+		reg.addSwitch("param", paramHandler,
+			"<vals>", "Do parametric model checking with parameters (and ranges) <vals>");
+		reg.addSwitch("paramprecision", new StringSwitch(s -> set(PRISM_PARAM_PRECISION, s)),
+			"<x>", "Set max undecided region for parameter synthesis [default: 5/100]");
+		reg.addSwitch("paramsplit", new EnumSwitch()
 			.when("longest", () -> set(PRISM_PARAM_SPLIT, "Longest"))
-			.when("all",     () -> set(PRISM_PARAM_SPLIT, "All")));
-		addSwitch("parambisim", new EnumSwitch()
+			.when("all",     () -> set(PRISM_PARAM_SPLIT, "All")),
+			"<name>", "Set method to split parameter regions (longest,all) [default: longest]");
+		reg.addSwitch("parambisim", new EnumSwitch()
 			.when("strong", () -> set(PRISM_PARAM_BISIM, "Strong"))
 			.when("weak",   () -> set(PRISM_PARAM_BISIM, "Weak"))
-			.when("none",   () -> set(PRISM_PARAM_BISIM, "None")));
-		addSwitch("paramfunction", new EnumSwitch()
+			.when("none",   () -> set(PRISM_PARAM_BISIM, "None")),
+			"<name>", "Set bisimulation minimisation for parameter synthesis (weak,strong,none) [default: weak]");
+		reg.addSwitch("paramfunction", new EnumSwitch()
 			.when("jascached", () -> set(PRISM_PARAM_FUNCTION, "JAS-cached"))
 			.when("jas",       () -> set(PRISM_PARAM_FUNCTION, "JAS"))
-			.when("dag",       () -> set(PRISM_PARAM_FUNCTION, "DAG")));
-		addSwitch("paramelimorder", new EnumSwitch()
+			.when("dag",       () -> set(PRISM_PARAM_FUNCTION, "DAG")),
+			"<name>", "Set function representation for parameter synthesis (jascached,jas) [default: jascached]");
+		reg.addSwitch("paramelimorder", new EnumSwitch()
 			.when("arb",   () -> set(PRISM_PARAM_ELIM_ORDER, "Arbitrary"))
 			.when("fw",    () -> set(PRISM_PARAM_ELIM_ORDER, "Forward"))
 			.when("fwrev", () -> set(PRISM_PARAM_ELIM_ORDER, "Forward-reversed"))
 			.when("bw",    () -> set(PRISM_PARAM_ELIM_ORDER, "Backward"))
 			.when("bwrev", () -> set(PRISM_PARAM_ELIM_ORDER, "Backward-reversed"))
-			.when("rand",  () -> set(PRISM_PARAM_ELIM_ORDER, "Random")));
-		addSwitch("paramrandompoints", (sw, a) -> {
+			.when("rand",  () -> set(PRISM_PARAM_ELIM_ORDER, "Random")),
+			"<name>", "Set elimination order for parameter synthesis (arb,fw,fwrev,bw,bwrev,rand) [default: bw]");
+		reg.addSwitch("paramrandompoints", (sw, a) -> {
 			int n = a.nextInt(sw);
 			if (n < 0) throw new PrismException("Invalid value for -" + sw + " switch");
 			set(PRISM_PARAM_RANDOM_POINTS, n);
-		});
-		addSwitch("paramsubsumeregions", (sw, a) -> {
+		}, "<n>", "Set number of random points to evaluate per region [default: 5]");
+		reg.addSwitch("paramsubsumeregions", (sw, a) -> {
 			set(PRISM_PARAM_SUBSUME_REGIONS, Boolean.parseBoolean(a.next(sw)));
-		});
-		addSwitch("paramdagmaxerror", (sw, a) -> {
+		}, "<b>", "Subsume adjacent regions during analysis [default: true]");
+		reg.addSwitch("paramdagmaxerror", (sw, a) -> {
 			double d = a.nextDouble(sw);
 			if (d < 0) throw new PrismException("Invalid value for -" + sw + " switch");
 			set(PRISM_PARAM_DAG_MAX_ERROR, d);
-		});
+		}, "<b>", "Maximal error probability allowed for DAG function representation [default: 1E-100]");
 
-		// FAST ADAPTIVE UNIFORMISATION:
-		addSwitch("fauepsilon", (sw, a) -> {
+		// ── FAST ADAPTIVE UNIFORMISATION (FAU) OPTIONS ───────────────────────
+		reg.beginGroup("FAST ADAPTIVE UNIFORMISATION (FAU) OPTIONS");
+		reg.addSwitch("fauepsilon", (sw, a) -> {
 			double d = a.nextDouble(sw);
 			if (d < 0) throw new PrismException("Invalid value for -" + sw + " switch");
 			set(PRISM_FAU_EPSILON, d);
-		});
-		addSwitch("faudelta", (sw, a) -> {
+		}, "<x>", "Set probability threshold of birth process in FAU [default: 1e-6]");
+		reg.addSwitch("faudelta", (sw, a) -> {
 			double d = a.nextDouble(sw);
 			if (d < 0) throw new PrismException("Invalid value for -" + sw + " switch");
 			set(PRISM_FAU_DELTA, d);
-		});
-		addSwitch("fauarraythreshold", (sw, a) -> {
+		}, "<x>", "Set probability threshold for irrelevant states in FAU [default: 1e-12]");
+		reg.addSwitch("fauarraythreshold", (sw, a) -> {
 			int n = a.nextInt(sw);
 			if (n < 0) throw new PrismException("Invalid value for -" + sw + " switch");
 			set(PRISM_FAU_ARRAYTHRESHOLD, n);
-		});
-		addSwitch("fauintervals", (sw, a) -> {
+		}, "<x>", "Set threshold when to switch to sparse matrix in FAU [default: 100]");
+		reg.addSwitch("fauintervals", (sw, a) -> {
 			int n = a.nextInt(sw);
 			if (n < 0) throw new PrismException("Invalid value for -" + sw + " switch");
 			set(PRISM_FAU_INTERVALS, n);
-		});
-		addSwitch("fauinitival", (sw, a) -> {
+		}, "<x>", "Set number of intervals to divide time intervals into for FAU [default: 1]");
+		reg.addSwitch("fauinitival", (sw, a) -> {
 			double d = a.nextDouble(sw);
 			if (d < 0.0) throw new PrismException("Invalid value for -" + sw + " switch");
 			set(PRISM_FAU_INITIVAL, d);
-		});
+		}, "<x>", "Set length of additional initial time interval for FAU [default: 1.0]");
 
-		addSwitch("exportpropaut", (sw, a) -> {
+		// Hidden switch
+		reg.addSwitch("exportpropaut", (sw, a) -> {
 			Map<String, String> options = splitOptionsString(a.optionsString());
 			setExportPropAut(true);
 			setExportPropAutFilename(a.next(sw));
@@ -1282,25 +1349,6 @@ public class PrismSettings implements Observer
 			}
 		});
 	}
-
-	private void addSwitch(String name, SwitchHandler h)
-	{
-		settingsSwitchHandlers.put(name, h);
-	}
-
-	private void addSwitch(String n1, String n2, SwitchHandler h)
-	{
-		settingsSwitchHandlers.put(n1, h);
-		settingsSwitchHandlers.put(n2, h);
-	}
-
-	private void addSwitch(String n1, String n2, String n3, SwitchHandler h)
-	{
-		settingsSwitchHandlers.put(n1, h);
-		settingsSwitchHandlers.put(n2, h);
-		settingsSwitchHandlers.put(n3, h);
-	}
-
 
 	/**
 	 * Split a switch of the form -switch:options into parts.
@@ -1355,149 +1403,6 @@ public class PrismSettings implements Observer
 		return map;
 	}
 
-	/**
-	 * Print a fragment of the -help message,
-	 * i.e. a list of the command-line switches handled by this class.
-	 */
-	public static void printHelp(PrismLog mainLog)
-	{
-		mainLog.println();
-		mainLog.println("EXPORT OPTIONS:");
-		mainLog.println("-exportmodelprecision <n>....... Export probabilities/rewards with n significant decimal places");
-		mainLog.println("-noexportheaders ............... Don't include headers when exporting rewards");
-		mainLog.println();
-		mainLog.println("ENGINES/METHODS:");
-		mainLog.println("-mtbdd (or -m) ................. Use the MTBDD engine");
-		mainLog.println("-sparse (or -s) ................ Use the Sparse engine");
-		mainLog.println("-hybrid (or -h) ................ Use the Hybrid engine [default]");
-		mainLog.println("-explicit (or -ex) ............. Use the explicit engine");
-		mainLog.println("-exact ......................... Perform exact (arbitrary precision) model checking");
-		mainLog.println("-ptamethod <name> .............. Specify PTA engine (games, digital, backwards) [default: games]");
-		mainLog.println("-transientmethod <name> ........ CTMC transient analysis method (unif, fau) [default: unif]");
-		mainLog.println("-heuristic <mode> .............. Automatic choice of engines/settings (none, speed, memory) [default: none]");
-		mainLog.println();
-		mainLog.println("SOLUTION METHODS (LINEAR EQUATIONS):");
-		mainLog.println("-power (or -pow, -pwr) ......... Use the Power method for numerical computation");
-		mainLog.println("-jacobi (or -jac) .............. Use Jacobi for numerical computation [default]");
-		mainLog.println("-gaussseidel (or -gs) .......... Use Gauss-Seidel for numerical computation");
-		mainLog.println("-bgaussseidel (or -bgs) ........ Use Backwards Gauss-Seidel for numerical computation");
-		mainLog.println("-pgaussseidel (or -pgs) ........ Use Pseudo Gauss-Seidel for numerical computation");
-		mainLog.println("-bpgaussseidel (or -bpgs) ...... Use Backwards Pseudo Gauss-Seidel for numerical computation");
-		mainLog.println("-jor ........................... Use JOR for numerical computation");
-		mainLog.println("-sor ........................... Use SOR for numerical computation");
-		mainLog.println("-bsor .......................... Use Backwards SOR for numerical computation");
-		mainLog.println("-psor .......................... Use Pseudo SOR for numerical computation");
-		mainLog.println("-bpsor ......................... Use Backwards Pseudo SOR for numerical computation");
-		mainLog.println("-omega <x> ..................... Set over-relaxation parameter (for JOR/SOR/...) [default: 0.9]");
-		mainLog.println();
-		mainLog.println("SOLUTION METHODS (MDPS):");
-		mainLog.println("-valiter ....................... Use value iteration for solving MDPs [default]");
-		mainLog.println("-gaussseidel (or -gs) .......... Use Gauss-Seidel value iteration for solving MDPs");
-		mainLog.println("-politer ....................... Use policy iteration for solving MDPs");
-		mainLog.println("-modpoliter .................... Use modified policy iteration for solving MDPs");
-		mainLog.println("-intervaliter (or -ii) ......... Use interval iteration to solve MDPs/MCs (see -help -ii)");
-		mainLog.println("-topological ................... Use topological value iteration");
-		mainLog.println();
-		mainLog.println("SOLUTION METHOD SETTINGS");
-		mainLog.println("-relative (or -rel) ............ Use relative error for detecting convergence [default]");
-		mainLog.println("-absolute (or -abs) ............ Use absolute error for detecting convergence");
-		mainLog.println("-epsilon <x> (or -e <x>) ....... Set value of epsilon (for convergence check) [default: 1e-6]");
-		mainLog.println("-maxiters <n> .................. Set max number of iterations [default: 10000]");
-		mainLog.println("-gridresolution <n> .............Set resolution for fixed grid approximation (POMDP) [default: 10]");
-		
-		mainLog.println();
-		mainLog.println("MODEL CHECKING OPTIONS:");
-		mainLog.println("-nopre ......................... Skip precomputation algorithms (where optional)");
-		mainLog.println("-noprob0 ....................... Skip precomputation algorithm Prob0 (where optional)");
-		mainLog.println("-noprob1 ....................... Skip precomputation algorithm Prob1 (where optional)");
-		mainLog.println("-noprerel ...................... Do not pre-compute/use predecessor relation, e.g. for precomputation");
-		mainLog.println("-fair .......................... Use fairness (for model checking of MDPs)");
-		mainLog.println("-nofair ........................ Don't use fairness (for model checking of MDPs) [default]");
-		mainLog.println("-fixdl ......................... Automatically put self-loops in deadlock states [default]");
-		mainLog.println("-nofixdl ....................... Do not automatically put self-loops in deadlock states");
-		mainLog.println("-noprobchecks .................. Disable checks on model probabilities/rates");
-		mainLog.println("-sumroundoff <x> ............... Set probability sum threshold [default: 1-e5]");
-		mainLog.println("-zerorewardcheck ............... Check for absence of zero-reward loops");
-		mainLog.println("-nossdetect .................... Disable steady-state detection for CTMC transient computations");
-		mainLog.println("-sccmethod <name> .............. Specify (symbolic) SCC computation method (xiebeerel, lockstep, sccfind)");
-		mainLog.println("-symm <string> ................. Symmetry reduction options string");
-		mainLog.println("-aroptions <string> ............ Abstraction-refinement engine options string");
-		mainLog.println("-pathviaautomata ............... Handle all path formulas via automata constructions");
-		mainLog.println("-nodasimplify .................. Do not attempt to simplify deterministic automata, acceptance conditions");
-		mainLog.println("-exportadv <file> .............. Export an adversary from MDP model checking (as a DTMC)");
-		mainLog.println("-exportadvmdp <file> ........... Export an adversary from MDP model checking (as an MDP)");
-		mainLog.println("-ltl2datool <exec> ............. Run executable <exec> to convert LTL formulas to deterministic automata");
-		mainLog.println("-ltl2dasyntax <x> .............. Specify output format for -ltl2datool switch (lbt, spin, spot, rabinizer)");
-		mainLog.println("-exportiterations .............. Export vectors for iteration algorithms to file");
-		mainLog.println("-pmaxquotient .................. For Pmax computations in MDPs, compute in the MEC quotient");
-		
-		mainLog.println();
-		mainLog.println("MULTI-OBJECTIVE MODEL CHECKING:");
-		mainLog.println("-linprog (or -lp) .............. Use linear programming for multi-objective model checking");
-		mainLog.println("-multimaxpoints <n> ............ Maximal number of corner points for (valiter-based) multi-objective");
-		mainLog.println("-paretoepsilon <x> ............. Threshold for Pareto curve approximation");
-		mainLog.println("-exportpareto <file> ........... When computing Pareto curves, export points to a file");
-		mainLog.println();
-		mainLog.println("OUTPUT OPTIONS:");
-		mainLog.println("-verbose (or -v) ............... Verbose mode: print out state lists and probability vectors");
-		mainLog.println("-extraddinfo ................... Display extra info about some (MT)BDDs");
-		mainLog.println("-extrareachinfo ................ Display extra info about progress of reachability");
-		mainLog.println();
-		mainLog.println("SPARSE/HYBRID/MTBDD OPTIONS:");
-		mainLog.println("-nocompact ..................... Switch off \"compact\" sparse storage schemes");
-		mainLog.println("-sbl <n> ....................... Set number of levels (for hybrid engine) [default: -1]");
-		mainLog.println("-sbmax <n> ..................... Set memory limit (KB) (for hybrid engine) [default: 1024]");
-		mainLog.println("-gsl <n> (or sorl <n>) ......... Set number of levels for hybrid GS/SOR [default: -1]");
-		mainLog.println("-gsmax <n> (or sormax <n>) ..... Set memory limit (KB) for hybrid GS/SOR [default: 1024]");
-		mainLog.println("-cuddmaxmem <n> ................ Set max memory for CUDD package, e.g. 125k, 50m, 4g [default: 1g]");
-		mainLog.println("-cuddepsilon <x> ............... Set epsilon value for CUDD package [default: 1e-15]");
-		mainLog.println("-ddsanity ...................... Enable internal sanity checks (causes slow-down)");
-		mainLog.println("-ddextrastatevars <n> .......... Set the number of preallocated state vars [default: 20]");
-		mainLog.println("-ddextraactionvars <n> ......... Set the number of preallocated action vars [default: 20]");
-		mainLog.println();
-		mainLog.println("PARAMETRIC MODEL CHECKING OPTIONS:");
-		mainLog.println("-param <vals> .................. Do parametric model checking with parameters (and ranges) <vals>");
-		mainLog.println("-paramprecision <x> ............ Set max undecided region for parameter synthesis [default: 5/100]");
-		mainLog.println("-paramsplit <name> ............. Set method to split parameter regions (longest,all) [default: longest]");
-		mainLog.println("-parambisim <name> ............. Set bisimulation minimisation for parameter synthesis (weak,strong,none) [default: weak]");
-		mainLog.println("-paramfunction <name> .......... Set function representation for parameter synthesis (jascached,jas) [default: jascached]");
-		mainLog.println("-paramelimorder <name> ......... Set elimination order for parameter synthesis (arb,fw,fwrev,bw,bwrev,rand) [default: bw]");
-		mainLog.println("-paramrandompoints <n> ......... Set number of random points to evaluate per region [default: 5]");
-		mainLog.println("-paramsubsumeregions <b> ....... Subsume adjacent regions during analysis [default: true]");
-		mainLog.println("-paramdagmaxerror <b> .......... Maximal error probability allowed for DAG function representation [default: 1E-100]");
-		mainLog.println();
-		mainLog.println("FAST ADAPTIVE UNIFORMISATION (FAU) OPTIONS:");
-		mainLog.println("-fauepsilon <x> ................ Set probability threshold of birth process in FAU [default: 1e-6]");
-		mainLog.println("-faudelta <x> .................. Set probability threshold for irrelevant states in FAU [default: 1e-12]");
-		mainLog.println("-fauarraythreshold <x> ......... Set threshold when to switch to sparse matrix in FAU [default: 100]");
-		mainLog.println("-fauintervals <x> .............. Set number of intervals to divide time intervals into for FAU [default: 1]");
-		mainLog.println("-fauinitival <x> ............... Set length of additional initial time interval for FAU [default: 1.0]");
-	}
-
-	/**
-	 * Print a -help xxx message, i.e. display help on a specific switch {@code sw}.
-	 * Return true iff help was available for this switch.
-	 */
-	public static boolean printHelpSwitch(PrismLog mainLog, String sw)
-	{
-		// -aroptions
-		if (sw.equals("aroptions")) {
-			mainLog.println("Switch: -aroptions <string>\n");
-			mainLog.println("<string> is a comma-separated list of options regarding abstraction-refinement:");
-			QuantAbstractRefine.printOptions(mainLog);
-			return true;
-		}
-		else if (sw.equals("ii") || sw.equals("intervaliter")) {
-			mainLog.println("Switch: -intervaliter (or -ii) optionally takes a comma-separated list of options:\n");
-			mainLog.println(" -intervaliter:option1,option2,...\n");
-			mainLog.println("where the options are one of the following:\n");
-			mainLog.println(OptionsIntervalIteration.getOptionsDescription());
-			return true;
-		}
-
-		return false;
-	}
-	
 	/**
 	 * Set the value for an option, with the option key given as a String,
 	 * and the value as an Object of appropriate type or a String to be parsed.

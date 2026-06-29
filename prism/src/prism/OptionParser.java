@@ -26,14 +26,29 @@
 
 package prism;
 
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
+import java.util.List;
 
 /**
  * Builder for parsing a comma-separated list of sub-options within a CLI switch argument
  * (e.g. the {@code opt1,key=val,...} portion of {@code -switch files:opt1,key=val,...}).
- * Handles three option styles: bare flags, boolean {@code key=true|false}, fixed-choice
+ * Handles four option styles: bare flags, boolean {@code key=true|false}, fixed-choice
  * {@code key=val}, and raw-string {@code key=anything}.
- * All error messages include the option name and switch name automatically.
+ *
+ * <p>Each registration method has three variants:
+ * <ul>
+ *   <li><b>Action-only</b> — e.g. {@code flag(name, action)}: registers an execution handler
+ *       but no help metadata; use for hidden/alias options.
+ *   <li><b>Description-only</b> — e.g. {@code flag(name, desc)}: records help metadata
+ *       for {@link #printOptions} but registers no handler; use when building a
+ *       description-only parser for {@code -help} output that is separate from the live parser.
+ *   <li><b>Combined</b> — e.g. {@code flag(name, desc, action)}: registers both handler
+ *       and help metadata in one call; the preferred form when the same parser instance
+ *       is used for both parsing and help output.
+ * </ul>
+ *
+ * <p>All error messages include the option name and switch name automatically.
  */
 class OptionParser
 {
@@ -48,44 +63,158 @@ class OptionParser
 		void accept(String key, String val, String switchName) throws PrismException;
 	}
 
+	/** One entry in the human-readable option table printed by {@link #printOptions}. */
+	private static class HelpEntry
+	{
+		final String type;         // "flag", "bool", "string", "choice"
+		final String name;
+		final String argHint;      // null for flag/bool; "<n>" for string; "a/b/c" for choice
+		final String description;
+
+		HelpEntry(String type, String name, String argHint, String description)
+		{
+			this.type = type; this.name = name; this.argHint = argHint; this.description = description;
+		}
+	}
+
 	private final LinkedHashMap<String, FlagAction>   flagHandlers  = new LinkedHashMap<>();
 	private final LinkedHashMap<String, ValueHandler> valueHandlers = new LinkedHashMap<>();
+	private final List<HelpEntry>                     helpEntries   = new ArrayList<>();
 
-	/** Register a bare flag option (no {@code =value}). */
+	// ── Flag options ──────────────────────────────────────────────────────────
+
+	/** Register a bare flag option (action only, no help metadata). */
 	OptionParser flag(String name, FlagAction action)
 	{
 		flagHandlers.put(name, action);
 		return this;
 	}
 
-	/** Register a {@code key=value} option; action receives the raw value string. */
+	/** Record a bare flag option for help output only (no execution handler). */
+	OptionParser flag(String name, String description)
+	{
+		helpEntries.add(new HelpEntry("flag", name, null, description));
+		return this;
+	}
+
+	/** Register a bare flag option with both execution handler and help metadata. */
+	OptionParser flag(String name, String description, FlagAction action)
+	{
+		flagHandlers.put(name, action);
+		helpEntries.add(new HelpEntry("flag", name, null, description));
+		return this;
+	}
+
+	// ── String options ────────────────────────────────────────────────────────
+
+	/** Register a {@code key=value} option (action only; action receives the raw value string). */
 	OptionParser string(String name, StringAction action)
 	{
 		valueHandlers.put(name, (key, val, sw) -> action.accept(val));
 		return this;
 	}
 
-	/** Register a {@code key=true|false} option. */
+	/** Record a {@code key=<argHint>} string option for help output only. */
+	OptionParser string(String name, String argHint, String description)
+	{
+		helpEntries.add(new HelpEntry("string", name, argHint, description));
+		return this;
+	}
+
+	/** Register a {@code key=value} option with both execution handler and help metadata. */
+	OptionParser string(String name, String argHint, String description, StringAction action)
+	{
+		valueHandlers.put(name, (key, val, sw) -> action.accept(val));
+		helpEntries.add(new HelpEntry("string", name, argHint, description));
+		return this;
+	}
+
+	// ── Boolean options ───────────────────────────────────────────────────────
+
+	/** Register a {@code key=true|false} option (action only). */
 	OptionParser bool(String name, BoolAction action)
 	{
 		valueHandlers.put(name, (key, val, sw) -> {
-			if (val.equals("true"))
-				action.accept(true);
-			else if (val.equals("false"))
-				action.accept(false);
-			else
-				throw new PrismException("Unknown value \"" + val + "\" for \"" + key + "\" option of -" + sw
-						+ " (expected true or false)");
+			if (val.equals("true"))       action.accept(true);
+			else if (val.equals("false")) action.accept(false);
+			else throw new PrismException("Unknown value \"" + val + "\" for \"" + key + "\" option of -" + sw
+					+ " (expected true or false)");
 		});
 		return this;
 	}
 
-	/** Register a {@code key=val} option where {@code val} must be one of a fixed set. */
+	/** Record a {@code key=true|false} option for help output only. */
+	OptionParser bool(String name, String description)
+	{
+		helpEntries.add(new HelpEntry("bool", name, null, description));
+		return this;
+	}
+
+	/** Register a {@code key=true|false} option with both execution handler and help metadata. */
+	OptionParser bool(String name, String description, BoolAction action)
+	{
+		bool(name, action);
+		helpEntries.add(new HelpEntry("bool", name, null, description));
+		return this;
+	}
+
+	// ── Choice options ────────────────────────────────────────────────────────
+
+	/** Register a {@code key=val} option where {@code val} must be one of a fixed set (action only). */
 	OptionParser choice(String name, Choice c)
 	{
 		valueHandlers.put(name, c.toHandler());
 		return this;
 	}
+
+	/** Record a choice option for help output only; {@code validValues} are the displayed accepted values. */
+	OptionParser choice(String name, String description, String... validValues)
+	{
+		helpEntries.add(new HelpEntry("choice", name, String.join("/", validValues), description));
+		return this;
+	}
+
+	/**
+	 * Register a {@code key=val} choice option with both execution handler and help metadata.
+	 * The displayed valid values are derived from the primary key of each {@link Choice#when} entry
+	 * (the first argument when multiple keys are given as aliases).
+	 */
+	OptionParser choice(String name, String description, Choice c)
+	{
+		valueHandlers.put(name, c.toHandler());
+		helpEntries.add(new HelpEntry("choice", name, String.join("/", c.primaryKeys()), description));
+		return this;
+	}
+
+	// ── Help output ───────────────────────────────────────────────────────────
+
+	/**
+	 * Print the registered help entries as a human-readable option list.
+	 * Only entries added via the description-only or combined overloads appear.
+	 * Typical output:
+	 * <pre>
+	 *  * csv - Export results as comma-separated values
+	 *  * format (=explicit/matlab/dot) - model export format
+	 *  * precision (=&lt;n&gt;) - use n significant figures
+	 *  * rewards (=true/false) - whether to include rewards
+	 * </pre>
+	 */
+	void printOptions(PrismLog log)
+	{
+		for (HelpEntry e : helpEntries) {
+			StringBuilder sb = new StringBuilder(" * ").append(e.name);
+			switch (e.type) {
+			case "flag":   /* nothing after name */ break;
+			case "bool":   sb.append(" (=true/false)"); break;
+			case "string": // fall-through
+			case "choice": sb.append(" (=").append(e.argHint).append(")"); break;
+			}
+			sb.append(" - ").append(e.description);
+			log.println(sb.toString());
+		}
+	}
+
+	// ── Parsing ───────────────────────────────────────────────────────────────
 
 	/**
 	 * Parse a comma-separated options string, dispatching each token to the registered handler.
@@ -99,14 +228,12 @@ class OptionParser
 			if (opt.isEmpty()) continue;
 			int eq = opt.indexOf('=');
 			if (eq == -1) {
-				// Bare option — must be a registered flag
 				FlagAction fa = flagHandlers.get(opt);
 				if (fa != null) { fa.run(); continue; }
 				if (valueHandlers.containsKey(opt))
 					throw new PrismException("No value provided for \"" + opt + "\" option of -" + switchName);
 				throw new PrismException("Unknown option \"" + opt + "\" for -" + switchName + " switch");
 			} else {
-				// key=value option
 				String key = opt.substring(0, eq);
 				String val = opt.substring(eq + 1);
 				ValueHandler vh = valueHandlers.get(key);
@@ -118,37 +245,48 @@ class OptionParser
 		}
 	}
 
+	// ── Choice builder ────────────────────────────────────────────────────────
+
 	/**
 	 * Builder for a fixed set of enumerated values for a {@link #choice} option.
-	 * Mirrors the fluent {@code .when()} style of {@link EnumSwitch}.
+	 * The first key in each {@code when()} call is the "primary" key shown in help output
+	 * via {@link #primaryKeys()}; additional keys in the same call are accepted aliases
+	 * but are not displayed.
 	 */
 	static class Choice
 	{
-		private final LinkedHashMap<String, FlagAction> map = new LinkedHashMap<>();
+		private final LinkedHashMap<String, FlagAction> map         = new LinkedHashMap<>();
+		private final List<String>                      primaryKeys = new ArrayList<>();
 
 		/** Register a single accepted value and its action. */
 		Choice when(String key, FlagAction action)
 		{
+			primaryKeys.add(key);
 			map.put(key, action);
 			return this;
 		}
 
-		/** Register two accepted values (aliases) that trigger the same action. */
-		Choice when(String k1, String k2, FlagAction action)
+		/** Register a primary value and one alias; both trigger the same action. */
+		Choice when(String primary, String alias, FlagAction action)
 		{
-			map.put(k1, action);
-			map.put(k2, action);
+			primaryKeys.add(primary);
+			map.put(primary, action);
+			map.put(alias, action);
 			return this;
 		}
 
-		/** Register three accepted values (aliases) that trigger the same action. */
-		Choice when(String k1, String k2, String k3, FlagAction action)
+		/** Register a primary value and two aliases; all three trigger the same action. */
+		Choice when(String primary, String alias1, String alias2, FlagAction action)
 		{
-			map.put(k1, action);
-			map.put(k2, action);
-			map.put(k3, action);
+			primaryKeys.add(primary);
+			map.put(primary, action);
+			map.put(alias1, action);
+			map.put(alias2, action);
 			return this;
 		}
+
+		/** Returns the primary key of each registered choice, in registration order. */
+		List<String> primaryKeys() { return primaryKeys; }
 
 		/** Build the {@link ValueHandler} that dispatches on the registered values. */
 		ValueHandler toHandler()

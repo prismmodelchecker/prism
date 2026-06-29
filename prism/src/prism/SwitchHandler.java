@@ -27,6 +27,7 @@
 package prism;
 
 import java.util.LinkedHashMap;
+import java.util.function.Consumer;
 
 /**
  * Handler for a single CLI switch.
@@ -97,6 +98,116 @@ class DoubleSwitch implements SwitchHandler
 
 	@Override
 	public void handle(String sw, ArgConsumer a) throws PrismException { action.accept(a.nextDouble(sw)); }
+}
+
+/**
+ * Switch that consumes the next argument, splits it into {@code <files>:<options>},
+ * then calls an {@link Action} with the files portion and a {@link ParseCallback} that
+ * triggers the stored {@link OptionParser} at whatever point in the action is appropriate.
+ * The split respects Windows path separators ({@code :\}) by skipping them.
+ *
+ * <p>Call {@link #printOptions} to print sub-option help from the stored parser.
+ * Call {@link #handleFilesOnly} to process a files-only argument (no options suffix).
+ */
+class StringPlusOptionsSwitch implements SwitchHandler
+{
+	@FunctionalInterface
+	interface Action { void accept(String files, ParseCallback parse) throws PrismException; }
+
+	/**
+	 * Token passed to an {@link Action} so it can trigger options parsing at the right moment.
+	 * The options string is the text after the first {@code :} in the switch argument (empty if none).
+	 */
+	static final class ParseCallback
+	{
+		private final OptionParser parser;
+		private final String sw;
+		private final String options;
+
+		ParseCallback(OptionParser parser, String sw, String options)
+		{
+			this.parser = parser; this.sw = sw; this.options = options;
+		}
+
+		/** The options string as split from the switch argument (may be empty). */
+		String options() { return options; }
+
+		/** Parse the options with the stored parser under the switch name. */
+		void run() throws PrismException { parser.parse(options, sw); }
+
+		/** Parse an alternative options string (e.g. for legacy separator handling). */
+		void run(String overrideOptions) throws PrismException { parser.parse(overrideOptions, sw); }
+	}
+
+	private final OptionParser parser;
+	private final Action action;
+
+	StringPlusOptionsSwitch(OptionParser parser, Action action)
+	{
+		this.parser = parser; this.action = action;
+	}
+
+	@Override
+	public void handle(String sw, ArgConsumer a) throws PrismException
+	{
+		String[] parts = splitFilesAndOptions(a.next(sw));
+		action.accept(parts[0], new ParseCallback(parser, sw, parts[1]));
+	}
+
+	/** Process a files-only argument (empty options). Equivalent to handle with no {@code :options} suffix. */
+	void handleFilesOnly(String sw, String files) throws PrismException
+	{
+		action.accept(files, new ParseCallback(parser, sw, ""));
+	}
+
+	/** Print the sub-options registered in the stored parser (for use in help blocks). */
+	void printOptions(PrismLog log) { parser.printOptions(log); }
+
+	/**
+	 * Split a {@code <files>:<options>} argument on the first {@code :} that is not a
+	 * Windows path separator ({@code :\}). Returns {@code {files, options}}; options is
+	 * empty if no {@code :} is found.
+	 */
+	static String[] splitFilesAndOptions(String arg)
+	{
+		int i = arg.indexOf(':');
+		while (arg.length() > i + 1 && arg.charAt(i + 1) == '\\')
+			i = arg.indexOf(':', i + 1);
+		if (i != -1)
+			return new String[]{arg.substring(0, i), arg.substring(i + 1)};
+		else
+			return new String[]{arg, ""};
+	}
+}
+
+/**
+ * Bundles a {@link SwitchHandler} with its help metadata for the unified CLI switch map.
+ * Visible entries have a non-null {@code argHint}; hidden entries have {@code argHint == null};
+ * blank-line sentinels have {@code primaryName == null}. {@code group} is the section header
+ * printed above the first entry in a group. {@code longDesc} is invoked by {@code -help <sw>}.
+ */
+class SwitchEntry
+{
+	final SwitchHandler handler;
+	final String group;
+	final String primaryName;      // null = blank-line sentinel
+	final String[] shownAliases;   // aliases displayed in -help output (subset of all registered names)
+	final String argHint;          // null = hidden; "" = flag switch; e.g. "<x>", "<file>"
+	final String shortText;        // description text; null for hidden/blank-line sentinels
+	final Consumer<PrismLog> longDesc;
+
+	SwitchEntry(SwitchHandler handler, String group, String primaryName,
+	            String[] shownAliases, String argHint, String shortText,
+	            Consumer<PrismLog> longDesc)
+	{
+		this.handler = handler;
+		this.group = group;
+		this.primaryName = primaryName;
+		this.shownAliases = shownAliases;
+		this.argHint = argHint;
+		this.shortText = shortText;
+		this.longDesc = longDesc;
+	}
 }
 
 /**

@@ -36,10 +36,14 @@ import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Objects;
+import java.util.Set;
+import java.util.function.Consumer;
 
 import common.StackTraceHelper;
 import csv.CsvFormatException;
@@ -146,8 +150,9 @@ public class PrismCL implements PrismModelListener
 	private String exportStratFilename = null;
 	private String simpathFilename = null;
 
-	// CLI switch handler map (populated by initSwitchHandlers)
-	private Map<String, SwitchHandler> switchHandlers;
+	// Unified CLI switch map (handler + help metadata), populated by initSwitchHandlers
+	private Map<String, SwitchEntry> switchHandlers;
+	private SwitchRegistry registry;
 
 	// logs
 	private PrismLog mainLog = null;
@@ -200,7 +205,18 @@ public class PrismCL implements PrismModelListener
 
 	// strategy export info
 	private StrategyExportOptions exportStratOptions = null;
-	
+
+	// transient state used during option parsing for complex switches
+	private boolean exportResultsCsv;
+	private boolean exportResultsMatrix;
+	private ModelExportTask pendingLabelExportTask;
+	private ModelExportOptions pendingExportOptions;
+	private List<ModelExportTask> pendingExportTasks;
+
+	// option parsers for complex switches (initialised in initSwitchHandlers, capture 'this')
+	// switch stored as field so handleFilesOnly() can be called for the .all shorthand (line ~1563)
+	private StringPlusOptionsSwitch importModelSwitch;
+
 	// parametric analysis info
 	private String[] paramLowerBounds = null;
 	private String[] paramUpperBounds = null;
@@ -1065,11 +1081,11 @@ public class PrismCL implements PrismModelListener
 			String arg = consumer.advance();
 			String sw = consumer.parseSwitch(arg);
 			if (sw != null) {
-				SwitchHandler handler = switchHandlers.get(sw);
-				if (handler != null)
-					handler.handle(sw, consumer);
+				SwitchEntry entry = switchHandlers.get(sw);
+				if (entry != null)
+					entry.handler.handle(sw, consumer);
 				else
-					prism.getSettings().setFromCommandLineSwitch(sw, consumer);
+					errorAndExit("Unknown switch -" + sw + " (type \"prism -help\" for full list)");
 			} else {
 				// argument is assumed to be a (model/properties) filename
 				filenameArgs.add(arg);
@@ -1080,40 +1096,36 @@ public class PrismCL implements PrismModelListener
 	}
 
 	/**
-	 * Populate {@link #switchHandlers} with a handler for every switch recognised by PrismCL.
-	 * Switches not registered here fall through to {@link PrismSettings#setFromCommandLineSwitch}.
-	 * The insertion order matches the -help output ordering.
+	 * Populate {@link #switchHandlers} with a handler and help metadata for every recognised switch.
+	 * {@link PrismSettings#registerSwitchHandlers} contributes PrismSettings switches in the right
+	 * position. Insertion order determines the {@code -help} output ordering.
 	 */
 	private void initSwitchHandlers()
 	{
 		switchHandlers = new LinkedHashMap<>();
+		registry = new SwitchRegistry(switchHandlers);
 
-		// Help / version / meta
-		addSwitch("help", "?", (sw, a) -> {
-			// -help [switch] is one of the few cases where the value arg is optional
+		// ── General (no section header) ──────────────────────────────────────
+		SwitchHandler helpHandler = (sw, a) -> {
 			if (a.hasNext()) printHelpSwitch(a.next(sw)); else printHelp();
 			exit();
-		});
-		addSwitch("javamaxmem",
-				(sw, a) -> a.next(sw)); // consumed before JVM launch; value discarded
-		addSwitch("javastack",
-				(sw, a) -> a.next(sw)); // consumed before JVM launch; value discarded
-		addSwitch("javaparams",
-				(sw, a) -> a.next(sw)); // consumed before JVM launch; value discarded
-		addSwitch("timeout", (sw, a) -> {
-			int t = PrismUtils.convertTimeStringtoSeconds(a.next(sw));
-			if (t < 0) errorAndExit("Negative timeout value \"" + t + "\" for -" + sw + " switch");
-			if (t > 0) setTimeout(t);
-			// t == 0 -> no timeout
-		});
-		addSwitch("version", new FlagSwitch(() -> { printVersion(); exit(); }));
-		addSwitch("dir", new StringSwitch(Prism::setWorkingDirectory));
-		addSwitch("settings", new StringSwitch(s -> settingsFilename = s.trim()));
-		addSwitch("keywords", new FlagSwitch(() -> { printListOfKeywords(); exit(); })); // hidden
+		};
+		registry.addSwitch("help", helpHandler, "", "Display this help message");
+		registry.addSwitch("?", helpHandler);  // hidden alias
+		registry.addSwitch("version", new FlagSwitch(() -> { printVersion(); exit(); }),
+			"", "Display PRISM version info");
+		registry.addSwitch("javaversion", new FlagSwitch(() -> {}), // handled by launch script
+			"", "Display Java version info");
+		registry.addSwitch("dir", new StringSwitch(Prism::setWorkingDirectory),
+			"<dir>", "Set current working directory");
+		registry.addSwitch("settings", new StringSwitch(s -> settingsFilename = s.trim()),
+			"<file>", "Load settings from <file>");
 
-		// Property / constant / parameter info
-		addSwitch("pf", "pctl", "csl", new StringSwitch(s -> propertyString = s));
-		addSwitch("prop", "property", (sw, a) -> {
+		registry.addBlankLine();
+
+		registry.addSwitch("pf", "pctl", "csl", new StringSwitch(s -> propertyString = s),
+			"<props>", "Model check properties <props>");
+		SwitchHandler propHandler = (sw, a) -> {
 			String[] props = a.next(sw).trim().split(",");
 			propertyIndices = new ArrayList<>();
 			for (String p : props) {
@@ -1122,37 +1134,69 @@ public class PrismCL implements PrismModelListener
 					catch (NumberFormatException e) { propertyIndices.add(p); }
 				}
 			}
-		});
-		addSwitch("const", (sw, a) -> {
+		};
+		registry.addSwitch("property", "prop", propHandler,
+			"<refs>", "Only model check properties included in list <refs> of indices/names");
+		registry.addSwitch("const", (sw, a) -> {
 			String v = a.next(sw).trim();
 			if ("".equals(constSwitch)) constSwitch = v; else constSwitch += "," + v;
-		});
-		addSwitch("param", (sw, a) -> {
-			param = true;
-			String v = a.next(sw).trim();
-			if ("".equals(paramSwitch)) paramSwitch = v; else paramSwitch += "," + v;
-		});
-
-		// Computation modes
-		addSwitch("steadystate", "ss", new FlagSwitch(() -> steadystate = true));
-		addSwitch("transient", "tr", (sw, a) -> { dotransient = true; transientTime = a.next(sw); });
-		addSwitch("simpath", (sw, a) -> {
+		}, "<vals>", "Define constant values as <vals> (e.g. for experiments)",
+			log -> {
+				log.println("Switch: -const <vals>\n");
+				log.println("<vals> is a comma-separated list of values or value ranges for undefined constants");
+				log.println("in the model or properties (i.e. those declared without values, such as \"const int a;\").");
+				log.println("You can either specify a single value (a=1), a range (a=1:10) or a range with a step (a=1:2:50).");
+				log.println("For convenience, constant definutions can also be split across multiple -const switches.");
+				log.println("\nExamples:");
+				log.println(" -const a=1,b=5.6,c=true");
+				log.println(" -const a=1:10,b=5.6");
+				log.println(" -const a=1:2:50,b=5.6");
+				log.println(" -const a=1:2:50 -const b=5.6");
+			});
+		registry.addSwitch("steadystate", "ss", new FlagSwitch(() -> steadystate = true),
+			"", "Compute steady-state probabilities (D/CTMCs only)");
+		registry.addSwitch("transient", "tr", (sw, a) -> { dotransient = true; transientTime = a.next(sw); },
+			"<x>", "Compute transient probabilities for time (or time range) <x> (D/CTMCs only)");
+		registry.addSwitch("simpath", (sw, a) -> {
 			simpath = true;
 			simpathDetails = a.next(sw);
 			simpathFilename = a.next(sw);
-		});
-		addSwitch("nobuild", new FlagSwitch(() -> nobuild = true));
-		addSwitch("test", new FlagSwitch(() -> test = true));
-		addSwitch("testall", new FlagSwitch(() -> { test = true; testExitsOnFail = false; }));
-		addSwitch("test:umb", new FlagSwitch(() -> prism.setTestUMB(true)));
+		}, "<options> <file>", "Generate a random path with the simulator",
+			log -> {
+				log.println("Switch: -simpath <options> <file>\n");
+				log.println("Generate a random path with the simulator and export it to <file> (or to the screen if <file>=\"stdout\").");
+				log.println("<options> is a comma-separated list of options taken from:");
+				GenerateSimulationPath.printOptions(log);
+			});
+		registry.addSwitch("nobuild", new FlagSwitch(() -> nobuild = true),
+			"", "Skip model construction (just do parse/export)");
+		registry.addSwitch("test", new FlagSwitch(() -> test = true),
+			"", "Enable \"test\" mode");
+		registry.addSwitch("testall", new FlagSwitch(() -> { test = true; testExitsOnFail = false; }),
+			"", "Enable \"test\" mode, but don't exit on error");
+		registry.addSwitch("javamaxmem", (sw, a) -> a.next(sw),  // consumed before JVM launch
+			"<x>", "Set the maximum heap size for Java, e.g. 500m, 4g [default: 1g]");
+		registry.addSwitch("javastack", (sw, a) -> a.next(sw),   // consumed before JVM launch
+			"<x>", "Set the Java stack size [default: 4m]");
+		registry.addSwitch("javaparams", (sw, a) -> a.next(sw),  // consumed before JVM launch
+			"<x>", "Pass additional command-line arguments to Java");
+		registry.addSwitch("timeout", (sw, a) -> {
+			int t = PrismUtils.convertTimeStringtoSeconds(a.next(sw));
+			if (t < 0) errorAndExit("Negative timeout value \"" + t + "\" for -" + sw + " switch");
+			if (t > 0) setTimeout(t);
+		}, "<n>", "Exit after a time-out of <n> seconds if not already terminated");
+		registry.addSwitch("ng", new FlagSwitch(() -> {}),  // handled in main() before go()
+			"", "Run PRISM in Nailgun server mode; subsequent calls are then made via \"ngprism\"");
 
-		// DD debugging (hidden)
-		addSwitch("dddebug", new FlagSwitch(() -> jdd.DebugJDD.enable()));
-		addSwitch("ddtraceall", new FlagSwitch(() -> jdd.DebugJDD.traceAll = true));
-		addSwitch("ddtracefollowcopies", new FlagSwitch(() -> jdd.DebugJDD.traceFollowCopies = true));
-		addSwitch("dddebugwarnfatal", new FlagSwitch(() -> jdd.DebugJDD.warningsAreFatal = true));
-		addSwitch("dddebugwarnoff", new FlagSwitch(() -> jdd.DebugJDD.warningsOff = true));
-		addSwitch("ddtrace", (sw, a) -> {
+		// Hidden general switches
+		registry.addSwitch("keywords", new FlagSwitch(() -> { printListOfKeywords(); exit(); }));
+		registry.addSwitch("test:umb", new FlagSwitch(() -> prism.setTestUMB(true)));
+		registry.addSwitch("dddebug", new FlagSwitch(() -> jdd.DebugJDD.enable()));
+		registry.addSwitch("ddtraceall", new FlagSwitch(() -> jdd.DebugJDD.traceAll = true));
+		registry.addSwitch("ddtracefollowcopies", new FlagSwitch(() -> jdd.DebugJDD.traceFollowCopies = true));
+		registry.addSwitch("dddebugwarnfatal", new FlagSwitch(() -> jdd.DebugJDD.warningsAreFatal = true));
+		registry.addSwitch("dddebugwarnoff", new FlagSwitch(() -> jdd.DebugJDD.warningsOff = true));
+		registry.addSwitch("ddtrace", (sw, a) -> {
 			String idStr = a.next(sw);
 			try {
 				jdd.DebugJDD.enableTracingForID(Integer.parseInt(idStr));
@@ -1161,196 +1205,348 @@ public class PrismCL implements PrismModelListener
 			}
 		});
 
-		// IMPORT OPTIONS:
-		addSwitch("importpepa", new FlagSwitch(() -> importpepa = true));
-		addSwitch("importprismpp", (sw, a) -> { importprismpp = true; prismppParams = a.next(sw); }); // hidden
-		addSwitch("importmodel", new StringSwitch(this::processImportModelSwitch));
-		addSwitch("importtrans", (sw, a) -> {
-			// Recall model name in case needed as basename for model exports
-			modelFilename = a.next(sw);
+		// ── IMPORTS ──────────────────────────────────────────────────────────
+		registry.beginGroup("IMPORTS");
+		registry.addSwitch("importpepa", new FlagSwitch(() -> importpepa = true),
+			"", "Model description is in PEPA, not the PRISM language");
+		registry.addSwitch("importprismpp", (sw, a) -> { importprismpp = true; prismppParams = a.next(sw); }); // hidden
+		importModelSwitch = new StringPlusOptionsSwitch(
+			new OptionParser()
+				.choice("format", "model import format", new OptionParser.Choice()
+						.when("explicit", () -> { for (ModelImportSource s : modelImportSources) s.format = ModelExportFormat.EXPLICIT; })
+						.when("umb",      () -> { for (ModelImportSource s : modelImportSources) s.format = ModelExportFormat.UMB; })),
+			this::processImportModelSwitch);
+		registry.addSwitch("importmodel", importModelSwitch,
+			"<files>", "Import the model directly from file(s)",
+			log -> {
+				log.println("Switch: -importmodel <files>[:options]\n");
+				log.println("Import the model directly from one or more file(s).");
+				log.println("Use a list of file extensions to indicate which files should be read, e.g.:");
+				log.println("\n -importmodel in.tra,sta\n");
+				log.println("Possible extensions are: .tra, .sta, .obs, .lab, .srew, .trew, .umb");
+				log.println("Use extension .all to import all explicit files (.tra/sta/obs/lab/srew/trew), e.g.:");
+				log.println("\n -importmodel in.all\n");
+				log.println("If provided, <options> is a comma-separated list of options taken from:");
+				importModelSwitch.printOptions(log);
+			});
+		registry.addSwitch("importtrans", (sw, a) -> {
+			modelFilename = a.next(sw); // recall for use as basename in model exports
 			modelImportSources.add(new ModelImportSource(ModelExportTask.ModelExportEntity.MODEL, ModelExportFormat.EXPLICIT, new File(modelFilename)));
-		});
-		addSwitch("importstates", new StringSwitch(s -> modelImportSources.add(
-			new ModelImportSource(ModelExportTask.ModelExportEntity.STATES, ModelExportFormat.EXPLICIT, new File(s)))));
-		addSwitch("importobs", new StringSwitch(s -> modelImportSources.add(
-			new ModelImportSource(ModelExportTask.ModelExportEntity.OBSERVATIONS, ModelExportFormat.EXPLICIT, new File(s)))));
-		addSwitch("importlabels", new StringSwitch(s -> modelImportSources.add(
-			new ModelImportSource(ModelExportTask.ModelExportEntity.LABELS, ModelExportFormat.EXPLICIT, new File(s)))));
-		addSwitch("importstaterewards", new StringSwitch(s -> modelImportSources.add(
-			new ModelImportSource(ModelExportTask.ModelExportEntity.STATE_REWARDS, ModelExportFormat.EXPLICIT, new File(s)))));
-		addSwitch("importtransrewards", new StringSwitch(s -> modelImportSources.add(
-			new ModelImportSource(ModelExportTask.ModelExportEntity.TRANSITION_REWARDS, ModelExportFormat.EXPLICIT, new File(s)))));
-		addSwitch("importinitdist", (sw, a) -> { importinitdist = true; importInitDistFilename = a.next(sw); });
-		addSwitch("importresults", (sw, a) -> {
+		}, "<file>", "Import the transition matrix directly from a text file");
+		registry.addSwitch("importstates", new StringSwitch(s -> modelImportSources.add(
+			new ModelImportSource(ModelExportTask.ModelExportEntity.STATES, ModelExportFormat.EXPLICIT, new File(s)))),
+			"<file>", "Import the list of states directly from a text file");
+		registry.addSwitch("importobs", new StringSwitch(s -> modelImportSources.add(
+			new ModelImportSource(ModelExportTask.ModelExportEntity.OBSERVATIONS, ModelExportFormat.EXPLICIT, new File(s)))),
+			"<file>", "Import the list of observations directly from a text file");
+		registry.addSwitch("importlabels", new StringSwitch(s -> modelImportSources.add(
+			new ModelImportSource(ModelExportTask.ModelExportEntity.LABELS, ModelExportFormat.EXPLICIT, new File(s)))),
+			"<file>", "Import the list of labels directly from a text file");
+		registry.addSwitch("importstaterewards", new StringSwitch(s -> modelImportSources.add(
+			new ModelImportSource(ModelExportTask.ModelExportEntity.STATE_REWARDS, ModelExportFormat.EXPLICIT, new File(s)))),
+			"<file>", "Import the state rewards directly from a text file");
+		registry.addSwitch("importtransrewards", new StringSwitch(s -> modelImportSources.add(
+			new ModelImportSource(ModelExportTask.ModelExportEntity.TRANSITION_REWARDS, ModelExportFormat.EXPLICIT, new File(s)))),
+			"<file>", "Import the transition rewards directly from a text file");
+		registry.addSwitch("importinitdist", (sw, a) -> { importinitdist = true; importInitDistFilename = a.next(sw); },
+			"<file>", "Specify initial probability distribution for transient/steady-state analysis");
+		registry.addSwitch("dtmc", new FlagSwitch(() -> typeOverride = ModelType.DTMC),
+			"", "Force imported/built model to be a DTMC");
+		registry.addSwitch("ctmc", new FlagSwitch(() -> typeOverride = ModelType.CTMC),
+			"", "Force imported/built model to be a CTMC");
+		registry.addSwitch("mdp",  new FlagSwitch(() -> typeOverride = ModelType.MDP),
+			"", "Force imported/built model to be an MDP");
+		registry.addSwitch("importresults", (sw, a) -> {
 			importresults = true;
 			modelFilename = "no-model-file.prism";
 			importResultsFilename = a.next(sw);
-		});
-		addSwitch("dtmc", new FlagSwitch(() -> typeOverride = ModelType.DTMC));
-		addSwitch("mdp",  new FlagSwitch(() -> typeOverride = ModelType.MDP));
-		addSwitch("ctmc", new FlagSwitch(() -> typeOverride = ModelType.CTMC));
+		}, "<file>", "Import results from a data frame stored in CSV file",
+			log -> {
+				log.println("Switch: -importresults <file>\n");
+				log.println("Import results from a data frame stored as comma-separated values in <file>.");
+			});
 
-		// EXPORT OPTIONS:
-		addSwitch("exportprism", (sw, a) -> { exportprism = true; exportPrismFilename = a.next(sw); });
-		addSwitch("exportprismconst", (sw, a) -> { exportprismconst = true; exportPrismConstFilename = a.next(sw); });
-		addSwitch("exportresults", new StringSwitch(this::processExportResultsSwitch));
-		addSwitch("exportvector", (sw, a) -> {
+		// ── EXPORTS ──────────────────────────────────────────────────────────
+		registry.beginGroup("EXPORTS");
+		StringPlusOptionsSwitch exportResultsSwitch = new StringPlusOptionsSwitch(
+			new OptionParser()
+				.flag("csv",       "Export results as comma-separated values",               () -> exportResultsCsv = true)
+				.flag("matrix",    "Export results as one or more 2D matrices (e.g. for surface plots)", () -> exportResultsMatrix = true)
+				.flag("dataframe", "Export results as dataframe in comma-separated values",  () -> exportShape = ResultsExportShape.DATA_FRAME)
+				.flag("comment",   "Export results in comment format for regression testing",() -> exportShape = ResultsExportShape.COMMENT),
+			this::processExportResultsSwitch);
+		registry.addSwitch("exportresults", exportResultsSwitch,
+			"<file[:options]>", "Export the results of model checking to a file",
+			log -> {
+				log.println("Switch: -exportresults <file[:options]>\n");
+				log.println("Exports the results of model checking to <file> (or to the screen if <file>=\"stdout\").");
+				log.println("The default behaviour is to export a list of results in text form, using tabs to separate items.");
+				log.println("If provided, <options> is a comma-separated list of options taken from:");
+				exportResultsSwitch.printOptions(log);
+			});
+		registry.addSwitch("exportvector", (sw, a) -> {
 			exportvector = true; exportVectorFilename = a.next(sw); prism.setStoreVector(true);
-		});
-		addSwitch("exportmodel", new StringSwitch(this::processExportModelSwitch));
-		// process -exportmodelprecision in PrismSettings
-		addSwitch("exporttrans", new StringSwitch(s -> modelExportTasks.add(
-			new ModelExportTask(ModelExportTask.ModelExportEntity.MODEL, s))));
-		addSwitch("exportstaterewards", new StringSwitch(s -> modelExportTasks.add(
-			new ModelExportTask(ModelExportTask.ModelExportEntity.STATE_REWARDS, s))));
-		addSwitch("exporttransrewards", new StringSwitch(s -> modelExportTasks.add(
-			new ModelExportTask(ModelExportTask.ModelExportEntity.TRANSITION_REWARDS, s))));
-		addSwitch("exportrewards", (sw, a) -> {
+		}, "<file>", "Export results of model checking for all states to a file");
+		StringPlusOptionsSwitch exportModelSwitch = new StringPlusOptionsSwitch(
+			new OptionParser()
+				.choice("format",   "model export format", new OptionParser.Choice()
+					.when("explicit", () -> pendingExportOptions.setFormat(ModelExportFormat.EXPLICIT))
+					.when("matlab",   () -> pendingExportOptions.setFormat(ModelExportFormat.MATLAB))
+					.when("dot",      () -> pendingExportOptions.setFormat(ModelExportFormat.DOT))
+					.when("drn",      () -> pendingExportOptions.setFormat(ModelExportFormat.DRN))
+					.when("umb",      () -> pendingExportOptions.setFormat(ModelExportFormat.UMB)))
+				.bool("rewards",    "whether to include rewards",                                   v -> pendingExportOptions.setShowRewards(v))
+				.bool("labels",     "whether to include labels",                                    v -> pendingExportOptions.setShowLabels(v))
+				.bool("states",     "whether to include state definitions",                         v -> pendingExportOptions.setShowStates(v))
+				.bool("obs",        "whether to include observation definitions",                   v -> pendingExportOptions.setShowObservations(v))
+				.bool("actions",    "whether to include actions on choices/transitions",            v -> pendingExportOptions.setShowActions(v))
+				.string("precision","<n>", "use <n> significant figures for floating point values (in text)", v -> {
+					try {
+						int n = Integer.parseInt(v);
+						if (!RANGE_EXPORT_DOUBLE_PRECISION.contains(n)) throw new NumberFormatException();
+						pendingExportOptions.setModelPrecision(n);
+					} catch (NumberFormatException e) {
+						throw new PrismException("Invalid value \"" + v + "\" for \"precision\" option of -exportmodel");
+					}
+				})
+				.choice("zip",      "whether to zip UMB files", new OptionParser.Choice()
+					.when("true",        () -> pendingExportOptions.setZipped(true))
+					.when("false",       () -> pendingExportOptions.setZipped(false))
+					.when("gzip", "gz",  () -> pendingExportOptions.setZipped(true).setCompressionFormat(ModelExportOptions.CompressionFormat.GZIP))
+					.when("xz",          () -> pendingExportOptions.setZipped(true).setCompressionFormat(ModelExportOptions.CompressionFormat.XZ)))
+				.flag("text",       "show binary formats in textual form",                          () -> pendingExportOptions.setBinaryAsText(true))
+				.flag("matlab",     "same as format=matlab",                                        () -> { pendingExportOptions.setFormat(ModelExportFormat.MATLAB); exportType = Prism.EXPORT_MATLAB; })
+				.flag("rows",       "export matrices with one row/distribution on each line",       () -> { pendingExportOptions.setExplicitRows(true); exportType = Prism.EXPORT_ROWS; })
+				.flag("proplabels", "also export labels from a properties file into the same file, too", () -> {
+					for (ModelExportTask t : pendingExportTasks)
+						if (t.getEntity() == ModelExportTask.ModelExportEntity.LABELS)
+							t.setLabelExportSet(ModelExportTask.LabelExportSet.ALL);
+				})
+				.bool("headers",    "include headers in explicit (reward) files",                   v -> pendingExportOptions.setPrintHeaders(v)),
+			this::processExportModelSwitch);
+		registry.addSwitch("exportmodel", exportModelSwitch,
+			"<files[:options]>", "Export the built model to file(s)",
+			log -> {
+				log.println("Switch: -exportmodel <files[:options]>\n");
+				log.println("Export the built model to file(s) (or to the screen if <file>=\"stdout\").");
+				log.println("Use a list of file extensions to indicate which files should be generated, e.g.:");
+				log.println("\n -exportmodel out.tra,sta\n");
+				log.println("\n -exportmodel out.umb\n");
+				log.println("Possible extensions are: .tra, .srew, .trew, .lab, .sta, .obs, .dot, .umb, .drn");
+				log.println("Use extension .all to export all explicit files (.tra/srew/trew/lab/sta/obs), e.g.:");
+				log.println("\n -exportmodel out.all\n");
+				log.println("Omit the file basename to use the basename of the model file, e.g.:");
+				log.println("\n -exportmodel .all\n");
+				log.println("Use extension .rew to export both .srew/.trew files");
+				log.println();
+				log.println("If provided, <options> is a comma-separated list of options taken from:");
+				exportModelSwitch.printOptions(log);
+			});
+		registry.addSwitch("exporttrans", new StringSwitch(s -> modelExportTasks.add(
+			new ModelExportTask(ModelExportTask.ModelExportEntity.MODEL, s))),
+			"<file>", "Export the transition matrix to a file");
+		registry.addSwitch("exportstaterewards", new StringSwitch(s -> modelExportTasks.add(
+			new ModelExportTask(ModelExportTask.ModelExportEntity.STATE_REWARDS, s))),
+			"<file>", "Export the state rewards vector to a file");
+		registry.addSwitch("exporttransrewards", new StringSwitch(s -> modelExportTasks.add(
+			new ModelExportTask(ModelExportTask.ModelExportEntity.TRANSITION_REWARDS, s))),
+			"<file>", "Export the transition rewards matrix to a file");
+		registry.addSwitch("exportrewards", (sw, a) -> {
 			modelExportTasks.add(new ModelExportTask(ModelExportTask.ModelExportEntity.STATE_REWARDS, a.next(sw)));
 			modelExportTasks.add(new ModelExportTask(ModelExportTask.ModelExportEntity.TRANSITION_REWARDS, a.next(sw)));
-		});
-		addSwitch("exportstates", new StringSwitch(s -> modelExportTasks.add(
-			new ModelExportTask(ModelExportTask.ModelExportEntity.STATES, s))));
-		addSwitch("exportobs", new StringSwitch(s -> modelExportTasks.add(
-			new ModelExportTask(ModelExportTask.ModelExportEntity.OBSERVATIONS, s))));
-		addSwitch("exportlabels", new StringSwitch(this::processExportLabelsSwitch));
-		addSwitch("exportproplabels", new StringSwitch(this::processExportPropLabelsSwitch));
-		addSwitch("exportmatlab", new FlagSwitch(() -> {
+		}, "<file1> <file2>", "Export state/transition rewards to files 1/2");
+		registry.addSwitch("exportstates", new StringSwitch(s -> modelExportTasks.add(
+			new ModelExportTask(ModelExportTask.ModelExportEntity.STATES, s))),
+			"<file>", "Export the list of reachable states to a file");
+		registry.addSwitch("exportobs", new StringSwitch(s -> modelExportTasks.add(
+			new ModelExportTask(ModelExportTask.ModelExportEntity.OBSERVATIONS, s))),
+			"<file>", "Export the list of observations to a file");
+		StringPlusOptionsSwitch exportLabelsSwitch = new StringPlusOptionsSwitch(
+			new OptionParser()
+				.flag("matlab",     "export data in Matlab format",                                () -> pendingLabelExportTask.getExportOptions().setFormat(ModelExportFormat.MATLAB))
+				.flag("proplabels", "export labels from a properties file into the same file, too",() -> pendingLabelExportTask.setLabelExportSet(ModelExportTask.LabelExportSet.ALL)),
+			this::processExportLabelsSwitch);
+		registry.addSwitch("exportlabels", exportLabelsSwitch,
+			"<file[:options]>", "Export the list of labels and satisfying states to a file",
+			log -> {
+				log.println("Switch: -exportlabels <files[:options]>\n");
+				log.println("Export the list of labels and satisfying states to a file (or to the screen if <file>=\"stdout\").");
+				log.println();
+				log.println("If provided, <options> is a comma-separated list of options taken from:");
+				exportLabelsSwitch.printOptions(log);
+			});
+		StringPlusOptionsSwitch exportPropLabelsSwitch = new StringPlusOptionsSwitch(
+			new OptionParser()
+				.flag("matlab", "export data in Matlab format", () -> pendingLabelExportTask.getExportOptions().setFormat(ModelExportFormat.MATLAB)),
+			this::processExportPropLabelsSwitch);
+		registry.addSwitch("exportproplabels", exportPropLabelsSwitch,
+			"<file[:options]>", "Export the list of labels and satisfying states from the properties file to a file",
+			log -> {
+				log.println("Switch: -exportproplabels <files[:options]>\n");
+				log.println("Export the list of labels and satisfying states from the properties file to a file (or to the screen if <file>=\"stdout\").");
+				log.println();
+				log.println("If provided, <options> is a comma-separated list of options taken from:");
+				exportPropLabelsSwitch.printOptions(log);
+			});
+		StringPlusOptionsSwitch exportStratSwitch = new StringPlusOptionsSwitch(
+			new OptionParser()
+				.choice("type", "type of strategy export", new OptionParser.Choice()
+					.when("actions",          () -> exportStratOptions.setType(StrategyExportOptions.StrategyExportType.ACTIONS))
+					.when("indices",          () -> exportStratOptions.setType(StrategyExportOptions.StrategyExportType.INDICES))
+					.when("induced", "model", () -> exportStratOptions.setType(StrategyExportOptions.StrategyExportType.INDUCED_MODEL))
+					.when("dot",              () -> exportStratOptions.setType(StrategyExportOptions.StrategyExportType.DOT_FILE)))
+				.choice("mode", "mode to use for building induced model (or Dot file)", new OptionParser.Choice()
+					.when("restrict", () -> exportStratOptions.setMode(StrategyExportOptions.InducedModelMode.RESTRICT))
+					.when("reduce",   () -> exportStratOptions.setMode(StrategyExportOptions.InducedModelMode.REDUCE)))
+				.bool("reach",   "whether to restrict the strategy to its reachable states",                              v -> exportStratOptions.setReachOnly(v))
+				.bool("states",  "whether to show states, rather than state indices, for actions lists or Dot files",     v -> exportStratOptions.setShowStates(v))
+				.bool("obs",     "for partially observable models, whether to merge observationally equivalent states",   v -> exportStratOptions.setMergeObservations(v)),
+			this::processExportStratSwitch);
+		registry.addSwitch("exportstrat", exportStratSwitch,
+			"<file[:options]>", "Generate and export a strategy to a file",
+			log -> {
+				log.println("Switch: -exportstrat <file[:options]>\n");
+				log.println("Generate and export a strategy to a file (or to the screen if <file>=\"stdout\").");
+				log.println("Use file extension .tra or .dot to export as an induced model or Dot file, respectively.");
+				log.println("If provided, <options> is a comma-separated list of options taken from:");
+				exportStratSwitch.printOptions(log);
+			});
+		registry.addSwitch("exportmatlab", new FlagSwitch(() -> {
 			exportType = Prism.EXPORT_MATLAB;
 			modelExportOptionsGlobal.setFormat(ModelExportFormat.MATLAB);
-		}));
-		addSwitch("exportmrmc", new FlagSwitch(() -> errorAndExit("Export to MRMC format no longer supported")));
-		addSwitch("exportrows", new FlagSwitch(() -> {
+		}), "", "When exporting matrices/vectors/labels/etc., use Matlab format");
+		registry.addSwitch("exportrows", new FlagSwitch(() -> {
 			exportType = Prism.EXPORT_ROWS;
 			modelExportOptionsGlobal.setExplicitRows(true);
-		}));
-		addSwitch("exportordered", "ordered", new FlagSwitch(() -> {})); // always done now, no-op
-		addSwitch("exportunordered", "unordered", new FlagSwitch(() -> errorAndExit("Switch -exportunordered is no longer supported")));
-		addSwitch("exporttransdot", new StringSwitch(s -> {
+		}), "", "When exporting matrices, put a whole row on one line");
+		registry.addSwitch("exporttransdot", new StringSwitch(s -> {
 			ModelExportOptions exportOptions = new ModelExportOptions().setFormat(ModelExportFormat.DOT).setShowStates(false).setShowObservations(false);
 			modelExportTasks.add(new ModelExportTask(ModelExportTask.ModelExportEntity.MODEL, s, exportOptions));
-		}));
-		addSwitch("exporttransdotstates", new StringSwitch(s -> {
+		}), "<file>", "Export the transition matrix graph to a dot file");
+		registry.addSwitch("exporttransdotstates", new StringSwitch(s -> {
 			ModelExportOptions exportOptions = new ModelExportOptions().setFormat(ModelExportFormat.DOT).setShowStates(true).setShowObservations(true);
 			modelExportTasks.add(new ModelExportTask(ModelExportTask.ModelExportEntity.MODEL, s, exportOptions));
-		}));
-		addSwitch("exportdot", new StringSwitch(s -> {
+		}), "<file>", "Export the transition matrix graph to a dot file, with state info");
+		registry.addSwitch("exportdot", new StringSwitch(s -> {
 			ModelExportOptions exportOptions = new ModelExportOptions().setFormat(ModelExportFormat.DD_DOT);
 			modelExportTasks.add(new ModelExportTask(ModelExportTask.ModelExportEntity.MODEL, s, exportOptions));
-		}));
-		addSwitch("exportsccs", (sw, a) -> { exportsccs = true; exportSCCsFilename = a.next(sw); });
-		addSwitch("exportbsccs", (sw, a) -> { exportbsccs = true; exportBSCCsFilename = a.next(sw); });
-		addSwitch("exportmecs", (sw, a) -> { exportmecs = true; exportMECsFilename = a.next(sw); });
-		addSwitch("exportsteadystate", "exportss", (sw, a) -> {
+		}), "<file>", "Export the transition matrix MTBDD to a dot file");
+		registry.addSwitch("exportsccs", (sw, a) -> { exportsccs = true; exportSCCsFilename = a.next(sw); },
+			"<file>", "Compute and export all SCCs of the model");
+		registry.addSwitch("exportbsccs", (sw, a) -> { exportbsccs = true; exportBSCCsFilename = a.next(sw); },
+			"<file>", "Compute and export all BSCCs of the model");
+		registry.addSwitch("exportmecs", (sw, a) -> { exportmecs = true; exportMECsFilename = a.next(sw); },
+			"<file>", "Compute and export all maximal end components (MDPs only)");
+		SwitchHandler exportSteadyStateHandler = (sw, a) -> {
 			exportSteadyStateFilename = a.next(sw);
 			steadystate = true; // compute if asked to export
-		});
-		addSwitch("exporttransient", "exporttr", new StringSwitch(s -> exportTransientFilename = s));
-		addSwitch("exportstrat", new StringSwitch(this::processExportStratSwitch));
-		addSwitch("exportdigital", new StringSwitch(s -> {
+		};
+		registry.addSwitch("exportsteadystate", exportSteadyStateHandler,
+			"<file>", "Export steady-state probabilities to a file");
+		registry.addSwitch("exportss", exportSteadyStateHandler); // hidden alias
+		SwitchHandler exportTransientHandler = new StringSwitch(s -> exportTransientFilename = s);
+		registry.addSwitch("exporttransient", exportTransientHandler,
+			"<file>", "Export transient probabilities to a file");
+		registry.addSwitch("exporttr", exportTransientHandler); // hidden alias
+		registry.addSwitch("exportprism", (sw, a) -> { exportprism = true; exportPrismFilename = a.next(sw); },
+			"<file>", "Export final PRISM model to a file");
+		registry.addSwitch("exportprismconst", (sw, a) -> { exportprismconst = true; exportPrismConstFilename = a.next(sw); },
+			"<file>", "Export final PRISM model with expanded constants to a file");
+
+		// Hidden export switches
+		registry.addSwitch("exportmrmc", new FlagSwitch(() -> errorAndExit("Export to MRMC format no longer supported")));
+		registry.addSwitch("exportordered", "ordered", new FlagSwitch(() -> {})); // always done now, no-op
+		registry.addSwitch("exportunordered", "unordered", new FlagSwitch(() -> errorAndExit("Switch -exportunordered is no longer supported")));
+		registry.addSwitch("exportdigital", new StringSwitch(s -> {
 			File f = s.equals("stdout") ? null : new File(s);
 			prism.setExportDigital(true);
 			prism.setExportDigitalFile(f);
 		}));
-		addSwitch("exporttarget", new StringSwitch(s -> {      // hidden
+		registry.addSwitch("exporttarget", new StringSwitch(s -> {
 			prism.setExportTarget(true); prism.setExportTargetFilename(s);
 		}));
-		addSwitch("exportprodtrans", new StringSwitch(s -> {   // hidden
+		registry.addSwitch("exportprodtrans", new StringSwitch(s -> {
 			prism.setExportProductTrans(true); prism.setExportProductTransFilename(s);
 		}));
-		addSwitch("exportprodstates", new StringSwitch(s -> {  // hidden
+		registry.addSwitch("exportprodstates", new StringSwitch(s -> {
 			prism.setExportProductStates(true); prism.setExportProductStatesFilename(s);
 		}));
-		addSwitch("exportprodvector", new StringSwitch(s -> {  // hidden
+		registry.addSwitch("exportprodvector", new StringSwitch(s -> {
 			prism.setExportProductVector(true); prism.setExportProductVectorFilename(s);
 		}));
 
-		// NB: Following the ordering of the -help text, more options go here,
-		// but these are processed in the PrismSettings class; see below.
+		// ── PrismSettings sections (EXPORT OPTIONS through FAU OPTIONS) ───────
+		// The -param handler captures PrismCL state so is passed in explicitly.
+		SwitchHandler paramHandler = (sw, a) -> {
+			param = true;
+			String v = a.next(sw).trim();
+			if ("".equals(paramSwitch)) paramSwitch = v; else paramSwitch += "," + v;
+		};
+		prism.getSettings().registerSwitchHandlers(registry, prism, paramHandler);
 
-		// SIMULATION OPTIONS:
-		addSwitch("sim", new FlagSwitch(() -> simulate = true));
-		addSwitch("simmethod", new EnumSwitch()
+		// ── SIMULATION OPTIONS ────────────────────────────────────────────────
+		registry.beginGroup("SIMULATION OPTIONS");
+		registry.addSwitch("sim", new FlagSwitch(() -> simulate = true),
+			"", "Use the PRISM simulator to approximate results of model checking");
+		registry.addSwitch("simmethod", new EnumSwitch()
 			.when("ci",   () -> simMethodName = "ci")
 			.when("aci",  () -> simMethodName = "aci")
 			.when("apmc", () -> simMethodName = "apmc")
-			.when("sprt", () -> simMethodName = "sprt"));
-		addSwitch("simsamples", (sw, a) -> {
+			.when("sprt", () -> simMethodName = "sprt"),
+			"<name>", "Specify the method for approximate model checking (ci, aci, apmc, sprt)");
+		registry.addSwitch("simsamples", (sw, a) -> {
 			int n = a.nextInt(sw);
 			if (n <= 0) errorAndExit("Invalid value for -" + sw + " switch");
 			simNumSamples = n; simNumSamplesGiven = true;
-		});
-		addSwitch("simconf", (sw, a) -> {
+		}, "<n>", "Set the number of samples for the simulator (CI/ACI/APMC methods)");
+		registry.addSwitch("simconf", (sw, a) -> {
 			double d = a.nextDouble(sw);
 			if (d <= 0 || d >= 1) errorAndExit("Invalid value for -" + sw + " switch");
 			simConfidence = d; simConfidenceGiven = true;
-		});
-		addSwitch("simwidth", (sw, a) -> {
+		}, "<x>", "Set the confidence parameter for the simulator (CI/ACI/APMC methods)");
+		registry.addSwitch("simwidth", (sw, a) -> {
 			double d = a.nextDouble(sw);
 			if (d <= 0) errorAndExit("Invalid value for -" + sw + " switch");
 			simWidth = d; simWidthGiven = true;
-		});
-		addSwitch("simapprox", (sw, a) -> {
+		}, "<x>", "Set the interval width for the simulator (CI/ACI methods)");
+		registry.addSwitch("simapprox", (sw, a) -> {
 			double d = a.nextDouble(sw);
 			if (d <= 0) errorAndExit("Invalid value for -" + sw + " switch");
 			simApprox = d; simApproxGiven = true;
-		});
-		addSwitch("simmanual", new FlagSwitch(() -> simManual = true));
-		addSwitch("simvar", (sw, a) -> {
+		}, "<x>", "Set the approximation parameter for the simulator (APMC method)");
+		registry.addSwitch("simmanual", new FlagSwitch(() -> simManual = true),
+			"", "Do not use the automated way of deciding whether the variance is null or not");
+		registry.addSwitch("simvar", (sw, a) -> {
 			int n = a.nextInt(sw);
 			if (n <= 0) errorAndExit("Invalid value for -" + sw + " switch");
 			reqIterToConclude = n; reqIterToConcludeGiven = true;
-		});
-		addSwitch("simmaxrwd", (sw, a) -> {
+		}, "<n>", "Set the minimum number of samples to know the variance is null or not");
+		registry.addSwitch("simmaxrwd", (sw, a) -> {
 			double d = a.nextDouble(sw);
 			if (d <= 0.0) errorAndExit("Invalid value for -" + sw + " switch");
 			simMaxReward = d; simMaxRewardGiven = true;
-		});
-		addSwitch("simpathlen", (sw, a) -> {
+		}, "<x>", "Set the maximum reward -- useful to display the CI/ACI methods progress");
+		registry.addSwitch("simpathlen", (sw, a) -> {
 			long n = a.nextLong(sw);
 			if (n <= 0) errorAndExit("Invalid value for -" + sw + " switch");
 			simMaxPath = n; simMaxPathGiven = true;
-		});
+		}, "<n>", "Set the maximum path length for the simulator");
 
-		// FURTHER OPTIONS:
-		addSwitch("zerorewardcheck", new FlagSwitch(() -> prism.setCheckZeroLoops(true)));
-		addSwitch("explicitbuild", new FlagSwitch(() -> explicitbuild = true));
-		addSwitch("explicitbuildtest", new FlagSwitch(() -> explicitbuildtest = true)); // hidden
-
-		// MISCELLANEOUS HIDDEN OPTIONS:
-		addSwitch("mainlog", new StringSwitch(this::processMainLogSwitch));
-		addSwitch("exportmodeldotview", new FlagSwitch(() -> exportmodeldotview = true));
-		addSwitch("c1", new FlagSwitch(() -> prism.setConstruction(1)));
-		addSwitch("c2", new FlagSwitch(() -> prism.setConstruction(2)));
-		addSwitch("c3", new FlagSwitch(() -> prism.setConstruction(3)));
-		addSwitch("o1", new FlagSwitch(() -> { prism.setOrdering(1); orderingOverride = true; }));
-		addSwitch("o2", new FlagSwitch(() -> { prism.setOrdering(2); orderingOverride = true; }));
-		addSwitch("noreach", new FlagSwitch(() -> prism.setDoReach(false)));
-		addSwitch("nobscc",  new FlagSwitch(() -> prism.setBSCCComp(false)));
-		addSwitch("frontier", new FlagSwitch(() -> prism.setReachMethod(Prism.REACH_FRONTIER)));
-		addSwitch("bfs",      new FlagSwitch(() -> prism.setReachMethod(Prism.REACH_BFS)));
-		addSwitch("bisim",    new FlagSwitch(() -> prism.setDoBisim(true)));
-	}
-
-	/** Register a switch handler under a single name. */
-	private void addSwitch(String name, SwitchHandler h)
-	{
-		switchHandlers.put(name, h);
-	}
-
-	/** Register a switch handler under two names (primary + alias). */
-	private void addSwitch(String n1, String n2, SwitchHandler h)
-	{
-		switchHandlers.put(n1, h);
-		switchHandlers.put(n2, h);
-	}
-
-	/** Register a switch handler under three names (primary + two aliases). */
-	private void addSwitch(String n1, String n2, String n3, SwitchHandler h)
-	{
-		switchHandlers.put(n1, h);
-		switchHandlers.put(n2, h);
-		switchHandlers.put(n3, h);
+		// Hidden miscellaneous switches
+		registry.addSwitch("explicitbuild", new FlagSwitch(() -> explicitbuild = true));
+		registry.addSwitch("explicitbuildtest", new FlagSwitch(() -> explicitbuildtest = true));
+		registry.addSwitch("mainlog", new StringSwitch(this::processMainLogSwitch));
+		registry.addSwitch("exportmodeldotview", new FlagSwitch(() -> exportmodeldotview = true));
+		registry.addSwitch("c1", new FlagSwitch(() -> prism.setConstruction(1)));
+		registry.addSwitch("c2", new FlagSwitch(() -> prism.setConstruction(2)));
+		registry.addSwitch("c3", new FlagSwitch(() -> prism.setConstruction(3)));
+		registry.addSwitch("o1", new FlagSwitch(() -> { prism.setOrdering(1); orderingOverride = true; }));
+		registry.addSwitch("o2", new FlagSwitch(() -> { prism.setOrdering(2); orderingOverride = true; }));
+		registry.addSwitch("noreach", new FlagSwitch(() -> prism.setDoReach(false)));
+		registry.addSwitch("nobscc",  new FlagSwitch(() -> prism.setBSCCComp(false)));
+		registry.addSwitch("frontier", new FlagSwitch(() -> prism.setReachMethod(Prism.REACH_FRONTIER)));
+		registry.addSwitch("bfs",      new FlagSwitch(() -> prism.setReachMethod(Prism.REACH_BFS)));
+		registry.addSwitch("bisim",    new FlagSwitch(() -> prism.setDoBisim(true)));
 	}
 
 	/**
@@ -1372,7 +1568,7 @@ public class PrismCL implements PrismModelListener
 			if (filenameArgs.size() > 0) {
 				modelFilename = filenameArgs.get(0);
 				if (modelFilename.endsWith(".all")) {
-					processImportModelSwitch(modelFilename);
+					importModelSwitch.handleFilesOnly("importmodel", modelFilename);
 				}
 			}
 			if (filenameArgs.size() > 1) {
@@ -1382,28 +1578,25 @@ public class PrismCL implements PrismModelListener
 	}
 
 	/** Process the argument to the -exportresults switch. */
-	private void processExportResultsSwitch(String filesOptionsString) throws PrismException
+	private void processExportResultsSwitch(String files, StringPlusOptionsSwitch.ParseCallback parse) throws PrismException
 	{
 		exportresults = true;
-		// Split into filename/options; also accept , as a legacy separator if : is absent
-		String[] halves = splitFilesAndOptions(filesOptionsString);
-		if (halves[1].isEmpty() && halves[0].indexOf(',') > -1) {
-			int comma = halves[0].indexOf(',');
-			halves[1] = halves[0].substring(comma + 1);
-			halves[0] = halves[0].substring(0, comma);
+		// Also accept , as a legacy separator if : is absent
+		String optionsStr = parse.options();
+		String filesStr = files;
+		if (optionsStr.isEmpty() && files.indexOf(',') > -1) {
+			int comma = files.indexOf(',');
+			filesStr = files.substring(0, comma);
+			optionsStr = files.substring(comma + 1);
 		}
-		exportResultsFilename = halves[0];
+		exportResultsFilename = filesStr;
 		exportShape = ResultsExportShape.LIST_PLAIN;
-		boolean[] isCsv = {false}, isMatrix = {false};
-		new OptionParser()
-			.flag("csv",       () -> isCsv[0] = true)
-			.flag("matrix",    () -> isMatrix[0] = true)
-			.flag("dataframe", () -> exportShape = ResultsExportShape.DATA_FRAME)
-			.flag("comment",   () -> exportShape = ResultsExportShape.COMMENT)
-			.parse(halves[1], "exportresults");
+		exportResultsCsv = false;
+		exportResultsMatrix = false;
+		parse.run(optionsStr);
 		if (exportShape == ResultsExportShape.LIST_PLAIN)
-			exportShape = isCsv[0] ? (isMatrix[0] ? ResultsExportShape.MATRIX_CSV   : ResultsExportShape.LIST_CSV)
-			                       : (isMatrix[0] ? ResultsExportShape.MATRIX_PLAIN  : ResultsExportShape.LIST_PLAIN);
+			exportShape = exportResultsCsv ? (exportResultsMatrix ? ResultsExportShape.MATRIX_CSV   : ResultsExportShape.LIST_CSV)
+			                               : (exportResultsMatrix ? ResultsExportShape.MATRIX_PLAIN  : ResultsExportShape.LIST_PLAIN);
 	}
 
 	/**
@@ -1412,12 +1605,8 @@ public class PrismCL implements PrismModelListener
 	 * because other individual switches (e.g. -importXXX) can later override
 	 * parts of the configurations set up here.
 	 */
-	private void processImportModelSwitch(String filesOptionsString) throws PrismException
+	private void processImportModelSwitch(String filesString, StringPlusOptionsSwitch.ParseCallback parse) throws PrismException
 	{
-		// Split into files/options (on :)
-		String halves[] = splitFilesAndOptions(filesOptionsString);
-		String filesString = halves[0];
-		String optionsString = halves[1];
 		// Split files into basename/extensions
 		int i = filesString.lastIndexOf('.');
 		String basename = i == -1 ? filesString : filesString.substring(0, i);
@@ -1459,11 +1648,7 @@ public class PrismCL implements PrismModelListener
 			}
 		}
 		// Process options
-		new OptionParser()
-			.choice("format", new OptionParser.Choice()
-				.when("explicit", () -> { for (ModelImportSource s : modelImportSources) s.format = ModelExportFormat.EXPLICIT; })
-				.when("umb",      () -> { for (ModelImportSource s : modelImportSources) s.format = ModelExportFormat.UMB; }))
-			.parse(optionsString, "importmodel");
+		parse.run();
 	}
 
 	/**
@@ -1546,31 +1731,22 @@ public class PrismCL implements PrismModelListener
 	/**
 	 * Process the arguments (file, options) to the -exportlabels switch.
 	 */
-	private void processExportLabelsSwitch(String filesOptionsString) throws PrismException
+	private void processExportLabelsSwitch(String file, StringPlusOptionsSwitch.ParseCallback parse) throws PrismException
 	{
-		// Split into files/options (on :)
-		String pair[] = splitFilesAndOptions(filesOptionsString);
-		ModelExportTask newExportTask = new ModelExportTask(ModelExportTask.ModelExportEntity.LABELS, pair[0]);
-		new OptionParser()
-			.flag("matlab",     () -> newExportTask.getExportOptions().setFormat(ModelExportFormat.MATLAB))
-			.flag("proplabels", () -> newExportTask.setLabelExportSet(ModelExportTask.LabelExportSet.ALL))
-			.parse(pair[1], "exportlabels");
-		modelExportTasks.add(newExportTask);
+		pendingLabelExportTask = new ModelExportTask(ModelExportTask.ModelExportEntity.LABELS, file);
+		parse.run();
+		modelExportTasks.add(pendingLabelExportTask);
 	}
 
 	/**
 	 * Process the arguments (file, options) to the -exportproplabels switch.
 	 */
-	private void processExportPropLabelsSwitch(String filesOptionsString) throws PrismException
+	private void processExportPropLabelsSwitch(String file, StringPlusOptionsSwitch.ParseCallback parse) throws PrismException
 	{
-		// Split into files/options (on :)
-		String pair[] = splitFilesAndOptions(filesOptionsString);
-		ModelExportTask newExportTask = new ModelExportTask(ModelExportTask.ModelExportEntity.LABELS, pair[0]);
-		newExportTask.setLabelExportSet(ModelExportTask.LabelExportSet.EXTRA);
-		new OptionParser()
-			.flag("matlab", () -> newExportTask.getExportOptions().setFormat(ModelExportFormat.MATLAB))
-			.parse(pair[1], "exportproplabels");
-		modelExportTasks.add(newExportTask);
+		pendingLabelExportTask = new ModelExportTask(ModelExportTask.ModelExportEntity.LABELS, file);
+		pendingLabelExportTask.setLabelExportSet(ModelExportTask.LabelExportSet.EXTRA);
+		parse.run();
+		modelExportTasks.add(pendingLabelExportTask);
 	}
 
 	/**
@@ -1579,12 +1755,8 @@ public class PrismCL implements PrismModelListener
 	 * because other individual switches (e.g. -exportmatlab) can later override
 	 * parts of the configurations set up here.
 	 */
-	private void processExportModelSwitch(String filesOptionsString) throws PrismException
+	private void processExportModelSwitch(String filesString, StringPlusOptionsSwitch.ParseCallback parse) throws PrismException
 	{
-		// Split into files/options (on :)
-		String halves[] = splitFilesAndOptions(filesOptionsString);
-		String filesString = halves[0];
-		String optionsString = halves[1];
 		// Split files into basename/extensions
 		int i = filesString.lastIndexOf('.');
 		String basename = i == -1 ? filesString : filesString.substring(0, i);
@@ -1611,46 +1783,12 @@ public class PrismCL implements PrismModelListener
 			}
 		}
 		// Process options
-		ModelExportOptions exportOptions = new ModelExportOptions();
-		new OptionParser()
-			.flag("matlab",     () -> { exportOptions.setFormat(ModelExportFormat.MATLAB); exportType = Prism.EXPORT_MATLAB; })
-			.flag("rows",       () -> { exportOptions.setExplicitRows(true); exportType = Prism.EXPORT_ROWS; })
-			.flag("text",       () -> exportOptions.setBinaryAsText(true))
-			.flag("proplabels", () -> {
-				for (ModelExportTask t : newModelExportTasks)
-					if (t.getEntity() == ModelExportTask.ModelExportEntity.LABELS)
-						t.setLabelExportSet(ModelExportTask.LabelExportSet.ALL);
-			})
-			.choice("format", new OptionParser.Choice()
-				.when("explicit", () -> exportOptions.setFormat(ModelExportFormat.EXPLICIT))
-				.when("matlab",   () -> exportOptions.setFormat(ModelExportFormat.MATLAB))
-				.when("dot",      () -> exportOptions.setFormat(ModelExportFormat.DOT))
-				.when("drn",      () -> exportOptions.setFormat(ModelExportFormat.DRN))
-				.when("umb",      () -> exportOptions.setFormat(ModelExportFormat.UMB)))
-			.bool("labels",   v -> exportOptions.setShowLabels(v))
-			.bool("rewards",  v -> exportOptions.setShowRewards(v))
-			.bool("states",   v -> exportOptions.setShowStates(v))
-			.bool("obs",      v -> exportOptions.setShowObservations(v))
-			.bool("actions",  v -> exportOptions.setShowActions(v))
-			.bool("headers",  v -> exportOptions.setPrintHeaders(v))
-			.string("precision", v -> {
-				try {
-					int n = Integer.parseInt(v);
-					if (!RANGE_EXPORT_DOUBLE_PRECISION.contains(n)) throw new NumberFormatException();
-					exportOptions.setModelPrecision(n);
-				} catch (NumberFormatException e) {
-					throw new PrismException("Invalid value \"" + v + "\" for \"precision\" option of -exportmodel");
-				}
-			})
-			.choice("zip", new OptionParser.Choice()
-				.when("true",       () -> exportOptions.setZipped(true))
-				.when("false",      () -> exportOptions.setZipped(false))
-				.when("gzip", "gz", () -> exportOptions.setZipped(true).setCompressionFormat(ModelExportOptions.CompressionFormat.GZIP))
-				.when("xz",         () -> exportOptions.setZipped(true).setCompressionFormat(ModelExportOptions.CompressionFormat.XZ)))
-			.parse(optionsString, "exportmodel");
+		pendingExportOptions = new ModelExportOptions();
+		pendingExportTasks = newModelExportTasks;
+		parse.run();
 		// Apply options from this switch to each export task
 		for (ModelExportTask exportTask : newModelExportTasks) {
-			exportTask.getExportOptions().apply(exportOptions);
+			exportTask.getExportOptions().apply(pendingExportOptions);
 		}
 		// Add export tasks to the main list
 		modelExportTasks.addAll(newModelExportTasks);
@@ -1659,12 +1797,8 @@ public class PrismCL implements PrismModelListener
 	/**
 	 * Process the arguments (files, options) to the -exportstrat switch
 	 */
-	private void processExportStratSwitch(String filesOptionsString) throws PrismException
+	private void processExportStratSwitch(String fileString, StringPlusOptionsSwitch.ParseCallback parse) throws PrismException
 	{
-		// Split into files/options (on :)
-		String halves[] = splitFilesAndOptions(filesOptionsString);
-		String fileString = halves[0];
-		String optionsString = halves[1];
 		// Split file into basename/extension
 		int i = fileString.lastIndexOf('.');
 		String basename = i == -1 ? fileString : fileString.substring(0, i);
@@ -1683,19 +1817,7 @@ public class PrismCL implements PrismModelListener
 			exportStratOptions.setType(StrategyExportOptions.StrategyExportType.ACTIONS);
 		}
 		// Process options
-		new OptionParser()
-			.choice("type", new OptionParser.Choice()
-				.when("actions",          () -> exportStratOptions.setType(StrategyExportOptions.StrategyExportType.ACTIONS))
-				.when("indices",          () -> exportStratOptions.setType(StrategyExportOptions.StrategyExportType.INDICES))
-				.when("model", "induced", () -> exportStratOptions.setType(StrategyExportOptions.StrategyExportType.INDUCED_MODEL))
-				.when("dot",              () -> exportStratOptions.setType(StrategyExportOptions.StrategyExportType.DOT_FILE)))
-			.choice("mode", new OptionParser.Choice()
-				.when("restrict", () -> exportStratOptions.setMode(StrategyExportOptions.InducedModelMode.RESTRICT))
-				.when("reduce",   () -> exportStratOptions.setMode(StrategyExportOptions.InducedModelMode.REDUCE)))
-			.bool("reach",  v -> exportStratOptions.setReachOnly(v))
-			.bool("states", v -> exportStratOptions.setShowStates(v))
-			.bool("obs",    v -> exportStratOptions.setMergeObservations(v))
-			.parse(optionsString, "exportstrat");
+		parse.run();
 	}
 
 	/**
@@ -1704,7 +1826,7 @@ public class PrismCL implements PrismModelListener
 	private void processMainLogSwitch(String filesOptionsString) throws PrismException
 	{
 		// Split into file/options (on :)
-		String halves[] = splitFilesAndOptions(filesOptionsString);
+		String halves[] = StringPlusOptionsSwitch.splitFilesAndOptions(filesOptionsString);
 		String filename = halves[0];
 		String optionsString = halves[1];
 		// Process options
@@ -1719,30 +1841,6 @@ public class PrismCL implements PrismModelListener
 		} catch (PrismException e) {
 			errorAndExit("Couldn't open log file \"" + filename + "\"");
 		}
-	}
-
-	/**
-	 * Split a string of the form <files>:<options> into its two parts.
-	 * The latter can be empty, in which case the : is optional.
-	 * Instances of :\ are ignored (not treated as :) in case there is a Windows filename.
-	 * @return the two parts as an array of two strings.
-	 */
-	private static String[] splitFilesAndOptions(String filesOptionsString)
-	{
-		String res[] = new String[2];
-		// Split into files/options (on :)
-		int i = filesOptionsString.indexOf(':');
-		while (filesOptionsString.length() > i + 1 && filesOptionsString.charAt(i + 1) == '\\') {
-			i = filesOptionsString.indexOf(':', i + 1);
-		}
-		if (i != -1) {
-			res[0] = filesOptionsString.substring(0, i);
-			res[1] = filesOptionsString.substring(i + 1);
-		} else {
-			res[0] = filesOptionsString;
-			res[1] = "";
-		}
-		return res;
 	}
 
 	// print command line arguments
@@ -1997,6 +2095,23 @@ public class PrismCL implements PrismModelListener
 	/**
 	 * Print a -help message, i.e. a list of the command-line switches.
 	 */
+	/** Build the left column of a {@code -help} line: {@code -name <arg> (or -alias, ...)}. */
+	private static String buildHelpLeft(SwitchEntry entry)
+	{
+		StringBuilder left = new StringBuilder("-").append(entry.primaryName);
+		if (!entry.argHint.isEmpty())
+			left.append(" ").append(entry.argHint);
+		if (entry.shownAliases.length > 0) {
+			left.append(" (or ");
+			for (int i = 0; i < entry.shownAliases.length; i++) {
+				if (i > 0) left.append(", ");
+				left.append("-").append(entry.shownAliases[i]);
+			}
+			left.append(")");
+		}
+		return left.toString();
+	}
+
 	private void printHelp()
 	{
 		mainLog.println("Usage: " + Prism.getCommandLineName() + " [options] <model-file> [<properties-file>] [more-options]");
@@ -2004,211 +2119,46 @@ public class PrismCL implements PrismModelListener
 		mainLog.println("Options:");
 		mainLog.println("========");
 		mainLog.println();
-		mainLog.println("-help .......................... Display this help message");
-		mainLog.println("-version ....................... Display PRISM version info");
-		mainLog.println("-javaversion ................... Display Java version info");
-		mainLog.println("-dir <dir> ..................... Set current working directory");
-		mainLog.println("-settings <file>................ Load settings from <file>");
-		mainLog.println();
-		mainLog.println("-pf <props> (or -pctl or -csl) . Model check properties <props>");
-		mainLog.println("-property <refs> (or -prop) .... Only model check properties included in list <refs> of indices/names");
-		mainLog.println("-const <vals> .................. Define constant values as <vals> (e.g. for experiments)");
-		mainLog.println("-steadystate (or -ss) .......... Compute steady-state probabilities (D/CTMCs only)");
-		mainLog.println("-transient <x> (or -tr <x>) .... Compute transient probabilities for time (or time range) <x> (D/CTMCs only)");
-		mainLog.println("-simpath <options> <file>....... Generate a random path with the simulator");
-		mainLog.println("-nobuild ....................... Skip model construction (just do parse/export)");
-		mainLog.println("-test .......................... Enable \"test\" mode");
-		mainLog.println("-testall ....................... Enable \"test\" mode, but don't exit on error");
-		mainLog.println("-javamaxmem <x>................. Set the maximum heap size for Java, e.g. 500m, 4g [default: 1g]");
-		mainLog.println("-javastack <x> ................. Set the Java stack size [default: 4m]");
-		mainLog.println("-javaparams <x>................. Pass additional command-line arguments to Java");
-		mainLog.println("-timeout <n> ................... Exit after a time-out of <n> seconds if not already terminated");
-		mainLog.println("-ng ............................ Run PRISM in Nailgun server mode; subsequent calls are then made via \"ngprism\"");
-		mainLog.println();
-		mainLog.println("IMPORTS:");
-		mainLog.println("-importpepa .................... Model description is in PEPA, not the PRISM language");
-		mainLog.println("-importmodel <files> ........... Import the model directly from text file(s)");
-		mainLog.println("-importtrans <file> ............ Import the transition matrix directly from a text file");
-		mainLog.println("-importstates <file>............ Import the list of states directly from a text file");
-		mainLog.println("-importobs <file>............... Import the list of observations directly from a text file");
-		mainLog.println("-importlabels <file>............ Import the list of labels directly from a text file");
-		mainLog.println("-importstaterewards <file>...... Import the state rewards directly from a text file");
-		mainLog.println("-importtransrewards <file>...... Import the transition rewards directly from a text file");
-		mainLog.println("-importinitdist <file>.......... Specify initial probability distribution for transient/steady-state analysis");
-		mainLog.println("-dtmc .......................... Force imported/built model to be a DTMC");
-		mainLog.println("-ctmc .......................... Force imported/built model to be a CTMC");
-		mainLog.println("-mdp ........................... Force imported/built model to be an MDP");
-		mainLog.println("-importresults <file> .......... Import results from a data frame stored in CSV file");
-		mainLog.println();
-		mainLog.println("EXPORTS:");
-		mainLog.println("-exportresults <file[:options]>  Export the results of model checking to a file");
-		mainLog.println("-exportvector <file>  .......... Export results of model checking for all states to a file");
-		mainLog.println("-exportmodel <files[:options]> . Export the built model to file(s)");
-		mainLog.println("-exporttrans <file> ............ Export the transition matrix to a file");
-		mainLog.println("-exportstaterewards <file> ..... Export the state rewards vector to a file");
-		mainLog.println("-exporttransrewards <file> ..... Export the transition rewards matrix to a file");
-		mainLog.println("-exportrewards <file1> <file2>.. Export state/transition rewards to files 1/2");
-		mainLog.println("-exportstates <file> ........... Export the list of reachable states to a file");
-		mainLog.println("-exportobs <file> .............. Export the list of observations to a file");
-		mainLog.println("-exportlabels <file[:options]> . Export the list of labels and satisfying states to a file");
-		mainLog.println("-exportproplabels <file[:opt]> . Export the list of labels and satisfying states from the properties file to a file");
-		mainLog.println("-exportstrat <file[:options]> .. Generate and export a strategy to a file");
-		mainLog.println("-exportmatlab .................. When exporting matrices/vectors/labels/etc., use Matlab format");
-		mainLog.println("-exportrows .................... When exporting matrices, put a whole row on one line");
-		mainLog.println("-exporttransdot <file> ......... Export the transition matrix graph to a dot file");
-		mainLog.println("-exporttransdotstates <file> ... Export the transition matrix graph to a dot file, with state info");
-		mainLog.println("-exportdot <file> .............. Export the transition matrix MTBDD to a dot file");
-		mainLog.println("-exportsccs <file> ............. Compute and export all SCCs of the model");
-		mainLog.println("-exportbsccs <file> ............ Compute and export all BSCCs of the model");
-		mainLog.println("-exportmecs <file> ............. Compute and export all maximal end components (MDPs only)");
-		mainLog.println("-exportsteadystate <file> ...... Export steady-state probabilities to a file");
-		mainLog.println("-exporttransient <file> ........ Export transient probabilities to a file");
-		mainLog.println("-exportprism <file> ............ Export final PRISM model to a file");
-		mainLog.println("-exportprismconst <file> ....... Export final PRISM model with expanded constants to a file");
-
-		PrismSettings.printHelp(mainLog);
-
-		mainLog.println();
-		mainLog.println("SIMULATION OPTIONS:");
-		mainLog.println("-sim ........................... Use the PRISM simulator to approximate results of model checking");
-		mainLog.println("-simmethod <name> .............. Specify the method for approximate model checking (ci, aci, apmc, sprt)");
-		mainLog.println("-simsamples <n> ................ Set the number of samples for the simulator (CI/ACI/APMC methods)");
-		mainLog.println("-simconf <x> ................... Set the confidence parameter for the simulator (CI/ACI/APMC methods)");
-		mainLog.println("-simwidth <x> .................. Set the interval width for the simulator (CI/ACI methods)");
-		mainLog.println("-simapprox <x> ................. Set the approximation parameter for the simulator (APMC method)");
-		mainLog.println("-simmanual ..................... Do not use the automated way of deciding whether the variance is null or not");
-		mainLog.println("-simvar <n> .................... Set the minimum number of samples to know the variance is null or not");
-		mainLog.println("-simmaxrwd <x> ................. Set the maximum reward -- useful to display the CI/ACI methods progress");
-		mainLog.println("-simpathlen <n> ................ Set the maximum path length for the simulator");
-
+		// First pass: find the longest left column across all visible entries.
+		int maxLeft = 0;
+		Set<SwitchEntry> counted = new HashSet<>();
+		for (SwitchEntry entry : switchHandlers.values()) {
+			if (!counted.add(entry)) continue;
+			if (entry.primaryName == null || entry.argHint == null) continue;
+			maxLeft = Math.max(maxLeft, buildHelpLeft(entry).length());
+		}
+		// Second pass: print with dot-padding aligned to the longest entry (minimum 1 dot).
+		String lastGroup = "";  // sentinel: different from null so first group change fires
+		Set<SwitchEntry> seen = new HashSet<>();
+		for (Map.Entry<String, SwitchEntry> e : switchHandlers.entrySet()) {
+			SwitchEntry entry = e.getValue();
+			if (!seen.add(entry)) continue;
+			if (entry.primaryName == null) { mainLog.println(); continue; }  // blank-line sentinel
+			if (entry.argHint == null) continue;                              // hidden
+			if (!Objects.equals(entry.group, lastGroup)) {
+				if (entry.group != null) {
+					mainLog.println();
+					mainLog.println(entry.group + ":");
+				}
+				lastGroup = entry.group;
+			}
+			String left = buildHelpLeft(entry);
+			mainLog.println(left + " " + ".".repeat(maxLeft - left.length() + 1) + " " + entry.shortText);
+		}
 		mainLog.println();
 		mainLog.println("You can also use \"prism -help xxx\" for help on some switches -xxx with non-obvious syntax.");
 	}
 
-	/**
-	 * Print a -help xxx message, i.e. display help on a specific switch
-	 */
+	/** Print a {@code -help <sw>} message: display detailed help on a specific switch. */
 	private void printHelpSwitch(String sw)
 	{
-		// Remove "-" from start of switch, in case present (it shouldn't be really)
 		if (sw.charAt(0) == '-')
 			sw = sw.substring(1);
-
-		// -const
-		if (sw.equals("const")) {
-			mainLog.println("Switch: -const <vals>\n");
-			mainLog.println("<vals> is a comma-separated list of values or value ranges for undefined constants");
-			mainLog.println("in the model or properties (i.e. those declared without values, such as \"const int a;\").");
-			mainLog.println("You can either specify a single value (a=1), a range (a=1:10) or a range with a step (a=1:2:50).");
-			mainLog.println("For convenience, constant definutions can also be split across multiple -const switches.");
-			mainLog.println("\nExamples:");
-			mainLog.println(" -const a=1,b=5.6,c=true");
-			mainLog.println(" -const a=1:10,b=5.6");
-			mainLog.println(" -const a=1:2:50,b=5.6");
-			mainLog.println(" -const a=1:2:50 -const b=5.6");
-		}
-		// -simpath
-		else if (sw.equals("simpath")) {
-			mainLog.println("Switch: -simpath <options> <file>\n");
-			mainLog.println("Generate a random path with the simulator and export it to <file> (or to the screen if <file>=\"stdout\").");
-			mainLog.println("<options> is a comma-separated list of options taken from:");
-			GenerateSimulationPath.printOptions(mainLog);
-		}
-		// -importmodel
-		else if (sw.equals("importmodel")) {
-			mainLog.println("Switch: -importmodel <files>[:options]\n");
-			mainLog.println("Import the model directly from one or more file(s).");
-			mainLog.println("Use a list of file extensions to indicate which files should be read, e.g.:");
-			mainLog.println("\n -importmodel in.tra,sta\n");
-			mainLog.println("Possible extensions are: .tra, .sta, .obs, .lab, .srew, .trew, .umb");
-			mainLog.println("Use extension .all to import all explicit files (.tra/sta/obs/lab/srew/trew), e.g.:");
-			mainLog.println("\n -importmodel in.all\n");
-			mainLog.println("If provided, <options> is a comma-separated list of options taken from:");
-			mainLog.println(" * format (=explicit/umb) - model import format");
-		}
-		// -importresults
-		else if (sw.equals("importresults")) {
-			mainLog.println("Switch: -importresults <file>\n");
-			mainLog.println("Import results from a data frame stored as comma-separated values in <file>.");
-		}			
-		// -exportresults
-		else if (sw.equals("exportresults")) {
-			mainLog.println("Switch: -exportresults <file[:options]>\n");
-			mainLog.println("Exports the results of model checking to <file> (or to the screen if <file>=\"stdout\").");
-			mainLog.println("The default behaviour is to export a list of results in text form, using tabs to separate items.");
-			mainLog.println("If provided, <options> is a comma-separated list of options taken from:");
-			mainLog.println(" * csv - Export results as comma-separated values");
-			mainLog.println(" * matrix - Export results as one or more 2D matrices (e.g. for surface plots)");
-			mainLog.println(" * dataframe - Export results as dataframe in comma-separated values)");
-			mainLog.println(" * comment - Export results in comment format for regression testing)");
-		}
-		// -exportlabels
-		else if (sw.equals("exportlabels")) {
-			mainLog.println("Switch: -exportlabels <files[:options]>\n");
-			mainLog.println("Export the list of labels and satisfying states to a file (or to the screen if <file>=\"stdout\").");
-			mainLog.println();
-			mainLog.println("If provided, <options> is a comma-separated list of options taken from:");
-			mainLog.println(" * matlab - export data in Matlab format");
-			mainLog.println(" * proplabels - export labels from a properties file into the same file, too");
-		}
-		// -exportproplabels
-		else if (sw.equals("exportproplabels")) {
-			mainLog.println("Switch: -exportproplabels <files[:options]>\n");
-			mainLog.println("Export the list of labels and satisfying states from the properties file to a file (or to the screen if <file>=\"stdout\").");
-			mainLog.println();
-			mainLog.println("If provided, <options> is a comma-separated list of options taken from:");
-			mainLog.println(" * matlab - export data in Matlab format");
-		}
-		// -exportmodel
-		else if (sw.equals("exportmodel")) {
-			mainLog.println("Switch: -exportmodel <files[:options]>\n");
-			mainLog.println("Export the built model to file(s) (or to the screen if <file>=\"stdout\").");
-			mainLog.println("Use a list of file extensions to indicate which files should be generated, e.g.:");
-			mainLog.println("\n -exportmodel out.tra,sta\n");
-			mainLog.println("\n -exportmodel out.umb\n");
-			mainLog.println("Possible extensions are: .tra, .srew, .trew, .lab, .sta, .obs, .dot, .umb, .drn");
-			mainLog.println("Use extension .all to export all explicit files (.tra/srew/trew/lab/sta/obs), e.g.:");
-			mainLog.println("\n -exportmodel out.all\n");
-			mainLog.println("Omit the file basename to use the basename of the model file, e.g.:");
-			mainLog.println("\n -exportmodel .all\n");
-			mainLog.println("Use extension .rew to export both .srew/.trew files");
-			mainLog.println();
-			mainLog.println("If provided, <options> is a comma-separated list of options taken from:");
-			mainLog.println(" * format (=explicit/matlab/dot/drn/umb) - model export format");
-			mainLog.println(" * rewards (=true/false) - whether to include rewards");
-			mainLog.println(" * labels (=true/false) - whether to include labels");
-			mainLog.println(" * states (=true/false) - whether to include state definitions");
-			mainLog.println(" * obs (=true/false) - whether to include observation definitions");
-			mainLog.println(" * actions (=true/false) - whether to include actions on choices/transitions");
-			mainLog.println(" * precision (=<n>) - use <n> significant figures for floating point values (in text)");
-			mainLog.println(" * zip (=true/false) - whether to zip UMB files");
-			mainLog.println(" * text - show binary formats in textual form ");
-			mainLog.println(" * matlab - same as format=matlab");
-			mainLog.println("For the explicit files format:");
-			mainLog.println(" * rows - export matrices with one row/distribution on each line");
-			mainLog.println(" * proplabels - also export labels from a properties file into the same file, too");
-			mainLog.println(" * headers (=true/false) - include headers in explicit (reward) files");
-		}
-		// -exportstrat
-		else if (sw.equals("exportstrat")) {
-			mainLog.println("Switch: -exportstrat <file[:options]>\n");
-			mainLog.println("Generate and export a strategy to a file (or to the screen if <file>=\"stdout\").");
-			mainLog.println("Use file extension .tra or .dot to export as an induced model or Dot file, respectively.");
-			mainLog.println("If provided, <options> is a comma-separated list of options taken from:");
-			mainLog.println(" * type (=actions/induced/dot) - type of strategy export");
-			mainLog.println(" * mode (=restrict/reduce) - mode to use for building induced model (or Dot file)");
-			mainLog.println(" * reach (=true/false) - whether to restrict the strategy to its reachable states");
-			mainLog.println(" * states (=true/false) - whether to show states, rather than state indices, for actions lists or Dot files");
-			mainLog.println(" * obs (=true/false) - for partially observable models, whether to merge observationally equivalent states");
-		}
-		// Try PrismSettings
-		else if (PrismSettings.printHelpSwitch(mainLog, sw)) {
-			return;
-		}
-		// Unknown
-		else {
+		SwitchEntry entry = switchHandlers.get(sw);
+		if (entry != null && entry.longDesc != null)
+			entry.longDesc.accept(mainLog);
+		else
 			mainLog.println("Sorry - no help available for switch -" + sw);
-		}
 	}
 
 	// print version
