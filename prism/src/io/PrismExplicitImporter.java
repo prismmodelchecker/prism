@@ -528,9 +528,12 @@ public class PrismExplicitImporter extends ExplicitModelImporter
 		// open file for reading, automatic close when done
 		int lineNum = 0;
 		try (BufferedReader in = new BufferedReader(new FileReader(file))) {
-			// read first line and extract var names
-			String s = in.readLine();
-			lineNum = 1;
+			// read first non-comment line and extract var names
+			String s;
+			do {
+				s = in.readLine();
+				lineNum++;
+			} while (s != null && COMMENT_PATTERN.matcher(s).matches());
 			if (s == null)
 				throw new PrismException("empty " + entityString + "s file");
 			s = s.trim();
@@ -629,6 +632,12 @@ public class PrismExplicitImporter extends ExplicitModelImporter
 				throw new PrismException("empty transitions file");
 			}
 			String[] record = csv.nextRecord();
+			while (record.length > 0 && record[0].startsWith("#")) {
+				if (!csv.hasNextRecord()) {
+					throw new PrismException("empty transitions file");
+				}
+				record = csv.nextRecord();
+			}
 			checkLineSize(record, 2, 4);
 			modelStats.numStates = Integer.parseInt(record[0]);
 			if (record.length == 2) {
@@ -674,11 +683,15 @@ public class PrismExplicitImporter extends ExplicitModelImporter
 	 */
 	private void extractLabelNamesFromLabelsFile(File labelsFile) throws PrismException
 	{
-		int lineNum = 1;
+		int lineNum = 0;
 		try (BufferedReader in = new BufferedReader(new FileReader(labelsFile))) {
-			// Read/parse first line (label names)
+			// Read/parse first non-comment line (label names)
 			// Looks like, e.g.: 0="init" 1="deadlock" 2="heads" 3="tails" 4="end"
-			String labelsString = in.readLine();
+			String labelsString;
+			do {
+				labelsString = in.readLine();
+				lineNum++;
+			} while (labelsString != null && COMMENT_PATTERN.matcher(labelsString).matches());
 			Pattern label = Pattern.compile("(\\d+)=\"([^\"]+)\"\\s*");
 			Matcher matcher = label.matcher(labelsString);
 			if (basicModelInfo == null) {
@@ -739,8 +752,15 @@ public class PrismExplicitImporter extends ExplicitModelImporter
 			if (!csv.hasNextRecord()) {
 				return null;
 			}
-			// Detect if model is nondeterministic
+			// Skip comment lines, then examine the stats line
 			String[] recordFirst = csv.nextRecord();
+			while (recordFirst.length > 0 && recordFirst[0].startsWith("#")) {
+				if (!csv.hasNextRecord()) {
+					return null;
+				}
+				recordFirst = csv.nextRecord();
+			}
+			// Detect if model is nondeterministic
 			if (recordFirst.length == 4) {
 				nondet = true;
 				partObs = true;
