@@ -39,7 +39,7 @@
 //------------------------------------------------------------------------------
 
 JNIEXPORT jint JNICALL Java_sparse_PrismSparse_PS_1ExportMC
-  (JNIEnv *, jclass, jlongArray, jstring, jlong, jint, jlong, jint, jlong, jint, jstring, jint);
+  (JNIEnv *, jclass, jlongArray, jobject, jstring, jlong, jint, jlong, jint, jlong, jint, jstring, jstring);
 
 
 JNIEXPORT jint JNICALL Java_sparse_PrismSparse_PS_1ExportMC
@@ -55,7 +55,9 @@ jlong __jlongpointer cv,	// col vars
 jint num_cvars,
 jlong __jlongpointer od,	// odd
 jint et,		// export type
-jstring fn		// filename
+jstring fn,		// filename
+jboolean append,	// append to file (false = overwrite)
+jstring ht		// header text (NULL = no header printed)
 )
 {
 	DdNode **rvars = jlong_to_DdNode_array(rv);	// row vars
@@ -79,7 +81,7 @@ jstring fn		// filename
 	try {
 	
 	// store export info
-	if (!store_export_info(et, fn, env)) return -1;
+	if (!store_export_info(et, fn, env, append)) return -1;
 	export_name = na ? env->GetStringUTFChars(na, 0) : "M";
 	
 	// extract matrices for each action
@@ -102,6 +104,11 @@ jstring fn		// filename
 	}
 	
 	// print file header
+	if (export_type == EXPORT_PLAIN && ht != NULL) {
+		const char *header = env->GetStringUTFChars(ht, 0);
+		export_string("%s", header);
+		env->ReleaseStringUTFChars(ht, header);
+	}
 	switch (export_type) {
 	case EXPORT_PLAIN: export_string("%d %d\n", n, nnz); break;
 	case EXPORT_MATLAB: export_string("%s = sparse(%d,%d);\n", export_name, n, n); break;

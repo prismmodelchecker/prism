@@ -1915,7 +1915,7 @@ public class NondetModelChecker extends NonProbModelChecker
 			String labelNames[] = { "init", "target" };
 			try {
 				mainLog.println("\nExporting target states info to file \"" + prism.getExportTargetFilename() + "\"...");
-				PrismMTBDD.ExportLabels(labels, labelNames, "l", model.getAllDDRowVars(), model.getODD(), Prism.EXPORT_PLAIN, prism.getExportTargetFilename());
+				PrismMTBDD.ExportLabels(labels, labelNames, "l", model.getAllDDRowVars(), model.getODD(), Prism.EXPORT_PLAIN, prism.getExportTargetFilename(), false, null);
 			} catch (FileNotFoundException e) {
 				mainLog.printWarning("Could not export target to file \"" + prism.getExportTargetFilename() + "\"");
 			}
@@ -2475,7 +2475,7 @@ public class NondetModelChecker extends NonProbModelChecker
 			String labelNames[] = { "init", "target" };
 			try {
 				mainLog.println("\nExporting target states info to file \"" + prism.getExportTargetFilename() + "\"...");
-				PrismMTBDD.ExportLabels(labels, labelNames, "l", model.getAllDDRowVars(), model.getODD(), Prism.EXPORT_PLAIN, prism.getExportTargetFilename());
+				PrismMTBDD.ExportLabels(labels, labelNames, "l", model.getAllDDRowVars(), model.getODD(), Prism.EXPORT_PLAIN, prism.getExportTargetFilename(), false, null);
 			} catch (FileNotFoundException e) {
 				mainLog.printWarning("Could not export target to file \"" + prism.getExportTargetFilename() + "\"");
 			}

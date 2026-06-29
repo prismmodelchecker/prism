@@ -1,0 +1,2148 @@
+# Transitions (CTMC)
+276 1120
+0 8 10
+0 10 10
+0 16 10
+0 20 10
+0 76 10
+1 0 0.00025
+1 11 10
+1 17 10
+1 21 10
+1 77 10
+2 0 0.00025
+2 9 10
+2 18 10
+2 22 10
+2 78 10
+3 1 0.00025
+3 2 0.00025
+3 19 10
+3 23 10
+3 79 10
+4 0 0.0002
+4 12 10
+4 14 10
+4 24 10
+4 80 10
+5 1 0.0002
+5 4 0.00025
+5 15 10
+5 25 10
+5 81 10
+6 2 0.0002
+6 4 0.00025
+6 13 10
+6 26 10
+6 82 10
+7 3 0.0002
+7 5 0.00025
+7 6 0.00025
+7 27 10
+7 83 10
+8 1 0.25
+9 3 0.25
+9 8 0.00025
+10 2 0.25
+11 3 0.25
+11 10 0.00025
+12 5 0.25
+12 8 0.0002
+13 7 0.25
+13 9 0.0002
+13 12 0.00025
+14 6 0.25
+14 10 0.0002
+15 7 0.25
+15 11 0.0002
+15 14 0.00025
+16 4 0.125
+17 5 0.125
+17 16 0.00025
+18 6 0.125
+18 16 0.00025
+19 7 0.125
+19 17 0.00025
+19 18 0.00025
+20 28 2
+21 20 0.00025
+21 29 2
+22 20 0.00025
+22 30 2
+23 21 0.00025
+23 22 0.00025
+23 31 2
+24 20 0.0002
+24 32 2
+25 21 0.0002
+25 24 0.00025
+25 33 2
+26 22 0.0002
+26 24 0.00025
+26 34 2
+27 23 0.0002
+27 25 0.00025
+27 26 0.00025
+27 35 2
+28 0 0.002
+28 36 10
+28 38 10
+28 44 10
+28 48 10
+28 84 10
+29 1 0.002
+29 28 0.00025
+29 39 10
+29 45 10
+29 49 10
+29 85 10
+30 2 0.002
+30 28 0.00025
+30 37 10
+30 46 10
+30 50 10
+30 86 10
+31 3 0.002
+31 29 0.00025
+31 30 0.00025
+31 47 10
+31 51 10
+31 87 10
+32 4 0.002
+32 28 0.0002
+32 40 10
+32 42 10
+32 52 10
+32 88 10
+33 5 0.002
+33 29 0.0002
+33 32 0.00025
+33 43 10
+33 53 10
+33 89 10
+34 6 0.002
+34 30 0.0002
+34 32 0.00025
+34 41 10
+34 54 10
+34 90 10
+35 7 0.002
+35 31 0.0002
+35 33 0.00025
+35 34 0.00025
+35 55 10
+35 91 10
+36 8 0.002
+36 29 0.25
+37 9 0.002
+37 31 0.25
+37 36 0.00025
+38 10 0.002
+38 30 0.25
+39 11 0.002
+39 31 0.25
+39 38 0.00025
+40 12 0.002
+40 33 0.25
+40 36 0.0002
+41 13 0.002
+41 35 0.25
+41 37 0.0002
+41 40 0.00025
+42 14 0.002
+42 34 0.25
+42 38 0.0002
+43 15 0.002
+43 35 0.25
+43 39 0.0002
+43 42 0.00025
+44 16 0.002
+44 32 0.125
+45 17 0.002
+45 33 0.125
+45 44 0.00025
+46 18 0.002
+46 34 0.125
+46 44 0.00025
+47 19 0.002
+47 35 0.125
+47 45 0.00025
+47 46 0.00025
+48 20 0.002
+48 56 2
+49 21 0.002
+49 48 0.00025
+49 57 2
+50 22 0.002
+50 48 0.00025
+50 58 2
+51 23 0.002
+51 49 0.00025
+51 50 0.00025
+51 59 2
+52 24 0.002
+52 48 0.0002
+52 60 2
+53 25 0.002
+53 49 0.0002
+53 52 0.00025
+53 61 2
+54 26 0.002
+54 50 0.0002
+54 52 0.00025
+54 62 2
+55 27 0.002
+55 51 0.0002
+55 53 0.00025
+55 54 0.00025
+55 63 2
+56 28 0.004
+56 64 10
+56 66 10
+56 72 10
+56 92 10
+57 29 0.004
+57 56 0.00025
+57 67 10
+57 73 10
+57 93 10
+58 30 0.004
+58 56 0.00025
+58 65 10
+58 74 10
+58 94 10
+59 31 0.004
+59 57 0.00025
+59 58 0.00025
+59 75 10
+59 95 10
+60 32 0.004
+60 56 0.0002
+60 68 10
+60 70 10
+60 96 10
+61 33 0.004
+61 57 0.0002
+61 60 0.00025
+61 71 10
+61 97 10
+62 34 0.004
+62 58 0.0002
+62 60 0.00025
+62 69 10
+62 98 10
+63 35 0.004
+63 59 0.0002
+63 61 0.00025
+63 62 0.00025
+63 99 10
+64 36 0.004
+64 57 0.25
+65 37 0.004
+65 59 0.25
+65 64 0.00025
+66 38 0.004
+66 58 0.25
+67 39 0.004
+67 59 0.25
+67 66 0.00025
+68 40 0.004
+68 61 0.25
+68 64 0.0002
+69 41 0.004
+69 63 0.25
+69 65 0.0002
+69 68 0.00025
+70 42 0.004
+70 62 0.25
+70 66 0.0002
+71 43 0.004
+71 63 0.25
+71 67 0.0002
+71 70 0.00025
+72 44 0.004
+72 60 0.125
+73 45 0.004
+73 61 0.125
+73 72 0.00025
+74 46 0.004
+74 62 0.125
+74 72 0.00025
+75 47 0.004
+75 63 0.125
+75 73 0.00025
+75 74 0.00025
+76 100 2
+77 76 0.00025
+77 101 2
+78 76 0.00025
+78 102 2
+79 77 0.00025
+79 78 0.00025
+79 103 2
+80 76 0.0002
+80 104 2
+81 77 0.0002
+81 80 0.00025
+81 105 2
+82 78 0.0002
+82 80 0.00025
+82 106 2
+83 79 0.0002
+83 81 0.00025
+83 82 0.00025
+83 107 2
+84 76 0.002
+84 128 2
+85 77 0.002
+85 84 0.00025
+85 129 2
+86 78 0.002
+86 84 0.00025
+86 130 2
+87 79 0.002
+87 85 0.00025
+87 86 0.00025
+87 131 2
+88 80 0.002
+88 84 0.0002
+88 132 2
+89 81 0.002
+89 85 0.0002
+89 88 0.00025
+89 133 2
+90 82 0.002
+90 86 0.0002
+90 88 0.00025
+90 134 2
+91 83 0.002
+91 87 0.0002
+91 89 0.00025
+91 90 0.00025
+91 135 2
+92 84 0.004
+92 156 2
+93 85 0.004
+93 92 0.00025
+93 157 2
+94 86 0.004
+94 92 0.00025
+94 158 2
+95 87 0.004
+95 93 0.00025
+95 94 0.00025
+95 159 2
+96 88 0.004
+96 92 0.0002
+96 160 2
+97 89 0.004
+97 93 0.0002
+97 96 0.00025
+97 161 2
+98 90 0.004
+98 94 0.0002
+98 96 0.00025
+98 162 2
+99 91 0.004
+99 95 0.0002
+99 97 0.00025
+99 98 0.00025
+99 163 2
+100 0 0.002
+100 108 10
+100 110 10
+100 116 10
+100 120 10
+100 176 10
+101 1 0.002
+101 100 0.00025
+101 111 10
+101 117 10
+101 121 10
+101 177 10
+102 2 0.002
+102 100 0.00025
+102 109 10
+102 118 10
+102 122 10
+102 178 10
+103 3 0.002
+103 101 0.00025
+103 102 0.00025
+103 119 10
+103 123 10
+103 179 10
+104 4 0.002
+104 100 0.0002
+104 112 10
+104 114 10
+104 124 10
+104 180 10
+105 5 0.002
+105 101 0.0002
+105 104 0.00025
+105 115 10
+105 125 10
+105 181 10
+106 6 0.002
+106 102 0.0002
+106 104 0.00025
+106 113 10
+106 126 10
+106 182 10
+107 7 0.002
+107 103 0.0002
+107 105 0.00025
+107 106 0.00025
+107 127 10
+107 183 10
+108 8 0.002
+108 101 0.25
+109 9 0.002
+109 103 0.25
+109 108 0.00025
+110 10 0.002
+110 102 0.25
+111 11 0.002
+111 103 0.25
+111 110 0.00025
+112 12 0.002
+112 105 0.25
+112 108 0.0002
+113 13 0.002
+113 107 0.25
+113 109 0.0002
+113 112 0.00025
+114 14 0.002
+114 106 0.25
+114 110 0.0002
+115 15 0.002
+115 107 0.25
+115 111 0.0002
+115 114 0.00025
+116 16 0.002
+116 104 0.125
+117 17 0.002
+117 105 0.125
+117 116 0.00025
+118 18 0.002
+118 106 0.125
+118 116 0.00025
+119 19 0.002
+119 107 0.125
+119 117 0.00025
+119 118 0.00025
+120 20 0.002
+120 128 2
+121 21 0.002
+121 120 0.00025
+121 129 2
+122 22 0.002
+122 120 0.00025
+122 130 2
+123 23 0.002
+123 121 0.00025
+123 122 0.00025
+123 131 2
+124 24 0.002
+124 120 0.0002
+124 132 2
+125 25 0.002
+125 121 0.0002
+125 124 0.00025
+125 133 2
+126 26 0.002
+126 122 0.0002
+126 124 0.00025
+126 134 2
+127 27 0.002
+127 123 0.0002
+127 125 0.00025
+127 126 0.00025
+127 135 2
+128 28 0.002
+128 100 0.002
+128 136 10
+128 138 10
+128 144 10
+128 148 10
+128 184 10
+129 29 0.002
+129 101 0.002
+129 128 0.00025
+129 139 10
+129 145 10
+129 149 10
+129 185 10
+130 30 0.002
+130 102 0.002
+130 128 0.00025
+130 137 10
+130 146 10
+130 150 10
+130 186 10
+131 31 0.002
+131 103 0.002
+131 129 0.00025
+131 130 0.00025
+131 147 10
+131 151 10
+131 187 10
+132 32 0.002
+132 104 0.002
+132 128 0.0002
+132 140 10
+132 142 10
+132 152 10
+132 188 10
+133 33 0.002
+133 105 0.002
+133 129 0.0002
+133 132 0.00025
+133 143 10
+133 153 10
+133 189 10
+134 34 0.002
+134 106 0.002
+134 130 0.0002
+134 132 0.00025
+134 141 10
+134 154 10
+134 190 10
+135 35 0.002
+135 107 0.002
+135 131 0.0002
+135 133 0.00025
+135 134 0.00025
+135 155 10
+135 191 10
+136 36 0.002
+136 108 0.002
+136 129 0.25
+137 37 0.002
+137 109 0.002
+137 131 0.25
+137 136 0.00025
+138 38 0.002
+138 110 0.002
+138 130 0.25
+139 39 0.002
+139 111 0.002
+139 131 0.25
+139 138 0.00025
+140 40 0.002
+140 112 0.002
+140 133 0.25
+140 136 0.0002
+141 41 0.002
+141 113 0.002
+141 135 0.25
+141 137 0.0002
+141 140 0.00025
+142 42 0.002
+142 114 0.002
+142 134 0.25
+142 138 0.0002
+143 43 0.002
+143 115 0.002
+143 135 0.25
+143 139 0.0002
+143 142 0.00025
+144 44 0.002
+144 116 0.002
+144 132 0.125
+145 45 0.002
+145 117 0.002
+145 133 0.125
+145 144 0.00025
+146 46 0.002
+146 118 0.002
+146 134 0.125
+146 144 0.00025
+147 47 0.002
+147 119 0.002
+147 135 0.125
+147 145 0.00025
+147 146 0.00025
+148 48 0.002
+148 120 0.002
+148 156 2
+149 49 0.002
+149 121 0.002
+149 148 0.00025
+149 157 2
+150 50 0.002
+150 122 0.002
+150 148 0.00025
+150 158 2
+151 51 0.002
+151 123 0.002
+151 149 0.00025
+151 150 0.00025
+151 159 2
+152 52 0.002
+152 124 0.002
+152 148 0.0002
+152 160 2
+153 53 0.002
+153 125 0.002
+153 149 0.0002
+153 152 0.00025
+153 161 2
+154 54 0.002
+154 126 0.002
+154 150 0.0002
+154 152 0.00025
+154 162 2
+155 55 0.002
+155 127 0.002
+155 151 0.0002
+155 153 0.00025
+155 154 0.00025
+155 163 2
+156 56 0.002
+156 128 0.004
+156 164 10
+156 166 10
+156 172 10
+156 192 10
+157 57 0.002
+157 129 0.004
+157 156 0.00025
+157 167 10
+157 173 10
+157 193 10
+158 58 0.002
+158 130 0.004
+158 156 0.00025
+158 165 10
+158 174 10
+158 194 10
+159 59 0.002
+159 131 0.004
+159 157 0.00025
+159 158 0.00025
+159 175 10
+159 195 10
+160 60 0.002
+160 132 0.004
+160 156 0.0002
+160 168 10
+160 170 10
+160 196 10
+161 61 0.002
+161 133 0.004
+161 157 0.0002
+161 160 0.00025
+161 171 10
+161 197 10
+162 62 0.002
+162 134 0.004
+162 158 0.0002
+162 160 0.00025
+162 169 10
+162 198 10
+163 63 0.002
+163 135 0.004
+163 159 0.0002
+163 161 0.00025
+163 162 0.00025
+163 199 10
+164 64 0.002
+164 136 0.004
+164 157 0.25
+165 65 0.002
+165 137 0.004
+165 159 0.25
+165 164 0.00025
+166 66 0.002
+166 138 0.004
+166 158 0.25
+167 67 0.002
+167 139 0.004
+167 159 0.25
+167 166 0.00025
+168 68 0.002
+168 140 0.004
+168 161 0.25
+168 164 0.0002
+169 69 0.002
+169 141 0.004
+169 163 0.25
+169 165 0.0002
+169 168 0.00025
+170 70 0.002
+170 142 0.004
+170 162 0.25
+170 166 0.0002
+171 71 0.002
+171 143 0.004
+171 163 0.25
+171 167 0.0002
+171 170 0.00025
+172 72 0.002
+172 144 0.004
+172 160 0.125
+173 73 0.002
+173 145 0.004
+173 161 0.125
+173 172 0.00025
+174 74 0.002
+174 146 0.004
+174 162 0.125
+174 172 0.00025
+175 75 0.002
+175 147 0.004
+175 163 0.125
+175 173 0.00025
+175 174 0.00025
+176 76 0.002
+176 200 2
+177 77 0.002
+177 176 0.00025
+177 201 2
+178 78 0.002
+178 176 0.00025
+178 202 2
+179 79 0.002
+179 177 0.00025
+179 178 0.00025
+179 203 2
+180 80 0.002
+180 176 0.0002
+180 204 2
+181 81 0.002
+181 177 0.0002
+181 180 0.00025
+181 205 2
+182 82 0.002
+182 178 0.0002
+182 180 0.00025
+182 206 2
+183 83 0.002
+183 179 0.0002
+183 181 0.00025
+183 182 0.00025
+183 207 2
+184 84 0.002
+184 176 0.002
+184 228 2
+185 85 0.002
+185 177 0.002
+185 184 0.00025
+185 229 2
+186 86 0.002
+186 178 0.002
+186 184 0.00025
+186 230 2
+187 87 0.002
+187 179 0.002
+187 185 0.00025
+187 186 0.00025
+187 231 2
+188 88 0.002
+188 180 0.002
+188 184 0.0002
+188 232 2
+189 89 0.002
+189 181 0.002
+189 185 0.0002
+189 188 0.00025
+189 233 2
+190 90 0.002
+190 182 0.002
+190 186 0.0002
+190 188 0.00025
+190 234 2
+191 91 0.002
+191 183 0.002
+191 187 0.0002
+191 189 0.00025
+191 190 0.00025
+191 235 2
+192 92 0.002
+192 184 0.004
+192 256 2
+193 93 0.002
+193 185 0.004
+193 192 0.00025
+193 257 2
+194 94 0.002
+194 186 0.004
+194 192 0.00025
+194 258 2
+195 95 0.002
+195 187 0.004
+195 193 0.00025
+195 194 0.00025
+195 259 2
+196 96 0.002
+196 188 0.004
+196 192 0.0002
+196 260 2
+197 97 0.002
+197 189 0.004
+197 193 0.0002
+197 196 0.00025
+197 261 2
+198 98 0.002
+198 190 0.004
+198 194 0.0002
+198 196 0.00025
+198 262 2
+199 99 0.002
+199 191 0.004
+199 195 0.0002
+199 197 0.00025
+199 198 0.00025
+199 263 2
+200 100 0.004
+200 208 10
+200 210 10
+200 216 10
+200 220 10
+201 101 0.004
+201 200 0.00025
+201 211 10
+201 217 10
+201 221 10
+202 102 0.004
+202 200 0.00025
+202 209 10
+202 218 10
+202 222 10
+203 103 0.004
+203 201 0.00025
+203 202 0.00025
+203 219 10
+203 223 10
+204 104 0.004
+204 200 0.0002
+204 212 10
+204 214 10
+204 224 10
+205 105 0.004
+205 201 0.0002
+205 204 0.00025
+205 215 10
+205 225 10
+206 106 0.004
+206 202 0.0002
+206 204 0.00025
+206 213 10
+206 226 10
+207 107 0.004
+207 203 0.0002
+207 205 0.00025
+207 206 0.00025
+207 227 10
+208 108 0.004
+208 201 0.25
+209 109 0.004
+209 203 0.25
+209 208 0.00025
+210 110 0.004
+210 202 0.25
+211 111 0.004
+211 203 0.25
+211 210 0.00025
+212 112 0.004
+212 205 0.25
+212 208 0.0002
+213 113 0.004
+213 207 0.25
+213 209 0.0002
+213 212 0.00025
+214 114 0.004
+214 206 0.25
+214 210 0.0002
+215 115 0.004
+215 207 0.25
+215 211 0.0002
+215 214 0.00025
+216 116 0.004
+216 204 0.125
+217 117 0.004
+217 205 0.125
+217 216 0.00025
+218 118 0.004
+218 206 0.125
+218 216 0.00025
+219 119 0.004
+219 207 0.125
+219 217 0.00025
+219 218 0.00025
+220 120 0.004
+220 228 2
+221 121 0.004
+221 220 0.00025
+221 229 2
+222 122 0.004
+222 220 0.00025
+222 230 2
+223 123 0.004
+223 221 0.00025
+223 222 0.00025
+223 231 2
+224 124 0.004
+224 220 0.0002
+224 232 2
+225 125 0.004
+225 221 0.0002
+225 224 0.00025
+225 233 2
+226 126 0.004
+226 222 0.0002
+226 224 0.00025
+226 234 2
+227 127 0.004
+227 223 0.0002
+227 225 0.00025
+227 226 0.00025
+227 235 2
+228 128 0.004
+228 200 0.002
+228 236 10
+228 238 10
+228 244 10
+228 248 10
+229 129 0.004
+229 201 0.002
+229 228 0.00025
+229 239 10
+229 245 10
+229 249 10
+230 130 0.004
+230 202 0.002
+230 228 0.00025
+230 237 10
+230 246 10
+230 250 10
+231 131 0.004
+231 203 0.002
+231 229 0.00025
+231 230 0.00025
+231 247 10
+231 251 10
+232 132 0.004
+232 204 0.002
+232 228 0.0002
+232 240 10
+232 242 10
+232 252 10
+233 133 0.004
+233 205 0.002
+233 229 0.0002
+233 232 0.00025
+233 243 10
+233 253 10
+234 134 0.004
+234 206 0.002
+234 230 0.0002
+234 232 0.00025
+234 241 10
+234 254 10
+235 135 0.004
+235 207 0.002
+235 231 0.0002
+235 233 0.00025
+235 234 0.00025
+235 255 10
+236 136 0.004
+236 208 0.002
+236 229 0.25
+237 137 0.004
+237 209 0.002
+237 231 0.25
+237 236 0.00025
+238 138 0.004
+238 210 0.002
+238 230 0.25
+239 139 0.004
+239 211 0.002
+239 231 0.25
+239 238 0.00025
+240 140 0.004
+240 212 0.002
+240 233 0.25
+240 236 0.0002
+241 141 0.004
+241 213 0.002
+241 235 0.25
+241 237 0.0002
+241 240 0.00025
+242 142 0.004
+242 214 0.002
+242 234 0.25
+242 238 0.0002
+243 143 0.004
+243 215 0.002
+243 235 0.25
+243 239 0.0002
+243 242 0.00025
+244 144 0.004
+244 216 0.002
+244 232 0.125
+245 145 0.004
+245 217 0.002
+245 233 0.125
+245 244 0.00025
+246 146 0.004
+246 218 0.002
+246 234 0.125
+246 244 0.00025
+247 147 0.004
+247 219 0.002
+247 235 0.125
+247 245 0.00025
+247 246 0.00025
+248 148 0.004
+248 220 0.002
+248 256 2
+249 149 0.004
+249 221 0.002
+249 248 0.00025
+249 257 2
+250 150 0.004
+250 222 0.002
+250 248 0.00025
+250 258 2
+251 151 0.004
+251 223 0.002
+251 249 0.00025
+251 250 0.00025
+251 259 2
+252 152 0.004
+252 224 0.002
+252 248 0.0002
+252 260 2
+253 153 0.004
+253 225 0.002
+253 249 0.0002
+253 252 0.00025
+253 261 2
+254 154 0.004
+254 226 0.002
+254 250 0.0002
+254 252 0.00025
+254 262 2
+255 155 0.004
+255 227 0.002
+255 251 0.0002
+255 253 0.00025
+255 254 0.00025
+255 263 2
+256 156 0.004
+256 228 0.004
+256 264 10
+256 266 10
+256 272 10
+257 157 0.004
+257 229 0.004
+257 256 0.00025
+257 267 10
+257 273 10
+258 158 0.004
+258 230 0.004
+258 256 0.00025
+258 265 10
+258 274 10
+259 159 0.004
+259 231 0.004
+259 257 0.00025
+259 258 0.00025
+259 275 10
+260 160 0.004
+260 232 0.004
+260 256 0.0002
+260 268 10
+260 270 10
+261 161 0.004
+261 233 0.004
+261 257 0.0002
+261 260 0.00025
+261 271 10
+262 162 0.004
+262 234 0.004
+262 258 0.0002
+262 260 0.00025
+262 269 10
+263 163 0.004
+263 235 0.004
+263 259 0.0002
+263 261 0.00025
+263 262 0.00025
+264 164 0.004
+264 236 0.004
+264 257 0.25
+265 165 0.004
+265 237 0.004
+265 259 0.25
+265 264 0.00025
+266 166 0.004
+266 238 0.004
+266 258 0.25
+267 167 0.004
+267 239 0.004
+267 259 0.25
+267 266 0.00025
+268 168 0.004
+268 240 0.004
+268 261 0.25
+268 264 0.0002
+269 169 0.004
+269 241 0.004
+269 263 0.25
+269 265 0.0002
+269 268 0.00025
+270 170 0.004
+270 242 0.004
+270 262 0.25
+270 266 0.0002
+271 171 0.004
+271 243 0.004
+271 263 0.25
+271 267 0.0002
+271 270 0.00025
+272 172 0.004
+272 244 0.004
+272 260 0.125
+273 173 0.004
+273 245 0.004
+273 261 0.125
+273 272 0.00025
+274 174 0.004
+274 246 0.004
+274 262 0.125
+274 272 0.00025
+275 175 0.004
+275 247 0.004
+275 263 0.125
+275 273 0.00025
+275 274 0.00025
+
+# States
+(left_n,left,right_n,right,r,line,line_n,toleft,toleft_n,toright,toright_n)
+0:(0,false,0,false,false,false,false,false,false,false,false)
+1:(0,false,0,false,false,false,false,false,false,false,true)
+2:(0,false,0,false,false,false,false,false,true,false,false)
+3:(0,false,0,false,false,false,false,false,true,false,true)
+4:(0,false,0,false,false,false,true,false,false,false,false)
+5:(0,false,0,false,false,false,true,false,false,false,true)
+6:(0,false,0,false,false,false,true,false,true,false,false)
+7:(0,false,0,false,false,false,true,false,true,false,true)
+8:(0,false,0,false,true,false,false,false,false,true,false)
+9:(0,false,0,false,true,false,false,false,true,true,false)
+10:(0,false,0,false,true,false,false,true,false,false,false)
+11:(0,false,0,false,true,false,false,true,false,false,true)
+12:(0,false,0,false,true,false,true,false,false,true,false)
+13:(0,false,0,false,true,false,true,false,true,true,false)
+14:(0,false,0,false,true,false,true,true,false,false,false)
+15:(0,false,0,false,true,false,true,true,false,false,true)
+16:(0,false,0,false,true,true,false,false,false,false,false)
+17:(0,false,0,false,true,true,false,false,false,false,true)
+18:(0,false,0,false,true,true,false,false,true,false,false)
+19:(0,false,0,false,true,true,false,false,true,false,true)
+20:(0,false,0,true,true,false,false,false,false,false,false)
+21:(0,false,0,true,true,false,false,false,false,false,true)
+22:(0,false,0,true,true,false,false,false,true,false,false)
+23:(0,false,0,true,true,false,false,false,true,false,true)
+24:(0,false,0,true,true,false,true,false,false,false,false)
+25:(0,false,0,true,true,false,true,false,false,false,true)
+26:(0,false,0,true,true,false,true,false,true,false,false)
+27:(0,false,0,true,true,false,true,false,true,false,true)
+28:(0,false,1,false,false,false,false,false,false,false,false)
+29:(0,false,1,false,false,false,false,false,false,false,true)
+30:(0,false,1,false,false,false,false,false,true,false,false)
+31:(0,false,1,false,false,false,false,false,true,false,true)
+32:(0,false,1,false,false,false,true,false,false,false,false)
+33:(0,false,1,false,false,false,true,false,false,false,true)
+34:(0,false,1,false,false,false,true,false,true,false,false)
+35:(0,false,1,false,false,false,true,false,true,false,true)
+36:(0,false,1,false,true,false,false,false,false,true,false)
+37:(0,false,1,false,true,false,false,false,true,true,false)
+38:(0,false,1,false,true,false,false,true,false,false,false)
+39:(0,false,1,false,true,false,false,true,false,false,true)
+40:(0,false,1,false,true,false,true,false,false,true,false)
+41:(0,false,1,false,true,false,true,false,true,true,false)
+42:(0,false,1,false,true,false,true,true,false,false,false)
+43:(0,false,1,false,true,false,true,true,false,false,true)
+44:(0,false,1,false,true,true,false,false,false,false,false)
+45:(0,false,1,false,true,true,false,false,false,false,true)
+46:(0,false,1,false,true,true,false,false,true,false,false)
+47:(0,false,1,false,true,true,false,false,true,false,true)
+48:(0,false,1,true,true,false,false,false,false,false,false)
+49:(0,false,1,true,true,false,false,false,false,false,true)
+50:(0,false,1,true,true,false,false,false,true,false,false)
+51:(0,false,1,true,true,false,false,false,true,false,true)
+52:(0,false,1,true,true,false,true,false,false,false,false)
+53:(0,false,1,true,true,false,true,false,false,false,true)
+54:(0,false,1,true,true,false,true,false,true,false,false)
+55:(0,false,1,true,true,false,true,false,true,false,true)
+56:(0,false,2,false,false,false,false,false,false,false,false)
+57:(0,false,2,false,false,false,false,false,false,false,true)
+58:(0,false,2,false,false,false,false,false,true,false,false)
+59:(0,false,2,false,false,false,false,false,true,false,true)
+60:(0,false,2,false,false,false,true,false,false,false,false)
+61:(0,false,2,false,false,false,true,false,false,false,true)
+62:(0,false,2,false,false,false,true,false,true,false,false)
+63:(0,false,2,false,false,false,true,false,true,false,true)
+64:(0,false,2,false,true,false,false,false,false,true,false)
+65:(0,false,2,false,true,false,false,false,true,true,false)
+66:(0,false,2,false,true,false,false,true,false,false,false)
+67:(0,false,2,false,true,false,false,true,false,false,true)
+68:(0,false,2,false,true,false,true,false,false,true,false)
+69:(0,false,2,false,true,false,true,false,true,true,false)
+70:(0,false,2,false,true,false,true,true,false,false,false)
+71:(0,false,2,false,true,false,true,true,false,false,true)
+72:(0,false,2,false,true,true,false,false,false,false,false)
+73:(0,false,2,false,true,true,false,false,false,false,true)
+74:(0,false,2,false,true,true,false,false,true,false,false)
+75:(0,false,2,false,true,true,false,false,true,false,true)
+76:(0,true,0,false,true,false,false,false,false,false,false)
+77:(0,true,0,false,true,false,false,false,false,false,true)
+78:(0,true,0,false,true,false,false,false,true,false,false)
+79:(0,true,0,false,true,false,false,false,true,false,true)
+80:(0,true,0,false,true,false,true,false,false,false,false)
+81:(0,true,0,false,true,false,true,false,false,false,true)
+82:(0,true,0,false,true,false,true,false,true,false,false)
+83:(0,true,0,false,true,false,true,false,true,false,true)
+84:(0,true,1,false,true,false,false,false,false,false,false)
+85:(0,true,1,false,true,false,false,false,false,false,true)
+86:(0,true,1,false,true,false,false,false,true,false,false)
+87:(0,true,1,false,true,false,false,false,true,false,true)
+88:(0,true,1,false,true,false,true,false,false,false,false)
+89:(0,true,1,false,true,false,true,false,false,false,true)
+90:(0,true,1,false,true,false,true,false,true,false,false)
+91:(0,true,1,false,true,false,true,false,true,false,true)
+92:(0,true,2,false,true,false,false,false,false,false,false)
+93:(0,true,2,false,true,false,false,false,false,false,true)
+94:(0,true,2,false,true,false,false,false,true,false,false)
+95:(0,true,2,false,true,false,false,false,true,false,true)
+96:(0,true,2,false,true,false,true,false,false,false,false)
+97:(0,true,2,false,true,false,true,false,false,false,true)
+98:(0,true,2,false,true,false,true,false,true,false,false)
+99:(0,true,2,false,true,false,true,false,true,false,true)
+100:(1,false,0,false,false,false,false,false,false,false,false)
+101:(1,false,0,false,false,false,false,false,false,false,true)
+102:(1,false,0,false,false,false,false,false,true,false,false)
+103:(1,false,0,false,false,false,false,false,true,false,true)
+104:(1,false,0,false,false,false,true,false,false,false,false)
+105:(1,false,0,false,false,false,true,false,false,false,true)
+106:(1,false,0,false,false,false,true,false,true,false,false)
+107:(1,false,0,false,false,false,true,false,true,false,true)
+108:(1,false,0,false,true,false,false,false,false,true,false)
+109:(1,false,0,false,true,false,false,false,true,true,false)
+110:(1,false,0,false,true,false,false,true,false,false,false)
+111:(1,false,0,false,true,false,false,true,false,false,true)
+112:(1,false,0,false,true,false,true,false,false,true,false)
+113:(1,false,0,false,true,false,true,false,true,true,false)
+114:(1,false,0,false,true,false,true,true,false,false,false)
+115:(1,false,0,false,true,false,true,true,false,false,true)
+116:(1,false,0,false,true,true,false,false,false,false,false)
+117:(1,false,0,false,true,true,false,false,false,false,true)
+118:(1,false,0,false,true,true,false,false,true,false,false)
+119:(1,false,0,false,true,true,false,false,true,false,true)
+120:(1,false,0,true,true,false,false,false,false,false,false)
+121:(1,false,0,true,true,false,false,false,false,false,true)
+122:(1,false,0,true,true,false,false,false,true,false,false)
+123:(1,false,0,true,true,false,false,false,true,false,true)
+124:(1,false,0,true,true,false,true,false,false,false,false)
+125:(1,false,0,true,true,false,true,false,false,false,true)
+126:(1,false,0,true,true,false,true,false,true,false,false)
+127:(1,false,0,true,true,false,true,false,true,false,true)
+128:(1,false,1,false,false,false,false,false,false,false,false)
+129:(1,false,1,false,false,false,false,false,false,false,true)
+130:(1,false,1,false,false,false,false,false,true,false,false)
+131:(1,false,1,false,false,false,false,false,true,false,true)
+132:(1,false,1,false,false,false,true,false,false,false,false)
+133:(1,false,1,false,false,false,true,false,false,false,true)
+134:(1,false,1,false,false,false,true,false,true,false,false)
+135:(1,false,1,false,false,false,true,false,true,false,true)
+136:(1,false,1,false,true,false,false,false,false,true,false)
+137:(1,false,1,false,true,false,false,false,true,true,false)
+138:(1,false,1,false,true,false,false,true,false,false,false)
+139:(1,false,1,false,true,false,false,true,false,false,true)
+140:(1,false,1,false,true,false,true,false,false,true,false)
+141:(1,false,1,false,true,false,true,false,true,true,false)
+142:(1,false,1,false,true,false,true,true,false,false,false)
+143:(1,false,1,false,true,false,true,true,false,false,true)
+144:(1,false,1,false,true,true,false,false,false,false,false)
+145:(1,false,1,false,true,true,false,false,false,false,true)
+146:(1,false,1,false,true,true,false,false,true,false,false)
+147:(1,false,1,false,true,true,false,false,true,false,true)
+148:(1,false,1,true,true,false,false,false,false,false,false)
+149:(1,false,1,true,true,false,false,false,false,false,true)
+150:(1,false,1,true,true,false,false,false,true,false,false)
+151:(1,false,1,true,true,false,false,false,true,false,true)
+152:(1,false,1,true,true,false,true,false,false,false,false)
+153:(1,false,1,true,true,false,true,false,false,false,true)
+154:(1,false,1,true,true,false,true,false,true,false,false)
+155:(1,false,1,true,true,false,true,false,true,false,true)
+156:(1,false,2,false,false,false,false,false,false,false,false)
+157:(1,false,2,false,false,false,false,false,false,false,true)
+158:(1,false,2,false,false,false,false,false,true,false,false)
+159:(1,false,2,false,false,false,false,false,true,false,true)
+160:(1,false,2,false,false,false,true,false,false,false,false)
+161:(1,false,2,false,false,false,true,false,false,false,true)
+162:(1,false,2,false,false,false,true,false,true,false,false)
+163:(1,false,2,false,false,false,true,false,true,false,true)
+164:(1,false,2,false,true,false,false,false,false,true,false)
+165:(1,false,2,false,true,false,false,false,true,true,false)
+166:(1,false,2,false,true,false,false,true,false,false,false)
+167:(1,false,2,false,true,false,false,true,false,false,true)
+168:(1,false,2,false,true,false,true,false,false,true,false)
+169:(1,false,2,false,true,false,true,false,true,true,false)
+170:(1,false,2,false,true,false,true,true,false,false,false)
+171:(1,false,2,false,true,false,true,true,false,false,true)
+172:(1,false,2,false,true,true,false,false,false,false,false)
+173:(1,false,2,false,true,true,false,false,false,false,true)
+174:(1,false,2,false,true,true,false,false,true,false,false)
+175:(1,false,2,false,true,true,false,false,true,false,true)
+176:(1,true,0,false,true,false,false,false,false,false,false)
+177:(1,true,0,false,true,false,false,false,false,false,true)
+178:(1,true,0,false,true,false,false,false,true,false,false)
+179:(1,true,0,false,true,false,false,false,true,false,true)
+180:(1,true,0,false,true,false,true,false,false,false,false)
+181:(1,true,0,false,true,false,true,false,false,false,true)
+182:(1,true,0,false,true,false,true,false,true,false,false)
+183:(1,true,0,false,true,false,true,false,true,false,true)
+184:(1,true,1,false,true,false,false,false,false,false,false)
+185:(1,true,1,false,true,false,false,false,false,false,true)
+186:(1,true,1,false,true,false,false,false,true,false,false)
+187:(1,true,1,false,true,false,false,false,true,false,true)
+188:(1,true,1,false,true,false,true,false,false,false,false)
+189:(1,true,1,false,true,false,true,false,false,false,true)
+190:(1,true,1,false,true,false,true,false,true,false,false)
+191:(1,true,1,false,true,false,true,false,true,false,true)
+192:(1,true,2,false,true,false,false,false,false,false,false)
+193:(1,true,2,false,true,false,false,false,false,false,true)
+194:(1,true,2,false,true,false,false,false,true,false,false)
+195:(1,true,2,false,true,false,false,false,true,false,true)
+196:(1,true,2,false,true,false,true,false,false,false,false)
+197:(1,true,2,false,true,false,true,false,false,false,true)
+198:(1,true,2,false,true,false,true,false,true,false,false)
+199:(1,true,2,false,true,false,true,false,true,false,true)
+200:(2,false,0,false,false,false,false,false,false,false,false)
+201:(2,false,0,false,false,false,false,false,false,false,true)
+202:(2,false,0,false,false,false,false,false,true,false,false)
+203:(2,false,0,false,false,false,false,false,true,false,true)
+204:(2,false,0,false,false,false,true,false,false,false,false)
+205:(2,false,0,false,false,false,true,false,false,false,true)
+206:(2,false,0,false,false,false,true,false,true,false,false)
+207:(2,false,0,false,false,false,true,false,true,false,true)
+208:(2,false,0,false,true,false,false,false,false,true,false)
+209:(2,false,0,false,true,false,false,false,true,true,false)
+210:(2,false,0,false,true,false,false,true,false,false,false)
+211:(2,false,0,false,true,false,false,true,false,false,true)
+212:(2,false,0,false,true,false,true,false,false,true,false)
+213:(2,false,0,false,true,false,true,false,true,true,false)
+214:(2,false,0,false,true,false,true,true,false,false,false)
+215:(2,false,0,false,true,false,true,true,false,false,true)
+216:(2,false,0,false,true,true,false,false,false,false,false)
+217:(2,false,0,false,true,true,false,false,false,false,true)
+218:(2,false,0,false,true,true,false,false,true,false,false)
+219:(2,false,0,false,true,true,false,false,true,false,true)
+220:(2,false,0,true,true,false,false,false,false,false,false)
+221:(2,false,0,true,true,false,false,false,false,false,true)
+222:(2,false,0,true,true,false,false,false,true,false,false)
+223:(2,false,0,true,true,false,false,false,true,false,true)
+224:(2,false,0,true,true,false,true,false,false,false,false)
+225:(2,false,0,true,true,false,true,false,false,false,true)
+226:(2,false,0,true,true,false,true,false,true,false,false)
+227:(2,false,0,true,true,false,true,false,true,false,true)
+228:(2,false,1,false,false,false,false,false,false,false,false)
+229:(2,false,1,false,false,false,false,false,false,false,true)
+230:(2,false,1,false,false,false,false,false,true,false,false)
+231:(2,false,1,false,false,false,false,false,true,false,true)
+232:(2,false,1,false,false,false,true,false,false,false,false)
+233:(2,false,1,false,false,false,true,false,false,false,true)
+234:(2,false,1,false,false,false,true,false,true,false,false)
+235:(2,false,1,false,false,false,true,false,true,false,true)
+236:(2,false,1,false,true,false,false,false,false,true,false)
+237:(2,false,1,false,true,false,false,false,true,true,false)
+238:(2,false,1,false,true,false,false,true,false,false,false)
+239:(2,false,1,false,true,false,false,true,false,false,true)
+240:(2,false,1,false,true,false,true,false,false,true,false)
+241:(2,false,1,false,true,false,true,false,true,true,false)
+242:(2,false,1,false,true,false,true,true,false,false,false)
+243:(2,false,1,false,true,false,true,true,false,false,true)
+244:(2,false,1,false,true,true,false,false,false,false,false)
+245:(2,false,1,false,true,true,false,false,false,false,true)
+246:(2,false,1,false,true,true,false,false,true,false,false)
+247:(2,false,1,false,true,true,false,false,true,false,true)
+248:(2,false,1,true,true,false,false,false,false,false,false)
+249:(2,false,1,true,true,false,false,false,false,false,true)
+250:(2,false,1,true,true,false,false,false,true,false,false)
+251:(2,false,1,true,true,false,false,false,true,false,true)
+252:(2,false,1,true,true,false,true,false,false,false,false)
+253:(2,false,1,true,true,false,true,false,false,false,true)
+254:(2,false,1,true,true,false,true,false,true,false,false)
+255:(2,false,1,true,true,false,true,false,true,false,true)
+256:(2,false,2,false,false,false,false,false,false,false,false)
+257:(2,false,2,false,false,false,false,false,false,false,true)
+258:(2,false,2,false,false,false,false,false,true,false,false)
+259:(2,false,2,false,false,false,false,false,true,false,true)
+260:(2,false,2,false,false,false,true,false,false,false,false)
+261:(2,false,2,false,false,false,true,false,false,false,true)
+262:(2,false,2,false,false,false,true,false,true,false,false)
+263:(2,false,2,false,false,false,true,false,true,false,true)
+264:(2,false,2,false,true,false,false,false,false,true,false)
+265:(2,false,2,false,true,false,false,false,true,true,false)
+266:(2,false,2,false,true,false,false,true,false,false,false)
+267:(2,false,2,false,true,false,false,true,false,false,true)
+268:(2,false,2,false,true,false,true,false,false,true,false)
+269:(2,false,2,false,true,false,true,false,true,true,false)
+270:(2,false,2,false,true,false,true,true,false,false,false)
+271:(2,false,2,false,true,false,true,true,false,false,true)
+272:(2,false,2,false,true,true,false,false,false,false,false)
+273:(2,false,2,false,true,true,false,false,false,false,true)
+274:(2,false,2,false,true,true,false,false,true,false,false)
+275:(2,false,2,false,true,true,false,false,true,false,true)
+
+# Labels
+0="init" 1="deadlock" 2="minimum" 3="premium"
+29: 2
+31: 2
+33: 2
+35: 2
+39: 2
+43: 2
+45: 2
+47: 2
+49: 2
+51: 2
+53: 2
+55: 2
+57: 2 3
+59: 2 3
+61: 2 3
+63: 2 3
+67: 2 3
+71: 2 3
+73: 2 3
+75: 2 3
+85: 2
+87: 2
+89: 2
+91: 2
+93: 2 3
+95: 2 3
+97: 2 3
+99: 2 3
+102: 2
+103: 2
+106: 2
+107: 2
+109: 2
+113: 2
+118: 2
+119: 2
+122: 2
+123: 2
+126: 2
+127: 2
+129: 2
+130: 2
+131: 2
+133: 2
+134: 2
+135: 2 3
+137: 2
+139: 2
+141: 2
+143: 2
+145: 2
+146: 2
+147: 2
+149: 2
+150: 2
+151: 2
+153: 2
+154: 2
+155: 2 3
+157: 2 3
+158: 2
+159: 2 3
+161: 2 3
+162: 2
+163: 2 3
+165: 2
+167: 2 3
+169: 2
+171: 2 3
+173: 2 3
+174: 2
+175: 2 3
+178: 2
+179: 2
+182: 2
+183: 2
+185: 2
+186: 2
+187: 2
+189: 2
+190: 2
+191: 2 3
+193: 2 3
+194: 2
+195: 2 3
+197: 2 3
+198: 2
+199: 2 3
+202: 2 3
+203: 2 3
+206: 2 3
+207: 2 3
+209: 2 3
+213: 2 3
+218: 2 3
+219: 2 3
+222: 2 3
+223: 2 3
+226: 2 3
+227: 2 3
+229: 2
+230: 2 3
+231: 2 3
+233: 2
+234: 2 3
+235: 2 3
+237: 2 3
+239: 2
+241: 2 3
+243: 2
+245: 2
+246: 2 3
+247: 2 3
+249: 2
+250: 2 3
+251: 2 3
+253: 2
+254: 2 3
+255: 2 3
+257: 2 3
+258: 2 3
+259: 2 3
+261: 2 3
+262: 2 3
+263: 0 2 3
+265: 2 3
+267: 2 3
+269: 2 3
+271: 2 3
+273: 2 3
+274: 2 3
+275: 2 3
+
+# Reward structure "percent_op"
+# State rewards
+276 240
+28 25
+29 25
+30 25
+31 25
+32 25
+33 25
+34 25
+35 25
+36 25
+37 25
+38 25
+39 25
+40 25
+41 25
+42 25
+43 25
+44 25
+45 25
+46 25
+47 25
+48 25
+49 25
+50 25
+51 25
+52 25
+53 25
+54 25
+55 25
+56 50
+57 50
+58 50
+59 50
+60 50
+61 50
+62 50
+63 50
+64 50
+65 50
+66 50
+67 50
+68 50
+69 50
+70 50
+71 50
+72 50
+73 50
+74 50
+75 50
+84 25
+85 25
+86 25
+87 25
+88 25
+89 25
+90 25
+91 25
+92 50
+93 50
+94 50
+95 50
+96 50
+97 50
+98 50
+99 50
+100 25
+101 25
+102 25
+103 25
+104 25
+105 25
+106 25
+107 25
+108 25
+109 25
+110 25
+111 25
+112 25
+113 25
+114 25
+115 25
+116 25
+117 25
+118 25
+119 25
+120 25
+121 25
+122 25
+123 25
+124 25
+125 25
+126 25
+127 25
+128 50
+129 50
+130 50
+131 50
+132 50
+133 50
+134 50
+135 50
+136 50
+137 50
+138 50
+139 50
+140 50
+141 50
+142 50
+143 50
+144 50
+145 50
+146 50
+147 50
+148 50
+149 50
+150 50
+151 50
+152 50
+153 50
+154 50
+155 50
+156 75
+157 75
+158 75
+159 75
+160 75
+161 75
+162 75
+163 75
+164 75
+165 75
+166 75
+167 75
+168 75
+169 75
+170 75
+171 75
+172 75
+173 75
+174 75
+175 75
+176 25
+177 25
+178 25
+179 25
+180 25
+181 25
+182 25
+183 25
+184 50
+185 50
+186 50
+187 50
+188 50
+189 50
+190 50
+191 50
+192 75
+193 75
+194 75
+195 75
+196 75
+197 75
+198 75
+199 75
+200 50
+201 50
+202 50
+203 50
+204 50
+205 50
+206 50
+207 50
+208 50
+209 50
+210 50
+211 50
+212 50
+213 50
+214 50
+215 50
+216 50
+217 50
+218 50
+219 50
+220 50
+221 50
+222 50
+223 50
+224 50
+225 50
+226 50
+227 50
+228 75
+229 75
+230 75
+231 75
+232 75
+233 75
+234 75
+235 75
+236 75
+237 75
+238 75
+239 75
+240 75
+241 75
+242 75
+243 75
+244 75
+245 75
+246 75
+247 75
+248 75
+249 75
+250 75
+251 75
+252 75
+253 75
+254 75
+255 75
+256 100
+257 100
+258 100
+259 100
+260 100
+261 100
+262 100
+263 100
+264 100
+265 100
+266 100
+267 100
+268 100
+269 100
+270 100
+271 100
+272 100
+273 100
+274 100
+275 100
+
+# Reward structure "percent_op"
+# Transition rewards
+276 0
+
+# Reward structure "time_not_min"
+# State rewards
+276 144
+0 1
+1 1
+2 1
+3 1
+4 1
+5 1
+6 1
+7 1
+8 1
+9 1
+10 1
+11 1
+12 1
+13 1
+14 1
+15 1
+16 1
+17 1
+18 1
+19 1
+20 1
+21 1
+22 1
+23 1
+24 1
+25 1
+26 1
+27 1
+28 1
+30 1
+32 1
+34 1
+36 1
+37 1
+38 1
+40 1
+41 1
+42 1
+44 1
+46 1
+48 1
+50 1
+52 1
+54 1
+56 1
+58 1
+60 1
+62 1
+64 1
+65 1
+66 1
+68 1
+69 1
+70 1
+72 1
+74 1
+76 1
+77 1
+78 1
+79 1
+80 1
+81 1
+82 1
+83 1
+84 1
+86 1
+88 1
+90 1
+92 1
+94 1
+96 1
+98 1
+100 1
+101 1
+104 1
+105 1
+108 1
+110 1
+111 1
+112 1
+114 1
+115 1
+116 1
+117 1
+120 1
+121 1
+124 1
+125 1
+128 1
+132 1
+136 1
+138 1
+140 1
+142 1
+144 1
+148 1
+152 1
+156 1
+160 1
+164 1
+166 1
+168 1
+170 1
+172 1
+176 1
+177 1
+180 1
+181 1
+184 1
+188 1
+192 1
+196 1
+200 1
+201 1
+204 1
+205 1
+208 1
+210 1
+211 1
+212 1
+214 1
+215 1
+216 1
+217 1
+220 1
+221 1
+224 1
+225 1
+228 1
+232 1
+236 1
+238 1
+240 1
+242 1
+244 1
+248 1
+252 1
+256 1
+260 1
+264 1
+266 1
+268 1
+270 1
+272 1
+
+# Reward structure "time_not_min"
+# Transition rewards
+276 0
+
+# Reward structure "num_repairs"
+# State rewards
+276 0
+
+# Reward structure "num_repairs"
+# Transition rewards
+276 204
+8 1 1
+9 3 1
+10 2 1
+11 3 1
+12 5 1
+13 7 1
+14 6 1
+15 7 1
+16 4 1
+17 5 1
+18 6 1
+19 7 1
+20 28 1
+21 29 1
+22 30 1
+23 31 1
+24 32 1
+25 33 1
+26 34 1
+27 35 1
+36 29 1
+37 31 1
+38 30 1
+39 31 1
+40 33 1
+41 35 1
+42 34 1
+43 35 1
+44 32 1
+45 33 1
+46 34 1
+47 35 1
+48 56 1
+49 57 1
+50 58 1
+51 59 1
+52 60 1
+53 61 1
+54 62 1
+55 63 1
+64 57 1
+65 59 1
+66 58 1
+67 59 1
+68 61 1
+69 63 1
+70 62 1
+71 63 1
+72 60 1
+73 61 1
+74 62 1
+75 63 1
+76 100 1
+77 101 1
+78 102 1
+79 103 1
+80 104 1
+81 105 1
+82 106 1
+83 107 1
+84 128 1
+85 129 1
+86 130 1
+87 131 1
+88 132 1
+89 133 1
+90 134 1
+91 135 1
+92 156 1
+93 157 1
+94 158 1
+95 159 1
+96 160 1
+97 161 1
+98 162 1
+99 163 1
+108 101 1
+109 103 1
+110 102 1
+111 103 1
+112 105 1
+113 107 1
+114 106 1
+115 107 1
+116 104 1
+117 105 1
+118 106 1
+119 107 1
+120 128 1
+121 129 1
+122 130 1
+123 131 1
+124 132 1
+125 133 1
+126 134 1
+127 135 1
+136 129 1
+137 131 1
+138 130 1
+139 131 1
+140 133 1
+141 135 1
+142 134 1
+143 135 1
+144 132 1
+145 133 1
+146 134 1
+147 135 1
+148 156 1
+149 157 1
+150 158 1
+151 159 1
+152 160 1
+153 161 1
+154 162 1
+155 163 1
+164 157 1
+165 159 1
+166 158 1
+167 159 1
+168 161 1
+169 163 1
+170 162 1
+171 163 1
+172 160 1
+173 161 1
+174 162 1
+175 163 1
+176 200 1
+177 201 1
+178 202 1
+179 203 1
+180 204 1
+181 205 1
+182 206 1
+183 207 1
+184 228 1
+185 229 1
+186 230 1
+187 231 1
+188 232 1
+189 233 1
+190 234 1
+191 235 1
+192 256 1
+193 257 1
+194 258 1
+195 259 1
+196 260 1
+197 261 1
+198 262 1
+199 263 1
+208 201 1
+209 203 1
+210 202 1
+211 203 1
+212 205 1
+213 207 1
+214 206 1
+215 207 1
+216 204 1
+217 205 1
+218 206 1
+219 207 1
+220 228 1
+221 229 1
+222 230 1
+223 231 1
+224 232 1
+225 233 1
+226 234 1
+227 235 1
+236 229 1
+237 231 1
+238 230 1
+239 231 1
+240 233 1
+241 235 1
+242 234 1
+243 235 1
+244 232 1
+245 233 1
+246 234 1
+247 235 1
+248 256 1
+249 257 1
+250 258 1
+251 259 1
+252 260 1
+253 261 1
+254 262 1
+255 263 1
+264 257 1
+265 259 1
+266 258 1
+267 259 1
+268 261 1
+269 263 1
+270 262 1
+271 263 1
+272 260 1
+273 261 1
+274 262 1
+275 263 1

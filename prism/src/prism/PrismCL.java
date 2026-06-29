@@ -1331,7 +1331,7 @@ public class PrismCL implements PrismModelListener
 						if (t.getEntity() == ModelExportTask.ModelExportEntity.LABELS)
 							t.setLabelExportSet(ModelExportTask.LabelExportSet.ALL);
 				})
-				.bool("headers",    "include headers in explicit (reward) files",                   v -> pendingExportOptions.setPrintHeaders(v)),
+				.bool("headers",    "include headers in explicit model files",                   v -> pendingExportOptions.setPrintHeaders(v)),
 			this::processExportModelSwitch);
 		registry.addSwitch("exportmodel", exportModelSwitch,
 			"<files[:<options>]>", "Export the built model to file(s)",
@@ -1728,7 +1728,8 @@ public class PrismCL implements PrismModelListener
 		return new OptionParser()
 			.integer("precision", "<n>", n -> RANGE_EXPORT_DOUBLE_PRECISION.contains(n),
 				"use <n> significant figures for floating point values (in text)",
-				n -> pendingExportOptions.setModelPrecision(n));
+				n -> pendingExportOptions.setModelPrecision(n))
+			.bool("headers", "include headers in explicit model files", v -> pendingExportOptions.setPrintHeaders(v));
 	}
 
 	/**
@@ -1754,6 +1755,11 @@ public class PrismCL implements PrismModelListener
 		extraOptions.accept(parser);
 		return new StringPlusOptionsSwitch(parser, (file, parse) -> {
 			pendingExportOptions = new ModelExportOptions();
+			if (entity == ModelExportTask.ModelExportEntity.MODEL) {
+				// Just the transition matrix, not the other parts of the model
+				// (cf. the ".tra" case in ModelExportTask.fromFilename, used by -exportmodel)
+				pendingExportOptions.setTransitionsOnly();
+			}
 			parse.run();
 			ModelExportTask task = new ModelExportTask(entity, file);
 			task.getExportOptions().apply(pendingExportOptions);

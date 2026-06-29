@@ -210,26 +210,26 @@ JNIEXPORT jlong JNICALL Java_mtbdd_PrismMTBDD_PM_1StochTransient
 /*
  * Class:     mtbdd_PrismMTBDD
  * Method:    PM_ExportVector
- * Signature: (JLjava/lang/String;JIJILjava/lang/String;Ljava/lang/String;Z)I
+ * Signature: (JLjava/lang/String;JIJILjava/lang/String;ZLjava/lang/String;)I
  */
 JNIEXPORT jint JNICALL Java_mtbdd_PrismMTBDD_PM_1ExportVector
-  (JNIEnv *, jclass, jlong, jstring, jlong, jint, jlong, jint, jstring, jstring, jboolean);
+  (JNIEnv *, jclass, jlong, jstring, jlong, jint, jlong, jint, jstring, jboolean, jstring);
 
 /*
  * Class:     mtbdd_PrismMTBDD
  * Method:    PM_ExportMatrix
- * Signature: (JLjava/lang/String;JIJIJILjava/lang/String;Ljava/lang/String;Z)I
+ * Signature: (JLjava/lang/String;JIJIJILjava/lang/String;ZLjava/lang/String;)I
  */
 JNIEXPORT jint JNICALL Java_mtbdd_PrismMTBDD_PM_1ExportMatrix
-  (JNIEnv *, jclass, jlong, jstring, jlong, jint, jlong, jint, jlong, jint, jstring, jstring, jboolean);
+  (JNIEnv *, jclass, jlong, jstring, jlong, jint, jlong, jint, jlong, jint, jstring, jboolean, jstring);
 
 /*
  * Class:     mtbdd_PrismMTBDD
  * Method:    PM_ExportLabels
- * Signature: ([J[Ljava/lang/String;Ljava/lang/String;JIJILjava/lang/String;)I
+ * Signature: ([J[Ljava/lang/String;Ljava/lang/String;JIJILjava/lang/String;ZLjava/lang/String;)I
  */
 JNIEXPORT jint JNICALL Java_mtbdd_PrismMTBDD_PM_1ExportLabels
-  (JNIEnv *, jclass, jlongArray, jobjectArray, jstring, jlong, jint, jlong, jint, jstring);
+  (JNIEnv *, jclass, jlongArray, jobjectArray, jstring, jlong, jint, jlong, jint, jstring, jboolean, jstring);
 
 /*
  * Class:     mtbdd_PrismMTBDD

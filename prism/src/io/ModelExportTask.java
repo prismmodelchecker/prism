@@ -174,7 +174,7 @@ public class ModelExportTask
 	 * Create a ModelExportTask based on a filename, supplied as separate basename and extension.
 	 * The basename can also be "stdout". It can also be left empty ("") and later replaced
 	 * (e.g. with the model basename) using {@link #replaceEmptyFileBasename(String)}.
-	 * An unknown (or missing) extension is treated as ".tra".
+	 * An unknown (or missing) extension is treated as a combined/.pexp-format export.
 	 */
 	public static ModelExportTask fromFilename(String basename, String ext) throws PrismException
 	{
@@ -184,7 +184,7 @@ public class ModelExportTask
 		String filename = "stdout".equals(basename) ? "stdout" : basename + "." + ext;
 		switch (ext) {
 			case "tra":
-				return new ModelExportTask(ModelExportEntity.MODEL, filename);
+				return fromOptions(filename, new ModelExportOptions(ModelExportFormat.EXPLICIT).setTransitionsOnly());
 			case "srew":
 				return new ModelExportTask(ModelExportEntity.STATE_REWARDS, filename);
 			case "trew":
@@ -195,6 +195,8 @@ public class ModelExportTask
 				return new ModelExportTask(ModelExportEntity.OBSERVATIONS, filename);
 			case "lab":
 				return new ModelExportTask(ModelExportEntity.LABELS, filename);
+			case "pexp":
+				return fromFormat(filename, ModelExportFormat.EXPLICIT);
 			case "dot":
 				return fromFormat(filename, ModelExportFormat.DOT);
 			case "drn":
@@ -206,7 +208,7 @@ public class ModelExportTask
 			case "umbt":
 				return fromOptions(filename, new ModelExportOptions(ModelExportFormat.UMB).setBinaryAsText(true));
 			default:
-				// Treat unknown extensions as .tra
+				// Treat unknown extensions the same as no extension (i.e. combined/.pexp format)
 				return new ModelExportTask(ModelExportEntity.MODEL, filename);
 		}
 	}

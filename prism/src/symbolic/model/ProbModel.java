@@ -148,9 +148,9 @@ public class ProbModel extends ModelSymbolic
 	public void exportToFile(int exportType, boolean explicit, File file, int precision) throws FileNotFoundException, PrismException
 	{
 		if (!explicit) {
-			PrismMTBDD.ExportMatrix(trans, getTransSymbol(), allDDRowVars, allDDColVars, odd, exportType, (file != null) ? file.getPath() : null, precision, null, true);
+			PrismMTBDD.ExportMatrix(trans, getTransSymbol(), allDDRowVars, allDDColVars, odd, exportType, (file != null) ? file.getPath() : null, false, precision, null);
 		} else {
-			PrismSparse.ExportMatrix(trans, getTransSymbol(), allDDRowVars, allDDColVars, odd, exportType, (file != null) ? file.getPath() : null, precision, null, true);
+			PrismSparse.ExportMatrix(trans, getTransSymbol(), allDDRowVars, allDDColVars, odd, exportType, (file != null) ? file.getPath() : null, false, precision, null);
 		}
 	}
 
@@ -159,20 +159,22 @@ public class ProbModel extends ModelSymbolic
 	{
 		int exportType = Prism.convertExportTypeTrans(exportOptions);
 		int precision = exportOptions.getModelPrecision();
+		String headerText = exportOptions.getPrintHeaders() ? "# Transitions (" + getModelType() + ")\n" : null;
 		if (exportOptions.getShowActions() && transPerAction != null) {
-			PrismSparse.ExportMC(transPerAction, getSynchs(), getTransSymbol(), allDDRowVars, allDDColVars, odd, exportType, (file != null) ? file.getPath() : null, precision);
+			PrismSparse.ExportMC(transPerAction, getSynchs(), getTransSymbol(), allDDRowVars, allDDColVars, odd, exportType, (file != null) ? file.getPath() : null, exportOptions.getAppendToFile(), precision, headerText);
 		} else {
-			PrismSparse.ExportMatrix(trans, getTransSymbol(), allDDRowVars, allDDColVars, odd, exportType, (file != null) ? file.getPath() : null, precision, null, true);
+			PrismSparse.ExportMatrix(trans, getTransSymbol(), allDDRowVars, allDDColVars, odd, exportType, (file != null) ? file.getPath() : null, exportOptions.getAppendToFile(), precision, headerText);
 		}
 	}
 
 	@Override
 	public void exportTransRewardsToFile(int r, int exportType, boolean ordered, File file, int precision, boolean noexportheaders) throws FileNotFoundException, PrismException
 	{
+		String headerText = rewardHeaderText(rewardStructNames[r], false, !noexportheaders);
 		if (!ordered) {
-			PrismMTBDD.ExportMatrix(transRewards[r], "C" + (r + 1), allDDRowVars, allDDColVars, odd, exportType, (file == null) ? null : file.getPath(), precision, rewardStructNames[r], noexportheaders);
+			PrismMTBDD.ExportMatrix(transRewards[r], "C" + (r + 1), allDDRowVars, allDDColVars, odd, exportType, (file == null) ? null : file.getPath(), false, precision, headerText);
 		} else {
-			PrismSparse.ExportMatrix(transRewards[r], "C" + (r + 1), allDDRowVars, allDDColVars, odd, exportType, (file == null) ? null : file.getPath(), precision, rewardStructNames[r], noexportheaders);
+			PrismSparse.ExportMatrix(transRewards[r], "C" + (r + 1), allDDRowVars, allDDColVars, odd, exportType, (file == null) ? null : file.getPath(), false, precision, headerText);
 		}
 	}
 
@@ -181,8 +183,8 @@ public class ProbModel extends ModelSymbolic
 	{
 		int exportType = Prism.convertExportTypeTrans(exportOptions);
 		int precision = exportOptions.getModelPrecision();
-		boolean noexportheaders = !exportOptions.getPrintHeaders();
-		PrismSparse.ExportMatrix(transRewards[r], "C" + (r + 1), allDDRowVars, allDDColVars, odd, exportType, (file == null) ? null : file.getPath(), precision, rewardStructNames[r], noexportheaders);
+		PrismSparse.ExportMatrix(transRewards[r], "C" + (r + 1), allDDRowVars, allDDColVars, odd, exportType, (file == null) ? null : file.getPath(), exportOptions.getAppendToFile(), precision,
+				rewardHeaderText(rewardStructNames[r], false, exportOptions.getPrintHeaders()));
 	}
 
 	@Override

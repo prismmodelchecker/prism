@@ -372,12 +372,12 @@ JNIEXPORT jint JNICALL Java_prism_PrismNative_PN_1SetWorkingDirectory(JNIEnv *en
 // store export info globally
 // returns 0 on failure, 1 otherwise
 
-int store_export_info(int type, jstring fn, JNIEnv *env)
+int store_export_info(int type, jstring fn, JNIEnv *env, bool append)
 {
 	export_type = type;
 	if (fn) {
 		const char *filename = env->GetStringUTFChars(fn, 0);
-		export_file = fopen(filename, "w");
+		export_file = fopen(filename, append ? "a" : "w");
 		if (!export_file) {
 			env->ReleaseStringUTFChars(fn, filename);
 			return 0;

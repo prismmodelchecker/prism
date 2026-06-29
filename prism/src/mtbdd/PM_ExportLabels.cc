@@ -58,7 +58,9 @@ jlong __jlongpointer v,	// (row) vars
 jint num_vars,
 jlong __jlongpointer od,	// odd
 jint et,		// export type
-jstring fn		// filename
+jstring fn,		// filename
+jboolean append,	// append to file (false = overwrite)
+jstring ht		// header text (NULL = no header printed)
 )
 {
 	jlong *labels;
@@ -78,10 +80,15 @@ jstring fn		// filename
 	// could check for failure with env->ExceptionCheck() if necessary
 	
 	// store export info
-	if (!store_export_info(et, fn, env)) return -1;
+	if (!store_export_info(et, fn, env, append)) return -1;
 	export_name = na ? env->GetStringUTFChars(na, 0) : "V";
 	
 	// print file header
+	if (export_type == EXPORT_PLAIN && ht != NULL) {
+		const char *header = env->GetStringUTFChars(ht, 0);
+		export_string("%s", header);
+		env->ReleaseStringUTFChars(ht, header);
+	}
 	switch (export_type) {
 	case EXPORT_PLAIN:
 		for (i = 0; i < num_labels; i++)

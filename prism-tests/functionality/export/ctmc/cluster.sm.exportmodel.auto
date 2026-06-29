@@ -5,6 +5,7 @@
 -exportmodel cluster.sm.all:actions=false
 -exportmodel cluster.sm.matlab.all:matlab,actions=false
 -exportmodel cluster.sm.rows.all:rows,actions=false
+-exportmodel cluster.sm.pexp:actions=false
 
 # Export model info separately (for a few formats)
 
@@ -23,6 +24,7 @@
 -exportmodel cluster.sm.lab -ex
 -exportmodel cluster.sm.srew -ex
 -exportmodel cluster.sm.trew -ex
+-exportmodel cluster.sm.pexp:actions=false -ex
 
 # Export model info - exact
 
@@ -33,3 +35,4 @@
 -exportmodel cluster.sm.exact.lab -exact
 -exportmodel cluster.sm.exact.srew -exact
 -exportmodel cluster.sm.exact.trew -exact
+-exportmodel cluster.sm.exact.pexp -exact

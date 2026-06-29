@@ -1564,13 +1564,17 @@ public class StateModelChecker extends PrismComponent
 		if (exportOptions.getFormat().isBinary() && !exportOptions.getBinaryAsText() && file == null) {
 			throw new PrismNotSupportedException("Export " + exportOptions.getFormat().description() + " must be to a file");
 		}
-		// If needed, add label/reward info
-		if (exportOptions.getFormat() == ModelExportFormat.DRN || exportOptions.getFormat() == ModelExportFormat.UMB) {
-			// Get rewards/labels
+		// Add rewards to exporter if requested
+		if (exportOptions.getShowRewards()) {
 			List<Rewards<Value>> rewards = new ArrayList<>();
 			for (int r = 0; r < rewardGen.getNumRewardStructs(); r++) {
 				rewards.add(constructRewards(model, r, true));
 			}
+			exporter.addRewards(rewards, rewardGen.getRewardStructNames());
+			exporter.setRewardEvaluator((Evaluator<Value>) rewardGen.getRewardEvaluator());
+		}
+		// Add labels to exporter if requested
+		if (exportOptions.getShowLabels()) {
 			List<String> labelNames = new ArrayList<>();
 			if (exportTask.initLabelIncluded()) {
 				labelNames.add("init");
@@ -1580,9 +1584,6 @@ public class StateModelChecker extends PrismComponent
 			}
 			labelNames.addAll(modelInfo.getLabelNames());
 			List<BitSet> labelStates = checkLabels(model, labelNames);
-			// Add to exporter
-			exporter.addRewards(rewards, rewardGen.getRewardStructNames());
-			exporter.setRewardEvaluator((Evaluator<Value>) rewardGen.getRewardEvaluator());
 			exporter.addLabels(labelStates, labelNames);
 		}
 		// Export to file/log

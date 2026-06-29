@@ -315,7 +315,7 @@ public class NondetModel extends ModelSymbolic
 			// can only do explicit (sparse matrix based) export for mdps
 		} else {
 			PrismSparse.ExportMDP(trans, transActions, getSynchs(), getTransSymbol(), allDDRowVars, allDDColVars, allDDNondetVars, odd, exportType,
-					(file != null) ? file.getPath() : null, precision);
+					(file != null) ? file.getPath() : null, false, precision, null);
 		}
 	}
 
@@ -324,9 +324,10 @@ public class NondetModel extends ModelSymbolic
 	{
 		int exportType = Prism.convertExportTypeTrans(exportOptions);
 		int precision = exportOptions.getModelPrecision();
+		String headerText = exportOptions.getPrintHeaders() ? "# Transitions (" + getModelType() + ")\n" : null;
 		JDDNode transActions = exportOptions.getShowActions() ? this.transActions : null;
 		PrismSparse.ExportMDP(trans, transActions, getSynchs(), getTransSymbol(), allDDRowVars, allDDColVars, allDDNondetVars, odd, exportType,
-				(file != null) ? file.getPath() : null, precision);
+				(file != null) ? file.getPath() : null, exportOptions.getAppendToFile(), precision, headerText);
 	}
 
 	@Override
@@ -335,7 +336,8 @@ public class NondetModel extends ModelSymbolic
 		if (!ordered) {
 			// can only do explicit (sparse matrix based) export for mdps
 		} else {
-			PrismSparse.ExportSubMDP(trans, transRewards[r], "C" + (r + 1), allDDRowVars, allDDColVars, allDDNondetVars, odd, exportType, (file == null) ? null : file.getPath(), precision, rewardStructNames[r], noexportheaders);
+			PrismSparse.ExportSubMDP(trans, transRewards[r], "C" + (r + 1), allDDRowVars, allDDColVars, allDDNondetVars, odd, exportType, (file == null) ? null : file.getPath(), false, precision,
+					rewardHeaderText(rewardStructNames[r], false, !noexportheaders));
 		}
 	}
 
@@ -344,8 +346,8 @@ public class NondetModel extends ModelSymbolic
 	{
 		int exportType = Prism.convertExportTypeTrans(exportOptions);
 		int precision = exportOptions.getModelPrecision();
-		boolean noexportheaders = !exportOptions.getPrintHeaders();
-		PrismSparse.ExportSubMDP(trans, transRewards[r], "C" + (r + 1), allDDRowVars, allDDColVars, allDDNondetVars, odd, exportType, (file == null) ? null : file.getPath(), precision, rewardStructNames[r], noexportheaders);
+		PrismSparse.ExportSubMDP(trans, transRewards[r], "C" + (r + 1), allDDRowVars, allDDColVars, allDDNondetVars, odd, exportType, (file == null) ? null : file.getPath(), exportOptions.getAppendToFile(), precision,
+				rewardHeaderText(rewardStructNames[r], false, exportOptions.getPrintHeaders()));
 	}
 
 	@Override

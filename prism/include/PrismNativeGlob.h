@@ -162,7 +162,7 @@ EXPORT extern double last_error_bound;
 EXPORT void PN_SetErrorMessage(const char *str, ...)  IS_LIKE_PRINTF(1,2);
 EXPORT char *PH_GetErrorMessage();
 
-int store_export_info(int type, jstring fn, JNIEnv *env);
+int store_export_info(int type, jstring fn, JNIEnv *env, bool append = false);
 void export_string(const char *str, ...) IS_LIKE_PRINTF(1,2);
 bool PN_GetFlagExportIterations();
 

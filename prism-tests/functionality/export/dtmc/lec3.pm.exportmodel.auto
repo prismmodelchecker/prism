@@ -2,6 +2,8 @@
 
 -exportmodel lec3.pm.all -h
 -exportmodel lec3.pm.all -m
+-exportmodel lec3.pm.pexp -h
+-exportmodel lec3.pm.pexp -m
 
 # Export model info separately
 
@@ -20,3 +22,4 @@
 -exportmodel lec3.pm.lab -ex
 -exportmodel lec3.pm.srew -ex
 -exportmodel lec3.pm.trew -ex
+-exportmodel lec3.pm.pexp -ex

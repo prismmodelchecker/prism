@@ -54,7 +54,9 @@ jlong __jlongpointer ndv,	// nondet vars
 jint num_ndvars,
 jlong __jlongpointer od,	// odd
 jint et,		// export type
-jstring fn		// filename
+jstring fn,		// filename
+jboolean append,	// append to file (false = overwrite)
+jstring ht		// header text (NULL = no header printed)
 )
 {
 	DdNode *mdp = jlong_to_DdNode(m);				// mdp
@@ -79,7 +81,7 @@ jstring fn		// filename
 	try {
 	
 	// store export info
-	if (!store_export_info(et, fn, env)) return -1;
+	if (!store_export_info(et, fn, env, append)) return -1;
 	export_name = na ? env->GetStringUTFChars(na, 0) : "S";
 	
 	// build sparse matrix
@@ -96,6 +98,11 @@ jstring fn		// filename
 	}
 	
 	// print file header
+	if (export_type == EXPORT_PLAIN && ht != NULL) {
+		const char *header = env->GetStringUTFChars(ht, 0);
+		export_string("%s", header);
+		env->ReleaseStringUTFChars(ht, header);
+	}
 	switch (export_type) {
 	case EXPORT_PLAIN: export_string("%d %d %ld\n", n, nc, nnz); break;
 	case EXPORT_MATLAB: for (i = 0; i < ndsm->k; i++) export_string("%s%d = sparse(%d,%d);\n", export_name, i+1, n, n); break;

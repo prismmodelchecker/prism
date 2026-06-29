@@ -115,6 +115,11 @@ public class ModelExportOptions implements Cloneable
 	private Optional<Boolean> explicitRows = Optional.empty();
 
 	/**
+	 * Whether to append to an existing file rather than overwriting
+	 */
+	private Optional<Boolean> appendToFile = Optional.empty();
+
+	/**
 	 * For binary formats, whether to show in textual form
 	 */
 	private Optional<Boolean> binaryAsText = Optional.empty();
@@ -211,6 +216,15 @@ public class ModelExportOptions implements Cloneable
 	}
 
 	/**
+	 * Set options so that only transitions are shown, i.e., turn off
+	 * states, labels, rewards and observations (cf. {@link #includesModelAnnotations()}).
+	 */
+	public ModelExportOptions setTransitionsOnly()
+	{
+		return setShowStates(false).setShowLabels(false).setShowRewards(false).setShowObservations(false);
+	}
+
+	/**
 	 * Set whether to show actions.
 	 */
 	public ModelExportOptions setShowActions(boolean showActions)
@@ -234,6 +248,15 @@ public class ModelExportOptions implements Cloneable
 	public ModelExportOptions setExplicitRows(boolean explicitRows)
 	{
 		this.explicitRows = Optional.of(explicitRows);
+		return this;
+	}
+
+	/**
+	 * Set whether to append to an existing file rather than overwriting.
+	 */
+	public ModelExportOptions setAppendToFile(boolean appendToFile)
+	{
+		this.appendToFile = Optional.of(appendToFile);
 		return this;
 	}
 
@@ -295,6 +318,9 @@ public class ModelExportOptions implements Cloneable
 		}
 		if (other.explicitRows.isPresent()) {
 			setExplicitRows(other.getExplicitRows());
+		}
+		if (other.appendToFile.isPresent()) {
+			setAppendToFile(other.getAppendToFile());
 		}
 		if (other.binaryAsText.isPresent()) {
 			setBinaryAsText(other.getBinaryAsText());
@@ -369,6 +395,15 @@ public class ModelExportOptions implements Cloneable
 	}
 
 	/**
+	 * Whether this export shows other parts of the model (states, labels, rewards,
+	 * observations) in addition to transitions.
+	 */
+	public boolean includesModelAnnotations()
+	{
+		return getShowStates() || getShowLabels() || getShowRewards() || getShowObservations();
+	}
+
+	/**
 	 * Whether to show actions.
 	 */
 	public boolean getShowActions()
@@ -399,6 +434,14 @@ public class ModelExportOptions implements Cloneable
 	public boolean getExplicitRows()
 	{
 		return explicitRows.orElse(false);
+	}
+
+	/**
+	 * Whether to append to an existing file rather than overwriting.
+	 */
+	public boolean getAppendToFile()
+	{
+		return appendToFile.orElse(false);
 	}
 
 	/**

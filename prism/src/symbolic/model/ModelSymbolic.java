@@ -733,8 +733,8 @@ public abstract class ModelSymbolic implements Model
 	public void exportStateRewardsToFile(int r, int exportType, File file, int precision, boolean noexportheaders)
 			throws FileNotFoundException, PrismException
 	{
-		PrismMTBDD.ExportVector(stateRewards[r], "c" + (r + 1), allDDRowVars, odd, exportType, (file == null) ? null : file.getPath(), precision,
-				rewardStructNames[r], noexportheaders);
+		PrismMTBDD.ExportVector(stateRewards[r], "c" + (r + 1), allDDRowVars, odd, exportType, (file == null) ? null : file.getPath(), false, precision,
+				rewardHeaderText(rewardStructNames[r], true, !noexportheaders));
 	}
 
 	@Override
@@ -743,9 +743,27 @@ public abstract class ModelSymbolic implements Model
 	{
 		int exportType = Prism.convertExportType(exportOptions);
 		int precision = exportOptions.getModelPrecision();
-		boolean noexportheaders = !exportOptions.getPrintHeaders();
-		PrismMTBDD.ExportVector(stateRewards[r], "c" + (r + 1), allDDRowVars, odd, exportType, (file == null) ? null : file.getPath(), precision,
-				rewardStructNames[r], noexportheaders);
+		PrismMTBDD.ExportVector(stateRewards[r], "c" + (r + 1), allDDRowVars, odd, exportType, (file == null) ? null : file.getPath(), exportOptions.getAppendToFile(), precision,
+				rewardHeaderText(rewardStructNames[r], true, exportOptions.getPrintHeaders()));
+	}
+
+	/**
+	 * Build the header text for a reward file, or null if headers are disabled.
+	 * @param rewardStructName Reward structure name (empty string if unnamed)
+	 * @param stateRewards True for state rewards, false for transition rewards
+	 * @param printHeaders Whether to include the header
+	 */
+	protected static String rewardHeaderText(String rewardStructName, boolean stateRewards, boolean printHeaders)
+	{
+		if (!printHeaders) {
+			return null;
+		}
+		String header = "# Reward structure";
+		if (!rewardStructName.isEmpty()) {
+			header += " \"" + rewardStructName + "\"";
+		}
+		header += "\n# " + (stateRewards ? "State" : "Transition") + " rewards\n";
+		return header;
 	}
 
 	@Override

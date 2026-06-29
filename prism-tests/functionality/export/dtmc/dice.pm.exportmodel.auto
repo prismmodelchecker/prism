@@ -3,6 +3,7 @@
 -exportmodel dice.pm.all
 -exportmodel dice.pm.matlab.all:matlab
 -exportmodel dice.pm.rows.all:rows
+-exportmodel dice.pm.pexp
 
 # Export model info separately (for a few formats)
 
@@ -20,6 +21,7 @@
 -exportmodel dice.pm.lab -ex
 -exportmodel dice.pm.srew -ex
 -exportmodel dice.pm.trew -ex
+-exportmodel dice.pm.pexp -ex
 
 # Export model info - exact
 
@@ -28,3 +30,4 @@
 -exportmodel dice.pm.exact.tra -exact
 -exportmodel dice.pm.exact.srew -exact
 -exportmodel dice.pm.exact.trew -exact
+-exportmodel dice.pm.exact.pexp -exact

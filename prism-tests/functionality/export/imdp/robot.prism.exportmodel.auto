@@ -1,6 +1,7 @@
 # Export all model info in different formats
 
 -exportmodel robot.prism.all
+-exportmodel robot.prism.pexp
 
 # Export model info separately (for a few formats)
 

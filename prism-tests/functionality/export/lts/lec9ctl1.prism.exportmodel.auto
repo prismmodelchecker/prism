@@ -1,6 +1,7 @@
 # Export all model info
 
 -exportmodel lec9ctl1.prism.all
+-exportmodel lec9ctl1.prism.pexp
 
 # Export model info separately
 

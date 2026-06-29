@@ -50,8 +50,8 @@ jint num_cvars,
 jlong __jlongpointer od,	// odd
 jint et,		// export type
 jstring fn,		// filename
-jstring rsn,    // reward struct name
-jboolean neh    // noexportheaders
+jboolean append,	// append to file (false = overwrite)
+jstring ht		// header text (NULL = no header printed)
 )
 {
 	DdNode *matrix = jlong_to_DdNode(m);		// matrix
@@ -73,7 +73,7 @@ jboolean neh    // noexportheaders
 	try {
 	
 	// store export info
-	if (!store_export_info(et, fn, env)) return -1;
+	if (!store_export_info(et, fn, env, append)) return -1;
 	export_name = na ? env->GetStringUTFChars(na, 0) : "M";
 	
 	// build sparse matrix
@@ -94,15 +94,10 @@ jboolean neh    // noexportheaders
 	}
 	
 	// print file header
-	if (export_type == EXPORT_PLAIN && !neh) {
-		export_string("# Reward structure");
-		if (env->GetStringUTFLength(rsn) > 0) {
-			const char *header = env->GetStringUTFChars(rsn,0);
-			export_string(" \"%s\"", header);
-			env->ReleaseStringUTFChars(rsn, header);
-		}
-		export_string("\n");
-		export_string("# Transition rewards\n");
+	if (export_type == EXPORT_PLAIN && ht != NULL) {
+		const char *header = env->GetStringUTFChars(ht, 0);
+		export_string("%s", header);
+		env->ReleaseStringUTFChars(ht, header);
 	}
 	switch (export_type) {
 	case EXPORT_PLAIN: export_string("%d %d\n", n, nnz); break;

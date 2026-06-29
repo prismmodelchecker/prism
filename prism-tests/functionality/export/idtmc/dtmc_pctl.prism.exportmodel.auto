@@ -1,6 +1,7 @@
 # Export all model info in different formats
 
 -exportmodel dtmc_pctl.prism.all
+-exportmodel dtmc_pctl.prism.pexp
 
 # Export model info separately (for a few formats)
 

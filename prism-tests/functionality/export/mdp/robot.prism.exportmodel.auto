@@ -3,6 +3,7 @@
 -exportmodel robot.prism.all
 -exportmodel robot.prism.matlab.all:matlab
 -exportmodel robot.prism.rows.all:rows
+-exportmodel robot.prism.pexp
 
 # Export model info separately (for a few formats)
 
@@ -20,6 +21,7 @@
 -exportmodel robot.prism.srew -ex
 -exportmodel robot.prism.srew -ex
 #-exportmodel robot.prism.trew -ex # order different
+#-exportmodel robot.prism.pexp -ex # order different
 
 # Export model info - exact
 
@@ -29,3 +31,4 @@
 -exportmodel robot.prism.exact.srew -exact
 -exportmodel robot.prism.exact.srew -exact
 -exportmodel robot.prism.exact.trew -exact
+-exportmodel robot.prism.exact.pexp -exact

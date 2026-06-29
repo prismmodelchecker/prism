@@ -1,6 +1,7 @@
 # Export all model info
 
 -exportmodel maze.prism.all
+-exportmodel maze.prism.pexp
 
 # Export model info separately
 
