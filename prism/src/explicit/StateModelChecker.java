@@ -1575,7 +1575,7 @@ public class StateModelChecker extends PrismComponent
 			if (exportTask.initLabelIncluded()) {
 				labelNames.add("init");
 			}
-			if (exportTask.deadlockLabelIncluded() && model.getNumDeadlockStates() > 0) {
+			if (exportTask.deadlockLabelIncluded()) {
 				labelNames.add("deadlock");
 			}
 			labelNames.addAll(modelInfo.getLabelNames());

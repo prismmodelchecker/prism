@@ -193,10 +193,13 @@ public class UMBExporter<Value> extends ModelExporter<Value>
 			}
 
 			// Add label info
+			// (for UMB, we don't bother adding deadlock states label if there are none)
 			boolean showLabels = modelExportOptions.getShowLabels();
 			if (showLabels) {
 				int numLabels = getNumLabels();
 				for (int i = 0; i < numLabels; i++) {
+					if ("deadlock".equals(getLabelName(i)) && getLabel(i).isEmpty())
+						continue;
 					umbWriter.addStateAP(getLabelName(i), getLabel(i));
 				}
 			}
