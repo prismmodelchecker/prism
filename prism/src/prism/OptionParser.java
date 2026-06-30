@@ -291,7 +291,8 @@ class OptionParser
 	void parse(String optionsString, String switchName) throws PrismException
 	{
 		if (optionsString == null || optionsString.isEmpty()) return;
-		for (String opt : optionsString.split(",")) {
+		for (String rawOpt : optionsString.split(",")) {
+			String opt = rawOpt.trim();
 			if (opt.isEmpty()) continue;
 			int eq = opt.indexOf('=');
 			if (eq == -1) {
@@ -301,8 +302,8 @@ class OptionParser
 					throw new PrismException("No value provided for \"" + opt + "\" option of -" + switchName);
 				throw new PrismException("Unknown option \"" + opt + "\" for -" + switchName + " switch");
 			} else {
-				String key = opt.substring(0, eq);
-				String val = opt.substring(eq + 1);
+				String key = opt.substring(0, eq).trim();
+				String val = opt.substring(eq + 1).trim();
 				ValueHandler vh = valueHandlers.get(key);
 				if (vh != null) { vh.accept(key, val, switchName); continue; }
 				if (flagHandlers.containsKey(key))
