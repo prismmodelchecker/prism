@@ -181,6 +181,41 @@ class StringPlusOptionsSwitch implements SwitchHandler
 }
 
 /**
+ * Switch with no leading file/string argument: only an optional {@code :<options>} suffix on the
+ * switch token itself (PrismSettings-style, where {@code splitSwitch} performs the colon split
+ * before dispatch and the result is exposed via {@link ArgConsumer#optionsString()}). Unlike
+ * {@link StringPlusOptionsSwitch}, there is no separate leading "files" portion to split off --
+ * the switch token's own colon suffix is itself the options string.
+ *
+ * <p>Reuses {@link StringPlusOptionsSwitch.ParseCallback} so an {@link Action} can call
+ * {@code parse.run()} to dispatch immediately via the stored {@link OptionParser}, or
+ * {@code parse.options()} to read the raw string (e.g. for deferred/two-phase parsing).
+ */
+class OptionsOnlySwitch implements SwitchHandler
+{
+	@FunctionalInterface
+	interface Action { void accept(StringPlusOptionsSwitch.ParseCallback parse) throws PrismException; }
+
+	private final OptionParser parser;
+	private final Action action;
+
+	OptionsOnlySwitch(OptionParser parser, Action action)
+	{
+		this.parser = parser; this.action = action;
+	}
+
+	@Override
+	public void handle(String sw, ArgConsumer a) throws PrismException
+	{
+		String opts = a.optionsString();
+		action.accept(new StringPlusOptionsSwitch.ParseCallback(parser, sw, opts == null ? "" : opts));
+	}
+
+	/** Print the sub-options registered in the stored parser (for use in help blocks). */
+	void printOptions(PrismLog log) { parser.printOptions(log); }
+}
+
+/**
  * Bundles a {@link SwitchHandler} with its help metadata for the unified CLI switch map.
  * Visible entries have a non-null {@code argHint}; hidden entries have {@code argHint == null};
  * blank-line sentinels have {@code primaryName == null}. {@code group} is the section header
