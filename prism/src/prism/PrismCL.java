@@ -1213,7 +1213,7 @@ public class PrismCL implements PrismModelListener
 						.when("umb",      () -> { for (ModelImportSource s : modelImportSources) s.format = ModelExportFormat.UMB; })),
 			this::processImportModelSwitch);
 		registry.addSwitch("importmodel", importModelSwitch,
-			"<files>[:options]", "Import the model directly from file(s)",
+			"<files>[:<options>]", "Import the model directly from file(s)",
 			log -> {
 				log.println("Import the model directly from one or more file(s).");
 				log.println("Use a list of file extensions to indicate which files should be read, e.g.:");
@@ -1280,7 +1280,7 @@ public class PrismCL implements PrismModelListener
 					                     : (matrix[0] ? ResultsExportShape.MATRIX_PLAIN  : ResultsExportShape.LIST_PLAIN);
 			});
 		registry.addSwitch("exportresults", exportResultsSwitch,
-			"<file[:options]>", "Export the results of model checking to a file",
+			"<file[:<options>]>", "Export the results of model checking to a file",
 			log -> {
 				log.println("Exports the results of model checking to <file> (or to the screen if <file>=\"stdout\").");
 				log.println("The default behaviour is to export a list of results in text form, using tabs to separate items.");
@@ -1328,18 +1328,18 @@ public class PrismCL implements PrismModelListener
 				.bool("headers",    "include headers in explicit (reward) files",                   v -> pendingExportOptions.setPrintHeaders(v)),
 			this::processExportModelSwitch);
 		registry.addSwitch("exportmodel", exportModelSwitch,
-			"<files[:options]>", "Export the built model to file(s)",
+			"<files[:<options>]>", "Export the built model to file(s)",
 			log -> {
 				log.println("Export the built model to file(s) (or to the screen if <file>=\"stdout\").");
 				log.println("Use a list of file extensions to indicate which files should be generated, e.g.:");
-				log.println("\n -exportmodel out.tra,sta\n");
-				log.println("\n -exportmodel out.umb\n");
-				log.println("Possible extensions are: .tra, .srew, .trew, .lab, .sta, .obs, .dot, .umb, .drn");
+				log.println("\n -exportmodel out.tra,sta");
+				log.println(" -exportmodel out.umb");
+				log.println("\nPossible extensions are: .tra, .srew, .trew, .lab, .sta, .obs, .dot, .umb, .drn");
 				log.println("Use extension .all to export all explicit files (.tra/srew/trew/lab/sta/obs), e.g.:");
-				log.println("\n -exportmodel out.all\n");
-				log.println("Omit the file basename to use the basename of the model file, e.g.:");
-				log.println("\n -exportmodel .all\n");
-				log.println("Use extension .rew to export both .srew/.trew files");
+				log.println("\n -exportmodel out.all");
+				log.println("\nOmit the file basename to use the basename of the model file, e.g.:");
+				log.println("\n -exportmodel .all");
+				log.println("\nUse extension .rew to export both .srew/.trew files");
 				log.println();
 				log.println("If provided, <options> is a comma-separated list of options taken from:");
 				exportModelSwitch.printOptions(log);
@@ -1374,7 +1374,7 @@ public class PrismCL implements PrismModelListener
 				modelExportTasks.add(pending[0]);
 			});
 		registry.addSwitch("exportlabels", exportLabelsSwitch,
-			"<file[:options]>", "Export the list of labels and satisfying states to a file",
+			"<file[:<options>]>", "Export the list of labels and satisfying states to a file",
 			log -> {
 				log.println("Export the list of labels and satisfying states to a file (or to the screen if <file>=\"stdout\").");
 				log.println();
@@ -1391,7 +1391,7 @@ public class PrismCL implements PrismModelListener
 				modelExportTasks.add(pending[0]);
 			});
 		registry.addSwitch("exportproplabels", exportPropLabelsSwitch,
-			"<file[:options]>", "Export the list of labels and satisfying states from the properties file to a file",
+			"<file[:<options>]>", "Export the list of labels and satisfying states from the properties file to a file",
 			log -> {
 				log.println("Export the list of labels and satisfying states from the properties file to a file (or to the screen if <file>=\"stdout\").");
 				log.println();
@@ -1413,7 +1413,7 @@ public class PrismCL implements PrismModelListener
 				.bool("obs",     "for partially observable models, whether to merge observationally equivalent states",   v -> exportStratOptions.setMergeObservations(v)),
 			this::processExportStratSwitch);
 		registry.addSwitch("exportstrat", exportStratSwitch,
-			"<file[:options]>", "Generate and export a strategy to a file",
+			"<file[:<options>]>", "Generate and export a strategy to a file",
 			log -> {
 				log.println("Generate and export a strategy to a file (or to the screen if <file>=\"stdout\").");
 				log.println("Use file extension .tra or .dot to export as an induced model or Dot file, respectively.");
