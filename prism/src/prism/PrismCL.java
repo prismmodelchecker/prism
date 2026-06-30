@@ -2047,8 +2047,7 @@ public class PrismCL implements PrismModelListener
 	private static String buildHelpLeft(SwitchEntry entry)
 	{
 		StringBuilder left = new StringBuilder("-").append(entry.primaryName);
-		if (!entry.argHint.isEmpty())
-			left.append(" ").append(entry.argHint);
+		left.append(entry.formattedArgHint());
 		if (entry.shownAliases.length > 0) {
 			left.append(" (or ");
 			for (int i = 0; i < entry.shownAliases.length; i++) {

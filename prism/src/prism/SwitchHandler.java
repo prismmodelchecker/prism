@@ -227,7 +227,7 @@ class SwitchEntry
 	final String group;
 	final String primaryName;      // null = blank-line sentinel
 	final String[] shownAliases;   // aliases displayed in -help output (subset of all registered names)
-	final String argHint;          // null = hidden; "" = flag switch; e.g. "<x>", "<file>"
+	final String argHint;          // null = hidden; "" = flag switch; e.g. "<x>", "<file>"; "[:options]" for a colon suffix on the switch token itself
 	final String shortText;        // description text; null for hidden/blank-line sentinels
 	final Consumer<PrismLog> longDesc;
 
@@ -244,17 +244,28 @@ class SwitchEntry
 		this.longDesc = longDesc;
 	}
 
-	/** Print detailed help: auto-generates the "Switch: -name [aliases] [argHint]" header, then the body. */
+	/**
+	 * The arg hint formatted for display directly after the switch name: glued with no space
+	 * for a colon-suffix hint like {@code "[:options]"} (it attaches to the switch token itself,
+	 * not a separate argument), space-separated otherwise (e.g. {@code "<x>"}). Empty/null hints
+	 * (flag switches / hidden entries) yield {@code ""}.
+	 */
+	String formattedArgHint()
+	{
+		if (argHint == null || argHint.isEmpty()) return "";
+		return argHint.startsWith("[:") ? argHint : " " + argHint;
+	}
+
+	/** Print detailed help: auto-generates the "Switch: -name [argHint] [aliases]" header, then the body. */
 	void printLongDesc(PrismLog log)
 	{
 		StringBuilder header = new StringBuilder("Switch: -").append(primaryName);
+		header.append(formattedArgHint());
 		if (shownAliases != null && shownAliases.length > 0) {
 			header.append(" (or");
 			for (String alias : shownAliases) header.append(" -").append(alias);
 			header.append(")");
 		}
-		if (argHint != null && !argHint.isEmpty())
-			header.append(" ").append(argHint);
 		log.println(header + "\n");
 		if (longDesc != null) {
 			longDesc.accept(log);
