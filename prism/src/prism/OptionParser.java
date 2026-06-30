@@ -129,6 +129,20 @@ class OptionParser
 		return this;
 	}
 
+	// ── Toggle options ────────────────────────────────────────────────────────
+
+	/**
+	 * Register a {@code [no]name} boolean toggle: bare {@code name} calls {@code action(true)},
+	 * bare {@code noname} calls {@code action(false)}.
+	 */
+	OptionParser toggle(String name, String description, BoolAction action)
+	{
+		flagHandlers.put(name,        () -> action.accept(true));
+		flagHandlers.put("no" + name, () -> action.accept(false));
+		helpEntries.add(new HelpEntry("flag", "[no]" + name, null, description));
+		return this;
+	}
+
 	// ── Boolean options ───────────────────────────────────────────────────────
 
 	/** Register a {@code key=true|false} option (action only). */
