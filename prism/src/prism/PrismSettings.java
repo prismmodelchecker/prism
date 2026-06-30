@@ -1066,6 +1066,7 @@ public class PrismSettings implements Observer
 			set(PRISM_MDP_MULTI_SOLN_METHOD, "Value iteration");
 			set(PRISM_IMDP_SOLN_METHOD, "Value iteration");
 		}), "", "Use value iteration for solving MDPs [default]");
+		reg.addSwitchAlias("gaussseidel", new String[]{"gs"}, "Use Gauss-Seidel value iteration for solving MDPs");
 		reg.addSwitch("politer",    new FlagSwitch(() -> set(PRISM_MDP_SOLN_METHOD, "Policy iteration")),
 			"", "Use policy iteration for solving MDPs");
 		reg.addSwitch("modpoliter", new FlagSwitch(() -> set(PRISM_MDP_SOLN_METHOD, "Modified policy iteration")),

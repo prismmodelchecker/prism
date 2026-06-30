@@ -140,4 +140,14 @@ class SwitchRegistry
 	{
 		map.put("__blank_" + map.size(), new SwitchEntry(null, null, null, NO_ALIASES, null, null, null));
 	}
+
+	/**
+	 * Add a second, doc-only listing of an already-registered flag switch under the current group
+	 * (e.g. a switch relevant to two different sections). Purely for {@code -help} output;
+	 * does not affect dispatch since it is stored under a synthetic key.
+	 */
+	void addSwitchAlias(String name, String[] shownAliases, String shortText)
+	{
+		map.put("__alias_" + map.size(), new SwitchEntry(null, currentGroup, name, shownAliases, "", shortText, null));
+	}
 }
