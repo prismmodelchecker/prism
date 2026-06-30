@@ -272,8 +272,16 @@ class SwitchEntry
 		} else {
 			if (shortText != null && !shortText.isEmpty())
 				log.println(shortText);
-			if (handler instanceof EnumSwitch)
+			if (handler instanceof EnumSwitch) {
 				((EnumSwitch) handler).printOptions(log);
+			} else if (handler instanceof StringPlusOptionsSwitch || handler instanceof OptionsOnlySwitch) {
+				log.println();
+				log.println("If provided, <options> is a comma-separated list of options taken from:");
+				if (handler instanceof StringPlusOptionsSwitch)
+					((StringPlusOptionsSwitch) handler).printOptions(log);
+				else
+					((OptionsOnlySwitch) handler).printOptions(log);
+			}
 		}
 	}
 }

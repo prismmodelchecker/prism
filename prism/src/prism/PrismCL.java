@@ -1303,15 +1303,9 @@ public class PrismCL implements PrismModelListener
 				.bool("states",     "whether to include state definitions",                         v -> pendingExportOptions.setShowStates(v))
 				.bool("obs",        "whether to include observation definitions",                   v -> pendingExportOptions.setShowObservations(v))
 				.bool("actions",    "whether to include actions on choices/transitions",            v -> pendingExportOptions.setShowActions(v))
-				.string("precision","<n>", "use <n> significant figures for floating point values (in text)", v -> {
-					try {
-						int n = Integer.parseInt(v);
-						if (!RANGE_EXPORT_DOUBLE_PRECISION.contains(n)) throw new NumberFormatException();
-						pendingExportOptions.setModelPrecision(n);
-					} catch (NumberFormatException e) {
-						throw new PrismException("Invalid value \"" + v + "\" for \"precision\" option of -exportmodel");
-					}
-				})
+				.integer("precision", "<n>", n -> RANGE_EXPORT_DOUBLE_PRECISION.contains(n),
+					"use <n> significant figures for floating point values (in text)",
+					n -> pendingExportOptions.setModelPrecision(n))
 				.choice("zip",      "whether to zip UMB files", new OptionParser.Choice()
 					.when("true",        () -> pendingExportOptions.setZipped(true))
 					.when("false",       () -> pendingExportOptions.setZipped(false))
@@ -1344,60 +1338,59 @@ public class PrismCL implements PrismModelListener
 				log.println("If provided, <options> is a comma-separated list of options taken from:");
 				exportModelSwitch.printOptions(log);
 			});
-		registry.addSwitch("exporttrans", new StringSwitch(s -> modelExportTasks.add(
-			new ModelExportTask(ModelExportTask.ModelExportEntity.MODEL, s))),
-			"<file>", "Export the transition matrix to a file");
-		registry.addSwitch("exportstaterewards", new StringSwitch(s -> modelExportTasks.add(
-			new ModelExportTask(ModelExportTask.ModelExportEntity.STATE_REWARDS, s))),
-			"<file>", "Export the state rewards vector to a file");
-		registry.addSwitch("exporttransrewards", new StringSwitch(s -> modelExportTasks.add(
-			new ModelExportTask(ModelExportTask.ModelExportEntity.TRANSITION_REWARDS, s))),
-			"<file>", "Export the transition rewards matrix to a file");
+		StringPlusOptionsSwitch exportTransSwitch = exportEntitySwitch(ModelExportTask.ModelExportEntity.MODEL);
+		registry.addSwitch("exporttrans", exportTransSwitch,
+			"<file>[:<options>]", "Export the transition matrix to a file");
+		StringPlusOptionsSwitch exportStateRewardsSwitch = exportEntitySwitch(ModelExportTask.ModelExportEntity.STATE_REWARDS);
+		registry.addSwitch("exportstaterewards", exportStateRewardsSwitch,
+			"<file>[:<options>]", "Export the state rewards vector to a file");
+		StringPlusOptionsSwitch exportTransRewardsSwitch = exportEntitySwitch(ModelExportTask.ModelExportEntity.TRANSITION_REWARDS);
+		registry.addSwitch("exporttransrewards", exportTransRewardsSwitch,
+			"<file>[:<options>]", "Export the transition rewards matrix to a file");
+		OptionParser exportRewardsOptionsParser = exportTaskOptionsParser();
 		registry.addSwitch("exportrewards", (sw, a) -> {
-			modelExportTasks.add(new ModelExportTask(ModelExportTask.ModelExportEntity.STATE_REWARDS, a.next(sw)));
-			modelExportTasks.add(new ModelExportTask(ModelExportTask.ModelExportEntity.TRANSITION_REWARDS, a.next(sw)));
-		}, "<file1> <file2>", "Export state/transition rewards to files 1/2");
-		registry.addSwitch("exportstates", new StringSwitch(s -> modelExportTasks.add(
-			new ModelExportTask(ModelExportTask.ModelExportEntity.STATES, s))),
-			"<file>", "Export the list of reachable states to a file");
-		registry.addSwitch("exportobs", new StringSwitch(s -> modelExportTasks.add(
-			new ModelExportTask(ModelExportTask.ModelExportEntity.OBSERVATIONS, s))),
-			"<file>", "Export the list of observations to a file");
-		ModelExportTask[] pending = {null};
-		StringPlusOptionsSwitch exportLabelsSwitch = new StringPlusOptionsSwitch(
-			new OptionParser()
-				.flag("matlab",     "export data in Matlab format",                                () -> pending[0].getExportOptions().setFormat(ModelExportFormat.MATLAB))
-				.flag("proplabels", "export labels from a properties file into the same file, too",() -> pending[0].setLabelExportSet(ModelExportTask.LabelExportSet.ALL)),
-			(file, parse) -> {
-				pending[0] = new ModelExportTask(ModelExportTask.ModelExportEntity.LABELS, file);
-				parse.run();
-				modelExportTasks.add(pending[0]);
+			String[] file1 = StringPlusOptionsSwitch.splitFilesAndOptions(a.next(sw));
+			pendingExportOptions = new ModelExportOptions();
+			exportRewardsOptionsParser.parse(file1[1], sw);
+			ModelExportTask stateRewardsTask = new ModelExportTask(ModelExportTask.ModelExportEntity.STATE_REWARDS, file1[0]);
+			stateRewardsTask.getExportOptions().apply(pendingExportOptions);
+			modelExportTasks.add(stateRewardsTask);
+
+			String[] file2 = StringPlusOptionsSwitch.splitFilesAndOptions(a.next(sw));
+			pendingExportOptions = new ModelExportOptions();
+			exportRewardsOptionsParser.parse(file2[1], sw);
+			ModelExportTask transRewardsTask = new ModelExportTask(ModelExportTask.ModelExportEntity.TRANSITION_REWARDS, file2[0]);
+			transRewardsTask.getExportOptions().apply(pendingExportOptions);
+			modelExportTasks.add(transRewardsTask);
+		}, "<file1[:<options>]> <file2[:<options>]>", "Export state/transition rewards to files 1/2",
+			log -> {
+				log.println("Export state/transition rewards to files 1/2 (or to the screen if <file>=\"stdout\").");
+				log.println();
+				log.println("If provided, <options> is a comma-separated list of options (for either file) taken from:");
+				exportRewardsOptionsParser.printOptions(log);
+			});
+		StringPlusOptionsSwitch exportStatesSwitch = exportEntitySwitch(ModelExportTask.ModelExportEntity.STATES);
+		registry.addSwitch("exportstates", exportStatesSwitch,
+			"<file>[:<options>]", "Export the list of reachable states to a file");
+		StringPlusOptionsSwitch exportObsSwitch = exportEntitySwitch(ModelExportTask.ModelExportEntity.OBSERVATIONS);
+		registry.addSwitch("exportobs", exportObsSwitch,
+			"<file>[:<options>]", "Export the list of observations to a file");
+		ModelExportTask.LabelExportSet[] pendingLabelExportSet = {ModelExportTask.LabelExportSet.MODEL};
+		StringPlusOptionsSwitch exportLabelsSwitch = exportEntitySwitch(ModelExportTask.ModelExportEntity.LABELS,
+			p -> p
+				.flag("matlab",     "export data in Matlab format",                                 () -> pendingExportOptions.setFormat(ModelExportFormat.MATLAB))
+				.flag("proplabels", "export labels from a properties file into the same file, too", () -> pendingLabelExportSet[0] = ModelExportTask.LabelExportSet.ALL),
+			t -> {
+				t.setLabelExportSet(pendingLabelExportSet[0]);
+				pendingLabelExportSet[0] = ModelExportTask.LabelExportSet.MODEL;
 			});
 		registry.addSwitch("exportlabels", exportLabelsSwitch,
-			"<file[:<options>]>", "Export the list of labels and satisfying states to a file",
-			log -> {
-				log.println("Export the list of labels and satisfying states to a file (or to the screen if <file>=\"stdout\").");
-				log.println();
-				log.println("If provided, <options> is a comma-separated list of options taken from:");
-				exportLabelsSwitch.printOptions(log);
-			});
-		StringPlusOptionsSwitch exportPropLabelsSwitch = new StringPlusOptionsSwitch(
-			new OptionParser()
-				.flag("matlab", "export data in Matlab format", () -> pending[0].getExportOptions().setFormat(ModelExportFormat.MATLAB)),
-			(file, parse) -> {
-				pending[0] = new ModelExportTask(ModelExportTask.ModelExportEntity.LABELS, file);
-				pending[0].setLabelExportSet(ModelExportTask.LabelExportSet.EXTRA);
-				parse.run();
-				modelExportTasks.add(pending[0]);
-			});
+			"<file[:<options>]>", "Export the list of labels and satisfying states to a file");
+		StringPlusOptionsSwitch exportPropLabelsSwitch = exportEntitySwitch(ModelExportTask.ModelExportEntity.LABELS,
+			p -> p.flag("matlab", "export data in Matlab format", () -> pendingExportOptions.setFormat(ModelExportFormat.MATLAB)),
+			t -> t.setLabelExportSet(ModelExportTask.LabelExportSet.EXTRA));
 		registry.addSwitch("exportproplabels", exportPropLabelsSwitch,
-			"<file[:<options>]>", "Export the list of labels and satisfying states from the properties file to a file",
-			log -> {
-				log.println("Export the list of labels and satisfying states from the properties file to a file (or to the screen if <file>=\"stdout\").");
-				log.println();
-				log.println("If provided, <options> is a comma-separated list of options taken from:");
-				exportPropLabelsSwitch.printOptions(log);
-			});
+			"<file[:<options>]>", "Export the list of labels and satisfying states from the properties file to a file");
 		StringPlusOptionsSwitch exportStratSwitch = new StringPlusOptionsSwitch(
 			new OptionParser()
 				.choice("type", "type of strategy export", new OptionParser.Choice()
@@ -1718,6 +1711,52 @@ public class PrismCL implements PrismModelListener
 		if (assumeExists && !found) {
 			modelImportSources.add(new ModelImportSource(ModelExportTask.ModelExportEntity.TRANSITION_REWARDS, ModelExportFormat.EXPLICIT, new File(basename + ".trew")));
 		}
+	}
+
+	/**
+	 * Build an {@link OptionParser} for the {@code precision}/{@code headers} sub-options shared
+	 * by the simple per-entity export switches ({@code -exporttrans}, {@code -exportstates}, etc.,
+	 * as opposed to the full option set of {@code -exportmodel}). Actions target
+	 * {@link #pendingExportOptions}, which the caller must reset before parsing and apply to the
+	 * resulting {@link ModelExportTask}(s) afterwards.
+	 */
+	private OptionParser exportTaskOptionsParser()
+	{
+		return new OptionParser()
+			.integer("precision", "<n>", n -> RANGE_EXPORT_DOUBLE_PRECISION.contains(n),
+				"use <n> significant figures for floating point values (in text)",
+				n -> pendingExportOptions.setModelPrecision(n));
+	}
+
+	/**
+	 * Build a {@link StringPlusOptionsSwitch} that put a single {@link ModelExportTask} of the
+	 * given entity into {@link #modelExportTasks}, adding common options for exporting
+	 * model entities (see {@link #exportTaskOptionsParser}).
+	 */
+	private StringPlusOptionsSwitch exportEntitySwitch(ModelExportTask.ModelExportEntity entity)
+	{
+		return exportEntitySwitch(entity, p -> {}, t -> {});
+	}
+
+	/**
+	 * As {@link #exportEntitySwitch(ModelExportTask.ModelExportEntity)}, but additionally lets the
+	 * caller register extra sub-options on the parser ({@code extraOptions}, applied once at
+	 * registration time) and post-process the created task ({@code postProcess}, run on every
+	 * invocation after the {@code precision}/{@code headers} options have been applied).
+	 */
+	private StringPlusOptionsSwitch exportEntitySwitch(ModelExportTask.ModelExportEntity entity,
+			Consumer<OptionParser> extraOptions, Consumer<ModelExportTask> postProcess)
+	{
+		OptionParser parser = exportTaskOptionsParser();
+		extraOptions.accept(parser);
+		return new StringPlusOptionsSwitch(parser, (file, parse) -> {
+			pendingExportOptions = new ModelExportOptions();
+			parse.run();
+			ModelExportTask task = new ModelExportTask(entity, file);
+			task.getExportOptions().apply(pendingExportOptions);
+			postProcess.accept(task);
+			modelExportTasks.add(task);
+		});
 	}
 
 	/**

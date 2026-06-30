@@ -29,6 +29,7 @@ package prism;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.function.IntPredicate;
 
 /**
  * Builder for parsing a comma-separated list of sub-options within a CLI switch argument
@@ -55,6 +56,7 @@ class OptionParser
 	@FunctionalInterface interface FlagAction   { void run()             throws PrismException; }
 	@FunctionalInterface interface StringAction { void accept(String v)  throws PrismException; }
 	@FunctionalInterface interface BoolAction   { void accept(boolean b) throws PrismException; }
+	@FunctionalInterface interface IntAction    { void accept(int n)     throws PrismException; }
 
 	/** Internal handler for key=value options. */
 	@FunctionalInterface
@@ -127,6 +129,57 @@ class OptionParser
 		valueHandlers.put(name, (key, val, sw) -> action.accept(val));
 		helpEntries.add(new HelpEntry("string", name, argHint, description));
 		return this;
+	}
+
+	// ── Integer options ───────────────────────────────────────────────────────
+
+	/** Register a {@code key=<n>} integer option (action only; no extra validation beyond being a valid int). */
+	OptionParser integer(String name, IntAction action)
+	{
+		valueHandlers.put(name, intHandler(null, action));
+		return this;
+	}
+
+	/** Record a {@code key=<argHint>} integer option for help output only. */
+	OptionParser integer(String name, String argHint, String description)
+	{
+		helpEntries.add(new HelpEntry("string", name, argHint, description));
+		return this;
+	}
+
+	/** Register a {@code key=<n>} integer option with both execution handler and help metadata (no extra validation). */
+	OptionParser integer(String name, String argHint, String description, IntAction action)
+	{
+		valueHandlers.put(name, intHandler(null, action));
+		helpEntries.add(new HelpEntry("string", name, argHint, description));
+		return this;
+	}
+
+	/**
+	 * Register a {@code key=<n>} integer option with both execution handler and help metadata,
+	 * additionally validated by {@code valid} (e.g. a range check) beyond being a valid int.
+	 */
+	OptionParser integer(String name, String argHint, IntPredicate valid, String description, IntAction action)
+	{
+		valueHandlers.put(name, intHandler(valid, action));
+		helpEntries.add(new HelpEntry("string", name, argHint, description));
+		return this;
+	}
+
+	/** Build a {@link ValueHandler} that parses an int, optionally checks {@code valid}, then dispatches. */
+	private static ValueHandler intHandler(IntPredicate valid, IntAction action)
+	{
+		return (key, val, sw) -> {
+			int n;
+			try {
+				n = Integer.parseInt(val);
+			} catch (NumberFormatException e) {
+				throw new PrismException("Invalid value \"" + val + "\" for \"" + key + "\" option of -" + sw);
+			}
+			if (valid != null && !valid.test(n))
+				throw new PrismException("Invalid value \"" + val + "\" for \"" + key + "\" option of -" + sw);
+			action.accept(n);
+		};
 	}
 
 	// ── Toggle options ────────────────────────────────────────────────────────
