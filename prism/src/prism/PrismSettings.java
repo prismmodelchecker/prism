@@ -1070,25 +1070,22 @@ public class PrismSettings implements Observer
 			"", "Use policy iteration for solving MDPs");
 		reg.addSwitch("modpoliter", new FlagSwitch(() -> set(PRISM_MDP_SOLN_METHOD, "Modified policy iteration")),
 			"", "Use modified policy iteration for solving MDPs");
-		reg.addSwitch("intervaliter", "ii", (sw, a) -> {
+		reg.addSwitch("intervaliter", "ii", new OptionsOnlySwitch(OptionsIntervalIteration.parser(), parse -> {
 			set(PRISM_INTERVAL_ITER, true);
-			String opts = a.optionsString();
-			if (opts != null) {
-				opts = opts.trim();
-				try {
-					OptionsIntervalIteration.validate(opts);
-				} catch (PrismException e) {
-					throw new PrismException("In options for -" + sw + " switch: " + e.getMessage());
-				}
+			String opts = parse.options().trim();
+			if (!opts.isEmpty()) {
+				// Parse options just to make sure they are valid
+				parse.run(opts);
+				// Then concatenate with any other -intervaliter options, and process later
 				String existing = getString(PRISM_INTERVAL_ITER_OPTIONS);
 				set(PRISM_INTERVAL_ITER_OPTIONS, "".equals(existing) ? opts : existing + "," + opts);
 			}
-		}, "", "Use interval iteration to solve MDPs/MCs (see -help -ii)",
+		}), "[:<options>]", "Use interval iteration to solve MDPs/MCs (see -help -ii)",
 			log -> {
-				log.println("Optionally takes a comma-separated list of options:\n");
-				log.println(" -intervaliter:option1,option2,...\n");
-				log.println("where the options are one of the following:\n");
-				log.println(OptionsIntervalIteration.getOptionsDescription());
+				log.println("Use interval iteration to solve MDPs/MCs.");
+				log.println();
+				log.println("If provided, <options> is a comma-separated list of options taken from:");
+				OptionsIntervalIteration.printOptions(log);
 			});
 		reg.addSwitch("topological", new FlagSwitch(() -> set(PRISM_TOPOLOGICAL_VI, true)),
 			"", "Use topological value iteration");

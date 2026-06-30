@@ -26,9 +26,6 @@
 
 package prism;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map.Entry;
 
 /** Option handling for interval iteration */
 public class OptionsIntervalIteration
@@ -78,6 +75,8 @@ public class OptionsIntervalIteration
 		fromOptionsString(options);
 	}
 
+	private OptionsIntervalIteration() {} // use field defaults (for buildParser dummy target)
+
 	/** Static constructor from PrismComponent settings, throws PrismException on errors */
 	public static OptionsIntervalIteration from(PrismComponent parent) throws PrismException
 	{
@@ -88,12 +87,6 @@ public class OptionsIntervalIteration
 	public static OptionsIntervalIteration from(PrismSettings settings) throws PrismException
 	{
 		return new OptionsIntervalIteration(settings.getString(PrismSettings.PRISM_INTERVAL_ITER_OPTIONS));
-	}
-
-	/** Validate an options String, throws PrismException on errors */
-	public static void validate(String optionsString) throws PrismException
-	{
-		new OptionsIntervalIteration(optionsString);
 	}
 
 	/** The method for computing upper bounds for reward computations */
@@ -156,7 +149,7 @@ public class OptionsIntervalIteration
 		return manualUpperBound;
 	}
 
-	/** Get helper text for the options */
+	/** Get helper text for the options (used by GUI settings tooltip). */
 	public static String getOptionsDescription()
 	{
 		StringBuffer sb = new StringBuffer();
@@ -170,109 +163,54 @@ public class OptionsIntervalIteration
 		sb.append(" [no]monotonicabove  Enforce monotonicity in iteration from above (default = yes)\n");
 		sb.append(" [no]checkmonotonic  Check monotonicity, for testing (default = no)\n");
 		sb.append("\nExample: boundmethod=default,upper=3.0,noselectmidpoint,checkmonotonic\n");
-
 		return sb.toString();
+	}
+
+	/** Print the options using {@link OptionParser} formatting (for CLI -help output). */
+	public static void printOptions(PrismLog log)
+	{
+		parser().printOptions(log);
+		log.println("\nExample: boundmethod=default,upper=3.0,noselectmidpoint,checkmonotonic");
+	}
+
+	/**
+	 * An {@link OptionParser} for parsing/validating an interval-iteration options string
+	 * (built with a throwaway dummy target; for CLI switch registration and -help output).
+	 */
+	static OptionParser parser()
+	{
+		return buildParser(new OptionsIntervalIteration());
 	}
 
 	/** Parse options string, throw on error */
 	private void fromOptionsString(String options) throws PrismException
 	{
-		for (Entry<String, String> entry : splitOptionsString(options)){
-			String option = entry.getKey();
-			String extra = entry.getValue();
-
-			boolean isBooleanOption = true;
-			switch (option) {
-			case   "boundverbose":
-			case "noboundverbose":
-				boundComputationVerbose = !option.startsWith("no");
-				break;
-			case   "selectmidpoint":
-			case "noselectmidpoint":
-				resultSelectMidpoint = !option.startsWith("no");
-				break;
-			case   "checkmonotonic":
-			case "nocheckmonotonic":
-				checkMonotonicity = !option.startsWith("no");
-				break;
-			case   "monotonicbelow":
-			case "nomonotonicbelow":
-				enforceMonotonicityBelow = !option.startsWith("no");
-				break;
-			case   "monotonicabove":
-			case "nomonotonicabove":
-				enforceMonotonicityAbove = !option.startsWith("no");
-				break;
-			case "lower":
-			case "upper": {
-				if (extra == null)
-					throw new PrismException("Missing argument to interval iteration option '" + option + "'");
-				try {
-					Double value = Double.parseDouble(extra);
-					if (option.equals("lower")) {
-						manualLowerBound = value;
-					} else {
-						manualUpperBound = value;
-					}
-				} catch (NumberFormatException e) {
-					throw new PrismException("Illegal argument to interval iteration option '" + option + "': " + e.getMessage());
-				}
-				isBooleanOption = false;
-				break;
-			}
-			case "boundmethod": {
-				if (extra == null)
-					throw new PrismException("Missing argument to interval iteration option '" + option + "'");
-				switch (extra) {
-				case "default":
-					boundMethod = BoundMethod.DEFAULT;
-					break;
-				case "variant-1-coarse":
-					boundMethod = BoundMethod.VARIANT_1_COARSE;
-					break;
-				case "variant-1-fine":
-					boundMethod = BoundMethod.VARIANT_1_FINE;
-					break;
-				case "variant-2":
-					boundMethod = BoundMethod.VARIANT_2;
-					break;
-				case "dsmpi":
-					boundMethod = BoundMethod.DSMPI;
-					break;
-				default:
-					throw new PrismException("Unknown argument to interval iteration option '" + option + "', expected one of "
-							+ boundMethodsList);
-				}
-				isBooleanOption = false;
-				break;
-			}
-			default:
-				throw new PrismException("Unknown interval iteration option '" + option + "'");
-			}
-
-			if (isBooleanOption) {
-				if (extra != null) {
-					throw new PrismException("Interval iteration option '" + option + "' has additional argument (" + extra + "), but is boolean option");
-				}
-			}
-		}
+		buildParser(this).parse(options, "intervaliter");
 	}
 
-	/** Split options string into list of pairs */
-	private static List<Pair<String,String>> splitOptionsString(String options)
+	/** Build an {@link OptionParser} whose actions set fields on {@code t}. */
+	private static OptionParser buildParser(OptionsIntervalIteration t)
 	{
-		List<Pair<String,String>> list = new ArrayList<>();
-		if ("".equals(options))
-			return list;
-
-		for (String option : options.split(",")) {
-			int j = option.indexOf("=");
-			if (j == -1) {
-				list.add(new Pair<>(option.trim(), null));
-			} else {
-				list.add(new Pair<>(option.substring(0,j).trim(), option.substring(j+1).trim()));
-			}
-		}
-		return list;
+		return new OptionParser()
+			.choice("boundmethod", "Select upper bound heuristic for reward computations",
+				new OptionParser.Choice()
+					.when("default",          () -> t.boundMethod = BoundMethod.DEFAULT)
+					.when("variant-1-coarse", () -> t.boundMethod = BoundMethod.VARIANT_1_COARSE)
+					.when("variant-1-fine",   () -> t.boundMethod = BoundMethod.VARIANT_1_FINE)
+					.when("variant-2",        () -> t.boundMethod = BoundMethod.VARIANT_2)
+					.when("dsmpi",            () -> t.boundMethod = BoundMethod.DSMPI))
+			.string("lower", "<d>", "Manually specify lower bound for reward computations", v -> {
+				try { t.manualLowerBound = Double.parseDouble(v); }
+				catch (NumberFormatException e) { throw new PrismException("Invalid value for 'lower' option: " + v); }
+			})
+			.string("upper", "<d>", "Manually specify upper bound for reward computations", v -> {
+				try { t.manualUpperBound = Double.parseDouble(v); }
+				catch (NumberFormatException e) { throw new PrismException("Invalid value for 'upper' option: " + v); }
+			})
+			.toggle("boundverbose",   "Verbose output for upper bound computations (default = no)",           v -> t.boundComputationVerbose = v)
+			.toggle("selectmidpoint", "Select midpoint between upper and lower as the result (default = yes)", v -> t.resultSelectMidpoint = v)
+			.toggle("monotonicbelow", "Enforce monotonicity in iteration from below (default = yes)",          v -> t.enforceMonotonicityBelow = v)
+			.toggle("monotonicabove", "Enforce monotonicity in iteration from above (default = yes)",          v -> t.enforceMonotonicityAbove = v)
+			.toggle("checkmonotonic", "Check monotonicity, for testing (default = no)",                       v -> t.checkMonotonicity = v);
 	}
 }
