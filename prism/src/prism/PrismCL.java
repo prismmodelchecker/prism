@@ -1166,8 +1166,10 @@ public class PrismCL implements PrismModelListener
 			});
 		registry.addSwitch("nobuild", new FlagSwitch(() -> nobuild = true),
 			"", "Skip model construction (just do parse/export)");
-		registry.addSwitch("test", new FlagSwitch(() -> test = true),
-			"", "Enable \"test\" mode");
+		registry.addSwitch("test", new OptionsOnlySwitch(
+				new OptionParser().flag("umb", "Enable UMB round trip test", () -> prism.setTestUMB(true)),
+				parse -> { test = true; parse.run(); }),
+				"[:<options>]", "Enable \"test\" mode");
 		registry.addSwitch("testall", new FlagSwitch(() -> { test = true; testExitsOnFail = false; }),
 			"", "Enable \"test\" mode, but don't exit on error");
 		registry.addSwitch("javamaxmem", (sw, a) -> a.next(sw),  // consumed before JVM launch
@@ -1186,7 +1188,6 @@ public class PrismCL implements PrismModelListener
 
 		// Hidden general switches
 		registry.addSwitch("keywords", new FlagSwitch(() -> { printListOfKeywords(); exit(); }));
-		registry.addSwitch("test:umb", new FlagSwitch(() -> prism.setTestUMB(true)));
 		registry.addSwitch("dddebug", new FlagSwitch(() -> jdd.DebugJDD.enable()));
 		registry.addSwitch("ddtraceall", new FlagSwitch(() -> jdd.DebugJDD.traceAll = true));
 		registry.addSwitch("ddtracefollowcopies", new FlagSwitch(() -> jdd.DebugJDD.traceFollowCopies = true));
