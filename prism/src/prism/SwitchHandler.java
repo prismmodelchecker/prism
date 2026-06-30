@@ -171,7 +171,7 @@ class StringPlusOptionsSwitch implements SwitchHandler
 	static String[] splitFilesAndOptions(String arg)
 	{
 		int i = arg.indexOf(':');
-		while (arg.length() > i + 1 && arg.charAt(i + 1) == '\\')
+		while (i != -1 && arg.length() > i + 1 && arg.charAt(i + 1) == '\\')
 			i = arg.indexOf(':', i + 1);
 		if (i != -1)
 			return new String[]{arg.substring(0, i), arg.substring(i + 1)};
