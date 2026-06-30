@@ -1118,6 +1118,17 @@ public class PrismCL implements PrismModelListener
 			"<dir>", "Set current working directory");
 		registry.addSwitch("settings", new StringSwitch(s -> settingsFilename = s.trim()),
 			"<file>", "Load settings from <file>");
+		boolean[] appendToLog = {false};
+		registry.addSwitch("mainlog", new StringPlusOptionsSwitch(
+				new OptionParser().flag("append", "Append to the log file, rather than overwriting it", () -> appendToLog[0] = true),
+				(file, parse) -> {
+					appendToLog[0] = false;
+					parse.run();
+					try { mainLog = new PrismFileLog(file, appendToLog[0]); prism.setMainLog(mainLog); }
+
+					catch (PrismException e) { errorAndExit("Couldn't open log file \"" + file + "\""); }
+				}),
+				"<file>[:<options>]", "Write the log to <file> instead of stdout");
 
 		registry.addBlankLine();
 
@@ -1535,15 +1546,6 @@ public class PrismCL implements PrismModelListener
 		// Hidden miscellaneous switches
 		registry.addSwitch("explicitbuild", new FlagSwitch(() -> explicitbuild = true));
 		registry.addSwitch("explicitbuildtest", new FlagSwitch(() -> explicitbuildtest = true));
-		boolean[] appendToLog = {false};
-		registry.addSwitch("mainlog", new StringPlusOptionsSwitch(
-			new OptionParser().flag("append", () -> appendToLog[0] = true),
-			(file, parse) -> {
-				appendToLog[0] = false;
-				parse.run();
-				try { mainLog = new PrismFileLog(file, appendToLog[0]); prism.setMainLog(mainLog); }
-				catch (PrismException e) { errorAndExit("Couldn't open log file \"" + file + "\""); }
-			}));
 		registry.addSwitch("exportmodeldotview", new FlagSwitch(() -> exportmodeldotview = true));
 		registry.addSwitch("c1", new FlagSwitch(() -> prism.setConstruction(1)));
 		registry.addSwitch("c2", new FlagSwitch(() -> prism.setConstruction(2)));
