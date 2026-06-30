@@ -1,0 +1,3 @@
+# Import combined explicit model file (.pexp) and re-export, checking round-trip
+
+-importmodel dtmc_pctl.prism.pexp -exportmodel dtmc_pctl.prism.pexp

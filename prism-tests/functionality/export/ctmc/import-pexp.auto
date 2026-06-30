@@ -1,0 +1,6 @@
+# Import combined explicit model file (.pexp) and re-export, checking round-trip
+# (cluster.sm uses -const N=2 via cluster.sm.args)
+
+-importmodel cluster.sm.pexp -exportmodel cluster.sm.pexp
+-importmodel cluster.sm.pexp -exportmodel cluster.sm.pexp -ex
+-importmodel cluster.sm.exact.pexp -exportmodel cluster.sm.exact.pexp -exact

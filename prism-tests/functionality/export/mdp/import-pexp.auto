@@ -1,0 +1,7 @@
+# Import combined explicit model file (.pexp) and re-export, checking round-trip
+# Note: order differences between sym/explicit engines only affect export-from-prism-source,
+# not import-from-explicit-then-re-export, so -ex is safe to include here.
+
+-importmodel robot.prism.pexp -exportmodel robot.prism.pexp
+-importmodel robot.prism.pexp -exportmodel robot.prism.pexp -ex
+-importmodel robot.prism.exact.pexp -exportmodel robot.prism.exact.pexp -exact

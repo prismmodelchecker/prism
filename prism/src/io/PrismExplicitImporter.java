@@ -30,10 +30,12 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.Reader;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.BitSet;
 import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -78,10 +80,10 @@ import static csv.BasicReader.LF;
 public class PrismExplicitImporter extends ExplicitModelImporter
 {
 	// What to import: files and type override
-	private File statesFile;
-	private File transFile;
-	private File observationsFile;
-	private File labelsFile;
+	private FileSection statesFile;
+	private FileSection transFile;
+	private FileSection observationsFile;
+	private FileSection labelsFile;
 	private List<File> stateRewardsFiles;
 	private List<File> transRewardsFiles;
 	private ModelType typeOverride;
@@ -128,6 +130,130 @@ public class PrismExplicitImporter extends ExplicitModelImporter
 	protected static final Pattern REWARD_NAME_PATTERN = Pattern.compile("# Reward structure (\"([_a-zA-Z0-9]*)\")$");
 
 	/**
+	 * A view onto a (1-indexed, line-numbered) range of a file: either the whole file
+	 * (the usual case, when each entity has its own separate file) or a sub-range of lines
+	 * within a larger combined file (e.g. a single section of a .pexp file). Lets the rest
+	 * of this class keep reading "a file" via a normal {@link BufferedReader}, whether or
+	 * not it is really sharing a file with other sections.
+	 */
+	private static class FileSection
+	{
+		final File file;
+		final int startLine;        // 1-indexed, inclusive: line on which this section's header begins
+		final int endLineExclusive; // 1-indexed, exclusive; Integer.MAX_VALUE means "to EOF"
+
+		/** Whole-file section (legacy/non-combined case). */
+		FileSection(File file)
+		{
+			this(file, 1, Integer.MAX_VALUE);
+		}
+
+		FileSection(File file, int startLine, int endLineExclusive)
+		{
+			this.file = file;
+			this.startLine = startLine;
+			this.endLineExclusive = endLineExclusive;
+		}
+
+		/**
+		 * Open a reader for just this section, positioned at its first line.
+		 * For a whole-file section, this is just a plain {@link BufferedReader} on the file.
+		 * For a bounded sub-range of a combined file, lines before {@code startLine} are
+		 * skipped, and the returned reader reports EOF once {@code endLineExclusive} is reached,
+		 * even though the underlying file continues.
+		 */
+		BufferedReader openBuffered() throws IOException
+		{
+			BufferedReader raw = new BufferedReader(new FileReader(file));
+			for (int i = 1; i < startLine; i++) {
+				if (raw.readLine() == null) {
+					break;
+				}
+			}
+			if (endLineExclusive == Integer.MAX_VALUE) {
+				return raw;
+			}
+			return new BufferedReader(new LineBoundedReader(raw, endLineExclusive - startLine));
+		}
+
+		@Override
+		public String toString()
+		{
+			return file.toString();
+		}
+	}
+
+	/**
+	 * A {@link Reader} that wraps another reader (already positioned at the start of a
+	 * section) and re-serves at most {@code maxLines} more lines as a character stream,
+	 * then reports EOF, regardless of how much more data the underlying reader actually has.
+	 * Lines are re-emitted via {@link BufferedReader#readLine()} (so the original line-ending
+	 * style of the file, which may vary by platform, does not matter) followed by a single
+	 * {@code '\n'}.
+	 */
+	private static class LineBoundedReader extends Reader
+	{
+		private final BufferedReader in;
+		private int linesRemaining;
+		private String currentLine;
+		private int posInLine;
+		private boolean pendingNewline;
+		private boolean eof;
+
+		LineBoundedReader(BufferedReader in, int maxLines)
+		{
+			this.in = in;
+			this.linesRemaining = maxLines;
+		}
+
+		@Override
+		public int read(char[] cbuf, int off, int len) throws IOException
+		{
+			if (eof) {
+				return -1;
+			}
+			int written = 0;
+			while (written < len) {
+				if (currentLine == null) {
+					if (linesRemaining <= 0) {
+						eof = true;
+						break;
+					}
+					currentLine = in.readLine();
+					if (currentLine == null) {
+						// Underlying file ended before the expected number of lines
+						eof = true;
+						break;
+					}
+					linesRemaining--;
+					posInLine = 0;
+					pendingNewline = true;
+				}
+				if (posInLine < currentLine.length()) {
+					int toCopy = Math.min(len - written, currentLine.length() - posInLine);
+					currentLine.getChars(posInLine, posInLine + toCopy, cbuf, off + written);
+					posInLine += toCopy;
+					written += toCopy;
+				} else if (pendingNewline) {
+					cbuf[off + written] = '\n';
+					written++;
+					pendingNewline = false;
+				} else {
+					// Finished this line; move on to the next
+					currentLine = null;
+				}
+			}
+			return written == 0 ? -1 : written;
+		}
+
+		@Override
+		public void close() throws IOException
+		{
+			in.close();
+		}
+	}
+
+	/**
 	 * Constructor
 	 * @param statesFile States file (may be {@code null})
 	 * @param transFile Transitions file
@@ -138,24 +264,20 @@ public class PrismExplicitImporter extends ExplicitModelImporter
 	 */
 	public PrismExplicitImporter(File statesFile, File transFile, File labelsFile, List<File> stateRewardsFiles, List<File> transRewardsFiles, ModelType typeOverride) throws PrismException
 	{
+		this(typeOverride);
 		setStatesFile(statesFile);
 		setTransFile(transFile);
 		setLabelsFile(labelsFile);
-		this.stateRewardsFiles = new ArrayList<>();
-		this.stateRewardsReaders = new ArrayList<>();
 		if (stateRewardsFiles != null) {
 			for (File stateRewardsFile : stateRewardsFiles) {
 				addStateRewardsFile(stateRewardsFile);
 			}
 		}
-		this.transRewardsFiles = new ArrayList<>();
-		this.transRewardsReaders = new ArrayList<>();
 		if (transRewardsFiles != null) {
 			for (File transRewardsFile : transRewardsFiles) {
 				addTransitionRewardsFile(transRewardsFile);
 			}
 		}
-		this.typeOverride = typeOverride;
 	}
 
 	/**
@@ -165,7 +287,8 @@ public class PrismExplicitImporter extends ExplicitModelImporter
 	 */
 	public PrismExplicitImporter(File transFile, ModelType typeOverride) throws PrismException
 	{
-		this(null, transFile, null, null, null, typeOverride);
+		this(typeOverride);
+		setTransFile(transFile);
 	}
 
 	/**
@@ -174,7 +297,20 @@ public class PrismExplicitImporter extends ExplicitModelImporter
 	 */
 	public PrismExplicitImporter(File transFile) throws PrismException
 	{
-		this(null, null);
+		this(transFile, null);
+	}
+
+	/**
+	 * Constructor
+	 * @param typeOverride Specified model type (null mean auto-detect it, or default to MDP if that cannot be done).
+	 */
+	public PrismExplicitImporter(ModelType typeOverride) throws PrismException
+	{
+		this.stateRewardsFiles = new ArrayList<>();
+		this.stateRewardsReaders = new ArrayList<>();
+		this.transRewardsFiles = new ArrayList<>();
+		this.transRewardsReaders = new ArrayList<>();
+		this.typeOverride = typeOverride;
 	}
 
 	/**
@@ -183,7 +319,7 @@ public class PrismExplicitImporter extends ExplicitModelImporter
 	 */
 	public void setStatesFile(File statesFile)
 	{
-		this.statesFile = statesFile;
+		this.statesFile = statesFile == null ? null : new FileSection(statesFile);
 	}
 
 	/**
@@ -192,7 +328,7 @@ public class PrismExplicitImporter extends ExplicitModelImporter
 	 */
 	public void setTransFile(File transFile)
 	{
-		this.transFile = transFile;
+		this.transFile = transFile == null ? null : new FileSection(transFile);
 	}
 
 	/**
@@ -201,7 +337,7 @@ public class PrismExplicitImporter extends ExplicitModelImporter
 	 */
 	public void setObservationsFile(File observationsFile)
 	{
-		this.observationsFile = observationsFile;
+		this.observationsFile = observationsFile == null ? null : new FileSection(observationsFile);
 	}
 
 	/**
@@ -210,7 +346,7 @@ public class PrismExplicitImporter extends ExplicitModelImporter
 	 */
 	public void setLabelsFile(File labelsFile)
 	{
-		this.labelsFile = labelsFile;
+		this.labelsFile = labelsFile == null ? null : new FileSection(labelsFile);
 	}
 
 	/**
@@ -220,7 +356,7 @@ public class PrismExplicitImporter extends ExplicitModelImporter
 	public void addStateRewardsFile(File stateRewardsFile) throws PrismException
 	{
 		stateRewardsFiles.add(stateRewardsFile);
-		stateRewardsReaders.add(new RewardFile(stateRewardsFile));
+		stateRewardsReaders.add(new RewardFile(new FileSection(stateRewardsFile)));
 	}
 
 	/**
@@ -230,7 +366,7 @@ public class PrismExplicitImporter extends ExplicitModelImporter
 	public void addTransitionRewardsFile(File transitionRewardsFile) throws PrismException
 	{
 		transRewardsFiles.add(transitionRewardsFile);
-		transRewardsReaders.add(new RewardFile(transitionRewardsFile));
+		transRewardsReaders.add(new RewardFile(new FileSection(transitionRewardsFile)));
 	}
 
 	/**
@@ -238,7 +374,7 @@ public class PrismExplicitImporter extends ExplicitModelImporter
 	 */
 	public File getStatesFile()
 	{
-		return statesFile;
+		return statesFile == null ? null : statesFile.file;
 	}
 
 	/**
@@ -246,7 +382,7 @@ public class PrismExplicitImporter extends ExplicitModelImporter
 	 */
 	public File getTransFile()
 	{
-		return transFile;
+		return transFile == null ? null : transFile.file;
 	}
 
 	/**
@@ -254,7 +390,7 @@ public class PrismExplicitImporter extends ExplicitModelImporter
 	 */
 	public File getObservationsFile()
 	{
-		return observationsFile;
+		return observationsFile == null ? null : observationsFile.file;
 	}
 
 	/**
@@ -262,26 +398,28 @@ public class PrismExplicitImporter extends ExplicitModelImporter
 	 */
 	public File getLabelsFile()
 	{
-		return labelsFile;
+		return labelsFile == null ? null : labelsFile.file;
 	}
 
 	/**
-	 * Get a list of all files being imported from.
+	 * Get a list of all (distinct) files being imported from.
+	 * For a combined file, multiple sections share the same underlying file,
+	 * so duplicates are removed.
 	 */
 	public List<File> getAllFiles()
 	{
-		ArrayList<File> allFiles = new ArrayList<>();
+		LinkedHashSet<File> allFiles = new LinkedHashSet<>();
 		if (transFile != null) {
-			allFiles.add(transFile);
+			allFiles.add(transFile.file);
 		}
 		if (statesFile != null) {
-			allFiles.add(statesFile);
+			allFiles.add(statesFile.file);
 		}
 		if (observationsFile != null) {
-			allFiles.add(observationsFile);
+			allFiles.add(observationsFile.file);
 		}
 		if (labelsFile != null) {
-			allFiles.add(labelsFile);
+			allFiles.add(labelsFile.file);
 		}
 		if (stateRewardsFiles != null) {
 			allFiles.addAll(stateRewardsFiles);
@@ -289,7 +427,106 @@ public class PrismExplicitImporter extends ExplicitModelImporter
 		if (transRewardsFiles != null) {
 			allFiles.addAll(transRewardsFiles);
 		}
-		return allFiles;
+		return new ArrayList<>(allFiles);
+	}
+
+	/** Kinds of section recognised within a combined "explicit" model file (.pexp). */
+	private enum SectionKind { TRANS, STATES, OBS, LABELS, SREW, TREW }
+
+	/** A recognised section header found while scanning a combined file, and the line it starts on. */
+	private static class Header
+	{
+		final SectionKind kind;
+		final int startLine;
+
+		Header(SectionKind kind, int startLine)
+		{
+			this.kind = kind;
+			this.startLine = startLine;
+		}
+	}
+
+	/**
+	 * Add a single combined "explicit" model file (.pexp) to this importer, populating the
+	 * transitions/states/observations/labels/rewards fields from sections within it.
+	 * Sections are identified by their {@code # SectionName} header lines and may appear
+	 * in any order after the first section. The transitions section is always first; if no
+	 * {@code # Transitions} header is present, the whole file (or everything up to the first
+	 * recognised header) is treated as the transitions section. This allows a plain
+	 * header-less {@code .tra} file to be passed here when it is not known in advance whether
+	 * the file is in combined ({@code .pexp}) form or not.
+	 * @param pexpFile The combined explicit model file (or a plain {@code .tra} file)
+	 */
+	public void addCombinedFile(File pexpFile) throws PrismException
+	{
+		List<Header> headers = new ArrayList<>();
+		int lineNum = 0;
+		try (BufferedReader in = new BufferedReader(new FileReader(pexpFile))) {
+			String line;
+			while ((line = in.readLine()) != null) {
+				lineNum++;
+				if (line.startsWith("# Transitions")) {
+					headers.add(new Header(SectionKind.TRANS, lineNum));
+				} else if (line.startsWith("# States")) {
+					headers.add(new Header(SectionKind.STATES, lineNum));
+				} else if (line.startsWith("# Observations")) {
+					headers.add(new Header(SectionKind.OBS, lineNum));
+				} else if (line.startsWith("# Labels")) {
+					headers.add(new Header(SectionKind.LABELS, lineNum));
+				} else if (line.startsWith("# Reward structure")) {
+					int headerLine = lineNum;
+					String next = in.readLine();
+					if (next == null) {
+						throw new PrismException("Reward structure header at line " + headerLine
+								+ " of \"" + pexpFile + "\" has no body");
+					}
+					lineNum++;
+					if (next.startsWith("# State rewards")) {
+						headers.add(new Header(SectionKind.SREW, headerLine));
+					} else if (next.startsWith("# Transition rewards")) {
+						headers.add(new Header(SectionKind.TREW, headerLine));
+					} else {
+						throw new PrismException("Reward structure header at line " + headerLine
+								+ " of \"" + pexpFile + "\" not followed by \"# State rewards\" or \"# Transition rewards\"");
+					}
+				}
+				// else: ordinary data line - ignore during this scan
+			}
+		} catch (IOException e) {
+			throw new PrismException("File I/O error reading from \"" + pexpFile + "\"");
+		}
+		// If the file doesn't start with a "# Transitions" header (e.g. a plain .tra file),
+		// treat everything from line 1 up to the first recognised header as the transitions section.
+		if (headers.isEmpty() || headers.get(0).kind != SectionKind.TRANS) {
+			headers.add(0, new Header(SectionKind.TRANS, 1));
+		}
+		for (int i = 0; i < headers.size(); i++) {
+			int start = headers.get(i).startLine;
+			int end = (i + 1 < headers.size()) ? headers.get(i + 1).startLine : Integer.MAX_VALUE;
+			FileSection section = new FileSection(pexpFile, start, end);
+			switch (headers.get(i).kind) {
+				case TRANS:
+					this.transFile = section;
+					break;
+				case STATES:
+					this.statesFile = section;
+					break;
+				case OBS:
+					this.observationsFile = section;
+					break;
+				case LABELS:
+					this.labelsFile = section;
+					break;
+				case SREW:
+					stateRewardsFiles.add(pexpFile);
+					stateRewardsReaders.add(new RewardFile(section));
+					break;
+				case TREW:
+					transRewardsFiles.add(pexpFile);
+					transRewardsReaders.add(new RewardFile(section));
+					break;
+			}
+		}
 	}
 
 	@Override
@@ -503,7 +740,7 @@ public class PrismExplicitImporter extends ExplicitModelImporter
 	/**
 	 * Extract variable info from a states file.
 	 */
-	private void extractVarInfoFromStatesFile(File statesFile) throws PrismException
+	private void extractVarInfoFromStatesFile(FileSection statesFile) throws PrismException
 	{
 		extractVarInfoFromFile(statesFile, ModelExportTask.ModelExportEntity.STATES);
 	}
@@ -511,7 +748,7 @@ public class PrismExplicitImporter extends ExplicitModelImporter
 	/**
 	 * Extract observable info from an observations file.
 	 */
-	private void extractObservableInfoFromObservationsFile(File observationsFile) throws PrismException
+	private void extractObservableInfoFromObservationsFile(FileSection observationsFile) throws PrismException
 	{
 		extractVarInfoFromFile(observationsFile, ModelExportTask.ModelExportEntity.OBSERVATIONS);
 	}
@@ -522,12 +759,12 @@ public class PrismExplicitImporter extends ExplicitModelImporter
 	 * @param file States/observations file
 	 * @param entity State or observations?
 	 */
-	private void extractVarInfoFromFile(File file, ModelExportTask.ModelExportEntity entity) throws PrismException
+	private void extractVarInfoFromFile(FileSection file, ModelExportTask.ModelExportEntity entity) throws PrismException
 	{
 		String entityString = (entity == ModelExportTask.ModelExportEntity.STATES) ? "state" : "observation";
 		// open file for reading, automatic close when done
 		int lineNum = 0;
-		try (BufferedReader in = new BufferedReader(new FileReader(file))) {
+		try (BufferedReader in = file.openBuffered()) {
 			// read first non-comment line and extract var names
 			String s;
 			do {
@@ -622,9 +859,9 @@ public class PrismExplicitImporter extends ExplicitModelImporter
 	/**
 	 * Extract model stats (number of states/transitions) from a transitions file header.
 	 */
-	private void extractModelStatsFromTransFile(File transFile) throws PrismException
+	private void extractModelStatsFromTransFile(FileSection transFile) throws PrismException
 	{
-		try (BufferedReader in = new BufferedReader(new FileReader(transFile))) {
+		try (BufferedReader in = transFile.openBuffered()) {
 			modelStats = new ModelStats();
 			BasicReader reader = BasicReader.wrap(in).normalizeLineEndings();
 			CsvReader csv = new CsvReader(reader, false, false, false, ' ', LF);
@@ -681,10 +918,10 @@ public class PrismExplicitImporter extends ExplicitModelImporter
 	 * (this is only really for the case where this class is extracting labels in isolation);
 	 * {@code labelMap} is created by this method.
 	 */
-	private void extractLabelNamesFromLabelsFile(File labelsFile) throws PrismException
+	private void extractLabelNamesFromLabelsFile(FileSection labelsFile) throws PrismException
 	{
 		int lineNum = 0;
-		try (BufferedReader in = new BufferedReader(new FileReader(labelsFile))) {
+		try (BufferedReader in = labelsFile.openBuffered()) {
 			// Read/parse first non-comment line (label names)
 			// Looks like, e.g.: 0="init" 1="deadlock" 2="heads" 3="tails" 4="end"
 			String labelsString;
@@ -737,9 +974,9 @@ public class PrismExplicitImporter extends ExplicitModelImporter
 	 * If not possible, return null;
 	 * @param transFile transitions file
 	 */
-	private ModelType autodetectModelType(File transFile)
+	private ModelType autodetectModelType(FileSection transFile)
 	{
-		try (BufferedReader in = new BufferedReader(new FileReader(transFile))) {
+		try (BufferedReader in = transFile.openBuffered()) {
 			BasicReader reader = BasicReader.wrap(in).normalizeLineEndings();
 			CsvReader csv = new CsvReader(reader, false, false, false, ' ', LF);
 			boolean nondet;
@@ -841,7 +1078,7 @@ public class PrismExplicitImporter extends ExplicitModelImporter
 		// Record which states have transitions
 		BitSet statesWithTransitions = new BitSet();
 		int lineNum = 0;
-		try (BufferedReader in = new BufferedReader(new FileReader(transFile))) {
+		try (BufferedReader in = transFile.openBuffered()) {
 			lineNum += skipCommentAndFirstLine(in);
 			BasicReader reader = BasicReader.wrap(in).normalizeLineEndings();
 			CsvReader csv = new CsvReader(reader, false, false, false, ' ', LF);
@@ -904,10 +1141,10 @@ public class PrismExplicitImporter extends ExplicitModelImporter
 	 * @param numVars Number of variables/observables
 	 * @param storeStateDefn Consumer to store state/observation definitions
 	 */
-	private void extractStateDefinitions(File file, int numVars, IOUtils.StateDefnConsumer storeStateDefn) throws PrismException
+	private void extractStateDefinitions(FileSection file, int numVars, IOUtils.StateDefnConsumer storeStateDefn) throws PrismException
 	{
 		int lineNum = 0;
-		try (BufferedReader in = new BufferedReader(new FileReader(file))) {
+		try (BufferedReader in = file.openBuffered()) {
 			lineNum += skipCommentAndFirstLine(in);
 			String st = in.readLine();
 			lineNum++;
@@ -950,7 +1187,7 @@ public class PrismExplicitImporter extends ExplicitModelImporter
 	{
 		int lineNum = 0;
 		int maxNumChoices = 0;
-		try (BufferedReader in = new BufferedReader(new FileReader(transFile))) {
+		try (BufferedReader in = transFile.openBuffered()) {
 			lineNum += skipCommentAndFirstLine(in);
 			BasicReader reader = BasicReader.wrap(in).normalizeLineEndings();
 			CsvReader csv = new CsvReader(reader, false, false, false, ' ', LF);
@@ -989,7 +1226,7 @@ public class PrismExplicitImporter extends ExplicitModelImporter
 			nextDeadlock = deadlocks.nextSetBit(0);
 		}
 		int lineNum = 0;
-		try (BufferedReader in = new BufferedReader(new FileReader(transFile))) {
+		try (BufferedReader in = transFile.openBuffered()) {
 			lineNum += skipCommentAndFirstLine(in);
 			BasicReader reader = BasicReader.wrap(in).normalizeLineEndings();
 			CsvReader csv = new CsvReader(reader, false, false, false, ' ', LF);
@@ -1035,7 +1272,7 @@ public class PrismExplicitImporter extends ExplicitModelImporter
 			nextDeadlock = deadlocks.nextSetBit(0);
 		}
 		int lineNum = 0;
-		try (BufferedReader in = new BufferedReader(new FileReader(transFile))) {
+		try (BufferedReader in = transFile.openBuffered()) {
 			lineNum += skipCommentAndFirstLine(in);
 			BasicReader reader = BasicReader.wrap(in).normalizeLineEndings();
 			CsvReader csv = new CsvReader(reader, false, false, false, ' ', LF);
@@ -1084,7 +1321,7 @@ public class PrismExplicitImporter extends ExplicitModelImporter
 			nextDeadlock = deadlocks.nextSetBit(0);
 		}
 		int lineNum = 0;
-		try (BufferedReader in = new BufferedReader(new FileReader(transFile))) {
+		try (BufferedReader in = transFile.openBuffered()) {
 			lineNum += skipCommentAndFirstLine(in);
 			BasicReader reader = BasicReader.wrap(in).normalizeLineEndings();
 			CsvReader csv = new CsvReader(reader, false, false, false, ' ', LF);
@@ -1145,7 +1382,7 @@ public class PrismExplicitImporter extends ExplicitModelImporter
 		// Otherwise extract from .lab file
 		BitSet initialStatesLab = new BitSet();
 		int lineNum = 0;
-		try (BufferedReader in = new BufferedReader(new FileReader(labelsFile))) {
+		try (BufferedReader in = labelsFile.openBuffered()) {
 			// Skip first file (label names extracted earlier with model info)
 			lineNum += skipCommentAndFirstLine(in);
 			String st = in.readLine();
@@ -1211,7 +1448,7 @@ public class PrismExplicitImporter extends ExplicitModelImporter
 		int observations[] = new int[modelStats.numStates];
 		Arrays.fill(observations, -1);
 		int lineNum = 0;
-		try (BufferedReader in = new BufferedReader(new FileReader(transFile))) {
+		try (BufferedReader in = transFile.openBuffered()) {
 			lineNum += skipCommentAndFirstLine(in);
 			BasicReader reader = BasicReader.wrap(in).normalizeLineEndings();
 			CsvReader csv = new CsvReader(reader, false, false, false, ' ', LF);
@@ -1257,7 +1494,7 @@ public class PrismExplicitImporter extends ExplicitModelImporter
 		ModelType modelType = getModelInfo().getModelType();
 		int stateField = modelType.nondeterministic() ? 2 : 1;
 		int lineNum = 0;
-		try (BufferedReader in = new BufferedReader(new FileReader(transFile))) {
+		try (BufferedReader in = transFile.openBuffered()) {
 			lineNum += skipCommentAndFirstLine(in);
 			BasicReader reader = BasicReader.wrap(in).normalizeLineEndings();
 			CsvReader csv = new CsvReader(reader, false, false, false, ' ', LF);
@@ -1304,7 +1541,7 @@ public class PrismExplicitImporter extends ExplicitModelImporter
 		}
 		// Otherwise extract from .lab file
 		int lineNum = 0;
-		try (BufferedReader in = new BufferedReader(new FileReader(labelsFile))) {
+		try (BufferedReader in = labelsFile.openBuffered()) {
 			// Skip first file (label names extracted earlier)
 			lineNum += skipCommentAndFirstLine(in);
 			String st = in.readLine();
@@ -1404,10 +1641,10 @@ public class PrismExplicitImporter extends ExplicitModelImporter
 
 	public class RewardFile
 	{
-		protected final File file;
+		protected final FileSection file;
 		protected final Optional<String> name;
 
-		public RewardFile(File file) throws PrismException
+		public RewardFile(FileSection file) throws PrismException
 		{
 			this.file = Objects.requireNonNull(file);
 			this.name = extractRewardStructureName(file);
@@ -1437,7 +1674,7 @@ public class PrismExplicitImporter extends ExplicitModelImporter
 		protected <Value> void extractStateRewards(BiConsumer<Integer, Value> storeReward, Evaluator<Value> eval) throws PrismException
 		{
 			int lineNum = 0;
-			try (BufferedReader in = new BufferedReader(new FileReader(file))) {
+			try (BufferedReader in = file.openBuffered()) {
 				lineNum += skipCommentAndFirstLine(in);
 				BasicReader reader = BasicReader.wrap(in).normalizeLineEndings();
 				CsvReader csv = new CsvReader(reader, false, false, false, ' ', LF);
@@ -1487,7 +1724,7 @@ public class PrismExplicitImporter extends ExplicitModelImporter
 			}
 
 			int lineNum = 0;
-			try (BufferedReader in = new BufferedReader(new FileReader(file))) {
+			try (BufferedReader in = file.openBuffered()) {
 				lineNum += skipCommentAndFirstLine(in);
 				BasicReader reader = BasicReader.wrap(in).normalizeLineEndings();
 				CsvReader csv = new CsvReader(reader, false, false, false, ' ', LF);
@@ -1552,7 +1789,7 @@ public class PrismExplicitImporter extends ExplicitModelImporter
 		protected <Value> void extractMDPTransitionRewards(IOUtils.TransitionRewardConsumer<Value> storeReward, Evaluator<Value> eval) throws PrismException
 		{
 			int lineNum = 0;
-			try (BufferedReader in = new BufferedReader(new FileReader(file))) {
+			try (BufferedReader in = file.openBuffered()) {
 				lineNum += skipCommentAndFirstLine(in);
 				BasicReader reader = BasicReader.wrap(in).normalizeLineEndings();
 				CsvReader csv = new CsvReader(reader, false, false, false, ' ', LF);
@@ -1612,11 +1849,11 @@ public class PrismExplicitImporter extends ExplicitModelImporter
 		 * @return name of the state rewards structure if present
 		 * @throws PrismException if an I/O error occurs or the name is not a unique identifier
 		 */
-		protected Optional<String> extractRewardStructureName(File rewardFile) throws PrismException
+		protected Optional<String> extractRewardStructureName(FileSection rewardFile) throws PrismException
 		{
 			int lineNum = 0;
 			Optional<String> name = Optional.empty();
-			try (BufferedReader in = new BufferedReader(new FileReader(rewardFile))) {
+			try (BufferedReader in = rewardFile.openBuffered()) {
 				for (String line = in.readLine(); line != null; line = in.readLine()) {
 					lineNum++;
 					// Process only initial comment block

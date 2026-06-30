@@ -1,0 +1,8 @@
+# Import combined explicit model file (.pexp) and re-export, checking round-trip
+
+-importmodel dice.pm.pexp -exportmodel dice.pm.pexp
+-importmodel dice.pm.pexp -exportmodel dice.pm.pexp -ex
+-importmodel dice.pm.exact.pexp -exportmodel dice.pm.exact.pexp -exact
+
+-importmodel lec3.pm.pexp -exportmodel lec3.pm.pexp
+-importmodel lec3.pm.pexp -exportmodel lec3.pm.pexp -ex

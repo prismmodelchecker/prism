@@ -1,0 +1,62 @@
+# Regression tests for the combined explicit model file format (.pexp)
+# Tests three directions for each model:
+#  (a) pexp → pexp  round-trip within the combined format
+#  (b) pexp → all   cross-format: import combined, export to individual files
+#                   (compared against existing per-entity fixture files)
+#  (c) all  → pexp  reverse cross-format: import individual files, export combined
+#                   (compared against the .pexp fixtures in this directory)
+
+# DTMC: dice (state/transition rewards, labels, states)
+
+-importmodel dice.pexp -exportmodel dice.pexp
+-importmodel dice.pexp -exportmodel dice.all
+-importmodel dice.all  -exportmodel dice.pexp
+
+# DTMC: dice (exact arithmetic)
+
+-importmodel dice.exact.pexp -exportmodel dice.exact.pexp -exact
+-importmodel dice.exact.pexp -exportmodel dice.exact.all  -exact
+-importmodel dice.exact.all  -exportmodel dice.exact.pexp -exact
+
+# DTMC: dice-deadlock (genuine deadlock states → "deadlock" label is non-empty in .pexp)
+# Note: dice-deadlock has no .sta file, so the reverse (tra,lab → pexp) is omitted
+# (it would differ in the states section: default (x) vs. the full (s,d) in the .orig-derived fixture)
+
+-importmodel dice-deadlock.pexp -exportmodel dice-deadlock.pexp
+-importmodel dice-deadlock.pexp -exportmodel dice-deadlock.tra,lab
+
+# DTMC: lec3 (three numbered reward structures embedded in a single .pexp)
+
+-importmodel lec3.pexp -exportmodel lec3.pexp
+-importmodel lec3.pexp -exportmodel lec3.all
+-importmodel lec3.all  -exportmodel lec3.pexp
+
+# MDP: robot (three named reward structures)
+
+-importmodel robot.pexp -exportmodel robot.pexp
+-importmodel robot.pexp -exportmodel robot.all
+-importmodel robot.all  -exportmodel robot.pexp
+
+# IMDP: irobot (interval probabilities)
+
+-importmodel irobot.pexp -exportmodel irobot.pexp
+-importmodel irobot.pexp -exportmodel irobot.all
+-importmodel irobot.all  -exportmodel irobot.pexp
+
+# POMDP: maze (includes # Observations section in .pexp)
+
+-importmodel maze.pexp -exportmodel maze.pexp
+-importmodel maze.pexp -exportmodel maze.all
+-importmodel maze.all  -exportmodel maze.pexp
+
+# LTS: lec9ctl1 (two numbered reward structures)
+
+-importmodel lec9ctl1.pexp -exportmodel lec9ctl1.pexp
+-importmodel lec9ctl1.pexp -exportmodel lec9ctl1.all
+-importmodel lec9ctl1.all  -exportmodel lec9ctl1.pexp
+
+# CTMC: poll2 (state rewards only)
+
+-importmodel poll2.pexp -exportmodel poll2.pexp
+-importmodel poll2.pexp -exportmodel poll2.all
+-importmodel poll2.all  -exportmodel poll2.pexp

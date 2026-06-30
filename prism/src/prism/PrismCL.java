@@ -227,12 +227,19 @@ public class PrismCL implements PrismModelListener
 		private ModelExportTask.ModelExportEntity entity;
 		private ModelExportFormat format;
 		private File file;
+		private boolean combined;
 
 		public ModelImportSource(ModelExportTask.ModelExportEntity entity, ModelExportFormat format, File file)
+		{
+			this(entity, format, file, false);
+		}
+
+		public ModelImportSource(ModelExportTask.ModelExportEntity entity, ModelExportFormat format, File file, boolean combined)
 		{
 			this.entity = entity;
 			this.format = format;
 			this.file = file;
+			this.combined = combined;
 		}
 	}
 
@@ -752,11 +759,19 @@ public class PrismCL implements PrismModelListener
 				if (!modelImportSources.stream().allMatch(s -> s.format == ModelExportFormat.EXPLICIT)) {
 					throw new PrismException("Mixed formats for model import");
 				}
-				PrismExplicitImporter importer = new PrismExplicitImporter(modelSource.file, typeOverride);
+				PrismExplicitImporter importer = new PrismExplicitImporter(typeOverride);
 				for (ModelImportSource modelImportSource : modelImportSources) {
 					switch (modelImportSource.entity) {
 						case MODEL:
-							// Skip; already handled
+							if (modelSource.combined) {
+								// Combined "explicit" model file: self-contained, so no other sources allowed
+								if (modelImportSources.size() > 1) {
+									throw new PrismException("Conflicting files provided for model import");
+								}
+								importer.addCombinedFile(modelSource.file);
+							} else {
+								importer.setTransFile(modelSource.file);
+							}
 							break;
 						case STATES:
 							if (importer.getStatesFile() != null) {
@@ -1230,7 +1245,7 @@ public class PrismCL implements PrismModelListener
 				log.println("Import the model directly from one or more file(s).");
 				log.println("Use a list of file extensions to indicate which files should be read, e.g.:");
 				log.println("\n -importmodel in.tra,sta\n");
-				log.println("Possible extensions are: .tra, .sta, .obs, .lab, .srew, .trew, .umb");
+				log.println("Possible extensions are: .tra, .sta, .obs, .lab, .srew, .trew, .pexp, .umb");
 				log.println("Use extension .all to import all explicit files (.tra/sta/obs/lab/srew/trew), e.g.:");
 				log.println("\n -importmodel in.all\n");
 				log.println("If provided, <options> is a comma-separated list of options taken from:");
@@ -1577,7 +1592,7 @@ public class PrismCL implements PrismModelListener
 		} else {
 			if (filenameArgs.size() > 0) {
 				modelFilename = filenameArgs.get(0);
-				if (modelFilename.endsWith(".all")) {
+				if (modelFilename.endsWith(".all") || modelFilename.endsWith(".pexp")) {
 					importModelSwitch.handleFilesOnly("importmodel", modelFilename);
 				}
 			}
@@ -1628,11 +1643,15 @@ public class PrismCL implements PrismModelListener
 			} else if (ext.equals("umb")) {
 				modelFilename = basename + ".umb";;
 				modelImportSources.add(new ModelImportSource(ModelExportTask.ModelExportEntity.MODEL, ModelExportFormat.UMB, new File(basename + ".umb")));
+			} else if (ext.equals("pexp")) {
+				modelFilename = basename + ".pexp";
+				addModelImport(ModelExportTask.ModelExportEntity.MODEL, modelFilename, true, true);
 			}
-			// For any other extension (including none/unknown), default to explicit (.tra)
+			// For any other extension (including none/unknown), default to "combined" explicit
+			// (of which just .tra can be considered a special case)
 			else {
 				modelFilename = basename + (ext.isEmpty() ? "" : "." + ext);
-				addModelImport(ModelExportTask.ModelExportEntity.MODEL,modelFilename, true);
+				addModelImport(ModelExportTask.ModelExportEntity.MODEL,modelFilename, true, true);
 			}
 		}
 		// Process options
@@ -1640,15 +1659,27 @@ public class PrismCL implements PrismModelListener
 	}
 
 	/**
-	 * Add a model import file to {@code modelImportSources}.
+	 * Add an "explicit" format model import file to {@code modelImportSources}.
 	 * @param entity Model entity
 	 * @param filename Model import filename
 	 * @param assumeExists If true, we add the file even if it does not exist
 	 */
 	private void addModelImport(ModelExportTask.ModelExportEntity entity, String filename, boolean assumeExists)
 	{
+		addModelImport(entity, filename, assumeExists, false);
+	}
+
+	/**
+	 * Add an "explicit" format model import file to {@code modelImportSources}.
+	 * @param entity Model entity
+	 * @param filename Model import filename
+	 * @param assumeExists If true, we add the file even if it does not exist
+	 * @param combined If true, this is a combined (.pexp) file with multiple sections
+	 */
+	private void addModelImport(ModelExportTask.ModelExportEntity entity, String filename, boolean assumeExists, boolean combined)
+	{
 		if (assumeExists || new File(filename).exists()) {
-			modelImportSources.add(new ModelImportSource(entity, ModelExportFormat.EXPLICIT, new File(filename)));
+			modelImportSources.add(new ModelImportSource(entity, ModelExportFormat.EXPLICIT, new File(filename), combined));
 		}
 	}
 
