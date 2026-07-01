@@ -1619,8 +1619,10 @@ public class StateModelChecker extends PrismComponent
 			throw new PrismNotSupportedException("Exporting state rewards in the requested format is currently not supported by the explicit engine");
 		}
 
+		// Construct rewards before opening the output file:
+		// the rewards may be read lazily from an import file which could be the same as the export target.
+		Rewards<Value> modelRewards = constructRewards(model, r, true);
 		try (PrismLog out = getPrismLogForFile(file)) {
-			Rewards<Value> modelRewards = constructRewards(model, r, true);
 			PrismExplicitExporter<Value> exporter = new PrismExplicitExporter<>(exportOptions);
 			exporter.exportStateRewards(model, modelRewards, rewardGen.getRewardStructName(r), out);
 		}
@@ -1639,8 +1641,10 @@ public class StateModelChecker extends PrismComponent
 			throw new PrismNotSupportedException("Exporting transition rewards in the requested format is currently not supported by the explicit engine");
 		}
 
+		// Construct rewards before opening the output file:
+		// the rewards may be read lazily from an import file which could be the same as the export target.
+		Rewards<Value> modelRewards = constructRewards(model, r, true);
 		try (PrismLog out = getPrismLogForFile(file)) {
-			Rewards<Value> modelRewards = constructRewards(model, r, true);
 			PrismExplicitExporter<Value> exporter = new PrismExplicitExporter<>(exportOptions);
 			exporter.exportTransRewards(model, modelRewards, rewardGen.getRewardStructName(r), out);
 		}
