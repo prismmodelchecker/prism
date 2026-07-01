@@ -87,6 +87,8 @@ public class PrismExplicitImporter extends ExplicitModelImporter
 	private List<File> stateRewardsFiles;
 	private List<File> transRewardsFiles;
 	private ModelType typeOverride;
+	// Model type extracted from the transitions file header, e.g. "# Transitions (DTMC)"
+	private ModelType typeFromHeader;
 	// Does the transitions file store initial states info?
 	private boolean transFileStoresInitialStates;
 
@@ -489,6 +491,9 @@ public class PrismExplicitImporter extends ExplicitModelImporter
 						throw new PrismException("Reward structure header at line " + headerLine
 								+ " of \"" + pexpFile + "\" not followed by \"# State rewards\" or \"# Transition rewards\"");
 					}
+				} else if (line.startsWith("#") && isHeaderLike(line)) {
+					throw new PrismException("Unexpected header at line " + lineNum
+							+ " of \"" + pexpFile + "\": \"" + line + "\"");
 				}
 				// else: ordinary data line - ignore during this scan
 			}
@@ -690,9 +695,15 @@ public class PrismExplicitImporter extends ExplicitModelImporter
 			buildModelStats();
 		}
 
-		// Set model type: if no preference stated, try to autodetect
+		// Set model type: prefer user override, then type from file header, then autodetect
 		ModelType modelType;
-		if (typeOverride == null) {
+		if (typeOverride != null) {
+			modelTypeString = typeOverride + " (user-specified)";
+			modelType = typeOverride;
+		} else if (typeFromHeader != null) {
+			modelTypeString = typeFromHeader + " (from file header)";
+			modelType = typeFromHeader;
+		} else {
 			ModelType typeAutodetect = autodetectModelType(transFile);
 			if (typeAutodetect != null) {
 				modelTypeString = typeAutodetect + " (auto-detected)";
@@ -701,9 +712,6 @@ public class PrismExplicitImporter extends ExplicitModelImporter
 				modelTypeString = typeAutodetect + " (default)";
 			}
 			modelType = typeAutodetect;
-		} else {
-			modelTypeString = typeOverride + " (user-specified)";
-			modelType = typeOverride;
 		}
 
 		// Store model info
@@ -764,12 +772,19 @@ public class PrismExplicitImporter extends ExplicitModelImporter
 		String entityString = (entity == ModelExportTask.ModelExportEntity.STATES) ? "state" : "observation";
 		// open file for reading, automatic close when done
 		int lineNum = 0;
+		String expectedHeader = (entity == ModelExportTask.ModelExportEntity.STATES) ? "# States" : "# Observations";
 		try (BufferedReader in = file.openBuffered()) {
 			// read first non-comment line and extract var names
 			String s;
 			do {
 				s = in.readLine();
 				lineNum++;
+				if (s != null && COMMENT_PATTERN.matcher(s).matches() && isHeaderLike(s)) {
+					if (!s.startsWith(expectedHeader)) {
+						throw new PrismException("File does not appear to be a " + entityString + "s file"
+								+ " (unexpected header: \"" + s + "\")");
+					}
+				}
 			} while (s != null && COMMENT_PATTERN.matcher(s).matches());
 			if (s == null)
 				throw new PrismException("empty " + entityString + "s file");
@@ -788,9 +803,9 @@ public class PrismExplicitImporter extends ExplicitModelImporter
 			lineNum++;
 			int counter = 0;
 			while (s != null) {
-				// skip blank lines
+				// skip blank/commented lines
 				s = s.trim();
-				if (s.length() > 0) {
+				if (s.length() > 0 && !s.startsWith("#")) {
 					counter++;
 					// split string
 					s = s.substring(s.indexOf('(') + 1, s.indexOf(')'));
@@ -870,6 +885,20 @@ public class PrismExplicitImporter extends ExplicitModelImporter
 			}
 			String[] record = csv.nextRecord();
 			while (record.length > 0 && record[0].startsWith("#")) {
+				String headerLine = String.join(" ", record);
+				if (isHeaderLike(headerLine)) {
+					if (!headerLine.startsWith("# Transitions")) {
+						throw new PrismException("File does not appear to be a transitions file"
+								+ " (unexpected header: \"" + headerLine + "\")");
+					}
+				}
+				if (headerLine.startsWith("# Transitions (") && headerLine.endsWith(")")) {
+					String typeName = headerLine.substring("# Transitions (".length(), headerLine.length() - 1);
+					typeFromHeader = ModelType.parseName(typeName);
+					if (typeFromHeader == null) {
+						throw new PrismException("Unrecognised model type \"" + typeName + "\" in transitions file header");
+					}
+				}
 				if (!csv.hasNextRecord()) {
 					throw new PrismException("empty transitions file");
 				}
@@ -928,6 +957,12 @@ public class PrismExplicitImporter extends ExplicitModelImporter
 			do {
 				labelsString = in.readLine();
 				lineNum++;
+				if (labelsString != null && COMMENT_PATTERN.matcher(labelsString).matches() && isHeaderLike(labelsString)) {
+					if (!labelsString.startsWith("# Labels")) {
+						throw new PrismException("File does not appear to be a labels file"
+								+ " (unexpected header: \"" + labelsString + "\")");
+					}
+				}
 			} while (labelsString != null && COMMENT_PATTERN.matcher(labelsString).matches());
 			Pattern label = Pattern.compile("(\\d+)=\"([^\"]+)\"\\s*");
 			Matcher matcher = label.matcher(labelsString);
@@ -1017,8 +1052,8 @@ public class PrismExplicitImporter extends ExplicitModelImporter
 				if (lines > max) {
 					break;
 				}
-				// Skip blank lines or initial states lines
-				if ("".equals(record[0]) || "-".equals(record[0])) {
+				// Skip blank/commented lines or initial states lines
+				if ("".equals(record[0]) || record[0].startsWith("#") || "-".equals(record[0])) {
 					continue;
 				}
 				lines++;
@@ -1079,13 +1114,13 @@ public class PrismExplicitImporter extends ExplicitModelImporter
 		BitSet statesWithTransitions = new BitSet();
 		int lineNum = 0;
 		try (BufferedReader in = transFile.openBuffered()) {
-			lineNum += skipCommentAndFirstLine(in);
+			lineNum += skipAndValidateHeader(in, "# Transitions", "transitions file");
 			BasicReader reader = BasicReader.wrap(in).normalizeLineEndings();
 			CsvReader csv = new CsvReader(reader, false, false, false, ' ', LF);
 			for (String[] record : csv) {
 				lineNum++;
-				// Skip blank lines or initial states lines
-				if ("".equals(record[0]) || "-".equals(record[0])) {
+				// Skip blank/commented lines or initial states lines
+				if ("".equals(record[0]) || record[0].startsWith("#") || "-".equals(record[0])) {
 					continue;
 				}
 				// Lines should be 3-6 long (LTS/MDP/POMDP with/without actions)
@@ -1119,7 +1154,7 @@ public class PrismExplicitImporter extends ExplicitModelImporter
 			return;
 		}
 		// Otherwise extract from .sta file
-		extractStateDefinitions(statesFile, getModelInfo().getNumVars(), storeStateDefn);
+		extractStateDefinitions(statesFile, getModelInfo().getNumVars(), storeStateDefn, "# States");
 	}
 
 	@Override
@@ -1131,7 +1166,7 @@ public class PrismExplicitImporter extends ExplicitModelImporter
 			return;
 		}
 		// Otherwise extract from .obs file
-		extractStateDefinitions(observationsFile, getModelInfo().getNumObservables(), storeObservationDefn);
+		extractStateDefinitions(observationsFile, getModelInfo().getNumObservables(), storeObservationDefn, "# Observations");
 	}
 
 	/**
@@ -1141,16 +1176,16 @@ public class PrismExplicitImporter extends ExplicitModelImporter
 	 * @param numVars Number of variables/observables
 	 * @param storeStateDefn Consumer to store state/observation definitions
 	 */
-	private void extractStateDefinitions(FileSection file, int numVars, IOUtils.StateDefnConsumer storeStateDefn) throws PrismException
+	private void extractStateDefinitions(FileSection file, int numVars, IOUtils.StateDefnConsumer storeStateDefn, String expectedHeader) throws PrismException
 	{
 		int lineNum = 0;
 		try (BufferedReader in = file.openBuffered()) {
-			lineNum += skipCommentAndFirstLine(in);
+			lineNum += skipAndValidateHeader(in, expectedHeader, expectedHeader.replace("# ", "") + " file");
 			String st = in.readLine();
 			lineNum++;
 			while (st != null) {
 				st = st.trim();
-				if (!st.isEmpty()) {
+				if (!st.isEmpty() && !st.startsWith("#")) {
 					// Split into two parts
 					String[] ss = st.split(":");
 					// Determine which state this line describes
@@ -1188,13 +1223,13 @@ public class PrismExplicitImporter extends ExplicitModelImporter
 		int lineNum = 0;
 		int maxNumChoices = 0;
 		try (BufferedReader in = transFile.openBuffered()) {
-			lineNum += skipCommentAndFirstLine(in);
+			lineNum += skipAndValidateHeader(in, "# Transitions", "transitions file");
 			BasicReader reader = BasicReader.wrap(in).normalizeLineEndings();
 			CsvReader csv = new CsvReader(reader, false, false, false, ' ', LF);
 			for (String[] record : csv) {
 				lineNum++;
-				// Skip blank lines or initial states lines
-				if ("".equals(record[0]) || "-".equals(record[0])) {
+				// Skip blank/commented lines or initial states lines
+				if ("".equals(record[0]) || record[0].startsWith("#") || "-".equals(record[0])) {
 					continue;
 				}
 				// Lines should be 3-5 long (LTS/MDP/POMDP with/without actions)
@@ -1227,13 +1262,13 @@ public class PrismExplicitImporter extends ExplicitModelImporter
 		}
 		int lineNum = 0;
 		try (BufferedReader in = transFile.openBuffered()) {
-			lineNum += skipCommentAndFirstLine(in);
+			lineNum += skipAndValidateHeader(in, "# Transitions", "transitions file");
 			BasicReader reader = BasicReader.wrap(in).normalizeLineEndings();
 			CsvReader csv = new CsvReader(reader, false, false, false, ' ', LF);
 			for (String[] record : csv) {
 				lineNum++;
-				// Skip blank lines or initial states lines
-				if ("".equals(record[0]) || "-".equals(record[0])) {
+				// Skip blank/commented lines or initial states lines
+				if ("".equals(record[0]) || record[0].startsWith("#") || "-".equals(record[0])) {
 					continue;
 				}
 				checkLineSize(record, 3, 4);
@@ -1273,13 +1308,13 @@ public class PrismExplicitImporter extends ExplicitModelImporter
 		}
 		int lineNum = 0;
 		try (BufferedReader in = transFile.openBuffered()) {
-			lineNum += skipCommentAndFirstLine(in);
+			lineNum += skipAndValidateHeader(in, "# Transitions", "transitions file");
 			BasicReader reader = BasicReader.wrap(in).normalizeLineEndings();
 			CsvReader csv = new CsvReader(reader, false, false, false, ' ', LF);
 			for (String[] record : csv) {
 				lineNum++;
-				// Skip blank lines or initial states lines
-				if ("".equals(record[0]) || "-".equals(record[0])) {
+				// Skip blank/commented lines or initial states lines
+				if ("".equals(record[0]) || record[0].startsWith("#") || "-".equals(record[0])) {
 					continue;
 				}
 				// Lines should be 4-6 long (MDP/POMDP with/without actions)
@@ -1322,13 +1357,13 @@ public class PrismExplicitImporter extends ExplicitModelImporter
 		}
 		int lineNum = 0;
 		try (BufferedReader in = transFile.openBuffered()) {
-			lineNum += skipCommentAndFirstLine(in);
+			lineNum += skipAndValidateHeader(in, "# Transitions", "transitions file");
 			BasicReader reader = BasicReader.wrap(in).normalizeLineEndings();
 			CsvReader csv = new CsvReader(reader, false, false, false, ' ', LF);
 			for (String[] record : csv) {
 				lineNum++;
-				// Skip blank lines or initial states lines
-				if ("".equals(record[0]) || "-".equals(record[0])) {
+				// Skip blank/commented lines or initial states lines
+				if ("".equals(record[0]) || record[0].startsWith("#") || "-".equals(record[0])) {
 					continue;
 				}
 				checkLineSize(record, 3, 4);
@@ -1384,12 +1419,12 @@ public class PrismExplicitImporter extends ExplicitModelImporter
 		int lineNum = 0;
 		try (BufferedReader in = labelsFile.openBuffered()) {
 			// Skip first file (label names extracted earlier with model info)
-			lineNum += skipCommentAndFirstLine(in);
+			lineNum += skipAndValidateHeader(in, "# Labels", "labels file");
 			String st = in.readLine();
 			while (st != null) {
-				// Skip blank lines
+				// Skip blank/commented lines
 				st = st.trim();
-				if (!st.isEmpty()) {
+				if (!st.isEmpty() && !st.startsWith("#")) {
 					// Split line
 					String[] ss = st.split(":");
 					int s = checkStateIndex(Integer.parseInt(ss[0].trim()), modelStats.numStates);
@@ -1449,13 +1484,13 @@ public class PrismExplicitImporter extends ExplicitModelImporter
 		Arrays.fill(observations, -1);
 		int lineNum = 0;
 		try (BufferedReader in = transFile.openBuffered()) {
-			lineNum += skipCommentAndFirstLine(in);
+			lineNum += skipAndValidateHeader(in, "# Transitions", "transitions file");
 			BasicReader reader = BasicReader.wrap(in).normalizeLineEndings();
 			CsvReader csv = new CsvReader(reader, false, false, false, ' ', LF);
 			for (String[] record : csv) {
 				lineNum++;
-				if ("".equals(record[0])) {
-					// Skip blank lines
+				if ("".equals(record[0]) || record[0].startsWith("#")) {
+					// Skip blank/commented lines
 					continue;
 				}
 				// Lines should be 5-6 long (POMDP with/without actions)
@@ -1495,13 +1530,13 @@ public class PrismExplicitImporter extends ExplicitModelImporter
 		int stateField = modelType.nondeterministic() ? 2 : 1;
 		int lineNum = 0;
 		try (BufferedReader in = transFile.openBuffered()) {
-			lineNum += skipCommentAndFirstLine(in);
+			lineNum += skipAndValidateHeader(in, "# Transitions", "transitions file");
 			BasicReader reader = BasicReader.wrap(in).normalizeLineEndings();
 			CsvReader csv = new CsvReader(reader, false, false, false, ' ', LF);
 			for (String[] record : csv) {
 				lineNum++;
-				// Skip blank lines
-				if ("".equals(record[0])) {
+				// Skip blank/commented lines
+				if ("".equals(record[0]) || record[0].startsWith("#")) {
 					continue;
 				}
 				checkLineSize(record, 3, 6);
@@ -1543,12 +1578,12 @@ public class PrismExplicitImporter extends ExplicitModelImporter
 		int lineNum = 0;
 		try (BufferedReader in = labelsFile.openBuffered()) {
 			// Skip first file (label names extracted earlier)
-			lineNum += skipCommentAndFirstLine(in);
+			lineNum += skipAndValidateHeader(in, "# Labels", "labels file");
 			String st = in.readLine();
 			while (st != null) {
-				// Skip blank lines
+				// Skip blank/commented lines
 				st = st.trim();
-				if (!st.isEmpty()) {
+				if (!st.isEmpty() && !st.startsWith("#")) {
 					// Split line
 					String[] ss = st.split(":");
 					int s = checkStateIndex(Integer.parseInt(ss[0].trim()));
@@ -1675,13 +1710,13 @@ public class PrismExplicitImporter extends ExplicitModelImporter
 		{
 			int lineNum = 0;
 			try (BufferedReader in = file.openBuffered()) {
-				lineNum += skipCommentAndFirstLine(in);
+				lineNum += skipAndValidateRewardKindHeader(in, "# State rewards", "state rewards file");
 				BasicReader reader = BasicReader.wrap(in).normalizeLineEndings();
 				CsvReader csv = new CsvReader(reader, false, false, false, ' ', LF);
 				for (String[] record : csv) {
 					lineNum++;
-					if ("".equals(record[0])) {
-						// Skip blank lines
+					if ("".equals(record[0]) || record[0].startsWith("#")) {
+						// Skip blank/commented lines
 						continue;
 					}
 					checkLineSize(record, 2, 2);
@@ -1725,13 +1760,13 @@ public class PrismExplicitImporter extends ExplicitModelImporter
 
 			int lineNum = 0;
 			try (BufferedReader in = file.openBuffered()) {
-				lineNum += skipCommentAndFirstLine(in);
+				lineNum += skipAndValidateRewardKindHeader(in, "# Transition rewards", "transition rewards file");
 				BasicReader reader = BasicReader.wrap(in).normalizeLineEndings();
 				CsvReader csv = new CsvReader(reader, false, false, false, ' ', LF);
 				for (String[] record : csv) {
 					lineNum++;
-					if ("".equals(record[0])) {
-						// Skip blank lines
+					if ("".equals(record[0]) || record[0].startsWith("#")) {
+						// Skip blank/commented lines
 						continue;
 					}
 					checkLineSize(record, 3, 3);
@@ -1790,7 +1825,7 @@ public class PrismExplicitImporter extends ExplicitModelImporter
 		{
 			int lineNum = 0;
 			try (BufferedReader in = file.openBuffered()) {
-				lineNum += skipCommentAndFirstLine(in);
+				lineNum += skipAndValidateRewardKindHeader(in, "# Transition rewards", "transition rewards file");
 				BasicReader reader = BasicReader.wrap(in).normalizeLineEndings();
 				CsvReader csv = new CsvReader(reader, false, false, false, ' ', LF);
 				int count = 0;
@@ -1799,8 +1834,8 @@ public class PrismExplicitImporter extends ExplicitModelImporter
 				Value vLast = null;
 				for (String[] record : csv) {
 					lineNum++;
-					if ("".equals(record[0])) {
-						// Skip blank lines
+					if ("".equals(record[0]) || record[0].startsWith("#")) {
+						// Skip blank/commented lines
 						continue;
 					}
 					checkLineSize(record, 4, 4);
@@ -1894,6 +1929,74 @@ public class PrismExplicitImporter extends ExplicitModelImporter
 		do {
 			line = in.readLine();
 			lineNum++;
+		} while (line != null && COMMENT_PATTERN.matcher(line).matches());
+		return lineNum;
+	}
+
+	/**
+	 * Returns true if {@code line} looks like a section header that was meant to be
+	 * recognised by the importer — specifically, a {@code #} comment whose text after
+	 * the space consists only of letters and parentheses (no numbers, punctuation or
+	 * embedded spaces). This matches single-word headers such as {@code # States} or
+	 * a typo like {@code # State}, while leaving ordinary commented-out data lines
+	 * (e.g. {@code # 3 5 0.5}) and multi-word comments silently ignored.
+	 */
+	private static boolean isHeaderLike(String line)
+	{
+		return line.matches("# [A-Za-z()]+ *");
+	}
+
+	/**
+	 * Like {@link #skipCommentAndFirstLine(BufferedReader)}, but validates any comment
+	 * line that {@link #isHeaderLike looks like a section header}: it must start with
+	 * {@code expectedPrefix}. Plain commented-out data lines are skipped without
+	 * validation.
+	 */
+	protected static int skipAndValidateHeader(BufferedReader in, String expectedPrefix, String fileDescription)
+			throws IOException, PrismException
+	{
+		int lineNum = 0;
+		String line;
+		do {
+			line = in.readLine();
+			lineNum++;
+			if (line != null && COMMENT_PATTERN.matcher(line).matches() && isHeaderLike(line)) {
+				if (!line.startsWith(expectedPrefix)) {
+					throw new PrismException("File does not appear to be a " + fileDescription
+							+ " (unexpected header: \"" + line + "\")");
+				}
+			}
+		} while (line != null && COMMENT_PATTERN.matcher(line).matches());
+		return lineNum;
+	}
+
+	/**
+	 * Like {@link #skipCommentAndFirstLine(BufferedReader)}, but validates the reward
+	 * section header: any comment line that {@link #isHeaderLike looks like a section
+	 * header} is checked — the first such line must start with {@code "# Reward structure"}
+	 * and the second must start with {@code kindPrefix}
+	 * (either {@code "# State rewards"} or {@code "# Transition rewards"}).
+	 */
+	protected static int skipAndValidateRewardKindHeader(BufferedReader in, String kindPrefix, String fileDescription)
+			throws IOException, PrismException
+	{
+		int lineNum = 0;
+		int commentCount = 0;
+		String line;
+		do {
+			line = in.readLine();
+			lineNum++;
+			if (line != null && COMMENT_PATTERN.matcher(line).matches() && isHeaderLike(line)) {
+				commentCount++;
+				if (commentCount == 1 && !line.startsWith("# Reward structure")) {
+					throw new PrismException("File does not appear to be a " + fileDescription
+							+ " (unexpected header: \"" + line + "\")");
+				}
+				if (commentCount == 2 && !line.startsWith(kindPrefix)) {
+					throw new PrismException("File does not appear to be a " + fileDescription
+							+ " (expected \"" + kindPrefix + "\", got: \"" + line + "\")");
+				}
+			}
 		} while (line != null && COMMENT_PATTERN.matcher(line).matches());
 		return lineNum;
 	}
