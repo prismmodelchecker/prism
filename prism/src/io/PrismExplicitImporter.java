@@ -28,7 +28,6 @@ package io;
 
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileReader;
 import java.io.IOException;
 import java.io.Reader;
 import java.util.ArrayList;
@@ -166,7 +165,7 @@ public class PrismExplicitImporter extends ExplicitModelImporter
 		 */
 		BufferedReader openBuffered() throws IOException
 		{
-			BufferedReader raw = new BufferedReader(new FileReader(file));
+			BufferedReader raw = ModelImportUnzipper.openBuffered(file);
 			for (int i = 1; i < startLine; i++) {
 				if (raw.readLine() == null) {
 					break;
@@ -463,7 +462,7 @@ public class PrismExplicitImporter extends ExplicitModelImporter
 	{
 		List<Header> headers = new ArrayList<>();
 		int lineNum = 0;
-		try (BufferedReader in = new BufferedReader(new FileReader(pexpFile))) {
+		try (BufferedReader in = ModelImportUnzipper.openBuffered(pexpFile)) {
 			String line;
 			while ((line = in.readLine()) != null) {
 				lineNum++;

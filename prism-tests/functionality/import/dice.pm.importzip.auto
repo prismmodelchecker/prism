@@ -1,0 +1,15 @@
+# Import from zipped explicit files (detected from the filename extension only,
+# never via an explicit option), then re-export unzipped and check the result
+# matches the original (unzipped) files.
+
+-importmodel dice.all.gz -exportmodel dice.all -ex
+-importmodel dice.all.gz -exportmodel dice.all -h
+-importmodel dice.all.gz -exportmodel dice.all -s
+
+# Combined explicit format (.pexp), compressed with xz
+
+-importmodel dice.pexp.xz -exportmodel dice.all -ex
+
+# Partial import via individual switches (-importtrans/-importlabels), gzipped
+
+-importtrans dice.tra.gz -importlabels dice.lab.gz -exportmodel dice.tra,lab
