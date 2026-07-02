@@ -84,7 +84,7 @@ public class GUIMultiModel extends GUIPlugin implements PrismSettingsListener
 	private AbstractAction newPEPAModel, loadModel, reloadModel, saveModel, saveAsModel, parseModel, buildModel;
 	private AbstractAction exportStatesPlain, exportStatesMatlab,
 			exportTransPlain, exportTransMatlab, exportTransDot, exportTransUMB, exportObsPlain, exportObsMatlab, exportStateRewardsPlain, exportStateRewardsMatlab,
-			exportTransRewardsPlain, exportTransRewardsMatlab, exportLabelsPlain, exportLabelsMatlab,
+			exportTransRewardsPlain, exportTransRewardsMatlab, exportLabelsPlain, exportLabelsMatlab, exportWholeModelPlain,
 			exportSSPlain, exportSSMatlab, exportTrPlain, exportTrMatlab;
 	private JPopupMenu popup;
 	//Contents
@@ -94,6 +94,7 @@ public class GUIMultiModel extends GUIPlugin implements PrismSettingsListener
 	private Map<String,FileFilter> traFilters;
 	private Map<String,FileFilter> obsFilters;
 	private Map<String,FileFilter> labFilters;
+	private Map<String,FileFilter> pexpFilters;
 	private FileFilter textFilter;
 	private FileFilter matlabFilter;
 	private FileFilter dotFilter;
@@ -200,6 +201,7 @@ public class GUIMultiModel extends GUIPlugin implements PrismSettingsListener
 		exportTransRewardsMatlab.setEnabled(!computing);
 		exportLabelsPlain.setEnabled(!computing);
 		exportLabelsMatlab.setEnabled(!computing);
+		exportWholeModelPlain.setEnabled(!computing);
 	}
 
 	public int doModificationCheck()
@@ -359,10 +361,15 @@ public class GUIMultiModel extends GUIPlugin implements PrismSettingsListener
 
 	protected void a_exportBuildAs(ModelExportEntity exportEntity, ModelExportFormat exportFormat)
 	{
+		a_exportBuildAs(exportEntity, new ModelExportOptions(exportFormat));
+	}
+
+	protected void a_exportBuildAs(ModelExportEntity exportEntity, ModelExportOptions exportOptions)
+	{
 		int res = JFileChooser.CANCEL_OPTION;
 
 		// pop up dialog to select file
-		switch (exportFormat) {
+		switch (exportOptions.getFormat()) {
 			case DOT:
 				res = showSaveFileDialog(dotFilter);
 				break;
@@ -394,10 +401,23 @@ public class GUIMultiModel extends GUIPlugin implements PrismSettingsListener
 		if (res != JFileChooser.APPROVE_OPTION) {
 			return;
 		}
-		// Reset warnings counter 
+		// Reset warnings counter
 		getPrism().getMainLog().resetNumberOfWarnings();
 		// Do export...
-		handler.export(new ModelExportTask(exportEntity, getChooserFile(), new ModelExportOptions(exportFormat)));
+		handler.export(new ModelExportTask(exportEntity, getChooserFile(), exportOptions));
+	}
+
+	protected void a_exportWholeModelBuildAs()
+	{
+		// Pop up dialog to select file
+		int res = showSaveFileDialog(pexpFilters.values(), pexpFilters.get("pexp"));
+		if (res != JFileChooser.APPROVE_OPTION) {
+			return;
+		}
+		// Reset warnings counter
+		getPrism().getMainLog().resetNumberOfWarnings();
+		// Do export... (combined explicit format: transitions plus states/labels/rewards/observations)
+		handler.export(new ModelExportTask(ModelExportEntity.MODEL, getChooserFile(), new ModelExportOptions(ModelExportFormat.EXPLICIT)));
 	}
 
 	protected void a_viewBuild(ModelExportEntity exportEntity, ModelExportFormat exportFormat)
@@ -654,7 +674,9 @@ public class GUIMultiModel extends GUIPlugin implements PrismSettingsListener
 		{
 			public void actionPerformed(ActionEvent e)
 			{
-				a_exportBuildAs(ModelExportEntity.MODEL, ModelExportFormat.EXPLICIT);
+				// Just the transition matrix, not the other parts of the model
+				// (cf. the "Whole model" export, and the ".tra" case in ModelExportTask.fromFilename)
+				a_exportBuildAs(ModelExportEntity.MODEL, new ModelExportOptions(ModelExportFormat.EXPLICIT).setTransitionsOnly());
 			}
 		};
 		exportTransPlain.putValue(Action.LONG_DESCRIPTION, "Exports the transition matrix to a plain text file");
@@ -666,7 +688,8 @@ public class GUIMultiModel extends GUIPlugin implements PrismSettingsListener
 		{
 			public void actionPerformed(ActionEvent e)
 			{
-				a_exportBuildAs(ModelExportEntity.MODEL, ModelExportFormat.MATLAB);
+				// Just the transition matrix, not the other parts of the model (see exportTransPlain)
+				a_exportBuildAs(ModelExportEntity.MODEL, new ModelExportOptions(ModelExportFormat.MATLAB).setTransitionsOnly());
 			}
 		};
 		exportTransMatlab.putValue(Action.LONG_DESCRIPTION, "Exports the transition matrix to a Matlab file");
@@ -793,6 +816,18 @@ public class GUIMultiModel extends GUIPlugin implements PrismSettingsListener
 		exportLabelsMatlab.putValue(Action.MNEMONIC_KEY, Integer.valueOf(KeyEvent.VK_L));
 		exportLabelsMatlab.putValue(Action.NAME, "Labels");
 		exportLabelsMatlab.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallStates.png"));
+
+		exportWholeModelPlain = new AbstractAction()
+		{
+			public void actionPerformed(ActionEvent e)
+			{
+				a_exportWholeModelBuildAs();
+			}
+		};
+		exportWholeModelPlain.putValue(Action.LONG_DESCRIPTION, "Exports the whole model (transitions, states, labels and rewards) to a single combined plain text file");
+		exportWholeModelPlain.putValue(Action.MNEMONIC_KEY, Integer.valueOf(KeyEvent.VK_W));
+		exportWholeModelPlain.putValue(Action.NAME, "Whole model");
+		exportWholeModelPlain.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallFileText.png"));
 
 		computeSS = new AbstractAction()
 		{
@@ -1059,6 +1094,8 @@ public class GUIMultiModel extends GUIPlugin implements PrismSettingsListener
 		exportPlainMenu.add(exportLabelsPlain);
 		exportPlainMenu.add(exportStatesPlain);
 		exportPlainMenu.add(exportObsPlain);
+		exportPlainMenu.add(new JSeparator());
+		exportPlainMenu.add(exportWholeModelPlain);
 		exportMenu.add(exportPlainMenu);
 		exportMenu.add(exportTransDot);
 		exportMenu.add(exportTransUMB);
@@ -1197,6 +1234,9 @@ public class GUIMultiModel extends GUIPlugin implements PrismSettingsListener
 		labFilters = new HashMap<String,FileFilter>();
 		labFilters.put("lab", new FileNameExtensionFilter("Label files (*.lab)", "lab"));
 		labFilters.put("txt", new FileNameExtensionFilter("Plain text files (*.txt)", "txt"));
+		pexpFilters = new HashMap<String,FileFilter>();
+		pexpFilters.put("pexp", new FileNameExtensionFilter("Combined explicit model files (*.pexp)", "pexp"));
+		pexpFilters.put("txt", new FileNameExtensionFilter("Plain text files (*.txt)", "txt"));
 		textFilter =  new FileNameExtensionFilter("Plain text files (*.txt)", "txt");
 		matlabFilter = new FileNameExtensionFilter("Matlab files (*.m)", "m");
 		dotFilter = new FileNameExtensionFilter("Dot files (*.dot)", "dot");
