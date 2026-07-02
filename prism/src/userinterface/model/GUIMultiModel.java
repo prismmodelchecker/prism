@@ -773,7 +773,7 @@ public class GUIMultiModel extends GUIPlugin implements PrismSettingsListener
 		{
 			public void actionPerformed(ActionEvent e)
 			{
-				a_exportBuildAs(ModelExportEntity.STATE_REWARDS, ModelExportFormat.EXPLICIT);
+				a_exportBuildAs(ModelExportEntity.TRANSITION_REWARDS, ModelExportFormat.EXPLICIT);
 			}
 		};
 		exportTransRewardsPlain.putValue(Action.LONG_DESCRIPTION, "Exports the transition rewards matrix to a plain text file");
@@ -1240,7 +1240,7 @@ public class GUIMultiModel extends GUIPlugin implements PrismSettingsListener
 		textFilter =  new FileNameExtensionFilter("Plain text files (*.txt)", "txt");
 		matlabFilter = new FileNameExtensionFilter("Matlab files (*.m)", "m");
 		dotFilter = new FileNameExtensionFilter("Dot files (*.dot)", "dot");
-		umbFilter = new FileNameExtensionFilter("UMB files (*.umb)", "dot");
+		umbFilter = new FileNameExtensionFilter("UMB files (*.umb)", "umb");
 
 		setLayout(new BorderLayout());
 		add(topPanel, BorderLayout.CENTER);
