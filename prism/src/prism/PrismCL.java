@@ -1377,17 +1377,33 @@ public class PrismCL implements PrismModelListener
 		OptionParser exportRewardsOptionsParser = exportTaskOptionsParser();
 		registry.addSwitch("exportrewards", (sw, a) -> {
 			String[] file1 = StringPlusOptionsSwitch.splitFilesAndOptions(a.next(sw));
+			String[] zip1 = detectAndStripZipExtension(file1[0]);
+			if (zip1 != null) {
+				file1[0] = zip1[0];
+			}
 			pendingExportOptions = new ModelExportOptions();
 			exportRewardsOptionsParser.parse(file1[1], sw);
 			ModelExportTask stateRewardsTask = new ModelExportTask(ModelExportTask.ModelExportEntity.STATE_REWARDS, file1[0]);
 			stateRewardsTask.getExportOptions().apply(pendingExportOptions);
+			if (zip1 != null) {
+				stateRewardsTask.getExportOptions().setZipped(true).setCompressionFormat(ModelExportOptions.CompressionFormat.fromExtension(zip1[1]).get());
+				stateRewardsTask.setZipFileExtension(zip1[1]);
+			}
 			modelExportTasks.add(stateRewardsTask);
 
 			String[] file2 = StringPlusOptionsSwitch.splitFilesAndOptions(a.next(sw));
+			String[] zip2 = detectAndStripZipExtension(file2[0]);
+			if (zip2 != null) {
+				file2[0] = zip2[0];
+			}
 			pendingExportOptions = new ModelExportOptions();
 			exportRewardsOptionsParser.parse(file2[1], sw);
 			ModelExportTask transRewardsTask = new ModelExportTask(ModelExportTask.ModelExportEntity.TRANSITION_REWARDS, file2[0]);
 			transRewardsTask.getExportOptions().apply(pendingExportOptions);
+			if (zip2 != null) {
+				transRewardsTask.getExportOptions().setZipped(true).setCompressionFormat(ModelExportOptions.CompressionFormat.fromExtension(zip2[1]).get());
+				transRewardsTask.setZipFileExtension(zip2[1]);
+			}
 			modelExportTasks.add(transRewardsTask);
 		}, "<file1[:<options>]> <file2[:<options>]>", "Export state/transition rewards to files 1/2",
 			log -> {
@@ -1785,15 +1801,27 @@ public class PrismCL implements PrismModelListener
 		OptionParser parser = exportTaskOptionsParser();
 		extraOptions.accept(parser);
 		return new StringPlusOptionsSwitch(parser, (file, parse) -> {
+			// Detect/strip a trailing zip extension (e.g. "out.tra.gz" -> "out.tra" + zip=gz)
+			String[] zip = detectAndStripZipExtension(file);
+			if (zip != null) {
+				file = zip[0];
+			}
 			pendingExportOptions = new ModelExportOptions();
 			if (entity == ModelExportTask.ModelExportEntity.MODEL) {
 				// Just the transition matrix, not the other parts of the model
 				// (cf. the ".tra" case in ModelExportTask.fromFilename, used by -exportmodel)
 				pendingExportOptions.setTransitionsOnly();
 			}
+			// Default to zipping if detected from the filename (an explicit "zip" option below can still override this)
+			if (zip != null) {
+				pendingExportOptions.setZipped(true).setCompressionFormat(ModelExportOptions.CompressionFormat.fromExtension(zip[1]).get());
+			}
 			parse.run();
 			ModelExportTask task = new ModelExportTask(entity, file);
 			task.getExportOptions().apply(pendingExportOptions);
+			if (zip != null) {
+				task.setZipFileExtension(zip[1]);
+			}
 			postProcess.accept(task);
 			modelExportTasks.add(task);
 		});
@@ -1807,6 +1835,12 @@ public class PrismCL implements PrismModelListener
 	 */
 	private void processExportModelSwitch(String filesString, StringPlusOptionsSwitch.ParseCallback parse) throws PrismException
 	{
+		// Detect/strip a trailing zip extension (e.g. "out.tra.gz" -> "out.tra" + zip=gz),
+		// to be applied below to all export tasks generated from the (remaining) extension(s)
+		String[] zip = detectAndStripZipExtension(filesString);
+		if (zip != null) {
+			filesString = zip[0];
+		}
 		// Split files into basename/extensions
 		int i = filesString.lastIndexOf('.');
 		String basename = i == -1 ? filesString : filesString.substring(0, i);
@@ -1834,14 +1868,38 @@ public class PrismCL implements PrismModelListener
 		}
 		// Process options
 		pendingExportOptions = new ModelExportOptions();
+		// Default to zipping if detected from the filename (an explicit "zip" option below can still override this)
+		if (zip != null) {
+			pendingExportOptions.setZipped(true).setCompressionFormat(ModelExportOptions.CompressionFormat.fromExtension(zip[1]).get());
+		}
 		pendingExportTasks = newModelExportTasks;
 		parse.run();
 		// Apply options from this switch to each export task
 		for (ModelExportTask exportTask : newModelExportTasks) {
 			exportTask.getExportOptions().apply(pendingExportOptions);
+			if (zip != null) {
+				exportTask.setZipFileExtension(zip[1]);
+			}
 		}
 		// Add export tasks to the main list
 		modelExportTasks.addAll(newModelExportTasks);
+	}
+
+	/**
+	 * If {@code filesString} ends with a recognised compression extension (e.g. ".gz", ".gzip", ".xz"),
+	 * split it off and return a 2-element array {@code [remainder, zipExtension]}; otherwise return {@code null}.
+	 */
+	private static String[] detectAndStripZipExtension(String filesString)
+	{
+		int dot = filesString.lastIndexOf('.');
+		if (dot == -1) {
+			return null;
+		}
+		String ext = filesString.substring(dot + 1);
+		if (ModelExportOptions.CompressionFormat.fromExtension(ext).isEmpty()) {
+			return null;
+		}
+		return new String[] { filesString.substring(0, dot), ext };
 	}
 
 	/**

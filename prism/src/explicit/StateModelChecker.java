@@ -47,6 +47,7 @@ import io.MatlabExporter;
 import io.ModelExportFormat;
 import io.ModelExportOptions;
 import io.ModelExportTask;
+import io.ModelExportZipper;
 import io.ModelExporter;
 import io.PrismExplicitExporter;
 import io.PrismExplicitImporter;
@@ -1564,6 +1565,10 @@ public class StateModelChecker extends PrismComponent
 		if (exportOptions.getFormat().isBinary() && !exportOptions.getBinaryAsText() && file == null) {
 			throw new PrismNotSupportedException("Export " + exportOptions.getFormat().description() + " must be to a file");
 		}
+		// Disallow zipped export to stdout (other than for UMB, which is zipped separately)
+		if (exportOptions.getZipped() && exportOptions.getFormat() != ModelExportFormat.UMB && file == null) {
+			throw new PrismNotSupportedException("Cannot zip export to standard output");
+		}
 		// Add rewards to exporter if requested
 		if (exportOptions.getShowRewards()) {
 			List<Rewards<Value>> rewards = new ArrayList<>();
@@ -1594,6 +1599,8 @@ public class StateModelChecker extends PrismComponent
 				exporter.exportModel(model, out);
 			}
 		}
+		// Zip the exported file, if requested
+		ModelExportZipper.zipIfRequested(exportTask);
 	}
 
 	/**
@@ -1626,6 +1633,7 @@ public class StateModelChecker extends PrismComponent
 			PrismExplicitExporter<Value> exporter = new PrismExplicitExporter<>(exportOptions);
 			exporter.exportStateRewards(model, modelRewards, rewardGen.getRewardStructName(r), out);
 		}
+		ModelExportZipper.zipIfRequested(file, exportOptions);
 	}
 
 	/**
@@ -1648,6 +1656,7 @@ public class StateModelChecker extends PrismComponent
 			PrismExplicitExporter<Value> exporter = new PrismExplicitExporter<>(exportOptions);
 			exporter.exportTransRewards(model, modelRewards, rewardGen.getRewardStructName(r), out);
 		}
+		ModelExportZipper.zipIfRequested(file, exportOptions);
 	}
 
 	/**
@@ -1668,6 +1677,7 @@ public class StateModelChecker extends PrismComponent
 					break;
 			}
 		}
+		ModelExportZipper.zipIfRequested(file, exportOptions);
 	}
 
 	/**
@@ -1688,6 +1698,7 @@ public class StateModelChecker extends PrismComponent
 					break;
 			}
 		}
+		ModelExportZipper.zipIfRequested(file, exportOptions);
 	}
 
 	/**
@@ -1752,6 +1763,7 @@ public class StateModelChecker extends PrismComponent
 					break;
 			}
 		}
+		ModelExportZipper.zipIfRequested(file, exportOptions);
 	}
 
 	/**

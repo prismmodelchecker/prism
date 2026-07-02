@@ -31,6 +31,7 @@ import prism.ModelInfo;
 import prism.PrismException;
 
 import java.io.File;
+import java.util.Optional;
 
 /**
  * Class to represent a task related to exporting models.
@@ -102,6 +103,14 @@ public class ModelExportTask
 	 */
 	private PropertiesFile extraLabelsSource;
 
+	/**
+	 * File extension to use for the zipped output file, if zipping is requested
+	 * (e.g. "gz", "gzip" or "xz"). If not set, the extension for the {@link ModelExportOptions.CompressionFormat}
+	 * in the export options is used instead. This is only used to remember, e.g.,
+	 * that "gzip" rather than "gz" was specified explicitly (as a file extension) by the user.
+	 */
+	private Optional<String> zipFileExtension = Optional.empty();
+
 	// Constructors
 
 	/**
@@ -168,6 +177,7 @@ public class ModelExportTask
 		this.exportOptions = exportOptions;
 		this.labelExportSet = exportTask.labelExportSet;
 		this.extraLabelsSource = exportTask.extraLabelsSource;
+		this.zipFileExtension = exportTask.zipFileExtension;
 	}
 
 	/**
@@ -324,6 +334,16 @@ public class ModelExportTask
 	}
 
 	/**
+	 * Set the file extension to use for the zipped output file, if zipping is requested
+	 * (e.g. as explicitly specified via the file extension used to construct this task).
+	 * If not set, the extension for the requested {@link ModelExportOptions.CompressionFormat} is used instead.
+	 */
+	public void setZipFileExtension(String zipFileExtension)
+	{
+		this.zipFileExtension = Optional.ofNullable(zipFileExtension);
+	}
+
+	/**
 	 * If the file to be exported to is of the form ".ext", plug in the supplied basename,
 	 * i.e., make the new filename "basename.ext".
 	 */
@@ -385,6 +405,17 @@ public class ModelExportTask
 	public PropertiesFile getExtraLabelsSource()
 	{
 		return extraLabelsSource;
+	}
+
+	/**
+	 * Get the file extension to use for the zipped output file, if zipping is requested:
+	 * either the one explicitly requested (e.g. via the file extension used to construct
+	 * this task), or, if not set, the default extension for the requested
+	 * {@link ModelExportOptions.CompressionFormat}.
+	 */
+	public String getZipFileExtension()
+	{
+		return zipFileExtension.orElse(exportOptions.getCompressionFormat().extension());
 	}
 
 	/**

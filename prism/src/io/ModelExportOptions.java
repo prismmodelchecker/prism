@@ -59,6 +59,23 @@ public class ModelExportOptions implements Cloneable
 			}
 		}
 
+		/**
+		 * Look up the compression format corresponding to a file extension
+		 * (e.g. "gz"/"gzip" for {@link #GZIP}, "xz" for {@link #XZ}), if any.
+		 */
+		public static Optional<CompressionFormat> fromExtension(String extension)
+		{
+			switch (extension.toLowerCase()) {
+				case "gz":
+				case "gzip":
+					return Optional.of(GZIP);
+				case "xz":
+					return Optional.of(XZ);
+				default:
+					return Optional.empty();
+			}
+		}
+
 		public UMBFormat.CompressionFormat toUMB()
 		{
 			switch (this) {

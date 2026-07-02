@@ -38,6 +38,7 @@ import java.util.Vector;
 import io.ModelExportFormat;
 import io.ModelExportOptions;
 import io.ModelExportTask;
+import io.ModelExportZipper;
 import mtbdd.PrismMTBDD;
 import dv.DoubleVector;
 import jdd.*;
@@ -1709,6 +1710,9 @@ public class StateModelChecker extends PrismNativeComponent implements ModelChec
 				&& !exportOptions.getPrintHeaders()) {
 			throw new PrismException("Headers cannot be disabled for combined explicit export");
 		}
+		if (exportOptions.getZipped() && file == null) {
+			throw new PrismNotSupportedException("Cannot zip export to standard output");
+		}
 
 		try {
 			model.exportToFile(file, exportOptions);
@@ -1753,6 +1757,9 @@ public class StateModelChecker extends PrismNativeComponent implements ModelChec
 				}
 			}
 		}
+
+		// Zip the exported file, if requested
+		ModelExportZipper.zipIfRequested(exportTask);
 	}
 
 	/**
@@ -1778,6 +1785,7 @@ public class StateModelChecker extends PrismNativeComponent implements ModelChec
 		} catch (FileNotFoundException e) {
 			throw new PrismException("Could not open file \"" + file.getName() + "\" for output");
 		}
+		ModelExportZipper.zipIfRequested(file, exportOptions);
 	}
 
 	/**
@@ -1793,6 +1801,7 @@ public class StateModelChecker extends PrismNativeComponent implements ModelChec
 		} catch (FileNotFoundException e) {
 			throw new PrismException("Could not open file \"" + file.getName() + "\" for output");
 		}
+		ModelExportZipper.zipIfRequested(file, exportOptions);
 	}
 
 	/**
@@ -1808,6 +1817,7 @@ public class StateModelChecker extends PrismNativeComponent implements ModelChec
 			}
 			model.exportStates(Prism.convertExportType(exportOptions), out);
 		}
+		ModelExportZipper.zipIfRequested(file, exportOptions);
 	}
 
 	/**
@@ -1838,6 +1848,8 @@ public class StateModelChecker extends PrismNativeComponent implements ModelChec
 		for (int i = 0; i < numLabels; i++) {
 			JDD.Deref(labels[i]);
 		}
+
+		ModelExportZipper.zipIfRequested(file, exportOptions);
 	}
 
 	/**
