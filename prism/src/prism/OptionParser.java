@@ -28,7 +28,9 @@ package prism;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.function.IntPredicate;
 
 /**
@@ -82,6 +84,8 @@ class OptionParser
 	private final LinkedHashMap<String, FlagAction>   flagHandlers  = new LinkedHashMap<>();
 	private final LinkedHashMap<String, ValueHandler> valueHandlers = new LinkedHashMap<>();
 	private final List<HelpEntry>                     helpEntries   = new ArrayList<>();
+	/** Names of value-options for which a bare token (no {@code =value}) is shorthand for {@code =true}. */
+	private final Set<String> bareTrueNames = new LinkedHashSet<>();
 
 	// ── Flag options ──────────────────────────────────────────────────────────
 
@@ -198,7 +202,7 @@ class OptionParser
 
 	// ── Boolean options ───────────────────────────────────────────────────────
 
-	/** Register a {@code key=true|false} option (action only). */
+	/** Register a {@code key=true|false} option (action only). A bare {@code key} is shorthand for {@code key=true}. */
 	OptionParser bool(String name, BoolAction action)
 	{
 		valueHandlers.put(name, (key, val, sw) -> {
@@ -207,6 +211,7 @@ class OptionParser
 			else throw new PrismException("Unknown value \"" + val + "\" for \"" + key + "\" option of -" + sw
 					+ " (expected true or false)");
 		});
+		bareTrueNames.add(name);
 		return this;
 	}
 
@@ -227,10 +232,14 @@ class OptionParser
 
 	// ── Choice options ────────────────────────────────────────────────────────
 
-	/** Register a {@code key=val} option where {@code val} must be one of a fixed set (action only). */
+	/**
+	 * Register a {@code key=val} option where {@code val} must be one of a fixed set (action only).
+	 * If {@code true} is one of the accepted values, a bare {@code key} is shorthand for {@code key=true}.
+	 */
 	OptionParser choice(String name, Choice c)
 	{
 		valueHandlers.put(name, c.toHandler());
+		if (c.acceptsBareTrue()) bareTrueNames.add(name);
 		return this;
 	}
 
@@ -249,6 +258,7 @@ class OptionParser
 	OptionParser choice(String name, String description, Choice c)
 	{
 		valueHandlers.put(name, c.toHandler());
+		if (c.acceptsBareTrue()) bareTrueNames.add(name);
 		helpEntries.add(new HelpEntry("choice", name, String.join("/", c.primaryKeys()), description));
 		return this;
 	}
@@ -272,7 +282,7 @@ class OptionParser
 			StringBuilder sb = new StringBuilder(" * ").append(e.name);
 			switch (e.type) {
 			case "flag":   /* nothing after name */ break;
-			case "bool":   sb.append(" (=true/false)"); break;
+			case "bool":   sb.append(" (=true/false, or bare for true)"); break;
 			case "string": // fall-through
 			case "choice": sb.append(" (=").append(e.argHint).append(")"); break;
 			}
@@ -298,8 +308,11 @@ class OptionParser
 			if (eq == -1) {
 				FlagAction fa = flagHandlers.get(opt);
 				if (fa != null) { fa.run(); continue; }
-				if (valueHandlers.containsKey(opt))
+				ValueHandler vh = valueHandlers.get(opt);
+				if (vh != null) {
+					if (bareTrueNames.contains(opt)) { vh.accept(opt, "true", switchName); continue; }
 					throw new PrismException("No value provided for \"" + opt + "\" option of -" + switchName);
+				}
 				throw new PrismException("Unknown option \"" + opt + "\" for -" + switchName + " switch");
 			} else {
 				String key = opt.substring(0, eq).trim();
@@ -355,6 +368,9 @@ class OptionParser
 
 		/** Returns the primary key of each registered choice, in registration order. */
 		List<String> primaryKeys() { return primaryKeys; }
+
+		/** Whether {@code true} is one of the registered values (used to enable the bare-key-means-true shorthand). */
+		boolean acceptsBareTrue() { return map.containsKey("true"); }
 
 		/** Build the {@link ValueHandler} that dispatches on the registered values. */
 		ValueHandler toHandler()
