@@ -1812,10 +1812,7 @@ public class StateModelChecker extends PrismNativeComponent implements ModelChec
 	public void exportStates(File file, ModelExportOptions exportOptions) throws PrismException
 	{
 		try (PrismLog out = getPrismLogForFile(file, exportOptions.getAppendToFile())) {
-			if (exportOptions.getPrintHeaders()) {
-				out.println("# States");
-			}
-			model.exportStates(Prism.convertExportType(exportOptions), out);
+			model.exportStates(out, exportOptions);
 		}
 		ModelExportZipper.zipIfRequested(file, exportOptions);
 	}

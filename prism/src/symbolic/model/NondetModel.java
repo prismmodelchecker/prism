@@ -309,17 +309,6 @@ public class NondetModel extends ModelSymbolic
 	}
 
 	@Override
-	public void exportToFile(int exportType, boolean explicit, File file, int precision) throws FileNotFoundException, PrismException
-	{
-		if (!explicit) {
-			// can only do explicit (sparse matrix based) export for mdps
-		} else {
-			PrismSparse.ExportMDP(trans, transActions, getSynchs(), getTransSymbol(), allDDRowVars, allDDColVars, allDDNondetVars, odd, exportType,
-					(file != null) ? file.getPath() : null, false, precision, null);
-		}
-	}
-
-	@Override
 	public void exportToFile(File file, ModelExportOptions exportOptions) throws FileNotFoundException, PrismException
 	{
 		int exportType = Prism.convertExportTypeTrans(exportOptions);
@@ -328,17 +317,6 @@ public class NondetModel extends ModelSymbolic
 		JDDNode transActions = exportOptions.getShowActions() ? this.transActions : null;
 		PrismSparse.ExportMDP(trans, transActions, getSynchs(), getTransSymbol(), allDDRowVars, allDDColVars, allDDNondetVars, odd, exportType,
 				(file != null) ? file.getPath() : null, exportOptions.getAppendToFile(), precision, headerText);
-	}
-
-	@Override
-	public void exportTransRewardsToFile(int r, int exportType, boolean ordered, File file, int precision, boolean noexportheaders) throws FileNotFoundException, PrismException
-	{
-		if (!ordered) {
-			// can only do explicit (sparse matrix based) export for mdps
-		} else {
-			PrismSparse.ExportSubMDP(trans, transRewards[r], "C" + (r + 1), allDDRowVars, allDDColVars, allDDNondetVars, odd, exportType, (file == null) ? null : file.getPath(), false, precision,
-					rewardHeaderText(rewardStructNames[r], false, !noexportheaders));
-		}
 	}
 
 	@Override

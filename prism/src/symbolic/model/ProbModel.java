@@ -31,7 +31,6 @@ import jdd.JDD;
 import jdd.JDDNode;
 import jdd.JDDVars;
 import jdd.SanityJDD;
-import mtbdd.PrismMTBDD;
 import parser.Values;
 import parser.VarList;
 import parser.ast.Declaration;
@@ -145,16 +144,6 @@ public class ProbModel extends ModelSymbolic
 	}
 
 	@Override
-	public void exportToFile(int exportType, boolean explicit, File file, int precision) throws FileNotFoundException, PrismException
-	{
-		if (!explicit) {
-			PrismMTBDD.ExportMatrix(trans, getTransSymbol(), allDDRowVars, allDDColVars, odd, exportType, (file != null) ? file.getPath() : null, false, precision, null);
-		} else {
-			PrismSparse.ExportMatrix(trans, getTransSymbol(), allDDRowVars, allDDColVars, odd, exportType, (file != null) ? file.getPath() : null, false, precision, null);
-		}
-	}
-
-	@Override
 	public void exportToFile(File file, ModelExportOptions exportOptions) throws FileNotFoundException, PrismException
 	{
 		int exportType = Prism.convertExportTypeTrans(exportOptions);
@@ -164,17 +153,6 @@ public class ProbModel extends ModelSymbolic
 			PrismSparse.ExportMC(transPerAction, getSynchs(), getTransSymbol(), allDDRowVars, allDDColVars, odd, exportType, (file != null) ? file.getPath() : null, exportOptions.getAppendToFile(), precision, headerText);
 		} else {
 			PrismSparse.ExportMatrix(trans, getTransSymbol(), allDDRowVars, allDDColVars, odd, exportType, (file != null) ? file.getPath() : null, exportOptions.getAppendToFile(), precision, headerText);
-		}
-	}
-
-	@Override
-	public void exportTransRewardsToFile(int r, int exportType, boolean ordered, File file, int precision, boolean noexportheaders) throws FileNotFoundException, PrismException
-	{
-		String headerText = rewardHeaderText(rewardStructNames[r], false, !noexportheaders);
-		if (!ordered) {
-			PrismMTBDD.ExportMatrix(transRewards[r], "C" + (r + 1), allDDRowVars, allDDColVars, odd, exportType, (file == null) ? null : file.getPath(), false, precision, headerText);
-		} else {
-			PrismSparse.ExportMatrix(transRewards[r], "C" + (r + 1), allDDRowVars, allDDColVars, odd, exportType, (file == null) ? null : file.getPath(), false, precision, headerText);
 		}
 	}
 

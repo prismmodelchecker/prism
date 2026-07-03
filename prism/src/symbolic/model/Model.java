@@ -35,6 +35,7 @@ import odd.ODDUtils;
 import parser.State;
 import parser.Values;
 import parser.VarList;
+import prism.Prism;
 import prism.PrismException;
 import prism.PrismLog;
 import prism.PrismNotSupportedException;
@@ -301,7 +302,9 @@ public interface Model extends prism.Model<Double>
 	 * @param exportType The format in which to export
 	 * @param explicit Whether to order by state
 	 * @param file File to export to (if null, print to the log instead)
+	 * @deprecated Use {@link #exportToFile(File, ModelExportOptions)}
 	 */
+	@Deprecated
 	default void exportToFile(int exportType, boolean explicit, File file) throws FileNotFoundException, PrismException
 	{
 		exportToFile(exportType, explicit, file, DEFAULT_EXPORT_MODEL_PRECISION);
@@ -313,8 +316,17 @@ public interface Model extends prism.Model<Double>
 	 * @param explicit Whether to order by state
 	 * @param file File to export to (if null, print to the log instead)
 	 * @param precision Model export precision (number of significant digits, >= 1)
+	 * @deprecated Use {@link #exportToFile(File, ModelExportOptions)}
 	 */
-	void exportToFile(int exportType, boolean explicit, File file, int precision) throws FileNotFoundException, PrismException;
+	@Deprecated
+	default void exportToFile(int exportType, boolean explicit, File file, int precision) throws FileNotFoundException, PrismException
+	{
+		if (!explicit) {
+			throw new PrismNotSupportedException("Non-ordered model export is no longer supported");
+		}
+		ModelExportOptions exportOptions = Prism.convertExportType(exportType).setModelPrecision(precision);
+		exportToFile(file, exportOptions);
+	}
 
 	/**
 	 * Export the transition function/matrix.
@@ -328,7 +340,9 @@ public interface Model extends prism.Model<Double>
 	 * @param r Index of reward structure to export (0-indexed)
 	 * @param exportType The format in which to export
 	 * @param file File to export to (if null, print to the log instead)
+	 * @deprecated Use {@link #exportStateRewardsToFile(int, File, ModelExportOptions)}
 	 */
+	@Deprecated
 	default void exportStateRewardsToFile(int r, int exportType, File file) throws FileNotFoundException, PrismException
 	{
 		exportStateRewardsToFile(r, exportType, file, DEFAULT_EXPORT_MODEL_PRECISION, false);
@@ -341,8 +355,14 @@ public interface Model extends prism.Model<Double>
 	 * @param file File to export to (if null, print to the log instead)
 	 * @param precision Model export precision (number of significant digits, >= 1)
 	 * @param noexportheaders disables export headers for srew files
+	 * @deprecated Use {@link #exportStateRewardsToFile(int, File, ModelExportOptions)}
 	 */
-	void exportStateRewardsToFile(int r, int exportType, File file, int precision, boolean noexportheaders) throws FileNotFoundException, PrismException;
+	@Deprecated
+	default void exportStateRewardsToFile(int r, int exportType, File file, int precision, boolean noexportheaders) throws FileNotFoundException, PrismException
+	{
+		ModelExportOptions exportOptions = Prism.convertExportType(exportType).setModelPrecision(precision).setPrintHeaders(!noexportheaders);
+		exportStateRewardsToFile(r, file, exportOptions);
+	}
 
 	/**
 	 * Export (non-zero) state rewards for one reward structure of the model.
@@ -358,7 +378,9 @@ public interface Model extends prism.Model<Double>
 	 * @param exportType The format in which to export
 	 * @param ordered Do the entries need to be printed in order?
 	 * @param file File to export to (if null, print to the log instead)
+	 * @deprecated Use {@link #exportTransRewardsToFile(int, File, ModelExportOptions)}
 	 */
+	@Deprecated
 	default void exportTransRewardsToFile(int r, int exportType, boolean ordered, File file) throws FileNotFoundException, PrismException
 	{
 		exportTransRewardsToFile(r, exportType, ordered, file, DEFAULT_EXPORT_MODEL_PRECISION, false);
@@ -368,12 +390,21 @@ public interface Model extends prism.Model<Double>
 	 * Export (non-zero) transition rewards for one reward structure of the model.
 	 * @param r Index of reward structure to export (0-indexed)
 	 * @param exportType The format in which to export
-	 * @param ordered Do the entries need to be printed in order?
+	 * @param ordered Do the entries need to be printed in order? Unordered export is no longer supported.
 	 * @param file File to export to (if null, print to the log instead)
 	 * @param precision number of significant digits >= 1
 	 * @param noexportheaders disables export headers for trew files
+	 * @deprecated Use {@link #exportTransRewardsToFile(int, File, ModelExportOptions)}
 	 */
-	void exportTransRewardsToFile(int r, int exportType, boolean ordered, File file, int precision, boolean noexportheaders) throws FileNotFoundException, PrismException;
+	@Deprecated
+	default void exportTransRewardsToFile(int r, int exportType, boolean ordered, File file, int precision, boolean noexportheaders) throws FileNotFoundException, PrismException
+	{
+		if (!ordered) {
+			throw new PrismNotSupportedException("Unordered model export is no longer supported");
+		}
+		ModelExportOptions exportOptions = Prism.convertExportType(exportType).setModelPrecision(precision).setPrintHeaders(!noexportheaders);
+		exportTransRewardsToFile(r, file, exportOptions);
+	}
 
 	/**
 	 * Export (non-zero) transition rewards for one reward structure of the model.
@@ -387,8 +418,20 @@ public interface Model extends prism.Model<Double>
 	 * Export the list of reachable states of the model.
 	 * @param exportType The format in which to export
 	 * @param log Where to export
+	 * @deprecated Use {@link #exportStates(PrismLog, ModelExportOptions)}
 	 */
-	void exportStates(int exportType, PrismLog log);
+	@Deprecated
+	default void exportStates(int exportType, PrismLog log)
+	{
+		exportStates(log, Prism.convertExportType(exportType));
+	}
+
+	/**
+	 * Export the list of reachable states of the model.
+	 * @param log Where to export
+	 * @param exportOptions The options for export
+	 */
+	void exportStates(PrismLog log, ModelExportOptions exportOptions);
 
 	// Other methods
 
