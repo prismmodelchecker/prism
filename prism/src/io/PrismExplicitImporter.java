@@ -182,6 +182,17 @@ public class PrismExplicitImporter extends ExplicitModelImporter
 		{
 			return file.toString();
 		}
+
+		/**
+		 * Convert a line number local to this section (1-indexed, as tracked while
+		 * reading via {@link #openBuffered()}) to the corresponding absolute line
+		 * number within the underlying file, e.g. for use in error messages.
+		 * For a whole-file section, this is just {@code localLineNum} unchanged.
+		 */
+		int toAbsoluteLine(int localLineNum)
+		{
+			return startLine + localLineNum - 1;
+		}
 	}
 
 	/**
@@ -863,10 +874,9 @@ public class PrismExplicitImporter extends ExplicitModelImporter
 
 		} catch (IOException e) {
 			throw new PrismException("File I/O error reading from \"" + file + "\"");
-		} catch (NumberFormatException e) {
-			throw new PrismException("Error detected at line " + lineNum + " of " + entityString + "s file \"" + file + "\"");
-		} catch (PrismException e) {
-			throw new PrismException("Error detected (" + e.getMessage() + ") at line " + lineNum + " of " + entityString + "s file \"" + file + "\"");
+		} catch (PrismException | NumberFormatException e) {
+			String expl = (e.getMessage() == null || e.getMessage().isEmpty()) ? "" : (" (" + e.getMessage() + ")");
+			throw new PrismException("Error detected" + expl + " at line " + file.toAbsoluteLine(lineNum) + " of " + entityString + "s file \"" + file + "\"");
 		}
 	}
 
@@ -933,7 +943,7 @@ public class PrismExplicitImporter extends ExplicitModelImporter
 			modelStats = null;
 			int lineNum = 1;
 			String expl = (e.getMessage() == null || e.getMessage().isEmpty()) ? "" : (" (" + e.getMessage() + ")");
-			throw new PrismException("Error detected" + expl + " at line " + lineNum + " of transitions file \"" + transFile + "\"");
+			throw new PrismException("Error detected" + expl + " at line " + transFile.toAbsoluteLine(lineNum) + " of transitions file \"" + transFile + "\"");
 		}
 	}
 
@@ -999,7 +1009,7 @@ public class PrismExplicitImporter extends ExplicitModelImporter
 			throw new PrismException("File I/O error reading from \"" + labelsFile + "\"");
 		} catch (PrismException e) {
 			String expl = (e.getMessage() == null || e.getMessage().isEmpty()) ? "" : (" (" + e.getMessage() + ")");
-			throw new PrismException("Error detected" + expl + " at line " + lineNum + " of labels file \"" + labelsFile + "\"");
+			throw new PrismException("Error detected" + expl + " at line " + labelsFile.toAbsoluteLine(lineNum) + " of labels file \"" + labelsFile + "\"");
 		}
 	}
 
@@ -1132,7 +1142,7 @@ public class PrismExplicitImporter extends ExplicitModelImporter
 			throw new PrismException("File I/O error reading from \"" + transFile + "\": " + e.getMessage());
 		} catch (PrismException | NumberFormatException | CsvFormatException e) {
 			String expl = (e.getMessage() == null || e.getMessage().isEmpty()) ? "" : (" (" + e.getMessage() + ")");
-			throw new PrismException("Error detected" + expl + " at line " + lineNum + " of transitions file \"" + transFile + "\"");
+			throw new PrismException("Error detected" + expl + " at line " + transFile.toAbsoluteLine(lineNum) + " of transitions file \"" + transFile + "\"");
 		}
 		// Store deadlock info
 		deadlockInfo = new DeadlockInfo();
@@ -1212,7 +1222,7 @@ public class PrismExplicitImporter extends ExplicitModelImporter
 			throw new PrismException("File I/O error reading from \"" + file + "\"");
 		} catch (PrismException | NumberFormatException e) {
 			String expl = (e.getMessage() == null || e.getMessage().isEmpty()) ? "" : (" (" + e.getMessage() + ")");
-			throw new PrismException("Error detected" + expl + " at line " + lineNum + " of states file \"" + file + "\"");
+			throw new PrismException("Error detected" + expl + " at line " + file.toAbsoluteLine(lineNum) + " of states file \"" + file + "\"");
 		}
 	}
 
@@ -1242,7 +1252,7 @@ public class PrismExplicitImporter extends ExplicitModelImporter
 			throw new PrismException("File I/O error reading from \"" + transFile + "\": " + e.getMessage());
 		} catch (PrismException | NumberFormatException | CsvFormatException e) {
 			String expl = (e.getMessage() == null || e.getMessage().isEmpty()) ? "" : (" (" + e.getMessage() + ")");
-			throw new PrismException("Error detected" + expl + " at line " + lineNum + " of transitions file \"" + transFile + "\"");
+			throw new PrismException("Error detected" + expl + " at line " + transFile.toAbsoluteLine(lineNum) + " of transitions file \"" + transFile + "\"");
 		}
 		if (fixdl && getNumDeadlockStates() > 0) {
 			maxNumChoices = Math.max(maxNumChoices, 1);
@@ -1292,7 +1302,7 @@ public class PrismExplicitImporter extends ExplicitModelImporter
 			throw new PrismException("File I/O error reading from \"" + transFile + "\"");
 		} catch (PrismException | NumberFormatException | CsvFormatException e) {
 			String expl = (e.getMessage() == null || e.getMessage().isEmpty()) ? "" : (" (" + e.getMessage() + ")");
-			throw new PrismException("Error detected" + expl + " at line " + lineNum + " of transitions file \"" + transFile + "\"");
+			throw new PrismException("Error detected" + expl + " at line " + transFile.toAbsoluteLine(lineNum) + " of transitions file \"" + transFile + "\"");
 		}
 	}
 
@@ -1341,7 +1351,7 @@ public class PrismExplicitImporter extends ExplicitModelImporter
 			throw new PrismException("File I/O error reading from \"" + transFile + "\"");
 		} catch (PrismException | NumberFormatException | CsvFormatException e) {
 			String expl = (e.getMessage() == null || e.getMessage().isEmpty()) ? "" : (" (" + e.getMessage() + ")");
-			throw new PrismException("Error detected" + expl + " at line " + lineNum + " of transitions file \"" + transFile + "\"");
+			throw new PrismException("Error detected" + expl + " at line " + transFile.toAbsoluteLine(lineNum) + " of transitions file \"" + transFile + "\"");
 		}
 	}
 
@@ -1387,7 +1397,7 @@ public class PrismExplicitImporter extends ExplicitModelImporter
 			throw new PrismException("File I/O error reading from \"" + transFile + "\"");
 		} catch (PrismException | NumberFormatException | CsvFormatException e) {
 			String expl = (e.getMessage() == null || e.getMessage().isEmpty()) ? "" : (" (" + e.getMessage() + ")");
-			throw new PrismException("Error detected" + expl + " at line " + lineNum + " of transitions file \"" + transFile + "\"");
+			throw new PrismException("Error detected" + expl + " at line " + transFile.toAbsoluteLine(lineNum) + " of transitions file \"" + transFile + "\"");
 		}
 	}
 
@@ -1465,7 +1475,7 @@ public class PrismExplicitImporter extends ExplicitModelImporter
 			throw new PrismException("File I/O error reading from \"" + labelsFile + "\"");
 		} catch (PrismException | NumberFormatException e) {
 			String expl = (e.getMessage() == null || e.getMessage().isEmpty()) ? "" : (" (" + e.getMessage() + ")");
-			throw new PrismException("Error detected" + expl + " at line " + lineNum + " of labels file \"" + labelsFile + "\"");
+			throw new PrismException("Error detected" + expl + " at line " + labelsFile.toAbsoluteLine(lineNum) + " of labels file \"" + labelsFile + "\"");
 		}
 	}
 
@@ -1514,7 +1524,7 @@ public class PrismExplicitImporter extends ExplicitModelImporter
 			throw new PrismException("File I/O error reading from \"" + transFile + "\"");
 		} catch (PrismException | NumberFormatException | CsvFormatException e) {
 			String expl = (e.getMessage() == null || e.getMessage().isEmpty()) ? "" : (" (" + e.getMessage() + ")");
-			throw new PrismException("Error detected" + expl + " at line " + lineNum + " of transitions file \"" + transFile + "\"");
+			throw new PrismException("Error detected" + expl + " at line " + transFile.toAbsoluteLine(lineNum) + " of transitions file \"" + transFile + "\"");
 		}
 	}
 
@@ -1550,7 +1560,7 @@ public class PrismExplicitImporter extends ExplicitModelImporter
 			throw new PrismException("File I/O error reading from \"" + transFile + "\"");
 		} catch (PrismException | NumberFormatException | CsvFormatException e) {
 			String expl = (e.getMessage() == null || e.getMessage().isEmpty()) ? "" : (" (" + e.getMessage() + ")");
-			throw new PrismException("Error detected" + expl + " at line " + lineNum + " of transitions file \"" + transFile + "\"");
+			throw new PrismException("Error detected" + expl + " at line " + transFile.toAbsoluteLine(lineNum) + " of transitions file \"" + transFile + "\"");
 		}
 	}
 
@@ -1616,7 +1626,7 @@ public class PrismExplicitImporter extends ExplicitModelImporter
 			throw new PrismException("File I/O error reading from \"" + labelsFile + "\"");
 		} catch (PrismException | NumberFormatException e) {
 			String expl = (e.getMessage() == null || e.getMessage().isEmpty()) ? "" : (" (" + e.getMessage() + ")");
-			throw new PrismException("Error detected" + expl + " at line " + lineNum + " of labels file \"" + labelsFile + "\"");
+			throw new PrismException("Error detected" + expl + " at line " + labelsFile.toAbsoluteLine(lineNum) + " of labels file \"" + labelsFile + "\"");
 		}
 	}
 
@@ -1727,7 +1737,7 @@ public class PrismExplicitImporter extends ExplicitModelImporter
 				throw new PrismException("File I/O error reading from \"" + file + "\"");
 			} catch (PrismException | NumberFormatException | CsvFormatException e) {
 				String expl = (e.getMessage() == null || e.getMessage().isEmpty()) ? "" : (" (" + e.getMessage() + ")");
-				throw new PrismException("Error detected" + expl + " at line " + lineNum + " of state rewards file \"" + file + "\"");
+				throw new PrismException("Error detected" + expl + " at line " + file.toAbsoluteLine(lineNum) + " of state rewards file \"" + file + "\"");
 			}
 		}
 
@@ -1800,7 +1810,7 @@ public class PrismExplicitImporter extends ExplicitModelImporter
 				throw new PrismException("File I/O error reading from \"" + file + "\"");
 			} catch (PrismException | NumberFormatException | CsvFormatException e) {
 				String expl = (e.getMessage() == null || e.getMessage().isEmpty()) ? "" : (" (" + e.getMessage() + ")");
-				throw new PrismException("Error detected" + expl + " at line " + lineNum + " of transition rewards file \"" + file + "\"");
+				throw new PrismException("Error detected" + expl + " at line " + file.toAbsoluteLine(lineNum) + " of transition rewards file \"" + file + "\"");
 			}
 		}
 
@@ -1872,7 +1882,7 @@ public class PrismExplicitImporter extends ExplicitModelImporter
 				throw new PrismException("File I/O error reading from \"" + file + "\"");
 			} catch (PrismException | NumberFormatException | CsvFormatException e) {
 				String expl = (e.getMessage() == null || e.getMessage().isEmpty()) ? "" : (" (" + e.getMessage() + ")");
-				throw new PrismException("Error detected" + expl + " at line " + lineNum + " of transition rewards file \"" + file + "\"");
+				throw new PrismException("Error detected" + expl + " at line " + file.toAbsoluteLine(lineNum) + " of transition rewards file \"" + file + "\"");
 			}
 		}
 
@@ -1908,7 +1918,7 @@ public class PrismExplicitImporter extends ExplicitModelImporter
 				throw new PrismException("File I/O error reading from \"" + file + "\"");
 			} catch (PrismException e) {
 				String expl = (e.getMessage() == null || e.getMessage().isEmpty()) ? "" : (" (" + e.getMessage() + ")");
-				throw new PrismException("Error detected" + expl + " at line " + lineNum + " of rewards file \"" + file + "\"");
+				throw new PrismException("Error detected" + expl + " at line " + file.toAbsoluteLine(lineNum) + " of rewards file \"" + file + "\"");
 			}
 			return name;
 		}
