@@ -954,6 +954,7 @@ public class ProbModelChecker extends NonProbModelChecker
 	/**
 	 * Model check an R operator expression and return the values for all states.
 	 */
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	protected StateValues checkExpressionReward(Model<?> model, ExpressionReward expr, boolean forAll, Coalition coalition, BitSet statesOfInterest) throws PrismException
 	{
 		// Get info from R operator
@@ -977,6 +978,20 @@ public class ProbModelChecker extends NonProbModelChecker
 			// at position 0, but the model has some attached rewards, just use the first one
 			if (rewards == null && model.getNumRewards() > 0 && (rewardGen == null || rewardGen.getNumRewardStructs() == 0)) {
 				rewards = model.getRewards(0);
+			}
+		}
+		if (rewards != null) {
+			// Rewards resolved directly from the model (rather than freshly built below) may
+			// still carry raw transition rewards that solution methods can't consume directly
+			// (e.g., imported/attached Markov chain transition rewards) - convert to expected
+			// state rewards where needed (skipped for instantaneous-reward properties, which
+			// don't use transition rewards and mustn't have them folded into the state reward).
+			// The conversion (and the legality checks it also performs) is cached, since this
+			// is invoked repeatedly for the same underlying rewards object, e.g., once per
+			// property checked against the same model.
+			if (!Expression.usesInstantaneousReward(expr.getExpression())) {
+				Model rawModel = model;
+				rewards = ConstructRewards.getExpectedRewards((Rewards) rewards, rawModel, rawModel.getEvaluator(), true, false);
 			}
 		}
 		// Failing that, build rewards via reward generator
