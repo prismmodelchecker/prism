@@ -1741,6 +1741,14 @@ public class StateModelChecker extends PrismNativeComponent implements ModelChec
 				labelNames.add("init");
 				labelNames.add("deadlock");
 				labelNames.addAll(prism.getModelInfo().getLabelNames());
+				// If labels from a properties file were requested, add those too
+				if (exportTask.extraLabelsUsed()) {
+					for (String name : propertiesFile.getCombinedLabelList().getLabelNames()) {
+						if (!labelNames.contains(name)) {
+							labelNames.add(name);
+						}
+					}
+				}
 				try (PrismLog sep = getPrismLogForFile(file, true)) { sep.println(); }
 				exportLabels(labelNames, file, appendOptions);
 			}

@@ -1343,7 +1343,7 @@ public class PrismCL implements PrismModelListener
 				.flag("rows",       "export matrices with one row/distribution on each line",       () -> { pendingExportOptions.setExplicitRows(true); exportType = Prism.EXPORT_ROWS; })
 				.flag("proplabels", "also export labels from a properties file into the same file, too", () -> {
 					for (ModelExportTask t : pendingExportTasks)
-						if (t.getEntity() == ModelExportTask.ModelExportEntity.LABELS)
+						if (t.getEntity() == ModelExportTask.ModelExportEntity.LABELS || t.getEntity() == ModelExportTask.ModelExportEntity.MODEL)
 							t.setLabelExportSet(ModelExportTask.LabelExportSet.ALL);
 				})
 				.bool("headers",    "include headers in explicit model files",                   v -> pendingExportOptions.setPrintHeaders(v)),

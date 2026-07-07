@@ -1588,6 +1588,14 @@ public class StateModelChecker extends PrismComponent
 				labelNames.add("deadlock");
 			}
 			labelNames.addAll(modelInfo.getLabelNames());
+			// If labels from a properties file were requested (and one is attached), add those too
+			if (exportTask.extraLabelsUsed() && propertiesFile != null) {
+				for (String name : propertiesFile.getCombinedLabelList().getLabelNames()) {
+					if (!labelNames.contains(name)) {
+						labelNames.add(name);
+					}
+				}
+			}
 			List<BitSet> labelStates = checkLabels(model, labelNames);
 			exporter.addLabels(labelStates, labelNames);
 		}

@@ -10,3 +10,5 @@
 
 -exportproplabels dice.pm.3.lab
 -exportproplabels dice.pm.matlab.3.lab:matlab
+
+-exportmodel dice.pm.2.pexp:proplabels

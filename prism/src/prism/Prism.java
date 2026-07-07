@@ -2863,6 +2863,8 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	 */
 	private void doExportBuiltModel(ModelExportTask exportTask) throws PrismException
 	{
+		// Get properties file, if labels from one are to be included in the export
+		PropertiesFile propertiesFile = exportTask.getExtraLabelsSource();
 		// Export via either symbolic/explicit model checker
 		if (getBuiltModelType() == ModelBuildType.SYMBOLIC) {
 			// In some cases, we need to convert to an explicit model first
@@ -2871,14 +2873,14 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 				explicit.Model<Double> modelExpl = m2m.convertModel(getBuiltModelSymbolic());
 				explicit.StateModelChecker mcExpl = explicit.StateModelChecker.createModelChecker(getModelType(), this);
 				RewardGenerator<Double> rewardGen = m2m.getRewardConverter(getBuiltModelSymbolic(), modelExpl, getRewardInfo());
-				mcExpl.setModelCheckingInfo(getModelInfo(), null, rewardGen);
+				mcExpl.setModelCheckingInfo(getModelInfo(), propertiesFile, rewardGen);
 				mcExpl.exportModel(modelExpl, exportTask);
 			} else {
-				symbolic.comp.StateModelChecker mcSymb = createModelChecker(null);
+				symbolic.comp.StateModelChecker mcSymb = createModelChecker(propertiesFile);
 				mcSymb.exportModel(exportTask);
 			}
 		} else {
-			explicit.StateModelChecker mcExpl = createModelCheckerExplicit(null);
+			explicit.StateModelChecker mcExpl = createModelCheckerExplicit(propertiesFile);
 			mcExpl.exportModel(getBuiltModelExplicit(), exportTask);
 		}
 	}
