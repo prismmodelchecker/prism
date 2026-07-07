@@ -249,7 +249,7 @@ public class PrismExplicitExporter<Value> extends ModelExporter<Value>
 		int nonZeroRews = 0;
 		for (int s = 0; s < numStates; s++) {
 			if (nondet) {
-				int numChoices = ((NondetModel<Value>) model).getNumChoices();
+				int numChoices = ((NondetModel<Value>) model).getNumChoices(s);
 				for (int j = 0; j < numChoices; j++) {
 					Value d = rewards.getTransitionReward(s, j);
 					if (!evalRewards.isZero(d)) {
@@ -269,7 +269,7 @@ public class PrismExplicitExporter<Value> extends ModelExporter<Value>
 		out.println(" " + nonZeroRews);
 		for (int s = 0; s < numStates; s++) {
 			if (nondet) {
-				int numChoices = ((NondetModel<Value>) model).getNumChoices();
+				int numChoices = ((NondetModel<Value>) model).getNumChoices(s);
 				for (int j = 0; j < numChoices; j++) {
 					Value d = rewards.getTransitionReward(s, j);
 					if (!evalRewards.isZero(d)) {
