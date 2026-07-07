@@ -3000,6 +3000,12 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 				labelNames.add("deadlock");
 			}
 			labelNames.addAll(getModelInfo().getLabelNames());
+			// Also include any labels attached directly to the built model
+			for (String name : (getBuiltModelType() != ModelBuildType.SYMBOLIC ? getBuiltModelExplicit().getLabels() : getBuiltModelSymbolic().getLabels())) {
+				if (!labelNames.contains(name)) {
+					labelNames.add(name);
+				}
+			}
 		}
 		if (exportTask.getLabelExportSet() == ModelExportTask.LabelExportSet.EXTRA || exportTask.getLabelExportSet() == ModelExportTask.LabelExportSet.ALL) {
 			LabelList ll = exportTask.getExtraLabelsSource().getLabelList();

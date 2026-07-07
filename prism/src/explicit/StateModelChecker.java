@@ -85,6 +85,7 @@ import prism.Evaluator;
 import prism.Filter;
 import prism.ModelInfo;
 import prism.ModelType;
+import prism.Pair;
 import prism.Prism;
 import prism.PrismComponent;
 import prism.PrismException;
@@ -1519,6 +1520,92 @@ public class StateModelChecker extends PrismComponent
 	}
 
 	/**
+	 * Get the {@code r}th reward structure for a model. If the (stored) reward generator is
+	 * present, {@code r} is the (0-indexed) position within that list of rewards. But, if
+	 * rewards matching that reward structure's name or position are attached directly to
+	 * {@code model}, those are given preference over extracting one from the reward generator.
+	 * <br>
+	 * If there is no reward generator, the {@code r}th reward structure attached to the
+	 * model, if present, is returned (irrespective of any position/name info stored).
+	 * <br>
+	 * If {@code allowNegativeRewards} is false, rewards constructed from the reward generator
+	 * are checked to ensure that they are non-negative.
+	 */
+	protected <Value> Rewards<Value> getRewards(Model<Value> model, int r, boolean allowNegativeRewards) throws PrismException
+	{
+		if (rewardGen != null) {
+			Rewards<Value> byPosition = model.getRewardsByPosition(r);
+			Rewards<Value> byName = model.getRewardsByName(rewardGen.getRewardStructName(r));
+			if (byPosition != null && byName != null && byPosition != byName) {
+				throw new PrismException("Reward structure at position " + r + " and name \"" + rewardGen.getRewardStructName(r) + "\" refer to different reward structures attached to the model");
+			}
+			Rewards<Value> rews = byPosition != null ? byPosition : byName;
+			return rews != null ? rews : constructRewards(model, r, allowNegativeRewards);
+		}
+		return model.getRewards(r);
+	}
+
+	/**
+	 * Get the name of the reward structure with index r for a model (see {@link #getRewards}
+	 * for what r denotes). Names come from the stored reward generator, if present; if not,
+	 * from the model's own attached reward structures.
+	 */
+	protected String getRewardStructName(Model<?> model, int r)
+	{
+		return rewardGen != null ? rewardGen.getRewardStructName(r) : model.getRewardName(r);
+	}
+
+	/**
+	 * Get values and names for all the reward structures relevant/available for a model.
+	 * If a RewardGenerator is available, these rewards are added to the list.
+	 * If any additional, named rewards are attached to the model, these are also added.
+	 * If no RewardGenerator is present, any rewards attached to the models are used,
+	 * with their names if present, but with any positional info ignored.
+	 */
+	protected <Value> Pair<List<Rewards<Value>>, List<String>> getAllRewards(Model<Value> model) throws PrismException
+	{
+		List<Rewards<Value>> rewards = new ArrayList<>();
+		List<String> rewardNames = new ArrayList<>();
+		if (rewardGen != null) {
+			int numFromGen = rewardGen.getNumRewardStructs();
+			for (int r = 0; r < numFromGen; r++) {
+				rewardNames.add(rewardGen.getRewardStructName(r));
+				rewards.add(getRewards(model, r, true));
+			}
+			for (int i = 0; i < model.getNumRewards(); i++) {
+				String name = model.getRewardName(i);
+				if (name != null && !name.isEmpty() && !rewardNames.contains(name)) {
+					rewardNames.add(name);
+					rewards.add(model.getRewards(i));
+				}
+			}
+		} else {
+			int numRewards = model.getNumRewards();
+			for (int i = 0; i < numRewards; i++) {
+				rewardNames.add(model.getRewardName(i));
+				rewards.add(model.getRewards(i));
+			}
+		}
+		return new Pair<>(rewards, rewardNames);
+	}
+
+	/**
+	 * Get the names of all the labels relevant/available for a model: those from the
+	 * (always present) stored model info, plus any additional labels attached directly
+	 * to the model that are not already included.
+	 */
+	protected List<String> getAllLabelNames(Model<?> model)
+	{
+		List<String> labelNames = new ArrayList<>(modelInfo.getLabelNames());
+		for (String name : model.getLabels()) {
+			if (!labelNames.contains(name)) {
+				labelNames.add(name);
+			}
+		}
+		return labelNames;
+	}
+
+	/**
 	 * Load all labels from a PRISM labels (.lab) file and store them in BitSet objects.
 	 * Return a map from label name Strings to BitSets.
 	 * This is for all labels in the file, including "init", "deadlock".
@@ -1571,12 +1658,9 @@ public class StateModelChecker extends PrismComponent
 		}
 		// Add rewards to exporter if requested
 		if (exportOptions.getShowRewards()) {
-			List<Rewards<Value>> rewards = new ArrayList<>();
-			for (int r = 0; r < rewardGen.getNumRewardStructs(); r++) {
-				rewards.add(constructRewards(model, r, true));
-			}
-			exporter.addRewards(rewards, rewardGen.getRewardStructNames());
-			exporter.setRewardEvaluator((Evaluator<Value>) rewardGen.getRewardEvaluator());
+			Pair<List<Rewards<Value>>, List<String>> allRewards = getAllRewards(model);
+			exporter.setRewardEvaluator(rewardGen != null ? (Evaluator<Value>) rewardGen.getRewardEvaluator() : model.getEvaluator());
+			exporter.addRewards(allRewards.first, allRewards.second);
 		}
 		// Add labels to exporter if requested
 		if (exportOptions.getShowLabels()) {
@@ -1587,7 +1671,7 @@ public class StateModelChecker extends PrismComponent
 			if (exportTask.deadlockLabelIncluded()) {
 				labelNames.add("deadlock");
 			}
-			labelNames.addAll(modelInfo.getLabelNames());
+			labelNames.addAll(getAllLabelNames(model));
 			// If labels from a properties file were requested (and one is attached), add those too
 			if (exportTask.extraLabelsUsed() && propertiesFile != null) {
 				for (String name : propertiesFile.getCombinedLabelList().getLabelNames()) {
@@ -1636,10 +1720,10 @@ public class StateModelChecker extends PrismComponent
 
 		// Construct rewards before opening the output file:
 		// the rewards may be read lazily from an import file which could be the same as the export target.
-		Rewards<Value> modelRewards = constructRewards(model, r, true);
+		Rewards<Value> modelRewards = getRewards(model, r, true);
 		try (PrismLog out = getPrismLogForFile(file)) {
 			PrismExplicitExporter<Value> exporter = new PrismExplicitExporter<>(exportOptions);
-			exporter.exportStateRewards(model, modelRewards, rewardGen.getRewardStructName(r), out);
+			exporter.exportStateRewards(model, modelRewards, getRewardStructName(model, r), out);
 		}
 		ModelExportZipper.zipIfRequested(file, exportOptions);
 	}
@@ -1659,10 +1743,10 @@ public class StateModelChecker extends PrismComponent
 
 		// Construct rewards before opening the output file:
 		// the rewards may be read lazily from an import file which could be the same as the export target.
-		Rewards<Value> modelRewards = constructRewards(model, r, true);
+		Rewards<Value> modelRewards = getRewards(model, r, true);
 		try (PrismLog out = getPrismLogForFile(file)) {
 			PrismExplicitExporter<Value> exporter = new PrismExplicitExporter<>(exportOptions);
-			exporter.exportTransRewards(model, modelRewards, rewardGen.getRewardStructName(r), out);
+			exporter.exportTransRewards(model, modelRewards, getRewardStructName(model, r), out);
 		}
 		ModelExportZipper.zipIfRequested(file, exportOptions);
 	}
