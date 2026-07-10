@@ -31,11 +31,9 @@ import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.List;
 
-import common.Interval;
 import io.ExplicitModelImporter;
 import parser.EvaluateContext;
 import parser.State;
-import parser.VarList;
 import prism.Evaluator;
 import prism.ModelInfo;
 import prism.PrismComponent;
@@ -218,6 +216,7 @@ public class ExplicitFiles2Model extends PrismComponent
 				(s, i, v) -> statesList.get(s).setValue(i, modelInfo.getVarType(i).castValueTo(v, evalMode))
 		);
 		model.setStatesList(statesList);
+		model.setVarList(modelInfo.createVarList());
 	}
 
 	/**
