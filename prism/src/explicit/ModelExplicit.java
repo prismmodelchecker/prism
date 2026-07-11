@@ -27,13 +27,7 @@
 package explicit;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.BitSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.TreeMap;
-import java.util.TreeSet;
+import java.util.*;
 import java.util.function.Function;
 
 import explicit.rewards.Rewards;
@@ -98,7 +92,7 @@ public abstract class ModelExplicit<Value> implements Model<Value>, ActionListOw
 	 * (Optionally) some labels (atomic propositions) associated with the model,
 	 * represented as a String->BitSet mapping from their names to the states that satisfy them.
 	 */
-	protected Map<String, BitSet> labels = new TreeMap<String, BitSet>();
+	protected Map<String, BitSet> labels = new LinkedHashMap<>();
 
 	/**
 	 * (Optionally) some attached reward structures.
@@ -198,7 +192,7 @@ public abstract class ModelExplicit<Value> implements Model<Value>, ActionListOw
 		statesList = null;
 		constantValues = null;
 		varList = null;
-		labels = new TreeMap<String, BitSet>();
+		labels = new LinkedHashMap<>();
 		rewards = new ArrayList<>();
 	}
 
