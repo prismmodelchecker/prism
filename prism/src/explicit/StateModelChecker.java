@@ -80,22 +80,7 @@ import parser.type.TypeBool;
 import parser.type.TypeDouble;
 import parser.visitor.ASTTraverseModify;
 import parser.visitor.ReplaceLabels;
-import prism.Accuracy;
-import prism.Evaluator;
-import prism.Filter;
-import prism.ModelInfo;
-import prism.ModelType;
-import prism.Pair;
-import prism.Prism;
-import prism.PrismComponent;
-import prism.PrismException;
-import prism.PrismFileLog;
-import prism.PrismLangException;
-import prism.PrismLog;
-import prism.PrismNotSupportedException;
-import prism.PrismSettings;
-import prism.Result;
-import prism.RewardGenerator;
+import prism.*;
 
 /**
  * Super class for explicit-state model checkers.
@@ -1474,6 +1459,25 @@ public class StateModelChecker extends PrismComponent
 	}
 
 	/**
+	 * Get a {@link ModelInfo} object for the provided model,
+	 * containing info about model type, variables and labels.
+	 * If this is already stored locally in {@link #modelInfo}, use that.
+	 * If not construct one from data attached to the model.
+	 */
+	protected <Value> ModelInfo getModelInfo(Model<Value> model) throws PrismException
+	{
+		if (modelInfo != null) {
+			return modelInfo;
+		}
+		BasicModelInfo modelInfo = new BasicModelInfo(model.getModelType());
+		if (model.getVarList() != null) {
+			modelInfo.setVarList(model.getVarList());
+		}
+		model.getLabels().forEach(label -> modelInfo.getLabelNameList().add(label));
+		return modelInfo;
+	}
+
+	/**
 	 * Construct rewards for the reward structure with index r of the reward generator and a model.
 	 * Ensures non-negative rewards.
 	 * <br>
@@ -1594,9 +1598,9 @@ public class StateModelChecker extends PrismComponent
 	 * (always present) stored model info, plus any additional labels attached directly
 	 * to the model that are not already included.
 	 */
-	protected List<String> getAllLabelNames(Model<?> model)
+	protected List<String> getAllLabelNames(Model<?> model) throws PrismException
 	{
-		List<String> labelNames = new ArrayList<>(modelInfo.getLabelNames());
+		List<String> labelNames = new ArrayList<>(getModelInfo(model).getLabelNames());
 		for (String name : model.getLabels()) {
 			if (!labelNames.contains(name)) {
 				labelNames.add(name);
@@ -1646,7 +1650,7 @@ public class StateModelChecker extends PrismComponent
 			default:
 				throw new PrismNotSupportedException("Export " + exportOptions.getFormat().description() + " not supported by explicit engine");
 		}
-		exporter.setModelInfo(modelInfo);
+		exporter.setModelInfo(getModelInfo(model));
 		File file = exportTask.getFile();
 		// Disallow stdout export for binary formats
 		if (exportOptions.getFormat().isBinary() && !exportOptions.getBinaryAsText() && file == null) {
