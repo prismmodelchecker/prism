@@ -128,6 +128,14 @@ public class PrismFileLog extends PrismPrintStreamLog
 	}
 
 	/**
+	 * Is this log writing to standard output (rather than a file)?
+	 */
+	public boolean isStdout()
+	{
+		return stdout;
+	}
+
+	/**
 	 * Is this log using native code to write to the file?
 	 */
 	public boolean isNative()
