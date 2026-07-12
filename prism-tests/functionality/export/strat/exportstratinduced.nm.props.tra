@@ -1,0 +1,9 @@
+# Transitions (DTMC)
+5 7
+0 0 0.4 east
+0 1 0.6 east
+1 2 0.5 south
+1 3 0.5 south
+2 2 1 stuck
+3 4 1 east
+4 3 1 west

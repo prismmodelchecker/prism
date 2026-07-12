@@ -1,0 +1,4 @@
+-ex -exportstrat exportstratinduced.nm.props.tra
+-ex -exportstrat exportstratinduced.nm.props.reduce.pexp:type=induced,mode=reduce
+-ex -exportstrat exportstratinduced.nm.props.restrict.pexp:type=induced,mode=restrict
+-ex -exportstrat exportstratinduced.nm.props.reach.tra:type=induced,reach=true

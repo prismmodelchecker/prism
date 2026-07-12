@@ -163,13 +163,6 @@ public class FMDStrategyStep<Value> extends StrategyExplicit<Value>
 	}
 
 	@Override
-	public void exportInducedModel(PrismLog out, StrategyExportOptions options) throws PrismException
-	{
-		Model<Value> prodModel = constructInducedModel(options);
-		prodModel.exportToPrismExplicitTra(out, options.getModelPrecision());
-	}
-
-	@Override
 	public void exportDotFile(PrismLog out, StrategyExportOptions options) throws PrismException
 	{
 		Model<Value> prodModel = constructInducedModel(options);

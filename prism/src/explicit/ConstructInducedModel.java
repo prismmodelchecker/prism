@@ -27,7 +27,10 @@
 package explicit;
 
 import common.Interval;
+import explicit.rewards.Rewards;
+import explicit.rewards.RewardsSimple;
 import parser.State;
+import prism.Evaluator;
 import prism.ModelType;
 import prism.PrismException;
 import prism.PrismNotSupportedException;
@@ -35,12 +38,7 @@ import strat.Strategy;
 import strat.StrategyExportOptions.InducedModelMode;
 import strat.StrategyInfo;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.BitSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Construct the model induced by a memoryless deterministic strategy on a nondeterministic model
@@ -60,6 +58,16 @@ public class ConstructInducedModel
 	private boolean reachOnly = true;
 
 	/**
+	 * Whether to copy labels from the original model to the induced model
+	 */
+	private boolean copyLabels = true;
+
+	/**
+	 * Whether to copy rewards from the original model to the induced model
+	 */
+	private boolean copyRewards = true;
+
+	/**
 	 * Set the "mode" of construction:
 	 * "restrict" (same model type but restrict to selected action choices); or
 	 * "reduce" (change mode type by removing nondeterminism)
@@ -76,6 +84,26 @@ public class ConstructInducedModel
 	public ConstructInducedModel setReachOnly(boolean reachOnly)
 	{
 		this.reachOnly = reachOnly;
+		return this;
+	}
+
+	/**
+	 * Set whether to copy labels from the original model to the induced model,
+	 * restricted/reindexed to the induced model's states.
+	 */
+	public ConstructInducedModel setCopyLabels(boolean copyLabels)
+	{
+		this.copyLabels = copyLabels;
+		return this;
+	}
+
+	/**
+	 * Set whether to copy rewards from the original model to the induced model,
+	 * restricted/reindexed to the induced model's states.
+	 */
+	public ConstructInducedModel setCopyRewards(boolean copyRewards)
+	{
+		this.copyRewards = copyRewards;
 		return this;
 	}
 
@@ -132,6 +160,33 @@ public class ConstructInducedModel
 		List<State> inducedStatesList = model.getStatesList();
 		if (reachOnly && inducedStatesList != null) {
 			inducedStatesList = new ArrayList<>();
+		}
+
+		// Create empty label bitsets for the induced model, if needed
+		Map<String, BitSet> origLabels = null;
+		Map<String, BitSet> inducedLabels = null;
+		if (copyLabels) {
+			origLabels = model.getLabelToStatesMap();
+			inducedLabels = new LinkedHashMap<>();
+			for (String name : origLabels.keySet()) {
+				inducedLabels.put(name, new BitSet());
+			}
+		}
+
+		// Create empty reward structures for the induced model, if needed
+		List<Rewards<Value>> origRewardsList = null;
+		List<RewardsSimple<Value>> inducedRewardsList = null;
+		if (copyRewards) {
+			int numRewardStructs = model.getNumRewards();
+			origRewardsList = new ArrayList<>(numRewardStructs);
+			inducedRewardsList = new ArrayList<>(numRewardStructs);
+			for (int r = 0; r < numRewardStructs; r++) {
+				Rewards<Value> origRews = model.getRewards(r);
+				origRewardsList.add(origRews);
+				RewardsSimple<Value> inducedRews = new RewardsSimple<>(0);
+				inducedRews.setEvaluator(origRews.getEvaluator());
+				inducedRewardsList.add(inducedRews);
+			}
 		}
 
 		// Initially create an array with 0s for reachable state indices and -1s for unreachable ones
@@ -210,6 +265,27 @@ public class ConstructInducedModel
 			if (reachOnly && inducedStatesList != null) {
 				inducedStatesList.add(model.getStatesList().get(s));
 			}
+			if (copyLabels) {
+				for (Map.Entry<String, BitSet> e : origLabels.entrySet()) {
+					if (e.getValue().get(s)) {
+						inducedLabels.get(e.getKey()).set(map[s]);
+					}
+				}
+			}
+			// Copy state rewards; also prepare accumulators for transition rewards of chosen choices
+			// (transition rewards attach to a whole choice, so choices merged into a single induced
+			// choice/state by the strategy need their transition rewards combined too)
+			List<Value> transRewAcc = null;
+			if (copyRewards) {
+				transRewAcc = new ArrayList<>(origRewardsList.size());
+				for (int r = 0; r < origRewardsList.size(); r++) {
+					Rewards<Value> origRews = origRewardsList.get(r);
+					if (origRews.hasStateRewards()) {
+						inducedRewardsList.get(r).setStateReward(map[s], origRews.getStateReward(s));
+					}
+					transRewAcc.add(origRews.getEvaluator().zero());
+				}
+			}
 
 			int numChoices =  model.getNumChoices(s);
 			// Extract strategy decision
@@ -239,6 +315,21 @@ public class ConstructInducedModel
 				// Get strategy choice probability if needed
 				if (strat.isRandomised()) {
 					stratChoiceProb = strat.getChoiceActionProbability(decision, act);
+				}
+				// Accumulate transition rewards for this choice
+				// (weighted by the strategy's choice probability, if randomised)
+				if (copyRewards) {
+					for (int r = 0; r < origRewardsList.size(); r++) {
+						Rewards<Value> origRews = origRewardsList.get(r);
+						if (origRews.hasTransitionRewards()) {
+							Evaluator<Value> rewEval = origRews.getEvaluator();
+							Value rew = origRews.getTransitionReward(s, j);
+							if (strat.isRandomised()) {
+								rew = rewEval.multiply(rew, stratChoiceProb);
+							}
+							transRewAcc.set(r, rewEval.add(transRewAcc.get(r), rew));
+						}
+					}
 				}
 				// Get choice action for induced model if needed
 				if (inducedModelType.nondeterministic()) {
@@ -326,12 +417,41 @@ public class ConstructInducedModel
 						break;
 				}
 			}
+			// Store accumulated transition rewards:
+			// for a nondeterministic induced model, attach to the (sole) induced choice for this state;
+			// otherwise (induced model has no choices), fold into the induced state reward instead.
+			if (copyRewards) {
+				for (int r = 0; r < origRewardsList.size(); r++) {
+					Value rew = transRewAcc.get(r);
+					RewardsSimple<Value> inducedRews = inducedRewardsList.get(r);
+					Evaluator<Value> rewEval = origRewardsList.get(r).getEvaluator();
+					if (!rewEval.isZero(rew)) {
+						if (inducedModelType.nondeterministic()) {
+							inducedRews.setTransitionReward(map[s], 0, rew);
+						} else {
+							inducedRews.addToStateReward(map[s], rew);
+						}
+					}
+				}
+			}
 		}
 
 		inducedModel.findDeadlocks(false);
 
 		if (inducedStatesList != null) {
 			inducedModel.setStatesList(inducedStatesList);
+		}
+
+		if (copyLabels) {
+			for (Map.Entry<String, BitSet> e : inducedLabels.entrySet()) {
+				inducedModel.addLabel(e.getKey(), e.getValue());
+			}
+		}
+
+		if (copyRewards) {
+			for (int r = 0; r < origRewardsList.size(); r++) {
+				inducedModel.addRewards(model.getRewardName(r), model.getRewardPosition(r), inducedRewardsList.get(r));
+			}
 		}
 
 		return inducedModel;

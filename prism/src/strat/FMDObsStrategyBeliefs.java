@@ -193,21 +193,10 @@ public class FMDObsStrategyBeliefs<Value> extends StrategyExplicit<Value>
 	public void exportInducedModel(PrismLog out, StrategyExportOptions options) throws PrismException
 	{
 		if (options.getMergeObservations()) {
-			exportInducedModelObs(out, options);
+			mdpStrat.export(out, options.getInducedModelExportOptions());
 		} else {
-			exportInducedModelNonObs(out, options);
+			super.exportInducedModel(out, options);
 		}
-	}
-
-	public void exportInducedModelObs(PrismLog out, StrategyExportOptions options) throws PrismException
-	{
-		mdpStrat.exportToPrismExplicitTra(out, options.getModelPrecision());
-	}
-
-	public void exportInducedModelNonObs(PrismLog out, StrategyExportOptions options) throws PrismException
-	{
-		Model<Value> prodModel = constructInducedModel(options);
-		prodModel.exportToPrismExplicitTra(out, options.getModelPrecision());
 	}
 
 	@Override
