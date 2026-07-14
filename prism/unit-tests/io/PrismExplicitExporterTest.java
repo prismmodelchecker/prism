@@ -92,7 +92,7 @@ public class PrismExplicitExporterTest
 		log.flush();
 
 		List<String> lines = new ArrayList<>();
-		for (String line : bytes.toString().split("\n")) {
+		for (String line : bytes.toString().split("\\r?\\n")) {
 			if (!line.isEmpty()) {
 				lines.add(line);
 			}
