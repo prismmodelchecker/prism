@@ -221,6 +221,9 @@ public class PrismExplicitImporter extends ExplicitModelImporter
 		@Override
 		public int read(char[] cbuf, int off, int len) throws IOException
 		{
+			if (len == 0) {
+				return 0;
+			}
 			if (eof) {
 				return -1;
 			}
