@@ -972,6 +972,12 @@ public class ProbModelChecker extends NonProbModelChecker
 		} else if (rsi instanceof Expression) {
 			int i = ((Expression) rsi).evaluateInt(constantValues);
 			rewards = model.getRewardsByPosition(i - 1);
+			// If the model has attached rewards but none carries positional metadata
+			// matching i, and there is no reward generator to fall back on, just use
+			// the i-th attached reward (list order), as is done below for position 0
+			if (rewards == null && i >= 1 && i <= model.getNumRewards() && (rewardGen == null || rewardGen.getNumRewardStructs() == 0)) {
+				rewards = model.getRewards(i - 1);
+			}
 		} else {
 			rewards = model.getRewardsByPosition(0);
 			// If neither the model nor the reward generator can provide a reward structure
