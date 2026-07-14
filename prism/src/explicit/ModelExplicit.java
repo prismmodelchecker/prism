@@ -376,7 +376,7 @@ public abstract class ModelExplicit<Value> implements Model<Value>, ActionListOw
 			}
 		}
 		if (nameMatch != -1 && positionMatch != -1 && nameMatch != positionMatch) {
-			throw new RuntimeException("Reward structure name \"" + name + "\" and position " + position + " refer to different existing reward structures");
+			throw new IllegalArgumentException("Reward structure name \"" + name + "\" and position " + position + " refer to different existing reward structures");
 		}
 		return nameMatch != -1 ? nameMatch : positionMatch;
 	}
