@@ -40,7 +40,6 @@ import java.util.Stack;
 import java.util.Vector;
 
 import common.Interval;
-import explicit.rewards.MDPRewards;
 import parser.State;
 import parser.VarList;
 import parser.ast.Declaration;
