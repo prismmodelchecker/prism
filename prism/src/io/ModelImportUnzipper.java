@@ -66,6 +66,7 @@ public class ModelImportUnzipper
 			CompressorInputStream zipIn = new CompressorStreamFactory().createCompressorInputStream(zipFormat.get().extension(), in);
 			return new BufferedReader(new InputStreamReader(zipIn));
 		} catch (CompressorException e) {
+			in.close();
 			throw new IOException("Could not read zipped file \"" + file + "\": " + e.getMessage());
 		}
 	}
