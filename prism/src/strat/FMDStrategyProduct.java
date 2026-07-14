@@ -204,8 +204,7 @@ public class FMDStrategyProduct<Value> extends StrategyExplicit<Value>
 	{
 		// If restricting to reachable states, construct product afresh
 		if (options.getReachOnly()) {
-			Model<Value> prodModel = constructInducedModel(options);
-			prodModel.exportToPrismExplicitTra(out, options.getModelPrecision());
+			super.exportInducedModel(out, options);
 		}
 		// Otherwise, just export MD strategy, unmodified
 		else {

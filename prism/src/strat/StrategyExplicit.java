@@ -26,8 +26,11 @@
 
 package strat;
 
+import explicit.Model;
 import explicit.NondetModel;
 import prism.Evaluator;
+import prism.PrismException;
+import prism.PrismLog;
 
 /**
  * Base class for implementations of Strategy associated with an explicit engine model.
@@ -57,5 +60,14 @@ public abstract class StrategyExplicit<Value> extends StrategyWithStates<Value>
 	public Evaluator<Value> getEvaluator()
 	{
 		return model.getEvaluator();
+	}
+
+	@Override
+	public abstract Model<Value> constructInducedModel(StrategyExportOptions options) throws PrismException;
+
+	@Override
+	public void exportInducedModel(PrismLog out, StrategyExportOptions options) throws PrismException
+	{
+		constructInducedModel(options).export(out, options.getInducedModelExportOptions());
 	}
 }

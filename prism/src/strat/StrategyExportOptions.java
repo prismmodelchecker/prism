@@ -28,6 +28,12 @@ package strat;
 
 import static prism.PrismSettings.DEFAULT_EXPORT_MODEL_PRECISION;
 
+import io.ModelExportFormat;
+import io.ModelExportOptions;
+import io.ModelExportTask;
+
+import java.io.File;
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -107,6 +113,11 @@ public class StrategyExportOptions implements Cloneable
 	 */
 	private Optional<Integer> modelPrecision = Optional.empty();
 
+	/**
+	 * For induced model export, the model export options.
+	 */
+	private Optional<ModelExportOptions> inducedModelExportOptions = Optional.empty();;
+
 	// Constructors
 
 	/**
@@ -183,6 +194,15 @@ public class StrategyExportOptions implements Cloneable
 		return this;
 	}
 
+	/**
+	 * Set the model export tasks specifying details for induced model export.
+	 */
+	public StrategyExportOptions setInducedModelExportOptions(ModelExportOptions inducedModelExportOptions)
+	{
+		this.inducedModelExportOptions = Optional.of(inducedModelExportOptions);
+		return this;
+	}
+
 	// Get methods
 
 	/**
@@ -206,7 +226,7 @@ public class StrategyExportOptions implements Cloneable
 	 */
 	public boolean getReachOnly()
 	{
-		return reachOnly.orElse(!getType().equals(StrategyExportType.INDUCED_MODEL));
+		return reachOnly.orElse(true);
 	}
 
 	/**
@@ -231,6 +251,14 @@ public class StrategyExportOptions implements Cloneable
 	public int getModelPrecision()
 	{
 		return modelPrecision.orElse(DEFAULT_EXPORT_MODEL_PRECISION);
+	}
+
+	/**
+	 * Get the model export options for induced model export.
+	 */
+	public ModelExportOptions getInducedModelExportOptions()
+	{
+		return inducedModelExportOptions.orElse(new ModelExportOptions());
 	}
 
 	/**

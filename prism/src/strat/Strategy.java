@@ -228,7 +228,7 @@ public interface Strategy<Value> extends StrategyInfo<Value>
 	}
 
 	/**
-	 * Export the model induced by this strategy to a PrismLog.
+	 * Construct the model induced by this strategy.
 	 */
 	public prism.Model<Value> constructInducedModel(StrategyExportOptions options) throws PrismException;
 

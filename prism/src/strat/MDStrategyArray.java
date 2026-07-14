@@ -110,13 +110,6 @@ public class MDStrategyArray<Value> extends StrategyExplicit<Value> implements M
 	}
 
 	@Override
-	public void exportInducedModel(PrismLog out, StrategyExportOptions options) throws PrismException
-	{
-		Model<Value> inducedModel = constructInducedModel(options);
-		inducedModel.exportToPrismExplicitTra(out, options.getModelPrecision());
-	}
-
-	@Override
 	public void exportDotFile(PrismLog out, StrategyExportOptions options) throws PrismException
 	{
 		Model<Value> inducedModel = constructInducedModel(options);

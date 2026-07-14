@@ -31,16 +31,20 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.BitSet;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
 import common.Interval;
+import explicit.rewards.Rewards;
+import explicit.rewards.RewardsSimple;
 import parser.State;
 import parser.VarList;
 import parser.ast.Declaration;
 import parser.ast.DeclarationInt;
 import parser.ast.Expression;
+import prism.Evaluator;
 import prism.ModelType;
 import prism.PrismException;
 import prism.PrismNotSupportedException;
@@ -61,6 +65,16 @@ public class ConstructStrategyProduct
 	private StrategyExportOptions.InducedModelMode mode = StrategyExportOptions.InducedModelMode.RESTRICT;
 
 	/**
+	 * Whether to copy labels from the original model to the product model
+	 */
+	private boolean copyLabels = true;
+
+	/**
+	 * Whether to copy rewards from the original model to the product model
+	 */
+	private boolean copyRewards = true;
+
+	/**
 	 * Set the "mode" of construction:
 	 * "restrict" (same model type but restrict to selected action choices); or
 	 * "reduce" (change mode type by removing nondeterminism)
@@ -68,6 +82,26 @@ public class ConstructStrategyProduct
 	public ConstructStrategyProduct setMode(StrategyExportOptions.InducedModelMode mode)
 	{
 		this.mode = mode;
+		return this;
+	}
+
+	/**
+	 * Set whether to copy labels from the original model to the product model,
+	 * restricted/reindexed to the product model's states.
+	 */
+	public ConstructStrategyProduct setCopyLabels(boolean copyLabels)
+	{
+		this.copyLabels = copyLabels;
+		return this;
+	}
+
+	/**
+	 * Set whether to copy rewards from the original model to the product model,
+	 * restricted/reindexed to the product model's states.
+	 */
+	public ConstructStrategyProduct setCopyRewards(boolean copyRewards)
+	{
+		this.copyRewards = copyRewards;
 		return this;
 	}
 
@@ -146,8 +180,35 @@ public class ConstructStrategyProduct
 		} catch (ArithmeticException e) {
 			throw new PrismException("Size of product state space of model and strategy is too large for explicit engine");
 		}
-		
-		// Encoding: 
+
+		// Create empty label bitsets for the product model, if needed
+		Map<String, BitSet> origLabels = null;
+		Map<String, BitSet> inducedLabels = null;
+		if (copyLabels) {
+			origLabels = model.getLabelToStatesMap();
+			inducedLabels = new LinkedHashMap<>();
+			for (String name : origLabels.keySet()) {
+				inducedLabels.put(name, new BitSet());
+			}
+		}
+
+		// Create empty reward structures for the product model, if needed
+		List<Rewards<Value>> origRewardsList = null;
+		List<RewardsSimple<Value>> inducedRewardsList = null;
+		if (copyRewards) {
+			int numRewardStructs = model.getNumRewards();
+			origRewardsList = new ArrayList<>(numRewardStructs);
+			inducedRewardsList = new ArrayList<>(numRewardStructs);
+			for (int r = 0; r < numRewardStructs; r++) {
+				Rewards<Value> origRews = model.getRewards(r);
+				origRewardsList.add(origRews);
+				RewardsSimple<Value> inducedRews = new RewardsSimple<>(0);
+				inducedRews.setEvaluator(origRews.getEvaluator());
+				inducedRewardsList.add(inducedRews);
+			}
+		}
+
+		// Encoding:
 		// each state s' = <s, q> = s * memSize + q
 		// s(s') = s' / memSize
 		// q(s') = s' % memSize
@@ -217,6 +278,28 @@ public class ConstructStrategyProduct
 			visited.set(s_1 * memSize + q_1);
 			int map_1 = map[s_1 * memSize + q_1];
 
+			if (copyLabels) {
+				for (Map.Entry<String, BitSet> e : origLabels.entrySet()) {
+					if (e.getValue().get(s_1)) {
+						inducedLabels.get(e.getKey()).set(map_1);
+					}
+				}
+			}
+			// Copy state rewards; also prepare accumulators for transition rewards of chosen choices
+			// (transition rewards attach to a whole choice, so choices merged into a single induced
+			// choice/state by the strategy need their transition rewards combined too)
+			List<Value> transRewAcc = null;
+			if (copyRewards) {
+				transRewAcc = new ArrayList<>(origRewardsList.size());
+				for (int r = 0; r < origRewardsList.size(); r++) {
+					Rewards<Value> origRews = origRewardsList.get(r);
+					if (origRews.hasStateRewards()) {
+						inducedRewardsList.get(r).setStateReward(map_1, origRews.getStateReward(s_1));
+					}
+					transRewAcc.add(origRews.getEvaluator().zero());
+				}
+			}
+
 			int numChoices =  model.getNumChoices(s_1);
 			// Extract strategy decision
 			Object decision = strat.getChoiceAction(s_1, q_1);
@@ -245,6 +328,21 @@ public class ConstructStrategyProduct
 				// Get strategy choice probability if needed
 				if (strat.isRandomised()) {
 					stratChoiceProb = strat.getChoiceActionProbability(decision, act);
+				}
+				// Accumulate transition rewards for this choice
+				// (weighted by the strategy's choice probability, if randomised)
+				if (copyRewards) {
+					for (int r = 0; r < origRewardsList.size(); r++) {
+						Rewards<Value> origRews = origRewardsList.get(r);
+						if (origRews.hasTransitionRewards()) {
+							Evaluator<Value> rewEval = origRews.getEvaluator();
+							Value rew = origRews.getTransitionReward(s_1, j);
+							if (strat.isRandomised()) {
+								rew = rewEval.multiply(rew, stratChoiceProb);
+							}
+							transRewAcc.set(r, rewEval.add(transRewAcc.get(r), rew));
+						}
+					}
 				}
 				// Get choice action for induced model if needed
 				if (productModelType.nondeterministic()) {
@@ -334,14 +432,43 @@ public class ConstructStrategyProduct
 					break;
 				}
 			}
+			// Store accumulated transition rewards:
+			// for a nondeterministic product model, attach to the (sole) induced choice for this state;
+			// otherwise (product model has no choices), fold into the induced state reward instead.
+			if (copyRewards) {
+				for (int r = 0; r < origRewardsList.size(); r++) {
+					Value rew = transRewAcc.get(r);
+					RewardsSimple<Value> inducedRews = inducedRewardsList.get(r);
+					Evaluator<Value> rewEval = origRewardsList.get(r).getEvaluator();
+					if (!rewEval.isZero(rew)) {
+						if (productModelType.nondeterministic()) {
+							inducedRews.setTransitionReward(map_1, 0, rew);
+						} else {
+							inducedRews.addToStateReward(map_1, rew);
+						}
+					}
+				}
+			}
 		}
-		
+
 		prodModel.findDeadlocks(false);
 
 		if (prodStatesList != null) {
 			prodModel.setStatesList(prodStatesList);
 		}
-		
+
+		if (copyLabels) {
+			for (Map.Entry<String, BitSet> e : inducedLabels.entrySet()) {
+				prodModel.addLabel(e.getKey(), e.getValue());
+			}
+		}
+
+		if (copyRewards) {
+			for (int r = 0; r < origRewardsList.size(); r++) {
+				prodModel.addRewards(model.getRewardName(r), model.getRewardPosition(r), inducedRewardsList.get(r));
+			}
+		}
+
 		return prodModel;
 	}
 

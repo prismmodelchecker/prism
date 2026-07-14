@@ -1445,15 +1445,48 @@ public class PrismCL implements PrismModelListener
 					.when("restrict", () -> exportStratOptions.setMode(StrategyExportOptions.InducedModelMode.RESTRICT))
 					.when("reduce",   () -> exportStratOptions.setMode(StrategyExportOptions.InducedModelMode.REDUCE)))
 				.bool("reach",   "whether to restrict the strategy to its reachable states",                              v -> exportStratOptions.setReachOnly(v))
-				.bool("states",  "whether to show states, rather than state indices, for actions lists or Dot files",     v -> exportStratOptions.setShowStates(v))
-				.bool("obs",     "for partially observable models, whether to merge observationally equivalent states",   v -> exportStratOptions.setMergeObservations(v)),
+				.bool("states",  "whether to include full state information ", v -> {
+					exportStratOptions.setShowStates(v);
+					pendingExportOptions.setShowStates(v);
+				})
+				.bool("mergeobs",     "for partially observable models, whether to merge observationally equivalent states ",  v -> {
+					exportStratOptions.setMergeObservations(v);
+				})
+				// The following options only apply to induced model export, mirroring the
+				// corresponding -exportmodel options (see exportModelSwitch above)
+				.choice("format",   "model export format for induced model export", new OptionParser.Choice()
+					.when("explicit", () -> pendingExportOptions.setFormat(ModelExportFormat.EXPLICIT))
+					.when("dot",      () -> pendingExportOptions.setFormat(ModelExportFormat.DOT))
+					.when("drn",      () -> pendingExportOptions.setFormat(ModelExportFormat.DRN))
+					.when("umb",      () -> pendingExportOptions.setFormat(ModelExportFormat.UMB)))
+				.bool("rewards",    "whether to include rewards for induced model export",
+					v -> pendingExportOptions.setShowRewards(v))
+				.bool("labels",     "whether to include labels for induced model export",
+					v -> pendingExportOptions.setShowLabels(v))
+				.bool("actions",    "whether to include actions on choices/transitions for induced model export",
+					v -> pendingExportOptions.setShowActions(v))
+				.bool("obs",    "whether to include observation details for induced model export",
+						v -> pendingExportOptions.setShowObservations(v))
+				.integer("precision", "<n>", n -> RANGE_EXPORT_DOUBLE_PRECISION.contains(n),
+					"use <n> significant figures for floating point values (in text) for induced model export",
+					n -> pendingExportOptions.setModelPrecision(n))
+				.choice("zip",      "whether to zip files for induced model export", new OptionParser.Choice()
+					.when("true",        () -> pendingExportOptions.setZipped(true))
+					.when("false",       () -> pendingExportOptions.setZipped(false))
+					.when("gzip", "gz",  () -> pendingExportOptions.setZipped(true).setCompressionFormat(ModelExportOptions.CompressionFormat.GZIP))
+					.when("xz",          () -> pendingExportOptions.setZipped(true).setCompressionFormat(ModelExportOptions.CompressionFormat.XZ)))
+				.flag("text",       "show binary formats in textual form for induced model export",
+					() -> pendingExportOptions.setBinaryAsText(true))
+				.bool("headers",    "include headers in explicit model files for induced model export",
+					v -> pendingExportOptions.setPrintHeaders(v)),
 			this::processExportStratSwitch);
 		registry.addSwitch("exportstrat", exportStratSwitch,
 			"<file[:<options>]>", "Generate and export a strategy to a file",
 			log -> {
-				log.println("Generate and export a strategy to a file (or to the screen if <file>=\"stdout\").");
-				log.println("Use file extension .tra or .dot to export as an induced model or Dot file, respectively.");
-				log.println("If provided, <options> is a comma-separated list of options taken from:");
+				log.println("Generate and export a strategy to a file (or to the screen if \"stdout\").");
+				log.println("Use file extension .tra, .pexp, .umb or .dot to export as an induced model.");
+				log.println("The default (e.g. for file extension .txt) is a list of stat-action choices.");
+				log.println("\nIf provided, <options> is a comma-separated list of options taken from:");
 				exportStratSwitch.printOptions(log);
 			});
 		registry.addSwitch("exportmatlab", new FlagSwitch(() -> {
@@ -1930,16 +1963,24 @@ public class PrismCL implements PrismModelListener
 		exportStratFilename = basename.equals("stdout") ? "stdout" : fileString;
 		exportStratOptions = new StrategyExportOptions();
 		prism.setGenStrat(true);
+		ModelExportTask inducedModelTask = null;
+		ModelExportOptions inducedModelOptions = new ModelExportOptions();
 		// Default strategy export type is based on filename extension
-		if (ext.equals("tra")) {
+		if (ext.equals("tra") || ext.equals("pexp") || ext.equals("umb")) {
 			exportStratOptions.setType(StrategyExportOptions.StrategyExportType.INDUCED_MODEL);
+			inducedModelOptions = ModelExportTask.fromFilename(basename, ext).getExportOptions();
 		} else if (ext.equals("dot")) {
 			exportStratOptions.setType(StrategyExportOptions.StrategyExportType.DOT_FILE);
 		} else {
 			exportStratOptions.setType(StrategyExportOptions.StrategyExportType.ACTIONS);
 		}
 		// Process options
+		pendingExportOptions = new ModelExportOptions();
 		parse.run();
+		if (inducedModelOptions != null) {
+			inducedModelOptions.apply(pendingExportOptions);
+			exportStratOptions.setInducedModelExportOptions(inducedModelOptions);
+		}
 	}
 
 	// print command line arguments

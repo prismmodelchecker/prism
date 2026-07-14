@@ -2384,6 +2384,14 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 				default:
 					throw new PrismException("Cannot do explicit model construction for model source " + getModelSource());
 				}
+				// If strategy generation/export was requested, eagerly attach reward structures
+				// to the model now (mirrors how labels are already attached during ConstructModel).
+				// This needs to happen here, rather than later just before strategy export, since
+				// e.g. LTL automaton product construction (during model checking, before export)
+				// already lifts rewards from this model onto the product if/when present.
+				if (getGenStrat()) {
+					attachRewardsToModel(newModelExpl);
+				}
 				break;
 			default:
 				throw new PrismException("Unknown engine " + getCurrentEngine());
@@ -3805,15 +3813,40 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 		// Print message
 		mainLog.print("\nExporting strategy " + exportOptions.description() + " ");
 		mainLog.println(getDestinationStringForFile(file));
-
+		// Merge export options with PRISM settings and do export
+		StrategyExportOptions mergedExportOptions = exportOptions.clone();
+		mergedExportOptions.setInducedModelExportOptions(newMergedModelExportOptions(mergedExportOptions.getInducedModelExportOptions()));
+		// For induced model export, attach reward structures to the strategy's model
+		// directly (if not already done, e.g. at model-build time), so that they get
+		// carried over during induced model construction (see ConstructInducedModel).
+		// NB: for finite-memory (e.g. LTL-derived) strategies exported without
+		// restricting to reachable states, this is too late (the relevant states/product
+		// model were already built earlier, during model checking) - see doBuildModel().
+		if (exportOptions.getType() == StrategyExportType.INDUCED_MODEL && strat instanceof strat.StrategyExplicit) {
+			attachRewardsToModel(((strat.StrategyExplicit<?>) strat).getModel());
+		}
 		// Export to file (or use main log)
 		PrismLog tmpLog = getPrismLogForFile(file);
 		exportOptions = exportOptions.clone();
-		exportOptions.setModelPrecision(settings.getInteger(PrismSettings.PRISM_EXPORT_MODEL_PRECISION));
 		strat.export(tmpLog, exportOptions);
 		if (file != null) {
 			tmpLog.close();
 		}
+	}
+
+	/**
+	 * Attach reward structures (from the currently stored reward generator, if any) directly
+	 * to a model, if not already present. Does nothing if no reward generator is available.
+	 * @param model The model
+	 */
+	private void attachRewardsToModel(explicit.Model<?> model) throws PrismException
+	{
+		if (getRewardGenerator() == null) {
+			return;
+		}
+		explicit.StateModelChecker mc = explicit.StateModelChecker.createModelChecker(model.getModelType(), this);
+		mc.setModelCheckingInfo(getModelInfo(), null, getRewardGenerator());
+		mc.attachRewards(model);
 	}
 
 	/**
