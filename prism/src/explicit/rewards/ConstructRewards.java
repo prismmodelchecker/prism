@@ -554,8 +554,15 @@ public class ConstructRewards extends PrismComponent
 	/**
 	 * Caches of the result of {@link #getExpectedRewards}, keyed on the identity of the
 	 * {@code rewards} object passed in (weakly, so entries disappear once that object is
-	 * no longer referenced elsewhere). A separate cache is kept for each combination of
-	 * the {@code expectedRewards}/{@code allowNegative} flags, since the result differs.
+	 * no longer referenced elsewhere), and then, within that, on the identity of the
+	 * {@code model} passed in (also weakly). The per-model level is needed because the
+	 * same {@link Rewards} object can be checked/converted against different models
+	 * (e.g., a model view such as {@code DTMCAlteredDistributions} delegates
+	 * {@code getRewards*()} to an underlying model while presenting different transitions
+	 * of its own), and the (Markov chain) transition-to-expected-state-reward conversion
+	 * depends on the transition structure of the model passed in, not just the rewards.
+	 * A separate cache is kept for each combination of the {@code expectedRewards}/
+	 * {@code allowNegative} flags, since the result differs.
 	 * <br>
 	 * This exists because a {@link Rewards} object obtained from an external source
 	 * (e.g., imported from file, or attached directly to a {@link Model}) may be checked
@@ -564,10 +571,10 @@ public class ConstructRewards extends PrismComponent
 	 * transition-to-expected-state-reward conversion are otherwise redone from scratch
 	 * (an O(number of states/transitions) pass) every time.
 	 */
-	private static final Map<Rewards<?>, Rewards<?>> expectedRewardsCacheFF = Collections.synchronizedMap(new WeakHashMap<>());
-	private static final Map<Rewards<?>, Rewards<?>> expectedRewardsCacheFT = Collections.synchronizedMap(new WeakHashMap<>());
-	private static final Map<Rewards<?>, Rewards<?>> expectedRewardsCacheTF = Collections.synchronizedMap(new WeakHashMap<>());
-	private static final Map<Rewards<?>, Rewards<?>> expectedRewardsCacheTT = Collections.synchronizedMap(new WeakHashMap<>());
+	private static final Map<Rewards<?>, Map<Model<?>, Rewards<?>>> expectedRewardsCacheFF = Collections.synchronizedMap(new WeakHashMap<>());
+	private static final Map<Rewards<?>, Map<Model<?>, Rewards<?>>> expectedRewardsCacheFT = Collections.synchronizedMap(new WeakHashMap<>());
+	private static final Map<Rewards<?>, Map<Model<?>, Rewards<?>>> expectedRewardsCacheTF = Collections.synchronizedMap(new WeakHashMap<>());
+	private static final Map<Rewards<?>, Map<Model<?>, Rewards<?>>> expectedRewardsCacheTT = Collections.synchronizedMap(new WeakHashMap<>());
 
 	/**
 	 * Get a version of {@code rewards} that is safe to pass to the (explicit engine)
@@ -580,7 +587,7 @@ public class ConstructRewards extends PrismComponent
 	 * that was not just built by this class, e.g., one obtained directly from a model
 	 * (see {@link Model#getRewards}) or from a {@link RewardGenerator} that supplies
 	 * rewards objects directly (see {@link RewardGenerator.RewardLookup#BY_REWARD_OBJECT}).
-	 * The result is cached against the identity of {@code rewards}.
+	 * The result is cached against the identity of {@code rewards} and {@code model}.
 	 * @param rewards The rewards to check/convert
 	 * @param model The model that the rewards are for
 	 * @param eval Evaluator matching the type {@code Value} of the reward value
@@ -590,15 +597,16 @@ public class ConstructRewards extends PrismComponent
 	@SuppressWarnings("unchecked")
 	public static <Value> Rewards<Value> getExpectedRewards(Rewards<Value> rewards, Model<Value> model, Evaluator<Value> eval, boolean expectedRewards, boolean allowNegative) throws PrismException
 	{
-		Map<Rewards<?>, Rewards<?>> cache = expectedRewards
+		Map<Rewards<?>, Map<Model<?>, Rewards<?>>> cache = expectedRewards
 				? (allowNegative ? expectedRewardsCacheTT : expectedRewardsCacheTF)
 				: (allowNegative ? expectedRewardsCacheFT : expectedRewardsCacheFF);
-		Rewards<Value> cached = (Rewards<Value>) cache.get(rewards);
+		Map<Model<?>, Rewards<?>> modelCache = cache.computeIfAbsent(rewards, k -> Collections.synchronizedMap(new WeakHashMap<>()));
+		Rewards<Value> cached = (Rewards<Value>) modelCache.get(model);
 		if (cached != null) {
 			return cached;
 		}
 		Rewards<Value> result = checkRewardObject(rewards, model, eval, expectedRewards, allowNegative);
-		cache.put(rewards, result);
+		modelCache.put(model, result);
 		return result;
 	}
 
