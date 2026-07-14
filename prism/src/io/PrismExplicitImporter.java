@@ -1947,15 +1947,21 @@ public class PrismExplicitImporter extends ExplicitModelImporter
 
 	/**
 	 * Returns true if {@code line} looks like a section header that was meant to be
-	 * recognised by the importer — specifically, a {@code #} comment whose text after
-	 * the space consists only of letters and parentheses (no numbers, punctuation or
-	 * embedded spaces). This matches single-word headers such as {@code # States} or
-	 * a typo like {@code # State}, while leaving ordinary commented-out data lines
-	 * (e.g. {@code # 3 5 0.5}) and multi-word comments silently ignored.
+	 * recognised by the importer. This matches single-word headers such as
+	 * {@code # States} or a typo like {@code # State} (text after the space consists
+	 * only of letters and parentheses, no numbers, punctuation or embedded spaces),
+	 * as well as the specific multi-word headers actually produced by the exporter
+	 * ({@code # Transitions (MDP)}, {@code # Reward structure "name"},
+	 * {@code # State rewards}, {@code # Transition rewards}), while leaving ordinary
+	 * commented-out data lines (e.g. {@code # 3 5 0.5}) and other multi-word comments
+	 * silently ignored.
 	 */
 	private static boolean isHeaderLike(String line)
 	{
-		return line.matches("# [A-Za-z()]+ *");
+		if (line.matches("# [A-Za-z()]+ *")) {
+			return true;
+		}
+		return line.matches("# (?:Transitions \\([A-Za-z]+\\)|Reward structure(?: \"[^\"]*\")?|State rewards|Transition rewards) *");
 	}
 
 	/**
