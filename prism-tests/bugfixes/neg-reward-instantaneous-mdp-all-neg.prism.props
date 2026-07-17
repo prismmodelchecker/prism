@@ -1,0 +1,28 @@
+// s=0 has reward 0, and I=0 does not depend on the choices at all
+// RESULT: 0
+Rmin=? [ I=0 ];
+
+// RESULT: 0
+Rmax=? [ I=0 ];
+
+// One step: the minimiser goes to s=1 (-5), the maximiser to s=2 (-1)
+// RESULT: -5
+Rmin=? [ I=1 ];
+
+// RESULT: -1
+Rmax=? [ I=1 ];
+
+// Two steps: s=1/s=2 are absorbing, so the values are unchanged - but reaching them
+// now requires optimising over s=1/s=2 themselves (single-choice states) in the first
+// iteration, and reading those values back in the second
+// RESULT: -5
+Rmin=? [ I=2 ];
+
+// RESULT: -1
+Rmax=? [ I=2 ];
+
+// RESULT: -5
+Rmin=? [ I=5 ];
+
+// RESULT: -1
+Rmax=? [ I=5 ];

@@ -251,9 +251,13 @@ public class ProbModelChecker extends NonProbModelChecker
 		// Get rewards
 		Object rs = expr.getRewardStructIndex();
 		JDDNode stateRewards = getStateRewardsByIndexObject(rs, model, constantValues);
-		checkNegativeRewards(stateRewards, "State");
 		JDDNode transRewards = getTransitionRewardsByIndexObject(rs, model, constantValues);
-		checkNegativeRewards(transRewards, "Transition");
+		// Instantaneous-reward properties (e.g. R=?[I=k]) look up a single state's reward
+		// rather than cumulating rewards, so negative rewards are not an issue there
+		if (!Expression.usesInstantaneousReward(expr.getExpression())) {
+			checkNegativeRewards(stateRewards, "State");
+			checkNegativeRewards(transRewards, "Transition");
+		}
 
 		// Print a warning if Rmin/Rmax used
 		if (opInfo.getRelOp() == RelOp.MIN || opInfo.getRelOp() == RelOp.MAX) {

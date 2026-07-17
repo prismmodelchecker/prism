@@ -1,0 +1,8 @@
+// RESULT: -5
+R=? [ I=0 ];
+
+// RESULT: 3
+R=? [ I=1 ];
+
+// RESULT: Error
+R=? [ C<=1 ];

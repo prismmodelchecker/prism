@@ -1,0 +1,14 @@
+// RESULT: 0
+Rmin=? [ I=0 ];
+
+// RESULT: 0
+Rmax=? [ I=0 ];
+
+// RESULT: -5
+Rmin=? [ I=1 ];
+
+// RESULT: 3
+Rmax=? [ I=1 ];
+
+// RESULT: Error
+Rmin=? [ C<=1 ];

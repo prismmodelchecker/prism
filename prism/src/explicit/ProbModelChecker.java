@@ -964,8 +964,10 @@ public class ProbModelChecker extends NonProbModelChecker
 		// Build rewards for the index specified in the R operator
 		int r = expr.getRewardStructIndexByIndexObject(getRewardGenerator(model), constantValues);
 		mainLog.println("Building reward structure...");
-		boolean expected = !Expression.usesInstantaneousReward(expr.getExpression());
-		Rewards<?> rewards = constructRewards(model, r, false, expected);
+		// Instantaneous-reward properties (e.g. R=?[I=k]) look up a single state's reward
+		// rather than cumulating rewards, so negative rewards are not an issue there
+		boolean instantaneous = Expression.usesInstantaneousReward(expr.getExpression());
+		Rewards<?> rewards = constructRewards(model, r, instantaneous, !instantaneous);
 
 		// Compute rewards
 		StateValues rews = checkRewardFormula(model, rewards, expr.getExpression(), minMax, statesOfInterest);

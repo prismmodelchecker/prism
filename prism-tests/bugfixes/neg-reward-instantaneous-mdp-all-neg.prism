@@ -1,0 +1,33 @@
+// MDP where *every* reward is negative, for instantaneous-reward properties (R=?[I=k]).
+//
+// Companion to neg-reward-instantaneous-mdp.prism, which has one negative and one
+// positive reward. That model leaves two bugs invisible, because the optimal value at
+// the initial state happens to be the positive one, and because the states with a
+// single choice are never themselves optimised over. Both need all-negative rewards
+// plus k>=2 (so that the values of s=1/s=2 are read back in a later iteration) to show:
+//
+//  * MTBDD engine, Rmax: choices that do not exist are 0 in the MTBDD, so for s=1/s=2
+//    (one choice each, against two nondeterministic choices elsewhere) the max was
+//    taken over {real value, 0} and returned 0. Masking was applied for min only,
+//    which sufficed while rewards were required to be non-negative.
+//  * Hybrid engine, both Rmin and Rmax: rows not yet visited were flagged with a
+//    negative value in the solution vector itself, so genuinely negative rewards were
+//    read back as "not visited" and reset to 0.
+//
+// s=0 chooses between two absorbing states with rewards -5 and -1, so
+// Rmin=?[I=k] = -5 and Rmax=?[I=k] = -1 for every k >= 1.
+
+mdp
+
+module M
+	s : [0..2] init 0;
+	[] s=0 -> (s'=1);
+	[] s=0 -> (s'=2);
+	[] s=1 -> true;
+	[] s=2 -> true;
+endmodule
+
+rewards
+	s=1 : -5;
+	s=2 : -1;
+endrewards

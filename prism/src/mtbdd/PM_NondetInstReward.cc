@@ -67,7 +67,7 @@ jlong __jlongpointer in
 	DdNode *init = jlong_to_DdNode(in);
 
 	// mtbdds
-	DdNode *new_mask, *sol, *tmp;
+	DdNode *sol, *tmp;
 	// timing stuff
 	long start1, start2, start3, stop;
 	double time_taken, time_for_setup, time_for_iters;
@@ -76,10 +76,6 @@ jlong __jlongpointer in
 	
 	// start clocks
 	start1 = start2 = util_cpu_time();
-	
-	// need to change mask because rewards are not necessarily in the range 0..1
-	Cudd_Ref(mask);
-	new_mask = DD_ITE(ddman, mask, DD_PlusInfinity(ddman), DD_Constant(ddman, 0));
 	
 	// initial solution is the state rewards
 	Cudd_Ref(state_rewards);
@@ -106,13 +102,23 @@ jlong __jlongpointer in
 		
 		// do min/max
 		if (min) {
-			// mask stuff
-			Cudd_Ref(new_mask);
-			tmp = DD_Apply(ddman, APPLY_MAX, tmp, new_mask);
+			// for choices that do not exist (masked), set the value to +infinity
+			// so that they can never be picked as the minimum
+			// (done via direct substitution, rather than e.g. combining via a
+			// max with a 0/+infinity mask, since rewards are not necessarily non-negative)
+			Cudd_Ref(mask);
+			tmp = DD_ITE(ddman, mask, DD_PlusInfinity(ddman), tmp);
 			// abstract
 			tmp = DD_MinAbstract(ddman, tmp, ndvars, num_ndvars);
 		}
 		else {
+			// likewise, for choices that do not exist (masked), set the value to -infinity
+			// so that they can never be picked as the maximum
+			// (masking is needed for max too, again because rewards are not necessarily
+			// non-negative: a non-existent choice is 0 in the MTBDD, which would otherwise
+			// be picked as the maximum for a state whose actual choices are all negative)
+			Cudd_Ref(mask);
+			tmp = DD_ITE(ddman, mask, DD_MinusInfinity(ddman), tmp);
 			// abstract
 			tmp = DD_MaxAbstract(ddman, tmp, ndvars, num_ndvars);
 		}
@@ -143,10 +149,7 @@ jlong __jlongpointer in
 	
 	// print iterations/timing info
 	PN_PrintToMainLog(env, "\nIterative method: %d iterations in %.2f seconds (average %.6f, setup %.2f)\n", iters, time_taken, time_for_iters/iters, time_for_setup);
-	
-	// free memory
-	Cudd_RecursiveDeref(ddman, new_mask);
-	
+
 	return ptr_to_jlong(sol);
 }
 

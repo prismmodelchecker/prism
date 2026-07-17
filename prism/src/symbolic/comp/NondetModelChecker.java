@@ -343,9 +343,13 @@ public class NondetModelChecker extends NonProbModelChecker
 		// Get rewards
 		Object rs = expr.getRewardStructIndex();
 		JDDNode stateRewards = getStateRewardsByIndexObject(rs, model, constantValues);
-		checkNegativeRewards(stateRewards, "State");
 		JDDNode transRewards = getTransitionRewardsByIndexObject(rs, model, constantValues);
-		checkNegativeRewards(transRewards, "Transition");
+		// Instantaneous-reward properties (e.g. R=?[I=k]) look up a single state's reward
+		// rather than cumulating rewards, so negative rewards are not an issue there
+		if (!Expression.usesInstantaneousReward(expr.getExpression())) {
+			checkNegativeRewards(stateRewards, "State");
+			checkNegativeRewards(transRewards, "Transition");
+		}
 
 		// Compute rewards
 		StateValues rewards = null;
