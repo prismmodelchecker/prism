@@ -1,0 +1,24 @@
+// Tests R=?[C] on an IDTMC where the value is finite but differs between
+// min and max uncertainty: from s=0, the chain moves to s=1 (one-time
+// reward 2) or s=2 (one-time reward 10) with probability in [0.3,0.7]
+// each, then settles permanently in the zero-reward sink s=3. Total reward
+// is thus 10 - 8*p where p = P(move to s=1), so min uncertainty picks
+// p=0.7 (reward 4.4) and max uncertainty picks p=0.3 (reward 7.6).
+
+dtmc
+
+module M
+
+	s : [0..3] init 0;
+
+	[] s=0 -> [0.3,0.7]: (s'=1) + [0.3,0.7]: (s'=2);
+	[] s=1 -> [1,1]: (s'=3);
+	[] s=2 -> [1,1]: (s'=3);
+	[] s=3 -> [1,1]: (s'=3);
+
+endmodule
+
+rewards "r"
+	s=1 : 2;
+	s=2 : 10;
+endrewards

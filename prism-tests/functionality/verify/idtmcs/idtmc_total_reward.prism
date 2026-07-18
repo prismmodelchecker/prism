@@ -1,0 +1,24 @@
+// Tests R=?[C] (unbounded total expected reward) for IDTMCs, including the
+// C{discount=...} option. See UDTMCModelChecker.computeTotalRewards.
+//
+// From s=0, the chain moves to s=1 or s=2 with probability in [0.4,0.6]
+// each. State s=2 has positive reward and self-loops forever, so - since
+// interval lower bounds are required to be positive, meaning s=2 is always
+// reached with some positive probability regardless of how the uncertainty
+// is resolved - R=?[C] is Infinity for both min and max uncertainty here.
+
+dtmc
+
+module M
+
+	s : [0..2] init 0;
+
+	[] s=0 -> [0.4,0.6]: (s'=1) + [0.4,0.6]: (s'=2);
+	[] s=1 -> [1,1]: (s'=1);
+	[] s=2 -> [1,1]: (s'=2);
+
+endmodule
+
+rewards "r"
+	s=2 : 5;
+endrewards

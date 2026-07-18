@@ -30,6 +30,7 @@ import static prism.PrismSettings.DEFAULT_EXPORT_MODEL_PRECISION;
 
 import java.io.File;
 import java.util.BitSet;
+import java.util.EnumSet;
 import java.util.List;
 
 import explicit.rewards.ConstructRewards;
@@ -987,18 +988,40 @@ public class ProbModelChecker extends NonProbModelChecker
 	}
 
 	/**
+	 * Model types for which discounting is implemented for total ({@code C}) reward properties.
+	 */
+	private static final EnumSet<ModelType> DISCOUNT_MODEL_TYPES_TOTAL =
+			EnumSet.of(ModelType.DTMC, ModelType.MDP, ModelType.IDTMC, ModelType.UDTMC, ModelType.IMDP, ModelType.UMDP);
+
+	/**
+	 * Model types for which discounting is implemented for cumulative ({@code C<=k}) and
+	 * reachability ({@code F}) reward properties. Narrower than
+	 * {@link #DISCOUNT_MODEL_TYPES_TOTAL}: the uncertain model types only have discounting
+	 * for total reward.
+	 */
+	private static final EnumSet<ModelType> DISCOUNT_MODEL_TYPES_OTHER =
+			EnumSet.of(ModelType.DTMC, ModelType.MDP);
+
+	/**
 	 * Extract the discount factor to apply for a (discounted) reward computation, e.g. from a
 	 * {discount=...} option attached to a C or F temporal operator. Returns 1.0 (no discounting)
 	 * if none was specified. Throws an exception if discounting is requested for a model type
 	 * that does not support it, or if the discount factor is out of range.
+	 * @param model The model
+	 * @param expr The temporal operator inside the R operator
+	 * @param supported Model types for which the calling reward computation implements discounting
 	 */
-	private double getRewardDiscount(Model<?> model, ExpressionTemporal expr) throws PrismException
+	private double getRewardDiscount(Model<?> model, ExpressionTemporal expr, EnumSet<ModelType> supported) throws PrismException
 	{
 		if (expr.getDiscount() == null) {
 			return 1.0;
 		}
-		if (model.getModelType() != ModelType.DTMC && model.getModelType() != ModelType.MDP) {
-			throw new PrismNotSupportedException("Discounting is not currently supported for " + model.getModelType() + "s");
+		// Which model types support discounting differs per reward operator, so the caller
+		// passes in the set it actually implements: a type missing here would otherwise have
+		// its discount factor silently dropped rather than reported as unsupported
+		if (!supported.contains(model.getModelType())) {
+			throw new PrismNotSupportedException("Discounting is not currently supported for the " + expr.getOperatorSymbol()
+					+ " reward operator for " + model.getModelType() + "s");
 		}
 		double disc = expr.getDiscount().evaluateDouble(constantValues);
 		if (disc < 0.0 || disc > 1.0) {
@@ -1104,7 +1127,7 @@ public class ProbModelChecker extends NonProbModelChecker
 
 		// Extract the discount factor before the trivial case below, so that an unsupported
 		// model type or an out-of-range factor is still reported for e.g. "C{discount=2}<=0"
-		double disc = getRewardDiscount(model, expr);
+		double disc = getRewardDiscount(model, expr, DISCOUNT_MODEL_TYPES_OTHER);
 
 		// Compute/return the rewards
 		// A trivial case: "C<=0" (prob is 1 in target states, 0 otherwise)
@@ -1145,7 +1168,7 @@ public class ProbModelChecker extends NonProbModelChecker
 		}
 
 		// Compute/return the rewards
-		double disc = getRewardDiscount(model, expr);
+		double disc = getRewardDiscount(model, expr, DISCOUNT_MODEL_TYPES_TOTAL);
 		ModelCheckerResult res = null;
 		switch (model.getModelType()) {
 		case DTMC:
@@ -1156,6 +1179,14 @@ public class ProbModelChecker extends NonProbModelChecker
 			break;
 		case MDP:
 			res = ((MDPModelChecker) this).computeTotalRewards((MDP<Double>) model, (MDPRewards<Double>) modelRewards, minMax.isMin(), disc);
+			break;
+		case IDTMC:
+		case UDTMC:
+			res = ((UDTMCModelChecker) this).computeTotalRewards((UDTMC<Double>) model, (MCRewards<Double>) modelRewards, minMax, disc);
+			break;
+		case IMDP:
+		case UMDP:
+			res = ((UMDPModelChecker) this).computeTotalRewards((UMDP<Double>) model, (MDPRewards<Double>) modelRewards, minMax, disc);
 			break;
 		default:
 			throw new PrismNotSupportedException("Explicit engine does not yet handle the " + expr.getOperatorSymbol() + " reward operator for " + model.getModelType()
@@ -1221,7 +1252,7 @@ public class ProbModelChecker extends NonProbModelChecker
 		BitSet target = checkExpression(model, expr.getOperand2(), null).getBitSet();
 
 		// Compute/return the rewards
-		double disc = getRewardDiscount(model, expr);
+		double disc = getRewardDiscount(model, expr, DISCOUNT_MODEL_TYPES_OTHER);
 		ModelCheckerResult res = null;
 		switch (model.getModelType()) {
 		case DTMC:

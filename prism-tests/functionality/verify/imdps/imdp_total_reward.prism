@@ -1,0 +1,50 @@
+// Tests R=?[C] (unbounded total expected reward) for IMDPs, exercising both
+// the action-choice quantifier (min/max) and the uncertainty quantifier
+// (minUnc/maxUnc). See UMDPModelChecker.computeTotalRewards.
+//
+// From s=0, the min/max-action choice is between:
+//  - [safe]: a costly (100) but guaranteed route to a zero-reward
+//    absorbing state (s=1);
+//  - [risky]: a cheap (1) route that, with probability in [0.3,0.7], falls
+//    into an inescapable positive-reward self-loop (s=2, reward 5 forever) -
+//    since interval lower bounds are required to be positive, this branch
+//    is always taken with some positive probability, making [risky] worth
+//    Infinity regardless of how the uncertainty is resolved;
+//  - [goto4]: a free route into a separate sub-model (s=4 onwards) with a
+//    large but always-finite value, used below to isolate the uncertainty
+//    quantifier's effect independently of the action quantifier.
+// A correct minimiser prefers [safe] (100) over both [risky] (Infinity) and
+// [goto4] (>= 4400); a correct maximiser prefers [risky] (Infinity).
+//
+// From s=4 (no action choice, only uncertainty), the value is
+// 10000 - 8000*p for p = P(move to s=5) in [0.3,0.7]: 4400 for min
+// uncertainty (p=0.7), 7600 for max uncertainty (p=0.3) - independent of
+// the action-choice quantifier, since there is none to make here.
+
+mdp
+
+module M
+
+	s : [0..7] init 0;
+
+	[safe]  s=0 -> [1,1]: (s'=1);
+	[risky] s=0 -> [0.3,0.7]: (s'=2) + [0.3,0.7]: (s'=3);
+	[goto4] s=0 -> [1,1]: (s'=4);
+	[]      s=1 -> [1,1]: (s'=1);
+	[]      s=2 -> [1,1]: (s'=2);
+	[]      s=3 -> [1,1]: (s'=3);
+
+	[] s=4 -> [0.3,0.7]: (s'=5) + [0.3,0.7]: (s'=6);
+	[] s=5 -> [1,1]: (s'=7);
+	[] s=6 -> [1,1]: (s'=7);
+	[] s=7 -> [1,1]: (s'=7);
+
+endmodule
+
+rewards "r"
+	[safe]  true : 100;
+	[risky] true : 1;
+	s=2 : 5;
+	s=5 : 2000;
+	s=6 : 10000;
+endrewards

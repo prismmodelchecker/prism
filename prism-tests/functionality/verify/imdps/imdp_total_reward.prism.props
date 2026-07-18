@@ -1,0 +1,77 @@
+// RESULT: 100.0
+R{"r"}minmin=?[C]
+
+// RESULT: 100.0
+R{"r"}minmax=?[C]
+
+// RESULT: Infinity
+R{"r"}maxmin=?[C]
+
+// RESULT: Infinity
+R{"r"}maxmax=?[C]
+
+// s=4 has no action choice, so only the uncertainty quantifier (second
+// word) affects the value; the action quantifier (first word) is
+// irrelevant, confirmed by minmin==maxmin and minmax==maxmax below.
+
+// RESULT: 4400.0
+filter(state, R{"r"}minmin=?[C], s=4)
+
+// RESULT: 7600.0
+filter(state, R{"r"}minmax=?[C], s=4)
+
+// RESULT: 4400.0
+filter(state, R{"r"}maxmin=?[C], s=4)
+
+// RESULT: 7600.0
+filter(state, R{"r"}maxmax=?[C], s=4)
+
+// Same model, but with a discount factor (discount=0.9, via the C
+// operator's {discount=...} option). Discounting turns the previously
+// Infinite [risky] branch finite, which changes which action the
+// maximiser prefers (no longer just "reach the trap", since it now has a
+// bounded value) and can flip which action the *minimiser* prefers too:
+// V(s=2) = 5/(1-0.9) = 50, so [risky] = 1 + 0.9*p*50 = 1 + 45*p for
+// p = P(reach s=2) in [0.3,0.7]. Under min uncertainty (p=0.3), [risky] is
+// only 14.5 - now cheaper than [safe] (100), so the minimiser switches to
+// [risky]. Under max uncertainty (p=0.7), [risky] is 32.5 - still cheaper
+// than [safe], so the minimiser prefers it there too.
+// [goto4]'s value (0.9 * value at s=4) remains far larger than [risky]'s
+// discounted value in all four cases, so it's never optimal here.
+
+// RESULT: [14.4998,14.5002]
+R{"r"}minmin=?[C{discount=0.9}]
+
+// RESULT: [32.4997,32.5003]
+R{"r"}minmax=?[C{discount=0.9}]
+
+// [risky]'s value is now merely 1 + 45*p (14.5 to 32.5) rather than
+// Infinity, so [goto4] (0.9 * value at s=4, computed below: 0.9*3960=3564
+// or 0.9*6840=6156) becomes the maximiser's best choice instead.
+
+// RESULT: [3563.99,3564.01]
+R{"r"}maxmin=?[C{discount=0.9}]
+
+// RESULT: [6155.99,6156.01]
+R{"r"}maxmax=?[C{discount=0.9}]
+
+// s=4: V = 0.9 * (10000 - 8000*p) for p = P(move to s=5) in [0.3,0.7].
+
+// RESULT: [3959.99,3960.01]
+filter(state, R{"r"}minmin=?[C{discount=0.9}], s=4)
+
+// RESULT: 6840.0
+filter(state, R{"r"}minmax=?[C{discount=0.9}], s=4)
+
+// RESULT: [3959.99,3960.01]
+filter(state, R{"r"}maxmin=?[C{discount=0.9}], s=4)
+
+// RESULT: 6840.0
+filter(state, R{"r"}maxmax=?[C{discount=0.9}], s=4)
+
+// As for IDTMCs: discounting is implemented for total reward (C) but not for
+// reachability reward (F), and the unimplemented case must be reported rather than
+// silently returning the undiscounted value.
+
+// RESULT: Error:Discounting is not currently supported for the F
+R{"r"}minmin=?[F{discount=0.9} s=2]

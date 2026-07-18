@@ -1,0 +1,27 @@
+// RESULT: 4.4
+R{"r"}min=?[C]
+
+// RESULT: 7.6
+R{"r"}max=?[C]
+
+// Same model, but with a discount factor (discount=0.9, via the C
+// operator's {discount=...} option):
+// V(s=0) = 0.9 * (10 - 8*p) for p = P(move to s=1) in [0.3,0.7], so min
+// uncertainty (p=0.7) gives 0.9*4.4 = 3.96, and max uncertainty (p=0.3)
+// gives 0.9*7.6 = 6.84.
+
+// RESULT: 3.96
+R{"r"}min=?[C{discount=0.9}]
+
+// RESULT: 6.84
+R{"r"}max=?[C{discount=0.9}]
+
+// Discounting is implemented for total reward (C) on uncertain models, but not for
+// reachability reward (F). The unimplemented case must be reported rather than having
+// the discount factor silently dropped - which would return the undiscounted 4.4 here,
+// for any discount factor. Reported by -test as UNSUPPORTED rather than PASS (a
+// PrismNotSupportedException is classified separately); a dropped discount would give a
+// numeric result instead and so be reported as a FAIL.
+
+// RESULT: Error:Discounting is not currently supported for the F
+R{"r"}min=?[F{discount=0.9} s=3]
