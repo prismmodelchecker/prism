@@ -41,8 +41,10 @@ import common.IntSet;
 import common.IterableBitSet;
 import common.IterableStateSet;
 import common.StopWatch;
+import common.functions.PairPredicateInt;
 import explicit.modelviews.EquivalenceRelationInteger;
 import explicit.modelviews.MDPDroppedAllChoices;
+import explicit.modelviews.MDPDroppedChoicesCached;
 import explicit.modelviews.MDPEquiv;
 import explicit.rewards.MCRewards;
 import explicit.rewards.MCRewardsFromMDPRewards;
@@ -1949,8 +1951,15 @@ public class MDPModelChecker extends ProbModelChecker
 	 * Compute minimal total expected rewards.
 	 * <br>
 	 * If discounting is enabled, values are finite everywhere regardless of end-component
-	 * structure, so this goes directly to (discounted) value iteration/Gauss-Seidel. Without
-	 * discounting, minimum total expected reward is not currently supported.
+	 * structure, so this goes directly to (discounted) value iteration/Gauss-Seidel.
+	 * <br>
+	 * Without discounting, this is reduced to an expected reachability reward computation,
+	 * with target Z = the union of "zero-reward" maximal end components, i.e. end components
+	 * from which a strategy exists to remain forever while accumulating no further reward.
+	 * A minimising strategy always prefers entering such an MEC (0 reward from then on) over
+	 * continuing to pay reward, so Rmin[C] = Rmin[F Z]. This also gives correct handling of
+	 * states with infinite value "for free", via the existing Prob1-based precomputation
+	 * already used by {@link #computeReachRewards}.
 	 * @param mdp The MDP
 	 * @param mdpRewards The rewards
 	 */
@@ -1963,8 +1972,15 @@ public class MDPModelChecker extends ProbModelChecker
 	 * Compute minimal total expected rewards.
 	 * <br>
 	 * If discounting is enabled, values are finite everywhere regardless of end-component
-	 * structure, so this goes directly to (discounted) value iteration/Gauss-Seidel. Without
-	 * discounting, minimum total expected reward is not currently supported.
+	 * structure, so this goes directly to (discounted) value iteration/Gauss-Seidel.
+	 * <br>
+	 * Without discounting, this is reduced to an expected reachability reward computation,
+	 * with target Z = the union of "zero-reward" maximal end components, i.e. end components
+	 * from which a strategy exists to remain forever while accumulating no further reward.
+	 * A minimising strategy always prefers entering such an MEC (0 reward from then on) over
+	 * continuing to pay reward, so Rmin[C] = Rmin[F Z]. This also gives correct handling of
+	 * states with infinite value "for free", via the existing Prob1-based precomputation
+	 * already used by {@link #computeReachRewards}.
 	 * @param mdp The MDP
 	 * @param mdpRewards The rewards
 	 * @param disc Discount factor for future rewards (1.0 = no discounting)
@@ -1978,42 +1994,47 @@ public class MDPModelChecker extends ProbModelChecker
 			throw new PrismNotSupportedException("Interval iteration for total rewards is currently not supported");
 		}
 
-		if (disc >= 1.0) {
-			throw new PrismNotSupportedException("Minimum total expected reward not supported in explicit engine");
-		}
-
 		// Start expected total reward
 		timer = System.currentTimeMillis();
 		mainLog.println("\nStarting total expected reward (min)...");
 
-		// Discounting guarantees finite values everywhere, regardless of end-component
-		// structure, so we can go directly to (discounted) value iteration/Gauss-Seidel,
-		// with no target/infinite states.
-		MDPSolnMethod mdpSolnMethod = this.mdpSolnMethod;
-		if (!(mdpSolnMethod == MDPSolnMethod.VALUE_ITERATION || mdpSolnMethod == MDPSolnMethod.GAUSS_SEIDEL)) {
-			mdpSolnMethod = MDPSolnMethod.VALUE_ITERATION;
-			mainLog.printWarning("Switching to MDP solution method \"" + mdpSolnMethod.fullName() + "\" (required when discounting is enabled)");
-		}
-
-		int n = mdp.getNumStates();
-		int strat[] = null;
-		if (genStrat) {
-			strat = new int[n];
-			for (int i = 0; i < n; i++) {
-				strat[i] = -1;
+		if (disc < 1.0) {
+			// Discounting guarantees finite values everywhere, regardless of end-component
+			// structure, so we can go directly to (discounted) value iteration/Gauss-Seidel,
+			// with no target/infinite states.
+			MDPSolnMethod mdpSolnMethod = this.mdpSolnMethod;
+			if (!(mdpSolnMethod == MDPSolnMethod.VALUE_ITERATION || mdpSolnMethod == MDPSolnMethod.GAUSS_SEIDEL)) {
+				mdpSolnMethod = MDPSolnMethod.VALUE_ITERATION;
+				mainLog.printWarning("Switching to MDP solution method \"" + mdpSolnMethod.fullName() + "\" (required when discounting is enabled)");
 			}
-		}
 
-		BitSet empty = new BitSet();
-		if (mdpSolnMethod == MDPSolnMethod.GAUSS_SEIDEL) {
-			boolean backwards = linEqMethod == LinEqMethod.BACKWARDS_GAUSS_SEIDEL;
-			res = computeReachRewardsGaussSeidelDiscounted(mdp, mdpRewards, empty, empty, true, strat, disc, backwards);
+			int n = mdp.getNumStates();
+			int strat[] = null;
+			if (genStrat) {
+				strat = new int[n];
+				for (int i = 0; i < n; i++) {
+					strat[i] = -1;
+				}
+			}
+
+			BitSet empty = new BitSet();
+			if (mdpSolnMethod == MDPSolnMethod.GAUSS_SEIDEL) {
+				boolean backwards = linEqMethod == LinEqMethod.BACKWARDS_GAUSS_SEIDEL;
+				res = computeReachRewardsGaussSeidelDiscounted(mdp, mdpRewards, empty, empty, true, strat, disc, backwards);
+			} else {
+				res = computeReachRewardsValIterDiscounted(mdp, mdpRewards, empty, empty, true, strat, disc);
+			}
+
+			if (genStrat) {
+				res.strat = new MDStrategyArray<Double>(mdp, strat);
+			}
 		} else {
-			res = computeReachRewardsValIterDiscounted(mdp, mdpRewards, empty, empty, true, strat, disc);
-		}
-
-		if (genStrat) {
-			res.strat = new MDStrategyArray<Double>(mdp, strat);
+			// Undiscounted: reduce to expected reachability reward to zero-reward MECs.
+			// computeReachRewards already handles precomputation of infinite states
+			// (and strategy generation) correctly for the min case.
+			BitSet z = computeZeroRewardMECStates(mdp, mdpRewards);
+			mainLog.println("States in zero-reward MECs: " + z.cardinality());
+			res = computeReachRewards(mdp, mdpRewards, z, true, null, null);
 		}
 
 		// Finished expected total reward
@@ -2022,6 +2043,27 @@ public class MDPModelChecker extends ProbModelChecker
 		res.timeTaken = timer / 1000.0;
 
 		return res;
+	}
+
+	/**
+	 * Compute the union of states in maximal end components (MECs) where all rewards
+	 * (state and transition) are zero, i.e., states from which a strategy exists to
+	 * remain forever without accumulating any further reward.
+	 * Used to reduce Rmin[C] (total reward) to Rmin[F Z].
+	 * @param mdp The MDP
+	 * @param mdpRewards The rewards
+	 */
+	protected BitSet computeZeroRewardMECStates(MDP<Double> mdp, MDPRewards<Double> mdpRewards) throws PrismException
+	{
+		PairPredicateInt positiveRewardChoice = (s, i) -> mdpRewards.getStateReward(s) > 0 || mdpRewards.getTransitionReward(s, i) > 0;
+		MDPDroppedChoicesCached<Double> zeroRewMDP = new MDPDroppedChoicesCached<>(mdp, positiveRewardChoice);
+		ECComputer ecComputer = ECComputer.createECComputer(this, zeroRewMDP);
+		ecComputer.computeMECStates();
+		BitSet z = new BitSet(mdp.getNumStates());
+		for (BitSet mec : ecComputer.getMECStates()) {
+			z.or(mec);
+		}
+		return z;
 	}
 
 	/**

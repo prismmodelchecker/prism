@@ -1,0 +1,24 @@
+// Minimiser correctly avoids the cheaper action ([risky], cost 1) whose 1/2
+// chance of an inescapable positive-reward trap makes it worth Infinity in
+// expectation, in favour of the costlier but guaranteed-safe [safe] (100).
+
+// RESULT: 100.0
+R{"r"}min=?[C]
+
+// RESULT: Infinity
+R{"r"}max=?[C]
+
+// RESULT: 0.0
+filter(state, R{"r"}min=?[C], s=1)
+
+// RESULT: Infinity
+filter(state, R{"r"}min=?[C], s=2)
+
+// Both actions from s=4 unavoidably lead to the same trap: Rmin=?[C] is
+// genuinely Infinity there too, regardless of which action is chosen.
+
+// RESULT: Infinity
+filter(state, R{"r"}min=?[C], s=4)
+
+// RESULT: Infinity
+filter(state, R{"r"}max=?[C], s=4)
