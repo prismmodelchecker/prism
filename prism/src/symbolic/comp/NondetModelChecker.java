@@ -2264,11 +2264,88 @@ public class NondetModelChecker extends NonProbModelChecker
 	protected StateValues computeTotalRewards(JDDNode tr, JDDNode tr01, JDDNode tra, JDDNode sr, JDDNode trr, boolean min) throws PrismException
 	{
 		if (min) {
-			throw new PrismNotSupportedException("Expected minimum total reward (C) is not yet supported for MDPs.");
+			return computeTotalRewardsMin(tr, tr01, tra, sr, trr);
 		} else {
 			// max. We don't know if there are positive ECs, so we can't skip precomputation
 			return computeTotalRewardsMax(tr, tr01, tra, sr, trr, false);
 		}
+	}
+
+	/**
+	 * Compute minimal total expected rewards.
+	 * <br>
+	 * Reduced to an expected reachability reward computation, with target Z =
+	 * the union of "zero-reward" maximal end components, i.e. end components
+	 * from which a strategy exists to remain forever while accumulating no
+	 * further reward. A minimising strategy always prefers entering such an
+	 * end component (0 reward from then on) over continuing to pay reward, so
+	 * Rmin[C] = Rmin[F Z]. This also gives correct handling of states with
+	 * infinite value "for free", via the existing Prob1-based precomputation
+	 * already used by {@link #computeReachRewards}.
+	 */
+	protected StateValues computeTotalRewardsMin(JDDNode tr, JDDNode tr01, JDDNode tra, JDDNode sr, JDDNode trr) throws PrismException
+	{
+		mainLog.println("\nStarting total expected reward (min)...");
+		long timer = System.currentTimeMillis();
+
+		JDDNode z = computeZeroRewardMECStates(tr, tr01, sr, trr);
+		mainLog.println("States in zero-reward MECs: " + JDD.GetNumMintermsString(z, allDDRowVars.n()));
+
+		StateValues rewards;
+		try {
+			rewards = computeReachRewards(tr, tra, tr01, sr, trr, z, true);
+		} finally {
+			JDD.Deref(z);
+		}
+
+		timer = System.currentTimeMillis() - timer;
+		mainLog.println("Time for total reward computation: " + timer / 1000.0 + " seconds.");
+
+		return rewards;
+	}
+
+	/**
+	 * Compute the union of states in maximal end components (MECs) where all
+	 * rewards (state and transition) are zero, i.e., states from which a
+	 * strategy exists to remain forever without accumulating any further
+	 * reward. Used to reduce Rmin[C] (total reward) to Rmin[F Z].
+	 * <br>[ REFS: <i>result</i>, DEREFS: <i>none</i> ]
+	 */
+	protected JDDNode computeZeroRewardMECStates(JDDNode tr, JDDNode tr01, JDDNode sr, JDDNode trr) throws PrismException
+	{
+		// States with zero state reward
+		JDD.Ref(reach);
+		JDD.Ref(sr);
+		JDDNode zeroRewReach = JDD.And(reach, JDD.Apply(JDD.EQUALS, sr, JDD.Constant(0)));
+		// (state,choice) pairs with zero transition reward
+		JDD.Ref(trr);
+		JDDNode zeroTrr = JDD.Apply(JDD.EQUALS, trr, JDD.Constant(0));
+		// Restrict the transition relation (and its probabilities) to those zero-reward choices
+		JDD.Ref(tr);
+		JDD.Ref(zeroTrr);
+		JDDNode zeroRewTrans = JDD.Apply(JDD.TIMES, tr, zeroTrr);
+		JDD.Ref(tr01);
+		JDDNode zeroRewTrans01 = JDD.And(tr01, zeroTrr);
+
+		ECComputer ecComp = new ECComputerDefault(prism, zeroRewReach, zeroRewTrans, zeroRewTrans01,
+		                                          model.getAllDDRowVars(),
+		                                          model.getAllDDColVars(),
+		                                          model.getAllDDNondetVars());
+		StopWatch mecTimer = new StopWatch(mainLog);
+		mecTimer.start("zero-reward MEC computation");
+		ecComp.computeMECStates();
+		mecTimer.stop("found " + ecComp.getMECStates().size() + " zero-reward MECs");
+
+		JDDNode z = JDD.Constant(0);
+		for (JDDNode mec : ecComp.getMECStates()) {
+			z = JDD.Or(z, mec);
+		}
+
+		JDD.Deref(zeroRewReach);
+		JDD.Deref(zeroRewTrans);
+		JDD.Deref(zeroRewTrans01);
+
+		return z;
 	}
 
 	protected StateValues computeTotalRewardsMax(JDDNode tr, JDDNode tr01, JDDNode tra, JDDNode sr, JDDNode trr, boolean noPositiveECs) throws PrismException
