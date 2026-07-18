@@ -2420,8 +2420,7 @@ public class MDPModelChecker extends ProbModelChecker
 				}
 			} else {
 				ZeroRewardECQuotient<Double> quotient = null;
-				boolean doZeroMECCheckForMin = true;
-				if (min & doZeroMECCheckForMin) {
+				if (min) {
 					StopWatch zeroMECTimer = new StopWatch(mainLog);
 					zeroMECTimer.start("checking for zero-reward ECs");
 					mainLog.println("For Rmin, checking for zero-reward ECs...");

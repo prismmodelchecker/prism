@@ -128,6 +128,24 @@ public class MDPQuotient implements ModelTransformation<NondetModel,NondetModel>
 		return transform.mapStateSet(S);
 	}
 
+	/**
+	 * Map a state reward MTBDD (over the original model's row vars) to the quotient model.
+	 * <br>[ REFS: <i>result</i>, DEREFS: <i>none</i> ]
+	 */
+	public JDDNode getTransformedStateReward(JDDNode rew) throws PrismException
+	{
+		return transform.getTransformedStateReward(rew);
+	}
+
+	/**
+	 * Map a transition reward MTBDD (over the original model's row/nondet/col vars) to the quotient model.
+	 * <br>[ REFS: <i>result</i>, DEREFS: <i>none</i> ]
+	 */
+	public JDDNode getTransformedTransReward(JDDNode rew) throws PrismException
+	{
+		return transform.getTransformedTransReward(rew);
+	}
+
 	@Override
 	public JDDNode getTransformedStatesOfInterest()
 	{

@@ -1,0 +1,31 @@
+// Scenario A: single-state zero-reward self-loop with an escape action
+// (reward 5). Naive VI can spuriously converge to 0 here (looping forever
+// trivially satisfies V = min(V, 5) at V=0); the correct answer is 5, since
+// looping forever never actually reaches the target.
+
+// RESULT: [4.999,5.001]
+filter(state, Rmin=?[F s=99], s=0)
+
+// RESULT: Infinity
+filter(state, Rmax=?[F s=99], s=0)
+
+// Scenario B: a genuine 2-state end component (0<->1 cycle), not just a
+// literal self-loop, with an escape action from the second state
+// (reward 10).
+
+// RESULT: [9.999,10.001]
+filter(state, Rmin=?[F s=99], s=10)
+
+// RESULT: Infinity
+filter(state, Rmax=?[F s=99], s=10)
+
+// Scenario C: an end component {21,22} that feeds into a downstream state
+// (s=20) which is *not* itself part of any end component, but depends on
+// the (fixed) EC value. Tests that the fix propagates correctly to states
+// outside the EC: V(20) = V(21) = 0.5*V(20) + 0.5*7, solving to 7.
+
+// RESULT: [6.999,7.001]
+filter(state, Rmin=?[F s=99], s=20)
+
+// RESULT: Infinity
+filter(state, Rmax=?[F s=99], s=20)
