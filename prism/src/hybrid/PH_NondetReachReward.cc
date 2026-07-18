@@ -96,12 +96,12 @@ jboolean min		// min or max probabilities (true = min, false = max)
 	int n, nm;
 	// flags
 	bool compact_r;
-	// hybrid stuff	
+	// hybrid stuff
 	HDDMatrices *hddms = NULL, *hddms2 = NULL;
 	HDDMatrix *hddm = NULL;
 	HDDNode *hdd = NULL;
 	// vectors
-	double *rew_vec = NULL, *tmpsoln = NULL;
+	double *rew_vec = NULL, *tmpsoln = NULL, *inf_vec = NULL;
 	DistVector *rew_dist = NULL;
 	// timing stuff
 	long start1, start2, start3, stop;
@@ -191,7 +191,10 @@ jboolean min		// min or max probabilities (true = min, false = max)
 	kbt += kb;
 	if (compact_r) PN_PrintToMainLog(env, "[dist=%d, compact] ", rew_dist->num_dist);
 	PN_PrintMemoryToMainLog(env, "[", kb, "]\n");
-	
+
+	// generate vector for 'inf' states (reward is infinite there)
+	inf_vec = mtbdd_to_double_vector(ddman, inf, rvars, num_rvars, odd);
+
 	// create solution/iteration vectors
 	PN_PrintToMainLog(env, "Allocating iteration vectors... ");
 	soln = new double[n];
@@ -204,9 +207,9 @@ jboolean min		// min or max probabilities (true = min, false = max)
 	// print total memory usage
 	PN_PrintMemoryToMainLog(env, "TOTAL: [", kbt, "]\n");
 	
-	// initial solution is zero
+	// initial solution is infinity in 'inf' states, zero elsewhere
 	for (i = 0; i < n; i++) {
-		soln[i] = 0;
+		soln[i] = (inf_vec[i] > 0) ? HUGE_VAL : 0;
 	}
 
 	std::unique_ptr<ExportIterations> iterationExport;
@@ -290,11 +293,20 @@ jboolean min		// min or max probabilities (true = min, false = max)
 			}
 		}
 		
-		// add state rewards
+		// add state rewards, putting infinities (for 'inf' states) back into the solution vector
+		// ('inf' state rows are filtered out of the matrix, so they are otherwise seen as unvisited)
 		if (!compact_r) {
-			for (i = 0; i < n; i++) { if(soln2[i] < 0) soln2[i] = 0; soln2[i] += rew_vec[i]; }
+			for (i = 0; i < n; i++) {
+				if (inf_vec[i] > 0) { soln2[i] = HUGE_VAL; continue; }
+				if (soln2[i] < 0) soln2[i] = 0;
+				soln2[i] += rew_vec[i];
+			}
 		} else {
-			for (i = 0; i < n; i++) { if(soln2[i] < 0) soln2[i] = 0; soln2[i] += rew_dist->dist[rew_dist->ptrs[i]]; }
+			for (i = 0; i < n; i++) {
+				if (inf_vec[i] > 0) { soln2[i] = HUGE_VAL; continue; }
+				if (soln2[i] < 0) soln2[i] = 0;
+				soln2[i] += rew_dist->dist[rew_dist->ptrs[i]];
+			}
 		}
 
 		if (iterationExport)
@@ -350,6 +362,7 @@ jboolean min		// min or max probabilities (true = min, false = max)
 	if (hddms2) delete hddms2;
 	if (rew_vec) delete[] rew_vec;
 	if (rew_dist) delete rew_dist;
+	if (inf_vec) delete[] inf_vec;
 	if (soln2) delete[] soln2;
 	if (soln3) delete[] soln3;
 	

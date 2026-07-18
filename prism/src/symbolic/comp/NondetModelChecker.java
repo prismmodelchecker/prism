@@ -2449,11 +2449,6 @@ public class NondetModelChecker extends NonProbModelChecker
 		else {
 			// compute the rewards
 			mainLog.println("\nComputing remaining total rewards...");
-			// switch engine, if necessary
-			if (engine == Prism.HYBRID) {
-				mainLog.println("Switching engine since hybrid engine does yet support this computation...");
-				engine = Prism.SPARSE;
-			}
 			mainLog.println("Engine: " + Prism.getEngineString(engine));
 			try {
 				switch (engine) {
@@ -2476,7 +2471,14 @@ public class NondetModelChecker extends NonProbModelChecker
 					rewards = new StateValuesDV(rewardsDV, model);
 					break;
 				case Prism.HYBRID:
-					throw new PrismNotSupportedException("Hybrid engine does not yet support this type of property (use sparse or MTBDD engine instead)");
+					rewardsDV = PrismHybrid.NondetReachReward(tr, sr, trr, odd,
+					                                          allDDRowVars, allDDColVars, allDDNondetVars,
+					                                          JDD.ZERO,  // goal = empty set
+					                                          inf,
+					                                          maybe,
+					                                          false);  // max
+					rewards = new StateValuesDV(rewardsDV, model);
+					break;
 				default:
 					throw new PrismException("Unknown engine");
 				}
@@ -2694,8 +2696,8 @@ public class NondetModelChecker extends NonProbModelChecker
 
 			// compute the rewards
 			mainLog.println("\nComputing remaining rewards...");
-			// switch engine, if necessary
-			if (engine == Prism.HYBRID) {
+			// switch engine, if necessary (interval iteration is not implemented natively for hybrid)
+			if (engine == Prism.HYBRID && doIntervalIteration) {
 				mainLog.println("Switching engine since hybrid engine does yet support this computation...");
 				engine = Prism.SPARSE;
 			}
@@ -2733,12 +2735,16 @@ public class NondetModelChecker extends NonProbModelChecker
 					}
 					break;
 				case Prism.HYBRID:
-					throw new PrismException("Hybrid engine does not yet support this type of property (use sparse or MTBDD engine instead)");
-					// rewardsDV = PrismHybrid.NondetReachReward(tr, sr, trr,
-					// odd, allDDRowVars, allDDColVars, allDDNondetVars, b, inf,
-					// maybe, min);
-					// rewards = new StateValuesDV(rewardsDV, model);
-					// break;
+					if (zeroRewQuotient != null) {
+						rewardsDV = PrismHybrid.NondetReachReward(zeroRewModel.getTrans(), srQ, trrQ, zeroRewModel.getODD(),
+						                                          zeroRewModel.getAllDDRowVars(), zeroRewModel.getAllDDColVars(), zeroRewModel.getAllDDNondetVars(),
+						                                          bQ, infQ, maybeQ, min);
+						rewards = new StateValuesDV(rewardsDV, zeroRewModel);
+					} else {
+						rewardsDV = PrismHybrid.NondetReachReward(tr, sr, trr, odd, allDDRowVars, allDDColVars, allDDNondetVars, b, inf, maybe, min);
+						rewards = new StateValuesDV(rewardsDV, model);
+					}
+					break;
 				default:
 					throw new PrismException("Unknown engine");
 				}
