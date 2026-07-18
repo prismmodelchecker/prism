@@ -161,6 +161,14 @@ JNIEXPORT jlong JNICALL Java_mtbdd_PrismMTBDD_PM_1NondetInstReward
 
 /*
  * Class:     mtbdd_PrismMTBDD
+ * Method:    PM_NondetCumulReward
+ * Signature: (JJJJJJIJIJIIZ)J
+ */
+JNIEXPORT jlong JNICALL Java_mtbdd_PrismMTBDD_PM_1NondetCumulReward
+  (JNIEnv *, jclass, jlong, jlong, jlong, jlong, jlong, jlong, jint, jlong, jint, jlong, jint, jint, jboolean);
+
+/*
+ * Class:     mtbdd_PrismMTBDD
  * Method:    PM_NondetReachReward
  * Signature: (JJJJJJIJIJIJJJZ)J
  */

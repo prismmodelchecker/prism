@@ -2224,6 +2224,7 @@ public class NondetModelChecker extends NonProbModelChecker
 
 	protected StateValues computeCumulRewards(JDDNode tr, JDDNode sr, JDDNode trr, int time, boolean min) throws PrismException
 	{
+		JDDNode rewardsMTBDD;
 		DoubleVector rewardsDV;
 		StateValues rewards = null;
 		// Local copy of setting
@@ -2240,7 +2241,9 @@ public class NondetModelChecker extends NonProbModelChecker
 		try {
 			switch (engine) {
 			case Prism.MTBDD:
-				throw new PrismNotSupportedException("MTBDD engine does not yet support this type of property (use the sparse engine instead)");
+				rewardsMTBDD = PrismMTBDD.NondetCumulReward(tr, sr, trr, odd, nondetMask, allDDRowVars, allDDColVars, allDDNondetVars, time, min);
+				rewards = new StateValuesMTBDD(rewardsMTBDD, model);
+				break;
 			case Prism.SPARSE:
 				rewardsDV = PrismSparse.NondetCumulReward(tr, sr, trr, odd, allDDRowVars, allDDColVars, allDDNondetVars, time, min);
 				rewards = new StateValuesDV(rewardsDV, model);

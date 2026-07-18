@@ -449,6 +449,16 @@ public class PrismMTBDD
 		return JDD.ptrToNode(ptr);
 	}
 
+	// pctl cumulative reward (nondeterministic/mdp)
+	private static native long PM_NondetCumulReward(long trans, long sr, long trr, long odd, long mask, long rv, int nrv, long cv, int ncv, long ndv, int nndv, int bound, boolean minmax);
+	public static JDDNode NondetCumulReward(JDDNode trans, JDDNode sr, JDDNode trr, ODDNode odd, JDDNode nondetMask, JDDVars rows, JDDVars cols, JDDVars nondet, int bound, boolean minmax) throws PrismException
+	{
+		PrismNative.resetModelCheckingInfo();
+		long ptr = PM_NondetCumulReward(trans.ptr(), sr.ptr(), trr.ptr(), odd.ptr(), nondetMask.ptr(), rows.array(), rows.n(), cols.array(), cols.n(), nondet.array(), nondet.n(), bound, minmax);
+		if (ptr == 0) throw generateExceptionForError();
+		return JDD.ptrToNode(ptr);
+	}
+
 	// pctl reach reward (nondeterministic/mdp)
 	private static native long PM_NondetReachReward(long trans, long sr, long trr, long odd, long mask, long rv, int nrv, long cv, int ncv, long ndv, int nndv, long goal, long inf, long maybe, boolean minmax);
 	public static JDDNode NondetReachReward(JDDNode trans, JDDNode sr, JDDNode trr, ODDNode odd, JDDNode nondetMask, JDDVars rows, JDDVars cols, JDDVars nondet, JDDNode goal, JDDNode inf, JDDNode maybe, boolean minmax) throws PrismException
