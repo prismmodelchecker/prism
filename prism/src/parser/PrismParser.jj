@@ -1844,16 +1844,43 @@ Expression ExpressionRewardContents(boolean prop, boolean pathprop) :
 	// First look for cases where it starts with "S" (see above)
 	LOOKAHEAD(ExpressionSS(prop, pathprop)) expr = ExpressionSS(prop, true) { ret = expr; }
 	| <S> { ret = new ExpressionTemporal(ExpressionTemporal.R_S, null, null); }
-	
+
 	// Normal reward operators (excluding S; see above)
-	| LOOKAHEAD(<C> <LE>) begin = <C> <LE> expr = Expression(false, false) { exprTemp = new ExpressionTemporal(ExpressionTemporal.R_C, null, null); exprTemp.setUpperBound(expr); ret = exprTemp; }
-	| <C> { ret = new ExpressionTemporal(ExpressionTemporal.R_C, null, null); }
+	// Options (e.g. {discount=0.5}), if present, may appear directly after "C", before any time bound.
+	// Lookahead requires the brace to specifically contain "discount=", so that a directly-attached
+	// filter (e.g. "R=?[C {x=1}]") is not misinterpreted as (invalid) options for the C operator.
+	| begin = <C> { exprTemp = new ExpressionTemporal(ExpressionTemporal.R_C, null, null); ret = exprTemp; }
+	  ( LOOKAHEAD(<LBRACE> <REG_IDENT> <EQ>, { getToken(2).image.equals("discount") }) ExpressionTemporalOptions(exprTemp) )?
+	  ( <LE> expr = Expression(false, false) { exprTemp.setUpperBound(expr); } )?
 	| <I> <EQ> expr = Expression(false, false) { exprTemp = new ExpressionTemporal(ExpressionTemporal.R_I, null, null); exprTemp.setUpperBound(expr); ret = exprTemp; }
-	
-	// Path formula (including F "target")
+
+	// Path formula (including F "target"), optionally with options (e.g. F{discount=0.5} "target")
+	| LOOKAHEAD(<F> <LBRACE>) begin = <F> { exprTemp = new ExpressionTemporal(ExpressionTemporal.P_F, null, null); ret = exprTemp; }
+	  ExpressionTemporalOptions(exprTemp) expr = ExpressionTemporalUnary(prop, true) { exprTemp.setOperand2(expr); }
 	| expr = Expression(prop, true) { ret = expr; }
 	)
 	{ ret.setPosition(begin, getToken(0)); return ret; }
+}
+
+// Options for a temporal operator in an R operator, e.g. {discount=0.5}
+
+void ExpressionTemporalOptions(ExpressionTemporal exprTemp) :
+{
+	String name;
+	Expression val;
+}
+{
+	<LBRACE> name = Identifier() <EQ> val = Expression(false, false)
+	{
+		if (name.equals("discount")) {
+			exprTemp.setDiscount(val);
+		} else {
+			ParseException ex = new ParseException("Unknown option \"" + name + "\" for " + exprTemp.getOperatorSymbol() + " operator");
+			ex.currentToken = getToken(0);
+			throw ex;
+		}
+	}
+	<RBRACE>
 }
 
 // (Property) expression: CTL existential operator E

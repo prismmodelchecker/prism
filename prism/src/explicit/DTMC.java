@@ -589,6 +589,25 @@ public interface DTMC<Value> extends Model<Value>
 	}
 
 	/**
+	 * Do a (discounted) matrix-vector multiplication and sum of action reward.
+	 * <br>
+	 * Note: this assumes {@code mcRewards} has no transition rewards (only state rewards
+	 * are read - see {@link #mvMultRewSingle}).
+	 * @param vect Vector to multiply by
+	 * @param mcRewards The rewards
+	 * @param result Vector to store result in
+	 * @param states Do multiplication for these rows, in the specified order
+	 * @param disc Discount factor
+	 */
+	public default void mvMultRew(double vect[], MCRewards<Double> mcRewards, double result[], PrimitiveIterator.OfInt states, double disc)
+	{
+		while (states.hasNext()) {
+			int s = states.nextInt();
+			result[s] = mvMultRewSingle(s, vect, mcRewards, disc);
+		}
+	}
+
+	/**
 	 * Do a matrix-vector multiplication and sum of action reward (Jacobi).
 	 * @param vect Vector to multiply by
 	 * @param mcRewards The rewards
@@ -617,6 +636,32 @@ public interface DTMC<Value> extends Model<Value>
 		while (states.hasNext()) {
 			int s = states.nextInt();
 			d = mvMultRewJacSingle(s, vect, mcRewards);
+
+			diff = absolute ? (Math.abs(d - vect[s])) : (Math.abs(d - vect[s]) / d);
+			maxDiff = diff > maxDiff ? diff : maxDiff;
+			vect[s] = d;
+		}
+		return maxDiff;
+	}
+
+	/**
+	 * Do a (discounted) matrix-vector multiplication and sum of action reward (Gauss-Seidel).
+	 * <br>
+	 * Note: this assumes {@code mcRewards} has no transition rewards (only state rewards
+	 * are read - see {@link #mvMultRewJacSingle}).
+	 * @param vect Vector to multiply by and store result in
+	 * @param mcRewards The rewards
+	 * @param states Do multiplication for these rows, in the specified order
+	 * @param absolute If true, compute absolute, rather than relative, difference
+	 * @param disc Discount factor
+	 * @return The maximum difference between old/new elements of {@code vect}
+	 */
+	public default double mvMultRewGS(double vect[], MCRewards<Double> mcRewards, PrimitiveIterator.OfInt states, boolean absolute, double disc)
+	{
+		double d, diff, maxDiff = 0.0;
+		while (states.hasNext()) {
+			int s = states.nextInt();
+			d = mvMultRewJacSingle(s, vect, mcRewards, disc);
 
 			diff = absolute ? (Math.abs(d - vect[s])) : (Math.abs(d - vect[s]) / d);
 			maxDiff = diff > maxDiff ? diff : maxDiff;
@@ -685,6 +730,27 @@ public interface DTMC<Value> extends Model<Value>
 	}
 
 	/**
+	 * Do a single row of (discounted) matrix-vector multiplication and sum of action reward.
+	 * <br>
+	 * Note: this assumes {@code mcRewards} has no transition rewards - only
+	 * {@link MCRewards#getStateReward} is read, {@link MCRewards#getTransitionReward}
+	 * is never called. Any transition rewards must be converted to expected state
+	 * rewards before being passed in (see {@link explicit.rewards.ConstructRewards#getExpectedRewards}).
+	 * @param s Row index
+	 * @param vect Vector to multiply by
+	 * @param mcRewards The rewards
+	 * @param disc Discount factor
+	 */
+	public default double mvMultRewSingle(int s, double vect[], MCRewards<Double> mcRewards, double disc)
+	{
+		double d = mcRewards.getStateReward(s);
+		d += disc * sumOverDoubleTransitions(s, (__, t, prob) -> {
+			return prob * vect[t];
+		});
+		return d;
+	}
+
+	/**
 	 * Do a single row of matrix-vector multiplication and sum of reward, Jacobi-style,
 	 * i.e., return  ( rew(s) + sum_{t!=s} P(s,t)*vect[t] ) / (1 - P(s,s))
 	 * @param s Row index
@@ -725,6 +791,54 @@ public interface DTMC<Value> extends Model<Value>
 			// not only self-loops, do Jacobi division
 			if (diag > 0)
 				d /= diag;
+		}
+
+		return d;
+	}
+
+	/**
+	 * Do a single row of (discounted) matrix-vector multiplication and sum of reward, Jacobi-style,
+	 * i.e., return  ( rew(s) + disc * sum_{t!=s} P(s,t)*vect[t] ) / (1 - disc*P(s,s))
+	 * <br>
+	 * Note: this assumes {@code mcRewards} has no transition rewards - only
+	 * {@link MCRewards#getStateReward} is read, {@link MCRewards#getTransitionReward}
+	 * is never called. Any transition rewards must be converted to expected state
+	 * rewards before being passed in (see {@link explicit.rewards.ConstructRewards#getExpectedRewards}).
+	 * @param s Row index
+	 * @param vect Vector to multiply by
+	 * @param mcRewards The rewards
+	 * @param disc Discount factor
+	 */
+	public default double mvMultRewJacSingle(int s, double vect[], MCRewards<Double> mcRewards, double disc)
+	{
+		class Jacobi {
+			double diag = 1.0;
+			double d = mcRewards.getStateReward(s);
+			boolean onlySelfLoops = true;
+
+			void accept(int s, int t, double prob) {
+				if (t != s) {
+					d += disc * prob * vect[t];
+					onlySelfLoops = false;
+				} else {
+					diag -= disc * prob;
+				}
+			}
+		}
+
+		Jacobi jac = new Jacobi();
+		forEachDoubleTransition(s, jac::accept);
+
+		double d = jac.d;
+		double diag = jac.diag;
+
+		if (jac.onlySelfLoops && diag <= 0) {
+			// undiscounted (or diag rounds to <= 0): repeatedly visiting this
+			// self-loop-only state will produce infinite (or zero) reward
+			d = (d != 0) ? (d > 0 ? Double.POSITIVE_INFINITY : Double.NEGATIVE_INFINITY) : 0;
+		} else if (diag > 0) {
+			// discounting (or non-self-loop) keeps diag > 0: do Jacobi division
+			d /= diag;
 		}
 
 		return d;

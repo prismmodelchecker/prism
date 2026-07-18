@@ -1,0 +1,23 @@
+// RESULT: Infinity
+R=?[F s=1]
+
+// With a discount factor (discount=0.9, via the F operator's
+// {discount=...} option): 0.9 * (0.5*0 + 0.5*50) = 22.5, where
+// 50 = 5/(1-0.9) is the discounted value of looping forever in
+// the non-target, reward-5 state s=2.
+
+// RESULT: 22.5
+R=?[F{discount=0.9} s=1]
+
+// Discounting is only implemented for a simple reachability target (F "target"), not for
+// general co-safe LTL, so a discount attached to the outermost F of a co-safe formula has
+// to be reported as unsupported rather than silently ignored.
+//
+// This reports as UNSUPPORTED rather than PASS: the test framework treats a
+// PrismNotSupportedException as "skip this configuration" before it ever looks at the
+// RESULT below (see ResultTesting.checkExceptionAgainstExpectedResultString). It is still
+// worth having - if the discount is ever silently ignored again, a number comes back
+// instead of an exception and the RESULT below turns the regression into a FAIL.
+
+// RESULT: Error:co-safe
+R=?[F{discount=0.9} X (s=1)]

@@ -1,0 +1,26 @@
+// Tests R=?[C] (unbounded total expected reward) for DTMCs, which was not
+// previously covered by any regression test (only bounded C<=k was tested,
+// in dtmc_pctl.pm.props). See DTMCModelChecker.computeTotalRewards.
+//
+// From s=0, the chain splits evenly: with probability 1/2 it settles in the
+// zero-reward absorbing state s=1 (contributing 0 to the total reward from
+// then on), and with probability 1/2 it settles in the positive-reward
+// absorbing state s=2 (reward 5 every step, forever). Since a positive-
+// probability event contributes infinite reward, R=?[C] at s=0 is Infinity,
+// even though the other branch alone is perfectly finite.
+
+dtmc
+
+module M
+
+	s : [0..2] init 0;
+
+	[] s=0 -> 0.5:(s'=1) + 0.5:(s'=2);
+	[] s=1 -> (s'=1);
+	[] s=2 -> (s'=2);
+
+endmodule
+
+rewards "r"
+	s=2 : 5;
+endrewards

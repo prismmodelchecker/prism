@@ -267,6 +267,9 @@ public class ProbModelChecker extends NonProbModelChecker
 		// Compute rewards
 		StateValues rewards = null;
 		Expression expr2 = expr.getExpression();
+		if (expr2 instanceof ExpressionTemporal && ((ExpressionTemporal) expr2).getDiscount() != null) {
+			throw new PrismNotSupportedException("Discounting (\"{discount=...}\") is currently only supported by the explicit engine (-ex)");
+		}
 		if (expr2.getType() instanceof TypePathDouble) {
 			ExpressionTemporal exprTemp = (ExpressionTemporal) expr2;
 			switch (exprTemp.getOperator()) {

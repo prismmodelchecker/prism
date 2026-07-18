@@ -1,0 +1,37 @@
+// RESULT: Infinity
+R{"r"}=?[C]
+
+// RESULT: 0.0
+filter(state, R{"r"}=?[C], s=1)
+
+// RESULT: Infinity
+filter(state, R{"r"}=?[C], s=2)
+
+// Bounded cumulative reward, for contrast with the unbounded case above:
+// finite even though the unbounded total reward is Infinity.
+
+// RESULT: 10.0
+R{"r"}=?[C<=5]
+
+// RESULT: 25.0
+filter(state, R{"r"}=?[C<=5], s=2)
+
+// With a discount factor (discount=0.9, via the C operator's {discount=...}
+// option), the previously Infinite total reward at s=0 becomes finite:
+// 0.9 * (0.5*0 + 0.5*50) = 22.5, where 50 = 5/(1-0.9) is the discounted
+// value of looping forever in the reward-5 state s=2.
+
+// RESULT: 22.5
+R{"r"}=?[C{discount=0.9}]
+
+// RESULT: 0.0
+filter(state, R{"r"}=?[C{discount=0.9}], s=1)
+
+// RESULT: 50.0
+filter(state, R{"r"}=?[C{discount=0.9}], s=2)
+
+// RESULT: 7.73775
+R{"r"}=?[C{discount=0.9}<=5]
+
+// RESULT: 20.4755
+filter(state, R{"r"}=?[C{discount=0.9}<=5], s=2)

@@ -138,6 +138,14 @@ public class PropertiesSemanticCheck extends SemanticCheck
 		if (op == ExpressionTemporal.R_S && (operand1 != null || operand2 != null || lBound != null || uBound != null)) {
 			throw new PrismLangException("Badly formed " + e.getOperatorSymbol() + " operator", e);
 		}
+		if (e.getDiscount() != null) {
+			if (!e.getDiscount().isConstant()) {
+				throw new PrismLangException("Discount factor in " + e.getOperatorSymbol() + " operator is not constant", e.getDiscount());
+			}
+			if (op != ExpressionTemporal.R_C && op != ExpressionTemporal.P_F) {
+				throw new PrismLangException("Discount factor not supported for " + e.getOperatorSymbol() + " operator", e);
+			}
+		}
 	}
 
 	public void visitPost(ExpressionProb e) throws PrismLangException

@@ -1,0 +1,26 @@
+// Tests discounting (F{discount=...}) of reachability reward, R=?[F target],
+// for DTMCs on the explicit engine (DTMCModelChecker.computeReachRewards).
+//
+// From s=0, the chain splits evenly: with probability 1/2 it reaches the
+// target state s=1 directly (0 further reward), and with probability 1/2 it
+// settles in the non-target absorbing state s=2 (reward 5 every step,
+// forever), which never reaches the target. Undiscounted, that 1/2
+// probability of never reaching the target makes R=?[F s=1] Infinity, even
+// though the other branch alone is perfectly finite; discounting turns it
+// into a finite value instead.
+
+dtmc
+
+module M
+
+	s : [0..2] init 0;
+
+	[] s=0 -> 0.5:(s'=1) + 0.5:(s'=2);
+	[] s=1 -> (s'=1);
+	[] s=2 -> (s'=2);
+
+endmodule
+
+rewards
+	s=2 : 5;
+endrewards

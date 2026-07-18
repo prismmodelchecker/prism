@@ -448,6 +448,7 @@ public class ASTTraverseModify implements ASTVisitor
 		if (e.getOperand2() != null) e.setOperand2((Expression)(e.getOperand2().accept(this)));
 		if (e.getLowerBound() != null) e.setLowerBound((Expression)(e.getLowerBound().accept(this)), e.lowerBoundIsStrict());
 		if (e.getUpperBound() != null) e.setUpperBound((Expression)(e.getUpperBound().accept(this)), e.upperBoundIsStrict());
+		if (e.getDiscount() != null) e.setDiscount((Expression)(e.getDiscount().accept(this)));
 		visitPost(e);
 		return e;
 	}

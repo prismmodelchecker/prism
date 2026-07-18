@@ -65,6 +65,9 @@ public class ExpressionTemporal extends Expression
 	// Display as =T rather than [T,T] ?
 	protected boolean equals = false;
 
+	// Optional discount factor (for discounted reward computations), e.g. {discount=0.5}
+	protected Expression discount = null;
+
 	// Constructors
 
 	/** Constructor */
@@ -166,6 +169,15 @@ public class ExpressionTemporal extends Expression
 		equals = exprTemp.equals;
 	}
 
+	/**
+	 * Set the discount factor to apply for (discounted) reward computations
+	 * (null denotes no discounting, i.e. a discount factor of 1).
+	 */
+	public void setDiscount(Expression e)
+	{
+		discount = e;
+	}
+
 	// Get methods
 
 	/** Set the operator */
@@ -226,11 +238,26 @@ public class ExpressionTemporal extends Expression
 	}
 
 	/**
-	 * Returns true if lower/upper bound are equal and should be displayed as =T 
+	 * Returns true if lower/upper bound are equal and should be displayed as =T
 	 */
 	public boolean getEquals()
 	{
 		return equals;
+	}
+
+	/**
+	 * Get the discount factor to apply for (discounted) reward computations
+	 * ({@code null} denotes no discounting, i.e. a discount factor of 1).
+	 */
+	public Expression getDiscount()
+	{
+		return discount;
+	}
+
+	/** Returns true if a discount factor has been specified, e.g. via {discount=0.5} */
+	public boolean hasDiscount()
+	{
+		return discount != null;
 	}
 
 	// Methods required for Expression:
@@ -295,6 +322,7 @@ public class ExpressionTemporal extends Expression
 		operand2 = copier.copy(operand2);
 		lBound = copier.copy(lBound);
 		uBound = copier.copy(uBound);
+		discount = copier.copy(discount);
 
 		return this;
 	}
@@ -317,6 +345,9 @@ public class ExpressionTemporal extends Expression
 			builder.append(" ");
 		}
 		builder.append(opSymbols[op]);
+		if (discount != null) {
+			builder.append("{discount=").append(discount).append("}");
+		}
 		if (lBound == null) {
 			if (uBound != null) {
 				if (op != R_I) {
@@ -364,6 +395,7 @@ public class ExpressionTemporal extends Expression
 		final int prime = 31;
 		int result = 1;
 		result = prime * result + (equals ? 1231 : 1237);
+		result = prime * result + ((discount == null) ? 0 : discount.hashCode());
 		result = prime * result + ((lBound == null) ? 0 : lBound.hashCode());
 		result = prime * result + (lBoundStrict ? 1231 : 1237);
 		result = prime * result + op;
@@ -385,6 +417,11 @@ public class ExpressionTemporal extends Expression
 			return false;
 		ExpressionTemporal other = (ExpressionTemporal) obj;
 		if (equals != other.equals)
+			return false;
+		if (discount == null) {
+			if (other.discount != null)
+				return false;
+		} else if (!discount.equals(other.discount))
 			return false;
 		if (lBound == null) {
 			if (other.lBound != null)

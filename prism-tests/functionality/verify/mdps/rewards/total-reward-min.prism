@@ -1,0 +1,45 @@
+// Tests Rmin=?[C] (minimum total expected reward), specifically the
+// zero-reward-MEC reduction used by the explicit engine (see
+// MDPModelChecker.computeTotalRewardsMin / computeZeroRewardMECStates).
+//
+// From s=0, the minimiser must choose between:
+//  - [safe]: a costly (100) but guaranteed route into a zero-reward
+//    absorbing state (s=1), giving total reward 100;
+//  - [risky]: a cheap (1) route that, with probability 1/2, instead falls
+//    into an inescapable positive-reward self-loop (s=2, reward 5 forever),
+//    which alone makes that action's expected total reward infinite.
+// A correct minimiser must prefer [safe] (100) over [risky] (Infinity),
+// even though [risky] is cheaper up front.
+//
+// From s=4, both available actions unavoidably lead to the same
+// positive-reward trap (s=5), so Rmin=?[C] is genuinely Infinity there,
+// regardless of which action is chosen. [goto4] (a harmless, zero-reward
+// detour from s=0) makes s=4/s=5 reachable so this can be checked with
+// filter(state, ..., s=4); it does not change the value at s=0, since it
+// leads to Infinity just like [risky] already does.
+
+mdp
+
+module M
+
+	s : [0..5] init 0;
+
+	[safe]  s=0 -> (s'=1);
+	[risky] s=0 -> 0.5:(s'=2) + 0.5:(s'=3);
+	[goto4] s=0 -> (s'=4);
+	[]      s=1 -> (s'=1);
+	[]      s=2 -> (s'=2);
+	[]      s=3 -> (s'=3);
+
+	[a] s=4 -> (s'=5);
+	[b] s=4 -> (s'=5);
+	[]  s=5 -> (s'=5);
+
+endmodule
+
+rewards "r"
+	[safe]  true : 100;
+	[risky] true : 1;
+	s=2 : 5;
+	s=5 : 3;
+endrewards

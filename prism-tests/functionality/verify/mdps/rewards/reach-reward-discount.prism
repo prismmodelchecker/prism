@@ -1,0 +1,32 @@
+// Tests discounting (F{discount=...}) of reachability reward, R=?[F target],
+// on the explicit engine (MDPModelChecker.computeReachRewards).
+//
+// From s=0, the choice is between:
+//  - [totarget]: a costly (10) but guaranteed route directly to the target
+//    state (s=3);
+//  - [tosink]: a cheap (1) route into an absorbing non-target state (s=4)
+//    that never reaches the target at all.
+// Undiscounted, F-reachability semantics assign Infinity to any run that
+// never reaches the target, so [tosink] is worth Infinity - worst possible
+// for a minimiser, best possible for a maximiser. Discounting turns that
+// Infinity into a bounded value (the discounted cost paid before settling
+// into the non-target sink forever), which can flip the minimiser's
+// preference: discounted, [tosink] (1) becomes cheaper than [totarget] (10).
+
+mdp
+
+module M
+
+	s : [0..4] init 0;
+
+	[totarget] s=0 -> (s'=3);
+	[tosink]   s=0 -> (s'=4);
+	[]         s=3 -> (s'=3);
+	[]         s=4 -> (s'=4);
+
+endmodule
+
+rewards
+	[totarget] true : 10;
+	[tosink]   true : 1;
+endrewards

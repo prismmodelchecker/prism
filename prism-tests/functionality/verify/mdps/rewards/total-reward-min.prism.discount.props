@@ -1,0 +1,48 @@
+// Same model as total-reward-min.prism.props, but with a discount factor
+// (discount=0.9, via the C operator's {discount=...} option) applied to
+// Rmax=?[C]/Rmin=?[C]. Discounting turns the previously-Infinite values into
+// finite ones, and can flip which action is optimal: at s=0, [risky] (a 1/2
+// chance of the s=2 trap) is now worth only 23.5 in expectation rather than
+// Infinity, so the minimiser now *prefers* [risky] over the guaranteed-safe
+// [safe] (100) - the opposite of the undiscounted case. The maximiser still
+// prefers [safe] (100 > 23.5), since it no longer gains an infinite reward
+// from gambling on the trap.
+//
+// Discounting is only supported on the explicit engine, so (unlike
+// total-reward-min.prism.props) this is not tested on the symbolic engines.
+
+// RESULT: [23.4998,23.5002]
+R{"r"}min=?[C{discount=0.9}]
+
+// RESULT: 100.0
+R{"r"}max=?[C{discount=0.9}]
+
+// RESULT: 0.0
+filter(state, R{"r"}min=?[C{discount=0.9}], s=1)
+
+// Trap state s=2 (reward 5 forever): discounted value is 5/(1-0.9) = 50.
+
+// RESULT: [49.999,50.001]
+filter(state, R{"r"}min=?[C{discount=0.9}], s=2)
+
+// s=4 (both actions lead to the s=5 trap, reward 3 forever):
+// discounted value is 0.9 * 3/(1-0.9) = 27.
+
+// RESULT: [26.999,27.001]
+filter(state, R{"r"}min=?[C{discount=0.9}], s=4)
+
+// RESULT: [26.999,27.001]
+filter(state, R{"r"}max=?[C{discount=0.9}], s=4)
+
+// An out-of-range discount factor is an error, including for the trivial "C<=0" case:
+// nothing is accumulated over zero steps, so the answer is 0 whatever the factor, but the
+// factor still has to be validated rather than going unchecked because of the shortcut.
+
+// RESULT: Error:range
+R{"r"}max=?[C{discount=2}<=0]
+
+// RESULT: Error:range
+R{"r"}max=?[C{discount=-0.5}<=0]
+
+// RESULT: 0.0
+R{"r"}max=?[C{discount=0.9}<=0]

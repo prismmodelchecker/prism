@@ -178,6 +178,9 @@ public class TypeCheck extends ASTTraverse
 		if (e.getUpperBound() != null && !TypeDouble.getInstance().canCastTypeTo(e.getUpperBound().getType())) {
 			throw new PrismLangException("Type error: Upper bound in " + e.getOperatorSymbol() + " operator must be an int or double", e.getUpperBound());
 		}
+		if (e.getDiscount() != null && !TypeDouble.getInstance().canCastTypeTo(e.getDiscount().getType())) {
+			throw new PrismLangException("Type error: Discount factor in " + e.getOperatorSymbol() + " operator must be an int or double", e.getDiscount());
+		}
 		switch (e.getOperator()) {
 		case ExpressionTemporal.P_X:
 		case ExpressionTemporal.P_U:

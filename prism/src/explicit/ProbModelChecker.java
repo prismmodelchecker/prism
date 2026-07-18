@@ -52,6 +52,7 @@ import parser.type.TypePathDouble;
 import prism.AccuracyFactory;
 import prism.Evaluator;
 import prism.IntegerBound;
+import prism.ModelType;
 import prism.OpRelOpBound;
 import prism.Prism;
 import prism.PrismComponent;
@@ -986,6 +987,27 @@ public class ProbModelChecker extends NonProbModelChecker
 	}
 
 	/**
+	 * Extract the discount factor to apply for a (discounted) reward computation, e.g. from a
+	 * {discount=...} option attached to a C or F temporal operator. Returns 1.0 (no discounting)
+	 * if none was specified. Throws an exception if discounting is requested for a model type
+	 * that does not support it, or if the discount factor is out of range.
+	 */
+	private double getRewardDiscount(Model<?> model, ExpressionTemporal expr) throws PrismException
+	{
+		if (expr.getDiscount() == null) {
+			return 1.0;
+		}
+		if (model.getModelType() != ModelType.DTMC && model.getModelType() != ModelType.MDP) {
+			throw new PrismNotSupportedException("Discounting is not currently supported for " + model.getModelType() + "s");
+		}
+		double disc = expr.getDiscount().evaluateDouble(constantValues);
+		if (disc < 0.0 || disc > 1.0) {
+			throw new PrismException("Discount factor " + disc + " is out of range, should be in [0,1]");
+		}
+		return disc;
+	}
+
+	/**
 	 * Compute rewards for the contents of an R operator.
 	 */
 	protected StateValues checkRewardFormula(Model<?> model, Rewards<?> modelRewards, Expression expr, MinMax minMax, BitSet statesOfInterest) throws PrismException
@@ -1080,6 +1102,10 @@ public class ProbModelChecker extends NonProbModelChecker
 			}
 		}
 
+		// Extract the discount factor before the trivial case below, so that an unsupported
+		// model type or an out-of-range factor is still reported for e.g. "C{discount=2}<=0"
+		double disc = getRewardDiscount(model, expr);
+
 		// Compute/return the rewards
 		// A trivial case: "C<=0" (prob is 1 in target states, 0 otherwise)
 		if (timeInt == 0 || timeDouble == 0) {
@@ -1091,13 +1117,13 @@ public class ProbModelChecker extends NonProbModelChecker
 		ModelCheckerResult res = null;
 		switch (model.getModelType()) {
 		case DTMC:
-			res = ((DTMCModelChecker) this).computeCumulativeRewards((DTMC<Double>) model, (MCRewards<Double>) modelRewards, timeInt);
+			res = ((DTMCModelChecker) this).computeCumulativeRewards((DTMC<Double>) model, (MCRewards<Double>) modelRewards, timeInt, disc);
 			break;
 		case CTMC:
 			res = ((CTMCModelChecker) this).computeCumulativeRewards((CTMC<Double>) model, (MCRewards<Double>) modelRewards, timeDouble);
 			break;
 		case MDP:
-			res = ((MDPModelChecker) this).computeCumulativeRewards((MDP<Double>) model, (MDPRewards<Double>) modelRewards, timeInt, minMax.isMin());
+			res = ((MDPModelChecker) this).computeCumulativeRewards((MDP<Double>) model, (MDPRewards<Double>) modelRewards, timeInt, minMax.isMin(), disc);
 			break;
 		default:
 			throw new PrismNotSupportedException("Explicit engine does not yet handle the " + expr.getOperatorSymbol() + " reward operator for " + model.getModelType()
@@ -1119,16 +1145,17 @@ public class ProbModelChecker extends NonProbModelChecker
 		}
 
 		// Compute/return the rewards
+		double disc = getRewardDiscount(model, expr);
 		ModelCheckerResult res = null;
 		switch (model.getModelType()) {
 		case DTMC:
-			res = ((DTMCModelChecker) this).computeTotalRewards((DTMC<Double>) model, (MCRewards<Double>) modelRewards);
+			res = ((DTMCModelChecker) this).computeTotalRewards((DTMC<Double>) model, (MCRewards<Double>) modelRewards, disc);
 			break;
 		case CTMC:
 			res = ((CTMCModelChecker) this).computeTotalRewards((CTMC<Double>) model, (MCRewards<Double>) modelRewards);
 			break;
 		case MDP:
-			res = ((MDPModelChecker) this).computeTotalRewards((MDP<Double>) model, (MDPRewards<Double>) modelRewards, minMax.isMin());
+			res = ((MDPModelChecker) this).computeTotalRewards((MDP<Double>) model, (MDPRewards<Double>) modelRewards, minMax.isMin(), disc);
 			break;
 		default:
 			throw new PrismNotSupportedException("Explicit engine does not yet handle the " + expr.getOperatorSymbol() + " reward operator for " + model.getModelType()
@@ -1169,6 +1196,11 @@ public class ProbModelChecker extends NonProbModelChecker
 			return checkRewardReach(model, modelRewards, (ExpressionTemporal) expr, minMax, statesOfInterest);
 		}
 		else if (Expression.isCoSafeLTLSyntactic(expr, true)) {
+			// A discount factor can only be attached to the outermost F (see the grammar), i.e. to
+			// this expression; reject it rather than silently computing the undiscounted value
+			if (expr instanceof ExpressionTemporal && ((ExpressionTemporal) expr).hasDiscount()) {
+				throw new PrismNotSupportedException("Discounting is not currently supported for co-safe LTL reward properties");
+			}
 			return checkRewardCoSafeLTL(model, modelRewards, expr, minMax, statesOfInterest);
 		}
 		throw new PrismException("R operator contains a path formula that is not syntactically co-safe: " + expr);
@@ -1189,16 +1221,17 @@ public class ProbModelChecker extends NonProbModelChecker
 		BitSet target = checkExpression(model, expr.getOperand2(), null).getBitSet();
 
 		// Compute/return the rewards
+		double disc = getRewardDiscount(model, expr);
 		ModelCheckerResult res = null;
 		switch (model.getModelType()) {
 		case DTMC:
-			res = ((DTMCModelChecker) this).computeReachRewards((DTMC<Double>) model, (MCRewards<Double>) modelRewards, target);
+			res = ((DTMCModelChecker) this).computeReachRewards((DTMC<Double>) model, (MCRewards<Double>) modelRewards, target, disc);
 			break;
 		case CTMC:
 			res = ((CTMCModelChecker) this).computeReachRewards((CTMC<Double>) model, (MCRewards<Double>) modelRewards, target);
 			break;
 		case MDP:
-			res = ((MDPModelChecker) this).computeReachRewards((MDP<Double>) model, (MDPRewards<Double>) modelRewards, target, minMax.isMin());
+			res = ((MDPModelChecker) this).computeReachRewards((MDP<Double>) model, (MDPRewards<Double>) modelRewards, target, minMax.isMin(), disc);
 			break;
 		case POMDP:
 			res = ((POMDPModelChecker) this).computeReachRewards((POMDP<Double>) model, (MDPRewards<Double>) modelRewards, target, minMax.isMin(), statesOfInterest);
