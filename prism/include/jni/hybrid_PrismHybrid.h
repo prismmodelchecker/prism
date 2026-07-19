@@ -105,6 +105,22 @@ JNIEXPORT jlong JNICALL Java_hybrid_PrismHybrid_PH_1NondetReachReward
 
 /*
  * Class:     hybrid_PrismHybrid
+ * Method:    PH_NondetCumulReward
+ * Signature: (JJJJJIJIJIIZ)J
+ */
+JNIEXPORT jlong JNICALL Java_hybrid_PrismHybrid_PH_1NondetCumulReward
+  (JNIEnv *, jclass, jlong, jlong, jlong, jlong, jlong, jint, jlong, jint, jlong, jint, jint, jboolean);
+
+/*
+ * Class:     hybrid_PrismHybrid
+ * Method:    PH_NondetInstReward
+ * Signature: (JJJJIJIJIIZ)J
+ */
+JNIEXPORT jlong JNICALL Java_hybrid_PrismHybrid_PH_1NondetInstReward
+  (JNIEnv *, jclass, jlong, jlong, jlong, jlong, jint, jlong, jint, jlong, jint, jint, jboolean);
+
+/*
+ * Class:     hybrid_PrismHybrid
  * Method:    PH_StochBoundedUntil
  * Signature: (JJJIJIJJDJ)J
  */

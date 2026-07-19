@@ -2232,11 +2232,6 @@ public class NondetModelChecker extends NonProbModelChecker
 
 		// compute rewards
 		mainLog.println("\nComputing rewards...");
-		// switch engine, if necessary
-		if (engine == Prism.HYBRID) {
-			mainLog.println("Switching engine since hybrid engine does yet support this computation...");
-			engine = Prism.SPARSE;
-		}
 		mainLog.println("Engine: " + Prism.getEngineString(engine));
 		try {
 			switch (engine) {
@@ -2249,7 +2244,9 @@ public class NondetModelChecker extends NonProbModelChecker
 				rewards = new StateValuesDV(rewardsDV, model);
 				break;
 			case Prism.HYBRID:
-				throw new PrismNotSupportedException("Hybrid engine does not yet support this type of property (use the sparse engine instead)");
+				rewardsDV = PrismHybrid.NondetCumulReward(tr, sr, trr, odd, allDDRowVars, allDDColVars, allDDNondetVars, time, min);
+				rewards = new StateValuesDV(rewardsDV, model);
+				break;
 			default:
 				throw new PrismException("Unknown engine");
 			}
@@ -2516,11 +2513,6 @@ public class NondetModelChecker extends NonProbModelChecker
 		else {
 			// compute the rewards
 			mainLog.println("\nComputing rewards...");
-			// switch engine, if necessary
-			if (engine == Prism.HYBRID) {
-				mainLog.println("Switching engine since hybrid engine does yet support this computation...");
-				engine = Prism.SPARSE;
-			}
 			mainLog.println("Engine: " + Prism.getEngineString(engine));
 			try {
 				switch (engine) {
@@ -2533,7 +2525,9 @@ public class NondetModelChecker extends NonProbModelChecker
 					rewards = new StateValuesDV(rewardsDV, model);
 					break;
 				case Prism.HYBRID:
-					throw new PrismException("Hybrid engine does not yet support this type of property (use sparse or MTBDD engine instead)");
+					rewardsDV = PrismHybrid.NondetInstReward(tr, sr, odd, allDDRowVars, allDDColVars, allDDNondetVars, time, min);
+					rewards = new StateValuesDV(rewardsDV, model);
+					break;
 				default:
 					throw new PrismException("Unknown engine");
 				}
