@@ -354,17 +354,15 @@ public class NondetModelChecker extends NonProbModelChecker
 		// Compute rewards
 		StateValues rewards = null;
 		Expression expr2 = expr.getExpression();
-		if (expr2 instanceof ExpressionTemporal && ((ExpressionTemporal) expr2).getDiscount() != null) {
-			throw new PrismNotSupportedException("Discounting (\"{discount=...}\") is currently only supported by the explicit engine (-ex)");
-		}
+		double disc = getRewardDiscount(expr2);
 		if (expr2.getType() instanceof TypePathDouble) {
 			ExpressionTemporal exprTemp = (ExpressionTemporal) expr2;
 			switch (exprTemp.getOperator()) {
 			case ExpressionTemporal.R_C:
 				if (exprTemp.hasBounds()) {
-					rewards = checkRewardCumul(exprTemp, stateRewards, transRewards, minMax.isMin(), statesOfInterest);
+					rewards = checkRewardCumul(exprTemp, stateRewards, transRewards, minMax.isMin(), statesOfInterest, disc);
 				} else {
-					rewards = checkRewardTotal(exprTemp, stateRewards, transRewards, minMax.isMin(), statesOfInterest);
+					rewards = checkRewardTotal(exprTemp, stateRewards, transRewards, minMax.isMin(), statesOfInterest, disc);
 				}
 				break;
 			case ExpressionTemporal.R_I:
@@ -372,7 +370,7 @@ public class NondetModelChecker extends NonProbModelChecker
 				break;
 			}
 		} else if (expr2.getType() instanceof TypePathBool || expr2.getType() instanceof TypeBool) {
-			rewards = checkRewardPathFormula(expr2, stateRewards, transRewards, minMax.isMin(), statesOfInterest);
+			rewards = checkRewardPathFormula(expr2, stateRewards, transRewards, minMax.isMin(), statesOfInterest, disc);
 		}
 
 		if (rewards == null)
@@ -1369,7 +1367,7 @@ public class NondetModelChecker extends NonProbModelChecker
 	 * The result will have valid results at least for the states of interest (use model.getReach().copy() for all reachable states)
 	 * <br>[ REFS: <i>result</i>, DEREFS: statesOfInterest ]
 	 */
-	protected StateValues checkRewardCumul(ExpressionTemporal expr, JDDNode stateRewards, JDDNode transRewards, boolean min, JDDNode statesOfInterest) throws PrismException
+	protected StateValues checkRewardCumul(ExpressionTemporal expr, JDDNode stateRewards, JDDNode transRewards, boolean min, JDDNode statesOfInterest, double disc) throws PrismException
 	{
 		int time; // time
 		StateValues rewards = null;
@@ -1393,10 +1391,20 @@ public class NondetModelChecker extends NonProbModelChecker
 			rewards = new StateValuesMTBDD(JDD.Constant(0), model, AccuracyFactory.doublesFromQualitative());
 		} else {
 			// compute rewards
-			try {
+			if (disc == 0.0) {
+				// Nothing beyond the first step counts, so this is just the immediate reward
+				rewards = computeImmediateRewards(stateRewards, transRewards, min, null);
+			} else if (disc < 1.0) {
+				JDDNode trDisc = discountTrans(trans, disc);
+				JDDNode trrDisc = discountTransRewards(transRewards, disc);
+				try {
+					rewards = computeCumulRewards(trDisc, stateRewards, trrDisc, time, min);
+				} finally {
+					JDD.Deref(trDisc);
+					JDD.Deref(trrDisc);
+				}
+			} else {
 				rewards = computeCumulRewards(trans, stateRewards, transRewards, time, min);
-			} catch (PrismException e) {
-				throw e;
 			}
 		}
 
@@ -1408,12 +1416,63 @@ public class NondetModelChecker extends NonProbModelChecker
 	 * The result will have valid results at least for the states of interest (use model.getReach().copy() for all reachable states)
 	 * <br>[ REFS: <i>result</i>, DEREFS: statesOfInterest ]
 	 */
-	protected StateValues checkRewardTotal(ExpressionTemporal expr, JDDNode stateRewards, JDDNode transRewards, boolean min, JDDNode statesOfInterest) throws PrismException
+	protected StateValues checkRewardTotal(ExpressionTemporal expr, JDDNode stateRewards, JDDNode transRewards, boolean min, JDDNode statesOfInterest, double disc) throws PrismException
 	{
 		// currently, ignore statesOfInterest
 		JDD.Deref(statesOfInterest);
+		if (disc == 0.0) {
+			// Nothing beyond the first step counts, so this is just the immediate reward
+			return computeImmediateRewards(stateRewards, transRewards, min, null);
+		}
+		if (disc < 1.0) {
+			// Discounting makes every value finite regardless of end-component structure, so
+			// the usual end-component analysis is skipped: this is just an (undiscounted)
+			// expected reachability reward computation with an empty target set, run on the
+			// discounted matrix.
+			JDDNode trDisc = discountTrans(trans, disc);
+			JDDNode trrDisc = discountTransRewards(transRewards, disc);
+			JDDNode noTarget = JDD.Constant(0);
+			try {
+				return computeReachRewards(trDisc, transActions, trans01, stateRewards, trrDisc, noTarget, min, true);
+			} finally {
+				JDD.Deref(trDisc);
+				JDD.Deref(trrDisc);
+				JDD.Deref(noTarget);
+			}
+		}
 		StateValues rewards = computeTotalRewards(trans, trans01, transActions, stateRewards, transRewards, min);
 		return rewards;
+	}
+
+	/**
+	 * Compute rewards for the degenerate discount factor 0, where no future value contributes
+	 * at all and the answer is just the immediate expected reward. Computed as a single step of
+	 * cumulative reward on the undiscounted model.
+	 * <br>
+	 * If {@code target} is non-null (a reachability reward computation), target states
+	 * contribute nothing, so their rewards are zeroed out first.
+	 * <br>[ REFS: <i>result</i>, DEREFS: <i>none</i> ]
+	 */
+	protected StateValues computeImmediateRewards(JDDNode stateRewards, JDDNode transRewards, boolean min, JDDNode target) throws PrismException
+	{
+		JDDNode sr = stateRewards, trr = transRewards;
+		if (target != null) {
+			JDD.Ref(target);
+			JDDNode notTarget = JDD.Not(target);
+			JDD.Ref(sr);
+			JDD.Ref(notTarget);
+			sr = JDD.Apply(JDD.TIMES, sr, notTarget);
+			JDD.Ref(trr);
+			trr = JDD.Apply(JDD.TIMES, trr, notTarget);
+		}
+		try {
+			return computeCumulRewards(trans, sr, trr, 1, min);
+		} finally {
+			if (target != null) {
+				JDD.Deref(sr);
+				JDD.Deref(trr);
+			}
+		}
 	}
 
 	/**
@@ -1446,12 +1505,16 @@ public class NondetModelChecker extends NonProbModelChecker
 	 * The result will have valid results at least for the states of interest (use model.getReach().copy() for all reachable states)
 	 * <br>[ REFS: <i>result</i>, DEREFS: statesOfInterest ]
 	 */
-	protected StateValues checkRewardPathFormula(Expression expr, JDDNode stateRewards, JDDNode transRewards, boolean min, JDDNode statesOfInterest) throws PrismException
+	protected StateValues checkRewardPathFormula(Expression expr, JDDNode stateRewards, JDDNode transRewards, boolean min, JDDNode statesOfInterest, double disc) throws PrismException
 	{
 		if (Expression.isReach(expr)) {
-			return checkRewardReach((ExpressionTemporal) expr, stateRewards, transRewards, min, statesOfInterest);
+			return checkRewardReach((ExpressionTemporal) expr, stateRewards, transRewards, min, statesOfInterest, disc);
 		}
 		else if (Expression.isCoSafeLTLSyntactic(expr, true)) {
+			if (disc < 1.0) {
+				JDD.Deref(statesOfInterest);
+				throw new PrismNotSupportedException("Discounting is not currently supported for co-safe LTL reward properties");
+			}
 			return checkRewardCoSafeLTL(expr, stateRewards, transRewards, min, statesOfInterest);
 		}
 		JDD.Deref(statesOfInterest);
@@ -1463,7 +1526,7 @@ public class NondetModelChecker extends NonProbModelChecker
 	 * The result will have valid results at least for the states of interest (use model.getReach().copy() for all reachable states)
 	 * <br>[ REFS: <i>result</i>, DEREFS: statesOfInterest ]
 	 */
-	protected StateValues checkRewardReach(ExpressionTemporal expr, JDDNode stateRewards, JDDNode transRewards, boolean min, JDDNode statesOfInterest) throws PrismException
+	protected StateValues checkRewardReach(ExpressionTemporal expr, JDDNode stateRewards, JDDNode transRewards, boolean min, JDDNode statesOfInterest, double disc) throws PrismException
 	{
 		JDDNode b;
 		StateValues rewards = null;
@@ -1491,7 +1554,22 @@ public class NondetModelChecker extends NonProbModelChecker
 
 		// compute rewards
 		try {
-			rewards = computeReachRewards(trans, transActions, trans01, stateRewards, transRewards, b, min);
+			if (disc == 0.0) {
+				// Nothing beyond the first step counts, so this is just the immediate reward
+				// (and zero at the target itself)
+				rewards = computeImmediateRewards(stateRewards, transRewards, min, b);
+			} else if (disc < 1.0) {
+				JDDNode trDisc = discountTrans(trans, disc);
+				JDDNode trrDisc = discountTransRewards(transRewards, disc);
+				try {
+					rewards = computeReachRewards(trDisc, transActions, trans01, stateRewards, trrDisc, b, min, true);
+				} finally {
+					JDD.Deref(trDisc);
+					JDD.Deref(trrDisc);
+				}
+			} else {
+				rewards = computeReachRewards(trans, transActions, trans01, stateRewards, transRewards, b, min);
+			}
 		} catch (PrismException e) {
 			JDD.Deref(b);
 			throw e;
@@ -2545,6 +2623,23 @@ public class NondetModelChecker extends NonProbModelChecker
 
 	protected StateValues computeReachRewards(JDDNode tr, JDDNode tra, JDDNode tr01, JDDNode sr, JDDNode trr, JDDNode b, boolean min) throws PrismException
 	{
+		return computeReachRewards(tr, tra, tr01, sr, trr, b, min, false);
+	}
+
+	/**
+	 * Compute expected reachability rewards.
+	 * <br>
+	 * If {@code discounted}, {@code tr}/{@code trr} are expected to have been scaled by
+	 * {@link #discountTrans}/{@link #discountTransRewards} already, and the Prob0/Prob1
+	 * precomputation is skipped: discounting bounds every value by {@code r_max/(1-disc)}, so
+	 * no state has infinite value and there is nothing for that precomputation to find.
+	 * Skipping it is also necessary, not just an optimisation - it reasons about the
+	 * undiscounted reachability structure (via the unscaled {@code tr01}) and would wrongly
+	 * report states as infinite.
+	 * <br>[ REFS: <i>result</i>, DEREFS: <i>none</i> ]
+	 */
+	protected StateValues computeReachRewards(JDDNode tr, JDDNode tra, JDDNode tr01, JDDNode sr, JDDNode trr, JDDNode b, boolean min, boolean discounted) throws PrismException
+	{
 		JDDNode inf, maybe, prob1, no;
 		JDDNode rewardsMTBDD;
 		DoubleVector rewardsDV;
@@ -2569,7 +2664,14 @@ public class NondetModelChecker extends NonProbModelChecker
 		}
 
 		// compute states which can't reach goal with probability 1
-		if (b.equals(JDD.ZERO)) {
+		if (discounted) {
+			// Discounting: all values finite, so no "inf" states; everything outside the
+			// target is solved numerically
+			inf = JDD.Constant(0);
+			JDD.Ref(reach);
+			JDD.Ref(b);
+			maybe = JDD.And(reach, JDD.Not(b));
+		} else if (b.equals(JDD.ZERO)) {
 			JDD.Ref(reach);
 			inf = reach;
 			maybe = JDD.Constant(0);
@@ -2651,7 +2753,10 @@ public class NondetModelChecker extends NonProbModelChecker
 			MDPQuotient zeroRewQuotient = null;
 			NondetModel zeroRewModel = null;
 			JDDNode srQ = null, trrQ = null, bQ = null, infQ = null, maybeQ = null;
-			if (min) {
+			// Discounting already makes the minimum well defined - a zero-reward end component
+			// is not an absorbing "free" option once future reward is discounted - so the
+			// quotient construction is skipped (it also reasons about the undiscounted model)
+			if (min && !discounted) {
 				JDD.Ref(maybe);
 				JDD.Ref(sr);
 				JDDNode zeroRewStates = JDD.And(maybe, JDD.Apply(JDD.EQUALS, sr, JDD.Constant(0)));

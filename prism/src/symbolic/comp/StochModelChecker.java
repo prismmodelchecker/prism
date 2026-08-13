@@ -238,12 +238,14 @@ public class StochModelChecker extends ProbModelChecker
 
 	// cumulative reward
 	@Override
-	protected StateValues checkRewardCumul(ExpressionTemporal expr, JDDNode stateRewards, JDDNode transRewards, JDDNode statesOfInterest)
+	protected StateValues checkRewardCumul(ExpressionTemporal expr, JDDNode stateRewards, JDDNode transRewards, JDDNode statesOfInterest, double disc)
 			throws PrismException
 	{
 		double time; // time
 		StateValues rewards = null;
 
+		// disc is always 1.0 here: getRewardDiscount only admits DTMCs and MDPs, so a
+		// discounted property on a CTMC is rejected before reaching this point
 		JDD.Deref(statesOfInterest);
 
 		// get info from inst reward

@@ -1,0 +1,26 @@
+// Discounted reward properties, for cross-engine agreement (-ex/-s/-h/-m).
+//
+// The point of this model is that discounting *changes which values are finite*:
+// [risky] has a 1/2 chance of entering the inescapable positive-reward loop at s=2,
+// so undiscounted Rmax=?[C] is Infinity, while any discount factor < 1 makes every
+// value finite. That is exactly the case a naive symbolic implementation gets wrong,
+// because the Prob0/Prob1 (and zero-reward end component) precomputation reasons about
+// the *undiscounted* reachability structure and reports states as having infinite value.
+mdp
+
+module m
+	s : [0..3] init 0;
+	[safe]  s=0 -> 1   : (s'=3);
+	[risky] s=0 -> 0.5 : (s'=2) + 0.5 : (s'=3);
+	[loop]  s=2 -> 1   : (s'=2);
+	[done]  s=3 -> 1   : (s'=3);
+endmodule
+
+rewards "r"
+	s=0 : 1;
+	s=2 : 5;
+	[safe]  true : 100;
+	[risky] true : 1;
+endrewards
+
+label "target" = s=3;

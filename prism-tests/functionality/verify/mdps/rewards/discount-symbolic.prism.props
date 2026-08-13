@@ -1,0 +1,50 @@
+// Cross-engine agreement for discounted reward properties (see .args: -ex, -s, -h, -m).
+//
+// Undiscounted, [risky] can enter the inescapable positive-reward loop at s=2, so the
+// maximiser's total reward is infinite:
+
+// RESULT: Infinity
+R{"r"}max=?[C]
+
+// RESULT: 101.0
+R{"r"}min=?[C]
+
+// Discounted, every value is finite - which is the whole point of this fixture. A
+// symbolic implementation that keeps the usual Prob0/Prob1 (or zero-reward end
+// component) precomputation reports Infinity here instead, because that precomputation
+// reasons about the undiscounted reachability structure.
+
+// RESULT: 101.0
+R{"r"}max=?[C{discount=0.9}]
+
+// RESULT: [24.4995,24.5001]
+R{"r"}min=?[C{discount=0.9}]
+
+// The same, as a reachability reward: s=3 is the only reward-free absorbing state, so
+// these agree with the total-reward values above.
+
+// RESULT: 101.0
+R{"r"}max=?[F{discount=0.9} "target"]
+
+// RESULT: [24.4995,24.5001]
+R{"r"}min=?[F{discount=0.9} "target"]
+
+// Bounded cumulative reward, where no precomputation is involved at all - this checks
+// the discount reaches the iteration itself.
+
+// RESULT: 3.875
+R{"r"}min=?[C{discount=0.5}<=3]
+
+// Discount factor 0: no future value contributes, so this is just the immediate
+// expected reward (state reward 1 at s=0, plus the cheaper action's reward 1).
+
+// RESULT: 2.0
+R{"r"}min=?[C{discount=0}]
+
+// RESULT: 101.0
+R{"r"}max=?[C{discount=0}]
+
+// Discount factor 1 must be identical to no discounting at all.
+
+// RESULT: 101.0
+R{"r"}min=?[C{discount=1}]

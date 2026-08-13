@@ -1618,6 +1618,74 @@ public class StateModelChecker extends PrismNativeComponent implements ModelChec
 	}
 	
 	/**
+	 * Get the discount factor for a reward operator, i.e. the value of its {@code {discount=...}}
+	 * option, or 1.0 if it has none (meaning: no discounting).
+	 * <br>
+	 * Only DTMCs and MDPs are supported, matching the explicit engine; anything else with a
+	 * discount is rejected here rather than having the factor silently ignored further down.
+	 * @param expr The path formula inside the R operator
+	 */
+	protected double getRewardDiscount(Expression expr) throws PrismException
+	{
+		if (!(expr instanceof ExpressionTemporal)) {
+			return 1.0;
+		}
+		Expression discExpr = ((ExpressionTemporal) expr).getDiscount();
+		if (discExpr == null) {
+			return 1.0;
+		}
+		ModelType modelType = model.getModelType();
+		if (modelType != ModelType.DTMC && modelType != ModelType.MDP) {
+			throw new PrismNotSupportedException("Discounting is not currently supported for " + modelType + "s");
+		}
+		double disc = discExpr.evaluateDouble(constantValues);
+		if (disc < 0.0 || disc > 1.0) {
+			throw new PrismException("Discount factor " + disc + " is out of range, should be in [0,1]");
+		}
+		return disc;
+	}
+
+	/**
+	 * Scale a transition matrix by a discount factor, for a discounted reward computation.
+	 * <br>
+	 * The native solution routines all compute a step of the form
+	 * {@code V'(s) = rew(s) + sum_j P(s,j)*V(j)}; multiplying the matrix through by
+	 * {@code disc} beforehand turns that into the discounted step
+	 * {@code V'(s) = rew(s) + disc * sum_j P(s,j)*V(j)}, with no change to the native code.
+	 * The result is sub-stochastic, which those routines are happy with - it is exactly the
+	 * standard reduction that sends the missing {@code 1-disc} of each row to an absorbing,
+	 * zero-reward sink.
+	 * <br>
+	 * Transition rewards need {@link #discountTransRewards} to go with this, since the native
+	 * routines read them by multiplying against the same (now scaled) matrix.
+	 * <br>[ REFS: <i>result</i>, DEREFS: <i>none</i> ]
+	 */
+	protected static JDDNode discountTrans(JDDNode tr, double disc)
+	{
+		JDD.Ref(tr);
+		return JDD.Apply(JDD.TIMES, tr, JDD.Constant(disc));
+	}
+
+	/**
+	 * Scale transition rewards to compensate for the matrix scaling done by
+	 * {@link #discountTrans}.
+	 * <br>
+	 * The native routines pick up a transition reward as {@code sum_j rew(s,j)*P(s,j)}, i.e.
+	 * weighted by the very matrix that has just been scaled by {@code disc}. Pre-dividing by
+	 * {@code disc} cancels that, leaving the immediate reward undiscounted (as it should be -
+	 * only future value is discounted).
+	 * <br>
+	 * Requires {@code disc > 0}; callers handle {@code disc == 0} separately, since there the
+	 * value is just the immediate reward and no iteration is needed at all.
+	 * <br>[ REFS: <i>result</i>, DEREFS: <i>none</i> ]
+	 */
+	protected static JDDNode discountTransRewards(JDDNode trr, double disc)
+	{
+		JDD.Ref(trr);
+		return JDD.Apply(JDD.TIMES, trr, JDD.Constant(1.0 / disc));
+	}
+
+	/**
 	 * Get the transition rewards (from a model) corresponding to the index of this R operator.
 	 * Throws an exception (with explanatory message) if it cannot be found.
 	 */
