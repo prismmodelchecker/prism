@@ -984,11 +984,10 @@ public class PrismSettings implements Observer
 	 * in the correct help-output position (between EXPORTS and SIMULATION OPTIONS).
 	 *
 	 * @param reg         the shared switch registry
-	 * @param prism       the Prism instance (for switches that set Prism-level state)
 	 * @param paramHandler PrismCL-owned handler for {@code -param}; registered here so that
 	 *                    {@code -param} appears in the PARAMETRIC section of {@code -help}
 	 */
-	void registerSwitchHandlers(SwitchRegistry reg, Prism prism, SwitchHandler paramHandler)
+	void registerSwitchHandlers(SwitchRegistry reg, SwitchHandler paramHandler)
 	{
 		// ── EXPORT OPTIONS ───────────────────────────────────────────────────
 		reg.beginGroup("EXPORT OPTIONS");
@@ -1138,8 +1137,6 @@ public class PrismSettings implements Observer
 			if (d < 0) throw new PrismException("Invalid value for -" + sw + " switch");
 			set(PRISM_SUM_ROUND_OFF, d);
 		}, "<x>", "Set probability sum threshold [default: 1-e5]");
-		reg.addSwitch("zerorewardcheck", new FlagSwitch(() -> prism.setCheckZeroLoops(true)),
-			"", "Check for absence of zero-reward loops");
 		reg.addSwitch("nossdetect", new FlagSwitch(() -> set(PRISM_DO_SS_DETECTION, false)),
 			"", "Disable steady-state detection for CTMC transient computations");
 		SwitchHandler sccMethodHandler = new EnumSwitch()

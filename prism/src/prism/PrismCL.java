@@ -1557,7 +1557,7 @@ public class PrismCL implements PrismModelListener
 			String v = a.next(sw).trim();
 			if ("".equals(paramSwitch)) paramSwitch = v; else paramSwitch += "," + v;
 		};
-		prism.getSettings().registerSwitchHandlers(registry, prism, paramHandler);
+		prism.getSettings().registerSwitchHandlers(registry, paramHandler);
 
 		// ── SIMULATION OPTIONS ────────────────────────────────────────────────
 		registry.beginGroup("SIMULATION OPTIONS");
