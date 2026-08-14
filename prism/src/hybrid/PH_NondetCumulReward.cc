@@ -137,7 +137,7 @@ jboolean min		// min or max probabilities (true = min, false = max)
 	PN_PrintToMainLog(env, "Building hybrid MTBDD matrices for rewards... ");
 	hddms2 = build_hdd_matrices_mdp(trans_rewards, hddms, rvars, cvars, num_rvars, ndvars, num_ndvars, odd);
 	kb = hddms2->mem_nodes;
-	kbt = kb;
+	kbt += kb;
 	PN_PrintToMainLog(env, "[nm=%d, levels=%d, nodes=%d] ", hddms2->nm, hddms2->num_levels, hddms2->num_nodes);
 	PN_PrintMemoryToMainLog(env, "[", kb, "]\n");
 
