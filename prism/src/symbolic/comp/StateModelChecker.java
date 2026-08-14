@@ -1639,7 +1639,7 @@ public class StateModelChecker extends PrismNativeComponent implements ModelChec
 			throw new PrismNotSupportedException("Discounting is not currently supported for " + modelType + "s");
 		}
 		double disc = discExpr.evaluateDouble(constantValues);
-		if (disc < 0.0 || disc > 1.0) {
+		if (Double.isNaN(disc) || disc < 0.0 || disc > 1.0) {
 			throw new PrismException("Discount factor " + disc + " is out of range, should be in [0,1]");
 		}
 		return disc;

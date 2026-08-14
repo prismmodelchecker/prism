@@ -48,3 +48,17 @@ R{"r"}max=?[C{discount=0}]
 
 // RESULT: 101.0
 R{"r"}min=?[C{discount=1}]
+
+// NaN fails every comparison, so it is not caught by a plain range test and has to be
+// rejected explicitly. Otherwise it is accepted as a discount factor and then makes each
+// engine's "is this discounted?" dispatch fall through to the undiscounted computation -
+// which here would silently answer Infinity for max, and 101.0 for min, as at the top.
+
+// RESULT: Error:range
+R{"r"}max=?[C{discount=0.0/0.0}]
+
+// RESULT: Error:range
+R{"r"}min=?[C{discount=0.0/0.0}]
+
+// RESULT: Error:range
+R{"r"}min=?[F{discount=0.0/0.0} "target"]

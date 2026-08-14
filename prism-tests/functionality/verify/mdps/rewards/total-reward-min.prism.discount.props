@@ -44,5 +44,21 @@ R{"r"}max=?[C{discount=2}<=0]
 // RESULT: Error:range
 R{"r"}max=?[C{discount=-0.5}<=0]
 
+// NaN fails every comparison, so it is not caught by a plain range test and has to be
+// rejected explicitly - otherwise it is accepted as a discount factor and then makes every
+// "is this discounted?" test false, silently running the undiscounted computation (which
+// for this model is Infinity, as in total-reward-min.prism.props).
+
+// RESULT: Error:range
+R{"r"}max=?[C{discount=0.0/0.0}]
+
+// RESULT: Error:range
+R{"r"}min=?[F{discount=0.0/0.0} s=5]
+
+// Infinity is caught by the range test already; pinned here alongside the NaN cases.
+
+// RESULT: Error:range
+R{"r"}max=?[C{discount=1.0/0.0}]
+
 // RESULT: 0.0
 R{"r"}max=?[C{discount=0.9}<=0]

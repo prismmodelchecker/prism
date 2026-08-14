@@ -1024,7 +1024,7 @@ public class ProbModelChecker extends NonProbModelChecker
 					+ " reward operator for " + model.getModelType() + "s");
 		}
 		double disc = expr.getDiscount().evaluateDouble(constantValues);
-		if (disc < 0.0 || disc > 1.0) {
+		if (Double.isNaN(disc) || disc < 0.0 || disc > 1.0) {
 			throw new PrismException("Discount factor " + disc + " is out of range, should be in [0,1]");
 		}
 		return disc;
