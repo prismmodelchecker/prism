@@ -319,9 +319,14 @@ public class DTMCEmbeddedSimple<Value> extends DTMCExplicit<Value>
 					diag = prob;
 				}
 			}
-			d /= (er - diag);
+			// Avoid division by zero for states whose only transition is a self-loop
+			// (E(s)-diag == 0); d is guaranteed to still be 0 in that case.
+			double denom = er - diag;
+			if (denom != 0) {
+				d /= denom;
+			}
 		}
-		
+
 		return d;
 	}
 
@@ -363,6 +368,7 @@ public class DTMCEmbeddedSimple<Value> extends DTMCExplicit<Value>
 			// (rew(s) + sum_{j!=s} P(s,j)*vect[j]) / (1-P(s,s))
 			// = (rew(s) + sum_{j!=s} (R(s,j)/E(s))*vect[j]) / (1-(P(s,s)/E(s)))
 			// = (E(s)*rew(s) + sum_{j!=s} R(s,j)*vect[j]) / (E(s)-P(s,s))
+			boolean onlySelfLoops = true;
 			d = er * mcRewards.getStateReward(s);
 			for (Map.Entry<Integer, Value> e : distr) {
 				int k = e.getKey();
@@ -370,13 +376,20 @@ public class DTMCEmbeddedSimple<Value> extends DTMCExplicit<Value>
 				// Non-diagonal entries only
 				if (k != s) {
 					d += prob * vect[k];
+					onlySelfLoops = false;
 				} else {
 					diag = prob;
 				}
 			}
-			d /= (er - diag);
+			if (onlySelfLoops) {
+				// Only a self-loop: avoid dividing by (E(s)-diag) == 0.
+				// d is currently E(s)*rew(s); its sign matches rew(s) since E(s) > 0.
+				d = (d == 0) ? 0.0 : (d > 0 ? Double.POSITIVE_INFINITY : Double.NEGATIVE_INFINITY);
+			} else {
+				d /= (er - diag);
+			}
 		}
-		
+
 		return d;
 	}
 
