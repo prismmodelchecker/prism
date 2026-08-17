@@ -338,9 +338,17 @@ public class DTMCModelChecker extends ProbModelChecker
 				linEqMethod = LinEqMethod.GAUSS_SEIDEL;
 				mainLog.printWarning("Switching to linear equation solution method \"" + linEqMethod.fullName() + "\"");
 			}
-		} else if (!(linEqMethod == LinEqMethod.POWER)) {
-			linEqMethod = LinEqMethod.POWER;
-			mainLog.printWarning("Switching to linear equation solution method \"" + linEqMethod.fullName() + "\"");
+		} else {
+			switch (linEqMethod) {
+			case POWER:
+			case GAUSS_SEIDEL:
+			case BACKWARDS_GAUSS_SEIDEL:
+			case JACOBI:
+				break; // supported
+			default:
+				linEqMethod = LinEqMethod.GAUSS_SEIDEL;
+				mainLog.printWarning("Switching to linear equation solution method \"" + linEqMethod.fullName() + "\"");
+			}
 		}
 
 		// Store num states
@@ -395,19 +403,31 @@ public class DTMCModelChecker extends ProbModelChecker
 
 		// Compute rewards
 		// (do this using the functions for "reward reachability" properties but with no targets)
+		boolean termCritAbsolute = termCrit == TermCrit.ABSOLUTE;
 		switch (linEqMethod) {
 		case POWER:
 			if (disc < 1.0) {
 				res = computeReachRewardsValIterDiscounted(dtmc, mcRewards, new BitSet(), inf, disc);
 			} else {
-				res = computeReachRewardsValIter(dtmc, mcRewards, new BitSet(), inf, null, null);
+				IterationMethod iterationMethod = new IterationMethodPower(termCritAbsolute, termCritParam);
+				res = doValueIterationReachRewards(dtmc, mcRewards, new BitSet(), inf, null, null, iterationMethod, getDoTopologicalValueIteration());
 			}
 			break;
+		case JACOBI: {
+			// only reachable when undiscounted (see method switch above)
+			IterationMethod iterationMethod = new IterationMethodJacobi(termCritAbsolute, termCritParam);
+			res = doValueIterationReachRewards(dtmc, mcRewards, new BitSet(), inf, null, null, iterationMethod, getDoTopologicalValueIteration());
+			break;
+		}
 		case GAUSS_SEIDEL:
 		case BACKWARDS_GAUSS_SEIDEL: {
-			// only reachable when discounting is enabled (see method switch above)
 			boolean backwards = linEqMethod == LinEqMethod.BACKWARDS_GAUSS_SEIDEL;
-			res = computeReachRewardsGaussSeidelDiscounted(dtmc, mcRewards, new BitSet(), inf, disc, backwards);
+			if (disc < 1.0) {
+				res = computeReachRewardsGaussSeidelDiscounted(dtmc, mcRewards, new BitSet(), inf, disc, backwards);
+			} else {
+				IterationMethod iterationMethod = new IterationMethodGS(termCritAbsolute, termCritParam, backwards);
+				res = doValueIterationReachRewards(dtmc, mcRewards, new BitSet(), inf, null, null, iterationMethod, getDoTopologicalValueIteration());
+			}
 			break;
 		}
 		default:

@@ -1,4 +1,5 @@
 -ex
+-ex -gs
 -mtbdd
 -hybrid
 -sparse

@@ -1,11 +1,19 @@
 # As a CTMC
 -ctmc -ex
+-ctmc -ex -power
+-ctmc -ex -jacobi
+-ctmc -ex -gs
+-ctmc -ex -bgs
 -ctmc -mtbdd
 -ctmc -hybrid
 -ctmc -sparse
 
 # As a DTMC
 -dtmc -ex
+-dtmc -ex -power
+-dtmc -ex -jacobi
+-dtmc -ex -gs
+-dtmc -ex -bgs
 -dtmc -mtbdd
 -dtmc -hybrid
 -dtmc -sparse
