@@ -5,6 +5,7 @@
 -ex -gs
 -ex -politer
 -ex -modpoliter
+-ex -lp
 -s -ii
 -m -ii
 -h -ii
