@@ -637,7 +637,7 @@ public interface DTMC<Value> extends Model<Value>
 			int s = states.nextInt();
 			d = mvMultRewJacSingle(s, vect, mcRewards);
 
-			diff = absolute ? (Math.abs(d - vect[s])) : (Math.abs(d - vect[s]) / d);
+			diff = absolute ? (Math.abs(d - vect[s])) : (Math.abs(d - vect[s]) / Math.abs(d));
 			maxDiff = diff > maxDiff ? diff : maxDiff;
 			vect[s] = d;
 		}
@@ -663,7 +663,7 @@ public interface DTMC<Value> extends Model<Value>
 			int s = states.nextInt();
 			d = mvMultRewJacSingle(s, vect, mcRewards, disc);
 
-			diff = absolute ? (Math.abs(d - vect[s])) : (Math.abs(d - vect[s]) / d);
+			diff = absolute ? (Math.abs(d - vect[s])) : (Math.abs(d - vect[s]) / Math.abs(d));
 			maxDiff = diff > maxDiff ? diff : maxDiff;
 			vect[s] = d;
 		}

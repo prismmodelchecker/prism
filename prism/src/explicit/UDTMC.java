@@ -199,7 +199,7 @@ public interface UDTMC<Value> extends Model<Value>
 			//d = mvMultJacSingle(s, vect, minMax);
 			// Just do a normal (non-Jacobi) state update - not so easy to adapt for intervals
 			d = mvMultRewUncSingle(s, vect, mcRewards, minMax);
-			diff = absolute ? (Math.abs(d - vect[s])) : (Math.abs(d - vect[s]) / d);
+			diff = absolute ? (Math.abs(d - vect[s])) : (Math.abs(d - vect[s]) / Math.abs(d));
 			maxDiff = diff > maxDiff ? diff : maxDiff;
 			vect[s] = d;
 		}

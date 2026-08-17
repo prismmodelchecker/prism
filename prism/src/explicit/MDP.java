@@ -781,7 +781,7 @@ public interface MDP<Value> extends NondetModel<Value>
 		while (states.hasNext()) {
 			final int s = states.nextInt();
 			d = mvMultRewJacMinMaxSingle(s, vect, mdpRewards, min, strat);
-			diff = absolute ? (Math.abs(d - vect[s])) : (Math.abs(d - vect[s]) / d);
+			diff = absolute ? (Math.abs(d - vect[s])) : (Math.abs(d - vect[s]) / Math.abs(d));
 			maxDiff = diff > maxDiff ? diff : maxDiff;
 			vect[s] = d;
 		}
@@ -810,7 +810,7 @@ public interface MDP<Value> extends NondetModel<Value>
 		while (states.hasNext()) {
 			final int s = states.nextInt();
 			d = mvMultRewJacMinMaxSingle(s, vect, mdpRewards, min, strat, disc);
-			diff = absolute ? (Math.abs(d - vect[s])) : (Math.abs(d - vect[s]) / d);
+			diff = absolute ? (Math.abs(d - vect[s])) : (Math.abs(d - vect[s]) / Math.abs(d));
 			maxDiff = diff > maxDiff ? diff : maxDiff;
 			vect[s] = d;
 		}
