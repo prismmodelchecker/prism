@@ -28,41 +28,25 @@ package prism;
 
 /**
  * This class stores an interval of numerical values.
+ *
+ * @param <T> Type of the interval
  */
-public class Interval
+public class Interval<T extends Object>
 {
 	// Lower/upper value
-	public Object lower;
-	public Object upper;
-	
+	public T lower;
+	public T upper;
+
 	/**
 	 * Construct an Interval.
-	 * (lower and upper should be of the same type: Integer or Double)
+	 * Both bounds lower and upper should be of the same type.
 	 */
-	public Interval(Object lower, Object upper)
+	public Interval(T lower, T upper)
 	{
 		this.lower = lower;
 		this.upper = upper;
 	}
-	
-	/**
-	 * Construct an integer Interval.
-	 */
-	public Interval(Integer lower, Integer upper)
-	{
-		this.lower = lower;
-		this.upper = upper;
-	}
-	
-	/**
-	 * Construct a double Interval.
-	 */
-	public Interval(Double lower, Double upper)
-	{
-		this.lower = lower;
-		this.upper = upper;
-	}
-	
+
 	@Override
 	public String toString()
 	{
