@@ -149,8 +149,14 @@ public class Point
 	}
 
 	/**
- 	 * Determines if this point is pointwise smaller than {@code p+SMALL_NUMBER}.
- 	 * 
+ 	 * Determines if this point is pointwise smaller than {@code p+tolerance}, where the
+ 	 * per-dimension tolerance is {@link #SMALL_NUMBER} scaled by the magnitude of
+ 	 * {@code p}'s coordinate. A fixed absolute tolerance is too tight to absorb the
+ 	 * numerical noise between two independently-converged solver values once their
+ 	 * magnitude grows beyond roughly 1, which can let a genuinely-dominated point
+ 	 * (e.g. two solves of what is really the same value, off by slightly more than
+ 	 * {@link #SMALL_NUMBER} purely due to different convergence paths) spuriously
+ 	 * escape this check.
  	 */
 	public boolean isCoveredBy(Point p)
 	{
@@ -158,7 +164,8 @@ public class Point
 			return false;
 
 		for (int i = 0; i < this.getDimension(); i++) {
-			if (p.getCoord(i) + SMALL_NUMBER - this.getCoord(i) < 0)
+			double tolerance = SMALL_NUMBER * Math.max(1.0, Math.abs(p.getCoord(i)));
+			if (p.getCoord(i) + tolerance - this.getCoord(i) < 0)
 				return false;
 		}
 		//System.err.println("comparing " + this + " and " + second + " with the result " + (x == second.getX() && y == second.getY()));
