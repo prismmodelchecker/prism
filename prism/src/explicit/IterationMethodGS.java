@@ -165,7 +165,7 @@ public class IterationMethodGS extends IterationMethod {
 	}
 
 	@Override
-	public IterationValIter forMvMultRewMinMax(MDP<Double> mdp, MDPRewards<Double> rewards, boolean min, int[] strat) throws PrismException
+	public IterationValIter forMvMultRewMinMax(MDP<Double> mdp, MDPRewards<Double> rewards, boolean min, int[] strat, double disc) throws PrismException
 	{
 		return new SingleVectorIterationValIter(mdp) {
 			@Override
@@ -177,7 +177,8 @@ public class IterationMethodGS extends IterationMethod {
 				                                       min,
 				                                       backwards ? states.reversedIterator() : states.iterator(),
 				                                       absolute,
-				                                       strat);
+				                                       strat,
+				                                       disc);
 
 				// Check termination
 				return (error < termCritParam);

@@ -2018,12 +2018,7 @@ public class MDPModelChecker extends ProbModelChecker
 			}
 
 			BitSet empty = new BitSet();
-			if (mdpSolnMethod == MDPSolnMethod.GAUSS_SEIDEL) {
-				boolean backwards = linEqMethod == LinEqMethod.BACKWARDS_GAUSS_SEIDEL;
-				res = computeReachRewardsGaussSeidelDiscounted(mdp, mdpRewards, empty, empty, true, strat, disc, backwards);
-			} else {
-				res = computeReachRewardsValIterDiscounted(mdp, mdpRewards, empty, empty, true, strat, disc);
-			}
+			res = computeReachRewardsNumeric(mdp, mdpRewards, mdpSolnMethod, empty, empty, true, null, null, strat, disc);
 
 			if (genStrat) {
 				res.strat = new MDStrategyArray<Double>(mdp, strat);
@@ -2183,19 +2178,10 @@ public class MDPModelChecker extends ProbModelChecker
 		// do standard max reward calculation, but with empty target set
 		switch (mdpSolnMethod) {
 		case VALUE_ITERATION:
-			if (disc < 1.0) {
-				res = computeReachRewardsValIterDiscounted(mdp, mdpRewards, new BitSet(), inf, false, strat, disc);
-			} else {
-				res = computeReachRewardsValIter(mdp, mdpRewards, new BitSet(), inf, false, null, null, strat);
-			}
+			res = computeReachRewardsValIter(mdp, mdpRewards, new BitSet(), inf, false, null, null, strat, disc);
 			break;
 		case GAUSS_SEIDEL:
-			if (disc < 1.0) {
-				boolean backwards = linEqMethod == LinEqMethod.BACKWARDS_GAUSS_SEIDEL;
-				res = computeReachRewardsGaussSeidelDiscounted(mdp, mdpRewards, new BitSet(), inf, false, strat, disc, backwards);
-			} else {
-				res = computeReachRewardsGaussSeidel(mdp, mdpRewards, new BitSet(), inf, false, null, null, strat);
-			}
+			res = computeReachRewardsGaussSeidel(mdp, mdpRewards, new BitSet(), inf, false, null, null, strat, disc);
 			break;
 		case POLICY_ITERATION:
 			res = computeReachRewardsPolIter(mdp, mdpRewards, new BitSet(), inf, false, strat);
@@ -2311,11 +2297,6 @@ public class MDPModelChecker extends ProbModelChecker
 			if (doIntervalIteration) {
 				throw new PrismNotSupportedException("Interval iteration for discounted reachability rewards is currently not supported");
 			}
-			// The discounted solution methods below start from scratch, so they would quietly
-			// discard any exact values supplied by the caller rather than preserving them
-			if (known != null) {
-				throw new PrismNotSupportedException("Discounted reachability rewards cannot be passed 'known' values for some states");
-			}
 			if (mdpSolnMethod == MDPSolnMethod.POLICY_ITERATION) {
 				mdpSolnMethod = MDPSolnMethod.VALUE_ITERATION;
 				mainLog.printWarning("Switching to MDP solution method \"" + mdpSolnMethod.fullName() + "\" (required when discounting is enabled)");
@@ -2407,48 +2388,36 @@ public class MDPModelChecker extends ProbModelChecker
 
 		// Compute rewards (if needed)
 		if (numTarget + numInf < n) {
+			ZeroRewardECQuotient<Double> quotient = null;
+			// No zero-reward-EC pathology when discounting (it is a uniform contraction)
+			if (min && disc == 1.0) {
+				StopWatch zeroMECTimer = new StopWatch(mainLog);
+				zeroMECTimer.start("checking for zero-reward ECs");
+				mainLog.println("For Rmin, checking for zero-reward ECs...");
+				BitSet unknown = (BitSet) inf.clone();
+				unknown.flip(0, mdp.getNumStates());
+				unknown.andNot(target);
+				quotient = ZeroRewardECQuotient.getQuotient(this, mdp, unknown, mdpRewards);
 
-			if (disc < 1.0) {
-				// Discounting: no zero-reward-EC numerical pathology to guard against here
-				// (discounting already yields a uniform contraction), so go straight to
-				// (discounted) value iteration/Gauss-Seidel.
-				if (mdpSolnMethod == MDPSolnMethod.GAUSS_SEIDEL) {
-					boolean backwards = linEqMethod == LinEqMethod.BACKWARDS_GAUSS_SEIDEL;
-					res = computeReachRewardsGaussSeidelDiscounted(mdp, mdpRewards, target, inf, min, strat, disc, backwards);
+				if (quotient == null) {
+					zeroMECTimer.stop("no zero-reward ECs found, proceeding normally");
 				} else {
-					res = computeReachRewardsValIterDiscounted(mdp, mdpRewards, target, inf, min, strat, disc);
-				}
-			} else {
-				ZeroRewardECQuotient<Double> quotient = null;
-				if (min) {
-					StopWatch zeroMECTimer = new StopWatch(mainLog);
-					zeroMECTimer.start("checking for zero-reward ECs");
-					mainLog.println("For Rmin, checking for zero-reward ECs...");
-					BitSet unknown = (BitSet) inf.clone();
-					unknown.flip(0, mdp.getNumStates());
-					unknown.andNot(target);
-					quotient = ZeroRewardECQuotient.getQuotient(this, mdp, unknown, mdpRewards);
-
-					if (quotient == null) {
-						zeroMECTimer.stop("no zero-reward ECs found, proceeding normally");
-					} else {
-						zeroMECTimer.stop("built quotient MDP with " + quotient.getNumberOfZeroRewardMECs() + " zero-reward MECs");
-						if (strat != null) {
-							throw new PrismException("Constructing a strategy for Rmin in the presence of zero-reward ECs is currently not supported");
-						}
+					zeroMECTimer.stop("built quotient MDP with " + quotient.getNumberOfZeroRewardMECs() + " zero-reward MECs");
+					if (strat != null) {
+						throw new PrismException("Constructing a strategy for Rmin in the presence of zero-reward ECs is currently not supported");
 					}
 				}
+			}
 
-				if (quotient != null) {
-					BitSet newInfStates = (BitSet)inf.clone();
-					newInfStates.or(quotient.getNonRepresentativeStates());
-					int quotientModelStates = quotient.getModel().getNumStates() - newInfStates.cardinality();
-					mainLog.println("Computing Rmin in zero-reward EC quotient model (" + quotientModelStates + " relevant states)...");
-					res = computeReachRewardsNumeric(quotient.getModel(), quotient.getRewards(), mdpSolnMethod, target, newInfStates, min, init, known, strat);
-					quotient.mapResults(res.soln);
-				} else {
-					res = computeReachRewardsNumeric(mdp, mdpRewards, mdpSolnMethod, target, inf, min, init, known, strat);
-				}
+			if (quotient != null) {
+				BitSet newInfStates = (BitSet)inf.clone();
+				newInfStates.or(quotient.getNonRepresentativeStates());
+				int quotientModelStates = quotient.getModel().getNumStates() - newInfStates.cardinality();
+				mainLog.println("Computing Rmin in zero-reward EC quotient model (" + quotientModelStates + " relevant states)...");
+				res = computeReachRewardsNumeric(quotient.getModel(), quotient.getRewards(), mdpSolnMethod, target, newInfStates, min, init, known, strat, disc);
+				quotient.mapResults(res.soln);
+			} else {
+				res = computeReachRewardsNumeric(mdp, mdpRewards, mdpSolnMethod, target, inf, min, init, known, strat, disc);
 			}
 		} else {
 			res = new ModelCheckerResult();
@@ -2472,7 +2441,7 @@ public class MDPModelChecker extends ProbModelChecker
 		return res;
 	}
 
-	protected ModelCheckerResult computeReachRewardsNumeric(MDP<Double> mdp, MDPRewards<Double> mdpRewards, MDPSolnMethod method, BitSet target, BitSet inf, boolean min, double init[], BitSet known, int strat[]) throws PrismException
+	protected ModelCheckerResult computeReachRewardsNumeric(MDP<Double> mdp, MDPRewards<Double> mdpRewards, MDPSolnMethod method, BitSet target, BitSet inf, boolean min, double init[], BitSet known, int strat[], double disc) throws PrismException
 	{
 		ModelCheckerResult res = null;
 
@@ -2488,6 +2457,9 @@ public class MDPModelChecker extends ProbModelChecker
 			if (doIntervalIteration) {
 				throw new PrismNotSupportedException("Interval iteration currently not supported for policy iteration");
 			}
+			if (disc < 1.0) {
+				throw new PrismNotSupportedException("Policy iteration currently not supported for discounted rewards");
+			}
 			res = computeReachRewardsPolIter(mdp, mdpRewards, target, inf, min, strat);
 			break;
 		default:
@@ -2496,7 +2468,7 @@ public class MDPModelChecker extends ProbModelChecker
 
 		if (res == null) { // not yet computed, use iterationMethod
 			if (!doIntervalIteration) {
-				res = doValueIterationReachRewards(mdp, mdpRewards, iterationMethod, target, inf, min, init, known, getDoTopologicalValueIteration(), strat);
+				res = doValueIterationReachRewards(mdp, mdpRewards, iterationMethod, target, inf, min, init, known, getDoTopologicalValueIteration(), strat, disc);
 			} else {
 				res = doIntervalIterationReachRewards(mdp, mdpRewards, iterationMethod, target, inf, min, init, known, getDoTopologicalValueIteration(), strat);
 			}
@@ -2516,169 +2488,14 @@ public class MDPModelChecker extends ProbModelChecker
 	 * @param init Optionally, an initial solution vector (will be overwritten) 
 	 * @param known Optionally, a set of states for which the exact answer is known
 	 * @param strat Storage for (memoryless) strategy choice indices (ignored if null)
+	 * @param disc Discount factor for future rewards (1.0 = no discounting)
 	 * Note: if 'known' is specified (i.e. is non-null, 'init' must also be given and is used for the exact values.
 	 */
-	protected ModelCheckerResult computeReachRewardsValIter(MDP<Double> mdp, MDPRewards<Double> mdpRewards, BitSet target, BitSet inf, boolean min, double init[], BitSet known, int strat[])
+	protected ModelCheckerResult computeReachRewardsValIter(MDP<Double> mdp, MDPRewards<Double> mdpRewards, BitSet target, BitSet inf, boolean min, double init[], BitSet known, int strat[], double disc)
 			throws PrismException
 	{
 		IterationMethodPower iterationMethod = new IterationMethodPower(termCrit == TermCrit.ABSOLUTE, termCritParam);
-		return doValueIterationReachRewards(mdp, mdpRewards, iterationMethod, target, inf, min, init, known, false, strat);
-	}
-
-	/**
-	 * Compute expected reachability rewards using (discounted) value iteration.
-	 * i.e. for all s: soln[s] = min/max_k { rew(s) + rew_k(s) + disc * sum_j P_k(s,j)*soln[j] }
-	 * Optionally, store optimal (memoryless) strategy info.
-	 * @param mdp The MDP
-	 * @param mdpRewards The rewards
-	 * @param target Target states
-	 * @param inf States for which reward is infinite
-	 * @param min Min or max rewards (true=min, false=max)
-	 * @param strat Storage for (memoryless) strategy choice indices (ignored if null)
-	 * @param disc Discount factor applied to future rewards
-	 */
-	protected ModelCheckerResult computeReachRewardsValIterDiscounted(MDP<Double> mdp, MDPRewards<Double> mdpRewards, BitSet target, BitSet inf, boolean min, int strat[], double disc)
-			throws PrismException
-	{
-		ModelCheckerResult res;
-		int i, n, iters;
-		double soln[], soln2[], tmpsoln[];
-		boolean done;
-		long timer;
-
-		// Start value iteration
-		timer = System.currentTimeMillis();
-		mainLog.println("\nStarting value iteration (" + (min ? "min" : "max") + ", discount=" + disc + ")...");
-
-		// Store num states
-		n = mdp.getNumStates();
-
-		// Create solution vector(s)
-		soln = new double[n];
-		soln2 = new double[n];
-
-		// Initialise solution vectors.
-		for (i = 0; i < n; i++)
-			soln[i] = soln2[i] = target.get(i) ? 0.0 : inf.get(i) ? Double.POSITIVE_INFINITY : 0.0;
-
-		// Determine set of states actually need to compute values for
-		BitSet unknown = new BitSet();
-		unknown.set(0, n);
-		unknown.andNot(target);
-		unknown.andNot(inf);
-
-		// Start iterations
-		iters = 0;
-		done = false;
-		while (!done && iters < maxIters) {
-			iters++;
-			// Matrix-vector multiply and min/max
-			for (i = unknown.nextSetBit(0); i >= 0; i = unknown.nextSetBit(i + 1)) {
-				soln2[i] = mdp.mvMultRewMinMaxSingle(i, soln, mdpRewards, min, strat, disc);
-			}
-			// Check termination
-			done = PrismUtils.doublesAreClose(soln, soln2, termCritParam, termCrit == TermCrit.ABSOLUTE);
-			// Swap vectors for next iter
-			tmpsoln = soln;
-			soln = soln2;
-			soln2 = tmpsoln;
-		}
-
-		// Non-convergence is an error
-		if (!done) {
-			throw new PrismException("Iterative method (value iteration, discounted) did not converge within " + iters + " iterations.\n" +
-					"Consider using a different numerical method or increasing the maximum number of iterations");
-		}
-
-		// Finished value iteration
-		timer = System.currentTimeMillis() - timer;
-		mainLog.print("Value iteration (" + (min ? "min" : "max") + ", discount=" + disc + ")");
-		mainLog.println(" took " + iters + " iterations and " + timer / 1000.0 + " seconds.");
-
-		// Return results
-		res = new ModelCheckerResult();
-		res.soln = soln;
-		res.numIters = iters;
-		res.timeTaken = timer / 1000.0;
-		double maxDiff = PrismUtils.measureSupNorm(soln, soln2, termCrit == TermCrit.ABSOLUTE);
-		res.accuracy = AccuracyFactory.valueIteration(termCritParam, maxDiff, termCrit == TermCrit.ABSOLUTE);
-		return res;
-	}
-
-	/**
-	 * Compute expected reachability rewards using (discounted) Gauss-Seidel.
-	 * i.e. for all s (in turn, updating in place): soln[s] = min/max_k { rew(s) + rew_k(s) + disc * sum_j P_k(s,j)*soln[j] }
-	 * Optionally, store optimal (memoryless) strategy info.
-	 * @param mdp The MDP
-	 * @param mdpRewards The rewards
-	 * @param target Target states
-	 * @param inf States for which reward is infinite
-	 * @param min Min or max rewards (true=min, false=max)
-	 * @param strat Storage for (memoryless) strategy choice indices (ignored if null)
-	 * @param disc Discount factor applied to future rewards
-	 * @param backwards Sweep states in descending, rather than ascending, order
-	 */
-	protected ModelCheckerResult computeReachRewardsGaussSeidelDiscounted(MDP<Double> mdp, MDPRewards<Double> mdpRewards, BitSet target, BitSet inf, boolean min, int strat[], double disc, boolean backwards)
-			throws PrismException
-	{
-		ModelCheckerResult res;
-		int i, n, iters;
-		double soln[];
-		double maxDiff = 0.0;
-		boolean done;
-		long timer;
-		String description = (min ? "min" : "max") + (backwards ? ", backwards" : "") + ", discount=" + disc;
-
-		// Start Gauss-Seidel
-		timer = System.currentTimeMillis();
-		mainLog.println("\nStarting Gauss-Seidel (" + description + ")...");
-
-		// Store num states
-		n = mdp.getNumStates();
-
-		// Create solution vector
-		soln = new double[n];
-
-		// Initialise solution vector.
-		for (i = 0; i < n; i++)
-			soln[i] = target.get(i) ? 0.0 : inf.get(i) ? Double.POSITIVE_INFINITY : 0.0;
-
-		// Determine set of states actually need to compute values for
-		BitSet unknown = new BitSet();
-		unknown.set(0, n);
-		unknown.andNot(target);
-		unknown.andNot(inf);
-		IntSet unknownStates = IntSet.asIntSet(unknown);
-
-		// Start iterations
-		iters = 0;
-		done = false;
-		while (!done && iters < maxIters) {
-			iters++;
-			// Gauss-Seidel sweep (updates soln in place), tracking max change
-			maxDiff = mdp.mvMultRewGSMinMax(soln, mdpRewards, min, backwards ? unknownStates.reversedIterator() : unknownStates.iterator(), termCrit == TermCrit.ABSOLUTE, strat, disc);
-			// Check termination
-			done = maxDiff < termCritParam;
-		}
-
-		// Non-convergence is an error
-		if (!done) {
-			throw new PrismException("Iterative method (Gauss-Seidel, discounted) did not converge within " + iters + " iterations.\n" +
-					"Consider using a different numerical method or increasing the maximum number of iterations");
-		}
-
-		// Finished Gauss-Seidel
-		timer = System.currentTimeMillis() - timer;
-		mainLog.print("Gauss-Seidel (" + description + ")");
-		mainLog.println(" took " + iters + " iterations and " + timer / 1000.0 + " seconds.");
-
-		// Return results
-		res = new ModelCheckerResult();
-		res.soln = soln;
-		res.numIters = iters;
-		res.timeTaken = timer / 1000.0;
-		res.accuracy = AccuracyFactory.valueIteration(termCritParam, maxDiff, termCrit == TermCrit.ABSOLUTE);
-		return res;
+		return doValueIterationReachRewards(mdp, mdpRewards, iterationMethod, target, inf, min, init, known, false, strat, disc);
 	}
 
 	/**
@@ -2693,9 +2510,10 @@ public class MDPModelChecker extends ProbModelChecker
 	 * @param known Optionally, a set of states for which the exact answer is known
 	 * @param topological Do topological value iteration?
 	 * @param strat Storage for (memoryless) strategy choice indices (ignored if null)
+	 * @param disc Discount factor for future rewards (1.0 = no discounting)
 	 * Note: if 'known' is specified (i.e. is non-null, 'init' must also be given and is used for the exact values.
 	 */
-	protected ModelCheckerResult doValueIterationReachRewards(MDP<Double> mdp, MDPRewards<Double> mdpRewards, IterationMethod iterationMethod, BitSet target, BitSet inf, boolean min, double init[], BitSet known, boolean topological, int strat[])
+	protected ModelCheckerResult doValueIterationReachRewards(MDP<Double> mdp, MDPRewards<Double> mdpRewards, IterationMethod iterationMethod, BitSet target, BitSet inf, boolean min, double init[], BitSet known, boolean topological, int strat[], double disc)
 			throws PrismException
 	{
 		BitSet unknown;
@@ -2704,7 +2522,7 @@ public class MDPModelChecker extends ProbModelChecker
 
 		// Start value iteration
 		timer = System.currentTimeMillis();
-		String description = (min ? "min" : "max") + (topological ? ", topological" : "" ) + ", with " + iterationMethod.getDescriptionShort();
+		String description = (min ? "min" : "max") + (topological ? ", topological" : "" ) + ", with " + iterationMethod.getDescriptionShort() + (disc < 1.0 ? ", discount=" + disc : "");
 		mainLog.println("Starting value iteration (" + description + ")...");
 
 		ExportIterations iterationsExport = null;
@@ -2743,7 +2561,7 @@ public class MDPModelChecker extends ProbModelChecker
 		if (iterationsExport != null)
 			iterationsExport.exportVector(init, 0);
 
-		IterationMethod.IterationValIter forMvMultRewMinMax = iterationMethod.forMvMultRewMinMax(mdp, mdpRewards, min, strat);
+		IterationMethod.IterationValIter forMvMultRewMinMax = iterationMethod.forMvMultRewMinMax(mdp, mdpRewards, min, strat, disc);
 		forMvMultRewMinMax.init(init);
 
 		IntSet unknownStates = IntSet.asIntSet(unknown);
@@ -2754,7 +2572,7 @@ public class MDPModelChecker extends ProbModelChecker
 			SCCInfo sccs = SCCComputer.computeTopologicalOrdering(this, mdp, true, unknown::get);
 
 			IterationMethod.SingletonSCCSolver singletonSCCSolver = (int s, double[] soln) -> {
-				soln[s] = mdp.mvMultRewJacMinMaxSingle(s, soln, mdpRewards, min, strat);
+				soln[s] = mdp.mvMultRewJacMinMaxSingle(s, soln, mdpRewards, min, strat, disc);
 			};
 
 			// run the actual value iteration
@@ -2776,13 +2594,14 @@ public class MDPModelChecker extends ProbModelChecker
 	 * @param init Optionally, an initial solution vector (will be overwritten) 
 	 * @param known Optionally, a set of states for which the exact answer is known
 	 * @param strat Storage for (memoryless) strategy choice indices (ignored if null)
+	 * @param disc Discount factor for future rewards (1.0 = no discounting)
 	 * Note: if 'known' is specified (i.e. is non-null, 'init' must also be given and is used for the exact values.
 	 */
 	protected ModelCheckerResult computeReachRewardsGaussSeidel(MDP<Double> mdp, MDPRewards<Double> mdpRewards, BitSet target, BitSet inf, boolean min, double init[],
-			BitSet known, int strat[]) throws PrismException
+			BitSet known, int strat[], double disc) throws PrismException
 	{
 		IterationMethodGS iterationMethod = new IterationMethodGS(termCrit == TermCrit.ABSOLUTE, termCritParam, false);
-		return doValueIterationReachRewards(mdp, mdpRewards, iterationMethod, target, inf, min, init, known, false, strat);
+		return doValueIterationReachRewards(mdp, mdpRewards, iterationMethod, target, inf, min, init, known, false, strat, disc);
 	}
 
 	/**

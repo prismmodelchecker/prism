@@ -2,3 +2,5 @@
 -ex -gs
 -ex -gs -bgs
 -ex -politer
+-ex -topological
+-ex -gs -topological

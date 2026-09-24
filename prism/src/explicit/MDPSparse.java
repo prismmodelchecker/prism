@@ -944,7 +944,7 @@ public class MDPSparse extends MDPExplicit<Double>
 	}
 
 	@Override
-	public double mvMultRewMinMaxSingle(int s, double vect[], MDPRewards<Double> mdpRewards, boolean min, int strat[])
+	public double mvMultRewMinMaxSingle(int s, double vect[], MDPRewards<Double> mdpRewards, boolean min, int strat[], double disc)
 	{
 		int j, k, l1, h1, l2, h2, stratCh = -1;
 		double d, minmax;
@@ -959,8 +959,9 @@ public class MDPSparse extends MDPExplicit<Double>
 			d = mdpRewards.getTransitionReward(s, j - l1);
 			l2 = choiceStarts[j];
 			h2 = choiceStarts[j + 1];
+			// Discount applied per term: keeps results bit-identical to the undiscounted sum when disc=1.0
 			for (k = l2; k < h2; k++) {
-				d += nonZeros[k] * vect[cols[k]];
+				d += disc * nonZeros[k] * vect[cols[k]];
 			}
 			// Check whether we have exceeded min/max so far
 			if (first || (min && d < minmax) || (!min && d > minmax)) {
@@ -1007,7 +1008,7 @@ public class MDPSparse extends MDPExplicit<Double>
 	}
 	
 	@Override
-	public double mvMultRewJacMinMaxSingle(int s, double vect[], MDPRewards<Double> mdpRewards, boolean min, int strat[])
+	public double mvMultRewJacMinMaxSingle(int s, double vect[], MDPRewards<Double> mdpRewards, boolean min, int strat[], double disc)
 	{
 		int j, k, l1, h1, l2, h2, stratCh = -1;
 		double diag, d, minmax;
@@ -1029,13 +1030,14 @@ public class MDPSparse extends MDPExplicit<Double>
 			for (k = l2; k < h2; k++) {
 				if (cols[k] != s) {
 					onlySelfloops = false;
-					d += nonZeros[k] * vect[cols[k]];
+					d += disc * nonZeros[k] * vect[cols[k]];
 				} else {
-					diag -= nonZeros[k];
+					diag -= disc * nonZeros[k];
 				}
 			}
 			// Catch special case of probability 1 self-loop (Jacobi does it wrong)
-			if (onlySelfloops) {
+			// (with discounting, diag stays > 0, so the Jacobi division below is fine)
+			if (onlySelfloops && (disc == 1.0 || diag <= 0)) {
 				if (d != 0) {
 					// always choosing the selfloop-action will produce infinite reward
 					d = (d>0 ? Double.POSITIVE_INFINITY : Double.NEGATIVE_INFINITY);

@@ -117,7 +117,7 @@ class IterationMethodJacobi extends IterationMethod {
 	}
 
 	@Override
-	public IterationValIter forMvMultRewMinMax(MDP<Double> mdp, MDPRewards<Double> rewards, boolean min, int[] strat) throws PrismException
+	public IterationValIter forMvMultRewMinMax(MDP<Double> mdp, MDPRewards<Double> rewards, boolean min, int[] strat, double disc) throws PrismException
 	{
 		throw new PrismNotSupportedException("Jacobi not supported for MDPs");
 	}

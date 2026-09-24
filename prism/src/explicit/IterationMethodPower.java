@@ -138,13 +138,13 @@ public class IterationMethodPower extends IterationMethod {
 	}
 
 	@Override
-	public IterationValIter forMvMultRewMinMax(MDP<Double> mdp, MDPRewards<Double> rewards, boolean min, int[] strat) throws PrismException
+	public IterationValIter forMvMultRewMinMax(MDP<Double> mdp, MDPRewards<Double> rewards, boolean min, int[] strat, double disc) throws PrismException
 	{
 		return new TwoVectorIteration(mdp, null) {
 			@Override
 			public void doIterate(IntSet states)
 			{
-				mdp.mvMultRewMinMax(soln, rewards, min, soln2, states.iterator(), strat);
+				mdp.mvMultRewMinMax(soln, rewards, min, soln2, states.iterator(), strat, disc);
 			}
 		};
 	}

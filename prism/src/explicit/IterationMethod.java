@@ -392,7 +392,21 @@ public abstract class IterationMethod {
 	 * @param min do min?
 	 * @param strat optional, storage for strategy, ignored if null
 	 */
-	public abstract IterationValIter forMvMultRewMinMax(MDP<Double> mdp, MDPRewards<Double> rewards, boolean min, int[] strat) throws PrismException;
+	public IterationValIter forMvMultRewMinMax(MDP<Double> mdp, MDPRewards<Double> rewards, boolean min, int[] strat) throws PrismException
+	{
+		return forMvMultRewMinMax(mdp, rewards, min, strat, 1.0);
+	}
+
+	/**
+	 * Obtain an Iteration object using mvMultRewMinMax (matrix-vector multiplication with rewards, followed by min/max)
+	 * in an MDP.
+	 * @param mdp the MDP
+	 * @param rewards the reward structure
+	 * @param min do min?
+	 * @param strat optional, storage for strategy, ignored if null
+	 * @param disc Discount factor for future rewards (1.0 = no discounting)
+	 */
+	public abstract IterationValIter forMvMultRewMinMax(MDP<Double> mdp, MDPRewards<Double> rewards, boolean min, int[] strat, double disc) throws PrismException;
 
 	/**
 	 * Obtain an Iteration object using mvMultRewMinMax (matrix-vector multiplication with rewards, followed by min/max)
