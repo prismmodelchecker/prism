@@ -74,6 +74,8 @@ public class SamplerRewardReach extends SamplerDouble
 		// If the answer is already known we should do nothing
 		if (valueKnown)
 			return true;
+		// Check that the latest rewards are non-negative
+		checkPreviousStepRewardsNonNegative(path, rewardStructIndex);
 		// Reward for step t (state s_t, plus transition s_t->s_t+1) is weighted by disc^t
 		if (disc != 1.0 && path.size() > 0) {
 			discRewardSum += discFactor * (path.getPreviousStateReward(rewardStructIndex) + path.getPreviousTransitionReward(rewardStructIndex));

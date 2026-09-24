@@ -6,3 +6,7 @@ R=? [ I=1 ];
 
 // RESULT: Error
 R=? [ C<=1 ];
+
+// Negative rewards must not affect non-reward properties
+// RESULT: 1
+P=? [ F s=1 ];

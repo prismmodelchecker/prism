@@ -62,7 +62,10 @@ public class SamplerRewardCumulCont extends SamplerDouble
 		// If the answer is already known we should do nothing
 		if (valueKnown)
 			return true;
-		
+
+		// Check that the latest rewards are non-negative
+		checkPreviousStepRewardsNonNegative(path, rewardStructIndex);
+
 		// As soon as time bound exceeded, compute reward total
 		if (path.getTotalTime() >= timeBound) {
 			valueKnown = true;

@@ -79,6 +79,20 @@ public abstract class SamplerDouble extends Sampler
 	@Override
 	public abstract boolean update(Path path, ModelGenerator modelGen) throws PrismException;
 
+	/**
+	 * Check that the rewards for the most recent step of a path are non-negative,
+	 * as required for properties that accumulate reward (instantaneous reward allows negative values).
+	 */
+	protected static void checkPreviousStepRewardsNonNegative(Path path, int rsi) throws PrismException
+	{
+		if (path.size() > 0) {
+			double rew = Math.min(path.getPreviousStateReward(rsi), path.getPreviousTransitionReward(rsi));
+			if (rew < 0) {
+				throw new PrismException("Reward structure is negative (" + rew + ") at state " + path.getPreviousState());
+			}
+		}
+	}
+
 	@Override
 	public void updateStats()
 	{
