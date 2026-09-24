@@ -594,7 +594,7 @@ public class UMDPModelChecker extends ProbModelChecker
 					for (int k = 0; k < numChoices; k++) {
 						if (umdp.someSuccessorsInSet(i, k, inf)) {
 							strat[i] = k;
-							continue;
+							break;
 						}
 					}
 				}

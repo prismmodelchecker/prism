@@ -635,7 +635,7 @@ public class MDPModelChecker extends ProbModelChecker
 				for (int k = 0; k < numChoices; k++) {
 					if (mdp.allSuccessorsInSet(i, k, u)) {
 						strat[i] = k;
-						continue;
+						break;
 					}
 				}
 			}
@@ -2169,7 +2169,7 @@ public class MDPModelChecker extends ProbModelChecker
 					for (int k = 0; k < numChoices; k++) {
 						if (mdp.someSuccessorsInSet(i, k, inf)) {
 							strat[i] = k;
-							continue;
+							break;
 						}
 					}
 				}
