@@ -252,7 +252,7 @@ public class DTMCUniformisedSimple<Value> extends DTMCExplicit<Value>
 		return d;
 	}
 
-	public double mvMultRewSingle(int s, double vect[], MCRewards<Double> mcRewards)
+	public double mvMultRewSingle(int s, double vect[], MCRewards<Double> mcRewards, double disc)
 	{
 		// TODO
 		throw new Error("Not yet supported");

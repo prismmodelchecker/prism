@@ -1,3 +1,6 @@
 -ex -power
 -ex -gs
 -ex -gs -bgs
+-ex -jacobi
+-ex -topological
+-ex -gs -topological

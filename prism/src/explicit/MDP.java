@@ -731,9 +731,23 @@ public interface MDP<Value> extends NondetModel<Value>
 	 */
 	public default double mvMultRewSingle(int s, int i, double vect[], MCRewards<Double> mcRewards)
 	{
+		return mvMultRewSingle(s, i, vect, mcRewards, 1.0);
+	}
+
+	/**
+	 * Do a single row of (discounted) matrix-vector multiplication and sum of rewards for a specific choice.
+	 * i.e. rew(s) + disc * sum_j P_k(s,j)*vect[j]
+	 * @param s State (row) index
+	 * @param i Choice index
+	 * @param vect Vector to multiply by
+	 * @param mcRewards The rewards (DTMC rewards)
+	 * @param disc Discount factor
+	 */
+	public default double mvMultRewSingle(int s, int i, double vect[], MCRewards<Double> mcRewards, double disc)
+	{
 		double d = mcRewards.getStateReward(s);
 		// TODO: add transition rewards when added to MCRewards
-		d += sumOverDoubleTransitions(s, i, (__, t, prob) -> {
+		d += disc * sumOverDoubleTransitions(s, i, (__, t, prob) -> {
 			return prob * vect[t];
 		});
 		return d;

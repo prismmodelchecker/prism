@@ -76,13 +76,13 @@ class IterationMethodJacobi extends IterationMethod {
 	}
 
 	@Override
-	public IterationValIter forMvMultRew(DTMC<Double> dtmc, MCRewards<Double> rew)
+	public IterationValIter forMvMultRew(DTMC<Double> dtmc, MCRewards<Double> rew, double disc)
 	{
 		return new TwoVectorIteration(dtmc, null) {
 			@Override
 			public void doIterate(IntSet states)
 			{
-				dtmc.mvMultRewJac(soln, rew, soln2, states.iterator());
+				dtmc.mvMultRewJac(soln, rew, soln2, states.iterator(), disc);
 			}
 		};
 	}

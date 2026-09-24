@@ -196,9 +196,9 @@ public class DTMCFromMDPAndMDStrategy<Value> extends DTMCExplicit<Value>
 	}
 
 	@Override
-	public double mvMultRewSingle(int s, double vect[], MCRewards<Double> mcRewards)
+	public double mvMultRewSingle(int s, double vect[], MCRewards<Double> mcRewards, double disc)
 	{
-		return strat.isChoiceDefined(s) ? mdp.mvMultRewSingle(s, strat.getChoiceIndex(s), vect, mcRewards) : 0;
+		return strat.isChoiceDefined(s) ? mdp.mvMultRewSingle(s, strat.getChoiceIndex(s), vect, mcRewards, disc) : 0;
 	}
 
 	@Override

@@ -456,14 +456,15 @@ public class DTMCSparse extends DTMCExplicit<Double>
 	}
 
 	@Override
-	public double mvMultRewSingle(final int state, final double[] vect, final MCRewards<Double> mcRewards)
+	public double mvMultRewSingle(final int state, final double[] vect, final MCRewards<Double> mcRewards, final double disc)
 	{
 		double d = mcRewards.getStateReward(state);
 		for (int i=rows[state], stop=rows[state+1]; i < stop; i++) {
 			final int target = columns[i];
 			final double probability = probabilities[i];
 			//d += probability * (mcRewards.getTransitionReward(state, i-rows[state]) + vect[target]);
-			d += probability * vect[target];
+			// Discount applied per term: keeps results bit-identical to the undiscounted sum when disc=1.0
+			d += disc * probability * vect[target];
 		}
 		return d;
 	}

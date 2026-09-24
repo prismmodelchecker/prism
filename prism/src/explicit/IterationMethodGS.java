@@ -86,7 +86,7 @@ public class IterationMethodGS extends IterationMethod {
 	}
 
 	@Override
-	public IterationValIter forMvMultRew(DTMC<Double> dtmc, MCRewards<Double> rew)
+	public IterationValIter forMvMultRew(DTMC<Double> dtmc, MCRewards<Double> rew, double disc)
 	{
 		return new SingleVectorIterationValIter(dtmc) {
 			@Override
@@ -96,7 +96,8 @@ public class IterationMethodGS extends IterationMethod {
 				error = dtmc.mvMultRewGS(soln,
 				                                  rew,
 				                                  backwards ? states.reversedIterator() : states.iterator(),
-				                                  absolute);
+				                                  absolute,
+				                                  disc);
 
 				// Check termination
 				return (error < termCritParam);

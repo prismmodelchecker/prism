@@ -341,7 +341,16 @@ public abstract class IterationMethod {
 	public abstract IterationIntervalIter forMvMultInterval(DTMC<Double> dtmc, boolean fromBelow, boolean enforceMonotonicity, boolean checkMonotonicity) throws PrismException;
 
 	/** Obtain an Iteration object using mvMultRew (matrix-vector multiplication with rewards) in a DTMC */
-	public abstract IterationValIter forMvMultRew(DTMC<Double> dtmc, MCRewards<Double> rew) throws PrismException;
+	public IterationValIter forMvMultRew(DTMC<Double> dtmc, MCRewards<Double> rew) throws PrismException
+	{
+		return forMvMultRew(dtmc, rew, 1.0);
+	}
+
+	/**
+	 * Obtain an Iteration object using mvMultRew (matrix-vector multiplication with rewards) in a DTMC
+	 * @param disc Discount factor for future rewards (1.0 = no discounting)
+	 */
+	public abstract IterationValIter forMvMultRew(DTMC<Double> dtmc, MCRewards<Double> rew, double disc) throws PrismException;
 
 	/**
 	 * Obtain an Iteration object (for interval iteration) using mvMultRew

@@ -330,7 +330,8 @@ public class DTMCEmbeddedSimple<Value> extends DTMCExplicit<Value>
 		return d;
 	}
 
-	public double mvMultRewSingle(int s, double vect[], MCRewards<Double> mcRewards)
+	@Override
+	public double mvMultRewSingle(int s, double vect[], MCRewards<Double> mcRewards, double disc)
 	{
 		Distribution<Value> distr = ctmc.getTransitions(s);
 		double er = getEvaluator().toDouble(exitRates.get(s));
@@ -348,26 +349,27 @@ public class DTMCEmbeddedSimple<Value> extends DTMCExplicit<Value>
 			}
 			d /= er;
 		}
-		d += mcRewards.getStateReward(s);
+		d = disc * d + mcRewards.getStateReward(s);
 
 		return d;
 	}
 
-	//@Override
-	public double mvMultRewJacSingle(int s, double vect[], MCRewards<Double> mcRewards)
+	@Override
+	public double mvMultRewJacSingle(int s, double vect[], MCRewards<Double> mcRewards, double disc)
 	{
 		Distribution<Value> distr = ctmc.getTransitions(s);
 		double diag = 0.0, d = 0.0;
 		double er = getEvaluator().toDouble(exitRates.get(s));
 		// Exit rate 0: prob 1 self-loop
 		if (er == 0) {
-			return mcRewards.getStateReward(s);
+			// Undiscounted, such states are only iterated over when their value is 0 (else they are "inf")
+			return disc == 1.0 ? mcRewards.getStateReward(s) : mcRewards.getStateReward(s) / (1 - disc);
 		}
 		// Exit rate > 0
 		else {
-			// (rew(s) + sum_{j!=s} P(s,j)*vect[j]) / (1-P(s,s))
-			// = (rew(s) + sum_{j!=s} (R(s,j)/E(s))*vect[j]) / (1-(P(s,s)/E(s)))
-			// = (E(s)*rew(s) + sum_{j!=s} R(s,j)*vect[j]) / (E(s)-P(s,s))
+			// (rew(s) + disc*sum_{j!=s} P(s,j)*vect[j]) / (1-disc*P(s,s))
+			// = (rew(s) + disc*sum_{j!=s} (R(s,j)/E(s))*vect[j]) / (1-disc*(P(s,s)/E(s)))
+			// = (E(s)*rew(s) + disc*sum_{j!=s} R(s,j)*vect[j]) / (E(s)-disc*P(s,s))
 			boolean onlySelfLoops = true;
 			d = er * mcRewards.getStateReward(s);
 			for (Map.Entry<Integer, Value> e : distr) {
@@ -375,13 +377,13 @@ public class DTMCEmbeddedSimple<Value> extends DTMCExplicit<Value>
 				double prob = getEvaluator().toDouble(e.getValue());
 				// Non-diagonal entries only
 				if (k != s) {
-					d += prob * vect[k];
+					d += disc * prob * vect[k];
 					onlySelfLoops = false;
 				} else {
-					diag = prob;
+					diag = disc * prob;
 				}
 			}
-			if (onlySelfLoops) {
+			if (onlySelfLoops && disc == 1.0) {
 				// Only a self-loop: avoid dividing by (E(s)-diag) == 0.
 				// d is currently E(s)*rew(s); its sign matches rew(s) since E(s) > 0.
 				d = (d == 0) ? 0.0 : (d > 0 ? Double.POSITIVE_INFINITY : Double.NEGATIVE_INFINITY);

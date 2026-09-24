@@ -191,9 +191,9 @@ public class DTMCFromMDPMemorylessAdversary<Value> extends DTMCExplicit<Value>
 	}
 
 	@Override
-	public double mvMultRewSingle(int s, double vect[], MCRewards<Double> mcRewards)
+	public double mvMultRewSingle(int s, double vect[], MCRewards<Double> mcRewards, double disc)
 	{
-		return adv[s] >= 0 ? mdp.mvMultRewSingle(s, adv[s], vect, mcRewards) : 0;
+		return adv[s] >= 0 ? mdp.mvMultRewSingle(s, adv[s], vect, mcRewards, disc) : 0;
 	}
 
 	@Override

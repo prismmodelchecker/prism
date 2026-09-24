@@ -987,7 +987,7 @@ public class MDPSparse extends MDPExplicit<Double>
 	}
 
 	@Override
-	public double mvMultRewSingle(int s, int i, double[] vect, MCRewards<Double> mcRewards)
+	public double mvMultRewSingle(int s, int i, double[] vect, MCRewards<Double> mcRewards, double disc)
 	{
 		int j, k, l2, h2;
 		double d;
@@ -1002,7 +1002,7 @@ public class MDPSparse extends MDPExplicit<Double>
 		for (k = l2; k < h2; k++) {
 			d += nonZeros[k] * vect[cols[k]];
 		}
-		d += mcRewards.getStateReward(s);
+		d = disc * d + mcRewards.getStateReward(s);
 		return d;
 	}
 	

@@ -582,10 +582,7 @@ public interface DTMC<Value> extends Model<Value>
 	 */
 	public default void mvMultRew(double vect[], MCRewards<Double> mcRewards, double result[], PrimitiveIterator.OfInt states)
 	{
-		while (states.hasNext()) {
-			int s = states.nextInt();
-			result[s] = mvMultRewSingle(s, vect, mcRewards);
-		}
+		mvMultRew(vect, mcRewards, result, states, 1.0);
 	}
 
 	/**
@@ -616,9 +613,22 @@ public interface DTMC<Value> extends Model<Value>
 	 */
 	public default void mvMultRewJac(double vect[], MCRewards<Double> mcRewards, double result[], PrimitiveIterator.OfInt states)
 	{
+		mvMultRewJac(vect, mcRewards, result, states, 1.0);
+	}
+
+	/**
+	 * Do a (discounted) matrix-vector multiplication and sum of action reward (Jacobi).
+	 * @param vect Vector to multiply by
+	 * @param mcRewards The rewards
+	 * @param result Vector to store result in
+	 * @param states Do multiplication for these rows, in the specified order
+	 * @param disc Discount factor
+	 */
+	public default void mvMultRewJac(double vect[], MCRewards<Double> mcRewards, double result[], PrimitiveIterator.OfInt states, double disc)
+	{
 		while (states.hasNext()) {
 			int s = states.nextInt();
-			result[s] = mvMultRewJacSingle(s, vect, mcRewards);
+			result[s] = mvMultRewJacSingle(s, vect, mcRewards, disc);
 		}
 	}
 
@@ -632,16 +642,7 @@ public interface DTMC<Value> extends Model<Value>
 	 */
 	public default double mvMultRewGS(double vect[], MCRewards<Double> mcRewards, PrimitiveIterator.OfInt states, boolean absolute)
 	{
-		double d, diff, maxDiff = 0.0;
-		while (states.hasNext()) {
-			int s = states.nextInt();
-			d = mvMultRewJacSingle(s, vect, mcRewards);
-
-			diff = absolute ? (Math.abs(d - vect[s])) : (Math.abs(d - vect[s]) / Math.abs(d));
-			maxDiff = diff > maxDiff ? diff : maxDiff;
-			vect[s] = d;
-		}
-		return maxDiff;
+		return mvMultRewGS(vect, mcRewards, states, absolute, 1.0);
 	}
 
 	/**
@@ -722,11 +723,7 @@ public interface DTMC<Value> extends Model<Value>
 	 */
 	public default double mvMultRewSingle(int s, double vect[], MCRewards<Double> mcRewards)
 	{
-		double d = mcRewards.getStateReward(s);
-		d += sumOverDoubleTransitions(s, (__, t, prob) -> {
-			return prob * vect[t];
-		});
-		return d;
+		return mvMultRewSingle(s, vect, mcRewards, 1.0);
 	}
 
 	/**
@@ -759,41 +756,7 @@ public interface DTMC<Value> extends Model<Value>
 	 */
 	public default double mvMultRewJacSingle(int s, double vect[], MCRewards<Double> mcRewards)
 	{
-		class Jacobi {
-			double diag = 1.0;
-			double d = mcRewards.getStateReward(s);
-			boolean onlySelfLoops = true;
-
-			void accept(int s, int t, double prob) {
-				if (t != s) {
-					d += prob * vect[t];
-					onlySelfLoops = false;
-				} else {
-					diag -= prob;
-				}
-			}
-		}
-
-		Jacobi jac = new Jacobi();
-		forEachDoubleTransition(s, jac::accept);
-
-		double d = jac.d;
-		double diag = jac.diag;
-
-		if (jac.onlySelfLoops) {
-			if (d != 0) {
-				d = (d > 0 ? Double.POSITIVE_INFINITY : Double.NEGATIVE_INFINITY);
-			} else {
-				// no reward & only self-loops: d remains 0
-				d = 0;
-			}
-		} else {
-			// not only self-loops, do Jacobi division
-			if (diag > 0)
-				d /= diag;
-		}
-
-		return d;
+		return mvMultRewJacSingle(s, vect, mcRewards, 1.0);
 	}
 
 	/**
@@ -832,12 +795,11 @@ public interface DTMC<Value> extends Model<Value>
 		double d = jac.d;
 		double diag = jac.diag;
 
-		if (jac.onlySelfLoops && diag <= 0) {
+		if (jac.onlySelfLoops && (disc == 1.0 || diag <= 0)) {
 			// undiscounted (or diag rounds to <= 0): repeatedly visiting this
 			// self-loop-only state will produce infinite (or zero) reward
 			d = (d != 0) ? (d > 0 ? Double.POSITIVE_INFINITY : Double.NEGATIVE_INFINITY) : 0;
 		} else if (diag > 0) {
-			// discounting (or non-self-loop) keeps diag > 0: do Jacobi division
 			d /= diag;
 		}
 
