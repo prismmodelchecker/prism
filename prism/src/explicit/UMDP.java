@@ -180,9 +180,26 @@ public interface UMDP<Value> extends NondetModel<Value>
 	 */
 	public default void mvMultRewUnc(double vect[], MDPRewards<Double> mdpRewards, MinMax minMax, double result[], PrimitiveIterator.OfInt states, int[] strat)
 	{
+		mvMultRewUnc(vect, mdpRewards, minMax, result, states, strat, 1.0);
+	}
+
+	/**
+	 * Do a (discounted) matrix-vector multiplication and sum of rewards followed by min/max, i.e. one step of value iteration,
+	 * i.e. for each s: result[s] = min/max_k min/max_P { rew(s) + rew_k(s) + disc * sum_j P(s,k,j)*vect[j] }
+	 * Optionally, store optimal (memoryless) strategy info.
+	 * @param vect Vector to multiply by
+	 * @param mdpRewards The rewards
+	 * @param minMax Min/max info (strategy and uncertainty)
+	 * @param result Vector to store result in
+	 * @param states Perform computation for these rows, in the iteration order
+	 * @param strat Storage for (memoryless) strategy choice indices (ignored if null)
+	 * @param disc Discount factor
+	 */
+	public default void mvMultRewUnc(double vect[], MDPRewards<Double> mdpRewards, MinMax minMax, double result[], PrimitiveIterator.OfInt states, int[] strat, double disc)
+	{
 		while (states.hasNext()) {
 			int s = states.nextInt();
-			result[s] = mvMultRewUncSingle(s, vect, mdpRewards, minMax, strat);
+			result[s] = mvMultRewUncSingle(s, vect, mdpRewards, minMax, strat, disc);
 		}
 	}
 
@@ -198,13 +215,29 @@ public interface UMDP<Value> extends NondetModel<Value>
 	 */
 	public default double mvMultRewUncSingle(int s, double vect[], MDPRewards<Double> mdpRewards, MinMax minMax, int[] strat)
 	{
+		return mvMultRewUncSingle(s, vect, mdpRewards, minMax, strat, 1.0);
+	}
+
+	/**
+	 * Do a single row of (discounted) matrix-vector multiplication and sum of rewards followed by min/max,
+	 * i.e. return min/max_k min/max_P { rew(s) + rew_k(s) + disc * sum_j P(s,k,j)*vect[j] }
+	 * Optionally, store optimal (memoryless) strategy info.
+	 * @param s Row index
+	 * @param vect Vector to multiply by
+	 * @param mdpRewards The rewards
+	 * @param minMax Min/max info (strategy and uncertainty)
+	 * @param strat Storage for (memoryless) strategy choice indices (ignored if null)
+	 * @param disc Discount factor
+	 */
+	public default double mvMultRewUncSingle(int s, double vect[], MDPRewards<Double> mdpRewards, MinMax minMax, int[] strat, double disc)
+	{
 		int stratCh = -1;
 		double minmax = 0;
 		boolean first = true;
 		boolean min = minMax.isMin();
 
 		for (int choice = 0, numChoices = getNumChoices(s); choice < numChoices; choice++) {
-			double d = mvMultRewUncSingle(s, choice, vect, mdpRewards, minMax);
+			double d = mvMultRewUncSingle(s, choice, vect, mdpRewards, minMax, disc);
 			// Check whether we have exceeded min/max so far
 			if (first || (min && d < minmax) || (!min && d > minmax)) {
 				minmax = d;
@@ -238,9 +271,25 @@ public interface UMDP<Value> extends NondetModel<Value>
 	 */
 	public default double mvMultRewUncSingle(int s, int k, double vect[], MDPRewards<Double> mdpRewards, MinMax minMax)
 	{
+		return mvMultRewUncSingle(s, k, vect, mdpRewards, minMax, 1.0);
+	}
+
+	/**
+	 * Do a single row of (discounted) matrix-vector multiplication for a specific choice k
+	 * i.e. return min/max_P { rew(s) + rew_k(s) + disc * sum_j P(s,k,j)*vect[j] }
+	 * (since disc >= 0, discounting commutes with the min/max over P)
+	 * @param s State (row) index
+	 * @param k Choice index
+	 * @param vect Vector to multiply by
+	 * @param mdpRewards The rewards (MDP rewards)
+	 * @param minMax Min/max uncertainty (via isMinUnc/isMaxUnc)
+	 * @param disc Discount factor
+	 */
+	public default double mvMultRewUncSingle(int s, int k, double vect[], MDPRewards<Double> mdpRewards, MinMax minMax, double disc)
+	{
 		double d = mdpRewards.getStateReward(s);
 		d += mdpRewards.getTransitionReward(s, k);
-		d += mvMultUncSingle(s, k, vect, minMax);
+		d += disc * mvMultUncSingle(s, k, vect, minMax);
 		return d;
 	}
 
@@ -286,12 +335,31 @@ public interface UMDP<Value> extends NondetModel<Value>
 	 */
 	public default double mvMultRewUncGS(double vect[], MDPRewards<Double> mdpRewards, MinMax minMax, PrimitiveIterator.OfInt states, boolean absolute, int[] strat)
 	{
+		return mvMultRewUncGS(vect, mdpRewards, minMax, states, absolute, strat, 1.0);
+	}
+
+	/**
+	 * Do a (discounted) Gauss-Seidel-style matrix-vector multiplication and sum of rewards followed by min/max,
+	 * i.e. for each s: result[s] = min/max_k min/max_P { rew(s) + rew_k(s) + disc * sum_j P(s,k,j)*vect[j] }
+	 * and store new values directly in {@code vect} as computed.
+	 * The maximum (absolute/relative) difference between old/new
+	 * elements of {@code vect} is also returned.
+	 * Optionally, store optimal (memoryless) strategy info.
+	 * @param vect Vector to multiply by
+	 * @param mdpRewards The rewards
+	 * @param minMax Min/max info (strategy and uncertainty)
+	 * @param states Perform computation for these rows, in the iteration order
+	 * @param absolute If true, compute absolute, rather than relative, difference
+	 * @param disc Discount factor
+	 */
+	public default double mvMultRewUncGS(double vect[], MDPRewards<Double> mdpRewards, MinMax minMax, PrimitiveIterator.OfInt states, boolean absolute, int[] strat, double disc)
+	{
 		double d, diff, maxDiff = 0.0;
 		while (states.hasNext()) {
 			final int s = states.nextInt();
 			//d = mvMultJacSingle(s, vect, minMax);
 			// Just do a normal (non-Jacobi) state update - not so easy to adapt for intervals
-			d = mvMultRewUncSingle(s, vect, mdpRewards, minMax, strat);
+			d = mvMultRewUncSingle(s, vect, mdpRewards, minMax, strat, disc);
 			diff = absolute ? (Math.abs(d - vect[s])) : (Math.abs(d - vect[s]) / Math.abs(d));
 			maxDiff = diff > maxDiff ? diff : maxDiff;
 			vect[s] = d;

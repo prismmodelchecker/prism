@@ -42,7 +42,6 @@ import prism.AccuracyFactory;
 import prism.Evaluator;
 import prism.PrismComponent;
 import prism.PrismException;
-import prism.PrismUtils;
 import strat.FMDStrategyStep;
 import prism.PrismFileLog;
 import strat.FMDStrategyProduct;
@@ -547,7 +546,7 @@ public class UMDPModelChecker extends ProbModelChecker
 			// Discounting guarantees finite values everywhere, regardless of
 			// end-component structure, so we can go directly to (discounted)
 			// value iteration.
-			return computeTotalRewardsValIterDiscounted(umdp, umdpRewards, minMax, disc);
+			return computeTotalRewardsDiscounted(umdp, umdpRewards, minMax, disc);
 		} else if (minMax.isMin()) {
 			return computeTotalRewardsMin(umdp, umdpRewards, minMax);
 		} else {
@@ -628,11 +627,81 @@ public class UMDPModelChecker extends ProbModelChecker
 			}
 		}
 
+		res = computeTotalRewardsNumeric(umdp, umdpRewards, minMax, inf, strat, 1.0);
+
+		if (genStrat) {
+			res.strat = new MDStrategyArray<>(umdp, strat);
+		}
+
+		// Finished total reward computation
+		timer = System.currentTimeMillis() - timer;
+		mainLog.println("Total reward computation took " + timer / 1000.0 + " seconds.");
+		res.timeTaken = timer / 1000.0;
+
+		return res;
+	}
+
+	/**
+	 * Compute discounted total expected rewards.
+	 * Discounting guarantees finite values everywhere, regardless of
+	 * end-component structure, so no precomputation is needed.
+	 * @param umdp The UMDP
+	 * @param umdpRewards The rewards
+	 * @param minMax Min/max info (strategy and uncertainty)
+	 * @param disc Discount factor applied to future rewards
+	 */
+	protected ModelCheckerResult computeTotalRewardsDiscounted(UMDP<Double> umdp, MDPRewards<Double> umdpRewards, MinMax minMax, double disc) throws PrismException
+	{
+		ModelCheckerResult res;
+		int strat[] = null;
+		long timer = System.currentTimeMillis();
+		mainLog.println("\nStarting total reward computation (discount=" + disc + ")...");
+
+		int n = umdp.getNumStates();
+		if (genStrat) {
+			strat = new int[n];
+			for (int i = 0; i < n; i++) {
+				strat[i] = -1;
+			}
+		}
+
+		res = computeTotalRewardsNumeric(umdp, umdpRewards, minMax, new BitSet(), strat, disc);
+
+		if (genStrat) {
+			res.strat = new MDStrategyArray<>(umdp, strat);
+		}
+
+		// Finished total reward computation
+		timer = System.currentTimeMillis() - timer;
+		mainLog.println("Total reward computation took " + timer / 1000.0 + " seconds.");
+		res.timeTaken = timer / 1000.0;
+
+		return res;
+	}
+
+	/**
+	 * Numerical part of a total expected reward computation, once states
+	 * with infinite value {@code inf} are known, using value iteration or Gauss-Seidel.
+	 * @param umdp The UMDP
+	 * @param umdpRewards The rewards
+	 * @param minMax Min/max info (strategy and uncertainty)
+	 * @param inf States with infinite value
+	 * @param strat Storage for (memoryless) strategy choice indices (ignored if null)
+	 * @param disc Discount factor for future rewards (1.0 = no discounting)
+	 */
+	protected ModelCheckerResult computeTotalRewardsNumeric(UMDP<Double> umdp, MDPRewards<Double> umdpRewards, MinMax minMax, BitSet inf, int strat[], double disc) throws PrismException
+	{
+		ModelCheckerResult res;
+		int n = umdp.getNumStates();
+
 		// Start value iteration
-		// (separate timer: the overall one reported below must still cover the EC computation)
+		// (separate timer: the overall one reported by the caller also covers any precomputation)
 		long timerValIter = System.currentTimeMillis();
 		String sMinMax = minMax.isMin() ? "min" : "max";
 		sMinMax += minMax.isMinUnc() ? "min" : "max";
+		if (disc < 1.0) {
+			sMinMax += ", discount=" + disc;
+		}
 		mainLog.println("Starting value iteration (" + sMinMax + ")...");
 
 		double[] init = new double[n];
@@ -664,7 +733,7 @@ public class UMDPModelChecker extends ProbModelChecker
 			default:
 				throw new PrismException("Unknown solution method " + imdpSolnMethod.fullName());
 			}
-			IterationMethod.IterationValIter iterationReachRewards = iterationMethod.forMvMultRewMinMaxUnc(umdp, umdpRewards, minMax, strat);
+			IterationMethod.IterationValIter iterationReachRewards = iterationMethod.forMvMultRewMinMaxUnc(umdp, umdpRewards, minMax, strat, disc);
 			iterationReachRewards.init(init);
 			IntSet unknownStates = IntSet.asIntSet(unknown);
 			String description = sMinMax + ", with " + iterationMethod.getDescriptionShort();
@@ -674,16 +743,6 @@ public class UMDPModelChecker extends ProbModelChecker
 			res.soln = Utils.bitsetToDoubleArray(inf, n, Double.POSITIVE_INFINITY);
 			res.accuracy = AccuracyFactory.doublesFromQualitative();
 		}
-
-		if (genStrat) {
-			res.strat = new MDStrategyArray<>(umdp, strat);
-		}
-
-		// Finished total reward computation
-		timer = System.currentTimeMillis() - timer;
-		mainLog.println("Total reward computation took " + timer / 1000.0 + " seconds.");
-		res.timeTaken = timer / 1000.0;
-
 		return res;
 	}
 
@@ -744,82 +803,6 @@ public class UMDPModelChecker extends ProbModelChecker
 			z = zNext;
 		}
 		return z;
-	}
-
-	/**
-	 * Compute total expected rewards using (discounted) value iteration.
-	 * i.e. for all s: soln[s] = min/max_k min/max_P { rew(s) + rew_k(s) + disc * sum_j P(s,k,j)*soln[j] }
-	 * Achieved by pre-scaling a temporary copy of the solution vector by
-	 * {@code disc} before each call to the (undiscounted) per-row primitive
-	 * {@link UMDP#mvMultRewUncSingle} - valid because the interval-
-	 * constrained optimisation is linear in the successor values.
-	 * @param umdp The UMDP
-	 * @param umdpRewards The rewards
-	 * @param minMax Min/max info (strategy and uncertainty)
-	 * @param disc Discount factor applied to future rewards
-	 */
-	protected ModelCheckerResult computeTotalRewardsValIterDiscounted(UMDP<Double> umdp, MDPRewards<Double> umdpRewards, MinMax minMax, double disc) throws PrismException
-	{
-		ModelCheckerResult res;
-		int i, n, iters;
-		double soln[], soln2[], discSoln[], tmpsoln[];
-		boolean done;
-		long timer;
-		int strat[] = null;
-
-		timer = System.currentTimeMillis();
-		String sMinMax = minMax.isMin() ? "min" : "max";
-		sMinMax += minMax.isMinUnc() ? "min" : "max";
-		mainLog.println("\nStarting value iteration (" + sMinMax + ", discount=" + disc + ")...");
-
-		n = umdp.getNumStates();
-		soln = new double[n];
-		soln2 = new double[n];
-		discSoln = new double[n];
-		for (i = 0; i < n; i++)
-			soln[i] = 0.0;
-
-		if (genStrat) {
-			strat = new int[n];
-			for (i = 0; i < n; i++) {
-				strat[i] = -1;
-			}
-		}
-
-		iters = 0;
-		done = false;
-		while (!done && iters < maxIters) {
-			iters++;
-			for (i = 0; i < n; i++) {
-				discSoln[i] = disc * soln[i];
-			}
-			for (i = 0; i < n; i++) {
-				soln2[i] = umdp.mvMultRewUncSingle(i, discSoln, umdpRewards, minMax, strat);
-			}
-			done = PrismUtils.doublesAreClose(soln, soln2, termCritParam, termCrit == TermCrit.ABSOLUTE);
-			tmpsoln = soln;
-			soln = soln2;
-			soln2 = tmpsoln;
-		}
-
-		if (!done) {
-			throw new PrismException("Iterative method (value iteration, discounted) did not converge within " + iters + " iterations.\n" +
-					"Consider using a different numerical method or increasing the maximum number of iterations");
-		}
-
-		timer = System.currentTimeMillis() - timer;
-		mainLog.println("Value iteration (" + sMinMax + ", discount=" + disc + ") took " + iters + " iterations and " + timer / 1000.0 + " seconds.");
-
-		res = new ModelCheckerResult();
-		res.soln = soln;
-		res.numIters = iters;
-		res.timeTaken = timer / 1000.0;
-		double maxDiff = PrismUtils.measureSupNorm(soln, soln2, termCrit == TermCrit.ABSOLUTE);
-		res.accuracy = AccuracyFactory.valueIteration(termCritParam, maxDiff, termCrit == TermCrit.ABSOLUTE);
-		if (genStrat) {
-			res.strat = new MDStrategyArray<>(umdp, strat);
-		}
-		return res;
 	}
 
 	/**

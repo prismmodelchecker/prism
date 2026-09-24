@@ -131,9 +131,24 @@ public interface UDTMC<Value> extends Model<Value>
 	 */
 	public default void mvMultRewUnc(double vect[], MCRewards<Double> mcRewards, MinMax minMax, double result[], PrimitiveIterator.OfInt states)
 	{
+		mvMultRewUnc(vect, mcRewards, minMax, result, states, 1.0);
+	}
+
+	/**
+	 * Do a (discounted) matrix-vector multiplication and sum of rewards followed by min/max, i.e. one step of value iteration,
+	 * i.e. for each s: result[s] = min/max_P { rew(s) + disc * sum_j P(s,j)*vect[j] }
+	 * @param vect Vector to multiply by
+	 * @param mcRewards The rewards
+	 * @param minMax Min/max uncertainty (via isMinUnc/isMaxUnc)
+	 * @param result Vector to store result in
+	 * @param states Perform computation for these rows, in the iteration order
+	 * @param disc Discount factor
+	 */
+	public default void mvMultRewUnc(double vect[], MCRewards<Double> mcRewards, MinMax minMax, double result[], PrimitiveIterator.OfInt states, double disc)
+	{
 		while (states.hasNext()) {
 			int s = states.nextInt();
-			result[s] = mvMultRewUncSingle(s, vect, mcRewards, minMax);
+			result[s] = mvMultRewUncSingle(s, vect, mcRewards, minMax, disc);
 		}
 	}
 
@@ -147,9 +162,24 @@ public interface UDTMC<Value> extends Model<Value>
 	 */
 	public default double mvMultRewUncSingle(int s, double vect[], MCRewards<Double> mcRewards, MinMax minMax)
 	{
+		return mvMultRewUncSingle(s, vect, mcRewards, minMax, 1.0);
+	}
+
+	/**
+	 * Do a single row of (discounted) matrix-vector multiplication and sum of rewards followed by min/max,
+	 * i.e. return min/max_P { rew(s) + disc * sum_j P(s,j)*vect[j] }
+	 * (since disc >= 0, discounting commutes with the min/max over P)
+	 * @param s Row index
+	 * @param vect Vector to multiply by
+	 * @param mcRewards The rewards
+	 * @param minMax Min/max uncertainty (via isMinUnc/isMaxUnc)
+	 * @param disc Discount factor
+	 */
+	public default double mvMultRewUncSingle(int s, double vect[], MCRewards<Double> mcRewards, MinMax minMax, double disc)
+	{
 		double d = mcRewards.getStateReward(s);
 		// TODO d += mcRewards.getTransitionReward(s);
-		d += mvMultUncSingle(s, vect, minMax);
+		d += disc * mvMultUncSingle(s, vect, minMax);
 		return d;
 	}
 	
@@ -193,12 +223,30 @@ public interface UDTMC<Value> extends Model<Value>
 	 */
 	public default double mvMultRewUncGS(double vect[], MCRewards<Double> mcRewards, MinMax minMax, PrimitiveIterator.OfInt states, boolean absolute)
 	{
+		return mvMultRewUncGS(vect, mcRewards, minMax, states, absolute, 1.0);
+	}
+
+	/**
+	 * Do a (discounted) Gauss-Seidel-style matrix-vector multiplication and sum of rewards followed by min/max,
+	 * i.e. for each s: result[s] = min/max_P { rew(s) + disc * sum_j P(s,j)*vect[j] }
+	 * and store new values directly in {@code vect} as computed.
+	 * The maximum (absolute/relative) difference between old/new
+	 * elements of {@code vect} is also returned.
+	 * @param vect Vector to multiply by
+	 * @param mcRewards The rewards
+	 * @param minMax Min/max uncertainty (via isMinUnc/isMaxUnc)
+	 * @param states Perform computation for these rows, in the iteration order
+	 * @param absolute If true, compute absolute, rather than relative, difference
+	 * @param disc Discount factor
+	 */
+	public default double mvMultRewUncGS(double vect[], MCRewards<Double> mcRewards, MinMax minMax, PrimitiveIterator.OfInt states, boolean absolute, double disc)
+	{
 		double d, diff, maxDiff = 0.0;
 		while (states.hasNext()) {
 			final int s = states.nextInt();
 			//d = mvMultJacSingle(s, vect, minMax);
 			// Just do a normal (non-Jacobi) state update - not so easy to adapt for intervals
-			d = mvMultRewUncSingle(s, vect, mcRewards, minMax);
+			d = mvMultRewUncSingle(s, vect, mcRewards, minMax, disc);
 			diff = absolute ? (Math.abs(d - vect[s])) : (Math.abs(d - vect[s]) / Math.abs(d));
 			maxDiff = diff > maxDiff ? diff : maxDiff;
 			vect[s] = d;
