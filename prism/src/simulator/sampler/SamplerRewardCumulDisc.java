@@ -35,6 +35,9 @@ public class SamplerRewardCumulDisc extends SamplerDouble
 {
 	private int timeBound;
 	private int rewardStructIndex;
+	private double disc;
+	private double discRewardSum;
+	private double discFactor;
 
 	/**
 	 * Construct a sampler for a (discrete-time) cumulative reward property.
@@ -51,9 +54,18 @@ public class SamplerRewardCumulDisc extends SamplerDouble
 		
 		timeBound = expr.getUpperBound().evaluateInt();
 		this.rewardStructIndex = rewardStructIndex;
+		disc = getRewardDiscount(expr);
 		// Initialise sampler info
 		reset();
 		resetStats();
+	}
+
+	@Override
+	public void reset()
+	{
+		super.reset();
+		discRewardSum = 0.0;
+		discFactor = 1.0;
 	}
 
 	@Override
@@ -62,11 +74,17 @@ public class SamplerRewardCumulDisc extends SamplerDouble
 		// If the answer is already known we should do nothing
 		if (valueKnown)
 			return true;
-		
+
+		// Reward for step t (state s_t, plus transition s_t->s_t+1) is weighted by disc^t
+		if (disc != 1.0 && path.size() > 0) {
+			discRewardSum += discFactor * (path.getPreviousStateReward(rewardStructIndex) + path.getPreviousTransitionReward(rewardStructIndex));
+			discFactor *= disc;
+		}
+
 		// As soon as time bound reached, store current reward total
 		if (path.size() == timeBound) {
 			valueKnown = true;
-			value = path.getTotalCumulativeReward(rewardStructIndex);
+			value = disc != 1.0 ? discRewardSum : path.getTotalCumulativeReward(rewardStructIndex);
 		}
 		
 		return valueKnown;

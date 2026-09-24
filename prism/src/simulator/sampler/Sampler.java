@@ -35,6 +35,7 @@ import parser.ast.ExpressionUnaryOp;
 import prism.ModelGenerator;
 import prism.ModelInfo;
 import prism.PrismException;
+import prism.PrismNotSupportedException;
 import prism.RewardGenerator;
 import simulator.Path;
 import simulator.method.SimulationMethod;
@@ -221,6 +222,22 @@ public abstract class Sampler
 		throw new PrismException("Can't create sampler for property \"" + expr + "\"");
 	}
 
+	/**
+	 * Get the discount factor of a (discrete-time) reward operator,
+	 * or 1.0 if it has none. All constants should have already been evaluated/replaced.
+	 */
+	protected static double getRewardDiscount(ExpressionTemporal expr) throws PrismException
+	{
+		if (!expr.hasDiscount()) {
+			return 1.0;
+		}
+		double disc = expr.getDiscount().evaluateDouble();
+		if (Double.isNaN(disc) || disc < 0.0 || disc > 1.0) {
+			throw new PrismException("Discount factor " + disc + " is out of range, should be in [0,1]");
+		}
+		return disc;
+	}
+
 	private static SamplerDouble createSamplerForRewardProperty(ExpressionReward expr, ModelInfo modelInfo, RewardGenerator rewardGen) throws PrismException
 	{
 		// Extract reward structure index
@@ -231,6 +248,9 @@ public abstract class Sampler
 			throw new PrismException("Can't create sampler for property \"" + expr + "\"");
 		}
 		ExpressionTemporal exprTemp = (ExpressionTemporal) expr.getExpression();
+		if (exprTemp.hasDiscount() && modelInfo.getModelType().continuousTime()) {
+			throw new PrismNotSupportedException("Simulator cannot handle discounted reward properties for continuous-time models");
+		}
 		switch (exprTemp.getOperator()) {
 		case ExpressionTemporal.R_C:
 			if (modelInfo.getModelType().continuousTime()) {

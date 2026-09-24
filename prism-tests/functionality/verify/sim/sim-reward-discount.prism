@@ -1,0 +1,23 @@
+// Tests discounted reward properties (F{discount=...}, C{discount=...}<=k)
+// with the simulator, which must weight the reward of step t by disc^t
+// rather than silently computing the undiscounted value.
+//
+// The chain is deterministic (a single path 0->1->2->3), so simulation gives
+// exact results. Each step t<3 earns state reward 1 plus transition reward 2,
+// i.e. 3 per step, so with discount 1/2 the step rewards are 3, 3/2, 3/4.
+
+dtmc
+
+module M
+
+	s : [0..3] init 0;
+
+	[a] s<3 -> (s'=s+1);
+	[] s=3 -> (s'=3);
+
+endmodule
+
+rewards
+	s<3 : 1;
+	[a] true : 2;
+endrewards

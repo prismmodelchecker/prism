@@ -36,6 +36,9 @@ public class SamplerRewardReach extends SamplerDouble
 {
 	private Expression target;
 	private int rewardStructIndex;
+	private double disc;
+	private double discRewardSum;
+	private double discFactor;
 
 	/**
 	 * Construct a sampler for a reachability reward property.
@@ -51,9 +54,18 @@ public class SamplerRewardReach extends SamplerDouble
 			throw new PrismException("Error creating Sampler");
 		target = expr.getOperand2();
 		this.rewardStructIndex = rewardStructIndex;
+		disc = getRewardDiscount(expr);
 		// Initialise sampler info
 		reset();
 		resetStats();
+	}
+
+	@Override
+	public void reset()
+	{
+		super.reset();
+		discRewardSum = 0.0;
+		discFactor = 1.0;
 	}
 
 	@Override
@@ -62,9 +74,14 @@ public class SamplerRewardReach extends SamplerDouble
 		// If the answer is already known we should do nothing
 		if (valueKnown)
 			return true;
+		// Reward for step t (state s_t, plus transition s_t->s_t+1) is weighted by disc^t
+		if (disc != 1.0 && path.size() > 0) {
+			discRewardSum += discFactor * (path.getPreviousStateReward(rewardStructIndex) + path.getPreviousTransitionReward(rewardStructIndex));
+			discFactor *= disc;
+		}
 		if (path.evaluateBooleanInCurrentState(target)) {
 			valueKnown = true;
-			value = path.getTotalCumulativeReward(rewardStructIndex);
+			value = disc != 1.0 ? discRewardSum : path.getTotalCumulativeReward(rewardStructIndex);
 		}
 		
 		return valueKnown;
