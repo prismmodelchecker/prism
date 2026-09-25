@@ -91,14 +91,20 @@ public class SamplerRewardReach extends SamplerDouble
 			valueKnown = true;
 			value = discRewardSum;
 		}
-		// Or, if we are now at a deadlock/self-loop, the target will never be reached,
-		// but with discounting the remaining reward is known exactly: the same reward r
-		// every step from now on (for a deadlock, a self-loop with no transition reward)
-		else if (disc != 1.0 && modelGen != null && (modelGen.isDeadlock() || path.isLooping())) {
+		// Or, if we are now at a deadlock/self-loop, the target will never be reached
+		else if (modelGen != null && (modelGen.isDeadlock() || path.isLooping())) {
 			valueKnown = true;
-			double r = modelGen.isDeadlock() ? path.getCurrentStateReward(rewardStructIndex)
-					: path.getPreviousStateReward(rewardStructIndex) + path.getPreviousTransitionReward(rewardStructIndex);
-			value = discRewardSum + discFactor * r / (1.0 - disc);
+			// Undiscounted, the reward to reach the target is then infinite (as for the other engines)
+			if (disc == 1.0) {
+				value = Double.POSITIVE_INFINITY;
+			}
+			// With discounting, the remaining reward is known exactly: the same reward r
+			// every step from now on (for a deadlock, a self-loop with no transition reward)
+			else {
+				double r = modelGen.isDeadlock() ? path.getCurrentStateReward(rewardStructIndex)
+						: path.getPreviousStateReward(rewardStructIndex) + path.getPreviousTransitionReward(rewardStructIndex);
+				value = discRewardSum + discFactor * r / (1.0 - disc);
+			}
 		}
 
 		return valueKnown;

@@ -52,6 +52,8 @@ public abstract class SamplerDouble extends Sampler
 	protected double valueSumShifted;
 	/** Sum of squares of values, each shifted by the correction term (see below) */
 	protected double valueSumShiftedSq;
+	/** Has any path had value +infinity? (if so, so is the mean, exactly) */
+	protected boolean sampledInfinity;
 
 	/**
 	 * NB: In order to improve the numerical stability for the computation of variance,
@@ -74,6 +76,7 @@ public abstract class SamplerDouble extends Sampler
 		valueSumShifted = 0.0;
 		valueSumShiftedSq = 0.0;
 		numSamples = 0;
+		sampledInfinity = false;
 	}
 
 	@Override
@@ -96,6 +99,12 @@ public abstract class SamplerDouble extends Sampler
 	@Override
 	public void updateStats()
 	{
+		// An infinite value would make the sums below infinite/NaN; just record it
+		if (value == Double.POSITIVE_INFINITY) {
+			sampledInfinity = true;
+			numSamples++;
+			return;
+		}
 		if (numSamples == 0)
 			correctionTerm = value;
 		valueSum += value;
@@ -113,6 +122,9 @@ public abstract class SamplerDouble extends Sampler
 	@Override
 	public double getMeanValue()
 	{
+		if (sampledInfinity) {
+			return Double.POSITIVE_INFINITY;
+		}
 		return valueSum / numSamples;
 	}
 
@@ -120,7 +132,8 @@ public abstract class SamplerDouble extends Sampler
 	public double getVariance()
 	{
 		// Return estimator to the variance
-		if (numSamples <= 1) {
+		// (0 if an infinite value was sampled, since then the mean is known to be infinite)
+		if (numSamples <= 1 || sampledInfinity) {
 			return 0.0;
 		} else {
 			double meanShifted = valueSumShifted / numSamples;
@@ -142,6 +155,10 @@ public abstract class SamplerDouble extends Sampler
 		// (in which mu1=p1 and mu0=p0)
 		if (numSamples <= 1)
 			return 0.0;
+		// An infinite mean is conclusive evidence for the larger of the two hypotheses
+		// (use extreme but finite values, since SPRT treats 0/infinity as inconclusive)
+		if (sampledInfinity)
+			return p1 > p0 ? Double.MAX_VALUE : Double.MIN_VALUE;
 		if (valueSumShiftedSq == 0)
 			throw new PrismException("Cannot compute likelihood ratio with null variance");
 		// Compute maximum likelihood estimator of variance

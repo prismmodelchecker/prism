@@ -3,3 +3,10 @@ R=? [ F{discount=0.9} s=1 ];
 
 // RESULT: 1
 R=? [ F{discount=0} s=1 ];
+
+// Undiscounted, the target is never reached, so the value is infinite
+// RESULT: Infinity
+R=? [ F s=1 ];
+
+// RESULT: true
+R>=10 [ F s=1 ];
