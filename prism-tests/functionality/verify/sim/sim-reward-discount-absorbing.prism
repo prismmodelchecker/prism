@@ -1,0 +1,22 @@
+// Discounted reachability reward where the target (s=1) is never reached:
+// the path goes 0 -> 2 and then stays in the absorbing, non-target state 2
+// (reward 5 per step). Discounting makes the value finite, and the simulator
+// must compute it, rather than failing because the target is never reached:
+// with discount 0.9: 1 + 0.9 * 5/(1-0.9) = 46; with discount 0: just 1.
+
+dtmc
+
+module M
+
+	s : [0..2] init 0;
+
+	[] s=0 -> (s'=2);
+	[] s=1 -> true;
+	[] s=2 -> true;
+
+endmodule
+
+rewards
+	s=0 : 1;
+	s=2 : 5;
+endrewards

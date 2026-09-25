@@ -1,0 +1,5 @@
+// RESULT: 46
+R=? [ F{discount=0.9} s=1 ];
+
+// RESULT: 1
+R=? [ F{discount=0} s=1 ];

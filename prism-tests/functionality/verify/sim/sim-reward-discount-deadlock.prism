@@ -1,0 +1,21 @@
+// As sim-reward-discount-absorbing.prism, but the non-target state 2 is a
+// deadlock (treated as a self-loop, with no transition reward, so the
+// "[] s=2 : 3" item is never received), rather than an explicit self-loop.
+// With discount 0.9: 1 + 0.9 * 5/(1-0.9) = 46; with discount 0: just 1.
+
+dtmc
+
+module M
+
+	s : [0..2] init 0;
+
+	[] s=0 -> (s'=2);
+	[] s=1 -> true;
+
+endmodule
+
+rewards
+	s=0 : 1;
+	s=2 : 5;
+	[] s=2 : 3;
+endrewards
