@@ -203,7 +203,7 @@ jint flags
 	if (compact) {
 		if ((rew_dist = double_vector_to_dist(rew_vec, n))) {
 			compact_r = true;
-			delete rew_vec; rew_vec = NULL;
+			delete[] rew_vec; rew_vec = NULL;
 		}
 	}
 	kb = (!compact_r) ? n*8.0/1024.0 : (rew_dist->num_dist*8.0+n*2.0)/1024.0;

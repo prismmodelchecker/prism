@@ -387,11 +387,11 @@ jint flags
 	if (yes_dist) delete yes_dist;
 	if (maybe_vec) delete[] maybe_vec;
 	if (maybe_dist) delete maybe_dist;
-	if (soln_below2) delete soln_below2;
-	if (soln_below3) delete soln_below3;
-	if (soln_above) delete soln_above;
-	if (soln_above2) delete soln_above2;
-	if (soln_above3) delete soln_above3;
+	if (soln_below2) delete[] soln_below2;
+	if (soln_below3) delete[] soln_below3;
+	if (soln_above) delete[] soln_above;
+	if (soln_above2) delete[] soln_above2;
+	if (soln_above3) delete[] soln_above3;
 	
 	return ptr_to_jlong(soln_below);
 }

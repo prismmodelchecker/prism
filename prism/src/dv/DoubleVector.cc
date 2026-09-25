@@ -286,8 +286,8 @@ jobject obj,
 jlong __jlongpointer vector
 )
 {
-	// note we assume that this memory was created with new
-	delete jlong_to_double(vector);
+	// note we assume that this memory was created with new[]
+	delete[] jlong_to_double(vector);
 }
 
 //------------------------------------------------------------------------------

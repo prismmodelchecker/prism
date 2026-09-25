@@ -617,8 +617,8 @@ JNIEXPORT jdouble __jlongpointer JNICALL Java_sparse_PrismSparse_PS_1NondetMulti
     time_taken = time_for_setup + time_for_lp;
     PN_PrintToMainLog(env, "\nLP problem solved in %.2f seconds (setup %.2f, lpsolve %.2f)\n", time_taken, time_for_setup, time_for_lp);
 
-    delete yes_vec;
-    delete map_var;
+    delete[] yes_vec;
+    delete[] map_var;
     
     // Catch exceptions: register error
   } catch (std::bad_alloc e) {

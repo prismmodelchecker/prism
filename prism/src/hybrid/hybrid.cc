@@ -152,10 +152,10 @@ HDDBlocks::HDDBlocks()
 
 HDDBlocks::~HDDBlocks()
 {
-	if (blocks) delete blocks;
-	if (rowscols) delete rowscols;
-	if (counts) { if (use_counts) delete counts; else delete (int*)counts; }
-	if (offsets) delete offsets;
+	if (blocks) delete[] blocks;
+	if (rowscols) delete[] rowscols;
+	if (counts) { if (use_counts) delete[] counts; else delete[] (int*)counts; }
+	if (offsets) delete[] offsets;
 }
 
 HDDMatrices::HDDMatrices()

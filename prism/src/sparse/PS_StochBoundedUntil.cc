@@ -141,7 +141,7 @@ jlong __jlongpointer mu	// probs for multiplying
 	if (compact) {
 		if ((diags_dist = double_vector_to_dist(diags, n))) {
 			compact_d = true;
-			delete diags; diags = NULL;
+			delete[] diags; diags = NULL;
 		}
 	}
 	kb = (!compact_d) ? n*8.0/1024.0 : (diags_dist->num_dist*8.0+n*2.0)/1024.0;

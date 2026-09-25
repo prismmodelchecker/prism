@@ -171,7 +171,7 @@ jint flags
 	if (compact) {
 		if ((diags_dist = double_vector_to_dist(diags_vec, n))) {
 			compact_d = true;
-			delete diags_vec; diags_vec = NULL;
+			delete[] diags_vec; diags_vec = NULL;
 		}
 	}
 	kb = (!compact_d) ? n*8.0/1024.0 : (diags_dist->num_dist*8.0+n*2.0)/1024.0;
@@ -195,7 +195,7 @@ jint flags
 		if (compact) {
 			if ((b_dist = double_vector_to_dist(b_vec, n))) {
 				compact_b = true;
-				delete b_vec; b_vec = NULL;
+				delete[] b_vec; b_vec = NULL;
 			}
 		}
 		kb = (!compact_b) ? n*8.0/1024.0 : (b_dist->num_dist*8.0+n*2.0)/1024.0;
@@ -371,7 +371,7 @@ jint flags
 	if (diags_dist) delete diags_dist;
 	if (b_vec) delete[] b_vec;
 	if (b_dist) delete b_dist;
-	if (soln_above) delete soln_above;
+	if (soln_above) delete[] soln_above;
 	
 	return ptr_to_jlong(soln_below);
 }

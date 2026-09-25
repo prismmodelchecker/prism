@@ -90,7 +90,7 @@ ODDNode *build_odd(DdManager *ddman, DdNode *dd, DdNode **vars, int num_vars)
 	}
 
 	// free memory
-	delete tables;
+	delete[] tables;
 
 	return res;
 }

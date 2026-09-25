@@ -37,7 +37,7 @@ JNIEXPORT jlong JNICALL Java_prism_NativeIntArray_NIA_1CreateArray
 JNIEXPORT void JNICALL Java_prism_NativeIntArray_NIA_1DeleteArray
 (JNIEnv * env, jclass cls, jlong ptr)
 {
-    delete ((int *) jlong_to_ptr(ptr));
+    delete[] ((int *) jlong_to_ptr(ptr));
 }
 
 JNIEXPORT jint JNICALL Java_prism_NativeIntArray_NIA_1Get

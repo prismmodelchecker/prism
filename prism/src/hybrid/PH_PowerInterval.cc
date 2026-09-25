@@ -304,9 +304,9 @@ jint flags
 	if (hddm) delete hddm;
 	if (b_vec) delete[] b_vec;
 	if (b_dist) delete b_dist;
-	if (soln2) delete soln_below2;
-	if (soln_above) delete soln_above;
-	if (soln_above2) delete soln_above2;
+	if (soln_below2) delete[] soln_below2;
+	if (soln_above) delete[] soln_above;
+	if (soln_above2) delete[] soln_above2;
 	
 	return ptr_to_jlong(soln_below);
 }

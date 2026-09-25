@@ -179,7 +179,7 @@ jstring ht		// header text (NULL = no header printed)
 	}
 	
 	// free memory
-	if (trans_per_action) delete trans_per_action;
+	if (trans_per_action) delete[] trans_per_action;
 	if (rmsm) delete rmsm;
 	//if (action_names != NULL) release_string_array_from_java(env, action_names_jstrings, action_names, num_actions);
 	

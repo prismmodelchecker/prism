@@ -141,7 +141,7 @@ jint flags
 		if (compact) {
 			if ((b_dist = double_vector_to_dist(b_vec, n))) {
 				compact_b = true;
-				delete b_vec; b_vec = NULL;
+				delete[] b_vec; b_vec = NULL;
 			}
 		}
 		kb = (!compact_b) ? n*8.0/1024.0 : (b_dist->num_dist*8.0+n*2.0)/1024.0;

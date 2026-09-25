@@ -136,8 +136,8 @@ jobject obj,
 jlong __jlongpointer vector
 )
 {
-	// note we assume that this memory was created with new
-	if (vector) delete (int *) jlong_to_ptr(vector);
+	// note we assume that this memory was created with new[]
+	if (vector) delete[] (int *) jlong_to_ptr(vector);
 }
 
 //------------------------------------------------------------------------------
