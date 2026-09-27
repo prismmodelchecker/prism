@@ -53,8 +53,6 @@ import explicit.rewards.Rewards;
 import io.ModelExportFormat;
 import parser.ast.Expression;
 import parser.type.TypeDouble;
-import prism.Accuracy;
-import prism.Accuracy.AccuracyLevel;
 import prism.AccuracyFactory;
 import prism.OptionsIntervalIteration;
 import prism.PrismComponent;
@@ -1274,7 +1272,9 @@ public class MDPModelChecker extends ProbModelChecker
 		// If strategy generation was requested (strat != null), this takes care of it
 		// (NB: that only works reliably for min - max needs more work - but this is disallowed earlier)
 		// It also has the side-effect of sometimes fixing small round-off errors from LP
-		mdp.mvMultGSMinMax(soln, min, unknown, false, true, strat);
+		// The LP solver works to within numerical tolerances, so the results are not exact:
+		// we use the change in this extra iteration to estimate accuracy (as for value iteration)
+		double maxDiff = mdp.mvMultGSMinMax(soln, min, unknown, false, true, strat);
 
 		// Finished solution
 		timer = System.currentTimeMillis() - timer;
@@ -1286,7 +1286,7 @@ public class MDPModelChecker extends ProbModelChecker
 		// and might have some existing choices stored for other states).
 		ModelCheckerResult res = new ModelCheckerResult();
 		res.soln = soln;
-		res.accuracy = new Accuracy(AccuracyLevel.EXACT_FLOATING_POINT);
+		res.accuracy = AccuracyFactory.valueIteration(termCritParam, maxDiff, true);
 		res.timeTaken = timer / 1000.0;
 		return res;
 	}
@@ -3045,7 +3045,9 @@ public class MDPModelChecker extends ProbModelChecker
 		// If strategy generation was requested (strat != null), this takes care of it
 		// (NB: that only works reliably for min - max needs more work - but this is disallowed earlier)
 		// It also has the side-effect of sometimes fixing small round-off errors from LP
-		mdp.mvMultRewGSMinMax(soln, mdpRewards, min, unknown, false, true, strat);
+		// The LP solver works to within numerical tolerances, so the results are not exact:
+		// we use the change in this extra iteration to estimate accuracy (as for value iteration)
+		double maxDiff = mdp.mvMultRewGSMinMax(soln, mdpRewards, min, unknown, false, true, strat);
 
 		// Finished solution
 		timer = System.currentTimeMillis() - timer;
@@ -3057,7 +3059,7 @@ public class MDPModelChecker extends ProbModelChecker
 		// and might have some existing choices stored for other states).
 		ModelCheckerResult res = new ModelCheckerResult();
 		res.soln = soln;
-		res.accuracy = new Accuracy(AccuracyLevel.EXACT_FLOATING_POINT);
+		res.accuracy = AccuracyFactory.valueIteration(termCritParam, maxDiff, true);
 		res.timeTaken = timer / 1000.0;
 		return res;
 	}
