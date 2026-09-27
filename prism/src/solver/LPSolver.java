@@ -40,6 +40,29 @@ import prism.PrismException;
 public interface LPSolver
 {
 	/**
+	 * Short identifier for this backend, e.g. "lpsolve" or "gurobi".
+	 */
+	String getId();
+
+	/**
+	 * Human-readable name for logging, e.g. "lpsolve" or "Gurobi".
+	 */
+	String getDisplayName();
+
+	/**
+	 * Version of the underlying solver, for logging, e.g. "5.5.2.11".
+	 */
+	String getVersionString();
+
+	/**
+	 * Name and version combined, for logging, e.g. "lpsolve 5.5.2.11".
+	 */
+	default String getFullDisplayName()
+	{
+		return getDisplayName() + " " + getVersionString();
+	}
+
+	/**
 	 * Add a variable with bounds [lb, ub] and the given objective coefficient.
 	 * Variables are indexed 0, 1, ... in the order they are added.
 	 * Use Double.POSITIVE_INFINITY for an unbounded upper limit.

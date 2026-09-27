@@ -28,6 +28,7 @@ package solver;
 
 import lpsolve.LpSolve;
 import lpsolve.LpSolveException;
+import lpsolve.VersionInfo;
 import prism.PrismException;
 
 /**
@@ -35,6 +36,9 @@ import prism.PrismException;
  */
 public class LpSolveSolver implements LPSolver
 {
+	public static final String ID = "lpsolve";
+	public static final String DISPLAY_NAME = "lpsolve";
+
 	private final int numVars;
 	private final LpSolve solver;
 	// 1-based objective row (index 0 unused, indices 1..numVars are variable coefficients)
@@ -55,6 +59,25 @@ public class LpSolveSolver implements LPSolver
 		}
 		objRow = new double[numVars + 1];
 		colno1based = new int[numVars + 1];
+	}
+
+	@Override
+	public String getId()
+	{
+		return ID;
+	}
+
+	@Override
+	public String getDisplayName()
+	{
+		return DISPLAY_NAME;
+	}
+
+	@Override
+	public String getVersionString()
+	{
+		VersionInfo v = LpSolve.lpSolveVersion();
+		return v.getMajorversion() + "." + v.getMinorversion() + "." + v.getRelease() + "." + v.getBuild();
 	}
 
 	@Override

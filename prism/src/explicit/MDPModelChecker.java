@@ -1215,7 +1215,6 @@ public class MDPModelChecker extends ProbModelChecker
 
 		// Start solution
 		timer = System.currentTimeMillis();
-		mainLog.println("Starting linear programming (" + (min ? "min" : "max") + ")...");
 
 		// Store num states
 		int n = mdp.getNumStates();
@@ -1227,6 +1226,7 @@ public class MDPModelChecker extends ProbModelChecker
 		unknown.andNot(no);
 
 		LPSolver lp = new LpSolveSolver(n);
+		mainLog.println("Starting linear programming (" + (min ? "min" : "max") + ", " + lp.getFullDisplayName() + ")...");
 		double[] coeffs = new double[n + 1];
 		int[] vars = new int[n + 1];
 		try {
@@ -2975,7 +2975,6 @@ public class MDPModelChecker extends ProbModelChecker
 
 		// Start solution
 		timer = System.currentTimeMillis();
-		mainLog.println("Starting linear programming (" + (min ? "min" : "max") + ")...");
 
 		// Store num states
 		int n = mdp.getNumStates();
@@ -2987,6 +2986,7 @@ public class MDPModelChecker extends ProbModelChecker
 		unknown.andNot(inf);
 
 		LPSolver lp = new LpSolveSolver(n);
+		mainLog.println("Starting linear programming (" + (min ? "min" : "max") + ", " + lp.getFullDisplayName() + ")...");
 		double[] coeffs = new double[n + 1];
 		int[] vars = new int[n + 1];
 		try {
