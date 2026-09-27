@@ -2392,14 +2392,6 @@ public class MDPModelChecker extends ProbModelChecker
 				throw new PrismNotSupportedException("Currently, explicit engine only supports interval iteration with value iteration or Gauss-Seidel for MDPs");
 			}
 		}
-		if (mdpSolnMethod == MDPSolnMethod.LINEAR_PROGRAMMING) {
-			if (!(precomp && prob1)) {
-				throw new PrismNotSupportedException("Prob1 precomputation must be enabled for linear programming");
-			}
-			if (!min && genStrat) {
-				throw new PrismNotSupportedException("Currently, explicit engine does not support strategy generation for linear programming and Rmax");
-			}
-		}
 
 		if (disc < 1.0) {
 			if (doIntervalIteration) {
@@ -2408,6 +2400,12 @@ public class MDPModelChecker extends ProbModelChecker
 			if (mdpSolnMethod == MDPSolnMethod.POLICY_ITERATION || mdpSolnMethod == MDPSolnMethod.LINEAR_PROGRAMMING) {
 				mdpSolnMethod = MDPSolnMethod.VALUE_ITERATION;
 				mainLog.printWarning("Switching to MDP solution method \"" + mdpSolnMethod.fullName() + "\" (required when discounting is enabled)");
+			}
+		}
+		// (checked after the discounting switch above, which may change the method)
+		if (mdpSolnMethod == MDPSolnMethod.LINEAR_PROGRAMMING) {
+			if (!min && genStrat) {
+				throw new PrismNotSupportedException("Currently, explicit engine does not support strategy generation for linear programming and Rmax");
 			}
 		}
 
