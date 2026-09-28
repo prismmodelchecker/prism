@@ -992,7 +992,7 @@ public class MultiObjModelChecker extends prism.MultiObjModelChecker
 		int[] rewardStepBounds = moQuery.getRewardStepBounds();
 		int[] probStepBounds = moQuery.getProbStepBounds();
 
-		boolean useGS = (settings.getChoice(PrismSettings.PRISM_MDP_SOLN_METHOD) == Prism.MDP_MULTI_GAUSSSEIDEL);
+		boolean useGS = (prism.getMDPMultiSolnMethod() == Prism.MDP_MULTI_GAUSSSEIDEL);
 		if (moQuery.numberOfStepBounded() > 0) {
 			mainLog.println("Not using Gauss-Seidel since there are step-bounded objectives");
 			useGS = false;

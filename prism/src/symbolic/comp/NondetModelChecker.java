@@ -664,8 +664,7 @@ public class NondetModelChecker extends NonProbModelChecker
 		//try { prism.exportTransToFile(modelProduct, true, Prism.EXPORT_DOT_STATES, new java.io.File("product.dot")); } catch(Exception e) {}
 
 		// Add a dummy LTL formula to get generate target states when there is no LTL formula in the query
-		// TODO most probably this is not needed for non-LP solution methods
-		if (instance.targets.isEmpty() && prism.getMDPSolnMethod() == Prism.MDP_MULTI_LP) {
+		if (instance.targets.isEmpty() && prism.getMDPMultiSolnMethod() == Prism.MDP_MULTI_LP) {
 			addDummyFormula(modelProduct, mcLtl, instance.targets, moQuery);
 		}
 
