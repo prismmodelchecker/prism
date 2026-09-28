@@ -1,0 +1,38 @@
+// Bug: symbolic-engine LP-based multi-objective solving (-lp) with an
+// achievability query made up entirely of reward objectives (no
+// probabilistic objectives) misclassified the query as "quantitative"
+// instead of "qualitative/boolean". This happened because the code
+// deciding qualitative-vs-quantitative unconditionally read the first
+// entry of the (here zero-length) array of probability-objective
+// operators. When the LP was infeasible, this caused the model checker
+// to return NaN instead of the correct boolean value 0.0 (false); the
+// NaN was then treated as "true" by later boolean-result processing.
+// See src/sparse/PS_NondetMultiReachReward.cc and
+// PS_NondetMultiReachReward1.cc ("Modify result based on type").
+//
+// In this model, the single nondeterministic choice at the initial
+// state is a one-off fork: taking "a" earns reward "R1" but not "R2",
+// and taking "b" earns reward "R2" but not "R1". It is therefore
+// impossible to accumulate reward >=1 on both "R1" and "R2" along the
+// same path, so the conjunctive achievability query below is false.
+
+mdp
+
+module M
+
+	s : [0..2] init 0;
+
+	[a] s=0 -> (s'=1);
+	[b] s=0 -> (s'=2);
+	[] s=1 -> (s'=1);
+	[] s=2 -> (s'=2);
+
+endmodule
+
+rewards "R1"
+	[a] true : 1;
+endrewards
+
+rewards "R2"
+	[b] true : 1;
+endrewards
