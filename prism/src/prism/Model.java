@@ -144,7 +144,7 @@ public interface Model<Value>
 	 */
 	default String getNumInitialStatesString()
 	{
-		return Integer.toString(getNumStates());
+		return Integer.toString(getNumInitialStates());
 	}
 
 	/**
@@ -152,6 +152,6 @@ public interface Model<Value>
 	 */
 	default String getNumTransitionsString()
 	{
-		return Integer.toString(getNumStates());
+		return Integer.toString(getNumTransitions());
 	}
 }
