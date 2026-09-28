@@ -1,0 +1,23 @@
+// Multi-objective LP must not treat end components with positive reward for a
+// minimising objective as zero-cost sinks. From s=0 there is a loop earning reward 1
+// per step, a move to a trap earning reward 1 per step forever, and an exit costing 5
+// to a zero-reward sink. Staying forever in either positive-reward end component gives
+// infinite reward, so Rmin[C] = 5; the LP used to absorb there for free and report 0.
+
+mdp
+
+module m
+	s : [0..2] init 0;
+
+	[loop] s=0 -> (s'=0);
+	[trap] s=0 -> (s'=2);
+	[exit] s=0 -> (s'=1);
+	[done] s=1 -> (s'=1);
+	[stay] s=2 -> (s'=2);
+endmodule
+
+rewards "r"
+	[loop] true : 1;
+	[exit] true : 5;
+	[stay] true : 1;
+endrewards

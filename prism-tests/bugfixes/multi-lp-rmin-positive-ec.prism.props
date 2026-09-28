@@ -1,0 +1,8 @@
+// RESULT: 5
+multi(R{"r"}min=? [ C ]);
+
+// RESULT: false
+multi(R{"r"}<=4 [ C ]);
+
+// RESULT: true
+multi(R{"r"}<=5 [ C ]);

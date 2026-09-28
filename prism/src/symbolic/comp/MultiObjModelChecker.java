@@ -678,7 +678,16 @@ public class MultiObjModelChecker extends prism.MultiObjModelChecker
 			no = JDD.Constant(0);
 			bottomec = PrismMTBDD.Prob0A(model.getTrans01(), model.getReach(), model.getAllDDRowVars(), model.getAllDDColVars(), model.getAllDDNondetVars(),
 			                             model.getReach(), yes);
+			// Only ECs that can be stayed in forever with zero reward for all minimising objectives
+			// can act as sinks: staying in one with positive reward accumulates infinite reward
+			JDDNode origTrans = model.getTrans();
+			JDDNode origTrans01 = model.getTrans01();
+			boolean transChanged = removeNonZeroRewardTrans(model, instance.rewards, instance.moQuery);
 			List<JDDNode> becs = mcLtl.findMECStates(model, bottomec);
+			if (transChanged) {
+				model.resetTrans(origTrans);
+				model.resetTrans01(origTrans01);
+			}
 			JDD.Deref(bottomec);
 			bottomec = JDD.Constant(0);
 			for (JDDNode ec : becs)
