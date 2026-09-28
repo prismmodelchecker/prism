@@ -15,3 +15,6 @@ multi(R{"R2"}max=?[C<=1],R{"R1"}>=2.95[C<=2])
 
 // RESULT: 0.4
 multi(R{"R4"}max=?[C<=2],R{"R1"}>=0.5[C<=1],R{"R3"}>=0.3[C<=2])
+
+// RESULT: false
+multi(R{"R2"}>=2 [ C ], R{"R3"}>=0.5 [ C ])
