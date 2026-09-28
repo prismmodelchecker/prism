@@ -285,8 +285,9 @@ public class Point
 
 		for (int i = 0; i < query.numRewardObjectives(); i++) {
 			int newIndex = query.getOrigPositionReward(i);
+			// (0.0 - x rather than -x, so that zero is not displayed as -0.0)
 			newCoords[newIndex] = query.isRewardNegated(i)
-					? -oldCoords[i + query.numProbObjectives()]
+					? 0.0 - oldCoords[i + query.numProbObjectives()]
 					: oldCoords[i + query.numProbObjectives()];
 		}
 
