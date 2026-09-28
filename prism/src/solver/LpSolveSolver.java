@@ -131,8 +131,7 @@ public class LpSolveSolver implements LPSolver
 			if (lpRes == LpSolve.OPTIMAL) {
 				return solver.getPtrVariables();
 			} else {
-				String detail = lpRes == LpSolve.INFEASIBLE ? " (infeasible)" : lpRes == LpSolve.UNBOUNDED ? " (unbounded)" : "";
-				throw new PrismException("Error solving LP" + detail);
+				throw new PrismException("Error solving LP (" + solver.getStatustext(lpRes) + ")");
 			}
 		} catch (LpSolveException e) {
 			throw new PrismException("Error solving LP: " + e.getMessage());
