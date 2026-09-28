@@ -1,0 +1,16 @@
+// Regression test for GitHub issue #253 ("Undetected infinite multi-objective reward").
+// The only behaviour is a self-loop earning reward 1 per step, so the minimum total
+// reward is infinite. Multi-objective LP used to report 0 (and value iteration failed
+// to converge); an upper bound on the reward can never be met.
+
+mdp
+
+module infinite
+	s : [0..1];
+
+	[inf] s=0 -> true;
+endmodule
+
+rewards "inf"
+	[inf] true : 1;
+endrewards

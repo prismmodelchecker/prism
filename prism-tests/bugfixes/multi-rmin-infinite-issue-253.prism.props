@@ -1,0 +1,9 @@
+// RESULT: Infinity
+multi(R{"inf"}min=? [ C ]);
+
+// RESULT: false
+multi(R{"inf"}<=5 [ C ]);
+
+// Checked after the multi-objective queries, which prune choices from the model
+// RESULT: 1
+Pmax=? [ G s=0 ];

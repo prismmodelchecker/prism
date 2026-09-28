@@ -326,6 +326,109 @@ public class MultiObjModelChecker extends prism.MultiObjModelChecker
 	}
 
 	/**
+	 * Find the reward objectives, among the minimising ones (R_MIN/R_LE), that are infinite from
+	 * the initial state under every strategy (see {@link #computeInfiniteRewardStates}).
+	 *
+	 * @param rewards Transition reward DDs, one per reward objective
+	 * @return Indices (in {@code rewards}) of such objectives
+	 */
+	protected BitSet findInfiniteMinRewardObjectives(NondetModel modelProduct, LTLModelChecker mcLtl, List<JDDNode> rewards, MultiObjQuery moQuery)
+	        throws PrismException
+	{
+		BitSet infinite = new BitSet();
+		for (int i = 0; i < rewards.size(); i++) {
+			if (moQuery.getRewardOperator(i) == Operator.R_MIN || moQuery.getRewardOperator(i) == Operator.R_LE) {
+				JDDNode inf = computeInfiniteRewardStates(modelProduct, mcLtl, rewards.get(i));
+				if (JDD.AreIntersecting(modelProduct.getStart(), inf)) {
+					infinite.set(i);
+				}
+				JDD.Deref(inf);
+			}
+		}
+		return infinite;
+	}
+
+	/**
+	 * Remove all choices that can lead to a state from which some minimising reward objective
+	 * (R_MIN/R_LE) is infinite under every strategy (see {@link #computeInfiniteRewardStates}).
+	 * This is repeated until nothing changes, since removing choices for one objective can make
+	 * more states infinite for another. Afterwards, from every state that still has choices,
+	 * all minimising reward objectives have finite values, as value iteration needs in order
+	 * to converge; the states that do not are left with no choices.
+	 *
+	 * @param rewards Transition reward DDs, one per reward objective
+	 * @return True if the initial state has no strategy under which all minimising reward
+	 *         objectives are finite (in which case all its choices have been removed)
+	 */
+	protected boolean removeInfiniteRewardChoicesForMin(NondetModel modelProduct, LTLModelChecker mcLtl, List<JDDNode> rewards, MultiObjQuery moQuery)
+	        throws PrismException
+	{
+		boolean startInfinite = false;
+		boolean changed = true;
+		while (changed) {
+			changed = false;
+			for (int i = 0; i < rewards.size(); i++) {
+				if (moQuery.getRewardOperator(i) != Operator.R_MIN && moQuery.getRewardOperator(i) != Operator.R_LE) {
+					continue;
+				}
+				JDDNode inf = computeInfiniteRewardStates(modelProduct, mcLtl, rewards.get(i));
+				if (JDD.AreIntersecting(modelProduct.getStart(), inf)) {
+					startInfinite = true;
+				}
+				// Choices with a successor in inf
+				JDDNode removed = JDD.PermuteVariables(inf, modelProduct.getAllDDRowVars(), modelProduct.getAllDDColVars());
+				removed = JDD.And(modelProduct.getTrans01().copy(), removed);
+				removed = JDD.ThereExists(removed, modelProduct.getAllDDColVars());
+				if (!removed.equals(JDD.ZERO)) {
+					modelProduct.resetTrans(JDD.Apply(JDD.TIMES, modelProduct.getTrans().copy(), JDD.Not(removed.copy())));
+					modelProduct.resetTrans01(JDD.Apply(JDD.TIMES, modelProduct.getTrans01().copy(), JDD.Not(removed.copy())));
+					changed = true;
+				}
+				JDD.Deref(removed);
+			}
+		}
+		return startInfinite;
+	}
+
+	/**
+	 * Compute the states from which a minimising reward objective is infinite under every
+	 * strategy. The reward is finite from a state only if some strategy almost surely reaches an
+	 * end component in which it can stay forever with zero reward, as for single-objective
+	 * minimum total rewards.
+	 *
+	 * <br>[ REFS: <i>result</i>, DEREFS: <i>none</i> ]
+	 * @param reward Transition reward DD for the objective
+	 */
+	private JDDNode computeInfiniteRewardStates(NondetModel model, LTLModelChecker mcLtl, JDDNode reward) throws PrismException
+	{
+		// Zero-reward end components: the MECs once all choices with positive reward are removed
+		JDDNode positive = JDD.ThereExists(JDD.GreaterThan(reward.copy(), 0.0), model.getAllDDColVars());
+		JDDNode origTrans = model.getTrans().copy();
+		JDDNode origTrans01 = model.getTrans01().copy();
+		model.resetTrans(JDD.ITE(positive.copy(), JDD.Constant(0), origTrans.copy()));
+		model.resetTrans01(JDD.ITE(positive, JDD.Constant(0), origTrans01.copy()));
+		List<JDDNode> zeroMecs;
+		try {
+			zeroMecs = mcLtl.findMECStates(model, model.getReach());
+		} finally {
+			model.resetTrans(origTrans);
+			model.resetTrans01(origTrans01);
+		}
+		JDDNode zeroEcStates = JDD.Constant(0);
+		for (JDDNode mec : zeroMecs) {
+			zeroEcStates = JDD.Or(zeroEcStates, mec);
+		}
+		// Finite: states from which some strategy reaches them with probability 1
+		JDDNode no = PrismMTBDD.Prob0A(model.getTrans01(), model.getReach(), model.getAllDDRowVars(), model.getAllDDColVars(), model.getAllDDNondetVars(),
+		                               model.getReach(), zeroEcStates);
+		JDDNode finite = PrismMTBDD.Prob1E(model.getTrans01(), model.getReach(), model.getAllDDRowVars(), model.getAllDDColVars(), model.getAllDDNondetVars(),
+		                                   model.getReach(), zeroEcStates, no);
+		JDD.Deref(no);
+		JDD.Deref(zeroEcStates);
+		return JDD.And(model.getReach().copy(), JDD.Not(finite));
+	}
+
+	/**
 	 * Identify ECs that simultaneously satisfy multiple probability objectives (conflicting objectives)
 	 * and produce combined target sets for use in the solver.
 	 * Delegates to {@link LTLModelChecker#findMultiConflictAcceptingStates}.

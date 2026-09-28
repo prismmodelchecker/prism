@@ -1,0 +1,20 @@
+// A minimising multi-objective reward query where a trap, earning reward 1 per step
+// forever, is reachable but can be avoided by paying 10 to reach a zero-reward sink,
+// so Rmin[C] = 10. Value iteration used to fail to converge, because the value of the
+// trap state itself diverges.
+
+mdp
+
+module m
+	s : [0..2] init 0;
+
+	[a] s=0 -> (s'=1);
+	[b] s=0 -> (s'=2);
+	[trap] s=1 -> (s'=1);
+	[done] s=2 -> (s'=2);
+endmodule
+
+rewards "r"
+	[b] true : 10;
+	[trap] true : 1;
+endrewards
