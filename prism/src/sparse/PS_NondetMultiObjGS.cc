@@ -384,7 +384,9 @@ JNIEXPORT jdoubleArray __jlongpointer JNICALL Java_sparse_PrismSparse_PS_1Nondet
 				}
 				
 				//TODO: we need to handle val_yes somehow
-				if (val_yes == 0 || d1>val_yes)
+				// (allow for round-off: continuing within a target end component gives the same
+				// value, which must not count as better, or the individual values are never set)
+				if (val_yes == 0 || d1 > val_yes + near_zero)
 				{
 					switch (term_crit) {
 						case TERM_CRIT_RELATIVE:

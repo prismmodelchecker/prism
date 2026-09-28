@@ -1,0 +1,8 @@
+// RESULT: 0
+multi(Pmax=?[F false], P<=0.003[F yes]);
+
+// RESULT: 0
+multi(Pmax=?[F false], P<=0.004[F yes]);
+
+// RESULT: [(0.0,0.0)]
+multi(Pmax=?[F false], Pmin=?[F yes]);

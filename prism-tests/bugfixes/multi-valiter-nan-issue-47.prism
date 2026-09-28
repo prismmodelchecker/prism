@@ -1,0 +1,15 @@
+// Regression test for GitHub issue #47 ("Strange NaN result for multi-objective").
+// The first objective, Pmax=?[F false], is trivially 0. With value iteration, round-off
+// at target states (whose direction depends on the platform) could leave the second
+// objective's individual value near 0 instead of 1 (for never reaching yes), which made
+// the P<=0.003 constraint look unsatisfiable and gave NaN instead of 0.
+
+mdp
+
+module m
+	loc : bool init true;
+	yes : bool init false;
+
+	[a] true -> 0.994005 : (loc'=true) + 0.000995 : (loc'=false) + 0.005 : true;
+	[g] true -> (yes'=true);
+endmodule
