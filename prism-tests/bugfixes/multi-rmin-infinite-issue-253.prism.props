@@ -4,6 +4,13 @@ multi(R{"inf"}min=? [ C ]);
 // RESULT: false
 multi(R{"inf"}<=5 [ C ]);
 
+// Step-bounded rewards are always finite
+// RESULT: 3
+multi(R{"inf"}min=? [ C<=3 ]);
+
+// RESULT: true
+multi(R{"inf"}<=3 [ C<=3 ]);
+
 // Checked after the multi-objective queries, which prune choices from the model
 // RESULT: 1
 Pmax=? [ G s=0 ];

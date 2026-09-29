@@ -326,8 +326,18 @@ public class MultiObjModelChecker extends prism.MultiObjModelChecker
 	}
 
 	/**
-	 * Find the reward objectives, among the minimising ones (R_MIN/R_LE), that are infinite from
-	 * the initial state under every strategy (see {@link #computeInfiniteRewardStates}).
+	 * Is the i-th reward objective a minimising (R_MIN/R_LE) one that can be infinite,
+	 * i.e., one that is not step-bounded?
+	 */
+	private static boolean isUnboundedMinReward(MultiObjQuery moQuery, int i)
+	{
+		Operator op = moQuery.getRewardOperator(i);
+		return (op == Operator.R_MIN || op == Operator.R_LE) && moQuery.getRewardStepBound(i) == -1;
+	}
+
+	/**
+	 * Find the reward objectives, among the minimising unbounded ones (R_MIN/R_LE), that are
+	 * infinite from the initial state under every strategy (see {@link #computeInfiniteRewardStates}).
 	 *
 	 * @param rewards Transition reward DDs, one per reward objective
 	 * @return Indices (in {@code rewards}) of such objectives
@@ -337,7 +347,7 @@ public class MultiObjModelChecker extends prism.MultiObjModelChecker
 	{
 		BitSet infinite = new BitSet();
 		for (int i = 0; i < rewards.size(); i++) {
-			if (moQuery.getRewardOperator(i) == Operator.R_MIN || moQuery.getRewardOperator(i) == Operator.R_LE) {
+			if (isUnboundedMinReward(moQuery, i)) {
 				JDDNode inf = computeInfiniteRewardStates(modelProduct, mcLtl, rewards.get(i));
 				if (JDD.AreIntersecting(modelProduct.getStart(), inf)) {
 					infinite.set(i);
@@ -368,7 +378,7 @@ public class MultiObjModelChecker extends prism.MultiObjModelChecker
 		while (changed) {
 			changed = false;
 			for (int i = 0; i < rewards.size(); i++) {
-				if (moQuery.getRewardOperator(i) != Operator.R_MIN && moQuery.getRewardOperator(i) != Operator.R_LE) {
+				if (!isUnboundedMinReward(moQuery, i)) {
 					continue;
 				}
 				JDDNode inf = computeInfiniteRewardStates(modelProduct, mcLtl, rewards.get(i));
