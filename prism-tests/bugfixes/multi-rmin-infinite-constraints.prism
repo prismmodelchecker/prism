@@ -1,0 +1,28 @@
+// Multi-objective queries where upper-bounded rewards can each be kept finite, but not
+// both, so no strategy satisfies them together. Such queries used to report Infinity
+// (for a minimised reward) rather than NaN (as for other unsatisfiable constraints).
+// From s=0: a leads to a loop earning c1 forever, b to a loop earning c2 forever.
+
+mdp
+
+module m
+	s : [0..2] init 0;
+
+	[a] s=0 -> (s'=1);
+	[b] s=0 -> (s'=2);
+	[l1] s=1 -> (s'=1);
+	[l2] s=2 -> (s'=2);
+endmodule
+
+rewards "r"
+	[a] true : 1;
+	[b] true : 2;
+endrewards
+
+rewards "c1"
+	[l1] true : 1;
+endrewards
+
+rewards "c2"
+	[l2] true : 1;
+endrewards

@@ -1,0 +1,13 @@
+// The constraints cannot both be met
+// RESULT: NaN
+multi(R{"r"}min=? [ C ], R{"c1"}<=5 [ C ], R{"c2"}<=5 [ C ]);
+
+// RESULT: false
+multi(R{"c1"}<=5 [ C ], R{"c2"}<=5 [ C ]);
+
+// The constraint can only be met by making the minimised reward infinite
+// RESULT: Infinity
+multi(R{"c1"}min=? [ C ], R{"c2"}<=5 [ C ]);
+
+// RESULT: 2
+multi(R{"r"}min=? [ C ], R{"c1"}<=5 [ C ]);

@@ -336,49 +336,27 @@ public class MultiObjModelChecker extends prism.MultiObjModelChecker
 	}
 
 	/**
-	 * Find the reward objectives, among the minimising unbounded ones (R_MIN/R_LE), that are
-	 * infinite from the initial state under every strategy (see {@link #computeInfiniteRewardStates}).
-	 *
-	 * @param rewards Transition reward DDs, one per reward objective
-	 * @return Indices (in {@code rewards}) of such objectives
-	 */
-	protected BitSet findInfiniteMinRewardObjectives(NondetModel modelProduct, LTLModelChecker mcLtl, List<JDDNode> rewards, MultiObjQuery moQuery)
-	        throws PrismException
-	{
-		BitSet infinite = new BitSet();
-		for (int i = 0; i < rewards.size(); i++) {
-			if (isUnboundedMinReward(moQuery, i)) {
-				JDDNode inf = computeInfiniteRewardStates(modelProduct, mcLtl, rewards.get(i));
-				if (JDD.AreIntersecting(modelProduct.getStart(), inf)) {
-					infinite.set(i);
-				}
-				JDD.Deref(inf);
-			}
-		}
-		return infinite;
-	}
-
-	/**
 	 * Remove all choices that can lead to a state from which some minimising reward objective
 	 * (R_MIN/R_LE) is infinite under every strategy (see {@link #computeInfiniteRewardStates}).
 	 * This is repeated until nothing changes, since removing choices for one objective can make
 	 * more states infinite for another. Afterwards, from every state that still has choices,
-	 * all minimising reward objectives have finite values, as value iteration needs in order
-	 * to converge; the states that do not are left with no choices.
+	 * all such objectives have finite values, as value iteration needs in order to converge;
+	 * the states that do not are left with no choices.
 	 *
 	 * @param rewards Transition reward DDs, one per reward objective
-	 * @return True if the initial state has no strategy under which all minimising reward
-	 *         objectives are finite (in which case all its choices have been removed)
+	 * @param constraintsOnly Only consider upper-bounded (R_LE) objectives, not a minimised (R_MIN) one
+	 * @return True if the initial state has no strategy under which all such objectives are
+	 *         finite (in which case all its choices have been removed)
 	 */
-	protected boolean removeInfiniteRewardChoicesForMin(NondetModel modelProduct, LTLModelChecker mcLtl, List<JDDNode> rewards, MultiObjQuery moQuery)
-	        throws PrismException
+	protected boolean removeInfiniteRewardChoicesForMin(NondetModel modelProduct, LTLModelChecker mcLtl, List<JDDNode> rewards, MultiObjQuery moQuery,
+	                                                    boolean constraintsOnly) throws PrismException
 	{
 		boolean startInfinite = false;
 		boolean changed = true;
 		while (changed) {
 			changed = false;
 			for (int i = 0; i < rewards.size(); i++) {
-				if (!isUnboundedMinReward(moQuery, i)) {
+				if (!isUnboundedMinReward(moQuery, i) || (constraintsOnly && moQuery.getRewardOperator(i) != Operator.R_LE)) {
 					continue;
 				}
 				JDDNode inf = computeInfiniteRewardStates(modelProduct, mcLtl, rewards.get(i));

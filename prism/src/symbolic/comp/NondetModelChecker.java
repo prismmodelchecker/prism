@@ -678,24 +678,26 @@ public class NondetModelChecker extends NonProbModelChecker
 		JDDNode origTrans = null;
 		JDDNode origTrans01 = null;
 		try {
-			// Remove choices from which some minimising reward objective would be infinite
+			// Remove choices from which some minimising reward objective would be infinite:
+			// first for the upper-bounded ones (R_LE) alone, which must be finite for the query
+			// to be satisfiable, then also for a minimised one (R_MIN)
 			// (if the product is the original model, its transitions are restored afterwards)
-			BitSet infiniteMinRewards = new BitSet();
+			boolean constraintsInfinite = false;
 			boolean startInfinite = false;
 			if (moQuery.contains(Operator.R_LE) || moQuery.contains(Operator.R_MIN)) {
 				if (modelProduct == model) {
 					origTrans = model.getTrans().copy();
 					origTrans01 = model.getTrans01().copy();
 				}
-				infiniteMinRewards = mcMo.findInfiniteMinRewardObjectives(modelProduct, mcLtl, transRewardsList, moQuery);
-				startInfinite = mcMo.removeInfiniteRewardChoicesForMin(modelProduct, mcLtl, transRewardsList, moQuery);
+				constraintsInfinite = mcMo.removeInfiniteRewardChoicesForMin(modelProduct, mcLtl, transRewardsList, moQuery, true);
+				startInfinite = constraintsInfinite || mcMo.removeInfiniteRewardChoicesForMin(modelProduct, mcLtl, transRewardsList, moQuery, false);
 			}
 
 			// Do multi-objective computation
 			// Note: for multi-objective model checking, we construct the product MDP for only a single initial state
 			// (unlike for normal LTL model checking) so it is safe to use modelProduct.getStart() here to pass in the initial states.
 			if (startInfinite) {
-				value = resultForInfiniteMinRewards(moQuery, infiniteMinRewards);
+				value = resultForInfiniteMinRewards(moQuery, constraintsInfinite);
 			} else {
 				value = mcMo.computeMultiObjective(modelProduct, mcLtl, modelProduct.getStart(), instance);
 			}
@@ -741,9 +743,9 @@ public class NondetModelChecker extends NonProbModelChecker
 	 * Result of a multi-objective query when, from the initial state, no strategy gives finite
 	 * values for all minimising reward objectives.
 	 *
-	 * @param infiniteMinRewards Reward objectives that are infinite from the initial state on their own
+	 * @param constraintsInfinite True if this is already the case for the upper-bounded (R_LE) ones alone
 	 */
-	private Object resultForInfiniteMinRewards(MultiObjQuery moQuery, BitSet infiniteMinRewards) throws PrismException
+	private Object resultForInfiniteMinRewards(MultiObjQuery moQuery, boolean constraintsInfinite) throws PrismException
 	{
 		if (moQuery.numberOfNumerical() > 1) {
 			throw new PrismException("Cannot generate Pareto curve: no strategy gives finite values for all minimising reward objectives");
@@ -752,14 +754,9 @@ public class NondetModelChecker extends NonProbModelChecker
 		if (moQuery.numberOfNumerical() == 0) {
 			return 0.0;
 		}
-		// Numerical: undefined (as for other unsatisfiable constraints) if an upper-bounded
-		// reward cannot be met regardless; otherwise infinite if the objective is a minimised reward
-		for (int i = infiniteMinRewards.nextSetBit(0); i >= 0; i = infiniteMinRewards.nextSetBit(i + 1)) {
-			if (moQuery.getRewardOperator(i) == Operator.R_LE) {
-				return Double.NaN;
-			}
-		}
-		return moQuery.contains(Operator.R_MIN) ? Double.POSITIVE_INFINITY : Double.NaN;
+		// Numerical: undefined (as for other unsatisfiable constraints) if the upper-bounded
+		// rewards cannot be met; otherwise, the minimised reward is what is infinite
+		return !constraintsInfinite && moQuery.contains(Operator.R_MIN) ? Double.POSITIVE_INFINITY : Double.NaN;
 	}
 
 	/**
