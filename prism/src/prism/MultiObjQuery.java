@@ -248,6 +248,16 @@ public class MultiObjQuery
 	 */
 	public boolean isRewardNegated(int i) { return rewardObjectives.get(i).negated; }
 
+	/**
+	 * True if the i-th reward objective is minimising (R_MIN or R_LE, including after being
+	 * negated by {@link #makeAllRewardUp()}) and not step-bounded, i.e., can be infinite.
+	 */
+	public boolean isUnboundedMinReward(int i)
+	{
+		RewardObjective obj = rewardObjectives.get(i);
+		return (obj.negated || obj.op == Operator.R_MIN || obj.op == Operator.R_LE) && obj.stepBound == -1;
+	}
+
 	/** Returns step bounds for all reward objectives as a primitive array. */
 	public int[] getRewardStepBounds()
 	{

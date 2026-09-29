@@ -326,16 +326,6 @@ public class MultiObjModelChecker extends prism.MultiObjModelChecker
 	}
 
 	/**
-	 * Is the i-th reward objective a minimising (R_MIN/R_LE) one that can be infinite,
-	 * i.e., one that is not step-bounded?
-	 */
-	private static boolean isUnboundedMinReward(MultiObjQuery moQuery, int i)
-	{
-		Operator op = moQuery.getRewardOperator(i);
-		return (op == Operator.R_MIN || op == Operator.R_LE) && moQuery.getRewardStepBound(i) == -1;
-	}
-
-	/**
 	 * Remove all choices that can lead to a state from which some minimising reward objective
 	 * (R_MIN/R_LE) is infinite under every strategy (see {@link #computeInfiniteRewardStates}).
 	 * This is repeated until nothing changes, since removing choices for one objective can make
@@ -356,7 +346,7 @@ public class MultiObjModelChecker extends prism.MultiObjModelChecker
 		while (changed) {
 			changed = false;
 			for (int i = 0; i < rewards.size(); i++) {
-				if (!isUnboundedMinReward(moQuery, i) || (constraintsOnly && moQuery.getRewardOperator(i) != Operator.R_LE)) {
+				if (!moQuery.isUnboundedMinReward(i) || (constraintsOnly && moQuery.getRewardOperator(i) != Operator.R_LE)) {
 					continue;
 				}
 				JDDNode inf = computeInfiniteRewardStates(modelProduct, mcLtl, rewards.get(i));
