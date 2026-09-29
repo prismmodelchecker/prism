@@ -1,0 +1,7 @@
+// The constraint forces the loop to be avoided
+// RESULT: 2
+multi(R{"r"}max=? [ C ], P>=1 [ F "goal" ]);
+
+// The loop can be reached (with probability 0.5) while meeting the constraint
+// RESULT: Error:non-zero reward
+multi(R{"r"}max=? [ C ], P>=0.5 [ F "goal" ]);

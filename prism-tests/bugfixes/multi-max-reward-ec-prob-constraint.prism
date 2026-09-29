@@ -1,0 +1,24 @@
+// Multi-objective query with a maximised reward listed before a probability constraint,
+// where an end component with positive reward (the loop at s=1) has to be checked for
+// avoidability under the constraint. The check used to take the probability constraint's
+// details from the wrong objective (the reward), so with value iteration the second
+// query gave 2 instead of rejecting the query (its maximum reward is infinite).
+// From s=0: go to the loop earning reward 1 forever (a), or earn 2 on the way to the goal (b).
+
+mdp
+
+module m
+	s : [0..2] init 0;
+
+	[a] s=0 -> (s'=1);
+	[b] s=0 -> (s'=2);
+	[loop] s=1 -> (s'=1);
+	[done] s=2 -> (s'=2);
+endmodule
+
+rewards "r"
+	[b] true : 2;
+	[loop] true : 1;
+endrewards
+
+label "goal" = s=2;

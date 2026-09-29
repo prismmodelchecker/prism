@@ -196,6 +196,9 @@ public class MultiObjQuery
 	// Prob-only accessors (indexed within the probabilistic sub-sequence)
 	// -------------------------------------------------------------------------
 
+	/** Returns the original query spec of the i-th probabilistic objective. */
+	public OpRelOpBound getProbOpRelOpBound(int i) { return probObjectives.get(i).opInfo; }
+
 	/** Returns the current canonical operator of the i-th probabilistic objective. */
 	public Operator getProbOperator(int i) { return probObjectives.get(i).op; }
 

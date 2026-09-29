@@ -284,7 +284,7 @@ public class MultiObjModelChecker extends prism.MultiObjModelChecker
 					MultiObjQuery tmpMoQuery = new MultiObjQuery();
 					for (int i = 0; i < instance.moQuery.numProbObjectives(); i++) {
 						if (instance.moQuery.getProbOperator(i) != Operator.P_MAX) {
-							tmpMoQuery.add(instance.moQuery.getOpRelOpBound(i), instance.moQuery.getProbOperator(i), instance.moQuery.getProbBound(i),
+							tmpMoQuery.add(instance.moQuery.getProbOpRelOpBound(i), instance.moQuery.getProbOperator(i), instance.moQuery.getProbBound(i),
 							               instance.moQuery.getProbStepBound(i), i, null);
 						}
 					}
