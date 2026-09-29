@@ -697,7 +697,14 @@ public class NondetModelChecker extends NonProbModelChecker
 			// Note: for multi-objective model checking, we construct the product MDP for only a single initial state
 			// (unlike for normal LTL model checking) so it is safe to use modelProduct.getStart() here to pass in the initial states.
 			if (startInfinite) {
-				value = resultForInfiniteMinRewards(moQuery, constraintsInfinite);
+				// (computeMultiObjective would deref the rewards, but is skipped here)
+				try {
+					value = resultForInfiniteMinRewards(moQuery, constraintsInfinite);
+				} finally {
+					for (JDDNode r : instance.rewards) {
+						JDD.Deref(r);
+					}
+				}
 			} else {
 				value = mcMo.computeMultiObjective(modelProduct, mcLtl, modelProduct.getStart(), instance);
 			}
