@@ -255,6 +255,16 @@ public class BasicModelInfo implements ModelInfo
 	}
 
 	@Override
+	public VarList createVarList() throws PrismException
+	{
+		// Return the stored VarList, rather than re-creating one from the
+		// variable declarations, since those may refer to constants whose
+		// values are not available here (variable ranges are already
+		// evaluated and stored in the VarList)
+		return varList;
+	}
+
+	@Override
 	public DeclarationType getVarDeclarationType(int i)
 	{
 		return varList.getDeclarationType(i);

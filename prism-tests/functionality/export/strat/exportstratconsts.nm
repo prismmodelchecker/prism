@@ -1,0 +1,21 @@
+// Regression test for -exportstrat induced-model export (with state info) when a
+// variable's range uses a constant derived from an undefined constant (set via -const).
+// This previously failed with "Could not evaluate constant" since the variable info
+// was re-evaluated from its declarations, without the constant values available.
+
+mdp
+
+const int l;
+const int xmin = l-3;
+
+module m
+
+	x:[xmin..3];
+
+	[a] x<3 -> 0.5:(x'=x+1) + 0.5:true;
+	[b] x<3 -> (x'=0);
+	[c] x=3 -> true;
+
+endmodule
+
+label "g" = x=xmin+3;
