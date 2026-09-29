@@ -463,15 +463,20 @@ JNIEXPORT jdoubleArray __jlongpointer JNICALL Java_sparse_PrismSparse_PS_1Nondet
 				}
 				
 				double val_yes = 0.0;
+				bool in_target = false;
 				for (int probi = 0; probi < lenProb; probi++) {
-					if (max_iters_local - iters < step_bounds[probi])
+					if (max_iters_local - iters < step_bounds[probi]) {
 						val_yes += weights[probi] * yes_vec[probi][i];
+						if (yes_vec[probi][i] > 0)
+							in_target = true;
+					}
 				}
-				
+
 				//TODO: we need to handle val_yes somehow
 				// (allow for round-off: continuing within a target end component gives the same
-				// value, which must not count as better, or the individual values are never set)
-				if (val_yes == 0 || d1 > val_yes + near_zero) {
+				// value, which must not count as better, or the individual values are never set;
+				// and check target membership, since val_yes is 0 if all its objectives have weight 0)
+				if (!in_target || d1 > val_yes + near_zero) {
 					for (int it = 0; it < lenProb + lenRew; it++) {
 						if (it != ignoredWeight) {
 							psoln2[it][i] = pd1[it];
