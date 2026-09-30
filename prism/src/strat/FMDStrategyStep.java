@@ -106,7 +106,26 @@ public class FMDStrategyStep<Value> extends StrategyExplicit<Value>
 		// Only defined for 0...k-1
 		return m < k ? choices.get(s).getChoiceForStep(m) : -1;
 	}
-	
+
+	@Override
+	public UndefinedReason whyUndefined(int s, int m)
+	{
+		// After k steps, any choice is fine
+		if (m >= k) {
+			return UndefinedReason.ARBITRARY;
+		}
+		switch (getChoiceIndex(s, m)) {
+		case -1:
+			return UndefinedReason.UNKNOWN;
+		case -2:
+			return UndefinedReason.ARBITRARY;
+		case -3:
+			return UndefinedReason.UNREACHABLE;
+		default:
+			return null;
+		}
+	}
+
 	@Override
 	public int getMemorySize()
 	{
