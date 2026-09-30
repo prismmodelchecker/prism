@@ -870,17 +870,9 @@ public class UMDPModelChecker extends ProbModelChecker
 					strat[i] = -2;
 				}
 			} else {
-				// If max reward is infinite, there is at least one choice giving infinity.
-				// So we pick, for all "inf" states, the first choice for which some transitions stays in "inf".
-				for (int i = inf.nextSetBit(0); i >= 0; i = inf.nextSetBit(i + 1)) {
-					int numChoices = umdp.getNumChoices(i);
-					for (int k = 0; k < numChoices; k++) {
-						if (umdp.someSuccessorsInSet(i, k, inf)) {
-							strat[i] = k;
-							break;
-						}
-					}
-				}
+				// If max reward is infinite, there is at least one choice giving infinity,
+				// i.e., avoiding the target with positive probability
+				mcMDP.addStrategyChoicesForInfStates(umdp, target, inf, strat);
 			}
 		}
 

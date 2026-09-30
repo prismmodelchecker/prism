@@ -654,6 +654,56 @@ public class MDPModelChecker extends ProbModelChecker
 	}
 
 	/**
+	 * For max expected reachability rewards, where not reaching the target
+	 * gives infinite reward, generate strategy choices for the "inf" states,
+	 * i.e., those from which the target can be avoided with positive probability.
+	 * First, find the states from which the target can be avoided forever
+	 * with probability 1 (Prob0E) and pick choices that stay there. Then, working backwards,
+	 * pick, for each remaining "inf" state, a choice which moves with positive probability
+	 * to a state that has already been dealt with.
+	 * NB: Picking any choice that stays in "inf" with positive probability is not enough:
+	 * it may still reach the target with probability 1.
+	 * @param model The MDP (or other nondeterministic model with a fixed graph structure)
+	 * @param target Target states
+	 * @param inf States whose (max) value is infinite
+	 * @param strat Strategy choice indices, to be updated for "inf" states
+	 */
+	public void addStrategyChoicesForInfStates(NondetModel<?> model, BitSet target, BitSet inf, int strat[])
+	{
+		// States from which the target can be avoided with probability 1: stay there
+		BitSet done = prob0(model, null, target, true, null);
+		done.and(inf);
+		for (int s = done.nextSetBit(0); s >= 0; s = done.nextSetBit(s + 1)) {
+			int numChoices = model.getNumChoices(s);
+			for (int k = 0; k < numChoices; k++) {
+				if (model.allSuccessorsInSet(s, k, done)) {
+					strat[s] = k;
+					break;
+				}
+			}
+		}
+		// Other "inf" states: move towards those dealt with already
+		boolean changed = true;
+		while (changed) {
+			BitSet doneNew = new BitSet();
+			BitSet todo = (BitSet) inf.clone();
+			todo.andNot(done);
+			for (int s = todo.nextSetBit(0); s >= 0; s = todo.nextSetBit(s + 1)) {
+				int numChoices = model.getNumChoices(s);
+				for (int k = 0; k < numChoices; k++) {
+					if (model.someSuccessorsInSet(s, k, done)) {
+						strat[s] = k;
+						doneNew.set(s);
+						break;
+					}
+				}
+			}
+			changed = !doneNew.isEmpty();
+			done.or(doneNew);
+		}
+	}
+
+	/**
 	 * Prob1 precomputation algorithm.
 	 * i.e. determine the states of an MDP which, with min/max probability 1,
 	 * reach a state in {@code target}, while remaining in those in {@code remain}.
@@ -2478,17 +2528,9 @@ public class MDPModelChecker extends ProbModelChecker
 					strat[i] = -2;
 				}
 			} else {
-				// If max reward is infinite, there is at least one choice giving infinity.
-				// So we pick, for all "inf" states, the first choice for which some transitions stays in "inf".
-				for (int i = inf.nextSetBit(0); i >= 0; i = inf.nextSetBit(i + 1)) {
-					int numChoices = mdp.getNumChoices(i);
-					for (int k = 0; k < numChoices; k++) {
-						if (mdp.someSuccessorsInSet(i, k, inf)) {
-							strat[i] = k;
-							break;
-						}
-					}
-				}
+				// If max reward is infinite, there is at least one choice giving infinity,
+				// i.e., avoiding the target with positive probability
+				addStrategyChoicesForInfStates(mdp, target, inf, strat);
 			}
 		}
 
