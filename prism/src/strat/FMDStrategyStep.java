@@ -42,7 +42,9 @@ import prism.PrismLog;
 /**
  * Class to store finite-memory deterministic (FMD) strategies
  * giving a different choice for each state across k steps of execution.
- * So the memory is simply the number of elapsed steps.
+ * So the memory is simply the number of elapsed steps (up to k).
+ * Optionally, a memoryless "tail" strategy gives the choices after k steps;
+ * otherwise, choices after k steps are arbitrary.
  */
 public class FMDStrategyStep<Value> extends StrategyExplicit<Value>
 {
@@ -50,8 +52,10 @@ public class FMDStrategyStep<Value> extends StrategyExplicit<Value>
 	private int numStates;
 	// Max number of steps considered
 	private int k;
-	// Memoryless strategy over product model
+	// Choices for each state, for each step 0...k-1
 	private ArrayList<StepChoices> choices;
+	// Optional memoryless strategy for after k steps
+	private MDStrategy<Value> tail = null;
 	
 	/**
 	 * Create a blank FMDStrategyStep for a specified model and maximum step count.
@@ -87,6 +91,36 @@ public class FMDStrategyStep<Value> extends StrategyExplicit<Value>
 		}
 	}
 	
+	/**
+	 * Get the maximum number of steps k for which choices are stored.
+	 */
+	public int getNumSteps()
+	{
+		return k;
+	}
+
+	/**
+	 * Set the choices to be taken in all states at steps offset...offset+k'-1
+	 * to be those of another FMDStrategyStep {@code other} (with step bound k')
+	 * at steps 0...k'-1.
+	 */
+	public void setStepChoicesFrom(FMDStrategyStep<?> other, int offset)
+	{
+		for (int s = 0; s < numStates; s++) {
+			for (int i = 0; i < other.k; i++) {
+				choices.get(s).setChoiceForStep(offset + i, other.getChoiceIndex(s, i));
+			}
+		}
+	}
+
+	/**
+	 * Set a (memoryless) strategy for the choices to be taken after k steps.
+	 */
+	public void setTail(MDStrategy<Value> tail)
+	{
+		this.tail = tail;
+	}
+
 	@Override
 	public Memory memory()
 	{
@@ -96,6 +130,10 @@ public class FMDStrategyStep<Value> extends StrategyExplicit<Value>
 	@Override
 	public Object getChoiceAction(int s, int m)
 	{
+		// After k steps, use the tail strategy, if present
+		if (m >= k && tail != null) {
+			return tail.getChoiceAction(s);
+		}
 		int c = getChoiceIndex(s, m);
 		return c >= 0 ? model.getAction(s, c) : Strategy.UNDEFINED;
 	}
@@ -103,16 +141,19 @@ public class FMDStrategyStep<Value> extends StrategyExplicit<Value>
 	@Override
 	public int getChoiceIndex(int s, int m)
 	{
-		// Only defined for 0...k-1
-		return m < k ? choices.get(s).getChoiceForStep(m) : -1;
+		// After k steps, use the tail strategy, if present
+		if (m >= k) {
+			return tail != null ? tail.getChoiceIndex(s) : -1;
+		}
+		return choices.get(s).getChoiceForStep(m);
 	}
 
 	@Override
 	public UndefinedReason whyUndefined(int s, int m)
 	{
-		// After k steps, any choice is fine
+		// After k steps, use the tail strategy, if present; otherwise, any choice is fine
 		if (m >= k) {
-			return UndefinedReason.ARBITRARY;
+			return tail != null ? tail.whyUndefined(s, -1) : UndefinedReason.ARBITRARY;
 		}
 		switch (getChoiceIndex(s, m)) {
 		case -1:
@@ -160,7 +201,7 @@ public class FMDStrategyStep<Value> extends StrategyExplicit<Value>
 		List<State> states = model.getStatesList();
 		boolean showStates = options.getShowStates() && states != null;
 		for (int s = 0; s < numStates; s++) {
-			for (int m = 0; m < k; m++) {
+			for (int m = 0; m < (tail != null ? k + 1 : k); m++) {
 				if (isChoiceDefined(s, m)) {
 					out.println((showStates ? states.get(s) : s) + "," + m + "=" + getChoiceActionString(s, m));
 				}
@@ -172,7 +213,7 @@ public class FMDStrategyStep<Value> extends StrategyExplicit<Value>
 	public void exportIndices(PrismLog out, StrategyExportOptions options)
 	{
 		for (int s = 0; s < numStates; s++) {
-			for (int m = 0; m < k; m++) {
+			for (int m = 0; m < (tail != null ? k + 1 : k); m++) {
 				if (isChoiceDefined(s, m)) {
 					out.println(s + "," + m + "=" + getChoiceIndex(s, m));
 				}
@@ -190,7 +231,7 @@ public class FMDStrategyStep<Value> extends StrategyExplicit<Value>
 	public String toString()
 	{
 		return "[" + IntStream.range(0, getNumStates())
-				.mapToObj(s -> IntStream.range(0, k)
+				.mapToObj(s -> IntStream.range(0, tail != null ? k + 1 : k)
 				.mapToObj(m -> s + "," + m + "=" + getChoiceActionString(s, m))
 				.collect(Collectors.joining(",")))
 				.collect(Collectors.joining(",")) + "]";

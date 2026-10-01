@@ -255,6 +255,16 @@ public class MDPModelChecker extends ProbModelChecker
 	 */
 	public double[] computeRestrictedNext(MDP<Double> mdp, BitSet a, double[] x, boolean min)
 	{
+		return computeRestrictedNext(mdp, a, x, min, null);
+	}
+
+	/**
+	 * As {@link #computeRestrictedNext(MDP, BitSet, double[], boolean)},
+	 * optionally storing the optimal choice for each state in {@code a} in {@code strat}
+	 * (if non-null; entries for other states are not changed).
+	 */
+	protected double[] computeRestrictedNext(MDP<Double> mdp, BitSet a, double[] x, boolean min, int strat[])
+	{
 		int n;
 		double soln[];
 
@@ -266,9 +276,72 @@ public class MDPModelChecker extends ProbModelChecker
 
 		// Next-step probabilities multiplication
 		// restricted to a states
-		mdp.mvMultMinMax(x, min, soln, a, false, null);
+		mdp.mvMultMinMax(x, min, soln, a, false, strat);
 
 		return soln;
+	}
+
+	/**
+	 * Perform the lower-bound phase of the computation of probabilities for an
+	 * interval-bounded until, i.e., given the probabilities {@code x} for the
+	 * remaining (window) steps, do {@code lowerBound} steps of
+	 * {@link #computeRestrictedNext(MDP, BitSet, double[], boolean)}.
+	 * If required, also build a strategy, comprising the choices for the first
+	 * {@code lowerBound} steps, followed by those from {@code windowStrat},
+	 * the strategy (if any) for the window steps: either step-dependent
+	 * (an FMDStrategyStep, for a bounded window) or memoryless (for an unbounded one).
+	 * @param mdp The MDP
+	 * @param remain Remain in these states
+	 * @param x Probabilities for the window steps
+	 * @param lowerBound Lower bound on steps
+	 * @param min Min or max probabilities (true=min, false=max)
+	 * @param windowStrat Strategy for the window steps (null if none)
+	 */
+	public ModelCheckerResult computeBoundedUntilLowerBoundProbs(MDP<Double> mdp, BitSet remain, double[] x, int lowerBound, boolean min, Strategy<Double> windowStrat)
+	{
+		int n = mdp.getNumStates();
+		double[] soln = x;
+
+		// Store strategy choices for each of the first lowerBound steps, if required
+		FMDStrategyStep<Double> strat = null;
+		int stepChoices[] = null;
+		if (genStrat) {
+			int windowSteps = windowStrat instanceof FMDStrategyStep ? ((FMDStrategyStep<Double>) windowStrat).getNumSteps() : 0;
+			strat = new FMDStrategyStep<>(mdp, lowerBound + windowSteps);
+			stepChoices = new int[n];
+		}
+
+		// Do lowerBound restricted next-step computations
+		// (computed backwards, from the last of the lowerBound steps)
+		for (int i = lowerBound - 1; i >= 0; i--) {
+			if (genStrat) {
+				Arrays.fill(stepChoices, -1);
+			}
+			soln = computeRestrictedNext(mdp, remain, soln, min, stepChoices);
+			if (genStrat) {
+				// States outside "remain" have probability 0, so any choice is fine there
+				for (int s = remain.nextClearBit(0); s < n; s = remain.nextClearBit(s + 1)) {
+					stepChoices[s] = -2;
+				}
+				strat.setStepChoices(i, stepChoices);
+			}
+		}
+
+		// Return results
+		ModelCheckerResult res = new ModelCheckerResult();
+		res.accuracy = AccuracyFactory.boundedNumericalIterations();
+		res.soln = soln;
+		res.numIters = lowerBound;
+		if (genStrat) {
+			// Append the strategy for the window steps
+			if (windowStrat instanceof FMDStrategyStep) {
+				strat.setStepChoicesFrom((FMDStrategyStep<Double>) windowStrat, lowerBound);
+			} else if (windowStrat instanceof MDStrategy) {
+				strat.setTail((MDStrategy<Double>) windowStrat);
+			}
+			res.strat = strat;
+		}
+		return res;
 	}
 
 	/**

@@ -1,0 +1,15 @@
+# Transitions (DTMC)
+3 3
+0 1 1 a
+1 2 1 b
+2 2 1
+
+# States
+(_mem,s)
+0:(0,0)
+1:(1,1)
+2:(2,2)
+
+# Labels
+0="init" 1="deadlock" 2="goal"
+0: 0

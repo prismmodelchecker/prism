@@ -1,0 +1,4 @@
+-ex -prop 1 -exportstrat exportstratstep.nm.interval.props.1.pexp:type=induced,mode=reduce
+-ex -prop 2 -exportstrat exportstratstep.nm.interval.props.2.pexp:type=induced,mode=reduce
+-ex -prop 3 -exportstrat exportstratstep.nm.interval.props.3.pexp:type=induced,mode=reduce
+-ex -prop 4 -exportstrat exportstratstep.nm.interval.props.4.pexp:type=induced,mode=reduce

@@ -1,0 +1,11 @@
+// RESULT: 1.0
+Pmax=? [ F[1,2] "goal" ];
+
+// RESULT: 0.0
+Pmin=? [ F[1,2] "goal" ];
+
+// RESULT: 1.0
+Pmax=? [ F[2,2] "goal" ];
+
+// RESULT: 1.0
+Pmax=? [ F>=2 "goal" ];
