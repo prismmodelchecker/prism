@@ -604,6 +604,8 @@ public class UMDPModelChecker extends ProbModelChecker
 		ECComputer ecs = ECComputer.createECComputer(this, umdp);
 		BitSet positiveECs = new BitSet();
 		final int[] stratFinal = strat;
+		// (and the predecessor relation, if used, for strategy generation)
+		final PredecessorRelation preFinal = (strat != null && preRel) ? umdp.getPredecessorRelation(this, true) : null;
 		ecs.computeMECStatesStreaming(ec -> {
 			boolean positiveEC = false;
 			int posState = -1, posChoice = -1;
@@ -632,7 +634,7 @@ public class UMDPModelChecker extends ProbModelChecker
 					stratFinal[posState] = posChoice;
 					BitSet done = new BitSet();
 					done.set(posState);
-					MDPModelChecker.addAttractorChoices(umdp, done, ec, ec, stratFinal);
+					MDPModelChecker.addAttractorChoices(umdp, done, ec, ec, stratFinal, preFinal);
 				}
 			}
 		});
@@ -647,7 +649,7 @@ public class UMDPModelChecker extends ProbModelChecker
 		// For strategy generation, the choices for states in positive ECs were generated above;
 		// for other "inf" states, move towards these (with positive probability)
 		if (genStrat) {
-			MDPModelChecker.addAttractorChoices(umdp, (BitSet) positiveECs.clone(), inf, null, strat);
+			MDPModelChecker.addAttractorChoices(umdp, (BitSet) positiveECs.clone(), inf, null, strat, preFinal);
 		}
 
 		res = computeTotalRewardsNumeric(umdp, umdpRewards, minMax, inf, strat, 1.0);
@@ -895,7 +897,7 @@ public class UMDPModelChecker extends ProbModelChecker
 			} else {
 				// If max reward is infinite, there is at least one choice giving infinity,
 				// i.e., avoiding the target with positive probability
-				mcMDP.addStrategyChoicesForInfStates(umdp, target, inf, strat);
+				mcMDP.addStrategyChoicesForInfStates(umdp, inf, strat);
 			}
 		}
 

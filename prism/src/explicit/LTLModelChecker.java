@@ -1093,7 +1093,8 @@ public class LTLModelChecker extends PrismComponent
 		ecAcc.andNot(done);
 		MDPModelChecker.addStayChoices(model, ecAcc, ec, strat);
 		ecDone.or(ecAcc);
-		MDPModelChecker.addAttractorChoices(model, ecDone, ec, ec, strat);
+		PredecessorRelation pre = getSettings().getBoolean(PrismSettings.PRISM_PRE_REL) ? model.getPredecessorRelation(this, true) : null;
+		MDPModelChecker.addAttractorChoices(model, ecDone, ec, ec, strat, pre);
 	}
 
 	/**

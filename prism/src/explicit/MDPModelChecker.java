@@ -745,21 +745,90 @@ public class MDPModelChecker extends ProbModelChecker
 	 * with probability 1 (Prob0E) and pick choices that stay there. Then, working backwards,
 	 * pick, for each remaining "inf" state, a choice which moves with positive probability
 	 * to a state that has already been dealt with.
+	 * Since the target is reached with probability 1 from all other states,
+	 * the Prob0E states are those from which it is possible to stay in "inf" forever,
+	 * so they are found within "inf", rather than with a full Prob0 computation.
 	 * NB: Picking any choice that stays in "inf" with positive probability is not enough:
 	 * it may still reach the target with probability 1.
 	 * @param model The MDP (or other nondeterministic model with a fixed graph structure)
-	 * @param target Target states
 	 * @param inf States whose (max) value is infinite
 	 * @param strat Strategy choice indices, to be updated for "inf" states
 	 */
-	public void addStrategyChoicesForInfStates(NondetModel<?> model, BitSet target, BitSet inf, int strat[])
+	public void addStrategyChoicesForInfStates(NondetModel<?> model, BitSet inf, int strat[])
 	{
+		PredecessorRelation pre = preRel ? model.getPredecessorRelation(this, true) : null;
 		// States from which the target can be avoided with probability 1: stay there
-		BitSet done = prob0(model, null, target, true, null);
-		done.and(inf);
+		BitSet done = findStayStates(model, inf, pre);
 		addStayChoices(model, done, done, strat);
 		// Other "inf" states: move towards those dealt with already
-		addAttractorChoices(model, done, inf, null, strat);
+		addAttractorChoices(model, done, inf, null, strat, pre);
+	}
+
+	/**
+	 * Find the largest subset of {@code states} from which it is possible to stay
+	 * in that subset forever, i.e., in which each state has a choice whose successors
+	 * all lie in the subset. If a predecessor relation {@code pre} is provided,
+	 * a worklist is used (only rechecking predecessors of removed states);
+	 * otherwise, the states are repeatedly scanned.
+	 * @param model The model
+	 * @param states The states
+	 * @param pre Optionally, the predecessor relation of the model (null if not available)
+	 */
+	public static BitSet findStayStates(NondetModel<?> model, BitSet states, PredecessorRelation pre)
+	{
+		BitSet stay = (BitSet) states.clone();
+		if (pre == null) {
+			boolean changed = true;
+			while (changed) {
+				changed = false;
+				for (int s = stay.nextSetBit(0); s >= 0; s = stay.nextSetBit(s + 1)) {
+					if (!hasStayChoice(model, s, stay)) {
+						stay.clear(s);
+						changed = true;
+					}
+				}
+			}
+			return stay;
+		}
+		// Worklist of removed states, whose predecessors need rechecking
+		int removed[] = new int[16];
+		int numRemoved = 0;
+		for (int s = states.nextSetBit(0); s >= 0; s = states.nextSetBit(s + 1)) {
+			if (!hasStayChoice(model, s, stay)) {
+				stay.clear(s);
+				if (numRemoved == removed.length) {
+					removed = Arrays.copyOf(removed, 2 * removed.length);
+				}
+				removed[numRemoved++] = s;
+			}
+		}
+		while (numRemoved > 0) {
+			int t = removed[--numRemoved];
+			for (int p : pre.getPre(t)) {
+				if (stay.get(p) && !hasStayChoice(model, p, stay)) {
+					stay.clear(p);
+					if (numRemoved == removed.length) {
+						removed = Arrays.copyOf(removed, 2 * removed.length);
+					}
+					removed[numRemoved++] = p;
+				}
+			}
+		}
+		return stay;
+	}
+
+	/**
+	 * Check whether state {@code s} has a choice whose successors all lie in {@code set}.
+	 */
+	private static boolean hasStayChoice(NondetModel<?> model, int s, BitSet set)
+	{
+		int numChoices = model.getNumChoices(s);
+		for (int k = 0; k < numChoices; k++) {
+			if (model.allSuccessorsInSet(s, k, set)) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	/**
@@ -790,13 +859,77 @@ public class MDPModelChecker extends ProbModelChecker
 	 * a choice which moves with positive probability to a state that has already been dealt with
 	 * (and, if {@code stayIn} is non-null, whose successors all stay in {@code stayIn}).
 	 * States in {@code todo} for which no such choice is found are left unchanged.
+	 * If a predecessor relation {@code pre} is provided, this is done by a backward search,
+	 * in time linear in the size of the relevant part of the model; otherwise,
+	 * the states of {@code todo} are repeatedly scanned, which can take quadratic time.
+	 * Both give the same choices.
 	 * @param model The model
 	 * @param done States already dealt with (updated with those dealt with here)
 	 * @param todo States to generate choices for
 	 * @param stayIn Optionally, states that choices must stay within (null means "all")
 	 * @param strat Strategy choice indices, to be updated
+	 * @param pre Optionally, the predecessor relation of the model (null if not available)
 	 */
-	public static void addAttractorChoices(NondetModel<?> model, BitSet done, BitSet todo, BitSet stayIn, int strat[])
+	public static void addAttractorChoices(NondetModel<?> model, BitSet done, BitSet todo, BitSet stayIn, int strat[], PredecessorRelation pre)
+	{
+		if (pre == null) {
+			addAttractorChoicesNoPre(model, done, todo, stayIn, strat);
+			return;
+		}
+		// Backward search, layer by layer: in each round, states not dealt with yet whose choice
+		// moves to the states dealt with so far (as in the forward version) can only be predecessors
+		// of the states newly dealt with in the previous round, so only these need checking.
+		// Layers are stored as lists of states; candidates are marked in a BitSet, cleared after use.
+		int layer[] = new int[Math.max(done.cardinality(), 16)];
+		int layerSize = 0;
+		for (int s = done.nextSetBit(0); s >= 0; s = done.nextSetBit(s + 1)) {
+			layer[layerSize++] = s;
+		}
+		BitSet candidate = new BitSet();
+		int candidates[] = new int[16];
+		while (layerSize > 0) {
+			// Find candidates: predecessors (in todo, not done) of the states in the last layer
+			int numCandidates = 0;
+			for (int i = 0; i < layerSize; i++) {
+				for (int p : pre.getPre(layer[i])) {
+					if (todo.get(p) && !done.get(p) && !candidate.get(p)) {
+						candidate.set(p);
+						if (numCandidates == candidates.length) {
+							candidates = Arrays.copyOf(candidates, 2 * candidates.length);
+						}
+						candidates[numCandidates++] = p;
+					}
+				}
+			}
+			// Pick choices for candidates (wrt the states done before this round)
+			// and store those found as the next layer
+			layerSize = 0;
+			for (int i = 0; i < numCandidates; i++) {
+				int s = candidates[i];
+				candidate.clear(s);
+				int numChoices = model.getNumChoices(s);
+				for (int k = 0; k < numChoices; k++) {
+					if (model.someSuccessorsInSet(s, k, done) && (stayIn == null || model.allSuccessorsInSet(s, k, stayIn))) {
+						strat[s] = k;
+						if (layerSize == layer.length) {
+							layer = Arrays.copyOf(layer, 2 * layer.length);
+						}
+						layer[layerSize++] = s;
+						break;
+					}
+				}
+			}
+			for (int i = 0; i < layerSize; i++) {
+				done.set(layer[i]);
+			}
+		}
+	}
+
+	/**
+	 * Version of {@link #addAttractorChoices(NondetModel, BitSet, BitSet, BitSet, int[], PredecessorRelation)}
+	 * without a predecessor relation: repeatedly scan the states in {@code todo}.
+	 */
+	private static void addAttractorChoicesNoPre(NondetModel<?> model, BitSet done, BitSet todo, BitSet stayIn, int strat[])
 	{
 		boolean changed = true;
 		while (changed) {
@@ -2400,6 +2533,8 @@ public class MDPModelChecker extends ProbModelChecker
 			ECComputer ecs = ECComputer.createECComputer(this, mdp);
 			BitSet positiveECs = new BitSet();
 			final int[] stratFinal = strat;
+			// (and the predecessor relation, if used, for strategy generation)
+			final PredecessorRelation preFinal = (strat != null && preRel) ? mdp.getPredecessorRelation(this, true) : null;
 			int[] mecCount = {0};
 			StopWatch mecTimer = new StopWatch(getLog());
 			mecTimer.start("MEC computation");
@@ -2436,7 +2571,7 @@ public class MDPModelChecker extends ProbModelChecker
 						stratFinal[posState] = posChoice;
 						BitSet done = new BitSet();
 						done.set(posState);
-						addAttractorChoices(mdp, done, ec, ec, stratFinal);
+						addAttractorChoices(mdp, done, ec, ec, stratFinal, preFinal);
 					}
 				}
 				// ec is eligible for GC once this callback returns
@@ -2451,7 +2586,7 @@ public class MDPModelChecker extends ProbModelChecker
 			// For strategy generation, the choices for states in positive ECs were generated above;
 			// for other "inf" states, move towards these (with positive probability)
 			if (strat != null) {
-				addAttractorChoices(mdp, (BitSet) positiveECs.clone(), inf, null, strat);
+				addAttractorChoices(mdp, (BitSet) positiveECs.clone(), inf, null, strat, preFinal);
 			}
 
 			timerPre = System.currentTimeMillis() - timerPre;
@@ -2665,7 +2800,7 @@ public class MDPModelChecker extends ProbModelChecker
 			} else {
 				// If max reward is infinite, there is at least one choice giving infinity,
 				// i.e., avoiding the target with positive probability
-				addStrategyChoicesForInfStates(mdp, target, inf, strat);
+				addStrategyChoicesForInfStates(mdp, inf, strat);
 			}
 		}
 
