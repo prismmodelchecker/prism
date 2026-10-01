@@ -3122,48 +3122,6 @@ public class MDPModelChecker extends ProbModelChecker
 	}
 
 	/**
-	 * Restrict a (memoryless) strategy for an MDP, stored as an integer array of choice indices,
-	 * to the states of the MDP that are reachable under that strategy.  
-	 * @param mdp The MDP
-	 * @param strat The strategy
-	 */
-	public <Value> void restrictStrategyToReachableStates(MDP<Value> mdp, int strat[])
-	{
-		BitSet restrict = new BitSet();
-		BitSet explore = new BitSet();
-		// Get initial states
-		for (int is : mdp.getInitialStates()) {
-			restrict.set(is);
-			explore.set(is);
-		}
-		// Compute reachable states (store in 'restrict') 
-		boolean foundMore = true;
-		while (foundMore) {
-			foundMore = false;
-			for (int s = explore.nextSetBit(0); s >= 0; s = explore.nextSetBit(s + 1)) {
-				explore.set(s, false);
-				if (strat[s] >= 0) {
-					Iterator<Map.Entry<Integer, Value>> iter = mdp.getTransitionsIterator(s, strat[s]);
-					while (iter.hasNext()) {
-						Map.Entry<Integer, Value> e = iter.next();
-						int dest = e.getKey();
-						if (!restrict.get(dest)) {
-							foundMore = true;
-							restrict.set(dest);
-							explore.set(dest);
-						}
-					}
-				}
-			}
-		}
-		// Set strategy choice for non-reachable state to -1
-		int n = mdp.getNumStates();
-		for (int s = restrict.nextClearBit(0); s < n; s = restrict.nextClearBit(s + 1)) {
-			strat[s] = -3;
-		}
-	}
-
-	/**
 	 * Compute the end component quotient (for use with PMax),
 	 * each maximal end component is collapsed to a single state,
 	 * likewise the yes and no regions, respectively.

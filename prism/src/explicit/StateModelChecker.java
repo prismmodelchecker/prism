@@ -98,8 +98,6 @@ public class StateModelChecker extends PrismComponent
 
 	// Generate/store a strategy during model checking?
 	protected boolean genStrat = false;
-	// Should any generated strategies should be restricted to the states reachable under them?
-	protected boolean restrictStratToReach = true;
 
 	// Do bisimulation minimisation before model checking?
 	protected boolean doBisim = false;
@@ -227,7 +225,6 @@ public class StateModelChecker extends PrismComponent
 		setExportProductVectorFilename(other.getExportProductVectorFilename());
 		setStoreVector(other.getStoreVector());
 		setGenStrat(other.getGenStrat());
-		setRestrictStratToReach(other.getRestrictStratToReach());
 		setDoBisim(other.getDoBisim());
 		setDoIntervalIteration(other.getDoIntervalIteration());
 		setDoPmaxQuotient(other.getDoPmaxQuotient());
@@ -305,14 +302,6 @@ public class StateModelChecker extends PrismComponent
 	public void setGenStrat(boolean genStrat)
 	{
 		this.genStrat = genStrat;
-	}
-
-	/**
-	 * Specify whether or not any generated strategies should be restricted to the states reachable under them.
-	 */
-	public void setRestrictStratToReach(boolean restrictStratToReach)
-	{
-		this.restrictStratToReach = restrictStratToReach;
 	}
 
 	/**
@@ -408,14 +397,6 @@ public class StateModelChecker extends PrismComponent
 	public boolean getGenStrat()
 	{
 		return genStrat;
-	}
-
-	/**
-	 * Whether or not any generated strategies should be restricted to the states reachable under them.
-	 */
-	public boolean getRestrictStratToReach()
-	{
-		return restrictStratToReach;
 	}
 
 	/**

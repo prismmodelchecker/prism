@@ -190,8 +190,6 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	protected boolean storeVector = false;
 	// Generate/store a strategy during model checking?
 	protected boolean genStrat = false;
-	// Should any generated strategies should be restricted to the states reachable under them?
-	protected boolean restrictStratToReach = true;
 	// Do bisimulation minimisation before model checking?
 	protected boolean doBisim = false;
 
@@ -749,14 +747,6 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	}
 
 	/**
-	 * Specify whether or not any generated strategies should be restricted to the states reachable under them.
-	 */
-	public void setRestrictStratToReach(boolean restrictStratToReach)
-	{
-		this.restrictStratToReach = restrictStratToReach;
-	}
-
-	/**
 	 * Specify whether or not to do bisimulation minimisation before model checking.
 	 */
 	public void setDoBisim(boolean doBisim)
@@ -1062,14 +1052,6 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	public boolean getGenStrat()
 	{
 		return genStrat;
-	}
-
-	/**
-	 * Whether or not any generated strategies should be restricted to the states reachable under them.
-	 */
-	public boolean getRestrictStratToReach()
-	{
-		return restrictStratToReach;
 	}
 
 	/**
@@ -4508,7 +4490,6 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 		mc.setExportProductVectorFilename(exportProductVectorFilename);
 		mc.setStoreVector(storeVector);
 		mc.setGenStrat(genStrat);
-		mc.setRestrictStratToReach(restrictStratToReach);
 		mc.setDoBisim(doBisim);
 
 		return mc;
