@@ -328,8 +328,8 @@ public class MDPModelChecker extends ProbModelChecker
 		}
 
 		// Return results
+		// (accuracy is not set: it is that of the window values, which are passed in)
 		ModelCheckerResult res = new ModelCheckerResult();
-		res.accuracy = AccuracyFactory.boundedNumericalIterations();
 		res.soln = soln;
 		res.numIters = lowerBound;
 		if (genStrat) {

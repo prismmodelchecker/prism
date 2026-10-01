@@ -50,6 +50,7 @@ import parser.type.TypeBool;
 import parser.type.TypeDouble;
 import parser.type.TypePathBool;
 import parser.type.TypePathDouble;
+import prism.Accuracy;
 import prism.AccuracyFactory;
 import prism.Evaluator;
 import prism.IntegerBound;
@@ -882,8 +883,11 @@ public class ProbModelChecker extends NonProbModelChecker
 				throw new PrismNotSupportedException("Cannot model check " + expr + " for " + model.getModelType() + "s");
 			}
 
+			// The lower-bound steps are computed exactly (up to floating point) and do not
+			// increase any (absolute or relative) error, so keep the accuracy of the window values
+			Accuracy windowAccuracy = sv.getAccuracy();
 			sv = StateValues.createFromDoubleArray(probs, model);
-			sv.setAccuracy(AccuracyFactory.boundedNumericalIterations());
+			sv.setAccuracy(windowAccuracy != null ? windowAccuracy : AccuracyFactory.boundedNumericalIterations());
 		}
 
 		return sv;
