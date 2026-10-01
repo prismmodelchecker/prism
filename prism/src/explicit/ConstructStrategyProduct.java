@@ -276,7 +276,8 @@ public class ConstructStrategyProduct
 				map[s_2 * memSize + q_2] = prodModel.getNumStates() - 1;
 				if (prodStatesList != null) {
 					// Store state information for the product
-					prodStatesList.add(new State(model.getStatesList().get(s_2), memStatesList.get(q_2)));
+					// (memory first, since the memory variable is added at the start of the VarList)
+					prodStatesList.add(new State(memStatesList.get(q_2), model.getStatesList().get(s_2)));
 				}
 			}
 			return map[s_2 * memSize + q_2];
