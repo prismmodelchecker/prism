@@ -151,20 +151,11 @@ public class FMDStrategyStep<Value> extends StrategyExplicit<Value>
 	@Override
 	public UndefinedReason whyUndefined(int s, int m)
 	{
-		// After k steps, use the tail strategy, if present; otherwise, any choice is fine
+		// After k steps, use the tail strategy, if present; otherwise, the step bound has passed
 		if (m >= k) {
-			return tail != null ? tail.whyUndefined(s, -1) : UndefinedReason.ARBITRARY;
+			return tail != null ? tail.whyUndefined(s, -1) : UndefinedReason.HORIZON;
 		}
-		switch (getChoiceIndex(s, m)) {
-		case -1:
-			return UndefinedReason.UNKNOWN;
-		case -2:
-			return UndefinedReason.ARBITRARY;
-		case -3:
-			return UndefinedReason.UNREACHABLE;
-		default:
-			return null;
-		}
+		return UndefinedReason.fromCode(getChoiceIndex(s, m));
 	}
 
 	@Override

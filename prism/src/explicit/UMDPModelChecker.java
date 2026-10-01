@@ -49,6 +49,7 @@ import strat.FMDStrategyProduct;
 import strat.MDStrategy;
 import strat.MDStrategyArray;
 import strat.Strategy;
+import strat.StrategyInfo.UndefinedReason;
 
 /**
  * Explicit-state model checker for uncertain Markov decision prcoesses (UMDPs).
@@ -312,12 +313,12 @@ public class UMDPModelChecker extends ProbModelChecker
 		soln2 = new double[n];
 
 		// If required, create/initialise strategy storage
-		// Set choices to -1, denoting unknown
-		// (except for target states, which are -2, denoting arbitrary)
+		// Set choices to unknown, except for target states (objective satisfied)
+		// and those outside target/remain (objective unsatisfiable)
 		if (genStrat) {
 			strat = new int[n];
 			for (i = 0; i < n; i++) {
-				strat[i] = target.get(i) ? -2 : -1;
+				strat[i] = target.get(i) ? UndefinedReason.SATISFIED.getCode() : (remain != null && !remain.get(i)) ? UndefinedReason.UNSATISFIABLE.getCode() : UndefinedReason.UNKNOWN.getCode();
 			}
 			fmdStrat = new FMDStrategyStep<>(umdp, k);
 		}
@@ -432,12 +433,12 @@ public class UMDPModelChecker extends ProbModelChecker
 		int n = umdp.getNumStates();
 
 		// If required, create/initialise strategy storage
-		// Set choices to -1, denoting unknown
-		// (except for target states, which are -2, denoting arbitrary)
+		// Set choices to unknown, except for target states (objective satisfied)
+		// and those outside target/remain (objective unsatisfiable)
 		if (genStrat) {
 			strat = new int[n];
 			for (int i = 0; i < n; i++) {
-				strat[i] = target.get(i) ? -2 : -1;
+				strat[i] = target.get(i) ? UndefinedReason.SATISFIED.getCode() : (remain != null && !remain.get(i)) ? UndefinedReason.UNSATISFIABLE.getCode() : UndefinedReason.UNKNOWN.getCode();
 			}
 		}
 
@@ -465,16 +466,25 @@ public class UMDPModelChecker extends ProbModelChecker
 		mainLog.println("target=" + target.cardinality() + ", yes=" + numYes + ", no=" + numNo + ", maybe=" + (n - (numYes + numNo)));
 
 		// If still required, store strategy for no/yes (0/1) states.
-		// This is just for the cases max=0 and min=1, where arbitrary choices suffice (denoted by -2)
+		// This is just for the cases max=0 and min=1, where any choice suffices:
+		// for min=1, all choices are equally good (arbitrary), for max=0
+		// the target can no longer be reached (unsatisfiable)
+		// (also, states outside target/remain are unsatisfiable, whatever precomputation did)
 		if (genStrat) {
 			if (minMax.isMin()) {
 				for (int i = yes.nextSetBit(0); i >= 0; i = yes.nextSetBit(i + 1)) {
 					if (!target.get(i))
-						strat[i] = -2;
+						strat[i] = UndefinedReason.ARBITRARY.getCode();
 				}
 			} else {
 				for (int i = no.nextSetBit(0); i >= 0; i = no.nextSetBit(i + 1)) {
-					strat[i] = -2;
+					strat[i] = UndefinedReason.UNSATISFIABLE.getCode();
+				}
+			}
+			if (remain != null) {
+				for (int i = remain.nextClearBit(0); i < n; i = remain.nextClearBit(i + 1)) {
+					if (!target.get(i))
+						strat[i] = UndefinedReason.UNSATISFIABLE.getCode();
 				}
 			}
 		}
@@ -842,12 +852,11 @@ public class UMDPModelChecker extends ProbModelChecker
 		int n = umdp.getNumStates();
 
 		// If required, create/initialise strategy storage
-		// Set choices to -1, denoting unknown
-		// (except for target states, which are -2, denoting arbitrary)
+		// Set choices to unknown, except for target states (objective satisfied)
 		if (genStrat) {
 			strat = new int[n];
 			for (int i = 0; i < n; i++) {
-				strat[i] = target.get(i) ? -2 : -1;
+				strat[i] = target.get(i) ? UndefinedReason.SATISFIED.getCode() : UndefinedReason.UNKNOWN.getCode();
 			}
 		}
 		
@@ -864,9 +873,9 @@ public class UMDPModelChecker extends ProbModelChecker
 		if (genStrat) {
 			if (minMax.isMin()) {
 				// If min reward is infinite, all choices give infinity
-				// So the choice can be arbitrary, denoted by -2; 
+				// So the choice can be arbitrary
 				for (int i = inf.nextSetBit(0); i >= 0; i = inf.nextSetBit(i + 1)) {
-					strat[i] = -2;
+					strat[i] = UndefinedReason.ARBITRARY.getCode();
 				}
 			} else {
 				// If max reward is infinite, there is at least one choice giving infinity,

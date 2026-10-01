@@ -103,6 +103,12 @@ public abstract class StrategyWithStates<Value> implements Strategy<Value>, Stra
 	}
 	
 	@Override
+	public UndefinedReason getCurrentUndefinedReason()
+	{
+		return getCurrentChoiceAction() == UNDEFINED ? whyUndefined(currentStateIndex, currentMemory) : null;
+	}
+
+	@Override
 	public int getCurrentMemory()
 	{
 		return currentMemory;

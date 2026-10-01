@@ -149,6 +149,9 @@ public interface Strategy<Value> extends StrategyInfo<Value>
 			case UNKNOWN:
 				return "?";
 			case ARBITRARY:
+			case SATISFIED:
+			case UNSATISFIABLE:
+			case HORIZON:
 				return "";
 			case UNREACHABLE:
 				return "-";

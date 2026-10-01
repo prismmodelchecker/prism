@@ -66,9 +66,57 @@ public interface StrategyInfo<Value>
 	/** Action returned when choice is undefined by strategy */
 	public static final Object UNDEFINED = "?";
 	
-	/** Possible reasons for a choice being undefined */
+	/**
+	 * Possible reasons for a choice being undefined by a strategy.
+	 * When strategy choices are stored as (non-negative) choice indices in an array,
+	 * these are represented by the negative integers given by {@link #getCode()}.
+	 */
 	public enum UndefinedReason {
-		UNKNOWN, ARBITRARY, UNREACHABLE;
+		/** No information is available about the choice (in a state where it matters, this indicates an issue) */
+		UNKNOWN(-1),
+		/** Any choice is fine: all are equally good (but the objective is not yet decided) */
+		ARBITRARY(-2),
+		/** The state (and memory, if applicable) cannot be reached under the strategy */
+		UNREACHABLE(-3),
+		/** The objective has been satisfied (e.g., a target has been reached), so later choices do not matter */
+		SATISFIED(-4),
+		/** The objective can no longer be satisfied, so later choices do not matter */
+		UNSATISFIABLE(-5),
+		/** The step bound of the objective has been passed, so later choices do not matter */
+		HORIZON(-6);
+
+		private final int code;
+
+		private UndefinedReason(int code)
+		{
+			this.code = code;
+		}
+
+		/**
+		 * Get the (negative) integer used to represent this reason
+		 * when strategy choice indices are stored in an array.
+		 */
+		public int getCode()
+		{
+			return code;
+		}
+
+		/**
+		 * Get the reason represented by a strategy choice index stored in an array,
+		 * if it is negative (UNKNOWN if not recognised), or null if it is non-negative.
+		 */
+		public static UndefinedReason fromCode(int choice)
+		{
+			if (choice >= 0) {
+				return null;
+			}
+			for (UndefinedReason reason : values()) {
+				if (reason.code == choice) {
+					return reason;
+				}
+			}
+			return UNKNOWN;
+		}
 	};
 	
 	// Methods

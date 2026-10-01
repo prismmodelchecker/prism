@@ -84,6 +84,22 @@ public class FMDStrategyProduct<Value> extends StrategyExplicit<Value>
 		return i == -1 ? -1 : strat.getChoiceIndex(i);
 	}
 	
+	@Override
+	public UndefinedReason whyUndefined(int s, int m)
+	{
+		// Unknown memory value: no information
+		if (m == -1) {
+			return UndefinedReason.UNKNOWN;
+		}
+		// No matching product state: (s,m) cannot be reached
+		int i = findMatchingProductState(s, m);
+		if (i == -1) {
+			return UndefinedReason.UNREACHABLE;
+		}
+		// Otherwise, use the reason from the strategy for the product
+		return strat.whyUndefined(i, -1);
+	}
+
 	/**
 	 * Find the index of a state (s,m) in the product, if there is one
 	 */

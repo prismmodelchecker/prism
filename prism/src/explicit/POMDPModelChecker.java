@@ -45,6 +45,7 @@ import explicit.rewards.MDPRewards;
 import explicit.rewards.StateRewardsSimple;
 import prism.*;
 import strat.FMDObsStrategyBeliefs;
+import strat.StrategyInfo.UndefinedReason;
 import strat.StrategyExportOptions;
 
 /**
@@ -248,6 +249,8 @@ public class POMDPModelChecker extends ProbModelChecker
 		FMDObsStrategyBeliefs stratFmdObs = null;
 		if (genStrat) {
 			stratFmdObs = new FMDObsStrategyBeliefs<>(pomdp, psm.mdp, psm.mdpStates, psm.unobsBeliefs);
+			// Non-target states not explored cannot reach the target (while remaining in "remain")
+			stratFmdObs.setReasonNonTarget(UndefinedReason.UNSATISFIABLE);
 		}
 
 		// Create MDP model checker (disable strat generation - if enabled, we want the POMDP one)
@@ -444,6 +447,8 @@ public class POMDPModelChecker extends ProbModelChecker
 		FMDObsStrategyBeliefs stratFmdObs = null;
 		if (genStrat) {
 			stratFmdObs = new FMDObsStrategyBeliefs<>(pomdp, psm.mdp, psm.mdpStates, psm.unobsBeliefs);
+			// Non-target states not explored have infinite expected reward: any choice is fine
+			stratFmdObs.setReasonNonTarget(UndefinedReason.ARBITRARY);
 		}
 
 		// Create MDP model checker (disable strat generation - if enabled, we want the POMDP one) 

@@ -24,6 +24,9 @@ public class MRStrategy<Value> extends StrategyExplicit<Value>
 	// Probability of selecting choice indices in each state
 	protected List<Distribution<Value>> choiceProbs;
 
+	/** Reasons why choices are undefined, for states with no choice probabilities (null if none set) */
+	private UndefinedReason[] undefinedReasons = null;
+
 	/**
 	 * Create a blank MRStrategy for a specified model.
 	 */
@@ -43,6 +46,29 @@ public class MRStrategy<Value> extends StrategyExplicit<Value>
 	public void setChoiceProbability(int s, int i, Value p)
 	{
 		choiceProbs.get(s).set(i, p);
+	}
+
+	/**
+	 * Set the reason why the choice in state s is undefined
+	 * (i.e., if no choice probabilities are set for it).
+	 * If not set, the reason is UNKNOWN.
+	 */
+	public void setUndefinedReason(int s, UndefinedReason reason)
+	{
+		if (undefinedReasons == null) {
+			undefinedReasons = new UndefinedReason[getNumStates()];
+		}
+		undefinedReasons[s] = reason;
+	}
+
+	@Override
+	public UndefinedReason whyUndefined(int s, int m)
+	{
+		if (!choiceProbs.get(s).isEmpty()) {
+			return null;
+		}
+		UndefinedReason reason = undefinedReasons == null ? null : undefinedReasons[s];
+		return reason == null ? UndefinedReason.UNKNOWN : reason;
 	}
 
 	@Override

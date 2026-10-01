@@ -106,6 +106,16 @@ public interface StrategyGenerator<Value> extends StrategyInfo<Value>
 	}
 	
 	/**
+	 * Optionally, get the reason why the choice of the strategy in the current state is undefined,
+	 * if it is (see {@link StrategyInfo.UndefinedReason}). Returns null if there is no reason.
+	 */
+	public default UndefinedReason getCurrentUndefinedReason()
+	{
+		// No reason provided by default
+		return null;
+	}
+
+	/**
 	 * Get the current value of the memory for the strategy (-1 if not applicable).
 	 */
 	public int getCurrentMemory();

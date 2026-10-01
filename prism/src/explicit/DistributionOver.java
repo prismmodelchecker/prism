@@ -109,7 +109,7 @@ public class DistributionOver<Value,T> implements Iterable<Entry<T, Value>>
 	 */
 	public String getSupportString()
 	{
-		return distr.getSupport().stream().map(i -> objects.apply(i).toString()).collect(Collectors.joining(","));
+		return distr.getSupport().stream().map(i -> Objects.toString(objects.apply(i), "")).collect(Collectors.joining(","));
 	}
 
 	/**
@@ -136,7 +136,7 @@ public class DistributionOver<Value,T> implements Iterable<Entry<T, Value>>
 	public String toString()
 	{
 		return StreamSupport.stream(distr.spliterator(), false)
-				.map(e -> e.getValue() + ":" + objects.apply(e.getKey()))
+				.map(e -> e.getValue() + ":" + Objects.toString(objects.apply(e.getKey()), ""))
 				.collect(Collectors.joining("+"));
 	}
 }
