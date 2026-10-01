@@ -70,6 +70,8 @@ import automata.LTL2WDBA;
 import jltl2ba.SimpleLTL;
 import common.IterableStateSet;
 import common.StopWatch;
+import strat.MDStrategy;
+import strat.MDStrategyArray;
 
 /**
  * LTL model checking functionality
@@ -814,10 +816,32 @@ public class LTLModelChecker extends PrismComponent
 	 */
 	public BitSet findAcceptingECStates(NondetModel<?> model, AcceptanceOmega acceptance) throws PrismException
 	{
+		return findAcceptingECStates(model, acceptance, null);
+	}
+
+	/**
+	 * Compute the set of states in end components of the model that are accepting
+	 * with regard to the acceptance condition.
+	 * Optionally, also generate (memoryless) strategy choices for these states, which
+	 * ensure that the acceptance condition is met: they stay in accepting end components,
+	 * visiting the required states infinitely often. These are stored in {@code strat}
+	 * (if non-null), which should have an entry for each state of the model;
+	 * entries for other states are not changed. This is only supported for
+	 * Büchi and Rabin acceptance (others may require memory or randomisation).
+	 * @param model the model
+	 * @param acceptance the acceptance condition
+	 * @param strat Optionally, storage for strategy choice indices (null if not needed)
+	 * @return BitSet with the set of states that are accepting
+	 */
+	public BitSet findAcceptingECStates(NondetModel<?> model, AcceptanceOmega acceptance, int strat[]) throws PrismException
+	{
+		if (strat != null && !(acceptance instanceof AcceptanceBuchi || acceptance instanceof AcceptanceRabin)) {
+			throw new PrismNotSupportedException("Strategy generation is not supported for " + acceptance.getType() + " acceptance");
+		}
 		if (acceptance instanceof AcceptanceBuchi) {
-			return findAcceptingECStatesForBuchi(model, (AcceptanceBuchi) acceptance);
+			return findAcceptingECStatesForBuchi(model, (AcceptanceBuchi) acceptance, strat);
 		} else if (acceptance instanceof AcceptanceRabin) {
-			return findAcceptingECStatesForRabin(model, (AcceptanceRabin) acceptance);
+			return findAcceptingECStatesForRabin(model, (AcceptanceRabin) acceptance, strat);
 		} else if (acceptance instanceof AcceptanceStreett) {
 			return findAcceptingECStatesForStreett(model, (AcceptanceStreett) acceptance);
 		} else if (acceptance instanceof AcceptanceGenRabin) {
@@ -832,6 +856,18 @@ public class LTLModelChecker extends PrismComponent
 	 * @param acceptance The acceptance condition
 	 */
 	public BitSet findAcceptingECStatesForBuchi(NondetModel<?> model, AcceptanceBuchi acceptance) throws PrismException
+	{
+		return findAcceptingECStatesForBuchi(model, acceptance, null);
+	}
+
+	/**
+	 * Find the set of states in accepting end components (ECs) in a nondeterministic model wrt a Büchi acceptance condition.
+	 * Optionally, generate strategy choices for them (see {@link #findAcceptingECStates(NondetModel, AcceptanceOmega, int[])}).
+	 * @param model The model
+	 * @param acceptance The acceptance condition
+	 * @param strat Optionally, storage for strategy choice indices (null if not needed)
+	 */
+	public BitSet findAcceptingECStatesForBuchi(NondetModel<?> model, AcceptanceBuchi acceptance, int strat[]) throws PrismException
 	{
 		BitSet allAcceptingStates = new BitSet();
 
@@ -849,6 +885,9 @@ public class LTLModelChecker extends PrismComponent
 		// Union of accepting MEC states
 		for (BitSet mec : mecs) {
 			if (mec.intersects(acceptance.getAcceptingStates())) {
+				if (strat != null) {
+					addStrategyChoicesForAcceptingEC(model, mec, acceptance.getAcceptingStates(), allAcceptingStates, strat);
+				}
 				allAcceptingStates.or(mec);
 			}
 		}
@@ -862,6 +901,18 @@ public class LTLModelChecker extends PrismComponent
 	 * @param acceptance The acceptance condition
 	 */
 	public BitSet findAcceptingECStatesForRabin(NondetModel<?> model, AcceptanceRabin acceptance) throws PrismException
+	{
+		return findAcceptingECStatesForRabin(model, acceptance, null);
+	}
+
+	/**
+	 * Find the set of states in accepting end components (ECs) in a nondeterministic model wrt a Rabin acceptance condition.
+	 * Optionally, generate strategy choices for them (see {@link #findAcceptingECStates(NondetModel, AcceptanceOmega, int[])}).
+	 * @param model The model
+	 * @param acceptance The acceptance condition
+	 * @param strat Optionally, storage for strategy choice indices (null if not needed)
+	 */
+	public BitSet findAcceptingECStatesForRabin(NondetModel<?> model, AcceptanceRabin acceptance, int strat[]) throws PrismException
 	{
 		BitSet allAcceptingStates = new BitSet();
 		int numStates = model.getNumStates();
@@ -888,6 +939,9 @@ public class LTLModelChecker extends PrismComponent
 			mecTimer.stop("found " + mecs.size() + " MECs");
 			// Union MEC states
 			for (BitSet mec : mecs) {
+				if (strat != null) {
+					addStrategyChoicesForAcceptingEC(model, mec, acceptance.get(i).getK(), allAcceptingStates, strat);
+				}
 				allAcceptingStates.or(mec);
 			}
 		}
@@ -1014,6 +1068,59 @@ public class LTLModelChecker extends PrismComponent
 		}
 
 		return allAcceptingStates;
+	}
+
+	/**
+	 * Generate (memoryless) strategy choices for the states of an accepting end component (EC)
+	 * which ensure that states in {@code acc} are visited infinitely often:
+	 * accepting states in the EC pick a choice that stays in it, and other states
+	 * pick a choice that stays in it and moves towards states dealt with already.
+	 * The latter can also include states of other accepting ECs that have been dealt with previously
+	 * ({@code done}), whose choices already ensure acceptance, and which are left unchanged.
+	 * @param model The model
+	 * @param ec The accepting EC
+	 * @param acc States that need to be visited infinitely often (those in the EC, at least one)
+	 * @param done States of accepting ECs with choices generated already
+	 * @param strat Strategy choice indices, to be updated
+	 */
+	private void addStrategyChoicesForAcceptingEC(NondetModel<?> model, BitSet ec, BitSet acc, BitSet done, int strat[])
+	{
+		// (copy ec, rather than done/acc, which may be much larger)
+		BitSet ecDone = (BitSet) ec.clone();
+		ecDone.and(done);
+		BitSet ecAcc = (BitSet) ec.clone();
+		ecAcc.and(acc);
+		ecAcc.andNot(done);
+		for (int s = ecAcc.nextSetBit(0); s >= 0; s = ecAcc.nextSetBit(s + 1)) {
+			int numChoices = model.getNumChoices(s);
+			for (int k = 0; k < numChoices; k++) {
+				if (model.allSuccessorsInSet(s, k, ec)) {
+					strat[s] = k;
+					break;
+				}
+			}
+		}
+		ecDone.or(ecAcc);
+		MDPModelChecker.addAttractorChoices(model, ecDone, ec, ec, strat);
+	}
+
+	/**
+	 * Combine a (memoryless) strategy with alternative choices for some states,
+	 * e.g., those generated for accepting end components by
+	 * {@link #findAcceptingECStates(NondetModel, AcceptanceOmega, int[])}.
+	 * @param model The model
+	 * @param strat The strategy
+	 * @param states The states for which to use the alternative choices
+	 * @param choices The alternative choices (choice indices)
+	 */
+	public static <Value> MDStrategy<Value> combineStrategyChoices(NondetModel<Value> model, MDStrategy<Value> strat, BitSet states, int choices[])
+	{
+		int n = model.getNumStates();
+		int combined[] = new int[n];
+		for (int s = 0; s < n; s++) {
+			combined[s] = states.get(s) ? choices[s] : strat.getChoiceIndex(s);
+		}
+		return new MDStrategyArray<>(model, combined);
 	}
 
 	/** Lift the acceptance condition from the automaton to the product states. */

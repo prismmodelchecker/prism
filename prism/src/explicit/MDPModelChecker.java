@@ -109,12 +109,19 @@ public class MDPModelChecker extends ProbModelChecker
 		
 		// Find accepting states + compute reachability probabilities
 		BitSet acc;
+		int accStrat[] = null;
 		if (product.getAcceptance() instanceof AcceptanceReach) {
 			mainLog.println("\nSkipping accepting MEC computation since acceptance is defined via goal states...");
 			acc = ((AcceptanceReach)product.getAcceptance()).getGoalStates();
 		} else {
 			mainLog.println("\nFinding accepting MECs...");
-			acc = mcLtl.findAcceptingECStates(product.getProductModel(), product.getAcceptance());
+			// If required, generate strategy choices for accepting MECs: these need
+			// to stay there, visiting accepting states, rather than being arbitrary
+			if (getGenStrat()) {
+				accStrat = new int[product.getProductModel().getNumStates()];
+				Arrays.fill(accStrat, -1);
+			}
+			acc = mcLtl.findAcceptingECStates(product.getProductModel(), product.getAcceptance(), accStrat);
 		}
 		mainLog.println("\nComputing reachability probabilities...");
 		MDPModelChecker mcProduct = new MDPModelChecker(this);
@@ -136,8 +143,13 @@ public class MDPModelChecker extends ProbModelChecker
 		}
 		
 		// If a strategy was generated, lift it to the product and store
+		// (using the choices for accepting MECs, if generated)
 		if (res.strat != null) {
-			Strategy<Double> stratProduct = new FMDStrategyProduct<>(product, (MDStrategy<Double>) res.strat);
+			MDStrategy<Double> stratProd = (MDStrategy<Double>) res.strat;
+			if (accStrat != null) {
+				stratProd = LTLModelChecker.combineStrategyChoices((MDP<Double>) product.getProductModel(), stratProd, acc, accStrat);
+			}
+			Strategy<Double> stratProduct = new FMDStrategyProduct<>(product, stratProd);
 			result.setStrategy(stratProduct);
 		}
 		
