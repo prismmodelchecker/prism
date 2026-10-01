@@ -233,12 +233,12 @@ public class MDPModelChecker extends ProbModelChecker
 
 		// If required, create/initialise strategy storage
 		// Set choices to -1, denoting unknown
-		// (except for target states, which are -2, denoting arbitrary)
+		// (unlike for reachability, the choice in target states matters too)
 		int strat[] = null;
 		if (genStrat) {
 			strat = new int[n];
 			for (int i = 0; i < n; i++) {
-				strat[i] = target.get(i) ? -2 : -1;
+				strat[i] = -1;
 			}
 		}
 

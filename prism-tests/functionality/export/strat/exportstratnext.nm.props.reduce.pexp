@@ -1,0 +1,11 @@
+# Transitions (DTMC)
+1 1
+0 0 1 a
+
+# States
+(s)
+0:(0)
+
+# Labels
+0="init" 1="deadlock" 2="goal"
+0: 0 2

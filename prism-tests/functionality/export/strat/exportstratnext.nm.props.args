@@ -1,0 +1,1 @@
+-ex -exportstrat exportstratnext.nm.props.reduce.pexp:type=induced,mode=reduce

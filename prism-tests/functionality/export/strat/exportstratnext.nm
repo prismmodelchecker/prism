@@ -1,0 +1,19 @@
+// Regression test for strategy generation for next-step properties (X).
+// Unlike for reachability, the choice in a target state matters
+// (here, Pmax=? [ X "goal" ] needs action a in s=0), but target states
+// were treated as having an arbitrary choice, so the first one (b) was used.
+// The optimal strategy is unique.
+
+mdp
+
+module m
+
+	s:[0..1];
+
+	[b] s=0 -> (s'=1);
+	[a] s=0 -> (s'=0);
+	[] s=1 -> true;
+
+endmodule
+
+label "goal" = s=0;
