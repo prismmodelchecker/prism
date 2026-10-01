@@ -42,6 +42,9 @@ import simulator.RandomNumberGenerator;
  * <br><br>
  * This is a generic class where {@code Value} should match the accompanying model.
  * This is also needed for probabilities when the strategy is randomised.
+ * <br><br>
+ * Decisions are action-based, and assume that the actions picked are unique
+ * in each state: see {@link StrategyInfo} for details.
  */
 public interface StrategyGenerator<Value> extends StrategyInfo<Value>
 {

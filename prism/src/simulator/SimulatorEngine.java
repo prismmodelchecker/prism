@@ -29,7 +29,10 @@ package simulator;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 
 import parser.State;
 import parser.Values;
@@ -470,7 +473,7 @@ public class SimulatorEngine extends PrismComponent
 			Object decision = path.getCurrentStrategyDecision();
 			Object act = stratGen.sampleChoiceAction(decision, rng);
 			if (act != Strategy.UNDEFINED) {
-				i = modelGen.getChoiceIndexByAction(act);
+				i = getChoiceIndexForStrategyAction(act);
 				if (i == -1) {
 					throw new PrismException("Action " + act + " requested by strategy is unavailable");
 				}
@@ -483,6 +486,51 @@ public class SimulatorEngine extends PrismComponent
 		return i;
 	}
 	
+	/**
+	 * Get the index of the choice in the current state with an action label
+	 * picked by a strategy. Returns -1 if there is no such choice.
+	 * Strategies are action-based, so if several (different) choices have
+	 * this action label, it is not clear which is meant, and an exception is thrown.
+	 * If they are identical (same transitions), it does not matter, so the first is used.
+	 * @param act The action picked by the strategy
+	 */
+	private int getChoiceIndexForStrategyAction(Object act) throws PrismException
+	{
+		int i = modelGen.getChoiceIndexByAction(act);
+		if (i != -1 && isStrategyActionAmbiguous(act)) {
+			throw new PrismException("Strategy is ambiguous in state " + getCurrentState() + ": action \"" + (act == null ? "" : act)
+					+ "\" labels several choices, so it is not clear which is picked (action labels need to be unique in each state)");
+		}
+		return i;
+	}
+
+	/**
+	 * Check whether an action picked by a strategy is ambiguous in the current state,
+	 * i.e., whether it labels several choices which are not identical (same transitions).
+	 * @param act The action picked by the strategy
+	 */
+	private boolean isStrategyActionAmbiguous(Object act) throws PrismException
+	{
+		Map<State, Double> first = null;
+		int numChoices = modelGen.getNumChoices();
+		for (int i = 0; i < numChoices; i++) {
+			if (!Objects.equals(modelGen.getChoiceAction(i), act)) {
+				continue;
+			}
+			Map<State, Double> trans = new HashMap<>();
+			int numTransitions = modelGen.getNumTransitions(i);
+			for (int j = 0; j < numTransitions; j++) {
+				trans.merge(modelGen.computeTransitionTarget(i, j), modelGen.getTransitionProbability(i, j), Double::sum);
+			}
+			if (first == null) {
+				first = trans;
+			} else if (!first.equals(trans)) {
+				return true;
+			}
+		}
+		return false;
+	}
+
 	/**
 	 * Get a reference to a transition according to a total probability (or rate) sum, x.
 	 * i.e.the first transition for which the sum of probabilities/rates of that and all prior
@@ -1377,6 +1425,10 @@ public class SimulatorEngine extends PrismComponent
 		else {
 			int i = modelGen.getChoiceIndexOfTransition(index);
 			Object act = modelGen.getChoiceAction(i);
+			// Ambiguous (several choices with this action) - assume enabled
+			if (stratGen.isActionChosen(decision, act) && isStrategyActionAmbiguous(act)) {
+				return true;
+			}
 			return stratGen.isActionChosen(decision, act);
 		}
 	}
@@ -1403,6 +1455,10 @@ public class SimulatorEngine extends PrismComponent
 			// Otherwise interpret decision stored from strategy
 			int i = modelGen.getChoiceIndexOfTransition(index);
 			Object act = modelGen.getChoiceAction(i);
+			// Ambiguous (several choices with this action): show "?"
+			if (stratGen.isActionChosen(decision, act) && isStrategyActionAmbiguous(act)) {
+				return "?";
+			}
 			// Randomised strategy: show probability
 			if (stratGen.isRandomised()) {
 				return stratGen.getChoiceActionProbability(decision, act) + "";

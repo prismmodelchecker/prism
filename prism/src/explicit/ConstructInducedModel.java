@@ -35,6 +35,7 @@ import prism.ModelType;
 import prism.PrismException;
 import prism.PrismNotSupportedException;
 import strat.Strategy;
+import strat.StrategyChoices;
 import strat.StrategyExportOptions;
 import strat.StrategyExportOptions.InducedModelMode;
 import strat.StrategyInfo;
@@ -226,17 +227,12 @@ public class ConstructInducedModel
 				for (int s = explore.nextSetBit(0); s >= 0; s = explore.nextSetBit(s + 1)) {
 					explore.set(s, false);
 					int numChoices =  model.getNumChoices(s);
-					// Extract strategy decision
-					Object decision = strat.getChoiceAction(s, -1);
-					// If it is undefined, just pick the first one
-					if (decision == StrategyInfo.UNDEFINED && numChoices > 0) {
-						decision = model.getAction(s, 0);
-					}
-					// Go through transitions from state s_1 in original model
+					// Find the choices picked by the strategy
+					BitSet chosen = StrategyChoices.getChosenChoices(model, strat, s, -1);
+					// Go through transitions from state s in original model
 					for (int j = 0; j < numChoices; j++) {
-						Object act = model.getAction(s, j);
 						// Skip choices not picked by the strategy
-						if (!strat.isActionChosen(decision, act)) {
+						if (!chosen.get(j)) {
 							continue;
 						}
 						for (Iterator<Integer> it = model.getSuccessorsIterator(s, j); it.hasNext(); ) {
@@ -314,6 +310,8 @@ public class ConstructInducedModel
 			if (decision == StrategyInfo.UNDEFINED && numChoices > 0) {
 				decision = model.getAction(s, 0);
 			}
+			// Find the choices picked by the strategy
+			BitSet chosen = StrategyChoices.getChosenChoices(model, strat, s, -1);
 			// To build nondeterministic models, store new transitions in a distribution
 			Object inducedAction = null;
 			Distribution<Value> prodDistr = null;
@@ -329,7 +327,7 @@ public class ConstructInducedModel
 			for (int j = 0; j < numChoices; j++) {
 				Object act = model.getAction(s, j);
 				// Skip choices not picked by the strategy
-				if (!strat.isActionChosen(decision, act)) {
+				if (!chosen.get(j)) {
 					continue;
 				}
 				// Get strategy choice probability if needed

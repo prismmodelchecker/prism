@@ -34,6 +34,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.BitSet;
 import java.util.List;
 import java.util.regex.Pattern;
 
@@ -75,6 +76,7 @@ import simulator.ModulesFileModelGenerator;
 import simulator.SimulatorEngine;
 import simulator.method.SimulationMethod;
 import strat.Strategy;
+import strat.StrategyChoices;
 import strat.StrategyExportOptions;
 import strat.StrategyExportOptions.StrategyExportType;
 import strat.StrategyGenerator;
@@ -3897,6 +3899,11 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 				&& mergedExportOptions.getInducedModelExportOptions().getShowRewards()) {
 			attachRewardsToModel(((strat.StrategyExplicit<?>) strat).getModel());
 		}
+		// Strategies are action-based, so an export of actions is ambiguous
+		// if an action picked in a state labels several choices: warn if so
+		if (mergedExportOptions.getType() == StrategyExportType.ACTIONS) {
+			warnIfStrategyActionsAmbiguous(strat);
+		}
 		// Export to file (or use main log)
 		try (PrismLog tmpLog = getPrismLogForFile(file)) {
 			strat.export(tmpLog, mergedExportOptions);
@@ -3924,6 +3931,36 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 		explicit.StateModelChecker mc = explicit.StateModelChecker.createModelChecker(model.getModelType(), this);
 		mc.setModelCheckingInfo(getModelInfo(), null, getRewardGenerator());
 		mc.attachLabels(model);
+	}
+
+	/**
+	 * Print a warning if the actions picked by a strategy are ambiguous,
+	 * i.e., if, in some state, an action picked labels several choices.
+	 * This is only checked for strategies on explicit engine models;
+	 * for strategies with memory, a warning is printed if any
+	 * state of the model has several choices with the same action label.
+	 * @param strat The strategy
+	 */
+	private void warnIfStrategyActionsAmbiguous(Strategy<?> strat) throws PrismException
+	{
+		if (!(strat.getModel() instanceof explicit.NondetModel)) {
+			return;
+		}
+		explicit.NondetModel<?> model = (explicit.NondetModel<?>) strat.getModel();
+		if (model.areAllChoiceActionsUnique()) {
+			return;
+		}
+		if (strat.hasMemory()) {
+			mainLog.printWarning("Exported strategy actions may be ambiguous since, in some states, several choices have the same action label");
+			return;
+		}
+		BitSet ambiguous = StrategyChoices.findAmbiguousStates(model, strat);
+		if (!ambiguous.isEmpty()) {
+			int s = ambiguous.nextSetBit(0);
+			String example = model.getStatesList() != null ? model.getStatesList().get(s).toString() : Integer.toString(s);
+			mainLog.printWarning("Exported strategy actions are ambiguous in " + ambiguous.cardinality() + " state(s) (e.g. " + example
+					+ ") since the action picked labels several choices; consider exporting choice indices instead");
+		}
 	}
 
 	/**

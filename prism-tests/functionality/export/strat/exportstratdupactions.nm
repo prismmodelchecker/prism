@@ -1,0 +1,24 @@
+// Regression test for -exportstrat induced-model export when several choices
+// in a state have the same action label (here, unlabelled). Strategies are
+// action-based, so these choices cannot be distinguished by a strategy decision.
+// Here, the strategy picks a uniquely labelled choice in state s=0 and is
+// undefined (any choice is fine) in the target state s=2, where only one of
+// the two unlabelled choices should be used (previously, both were included,
+// giving a DTMC state with outgoing probability 2).
+
+mdp
+
+module m
+
+	s:[0..3];
+
+	[a] s=0 -> (s'=2);
+	[] s=0 -> (s'=1);
+	[b] s=0 -> (s'=3);
+	[] s=1 | s=3 -> true;
+	[] s=2 -> (s'=2);
+	[] s=2 -> (s'=3);
+
+endmodule
+
+label "goal" = s=2;

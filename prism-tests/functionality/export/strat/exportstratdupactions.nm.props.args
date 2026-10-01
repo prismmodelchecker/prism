@@ -1,0 +1,2 @@
+-ex -exportstrat exportstratdupactions.nm.props.reduce.pexp:type=induced,mode=reduce
+-ex -exportstrat exportstratdupactions.nm.props.restrict.pexp:type=induced,mode=restrict

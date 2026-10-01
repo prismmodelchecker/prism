@@ -41,6 +41,18 @@ import strat.StrategyExportOptions.InducedModelMode;
  * Constants, enums and methods for basic information about strategies. 
  * This is a generic class where {@code Value} is the type of
  * probabilities when the strategy is randomised.
+ * <br><br>
+ * Strategy decisions are action-based: a decision is an action label
+ * (or, for a randomised strategy, a distribution over action labels),
+ * and the choices of a model that a decision picks are those whose
+ * action labels match it (see {@link #isActionChosen(Object, Object)}).
+ * This allows strategies to be applied to representations of a model
+ * other than the one from which they were generated (e.g., in the simulator),
+ * where choices may be ordered differently. It assumes that, in each state
+ * where a decision is made, the actions picked identify choices uniquely,
+ * i.e., that no two (different) choices in the state have the same action label.
+ * Where this is not the case, the decision is ambiguous and should be reported
+ * as such by code that applies the strategy, rather than resolved arbitrarily.
  */
 public interface StrategyInfo<Value>
 {

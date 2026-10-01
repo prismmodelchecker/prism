@@ -49,6 +49,7 @@ import prism.ModelType;
 import prism.PrismException;
 import prism.PrismNotSupportedException;
 import strat.Strategy;
+import strat.StrategyChoices;
 import strat.StrategyExportOptions;
 import strat.StrategyInfo;
 
@@ -327,6 +328,8 @@ public class ConstructStrategyProduct
 			if (decision == StrategyInfo.UNDEFINED && numChoices > 0) {
 				decision = model.getAction(s_1, 0);
 			}
+			// Find the choices picked by the strategy
+			BitSet chosen = StrategyChoices.getChosenChoices(model, strat, s_1, q_1);
 			// To build nondeterministic models, store new transitions in a distribution
 			Object inducedAction = null;
 			Distribution<Value> prodDistr = null;
@@ -342,7 +345,7 @@ public class ConstructStrategyProduct
 			for (int j = 0; j < numChoices; j++) {
 				Object act = model.getAction(s_1, j);
 				// Skip choices not picked by the strategy
-				if (!strat.isActionChosen(decision, act)) {
+				if (!chosen.get(j)) {
 					continue;
 				}
 				// Get strategy choice probability if needed
