@@ -763,15 +763,32 @@ public class MDPModelChecker extends ProbModelChecker
 			}
 		}
 		// Other "inf" states: move towards those dealt with already
+		addAttractorChoices(model, done, inf, null, strat);
+	}
+
+	/**
+	 * Generate strategy choices which move towards a set of states: working backwards from
+	 * the states in {@code done}, pick, for each state in {@code todo} not dealt with yet,
+	 * a choice which moves with positive probability to a state that has already been dealt with
+	 * (and, if {@code stayIn} is non-null, whose successors all stay in {@code stayIn}).
+	 * States in {@code todo} for which no such choice is found are left unchanged.
+	 * @param model The model
+	 * @param done States already dealt with (updated with those dealt with here)
+	 * @param todo States to generate choices for
+	 * @param stayIn Optionally, states that choices must stay within (null means "all")
+	 * @param strat Strategy choice indices, to be updated
+	 */
+	public static void addAttractorChoices(NondetModel<?> model, BitSet done, BitSet todo, BitSet stayIn, int strat[])
+	{
 		boolean changed = true;
 		while (changed) {
 			BitSet doneNew = new BitSet();
-			BitSet todo = (BitSet) inf.clone();
-			todo.andNot(done);
-			for (int s = todo.nextSetBit(0); s >= 0; s = todo.nextSetBit(s + 1)) {
+			BitSet todoNow = (BitSet) todo.clone();
+			todoNow.andNot(done);
+			for (int s = todoNow.nextSetBit(0); s >= 0; s = todoNow.nextSetBit(s + 1)) {
 				int numChoices = model.getNumChoices(s);
 				for (int k = 0; k < numChoices; k++) {
-					if (model.someSuccessorsInSet(s, k, done)) {
+					if (model.someSuccessorsInSet(s, k, done) && (stayIn == null || model.allSuccessorsInSet(s, k, stayIn))) {
 						strat[s] = k;
 						doneNew.set(s);
 						break;
@@ -2364,30 +2381,45 @@ public class MDPModelChecker extends ProbModelChecker
 
 			ECComputer ecs = ECComputer.createECComputer(this, mdp);
 			BitSet positiveECs = new BitSet();
+			final int[] stratFinal = strat;
 			int[] mecCount = {0};
 			StopWatch mecTimer = new StopWatch(getLog());
 			mecTimer.start("MEC computation");
 			ecs.computeMECStatesStreaming(ec -> {
 				mecCount[0]++;
 				// check if this MEC is positive
+				// (and, for strategy generation, store a choice that gains positive reward and stays in it)
 				boolean positiveEC = false;
+				int posState = -1, posChoice = -1;
 				for (int state : new IterableStateSet(ec, n)) {
-					if (mdpRewards.getStateReward(state) > 0) {
-						// state with positive reward in this MEC
-						positiveEC = true;
-						break;
-					}
 					for (int choice = 0, numChoices = mdp.getNumChoices(state); choice < numChoices; choice++) {
-						if (mdpRewards.getTransitionReward(state, choice) > 0 &&
-								mdp.allSuccessorsInSet(state, choice, ec)) {
+						if (!mdp.allSuccessorsInSet(state, choice, ec)) {
+							continue;
+						}
+						if (mdpRewards.getStateReward(state) > 0 || mdpRewards.getTransitionReward(state, choice) > 0) {
+							// state with positive reward in this MEC, or
 							// choice from this state with positive reward back into this MEC
 							positiveEC = true;
+							posState = state;
+							posChoice = choice;
 							break;
 						}
+					}
+					if (positiveEC) {
+						break;
 					}
 				}
 				if (positiveEC) {
 					positiveECs.or(ec);
+					// For strategy generation: take the positive-reward choice, and
+					// in other states of the MEC, move towards it while staying in the MEC
+					// (so that it is taken infinitely often)
+					if (stratFinal != null) {
+						stratFinal[posState] = posChoice;
+						BitSet done = new BitSet();
+						done.set(posState);
+						addAttractorChoices(mdp, done, ec, ec, stratFinal);
+					}
 				}
 				// ec is eligible for GC once this callback returns
 			});
@@ -2398,11 +2430,16 @@ public class MDPModelChecker extends ProbModelChecker
 			inf = prob0(mdp, null, positiveECs, false, strat);  // Pmax[ <> positiveECs ] = 0
 			inf.flip(0,n);  // !(Pmax[ <> positive ECs ] = 0) = Pmax[ <> positiveECs ] > 0
 
+			// For strategy generation, the choices for states in positive ECs were generated above;
+			// for other "inf" states, move towards these (with positive probability)
+			if (strat != null) {
+				addAttractorChoices(mdp, (BitSet) positiveECs.clone(), inf, null, strat);
+			}
+
 			timerPre = System.currentTimeMillis() - timerPre;
 			mainLog.println("Precomputation took " + timerPre / 1000.0 + " seconds, " + inf.cardinality() + " infinite states, " + (n - inf.cardinality()) + " states remaining.");
 		}
 
-		// TODO: generate strategy for "inf" state (possibility to reach +ve EC)
 
 		// Compute rewards
 		// do standard max reward calculation, but with empty target set

@@ -1,0 +1,1 @@
+-ex -exportstrat exportstrattotalmax.nm.props.reduce.pexp:type=induced,mode=reduce
