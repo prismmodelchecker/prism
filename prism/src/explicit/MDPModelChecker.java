@@ -364,6 +364,13 @@ public class MDPModelChecker extends ProbModelChecker
 			// for Pmin, don't do quotient
 			doPmaxQuotient = false;
 		}
+		if (doPmaxQuotient && genStrat) {
+			// A strategy computed on the quotient would refer to its choices,
+			// not those of the original MDP, so don't use the quotient
+			// (for interval iteration, where it is needed, strategy generation is not supported, see above)
+			mainLog.printWarning("Not using the Pmax quotient since strategy generation is enabled");
+			doPmaxQuotient = false;
+		}
 
 		// Start probabilistic reachability
 		timer = System.currentTimeMillis();

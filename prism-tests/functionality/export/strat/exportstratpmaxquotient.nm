@@ -1,0 +1,22 @@
+// Regression test for strategy generation for Pmax with -pmaxquotient.
+// The quotient collapses the end component {s=0,s=1} to a single state,
+// so a strategy computed on it refers to the quotient's choices rather than
+// those of the original MDP (previously, e.g., action c, from s=1, in state s=0).
+// The quotient is now not used when generating strategies.
+
+mdp
+
+module m
+
+	s:[0..3];
+
+	[a] s=0 -> (s'=1);
+	[b] s=0 -> (s'=3);
+	[c] s=1 -> (s'=0);
+	[d] s=1 -> 0.5:(s'=2) + 0.5:(s'=3);
+	[e] s=1 -> 0.6:(s'=2) + 0.4:(s'=3);
+	[] s>=2 -> true;
+
+endmodule
+
+label "goal" = s=2;

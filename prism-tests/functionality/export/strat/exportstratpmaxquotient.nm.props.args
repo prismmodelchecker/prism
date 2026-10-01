@@ -1,0 +1,1 @@
+-ex -pmaxquotient -exportstrat exportstratpmaxquotient.nm.props.reduce.pexp:type=induced,mode=reduce
