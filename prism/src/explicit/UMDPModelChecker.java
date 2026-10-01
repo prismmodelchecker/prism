@@ -758,7 +758,13 @@ public class UMDPModelChecker extends ProbModelChecker
 		mainLog.println("\nStarting total reward computation (min)...");
 		BitSet z = computeZeroRewardSafeStates(umdp, umdpRewards);
 		mainLog.println("States in zero-reward safe region: " + z.cardinality());
-		return computeReachRewards(umdp, umdpRewards, z, minMax);
+		ModelCheckerResult res = computeReachRewards(umdp, umdpRewards, z, minMax);
+		// If a strategy was generated, the states in Z are targets, where any choice
+		// is considered fine; but here the strategy needs to stay in Z, without gaining reward
+		if (res.strat != null) {
+			res.strat = MDPModelChecker.addZeroRewardStayChoices(umdp, umdpRewards, z, (MDStrategy<Double>) res.strat);
+		}
+		return res;
 	}
 
 	/**

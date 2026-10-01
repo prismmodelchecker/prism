@@ -2432,6 +2432,12 @@ public class MDPModelChecker extends ProbModelChecker
 			BitSet z = computeZeroRewardMECStates(mdp, mdpRewards);
 			mainLog.println("States in zero-reward MECs: " + z.cardinality());
 			res = computeReachRewards(mdp, mdpRewards, z, true, null, null);
+			// If a strategy was generated, the states in zero-reward MECs are targets,
+			// where any choice is considered fine; but here the strategy needs to stay
+			// in them, without gaining reward, so pick a zero-reward choice that does so
+			if (res.strat != null) {
+				res.strat = addZeroRewardStayChoices(mdp, mdpRewards, z, (MDStrategy<Double>) res.strat);
+			}
 		}
 
 		// Finished expected total reward
@@ -2440,6 +2446,35 @@ public class MDPModelChecker extends ProbModelChecker
 		res.timeTaken = timer / 1000.0;
 
 		return res;
+	}
+
+	/**
+	 * For min total rewards, reduced to reachability rewards for a set {@code z} of states
+	 * from which it is possible to stay forever without gaining reward: adapt a strategy for the
+	 * latter, in which the states of {@code z} are targets (where any choice is considered fine),
+	 * so that, in {@code z}, it picks a zero-reward choice that stays in {@code z}.
+	 * @param model The model
+	 * @param rewards The rewards
+	 * @param z The zero-reward states
+	 * @param strat The strategy
+	 */
+	public static <Value> MDStrategy<Value> addZeroRewardStayChoices(NondetModel<Value> model, MDPRewards<Double> rewards, BitSet z, MDStrategy<Value> strat)
+	{
+		int n = model.getNumStates();
+		int choices[] = new int[n];
+		for (int s = 0; s < n; s++) {
+			choices[s] = strat.getChoiceIndex(s);
+		}
+		for (int s = z.nextSetBit(0); s >= 0; s = z.nextSetBit(s + 1)) {
+			int numChoices = model.getNumChoices(s);
+			for (int k = 0; k < numChoices; k++) {
+				if (rewards.getStateReward(s) == 0 && rewards.getTransitionReward(s, k) == 0 && model.allSuccessorsInSet(s, k, z)) {
+					choices[s] = k;
+					break;
+				}
+			}
+		}
+		return new MDStrategyArray<>(model, choices);
 	}
 
 	/**
