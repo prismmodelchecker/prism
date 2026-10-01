@@ -367,8 +367,11 @@ def prependToFile(prefix, option):
 def expandFilenames(args, dir=""):
     def isImportExportArg(arg):
         return (arg.startswith("-export") or arg.startswith("-import")) and not arg=="-exportmodelprecision"
+    # Also expand properties files given by name only (e.g. in auto files) if they are in dir
+    def isPropertiesFileInDir(arg):
+        return isPrismPropertiesFile(arg) and not os.path.isfile(arg) and os.path.isfile(os.path.join(dir, arg))
     if args:
-        return [args[0]] + [expandName(dir, args[i+1]) if isImportExportArg(args[i]) else args[i+1] for i in range(len(args)-1)]
+        return [args[0]] + [expandName(dir, args[i+1]) if isImportExportArg(args[i]) or isPropertiesFileInDir(args[i+1]) else args[i+1] for i in range(len(args)-1)]
     else:
         return []
 
