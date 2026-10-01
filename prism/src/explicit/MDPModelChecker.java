@@ -2530,53 +2530,8 @@ public class MDPModelChecker extends ProbModelChecker
 
 			timerPre = System.currentTimeMillis();
 
-			ECComputer ecs = ECComputer.createECComputer(this, mdp);
-			BitSet positiveECs = new BitSet();
-			final int[] stratFinal = strat;
-			// (and the predecessor relation, if used, for strategy generation)
-			final PredecessorRelation preFinal = (strat != null && preRel) ? mdp.getPredecessorRelation(this, true) : null;
-			int[] mecCount = {0};
-			StopWatch mecTimer = new StopWatch(getLog());
-			mecTimer.start("MEC computation");
-			ecs.computeMECStatesStreaming(ec -> {
-				mecCount[0]++;
-				// check if this MEC is positive
-				// (and, for strategy generation, store a choice that gains positive reward and stays in it)
-				boolean positiveEC = false;
-				int posState = -1, posChoice = -1;
-				for (int state : new IterableStateSet(ec, n)) {
-					for (int choice = 0, numChoices = mdp.getNumChoices(state); choice < numChoices; choice++) {
-						if (!mdp.allSuccessorsInSet(state, choice, ec)) {
-							continue;
-						}
-						if (mdpRewards.getStateReward(state) > 0 || mdpRewards.getTransitionReward(state, choice) > 0) {
-							// state with positive reward in this MEC, or
-							// choice from this state with positive reward back into this MEC
-							positiveEC = true;
-							posState = state;
-							posChoice = choice;
-							break;
-						}
-					}
-					if (positiveEC) {
-						break;
-					}
-				}
-				if (positiveEC) {
-					positiveECs.or(ec);
-					// For strategy generation: take the positive-reward choice, and
-					// in other states of the MEC, move towards it while staying in the MEC
-					// (so that it is taken infinitely often)
-					if (stratFinal != null) {
-						stratFinal[posState] = posChoice;
-						BitSet done = new BitSet();
-						done.set(posState);
-						addAttractorChoices(mdp, done, ec, ec, stratFinal, preFinal);
-					}
-				}
-				// ec is eligible for GC once this callback returns
-			});
-			mecTimer.stop("found " + mecCount[0] + " MECs");
+			// Find positive ECs (and, for strategy generation, choices for their states)
+			BitSet positiveECs = findPositiveECStates(mdp, mdpRewards, strat);
 
 			// inf = Pmax[ <> positiveECs ] > 0
 			//     = ! (Pmax[ <> positiveECs ] = 0)
@@ -2586,7 +2541,7 @@ public class MDPModelChecker extends ProbModelChecker
 			// For strategy generation, the choices for states in positive ECs were generated above;
 			// for other "inf" states, move towards these (with positive probability)
 			if (strat != null) {
-				addAttractorChoices(mdp, (BitSet) positiveECs.clone(), inf, null, strat, preFinal);
+				addAttractorChoices(mdp, (BitSet) positiveECs.clone(), inf, null, strat, preRel ? mdp.getPredecessorRelation(this, true) : null);
 			}
 
 			timerPre = System.currentTimeMillis() - timerPre;
@@ -2627,6 +2582,69 @@ public class MDPModelChecker extends ProbModelChecker
 		return res;
 	}
 
+
+	/**
+	 * Find the union of the states of maximal end components (MECs) that contain a positive
+	 * reward, i.e., a state with positive reward, or a choice with positive reward that stays in the MEC.
+	 * Optionally, also generate strategy choices for these states that collect positive reward
+	 * infinitely often: take a positive-reward choice that stays in the MEC, and, in other
+	 * states of the MEC, move towards it while staying in the MEC. These are stored in {@code strat}
+	 * (if non-null), which should have an entry for each state of the model;
+	 * entries for other states are not changed.
+	 * @param model The model (an MDP or other nondeterministic model with a fixed graph structure)
+	 * @param rewards The rewards
+	 * @param strat Optionally, storage for strategy choice indices (null if not needed)
+	 */
+	public BitSet findPositiveECStates(NondetModel<?> model, MDPRewards<Double> rewards, int strat[]) throws PrismException
+	{
+		int n = model.getNumStates();
+		ECComputer ecs = ECComputer.createECComputer(this, model);
+		BitSet positiveECs = new BitSet();
+		PredecessorRelation pre = (strat != null && preRel) ? model.getPredecessorRelation(this, true) : null;
+		int[] mecCount = {0};
+		StopWatch mecTimer = new StopWatch(getLog());
+		mecTimer.start("MEC computation");
+		ecs.computeMECStatesStreaming(ec -> {
+			mecCount[0]++;
+			// check if this MEC is positive
+			// (and, for strategy generation, store a choice that gains positive reward and stays in it)
+			boolean positiveEC = false;
+			int posState = -1, posChoice = -1;
+			for (int state : new IterableStateSet(ec, n)) {
+				for (int choice = 0, numChoices = model.getNumChoices(state); choice < numChoices; choice++) {
+					if (!model.allSuccessorsInSet(state, choice, ec)) {
+						continue;
+					}
+					if (rewards.getStateReward(state) > 0 || rewards.getTransitionReward(state, choice) > 0) {
+						// state with positive reward in this MEC, or
+						// choice from this state with positive reward back into this MEC
+						positiveEC = true;
+						posState = state;
+						posChoice = choice;
+						break;
+					}
+				}
+				if (positiveEC) {
+					break;
+				}
+			}
+			if (positiveEC) {
+				positiveECs.or(ec);
+				// For strategy generation: take the positive-reward choice, and
+				// in other states of the MEC, move towards it while staying in the MEC
+				// (so that it is taken infinitely often)
+				if (strat != null) {
+					strat[posState] = posChoice;
+					BitSet done = new BitSet();
+					done.set(posState);
+					addAttractorChoices(model, done, ec, ec, strat, pre);
+				}
+			}
+			// ec is eligible for GC once this callback returns
+		});
+		mecTimer.stop("found " + mecCount[0] + " MECs");
+		return positiveECs;
+	}
 
 	/**
 	 * Compute expected reachability rewards.

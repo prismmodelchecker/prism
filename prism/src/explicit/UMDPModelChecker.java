@@ -601,43 +601,7 @@ public class UMDPModelChecker extends ProbModelChecker
 
 		// Find end components containing a positive reward
 		// (and, for strategy generation, store a choice that gains positive reward and stays in it)
-		ECComputer ecs = ECComputer.createECComputer(this, umdp);
-		BitSet positiveECs = new BitSet();
-		final int[] stratFinal = strat;
-		// (and the predecessor relation, if used, for strategy generation)
-		final PredecessorRelation preFinal = (strat != null && preRel) ? umdp.getPredecessorRelation(this, true) : null;
-		ecs.computeMECStatesStreaming(ec -> {
-			boolean positiveEC = false;
-			int posState = -1, posChoice = -1;
-			for (int state : new IterableStateSet(ec, n)) {
-				for (int choice = 0, numChoices = umdp.getNumChoices(state); choice < numChoices; choice++) {
-					if (!umdp.allSuccessorsInSet(state, choice, ec)) {
-						continue;
-					}
-					if (umdpRewards.getStateReward(state) > 0 || umdpRewards.getTransitionReward(state, choice) > 0) {
-						positiveEC = true;
-						posState = state;
-						posChoice = choice;
-						break;
-					}
-				}
-				if (positiveEC) {
-					break;
-				}
-			}
-			if (positiveEC) {
-				positiveECs.or(ec);
-				// For strategy generation: take the positive-reward choice, and
-				// in other states of the MEC, move towards it while staying in the MEC
-				// (so that it is taken infinitely often)
-				if (stratFinal != null) {
-					stratFinal[posState] = posChoice;
-					BitSet done = new BitSet();
-					done.set(posState);
-					MDPModelChecker.addAttractorChoices(umdp, done, ec, ec, stratFinal, preFinal);
-				}
-			}
-		});
+		BitSet positiveECs = mcMDP.findPositiveECStates(umdp, umdpRewards, strat);
 		mainLog.print("States in positive end components: " + positiveECs.cardinality() + "\n");
 
 		// Find states with infinite reward (those reach a positive end component with prob > 0).
@@ -649,7 +613,7 @@ public class UMDPModelChecker extends ProbModelChecker
 		// For strategy generation, the choices for states in positive ECs were generated above;
 		// for other "inf" states, move towards these (with positive probability)
 		if (genStrat) {
-			MDPModelChecker.addAttractorChoices(umdp, (BitSet) positiveECs.clone(), inf, null, strat, preFinal);
+			MDPModelChecker.addAttractorChoices(umdp, (BitSet) positiveECs.clone(), inf, null, strat, preRel ? umdp.getPredecessorRelation(this, true) : null);
 		}
 
 		res = computeTotalRewardsNumeric(umdp, umdpRewards, minMax, inf, strat, 1.0);
