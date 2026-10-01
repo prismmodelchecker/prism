@@ -1,6 +1,48 @@
 This file contains details of the changes in each new version of PRISM.
 
 -----------------------------------------------------------------------------
+Changes since last release (up to dc4286614)
+-----------------------------------------------------------------------------
+
+* Expanded support for reward properties
+  - full support for total reward (R[C]) - MDPs/IDTMCs/IMDPs, min/max
+  - discounted rewards for DTMCs/MDPs, e.g. Rmax=? [ C{discount=0.9} ]
+    (explicit/symbolic engines, simulator; supported for F, C and C<=k)  
+  - MDP cumulative reward (R[C<=k]) in the MTBDD engine
+  - native hybrid engine support for all MDP reward operators
+  - negative rewards allowed for instantaneous reward (I=k) properties
+  - consistent fixing of zero-reward end components for Rmin=?[F target]
+
+* Other model checking improvements
+  - SCC/EC computation optimisations (iterative Tarjan, speed/memory fixes)
+  - MDP solution via linear programming in explicit engine (-lp)
+  - counterexamples/witnesses for E[F], A[G] in the explicit engine
+  - simulator/statistical model checking fixes: "init"/"deadlock"
+
+* Import/export functionality
+  - new combined explicit model format (.pexp): single file with
+    transitions, states, labels, rewards, observations
+  - explicit exports all include (optional) comment headers
+  - import/export of zipped (gzip/xz) explicit model files
+  - strategy export to full (annotated) induced model, e.g. .pexp, .umb
+  - -exporttrans, -exportstates, etc. take options (e.g. precision=x)
+  
+* Command-line/script improvements
+  - -xx:opt allowed as shorthand for -xx:opt=true
+  - :append option for -mainlog
+  - prism-auto: --single-log option and better local file finding
+  - launch scripts use bash not sh
+
+* Various bugfixes
+
+* Development and code-level changes:
+  - CLI switch handling refactoring (and auto-generated help for switches)
+  - rewards/labels can be attached to explicit.Model classes
+  - LP solver abstraction (currently for lpsolve)
+  - updated version numbering (e.g. 4.10.2-dev) and version scripts
+  - improved GitHub release building automation
+  
+-----------------------------------------------------------------------------
 Version 4.10.1 (first released 2/4/2026)
 -----------------------------------------------------------------------------
 
