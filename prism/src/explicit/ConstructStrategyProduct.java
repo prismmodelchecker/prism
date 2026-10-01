@@ -147,7 +147,8 @@ public class ConstructStrategyProduct
 				memVar = "_" + memVar;
 			}
 			newVarList = (VarList) varList.clone();
-			Declaration decl = new Declaration(memVar, new DeclarationInt(Expression.Int(0), Expression.Int(strat.getMemorySize())));
+			// NB: if the strategy has only one memory state, we add an extra dummy state
+			Declaration decl = new Declaration(memVar, new DeclarationInt(Expression.Int(0), Expression.Int(Math.max(strat.getMemorySize() - 1, 1))));
 			newVarList.addVarAtStart(decl, 1);
 		}
 
