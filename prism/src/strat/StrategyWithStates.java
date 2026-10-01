@@ -83,7 +83,7 @@ public abstract class StrategyWithStates<Value> implements Strategy<Value>, Stra
 	{
 		currentState = state;
 		currentStateIndex = stateLookUp.apply(state);
-		currentMemory = getUpdatedMemory(currentMemory, null, currentStateIndex);
+		currentMemory = getUpdatedMemory(currentMemory, action, currentStateIndex);
 		return this;
 	}
 	
