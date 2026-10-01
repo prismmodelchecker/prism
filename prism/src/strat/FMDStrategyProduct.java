@@ -199,6 +199,8 @@ public class FMDStrategyProduct<Value> extends StrategyExplicit<Value>
 			Object act = strat.getChoiceAction(i);
 			if (act != UNDEFINED) {
 				out.println((showStates ? states.get(s) : s) + "," + m + "=" + (act == null ? "" : act.toString()));
+			} else if (options.getShowUndefined()) {
+				out.println((showStates ? states.get(s) : s) + "," + m + "=" + strat.getUndefinedChoiceString(i, -1));
 			}
 		}
 	}
@@ -210,7 +212,11 @@ public class FMDStrategyProduct<Value> extends StrategyExplicit<Value>
 		for (int i = 0; i < n; i++) {
 			int s = product.getModelState(i);
 			int m = product.getAutomatonState(i);
-			out.println(s + "," + m + "=" + strat.getChoiceIndex(i));
+			if (strat.isChoiceDefined(i)) {
+				out.println(s + "," + m + "=" + strat.getChoiceIndex(i));
+			} else if (options.getShowUndefined()) {
+				out.println(s + "," + m + "=" + strat.getUndefinedChoiceString(i, -1));
+			}
 		}
 	}
 

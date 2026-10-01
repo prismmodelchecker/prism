@@ -95,6 +95,8 @@ public class MDStrategyArray<Value> extends StrategyExplicit<Value> implements M
 		for (int s = 0; s < n; s++) {
 			if (isChoiceDefined(s)) {
 				out.println((showStates ? states.get(s) : s) + "=" + getChoiceActionString(s));
+			} else if (options.getShowUndefined()) {
+				out.println((showStates ? states.get(s) : s) + "=" + getUndefinedChoiceString(s, -1));
 			}
 		}
 	}

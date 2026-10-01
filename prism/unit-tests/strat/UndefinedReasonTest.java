@@ -76,6 +76,7 @@ public class UndefinedReasonTest
 		assertEquals(UndefinedReason.UNKNOWN, strat.whyUndefined(1, -1));
 		strat.setUndefinedReason(1, UndefinedReason.UNREACHABLE);
 		assertEquals(UndefinedReason.UNREACHABLE, strat.whyUndefined(1, -1));
+		assertEquals("?unreachable", strat.getUndefinedChoiceString(1, -1));
 	}
 
 	@Test

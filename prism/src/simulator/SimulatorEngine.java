@@ -50,6 +50,8 @@ import simulator.method.SimulationMethod;
 import simulator.sampler.Sampler;
 import strat.Strategy;
 import strat.StrategyGenerator;
+import strat.StrategyInfo.UndefinedReason;
+import strat.UndefinedChoicePolicy;
 import userinterface.graph.Graph;
 
 /**
@@ -111,6 +113,8 @@ public class SimulatorEngine extends PrismComponent
 
 	// Loaded strategy
 	private StrategyGenerator<Double> stratGen;
+	// Policy for resolving undefined choices of a strategy
+	private UndefinedChoicePolicy undefinedChoicePolicy = new UndefinedChoicePolicy();
 	// Whether the strategy should be enforced
 	private boolean stratEnforced;
 
@@ -294,6 +298,23 @@ public class SimulatorEngine extends PrismComponent
 	}
 
 	/**
+	 * Set the policy for resolving undefined choices of a strategy, when following it
+	 * (by default, the first choice is used, except for UNKNOWN reasons, which give an error).
+	 */
+	public void setUndefinedChoicePolicy(UndefinedChoicePolicy undefinedChoicePolicy)
+	{
+		this.undefinedChoicePolicy = undefinedChoicePolicy;
+	}
+
+	/**
+	 * Get the policy for resolving undefined choices of a strategy, when following it.
+	 */
+	public UndefinedChoicePolicy getUndefinedChoicePolicy()
+	{
+		return undefinedChoicePolicy;
+	}
+
+	/**
 	 * Get the strategy currently loaded into the simulator, if present.
 	 * Returns null if none loaded.
 	 */
@@ -431,7 +452,11 @@ public class SimulatorEngine extends PrismComponent
 		case MDP:
 		case POMDP:
 			// Pick choice (from strategy or randomly) and random transition
+			// (if the strategy says to stop, no transition is taken)
 			i = getAutomaticChoiceIndex();
+			if (i == -1) {
+				return false;
+			}
 			d = rng.randomUnifDouble();
 			j = getTransitionIndexByProbabilitySum(i, d);
 			// Execute
@@ -449,7 +474,11 @@ public class SimulatorEngine extends PrismComponent
 			break;
 		case LTS:
 			// Pick choice (from strategy or randomly)
+			// (if the strategy says to stop, no transition is taken)
 			i = getAutomaticChoiceIndex();
+			if (i == -1) {
+				return false;
+			}
 			// Execute
 			executeTransition(i, 0, -1);
 			break;
@@ -463,7 +492,11 @@ public class SimulatorEngine extends PrismComponent
 	/**
 	 * Get the index of the choice to be automatically selected in the current state.
 	 * If a strategy is loaded (and to be enforced, and defined for the current state), this will be used.
-	 * If not, a choice is sampled (uniformly) at random.
+	 * If the strategy is undefined in the current state, this is resolved according to the
+	 * policy for undefined choices (see {@link #setUndefinedChoicePolicy(UndefinedChoicePolicy)}):
+	 * the (projected) action of the first choice is used as the decision (FIRST), one is sampled (uniformly) at random (ALL),
+	 * -1 is returned to indicate that no choice should be made (STOP, LOOP), or an exception is thrown (ERROR).
+	 * If there is no strategy, a choice is sampled (uniformly) at random.
 	 */
 	private int getAutomaticChoiceIndex() throws PrismException
 	{
@@ -472,8 +505,32 @@ public class SimulatorEngine extends PrismComponent
 		if (hasStrategyInfo() && isStrategyEnforced()) {
 			Object decision = path.getCurrentStrategyDecision();
 			Object act = stratGen.sampleChoiceAction(decision, rng);
+			// Undefined choice: resolve according to the policy
+			boolean first = false;
+			if (act == Strategy.UNDEFINED) {
+				UndefinedReason why = stratGen.getCurrentUndefinedReason();
+				switch (undefinedChoicePolicy.get(why)) {
+				case STOP:
+				case LOOP:
+					// (for LOOP, the path would remain in this state forever, so just stop too)
+					return -1;
+				case FIRST:
+					// Use the (projected) action of the first choice as the decision
+					act = stratGen.projectAction(modelGen.getChoiceAction(0));
+					first = true;
+					break;
+				case ERROR:
+					throw new PrismException("Strategy choice is undefined in state " + getCurrentState() + " (reason: "
+							+ (why == null ? UndefinedReason.UNKNOWN : why).toString().toLowerCase() + ")");
+				case ALL:
+				default:
+					// Sample randomly, below
+					break;
+				}
+			}
 			if (act != Strategy.UNDEFINED) {
-				i = getChoiceIndexForStrategyAction(act);
+				// (for FIRST, any choice with this action is fine, so ambiguity does not matter)
+				i = first ? modelGen.getChoiceIndexByAction(act) : getChoiceIndexForStrategyAction(act);
 				if (i == -1) {
 					throw new PrismException("Action " + act + " requested by strategy is unavailable");
 				}
@@ -1447,9 +1504,10 @@ public class SimulatorEngine extends PrismComponent
 			return "";
 		}
 		Object decision = transitionListStep == path.size() ? path.getCurrentStrategyDecision() : ((PathFull) path).getStrategyDecision(transitionListStep);
-		// Undefined by strategy
+		// Undefined by strategy (show reason, if available, for the current state)
 		if (decision == Strategy.UNDEFINED) {
-			return "?";
+			UndefinedReason why = transitionListStep == path.size() ? stratGen.getCurrentUndefinedReason() : null;
+			return "?" + (why == null ? "" : why.toString().toLowerCase());
 		}
 		else {
 			// Otherwise interpret decision stored from strategy

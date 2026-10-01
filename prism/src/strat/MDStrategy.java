@@ -80,8 +80,11 @@ public interface MDStrategy<Value> extends Strategy<Value>
 	{
 		int n = getNumStates();
 		for (int s = 0; s < n; s++) {
-			if (isChoiceDefined(s))
+			if (isChoiceDefined(s)) {
 				out.println(s + "=" + getChoiceActionString(s));
+			} else if (options.getShowUndefined()) {
+				out.println(s + "=" + getUndefinedChoiceString(s, -1));
+			}
 		}
 	}
 
@@ -90,8 +93,11 @@ public interface MDStrategy<Value> extends Strategy<Value>
 	{
 		int n = getNumStates();
 		for (int s = 0; s < n; s++) {
-			if (isChoiceDefined(s))
+			if (isChoiceDefined(s)) {
 				out.println(s + "=" + getChoiceIndex(s));
+			} else if (options.getShowUndefined()) {
+				out.println(s + "=" + getUndefinedChoiceString(s, -1));
+			}
 		}
 	}
 }

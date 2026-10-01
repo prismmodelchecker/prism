@@ -195,6 +195,8 @@ public class FMDStrategyStep<Value> extends StrategyExplicit<Value>
 			for (int m = 0; m < (tail != null ? k + 1 : k); m++) {
 				if (isChoiceDefined(s, m)) {
 					out.println((showStates ? states.get(s) : s) + "," + m + "=" + getChoiceActionString(s, m));
+				} else if (options.getShowUndefined()) {
+					out.println((showStates ? states.get(s) : s) + "," + m + "=" + getUndefinedChoiceString(s, m));
 				}
 			}
 		}
@@ -207,6 +209,8 @@ public class FMDStrategyStep<Value> extends StrategyExplicit<Value>
 			for (int m = 0; m < (tail != null ? k + 1 : k); m++) {
 				if (isChoiceDefined(s, m)) {
 					out.println(s + "," + m + "=" + getChoiceIndex(s, m));
+				} else if (options.getShowUndefined()) {
+					out.println(s + "," + m + "=" + getUndefinedChoiceString(s, m));
 				}
 			}
 		}

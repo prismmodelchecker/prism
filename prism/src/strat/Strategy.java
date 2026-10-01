@@ -162,6 +162,18 @@ public interface Strategy<Value> extends StrategyInfo<Value>
 	}
 	
 	/**
+	 * Get a string representing an undefined choice in the state index s
+	 * and where the current memory of the strategy (if applicable) is m, for export:
+	 * "?" followed by the reason why it is undefined (in lower case), if known.
+	 * Pass an arbitrary value (e.g. -1) for m if memory is not relevant.
+	 */
+	public default String getUndefinedChoiceString(int s, int m)
+	{
+		UndefinedReason why = whyUndefined(s, m);
+		return "?" + (why == null ? "" : why.toString().toLowerCase());
+	}
+
+	/**
 	 * For a strategy with memory, get the size of the memory
 	 * (memory values are then assumed to be 0...memSize-1.
 	 * A memoryless strategy should return 0. 

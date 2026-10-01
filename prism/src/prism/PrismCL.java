@@ -58,6 +58,8 @@ import parser.ast.ModulesFile;
 import parser.ast.PropertiesFile;
 import parser.ast.Property;
 import strat.StrategyExportOptions;
+import strat.StrategyInfo.UndefinedReason;
+import strat.UndefinedChoicePolicy;
 import prism.ResultsExporter.ResultsExportShape;
 import prism.ResultsImporter.RawResultsCollection;
 import simulator.GenerateSimulationPath;
@@ -1454,6 +1456,23 @@ public class PrismCL implements PrismModelListener
 				.bool("mergeobs",     "for partially observable models, whether to merge observationally equivalent states ",  v -> {
 					exportStratOptions.setMergeObservations(v);
 				})
+				// How to resolve undefined strategy choices (e.g., for induced model export), by reason
+				.choice("undefined", "how to resolve undefined choices, for all reasons except unknown",
+					undefinedResolutionChoice(r -> exportStratOptions.setUndefinedChoiceResolutionForAllKnownReasons(r)))
+				.choice("unknown", "how to resolve undefined choices when there is no information about them",
+					undefinedResolutionChoice(r -> exportStratOptions.setUndefinedChoiceResolution(UndefinedReason.UNKNOWN, r)))
+				.choice("arbitrary", "how to resolve undefined choices where any choice is equally good",
+					undefinedResolutionChoice(r -> exportStratOptions.setUndefinedChoiceResolution(UndefinedReason.ARBITRARY, r)))
+				.choice("satisfied", "how to resolve undefined choices after the objective is satisfied",
+					undefinedResolutionChoice(r -> exportStratOptions.setUndefinedChoiceResolution(UndefinedReason.SATISFIED, r)))
+				.choice("unsatisfiable", "how to resolve undefined choices when the objective can no longer be satisfied",
+					undefinedResolutionChoice(r -> exportStratOptions.setUndefinedChoiceResolution(UndefinedReason.UNSATISFIABLE, r)))
+				.choice("horizon", "how to resolve undefined choices after a step bound",
+					undefinedResolutionChoice(r -> exportStratOptions.setUndefinedChoiceResolution(UndefinedReason.HORIZON, r)))
+				.choice("unreachable", "how to resolve undefined choices in states not reachable under the strategy",
+					undefinedResolutionChoice(r -> exportStratOptions.setUndefinedChoiceResolution(UndefinedReason.UNREACHABLE, r)))
+				.bool("showundef", "whether to also show undefined choices (and why) when exporting actions/indices",
+					v -> exportStratOptions.setShowUndefined(v))
 				// The following options only apply to induced model export, mirroring the
 				// corresponding -exportmodel options (see exportModelSwitch above)
 				.choice("format",   "model export format for induced model export", new OptionParser.Choice()
@@ -1949,6 +1968,18 @@ public class PrismCL implements PrismModelListener
 			return null;
 		}
 		return new String[] { filesString.substring(0, dot), ext };
+	}
+
+	/**
+	 * Create an option choice for resolving undefined strategy choices.
+	 */
+	private static OptionParser.Choice undefinedResolutionChoice(Consumer<UndefinedChoicePolicy.Resolution> action)
+	{
+		OptionParser.Choice c = new OptionParser.Choice();
+		for (UndefinedChoicePolicy.Resolution res : UndefinedChoicePolicy.Resolution.values()) {
+			c.when(res.name().toLowerCase(), () -> action.accept(res));
+		}
+		return c;
 	}
 
 	/**

@@ -109,6 +109,8 @@ public class MRStrategy<Value> extends StrategyExplicit<Value>
 			Object probs = getChoiceAction(s, -1);
 			if (probs != UNDEFINED) {
 				out.println((showStates ? states.get(s) : s) + "=" + probs);
+			} else if (options.getShowUndefined()) {
+				out.println((showStates ? states.get(s) : s) + "=" + getUndefinedChoiceString(s, -1));
 			}
 		}
 	}
@@ -123,6 +125,8 @@ public class MRStrategy<Value> extends StrategyExplicit<Value>
 			Distribution<Value> probs = choiceProbs.get(s);
 			if (!probs.isEmpty()) {
 				out.println((showStates ? states.get(s) : s) + "=" + probs);
+			} else if (options.getShowUndefined()) {
+				out.println((showStates ? states.get(s) : s) + "=" + getUndefinedChoiceString(s, -1));
 			}
 		}
 	}

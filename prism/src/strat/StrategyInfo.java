@@ -211,6 +211,23 @@ public interface StrategyInfo<Value>
 	}
 
 	/**
+	 * Project an action of the model to which this strategy is applied onto the part of it
+	 * that is decided by this strategy. By default, this is the identity, but it can be overridden,
+	 * e.g., for a strategy that only decides the actions of some players in a concurrent game,
+	 * where actions are joint actions.
+	 * <br><br>
+	 * This is used when the strategy is undefined in a state but the first choice is to be used
+	 * (see {@link UndefinedChoicePolicy.Resolution#FIRST}): the projected action of the first choice
+	 * is then treated as the strategy's decision, leaving any parts of the action that are not
+	 * decided by the strategy (e.g., other players' actions) undecided.
+	 * @param act An action of the model
+	 */
+	public default Object projectAction(Object act)
+	{
+		return act;
+	}
+
+	/**
 	 * Get the action label for a choice in the model induced by this strategy.
 	 * For a deterministic strategy, it is unchanged.
 	 * For a randomised strategy, a descriptive string identifier is created.

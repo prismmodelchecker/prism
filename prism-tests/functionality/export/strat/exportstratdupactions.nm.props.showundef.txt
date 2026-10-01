@@ -1,0 +1,4 @@
+(0)=a
+(1)=?unsatisfiable
+(2)=?satisfied
+(3)=?unsatisfiable

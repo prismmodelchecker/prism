@@ -1,2 +1,7 @@
 -ex -exportstrat exportstratdupactions.nm.props.reduce.pexp:type=induced,mode=reduce
 -ex -exportstrat exportstratdupactions.nm.props.restrict.pexp:type=induced,mode=restrict
+-ex -exportstrat exportstratdupactions.nm.props.stop.pexp:type=induced,mode=reduce,satisfied=stop
+-ex -exportstrat exportstratdupactions.nm.props.all.pexp:type=induced,mode=reduce,satisfied=all
+-ex -exportstrat exportstratdupactions.nm.props.restrictall.pexp:type=induced,mode=restrict,undefined=all
+-ex -exportstrat exportstratdupactions.nm.props.showundef.txt:type=actions,showundef
+-ex -exportstrat exportstratdupactions.nm.props.loop.pexp:type=induced,mode=reduce,satisfied=loop

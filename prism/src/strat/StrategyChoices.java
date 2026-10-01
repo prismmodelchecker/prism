@@ -34,6 +34,7 @@ import java.util.Set;
 import explicit.NondetModel;
 import parser.State;
 import prism.PrismException;
+import strat.StrategyInfo.UndefinedReason;
 
 /**
  * Utility methods for working out which choices of a model are picked by a strategy.
@@ -45,35 +46,77 @@ import prism.PrismException;
 public class StrategyChoices
 {
 	/**
+	 * The choices picked by a strategy in a state (see {@link StrategyChoices#getChosenChoices}).
+	 */
+	public static class Chosen
+	{
+		/** Indices of the picked choices */
+		public final BitSet choices;
+		/** How an undefined decision was resolved (null if the decision was defined) */
+		public final UndefinedChoicePolicy.Resolution resolution;
+		/**
+		 * The decision used to pick the choices: the strategy's decision, if defined;
+		 * for an undefined decision resolved as FIRST, the action of the first choice;
+		 * and null otherwise (other resolutions, or no choices)
+		 */
+		public final Object decision;
+
+		public Chosen(BitSet choices, UndefinedChoicePolicy.Resolution resolution, Object decision)
+		{
+			this.choices = choices;
+			this.resolution = resolution;
+			this.decision = decision;
+		}
+	}
+
+	/**
 	 * Determine which choices in state {@code s} of a model (where the current memory
 	 * of the strategy, if applicable, is {@code m}) are picked by a strategy.
 	 * Strategy decisions are action-based, so this is done by matching the
 	 * action labels of the choices against the strategy's decision
 	 * (see {@link StrategyInfo#isActionChosen(Object, Object)}).
-	 * If the strategy is undefined in the state, any choice is fine,
-	 * so the choice(s) with the same action as the first one are used.
 	 * <br><br>
-	 * A decision is ambiguous if it picks several choices with the same action label,
-	 * since it is then unclear which of them is meant. For a (defined) decision,
-	 * an exception is thrown in this case; for an undefined one, only the first such
-	 * choice is used.
+	 * If the strategy is undefined in the state, this is resolved according to
+	 * {@code policy}, based on the reason (see {@link Strategy#whyUndefined(int, int)}):
+	 * STOP and LOOP pick no choices (for the latter, a self-loop should be added); FIRST picks the choice(s) with the same action as the first one
+	 * (only the first of these, if there are several); ALL picks all choices;
+	 * and ERROR throws an exception.
+	 * <br><br>
+	 * A (defined) decision is ambiguous if it picks several choices with the same action label,
+	 * since it is then unclear which of them is meant: an exception is thrown in this case.
 	 * @param model The model
 	 * @param strat The strategy
 	 * @param s The state
 	 * @param m The current strategy memory (-1 if not applicable)
-	 * @return The indices of the picked choices
+	 * @param policy Policy for resolving undefined choices
 	 */
-	public static <Value> BitSet getChosenChoices(NondetModel<Value> model, Strategy<Value> strat, int s, int m) throws PrismException
+	public static <Value> Chosen getChosenChoices(NondetModel<Value> model, Strategy<Value> strat, int s, int m, UndefinedChoicePolicy policy) throws PrismException
 	{
 		BitSet chosen = new BitSet();
 		int numChoices = model.getNumChoices(s);
 		if (numChoices == 0) {
-			return chosen;
+			return new Chosen(chosen, null, null);
 		}
 		Object decision = strat.getChoiceAction(s, m);
-		boolean undefined = decision == StrategyInfo.UNDEFINED;
-		if (undefined) {
-			decision = model.getAction(s, 0);
+		UndefinedChoicePolicy.Resolution resolution = null;
+		if (decision == StrategyInfo.UNDEFINED) {
+			UndefinedReason why = strat.whyUndefined(s, m);
+			resolution = policy.get(why);
+			switch (resolution) {
+			case STOP:
+			case LOOP:
+				return new Chosen(chosen, resolution, null);
+			case ALL:
+				chosen.set(0, numChoices);
+				return new Chosen(chosen, resolution, null);
+			case ERROR:
+				throw new PrismException("Strategy choice is undefined in state " + stateString(model, strat, s, m) + " (reason: "
+						+ (why == null ? UndefinedReason.UNKNOWN : why).toString().toLowerCase() + ")");
+			case FIRST:
+			default:
+				decision = strat.projectAction(model.getAction(s, 0));
+				break;
+			}
 		}
 		Set<Object> chosenActions = new HashSet<>();
 		for (int j = 0; j < numChoices; j++) {
@@ -82,20 +125,28 @@ public class StrategyChoices
 				continue;
 			}
 			if (!chosenActions.add(act)) {
-				if (undefined) {
+				if (resolution != null) {
 					continue;
 				}
-				List<State> statesList = model.getStatesList();
-				String stateString = statesList != null ? statesList.get(s).toString() : Integer.toString(s);
-				if (m != -1) {
-					stateString += " (strategy memory " + strat.getMemoryString(m) + ")";
-				}
-				throw new PrismException("Strategy is ambiguous in state " + stateString + ": action \"" + (act == null ? "" : act)
+				throw new PrismException("Strategy is ambiguous in state " + stateString(model, strat, s, m) + ": action \"" + (act == null ? "" : act)
 						+ "\" labels several choices, so it is not clear which is picked (action labels need to be unique in each state)");
 			}
 			chosen.set(j);
 		}
-		return chosen;
+		return new Chosen(chosen, resolution, decision);
+	}
+
+	/**
+	 * Get a string describing state s (and strategy memory m, if applicable), for error messages
+	 */
+	private static String stateString(NondetModel<?> model, Strategy<?> strat, int s, int m)
+	{
+		List<State> statesList = model.getStatesList();
+		String stateString = statesList != null ? statesList.get(s).toString() : Integer.toString(s);
+		if (m != -1) {
+			stateString += " (strategy memory " + strat.getMemoryString(m) + ")";
+		}
+		return stateString;
 	}
 
 	/**

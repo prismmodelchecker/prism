@@ -38,7 +38,7 @@ import strat.Strategy;
 import strat.StrategyChoices;
 import strat.StrategyExportOptions;
 import strat.StrategyExportOptions.InducedModelMode;
-import strat.StrategyInfo;
+import strat.UndefinedChoicePolicy;
 
 import java.util.*;
 
@@ -70,6 +70,11 @@ public class ConstructInducedModel
 	private boolean copyRewards = true;
 
 	/**
+	 * Policy for resolving undefined strategy choices
+	 */
+	private UndefinedChoicePolicy undefinedChoicePolicy = new UndefinedChoicePolicy();
+
+	/**
 	 * Construct a ConstructInducedModel with default options.
 	 */
 	public ConstructInducedModel()
@@ -86,6 +91,7 @@ public class ConstructInducedModel
 		setReachOnly(options.getReachOnly());
 		setCopyLabels(options.getInducedModelExportOptions().getShowLabels());
 		setCopyRewards(options.getInducedModelExportOptions().getShowRewards());
+		setUndefinedChoicePolicy(options.getUndefinedChoicePolicy());
 	}
 
 	/**
@@ -125,6 +131,15 @@ public class ConstructInducedModel
 	public ConstructInducedModel setCopyRewards(boolean copyRewards)
 	{
 		this.copyRewards = copyRewards;
+		return this;
+	}
+
+	/**
+	 * Set the policy for resolving undefined strategy choices.
+	 */
+	public ConstructInducedModel setUndefinedChoicePolicy(UndefinedChoicePolicy undefinedChoicePolicy)
+	{
+		this.undefinedChoicePolicy = undefinedChoicePolicy;
 		return this;
 	}
 
@@ -228,7 +243,7 @@ public class ConstructInducedModel
 					explore.set(s, false);
 					int numChoices =  model.getNumChoices(s);
 					// Find the choices picked by the strategy
-					BitSet chosen = StrategyChoices.getChosenChoices(model, strat, s, -1);
+					BitSet chosen = StrategyChoices.getChosenChoices(model, strat, s, -1, undefinedChoicePolicy).choices;
 					// Go through transitions from state s in original model
 					for (int j = 0; j < numChoices; j++) {
 						// Skip choices not picked by the strategy
@@ -260,7 +275,6 @@ public class ConstructInducedModel
 		}
 
 		// Iterate through reachable states to create new model
-		Value stratChoiceProb = model.getEvaluator().one();
 		for (int s = 0; s < numStates; s++) {
 			if (map[s] == -1) {
 				continue;
@@ -288,169 +302,208 @@ public class ConstructInducedModel
 					}
 				}
 			}
-			// Copy state rewards; also prepare accumulators for transition rewards of chosen choices
-			// (transition rewards attach to a whole choice, so choices merged into a single induced
-			// choice/state by the strategy need their transition rewards combined too)
-			List<Value> transRewAcc = null;
+			// Copy state rewards
 			if (copyRewards) {
-				transRewAcc = new ArrayList<>(origRewardsList.size());
 				for (int r = 0; r < origRewardsList.size(); r++) {
 					Rewards<Value> origRews = origRewardsList.get(r);
 					if (origRews.hasStateRewards()) {
 						inducedRewardsList.get(r).setStateReward(map[s], origRews.getStateReward(s));
 					}
-					transRewAcc.add(origRews.getEvaluator().zero());
 				}
 			}
 
 			int numChoices =  model.getNumChoices(s);
-			// Extract strategy decision
-			Object decision = strat.getChoiceAction(s, -1);
-			// If it is undefined, just pick the first one
-			if (decision == StrategyInfo.UNDEFINED && numChoices > 0) {
-				decision = model.getAction(s, 0);
+			// Find the choices picked by the strategy (resolving any undefined choice according to the policy)
+			// and the decision used to pick them (used below for probabilities and induced action labels)
+			StrategyChoices.Chosen chosen = StrategyChoices.getChosenChoices(model, strat, s, -1, undefinedChoicePolicy);
+			Object decision = chosen.decision;
+			// If all choices are picked for an undefined choice, they are kept as separate choices
+			// for a nondeterministic induced model, or picked uniformly at random otherwise;
+			// in other cases, all the picked choices are merged (randomised strategies give probabilities)
+			boolean all = chosen.resolution == UndefinedChoicePolicy.Resolution.ALL;
+			List<BitSet> groups = new ArrayList<>();
+			if (all && inducedModelType.nondeterministic()) {
+				for (int j = chosen.choices.nextSetBit(0); j >= 0; j = chosen.choices.nextSetBit(j + 1)) {
+					BitSet group = new BitSet();
+					group.set(j);
+					groups.add(group);
+				}
+			} else if (!chosen.choices.isEmpty()) {
+				groups.add(chosen.choices);
 			}
-			// Find the choices picked by the strategy
-			BitSet chosen = StrategyChoices.getChosenChoices(model, strat, s, -1);
-			// To build nondeterministic models, store new transitions in a distribution
-			Object inducedAction = null;
-			Distribution<Value> prodDistr = null;
-			Distribution<Interval<Value>> prodDistrIntv = null;
-			if (inducedModelType.nondeterministic()) {
-				if (modelType != ModelType.IMDP) {
-					prodDistr = new Distribution<>(model.getEvaluator());
-				} else {
-					prodDistrIntv = new Distribution<>(((IMDP<Value>) model).getIntervalEvaluator());
+			Value allProb = null;
+			if (all && !inducedModelType.nondeterministic()) {
+				Evaluator<Value> eval = model.getEvaluator();
+				Value numChosen = eval.zero();
+				for (int j = 0; j < chosen.choices.cardinality(); j++) {
+					numChosen = eval.add(numChosen, eval.one());
 				}
+				allProb = eval.divide(eval.one(), numChosen);
 			}
-			// Go through choices from state s in original model
-			for (int j = 0; j < numChoices; j++) {
-				Object act = model.getAction(s, j);
-				// Skip choices not picked by the strategy
-				if (!chosen.get(j)) {
-					continue;
+			// For STOP, no choices are picked, so nothing is added: the state has no outgoing
+			// transitions/choices, and is marked as a deadlock when deadlocks are found at the end.
+			// For LOOP, no choices are picked, but a self-loop is added, as when fixing deadlocks
+			// (the state is still marked as a deadlock, as in that case)
+			if (chosen.resolution == UndefinedChoicePolicy.Resolution.LOOP) {
+				inducedModel.addSelfLoop(map[s]);
+				((ModelExplicit<Value>) inducedModel).addDeadlockState(map[s]);
+			}
+			int inducedChoice = 0;
+			for (BitSet group : groups) {
+				// Accumulators for transition rewards of chosen choices
+				// (transition rewards attach to a whole choice, so choices merged into a single induced
+				// choice/state by the strategy need their transition rewards combined too)
+				List<Value> transRewAcc = null;
+				if (copyRewards) {
+					transRewAcc = new ArrayList<>(origRewardsList.size());
+					for (int r = 0; r < origRewardsList.size(); r++) {
+						transRewAcc.add(origRewardsList.get(r).getEvaluator().zero());
+					}
 				}
-				// Get strategy choice probability if needed
-				if (strat.isRandomised()) {
-					stratChoiceProb = strat.getChoiceActionProbability(decision, act);
+				// To build nondeterministic models, store new transitions in a distribution
+				Object inducedAction = null;
+				Distribution<Value> prodDistr = null;
+				Distribution<Interval<Value>> prodDistrIntv = null;
+				if (inducedModelType.nondeterministic()) {
+					if (modelType != ModelType.IMDP) {
+						prodDistr = new Distribution<>(model.getEvaluator());
+					} else {
+						prodDistrIntv = new Distribution<>(((IMDP<Value>) model).getIntervalEvaluator());
+					}
 				}
-				// Accumulate transition rewards for this choice
-				// (weighted by the strategy's choice probability, if randomised)
+				// Go through choices from state s in original model
+				for (int j = 0; j < numChoices; j++) {
+					Object act = model.getAction(s, j);
+					// Skip choices not picked by the strategy
+					if (!group.get(j)) {
+						continue;
+					}
+					// Get probability for this choice, if needed (uniform for all choices; or from a randomised strategy)
+					Value choiceProb = null;
+					if (allProb != null) {
+						choiceProb = allProb;
+					} else if (strat.isRandomised() && chosen.resolution == null) {
+						choiceProb = strat.getChoiceActionProbability(decision, act);
+					}
+					// Accumulate transition rewards for this choice
+					// (weighted by the choice probability, if needed)
+					if (copyRewards) {
+						for (int r = 0; r < origRewardsList.size(); r++) {
+							Rewards<Value> origRews = origRewardsList.get(r);
+							if (origRews.hasTransitionRewards()) {
+								Evaluator<Value> rewEval = origRews.getEvaluator();
+								Value rew = origRews.getTransitionReward(s, j);
+								if (choiceProb != null) {
+									rew = rewEval.multiply(rew, choiceProb);
+								}
+								transRewAcc.set(r, rewEval.add(transRewAcc.get(r), rew));
+							}
+						}
+					}
+					// Get choice action for induced model if needed
+					if (inducedModelType.nondeterministic()) {
+						inducedAction = all ? act : strat.getInducedAction(decision, act);
+					}
+					// Go through transitions of original model
+					Iterator<Map.Entry<Integer, Value>> iter = null;
+					Iterator<Map.Entry<Integer, Interval<Value>>> iterIntv = null;
+					switch (modelType) {
+						case MDP:
+							iter = ((MDP<Value>) model).getTransitionsIterator(s, j);
+							break;
+						case POMDP:
+							iter = ((POMDP<Value>) model).getTransitionsIterator(s, j);
+							break;
+						case IMDP:
+							iterIntv = ((IMDP<Value>) model).getIntervalTransitionsIterator(s, j);
+							break;
+						case STPG:
+							iter = ((STPG<Value>) model).getTransitionsIterator(s, j);
+							break;
+						default:
+							throw new PrismNotSupportedException("Induced model construction not implemented for " + modelType + "s");
+					}
+					if (modelType != ModelType.IMDP) {
+						while (iter.hasNext()) {
+							Map.Entry<Integer, Value> e = iter.next();
+							int s_2 = e.getKey();
+							Value prob = e.getValue();
+							if (choiceProb != null) {
+								prob = model.getEvaluator().multiply(prob, choiceProb);
+							}
+							// Add transition to model
+							switch (inducedModelType) {
+								case DTMC:
+									((DTMCSimple<Value>) inducedModel).addToProbability(map[s], map[s_2], prob, act);
+									break;
+								case MDP:
+								case POMDP:
+								case STPG:
+									prodDistr.add(map[s_2], prob);
+									break;
+								default:
+									throw new PrismNotSupportedException("Induced model construction not implemented for " + modelType + "s");
+							}
+						}
+					} else {
+						while (iterIntv.hasNext()) {
+							Map.Entry<Integer, Interval<Value>> e = iterIntv.next();
+							int s_2 = e.getKey();
+							Interval<Value> prob = e.getValue();
+							if (choiceProb != null) {
+								prob = ((IMDP<Value>) model).getIntervalEvaluator().multiply(prob, new Interval<>(choiceProb, choiceProb));
+							}
+							// Add transition to model
+							switch (inducedModelType) {
+								case IDTMC:
+									((IDTMCSimple<Value>) inducedModel).addToProbability(map[s], map[s_2], prob, act);
+									break;
+								case IMDP:
+									prodDistrIntv.add(map[s_2], prob);
+									break;
+								default:
+									throw new PrismNotSupportedException("Induced model construction not implemented for " + modelType + "s");
+							}
+						}
+					}
+				}
+				// Add distribution to nondeterministic model
+				if (inducedModelType.nondeterministic()) {
+					switch (inducedModelType) {
+						case MDP:
+							((MDPSimple<Value>) inducedModel).addActionLabelledChoice(map[s], prodDistr, inducedAction);
+							break;
+						case POMDP:
+							((POMDPSimple<Value>) inducedModel).addActionLabelledChoice(map[s], prodDistr, inducedAction);
+							break;
+						case IMDP:
+							((IMDPSimple<Value>) inducedModel).addActionLabelledChoice(map[s], prodDistrIntv, inducedAction);
+							break;
+						case STPG:
+							((STPGSimple<Value>) inducedModel).addActionLabelledChoice(map[s], prodDistr, inducedAction);
+							break;
+						default:
+							break;
+					}
+				}
+				// Store accumulated transition rewards:
+				// for a nondeterministic induced model, attach to the corresponding induced choice for this state;
+				// otherwise (induced model has no choices), fold into the induced state reward instead.
 				if (copyRewards) {
 					for (int r = 0; r < origRewardsList.size(); r++) {
-						Rewards<Value> origRews = origRewardsList.get(r);
-						if (origRews.hasTransitionRewards()) {
-							Evaluator<Value> rewEval = origRews.getEvaluator();
-							Value rew = origRews.getTransitionReward(s, j);
-							if (strat.isRandomised()) {
-								rew = rewEval.multiply(rew, stratChoiceProb);
+						Value rew = transRewAcc.get(r);
+						RewardsSimple<Value> inducedRews = inducedRewardsList.get(r);
+						Evaluator<Value> rewEval = origRewardsList.get(r).getEvaluator();
+						if (!rewEval.isZero(rew)) {
+							if (inducedModelType.nondeterministic()) {
+								inducedRews.setTransitionReward(map[s], inducedChoice, rew);
+							} else {
+								inducedRews.addToStateReward(map[s], rew);
 							}
-							transRewAcc.set(r, rewEval.add(transRewAcc.get(r), rew));
 						}
 					}
 				}
-				// Get choice action for induced model if needed
-				if (inducedModelType.nondeterministic()) {
-					inducedAction = strat.getInducedAction(decision, act);
-				}
-				// Go through transitions of original model
-				Iterator<Map.Entry<Integer, Value>> iter = null;
-				Iterator<Map.Entry<Integer, Interval<Value>>> iterIntv = null;
-				switch (modelType) {
-					case MDP:
-						iter = ((MDP<Value>) model).getTransitionsIterator(s, j);
-						break;
-					case POMDP:
-						iter = ((POMDP<Value>) model).getTransitionsIterator(s, j);
-						break;
-					case IMDP:
-						iterIntv = ((IMDP<Value>) model).getIntervalTransitionsIterator(s, j);
-						break;
-					case STPG:
-						iter = ((STPG<Value>) model).getTransitionsIterator(s, j);
-						break;
-					default:
-						throw new PrismNotSupportedException("Induced model construction not implemented for " + modelType + "s");
-				}
-				if (modelType != ModelType.IMDP) {
-					while (iter.hasNext()) {
-						Map.Entry<Integer, Value> e = iter.next();
-						int s_2 = e.getKey();
-						Value prob = e.getValue();
-						if (strat.isRandomised()) {
-							prob = model.getEvaluator().multiply(prob, stratChoiceProb);
-						}
-						// Add transition to model
-						switch (inducedModelType) {
-							case DTMC:
-								((DTMCSimple<Value>) inducedModel).addToProbability(map[s], map[s_2], prob, act);
-								break;
-							case MDP:
-							case POMDP:
-							case STPG:
-								prodDistr.add(map[s_2], prob);
-								break;
-							default:
-								throw new PrismNotSupportedException("Induced model construction not implemented for " + modelType + "s");
-						}
-					}
-				} else {
-					while (iterIntv.hasNext()) {
-						Map.Entry<Integer, Interval<Value>> e = iterIntv.next();
-						int s_2 = e.getKey();
-						Interval<Value> prob = e.getValue();
-						if (strat.isRandomised()) {
-							prob = ((IMDP<Value>) model).getIntervalEvaluator().multiply(prob, new Interval<>(stratChoiceProb, stratChoiceProb));
-						}
-						// Add transition to model
-						switch (inducedModelType) {
-							case IDTMC:
-								((IDTMCSimple<Value>) inducedModel).addToProbability(map[s], map[s_2], prob, act);
-								break;
-							case IMDP:
-								prodDistrIntv.add(map[s_2], prob);
-								break;
-							default:
-								throw new PrismNotSupportedException("Induced model construction not implemented for " + modelType + "s");
-						}
-					}
-				}
-			}
-			// Add distribution to nondeterministic model
-			if (inducedModelType.nondeterministic()) {
-				switch (inducedModelType) {
-					case MDP:
-						((MDPSimple<Value>) inducedModel).addActionLabelledChoice(map[s], prodDistr, inducedAction);
-						break;
-					case POMDP:
-						((POMDPSimple<Value>) inducedModel).addActionLabelledChoice(map[s], prodDistr, inducedAction);
-						break;
-					case IMDP:
-						((IMDPSimple<Value>) inducedModel).addActionLabelledChoice(map[s], prodDistrIntv, inducedAction);
-						break;
-					case STPG:
-						((STPGSimple<Value>) inducedModel).addActionLabelledChoice(map[s], prodDistr, inducedAction);
-						break;
-					default:
-						break;
-				}
-			}
-			// Store accumulated transition rewards:
-			// for a nondeterministic induced model, attach to the (sole) induced choice for this state;
-			// otherwise (induced model has no choices), fold into the induced state reward instead.
-			if (copyRewards) {
-				for (int r = 0; r < origRewardsList.size(); r++) {
-					Value rew = transRewAcc.get(r);
-					RewardsSimple<Value> inducedRews = inducedRewardsList.get(r);
-					Evaluator<Value> rewEval = origRewardsList.get(r).getEvaluator();
-					if (!rewEval.isZero(rew)) {
-						if (inducedModelType.nondeterministic()) {
-							inducedRews.setTransitionReward(map[s], 0, rew);
-						} else {
-							inducedRews.addToStateReward(map[s], rew);
-						}
-					}
-				}
+				inducedChoice++;
 			}
 		}
 

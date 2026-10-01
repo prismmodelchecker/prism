@@ -30,6 +30,8 @@ import io.ModelExportOptions;
 
 import java.util.Optional;
 
+import strat.StrategyInfo.UndefinedReason;
+
 /**
  * Class to represent options for exporting strategies.
  */
@@ -107,6 +109,16 @@ public class StrategyExportOptions implements Cloneable
 	 */
 	private Optional<ModelExportOptions> inducedModelExportOptions = Optional.empty();
 
+	/**
+	 * Policy for resolving undefined strategy choices (e.g., for induced model construction)
+	 */
+	private Optional<UndefinedChoicePolicy> undefinedChoicePolicy = Optional.empty();
+
+	/**
+	 * Whether to show (reasons for) undefined strategy choices (for export of actions/indices)
+	 */
+	private Optional<Boolean> showUndefined = Optional.empty();
+
 	// Constructors
 
 	/**
@@ -183,6 +195,35 @@ public class StrategyExportOptions implements Cloneable
 		return this;
 	}
 
+	/**
+	 * Set the policy for resolving undefined strategy choices (e.g., for induced model construction).
+	 */
+	public StrategyExportOptions setUndefinedChoicePolicy(UndefinedChoicePolicy undefinedChoicePolicy)
+	{
+		this.undefinedChoicePolicy = Optional.of(undefinedChoicePolicy);
+		return this;
+	}
+
+	/**
+	 * Set how to resolve undefined strategy choices for a given reason
+	 * (other reasons are resolved as before, or as by default if not yet set).
+	 */
+	public StrategyExportOptions setUndefinedChoiceResolution(UndefinedReason reason, UndefinedChoicePolicy.Resolution resolution)
+	{
+		undefinedChoicePolicy = Optional.of(getUndefinedChoicePolicy().set(reason, resolution));
+		return this;
+	}
+
+	/**
+	 * Set how to resolve undefined strategy choices for all reasons except UNKNOWN
+	 * (see {@link UndefinedChoicePolicy#setForAllKnownReasons}).
+	 */
+	public StrategyExportOptions setUndefinedChoiceResolutionForAllKnownReasons(UndefinedChoicePolicy.Resolution resolution)
+	{
+		undefinedChoicePolicy = Optional.of(getUndefinedChoicePolicy().setForAllKnownReasons(resolution));
+		return this;
+	}
+
 	// Get methods
 
 	/**
@@ -226,6 +267,31 @@ public class StrategyExportOptions implements Cloneable
 	}
 
 	/**
+	 * Get the policy for resolving undefined strategy choices (e.g., for induced model construction).
+	 */
+	public UndefinedChoicePolicy getUndefinedChoicePolicy()
+	{
+		return undefinedChoicePolicy.orElseGet(UndefinedChoicePolicy::new);
+	}
+
+	/**
+	 * Whether to show (reasons for) undefined strategy choices (for export of actions/indices).
+	 */
+	public boolean getShowUndefined()
+	{
+		return showUndefined.orElse(false);
+	}
+
+	/**
+	 * Set whether to show (reasons for) undefined strategy choices (for export of actions/indices).
+	 */
+	public StrategyExportOptions setShowUndefined(boolean showUndefined)
+	{
+		this.showUndefined = Optional.of(showUndefined);
+		return this;
+	}
+
+	/**
 	 * Precision to export probabilities/etc. (number of significant decimal places).
 	 */
 	public int getModelPrecision()
@@ -260,7 +326,9 @@ public class StrategyExportOptions implements Cloneable
 	public StrategyExportOptions clone()
 	{
 		try {
-			return (StrategyExportOptions) super.clone();
+			StrategyExportOptions copy = (StrategyExportOptions) super.clone();
+			copy.undefinedChoicePolicy = undefinedChoicePolicy.map(UndefinedChoicePolicy::clone);
+			return copy;
 		} catch (CloneNotSupportedException e) {
 			throw new InternalError("Object#clone is expected to work for Cloneable objects", e);
 		}
