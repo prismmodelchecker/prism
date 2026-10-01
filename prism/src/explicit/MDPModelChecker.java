@@ -104,6 +104,10 @@ public class MDPModelChecker extends ProbModelChecker
 				AcceptanceType.GENERALIZED_RABIN,
 				AcceptanceType.REACH
 		};
+		// Strategy generation is not supported for all acceptance types
+		if (getGenStrat()) {
+			allowedAcceptance = mcLtl.restrictAcceptanceForStrategyGeneration(allowedAcceptance);
+		}
 		LTLModelChecker.LTLProduct<MDP<Double>> product = mcLtl.constructDAProductForLTLFormula(this, (MDP<Double>) model, expr, statesOfInterest, allowedAcceptance);
 		doProductExports(product);
 		

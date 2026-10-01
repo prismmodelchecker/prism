@@ -56,6 +56,7 @@ import prism.PrismComponent;
 import prism.PrismException;
 import prism.PrismLangException;
 import prism.PrismNotSupportedException;
+import prism.PrismSettings;
 import prism.PrismUtils;
 import acceptance.AcceptanceBuchi;
 import acceptance.AcceptanceGenRabin;
@@ -817,6 +818,27 @@ public class LTLModelChecker extends PrismComponent
 	public BitSet findAcceptingECStates(NondetModel<?> model, AcceptanceOmega acceptance) throws PrismException
 	{
 		return findAcceptingECStates(model, acceptance, null);
+	}
+
+	/**
+	 * Restrict a list of acceptance types allowed for LTL model checking to those
+	 * for which strategy generation is supported by
+	 * {@link #findAcceptingECStates(NondetModel, AcceptanceOmega, int[])}.
+	 * Currently, this means removing generalized Rabin. Since only an external
+	 * LTL-to-DA tool can produce automata of the removed types, a warning is
+	 * printed if one is in use.
+	 * @param allowedAcceptance the allowed acceptance types
+	 */
+	public AcceptanceType[] restrictAcceptanceForStrategyGeneration(AcceptanceType... allowedAcceptance)
+	{
+		if (!AcceptanceType.contains(allowedAcceptance, AcceptanceType.GENERALIZED_RABIN)) {
+			return allowedAcceptance;
+		}
+		String ltl2daTool = getSettings().getString(PrismSettings.PRISM_LTL2DA_TOOL);
+		if (ltl2daTool != null && !ltl2daTool.isEmpty()) {
+			mainLog.printWarning("Generalized Rabin automata are not allowed since strategy generation is enabled");
+		}
+		return Arrays.stream(allowedAcceptance).filter(t -> t != AcceptanceType.GENERALIZED_RABIN).toArray(AcceptanceType[]::new);
 	}
 
 	/**

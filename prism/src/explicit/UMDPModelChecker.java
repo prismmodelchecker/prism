@@ -88,6 +88,10 @@ public class UMDPModelChecker extends ProbModelChecker
 				AcceptanceType.GENERALIZED_RABIN,
 				AcceptanceType.REACH
 		};
+		// Strategy generation is not supported for all acceptance types
+		if (getGenStrat()) {
+			allowedAcceptance = mcLtl.restrictAcceptanceForStrategyGeneration(allowedAcceptance);
+		}
 		LTLModelChecker.LTLProduct<UMDP<Double>> product = mcLtl.constructDAProductForLTLFormula(this, (UMDP<Double>) model, expr, statesOfInterest, allowedAcceptance);
 		doProductExports(product);
 
