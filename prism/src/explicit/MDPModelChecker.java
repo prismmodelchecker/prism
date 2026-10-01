@@ -731,15 +731,7 @@ public class MDPModelChecker extends ProbModelChecker
 		// so it can be done *after* the main prob0 algorithm (unlike for prob1).
 		// We simply pick, for all "no" states, the first choice for which all transitions stay in "no"
 		if (strat != null) {
-			for (int i = u.nextSetBit(0); i >= 0; i = u.nextSetBit(i + 1)) {
-				int numChoices = mdp.getNumChoices(i);
-				for (int k = 0; k < numChoices; k++) {
-					if (mdp.allSuccessorsInSet(i, k, u)) {
-						strat[i] = k;
-						break;
-					}
-				}
-			}
+			addStayChoices(mdp, u, u, strat);
 		}
 
 		return u;
@@ -765,17 +757,31 @@ public class MDPModelChecker extends ProbModelChecker
 		// States from which the target can be avoided with probability 1: stay there
 		BitSet done = prob0(model, null, target, true, null);
 		done.and(inf);
-		for (int s = done.nextSetBit(0); s >= 0; s = done.nextSetBit(s + 1)) {
+		addStayChoices(model, done, done, strat);
+		// Other "inf" states: move towards those dealt with already
+		addAttractorChoices(model, done, inf, null, strat);
+	}
+
+	/**
+	 * Generate strategy choices which stay within a set of states: for each state in {@code states},
+	 * pick the first choice whose successors all lie in {@code stayIn}.
+	 * States in {@code states} for which no such choice exists are left unchanged.
+	 * @param model The model
+	 * @param states States to generate choices for
+	 * @param stayIn States that choices must stay within
+	 * @param strat Strategy choice indices, to be updated
+	 */
+	public static void addStayChoices(NondetModel<?> model, BitSet states, BitSet stayIn, int strat[])
+	{
+		for (int s = states.nextSetBit(0); s >= 0; s = states.nextSetBit(s + 1)) {
 			int numChoices = model.getNumChoices(s);
 			for (int k = 0; k < numChoices; k++) {
-				if (model.allSuccessorsInSet(s, k, done)) {
+				if (model.allSuccessorsInSet(s, k, stayIn)) {
 					strat[s] = k;
 					break;
 				}
 			}
 		}
-		// Other "inf" states: move towards those dealt with already
-		addAttractorChoices(model, done, inf, null, strat);
 	}
 
 	/**

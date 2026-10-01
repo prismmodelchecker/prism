@@ -1091,15 +1091,7 @@ public class LTLModelChecker extends PrismComponent
 		BitSet ecAcc = (BitSet) ec.clone();
 		ecAcc.and(acc);
 		ecAcc.andNot(done);
-		for (int s = ecAcc.nextSetBit(0); s >= 0; s = ecAcc.nextSetBit(s + 1)) {
-			int numChoices = model.getNumChoices(s);
-			for (int k = 0; k < numChoices; k++) {
-				if (model.allSuccessorsInSet(s, k, ec)) {
-					strat[s] = k;
-					break;
-				}
-			}
-		}
+		MDPModelChecker.addStayChoices(model, ecAcc, ec, strat);
 		ecDone.or(ecAcc);
 		MDPModelChecker.addAttractorChoices(model, ecDone, ec, ec, strat);
 	}
