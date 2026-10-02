@@ -317,19 +317,35 @@ public class ConstructInducedModel
 			// and the decision used to pick them (used below for probabilities and induced action labels)
 			StrategyChoices.Chosen chosen = StrategyChoices.getChosenChoices(model, strat, s, -1, undefinedChoicePolicy);
 			Object decision = chosen.decision;
-			// If all choices are picked for an undefined choice, they are kept as separate choices
-			// for a nondeterministic induced model, or picked uniformly at random otherwise;
-			// in other cases, all the picked choices are merged (randomised strategies give probabilities)
+			// Group the picked choices into the choices of the induced model, each with an action label.
+			// For a nondeterministic induced model, picked choices with the same induced action label
+			// (see StrategyInfo.getInducedChoiceAction) are merged into one choice (with probabilities,
+			// for a randomised strategy), except that, if all choices are picked for an undefined choice,
+			// they are kept as separate choices. Otherwise, all the picked choices are merged
+			// (picked uniformly at random, if all choices are picked for an undefined choice).
 			boolean all = chosen.resolution == UndefinedChoicePolicy.Resolution.ALL;
 			List<BitSet> groups = new ArrayList<>();
-			if (all && inducedModelType.nondeterministic()) {
+			List<Object> groupActions = new ArrayList<>();
+			if (inducedModelType.nondeterministic()) {
+				Map<Object, BitSet> groupsByAction = new LinkedHashMap<>();
 				for (int j = chosen.choices.nextSetBit(0); j >= 0; j = chosen.choices.nextSetBit(j + 1)) {
-					BitSet group = new BitSet();
-					group.set(j);
-					groups.add(group);
+					Object act = model.getAction(s, j);
+					if (all) {
+						BitSet group = new BitSet();
+						group.set(j);
+						groups.add(group);
+						groupActions.add(act);
+					} else {
+						groupsByAction.computeIfAbsent(strat.getInducedChoiceAction(decision, act, mode), k -> new BitSet()).set(j);
+					}
+				}
+				for (Map.Entry<Object, BitSet> e : groupsByAction.entrySet()) {
+					groups.add(e.getValue());
+					groupActions.add(e.getKey());
 				}
 			} else if (!chosen.choices.isEmpty()) {
 				groups.add(chosen.choices);
+				groupActions.add(null);
 			}
 			Value allProb = null;
 			if (all && !inducedModelType.nondeterministic()) {
@@ -349,7 +365,8 @@ public class ConstructInducedModel
 				((ModelExplicit<Value>) inducedModel).addDeadlockState(map[s]);
 			}
 			int inducedChoice = 0;
-			for (BitSet group : groups) {
+			for (int g = 0; g < groups.size(); g++) {
+				BitSet group = groups.get(g);
 				// Accumulators for transition rewards of chosen choices
 				// (transition rewards attach to a whole choice, so choices merged into a single induced
 				// choice/state by the strategy need their transition rewards combined too)
@@ -361,7 +378,7 @@ public class ConstructInducedModel
 					}
 				}
 				// To build nondeterministic models, store new transitions in a distribution
-				Object inducedAction = null;
+				Object inducedAction = groupActions.get(g);
 				Distribution<Value> prodDistr = null;
 				Distribution<Interval<Value>> prodDistrIntv = null;
 				if (inducedModelType.nondeterministic()) {
@@ -399,10 +416,6 @@ public class ConstructInducedModel
 								transRewAcc.set(r, rewEval.add(transRewAcc.get(r), rew));
 							}
 						}
-					}
-					// Get choice action for induced model if needed
-					if (inducedModelType.nondeterministic()) {
-						inducedAction = all ? act : strat.getInducedAction(decision, act);
 					}
 					// Go through transitions of original model
 					Iterator<Map.Entry<Integer, Value>> iter = null;

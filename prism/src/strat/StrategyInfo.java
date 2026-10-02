@@ -228,13 +228,22 @@ public interface StrategyInfo<Value>
 	}
 
 	/**
-	 * Get the action label for a choice in the model induced by this strategy.
-	 * For a deterministic strategy, it is unchanged.
+	 * Get the action label for a choice in the model induced by this strategy,
+	 * given the action of a choice in the original model and the decision taken by
+	 * this strategy (which picks that choice, with at least some probability).
+	 * When building an induced model that remains nondeterministic,
+	 * the choices picked by a decision in a state are grouped by this label:
+	 * picked choices with the same label are merged into one choice of the induced model.
+	 * <br><br>
+	 * For a deterministic strategy, the label is unchanged.
 	 * For a randomised strategy, a descriptive string identifier is created.
+	 * Strategies that only decide part of an action (e.g., for some players of a game)
+	 * can override this, e.g., to give one induced choice per action of the remaining players.
 	 * @param decision The decision taken by the strategy
-	 * @param act The action to check
+	 * @param act The action of the choice in the original model
+	 * @param mode Mode of induced model construction ("restrict" or "reduce")
 	 */
-	public default Object getInducedAction(Object decision, Object act)
+	public default Object getInducedChoiceAction(Object decision, Object act, InducedModelMode mode)
 	{
 		if (decision == UNDEFINED) {
 			return null;
@@ -244,6 +253,16 @@ public interface StrategyInfo<Value>
 		} else {
 			return decision;
 		}
+	}
+
+	/**
+	 * Get the action label for a choice in the model induced by this strategy.
+	 * @deprecated Use {@link #getInducedChoiceAction(Object, Object, InducedModelMode)}.
+	 */
+	@Deprecated
+	public default Object getInducedAction(Object decision, Object act)
+	{
+		return getInducedChoiceAction(decision, act, InducedModelMode.RESTRICT);
 	}
 
 	/**
