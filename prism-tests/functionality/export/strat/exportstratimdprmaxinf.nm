@@ -1,0 +1,28 @@
+// Regression test for strategy generation for Rmax (reachability rewards)
+// for IMDPs, in states where the (max) value is infinite, i.e., the target
+// can be avoided: IMDP version of exportstratrmaxinf.nm.
+// The chosen action must avoid the target with positive probability.
+// Previously, the first action with some successor in the "inf" states was picked,
+// i.e., a in states s=0 and s=1, which reaches the target with probability 1.
+// Here, the strategy should pick b in s=1 (moving to the non-target sink s=3)
+// and then b in s=0 (moving to s=1).
+
+mdp
+
+module m
+
+	s:[0..3];
+
+	[a] s=0 -> [0.25,0.75]:(s'=2) + [0.25,0.75]:(s'=0);
+	[b] s=0 -> (s'=1);
+	[a] s=1 -> [0.25,0.75]:(s'=2) + [0.25,0.75]:(s'=1);
+	[b] s=1 -> [0.25,0.75]:(s'=2) + [0.25,0.75]:(s'=3);
+	[c] s>=2 -> true;
+
+endmodule
+
+label "goal" = s=2;
+
+rewards
+	true : 1;
+endrewards

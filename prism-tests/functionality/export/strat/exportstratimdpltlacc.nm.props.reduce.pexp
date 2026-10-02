@@ -1,0 +1,15 @@
+# Transitions (IDTMC)
+2 3
+0 0 [0.25,0.5] a
+0 1 [0.5,0.75] a
+1 1 [1,1] c
+
+# States
+(_mem,s)
+0:(0,0)
+1:(1,1)
+
+# Labels
+0="init" 1="deadlock" 2="goal"
+0: 0
+1: 2

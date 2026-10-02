@@ -1,0 +1,22 @@
+# Transitions (IDTMC)
+2 3
+0 0 [0.25,0.5] a
+0 1 [0.5,0.75] a
+1 1 [1,1] z
+
+# States
+(s)
+0:(0)
+1:(1)
+
+# Labels
+0="init" 1="deadlock"
+0: 0
+
+# Reward structure
+# State rewards
+2 0
+
+# Reward structure
+# Transition rewards
+2 0

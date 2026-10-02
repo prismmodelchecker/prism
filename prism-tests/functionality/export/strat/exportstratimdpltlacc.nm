@@ -1,0 +1,21 @@
+// Regression test for strategy generation for LTL properties for IMDPs:
+// IMDP version of exportstratltlacc.nm. In accepting end components,
+// choices need to stay in the end component (and keep visiting accepting
+// states), rather than being arbitrary as for reachability targets.
+// Here, for G F "goal", the end component {s=1} is accepting, and the first
+// choice (b) in s=1 leaves it. The optimal strategy is unique.
+
+mdp
+
+module m
+
+	s:[0..2];
+
+	[a] s=0 -> [0.5,0.75]:(s'=1) + [0.25,0.5]:(s'=0);
+	[b] s=1 -> (s'=2);
+	[c] s=1 -> (s'=1);
+	[] s=2 -> true;
+
+endmodule
+
+label "goal" = s=1;

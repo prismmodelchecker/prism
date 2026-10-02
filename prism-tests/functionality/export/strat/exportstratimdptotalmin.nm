@@ -1,0 +1,25 @@
+// Regression test for strategy generation for minimum total rewards (R[C])
+// for IMDPs: IMDP version of exportstrattotalmin.nm. This is reduced to
+// reaching the states of a zero-reward safe region, which were then treated
+// like reachability targets, where any choice is fine, but the strategy needs
+// to stay there without gaining reward: here, in s=1, it should pick z,
+// not the first choice p (which gains reward). The optimal strategy is unique.
+
+mdp
+
+module m
+
+	s:[0..2];
+
+	[a] s=0 -> [0.5,0.75]:(s'=1) + [0.25,0.5]:(s'=0);
+	[b] s=0 -> (s'=2);
+	[p] s=1 -> (s'=1);
+	[z] s=1 -> (s'=1);
+	[] s=2 -> true;
+
+endmodule
+
+rewards
+	[p] true : 1;
+	[b] true : 5;
+endrewards

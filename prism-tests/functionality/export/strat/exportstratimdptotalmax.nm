@@ -1,0 +1,26 @@
+// Regression test for strategy generation for maximum total rewards (R[C])
+// for IMDPs, in states with infinite values: IMDP version of exportstrattotalmax.nm.
+// The strategy needs to reach the end component {s=1,s=3} and then keep
+// visiting s=1 (which has positive reward) in it. Previously, the first choice
+// with some successor in the "inf" states was picked, i.e., f in s=3, which
+// never returns to s=1. The optimal strategy is unique.
+
+mdp
+
+module m
+
+	s:[0..3];
+
+	[b] s=0 -> (s'=2);
+	[a] s=0 -> (s'=1);
+	[d] s=1 -> (s'=2);
+	[c] s=1 -> (s'=3);
+	[f] s=3 -> (s'=3);
+	[e] s=3 -> [0.5,0.75]:(s'=1) + [0.25,0.5]:(s'=3);
+	[] s=2 -> true;
+
+endmodule
+
+rewards
+	s=1 : 1;
+endrewards
