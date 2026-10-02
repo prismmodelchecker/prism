@@ -116,6 +116,12 @@ public class IDTMCSimple<Value> extends ModelExplicitWrapper<Value> implements M
 	}
 
 	@Override
+	public void addSelfLoop(int s)
+	{
+		dtmc.addSelfLoop(s);
+	}
+
+	@Override
 	public int addState()
 	{
 		return dtmc.addState();

@@ -348,25 +348,27 @@ public class STPGAbstrSimple<Value> extends ModelExplicit<Value> implements STPG
 	@Override
 	public void findDeadlocks(boolean fix) throws PrismException
 	{
-		int fixed = 0;
 		for (int i = 0; i < numStates; i++) {
 			// Note that no distributions is a deadlock, not an empty distribution
 			if (trans.get(i).isEmpty()) {
 				addDeadlockState(i);
 				if (fix) {
-					DistributionSet<Value> distrs = newDistributionSet(null);
-					Distribution<Value> distr = new Distribution<>(getEvaluator());
-					distr.add(i, getEvaluator().one());
-					distrs.add(distr);
-					addDistributionSet(i, distrs);
-					fixed++;
+					addSelfLoop(i);
 				}
 			}
 		}
+	}
+
+	@Override
+	public void addSelfLoop(int s)
+	{
+		DistributionSet<Value> distrs = newDistributionSet(null);
+		Distribution<Value> distr = new Distribution<>(getEvaluator());
+		distr.add(s, getEvaluator().one());
+		distrs.add(distr);
+		addDistributionSet(s, distrs);
 		// Add the empty action (if missing), regardless of whether actionList needs recomputing
-		if (fixed > 0) {
-			actionList.addAction(null);
-		}
+		actionList.addAction(null);
 	}
 
 	@Override

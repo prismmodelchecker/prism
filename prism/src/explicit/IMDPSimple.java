@@ -117,6 +117,12 @@ public class IMDPSimple<Value> extends ModelExplicitWrapper<Value> implements No
 	}
 
 	@Override
+	public void addSelfLoop(int s)
+	{
+		mdp.addSelfLoop(s);
+	}
+
+	@Override
 	public int addState()
 	{
 		return mdp.addState();

@@ -314,21 +314,23 @@ public class DTMCSimple<Value> extends DTMCExplicit<Value> implements ModelSimpl
 	}
 
 	@Override
+	public void addSelfLoop(int s)
+	{
+		setProbability(s, s, getEvaluator().one(), null);
+		// Add the empty action (if missing), regardless of whether actionList needs recomputing
+		actionList.addAction(null);
+	}
+
+	@Override
 	public void findDeadlocks(boolean fix) throws PrismException
 	{
-		int fixed = 0;
 		for (int i = 0; i < numStates; i++) {
 			if (succ.get(i).isEmpty()) {
 				addDeadlockState(i);
 				if (fix) {
-					setProbability(i, i, getEvaluator().one(), null);
-					fixed++;
+					addSelfLoop(i);
 				}
 			}
-		}
-		// Add the empty action (if missing), regardless of whether actionList needs recomputing
-		if (fixed > 0) {
-			actionList.addAction(null);
 		}
 	}
 

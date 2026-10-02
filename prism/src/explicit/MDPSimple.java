@@ -383,23 +383,25 @@ public class MDPSimple<Value> extends MDPExplicit<Value> implements NondetModelS
 	@Override
 	public void findDeadlocks(boolean fix) throws PrismException
 	{
-		int fixed = 0;
 		for (int i = 0; i < numStates; i++) {
 			// Note that no distributions is a deadlock, not an empty distribution
 			if (trans.get(i).isEmpty()) {
 				addDeadlockState(i);
 				if (fix) {
-					Distribution<Value> distr = new Distribution<>(getEvaluator());
-					distr.add(i, getEvaluator().one());
-					addChoice(i, distr);
-					fixed++;
+					addSelfLoop(i);
 				}
 			}
 		}
+	}
+
+	@Override
+	public void addSelfLoop(int s)
+	{
+		Distribution<Value> distr = new Distribution<>(getEvaluator());
+		distr.add(s, getEvaluator().one());
+		addChoice(s, distr);
 		// Add the empty action (if missing), regardless of whether actionList needs recomputing
-		if (fixed > 0) {
-			actionList.addAction(null);
-		}
+		actionList.addAction(null);
 	}
 
 	@Override

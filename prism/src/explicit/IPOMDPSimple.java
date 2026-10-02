@@ -120,6 +120,12 @@ public class IPOMDPSimple<Value> extends ModelExplicitWrapper<Value> implements 
     }
 
     @Override
+    public void addSelfLoop(int s)
+    {
+        pomdp.addSelfLoop(s);
+    }
+
+    @Override
     public int addState()
     {
         return pomdp.addState();

@@ -78,6 +78,18 @@ public interface ModelSimple<Value> extends Model<Value>
 	public abstract void clearState(int i);
 
 	/**
+	 * Add a self-loop to state {@code s}, as done when fixing deadlocks: for a deterministic
+	 * model, a transition from {@code s} to itself with probability (or rate) 1; for a nondeterministic
+	 * model, a new choice comprising such a transition. The self-loop has no action label.
+	 * This is intended for states with no outgoing transitions/choices (e.g., deadlocks).
+	 * @param s The state
+	 */
+	public default void addSelfLoop(int s)
+	{
+		throw new UnsupportedOperationException("Adding self-loops is not supported for " + getClass().getSimpleName());
+	}
+
+	/**
 	 * Add a new state and return its index.
 	 */
 	public abstract int addState();
