@@ -822,23 +822,30 @@ public class LTLModelChecker extends PrismComponent
 
 	/**
 	 * Restrict a list of acceptance types allowed for LTL model checking to those
-	 * for which strategy generation is supported by
-	 * {@link #findAcceptingECStates(NondetModel, AcceptanceOmega, int[])}.
-	 * Currently, this means removing generalized Rabin. Since only an external
-	 * LTL-to-DA tool can produce automata of the removed types, a warning is
-	 * printed if one is in use.
+	 * for which strategy generation is supported, i.e., Buchi and Rabin (see
+	 * {@link #findAcceptingECStates(NondetModel, AcceptanceOmega, int[])}) and reach
+	 * (where acceptance is defined via goal states, so no end components are needed).
+	 * Since only an external LTL-to-DA tool can produce automata of the removed types,
+	 * a warning is printed if any are removed and one is in use.
 	 * @param allowedAcceptance the allowed acceptance types
 	 */
 	public AcceptanceType[] restrictAcceptanceForStrategyGeneration(AcceptanceType... allowedAcceptance)
 	{
-		if (!AcceptanceType.contains(allowedAcceptance, AcceptanceType.GENERALIZED_RABIN)) {
-			return allowedAcceptance;
+		List<AcceptanceType> supported = Arrays.asList(AcceptanceType.BUCHI, AcceptanceType.RABIN, AcceptanceType.REACH);
+		List<AcceptanceType> kept = new ArrayList<>();
+		List<String> removed = new ArrayList<>();
+		for (AcceptanceType type : allowedAcceptance) {
+			if (supported.contains(type)) {
+				kept.add(type);
+			} else {
+				removed.add(type.getName());
+			}
 		}
 		String ltl2daTool = getSettings().getString(PrismSettings.PRISM_LTL2DA_TOOL);
-		if (ltl2daTool != null && !ltl2daTool.isEmpty()) {
-			mainLog.printWarning("Generalized Rabin automata are not allowed since strategy generation is enabled");
+		if (!removed.isEmpty() && ltl2daTool != null && !ltl2daTool.isEmpty()) {
+			mainLog.printWarning("Automata with " + String.join("/", removed) + " acceptance are not allowed since strategy generation is enabled");
 		}
-		return Arrays.stream(allowedAcceptance).filter(t -> t != AcceptanceType.GENERALIZED_RABIN).toArray(AcceptanceType[]::new);
+		return kept.toArray(new AcceptanceType[0]);
 	}
 
 	/**
