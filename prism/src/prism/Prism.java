@@ -2378,8 +2378,9 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 				// e.g. LTL automaton product construction (during model checking, before export)
 				// already lifts rewards from this model onto the product if/when present.
 				// Also do this if building/storing of everything was requested
-				// (no need to do this for labels, which are always attached during construction).
-				if (getGenStrat() || getBuildAll()) {
+				// (no need to do this for labels, which are always attached during construction),
+				// except for the parametric engine, which does not use rewards attached to the model.
+				if (getGenStrat() || (getBuildAll() && getCurrentEngine() != PrismEngine.PARAM)) {
 					attachRewardsToModel(newModelExpl);
 				}
 				break;
