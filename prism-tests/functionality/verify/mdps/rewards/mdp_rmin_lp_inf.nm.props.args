@@ -2,3 +2,4 @@
 -ex -gs
 -ex -lp
 -ex -lp -noprob1
+-ex -gs -buildall

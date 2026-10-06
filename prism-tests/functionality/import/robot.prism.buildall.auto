@@ -1,0 +1,2 @@
+-importmodel robot.all robot.prism.props -buildall
+-importmodel robot.all robot.prism.props -ex -buildall

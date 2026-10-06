@@ -1742,6 +1742,27 @@ public class StateModelChecker extends PrismNativeComponent implements ModelChec
 	}
 
 	/**
+	 * Attach the labels defined by the currently loaded model (see {@link Prism#getModelInfo()})
+	 * directly to the model, for any that are not already present, e.g. so that they are
+	 * computed at model construction time, rather than on demand later.
+	 * Labels are computed by checking the corresponding {@link ExpressionLabel}, so must be
+	 * resolvable via the model checker's label list (see {@link #getLabelList()}).
+	 * Does nothing if the model is not mutable ({@link ModelSymbolic}).
+	 */
+	public void attachLabels() throws PrismException
+	{
+		if (!(model instanceof ModelSymbolic)) {
+			return;
+		}
+		ModelSymbolic modelSymb = (ModelSymbolic) model;
+		for (String label : prism.getModelInfo().getLabelNames()) {
+			if (!modelSymb.hasLabelDD(label)) {
+				modelSymb.addLabelDD(label, checkExpressionDD(new ExpressionLabel(label), reach.copy()));
+			}
+		}
+	}
+
+	/**
 	 * Return the set of label names that are defined
 	 * either by the model (from the modules file)
 	 * or properties file (if attached to the model checker).

@@ -49,3 +49,11 @@
 -ii -ex -bgs -topological
 
 -exact
+
+# with all labels/rewards built at model construction time
+
+-ex -buildall
+-s -buildall
+-h -buildall
+-m -buildall
+-exact -buildall

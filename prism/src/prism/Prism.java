@@ -552,6 +552,11 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 		settings.set(PrismSettings.PRISM_DO_PROB_CHECKS, b);
 	}
 
+	public void setBuildAll(boolean b) throws PrismException
+	{
+		settings.set(PrismSettings.PRISM_BUILD_ALL, b);
+	}
+
 	public void setSumRoundOff(double d) throws PrismException
 	{
 		settings.set(PrismSettings.PRISM_SUM_ROUND_OFF, d);
@@ -854,6 +859,14 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	public boolean getDoProbChecks()
 	{
 		return settings.getBoolean(PrismSettings.PRISM_DO_PROB_CHECKS);
+	}
+
+	/**
+	 * Whether to build and store all labels and reward structures at model construction time.
+	 */
+	public boolean getBuildAll()
+	{
+		return settings.getBoolean(PrismSettings.PRISM_BUILD_ALL);
 	}
 
 	public double getSumRoundOff()
@@ -2323,6 +2336,10 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 				default:
 					throw new PrismException("Cannot do symbolic model construction for model source " + getModelSource());
 				}
+				// If requested, build/store all labels now (rewards are always built)
+				if (getBuildAll()) {
+					attachLabelsToModel(newModelSymb);
+				}
 				break;
 			case EXPLICIT:
 			case EXACT:
@@ -2360,7 +2377,9 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 				// This needs to happen here, rather than later just before strategy export, since
 				// e.g. LTL automaton product construction (during model checking, before export)
 				// already lifts rewards from this model onto the product if/when present.
-				if (getGenStrat()) {
+				// Also do this if building/storing of everything was requested
+				// (no need to do this for labels, which are always attached during construction).
+				if (getGenStrat() || getBuildAll()) {
 					attachRewardsToModel(newModelExpl);
 				}
 				break;
@@ -3801,6 +3820,29 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 		try (PrismLog tmpLog = getPrismLogForFile(file)) {
 			strat.export(tmpLog, mergedExportOptions);
 		}
+	}
+
+	/**
+	 * Attach the labels defined by the currently loaded model directly to a (symbolic)
+	 * model, for any that are not already present.
+	 * @param model The model
+	 */
+	private void attachLabelsToModel(symbolic.model.Model model) throws PrismException
+	{
+		StateModelChecker mc = StateModelChecker.createModelChecker(model.getModelType(), this, model, parsePropertiesString(""));
+		mc.attachLabels();
+	}
+
+	/**
+	 * Attach the labels defined by the currently loaded model directly to an (explicit)
+	 * model, for any that are not already present.
+	 * @param model The model
+	 */
+	private void attachLabelsToModel(explicit.Model<?> model) throws PrismException
+	{
+		explicit.StateModelChecker mc = explicit.StateModelChecker.createModelChecker(model.getModelType(), this);
+		mc.setModelCheckingInfo(getModelInfo(), null, getRewardGenerator());
+		mc.attachLabels(model);
 	}
 
 	/**

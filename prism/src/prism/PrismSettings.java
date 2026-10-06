@@ -84,6 +84,7 @@ public class PrismSettings implements Observer
 	public static final	String PRISM_PRE_REL					= "prism.preRel";
 	public static final	String PRISM_FIX_DEADLOCKS					= "prism.fixDeadlocks";
 	public static final	String PRISM_DO_PROB_CHECKS					= "prism.doProbChecks";
+	public static final	String PRISM_BUILD_ALL						= "prism.buildAll";
 	public static final	String PRISM_SUM_ROUND_OFF					= "prism.sumRoundOff";
 	public static final	String PRISM_COMPACT						= "prism.compact";
 	public static final	String PRISM_LIN_EQ_METHOD					= "prism.linEqMethod";//"prism.iterativeMethod";
@@ -298,6 +299,8 @@ public class PrismSettings implements Observer
 																			"Automatically fix deadlocks, where necessary, when constructing probabilistic models." },
 			{ BOOLEAN_TYPE,		PRISM_DO_PROB_CHECKS,					"Do probability/rate checks",			"2.1",			Boolean.valueOf(true),															"",																							
 																			"Perform sanity checks on model probabilities/rates when constructing probabilistic models." },
+			{ BOOLEAN_TYPE,		PRISM_BUILD_ALL,						"Build all model components",			"4.10.1",		Boolean.valueOf(false),															"",
+																			"Build and store all labels and reward structures at model construction time, rather than on demand later." },
 			{ DOUBLE_TYPE,		PRISM_SUM_ROUND_OFF,					"Probability sum threshold",					"2.1",			Double.valueOf(1.0E-5),													"0.0,",
 																			"Round-off threshold for places where doubles are summed and compared to integers (e.g. checking that probabilities sum to 1 in an update)." },							
 			{ BOOLEAN_TYPE,		PRISM_DO_SS_DETECTION,					"Use steady-state detection",			"2.1",			Boolean.valueOf(true),															"0,",																						
@@ -1027,6 +1030,17 @@ public class PrismSettings implements Observer
 			.when("memory", () -> set(PRISM_HEURISTIC, "Memory")),
 			"<mode>", "Automatic choice of engines/settings (none, speed, memory) [default: none]");
 
+		// ── MODEL CONSTRUCTION ───────────────────────────────────────────────
+		reg.beginGroup("MODEL CONSTRUCTION OPTIONS");
+		reg.addSwitch("fixdl",       new FlagSwitch(() -> set(PRISM_FIX_DEADLOCKS, true)),
+			"", "Automatically put self-loops in deadlock states [default]");
+		reg.addSwitch("nofixdl",     new FlagSwitch(() -> set(PRISM_FIX_DEADLOCKS, false)),
+			"", "Do not automatically put self-loops in deadlock states");
+		reg.addSwitch("noprobchecks", new FlagSwitch(() -> set(PRISM_DO_PROB_CHECKS, false)),
+			"", "Disable checks on model probabilities/rates");
+		reg.addSwitch("buildall",    new FlagSwitch(() -> set(PRISM_BUILD_ALL, true)),
+			"", "Build/store all labels and rewards during model construction");
+
 		// ── SOLUTION METHODS (LINEAR EQUATIONS) ──────────────────────────────
 		reg.beginGroup("SOLUTION METHODS (LINEAR EQUATIONS)");
 		reg.addSwitch("power", "pow", "pwr", new FlagSwitch(() -> set(PRISM_LIN_EQ_METHOD, "Power")),
@@ -1126,12 +1140,6 @@ public class PrismSettings implements Observer
 			"", "Use fairness (for model checking of MDPs)");
 		reg.addSwitch("nofair",      new FlagSwitch(() -> set(PRISM_FAIRNESS, false)),
 			"", "Don't use fairness (for model checking of MDPs) [default]");
-		reg.addSwitch("fixdl",       new FlagSwitch(() -> set(PRISM_FIX_DEADLOCKS, true)),
-			"", "Automatically put self-loops in deadlock states [default]");
-		reg.addSwitch("nofixdl",     new FlagSwitch(() -> set(PRISM_FIX_DEADLOCKS, false)),
-			"", "Do not automatically put self-loops in deadlock states");
-		reg.addSwitch("noprobchecks", new FlagSwitch(() -> set(PRISM_DO_PROB_CHECKS, false)),
-			"", "Disable checks on model probabilities/rates");
 		reg.addSwitch("sumroundoff", (sw, a) -> {
 			double d = a.nextDouble(sw);
 			if (d < 0) throw new PrismException("Invalid value for -" + sw + " switch");

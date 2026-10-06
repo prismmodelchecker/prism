@@ -8,3 +8,11 @@
 -sparse
 -sparse -ii -maxiters 100000
 -exact
+
+# with all labels/rewards built at model construction time
+
+-explicit -buildall
+-mtbdd -buildall
+-hybrid -buildall
+-sparse -buildall
+-exact -buildall

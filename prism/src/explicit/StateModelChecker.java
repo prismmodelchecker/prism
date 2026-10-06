@@ -1866,6 +1866,28 @@ public class StateModelChecker extends PrismComponent
 	}
 
 	/**
+	 * Attach the labels defined by the model (from the currently stored model info, if any;
+	 * see {@link #setModelCheckingInfo}) directly to a model, for any that are not already present,
+	 * e.g. so that they are computed at model construction time, rather than on demand later.
+	 * Labels are computed by checking the corresponding {@link ExpressionLabel}, so must be
+	 * resolvable via the model checker's label list (see {@link #getLabelList()}).
+	 * Does nothing if the model is not mutable ({@link ModelExplicit}) or if no model info is available.
+	 * @param model The model
+	 */
+	public <Value> void attachLabels(Model<Value> model) throws PrismException
+	{
+		if (!(model instanceof ModelExplicit) || modelInfo == null) {
+			return;
+		}
+		ModelExplicit<Value> modelExplicit = (ModelExplicit<Value>) model;
+		for (String label : modelInfo.getLabelNames()) {
+			if (model.getLabelStates(label) == null) {
+				modelExplicit.addLabel(label, checkExpression(model, new ExpressionLabel(label), null).getBitSet());
+			}
+		}
+	}
+
+	/**
 	 * Load all labels from a PRISM labels (.lab) file and store them in BitSet objects.
 	 * Return a map from label name Strings to BitSets.
 	 * This is for all labels in the file, including "init", "deadlock".
