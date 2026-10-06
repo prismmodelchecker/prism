@@ -1858,8 +1858,10 @@ public class StateModelChecker extends PrismComponent
 		ModelExplicit<Value> modelExplicit = (ModelExplicit<Value>) model;
 		List<Rewards<Value>> rewardsList = allRewards.first;
 		List<String> rewardNames = allRewards.second;
+		// Store positions too (no rewards were attached, so these are all from rewardGen),
+		// so that unnamed reward structures can be matched up with rewardGen's later
 		for (int r = 0; r < rewardsList.size(); r++) {
-			modelExplicit.addRewards(rewardNames.get(r), rewardsList.get(r));
+			modelExplicit.addRewards(rewardNames.get(r), r, rewardsList.get(r));
 		}
 	}
 
