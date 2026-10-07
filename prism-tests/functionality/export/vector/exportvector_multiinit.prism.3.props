@@ -1,0 +1,3 @@
+// Result is a range over initial states, which is not testable here; just check the export
+// RESULT: ?
+filter(print, P=? [ F x=1 ], true);

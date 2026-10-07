@@ -622,6 +622,34 @@ public class ExpressionFilter extends Expression
 			return (ExpressionFilter) expr;
 		}
 	}
+
+	/**
+	 * Prepare an Expression representing a property to be model checked:
+	 * wrap a "default" ExpressionFilter around it, if needed (see {@link #addDefaultFilterIfNeeded(Expression, boolean)}),
+	 * and, if {@code storeVector} is true, add an (invisible) "store" filter to store the vector of results.
+	 * The "store" filter is placed directly around the original expression, i.e., inside any default filter,
+	 * so that it does not affect whether a default filter is needed or which one is used.
+	 * @param expr Expression to be model checked
+	 * @param singleInit Does the model on which it is being checked have a single initial states?
+	 * @param storeVector Should the vector of results be stored?
+	 */
+	public static ExpressionFilter addDefaultAndStoreFiltersIfNeeded(Expression expr, boolean singleInit, boolean storeVector) throws PrismLangException
+	{
+		ExpressionFilter exprFilter = addDefaultFilterIfNeeded(expr, singleInit);
+		if (storeVector) {
+			ExpressionFilter exprStore = new ExpressionFilter("store", expr);
+			exprStore.setInvisible(true);
+			exprStore.typeCheck();
+			if (exprFilter == expr) {
+				// No default filter: store is the outermost filter
+				exprFilter = exprStore;
+			} else {
+				// Default filter added: put store inside it
+				exprFilter.setOperand(exprStore);
+			}
+		}
+		return exprFilter;
+	}
 }
 
 // ------------------------------------------------------------------------------

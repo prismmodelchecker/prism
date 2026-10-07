@@ -495,16 +495,10 @@ public class StateModelChecker extends PrismComponent
 		// Remove any existing filter info
 		currentFilter = null;
 
-		// If we need to store a copy of the results vector, add a "store" filter to represent this
-		if (storeVector) {
-			ExpressionFilter exprFilter = new ExpressionFilter("store", expr);
-			exprFilter.setInvisible(true);
-			exprFilter.typeCheck();
-			expr = exprFilter;
-		}
 		// Wrap a filter round the property, if needed
-		// (in order to extract the final result of model checking) 
-		expr = ExpressionFilter.addDefaultFilterIfNeeded(expr, model.getNumInitialStates() == 1);
+		// (in order to extract the final result of model checking)
+		// and, if we need to store a copy of the results vector, add a "store" filter to represent this
+		expr = ExpressionFilter.addDefaultAndStoreFiltersIfNeeded(expr, model.getNumInitialStates() == 1, storeVector);
 
 		// If required, do bisimulation minimisation
 		if (doBisim) {
@@ -1207,13 +1201,16 @@ public class StateModelChecker extends PrismComponent
 		}
 
 		// Store result
-		result.setResult(resObj);
-		result.setAccuracy(resAcc);
-		// Set result explanation (if none or disabled, clear)
-		if (expr.getExplanationEnabled() && resultExpl != null) {
-			result.setExplanation(resultExpl.toLowerCase());
-		} else {
-			result.setExplanation(null);
+		// (except for STORE, which leaves any result from the operand (e.g., a filter) unchanged)
+		if (op != FilterOperator.STORE) {
+			result.setResult(resObj);
+			result.setAccuracy(resAcc);
+			// Set result explanation (if none or disabled, clear)
+			if (expr.getExplanationEnabled() && resultExpl != null) {
+				result.setExplanation(resultExpl.toLowerCase());
+			} else {
+				result.setExplanation(null);
+			}
 		}
 		// Store vector if requested
 		if (op == FilterOperator.STORE) {

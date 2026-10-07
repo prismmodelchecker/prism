@@ -1,0 +1,3 @@
+// Result is an interval, which is not testable here; just check the export
+// RESULT: ?
+filter(range, P=? [ F x=1 ], true);

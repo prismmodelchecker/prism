@@ -1,0 +1,14 @@
+// Model with multiple initial states (see GitHub issue #303)
+
+dtmc
+
+module M
+
+	x : [0..2];
+	
+	[] x=0 -> 0.5:(x'=1) + 0.5:(x'=2);
+	[] x>0 -> true;
+
+endmodule
+
+init x!=1 endinit
