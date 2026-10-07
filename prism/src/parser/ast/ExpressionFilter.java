@@ -572,7 +572,7 @@ public class ExpressionFilter extends Expression
 	 * If the expression is already an ExpressionFilter (of the right kind), nothing is done.
 	 * Note that we need to know whether the model has multiple initial states, because this affects the default filter.  
 	 * @param expr Expression to be model checked
-	 * @param singleInit Does the model on which it is being checked have a single initial states? 
+	 * @param singleInit Does the model on which it is being checked have a single initial state?
 	 */
 	public static ExpressionFilter addDefaultFilterIfNeeded(Expression expr, boolean singleInit) throws PrismLangException
 	{
@@ -630,7 +630,7 @@ public class ExpressionFilter extends Expression
 	 * The "store" filter is placed directly around the original expression, i.e., inside any default filter,
 	 * so that it does not affect whether a default filter is needed or which one is used.
 	 * @param expr Expression to be model checked
-	 * @param singleInit Does the model on which it is being checked have a single initial states?
+	 * @param singleInit Does the model on which it is being checked have a single initial state?
 	 * @param storeVector Should the vector of results be stored?
 	 */
 	public static ExpressionFilter addDefaultAndStoreFiltersIfNeeded(Expression expr, boolean singleInit, boolean storeVector) throws PrismLangException
