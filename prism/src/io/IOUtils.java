@@ -123,4 +123,39 @@ public class IOUtils
 	public interface TransitionSuccRewardConsumer<V> {
 		void accept(int s, int i, int j, V v) throws PrismException;
 	}
+
+	/**
+	 * Transitions of a (double-valued) Markov chain, stored in sparse matrix form.
+	 * The transitions of state s are those with indices rowStarts[s] to rowStarts[s+1]-1.
+	 */
+	public static class SparseMCTransitions
+	{
+		/** Index of first transition of each state (length: numStates + 1) */
+		public int[] rowStarts;
+		/** Successor state of each transition */
+		public int[] successors;
+		/** Probability (or rate) of each transition */
+		public double[] probabilities;
+		/** Action of each transition */
+		public Object[] actions;
+	}
+
+	/**
+	 * Transitions of a (double-valued) Markov decision process, stored in sparse matrix form.
+	 * The choices of state s are those with indices rowStarts[s] to rowStarts[s+1]-1,
+	 * and the transitions of choice i are those with indices choiceStarts[i] to choiceStarts[i+1]-1.
+	 */
+	public static class SparseMDPTransitions
+	{
+		/** Index of first choice of each state (length: numStates + 1) */
+		public int[] rowStarts;
+		/** Index of first transition of each choice (length: numChoices + 1) */
+		public int[] choiceStarts;
+		/** Successor state of each transition */
+		public int[] successors;
+		/** Probability of each transition */
+		public double[] probabilities;
+		/** Action of each choice */
+		public Object[] actions;
+	}
 }

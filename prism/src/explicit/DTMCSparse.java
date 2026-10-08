@@ -268,32 +268,11 @@ public class DTMCSparse extends DTMCExplicit<Double>
 	{
 		initialise(modelImporter.getNumStates());
 		actionList.markNeedsRecomputing();
-		int numTransitions = modelImporter.getNumTransitions();
-		rows = new int[numStates + 1];
-		columns = new int[numTransitions];
-		probabilities = new double[numTransitions];
-		actions = new Object[numTransitions];
-		IOUtils.MCTransitionConsumer<Double> cons = new IOUtils.MCTransitionConsumer<>() {
-			int sLast = -1;
-			int count = 0;
-			@Override
-			public void accept(int s, int s2, Double d, Object a) throws PrismException
-			{
-				if (s < sLast) {
-					throw new PrismException("Imported states/transitions must be in ascending order");
-				}
-				if (s != sLast) {
-					rows[s] = count;
-					sLast = s;
-				}
-				columns[count] = s2;
-				probabilities[count] = d;
-				actions[count] = a;
-				count++;
-			}
-		};
-		rows[numStates] = numTransitions;
-		modelImporter.extractMCTransitions(cons);
+		IOUtils.SparseMCTransitions trans = modelImporter.extractMCTransitionsSparse();
+		rows = trans.rowStarts;
+		columns = trans.successors;
+		probabilities = trans.probabilities;
+		actions = trans.actions;
 	}
 
 

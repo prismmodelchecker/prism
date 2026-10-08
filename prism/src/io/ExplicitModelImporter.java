@@ -266,6 +266,97 @@ public abstract class ExplicitModelImporter
 	public abstract void extractLTSTransitions(IOUtils.LTSTransitionConsumer storeTransition) throws PrismException;
 
 	/**
+	 * Extract the (Markov chain) transitions, as doubles, all at once, in sparse matrix form.
+	 * By default, this is built using {@link #extractMCTransitions(IOUtils.MCTransitionConsumer)},
+	 * but importers can override this if they can do so more efficiently.
+	 */
+	public IOUtils.SparseMCTransitions extractMCTransitionsSparse() throws PrismException
+	{
+		int numStates = getNumStates();
+		int numTransitions = getNumTransitions();
+		IOUtils.SparseMCTransitions trans = new IOUtils.SparseMCTransitions();
+		trans.rowStarts = new int[numStates + 1];
+		trans.successors = new int[numTransitions];
+		trans.probabilities = new double[numTransitions];
+		trans.actions = new Object[numTransitions];
+		IOUtils.MCTransitionConsumer<Double> cons = new IOUtils.MCTransitionConsumer<>() {
+			int sLast = -1;
+			int count = 0;
+			@Override
+			public void accept(int s, int s2, Double d, Object a) throws PrismException
+			{
+				if (s < sLast) {
+					throw new PrismException("Imported states/transitions must be in ascending order");
+				}
+				if (s != sLast) {
+					trans.rowStarts[s] = count;
+					sLast = s;
+				}
+				trans.successors[count] = s2;
+				trans.probabilities[count] = d;
+				trans.actions[count] = a;
+				count++;
+			}
+		};
+		trans.rowStarts[numStates] = numTransitions;
+		extractMCTransitions(cons);
+		return trans;
+	}
+
+	/**
+	 * Extract the (Markov decision process) transitions, as doubles, all at once, in sparse matrix form.
+	 * By default, this is built using {@link #extractMDPTransitions(IOUtils.MDPTransitionConsumer)},
+	 * but importers can override this if they can do so more efficiently.
+	 */
+	public IOUtils.SparseMDPTransitions extractMDPTransitionsSparse() throws PrismException
+	{
+		int numStates = getNumStates();
+		int numChoices = getNumChoices();
+		int numTransitions = getNumTransitions();
+		IOUtils.SparseMDPTransitions trans = new IOUtils.SparseMDPTransitions();
+		trans.rowStarts = new int[numStates + 1];
+		trans.choiceStarts = new int[numChoices + 1];
+		trans.successors = new int[numTransitions];
+		trans.probabilities = new double[numTransitions];
+		trans.actions = new Object[numChoices];
+		IOUtils.MDPTransitionConsumer<Double> cons = new IOUtils.MDPTransitionConsumer<>() {
+			int sLast = -1;
+			int iLast = -1;
+			int count = 0;
+			int countCh = 0;
+
+			@Override
+			public void accept(int s, int i, int s2, Double d, Object a) throws PrismException
+			{
+				if (s < sLast) {
+					throw new PrismException("Imported states/transitions must be in ascending order");
+				}
+				if (s != sLast) {
+					trans.rowStarts[s] = countCh;
+					sLast = s;
+					iLast = -1;
+				}
+				if (i < iLast) {
+					throw new PrismException("Imported states/transitions must be in ascending order");
+				}
+				if (i != iLast) {
+					trans.choiceStarts[countCh] = count;
+					trans.actions[countCh] = a;
+					countCh++;
+					iLast = i;
+				}
+				trans.successors[count] = s2;
+				trans.probabilities[count] = d;
+				count++;
+			}
+		};
+		trans.rowStarts[numStates] = numChoices;
+		trans.choiceStarts[numChoices] = numTransitions;
+		extractMDPTransitions(cons);
+		return trans;
+	}
+
+	/**
 	 * Extract info about state labellings and initial states.
 	 * Calls {@code storeLabel(s, i)} for each state s satisfying label l,
 	 * where l is 0-indexed and matches the label list from {@link #getModelInfo()}.

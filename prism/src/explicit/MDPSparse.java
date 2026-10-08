@@ -383,45 +383,12 @@ public class MDPSparse extends MDPExplicit<Double>
 		initialise(modelImporter.getNumStates());
 		numDistrs = modelImporter.getNumChoices();
 		numTransitions = modelImporter.getNumTransitions();
-		rowStarts = new int[numStates + 1];
-		choiceStarts = new int[numDistrs + 1];
-		cols = new int[numTransitions];
-		nonZeros = new double[numTransitions];
-		actions = new Object[numDistrs];
-		IOUtils.MDPTransitionConsumer<Double> cons = new IOUtils.MDPTransitionConsumer<>() {
-			int sLast = -1;
-			int iLast = -1;
-			int count = 0;
-			int countCh = 0;
-
-			@Override
-			public void accept(int s, int i, int s2, Double d, Object a) throws PrismException
-			{
-				if (s < sLast) {
-					throw new PrismException("Imported states/transitions must be in ascending order");
-				}
-				if (s != sLast) {
-					rowStarts[s] = countCh;
-					sLast = s;
-					iLast = -1;
-				}
-				if (i < iLast) {
-					throw new PrismException("Imported states/transitions must be in ascending order");
-				}
-				if (i != iLast) {
-					choiceStarts[countCh] = count;
-					actions[countCh] = a;
-					countCh++;
-					iLast = i;
-				}
-				cols[count] = s2;
-				nonZeros[count] = d;
-				count++;
-			}
-		};
-		rowStarts[numStates] = numDistrs;
-		choiceStarts[numDistrs] = numTransitions;
-		modelImporter.extractMDPTransitions(cons);
+		IOUtils.SparseMDPTransitions trans = modelImporter.extractMDPTransitionsSparse();
+		rowStarts = trans.rowStarts;
+		choiceStarts = trans.choiceStarts;
+		cols = trans.successors;
+		nonZeros = trans.probabilities;
+		actions = trans.actions;
 		actionList.markNeedsRecomputing();
 		// Compute maxNumDistrs
 		maxNumDistrs = 0;
