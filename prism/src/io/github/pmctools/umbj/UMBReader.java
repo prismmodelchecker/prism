@@ -605,6 +605,56 @@ public class UMBReader
 		return varRange;
 	}
 
+	/**
+	 * Compute the ranges of all (signed or unsigned) integer variables, from the values stored for them in a list of valuations,
+	 * in a single pass over the valuations. This assumes that the min/max values need at most 64 bits.
+	 * The returned array is indexed by variable (in the bit-packing); entries for non-integer variables are null.
+	 * @param entity The entity to which the valuations apply
+	 * @param bitPacking The bit-packing for the valuations
+	 */
+	public UMBReader.LongRange[] getValuationLongRanges(UMBIndex.UMBEntity entity, UMBBitPacking bitPacking) throws UMBException
+	{
+		int numVars = bitPacking.getNumVariables();
+		UMBReader.LongRangeComputer[] varRanges = new UMBReader.LongRangeComputer[numVars];
+		// Store offsets/sizes/signedness of the integer variables to process
+		int numIntVars = 0;
+		int[] intVars = new int[numVars];
+		int[] offsets = new int[numVars];
+		int[] sizes = new int[numVars];
+		boolean[] signed = new boolean[numVars];
+		for (int i = 0; i < numVars; i++) {
+			UMBType.Type type = bitPacking.getVariable(i).getType().type;
+			if (type == UMBType.Type.INT || type == UMBType.Type.UINT) {
+				varRanges[i] = new UMBReader.LongRangeComputer();
+				intVars[numIntVars] = i;
+				offsets[numIntVars] = bitPacking.getVariableOffset(i);
+				sizes[numIntVars] = bitPacking.getVariableSize(i);
+				signed[numIntVars] = type == UMBType.Type.INT;
+				numIntVars++;
+			}
+		}
+		// Nothing to compute if there are no integer variables
+		if (numIntVars == 0) {
+			return varRanges;
+		}
+		int finalNumIntVars = numIntVars;
+		try {
+			extractValuations(entity, bitString -> {
+				try {
+					for (int j = 0; j < finalNumIntVars; j++) {
+						long value = signed[j] ? bitString.getLong(offsets[j], sizes[j]) : bitString.getULong(offsets[j], sizes[j]);
+						varRanges[intVars[j]].accept(value);
+					}
+				} catch (UMBException e) {
+					throw new RuntimeException(e);
+				}
+			});
+		} catch (UMBException | RuntimeException e) {
+			throw new UMBException("UMB import problem: " + e.getMessage());
+		}
+		return varRanges;
+	}
+
 	// Local methods for extracting data
 
 	/**
