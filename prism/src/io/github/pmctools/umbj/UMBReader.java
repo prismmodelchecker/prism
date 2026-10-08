@@ -24,6 +24,7 @@ import org.apache.commons.compress.compressors.CompressorInputStream;
 import org.apache.commons.compress.compressors.CompressorStreamFactory;
 
 import java.io.BufferedInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -1165,14 +1166,15 @@ public class UMBReader
 		 */
 		public String readAsString() throws UMBException
 		{
-			StringBuilder sb = new StringBuilder();
+			// Decode only once all bytes are read, since multi-byte characters may span chunks
+			ByteArrayOutputStream allBytes = new ByteArrayOutputStream();
 			try {
 				byte[] bytes = byteBuffer.array();
 				int bytesRead;
 				while ((bytesRead = tarIn.read(bytes)) != -1) {
-					sb.append(new String(bytes, 0, bytesRead, StandardCharsets.UTF_8));
+					allBytes.write(bytes, 0, bytesRead);
 				}
-				return sb.toString();
+				return allBytes.toString(StandardCharsets.UTF_8);
 			} catch (IOException e) {
 				throw new UMBException("I/O error extracting string from UMB entry \"" + tarIn.getCurrentEntry().getName() + "\"");
 			}
