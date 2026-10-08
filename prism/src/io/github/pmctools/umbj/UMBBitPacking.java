@@ -16,6 +16,8 @@
 
 package io.github.pmctools.umbj;
 
+import it.unimi.dsi.fastutil.ints.IntArrayList;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -27,9 +29,13 @@ public class UMBBitPacking
 	/** Items stored (variables or padding) */
 	private final List<BitPackedItem> items = new ArrayList<>();
 	/** Starting bit offsets for each item */
-	private final List<Integer> itemOffsets = new ArrayList<>();
+	private final IntArrayList itemOffsets = new IntArrayList();
 	/** Indices (into the item list) of the variables */
-	private final List<Integer> varIndices = new ArrayList<>();
+	private final IntArrayList varIndices = new IntArrayList();
+	/** Starting bit offsets for each variable (stored separately for fast access) */
+	private final IntArrayList varOffsets = new IntArrayList();
+	/** Sizes (in bits) of each variable (stored separately for fast access) */
+	private final IntArrayList varSizes = new IntArrayList();
 	/** Total number of bits used */
 	private int totalNumBits = 0;
 
@@ -65,6 +71,8 @@ public class UMBBitPacking
 	{
 		addItem(new BitPackedVariable(name, type));
 		varIndices.add(items.size() - 1);
+		varOffsets.add(itemOffsets.getInt(items.size() - 1));
+		varSizes.add(items.get(items.size() - 1).size);
 	}
 
 	/**
@@ -86,7 +94,7 @@ public class UMBBitPacking
 		if (items.isEmpty()) {
 			itemOffsets.add(0);
 		} else {
-			itemOffsets.add(itemOffsets.get(itemOffsets.size() - 1) + items.get(items.size() - 1).size);
+			itemOffsets.add(itemOffsets.getInt(itemOffsets.size() - 1) + items.get(items.size() - 1).size);
 		}
 		// Add to list
 		items.add(item);
@@ -156,7 +164,7 @@ public class UMBBitPacking
 	 */
 	public int getItemOffset(int i)
 	{
-		return itemOffsets.get(i);
+		return itemOffsets.getInt(i);
 	}
 
 	/**
@@ -200,7 +208,7 @@ public class UMBBitPacking
 	 */
 	public BitPackedVariable getVariable(int i)
 	{
-		return (BitPackedVariable) items.get(varIndices.get(i));
+		return (BitPackedVariable) items.get(varIndices.getInt(i));
 	}
 
 	/**
@@ -208,7 +216,7 @@ public class UMBBitPacking
 	 */
 	public int getVariableOffset(int i)
 	{
-		return itemOffsets.get(varIndices.get(i));
+		return varOffsets.getInt(i);
 	}
 
 	/**
@@ -216,7 +224,7 @@ public class UMBBitPacking
 	 */
 	public int getVariableSize(int i)
 	{
-		return getVariable(i).size;
+		return varSizes.getInt(i);
 	}
 
 	// Methods to create and manipulate bit strings according to this packing
