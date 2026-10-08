@@ -43,6 +43,20 @@ import java.util.function.IntConsumer;
 
 /**
  * Base class for importers from explicit model sources.
+ * <p>
+ * An importer is first queried for information about the model,
+ * e.g. {@link #getModelInfo()} and {@link #getRewardInfo()}, and then the model
+ * itself is extracted from it, via the various {@code extract...} methods.
+ * This is typically done by a class that builds a model from the importer,
+ * e.g. {@link explicit.ExplicitFiles2Model} or {@link symbolic.build.ExplicitFiles2MTBDD}.
+ * Extraction methods can be called more than once, and an importer can be retained
+ * after a model has been built, to extract further data later on.
+ * <p>
+ * To make extraction more efficient, an importer may hold data in memory between calls.
+ * When a caller has finished importing (e.g., once it has built a model),
+ * it should call {@link #importDone()} so that this can be freed.
+ * Doing so never affects the correctness of the data subsequently extracted:
+ * the importer remains fully usable, but later extraction (or re-extraction) may be slower.
  */
 public abstract class ExplicitModelImporter
 {
@@ -354,6 +368,17 @@ public abstract class ExplicitModelImporter
 	 * @param eval Evaluator for Value objects
 	 */
 	public abstract <Value> void extractMDPTransitionRewards(int rewardIndex, IOUtils.TransitionRewardConsumer<Value> storeReward, Evaluator<Value> eval) throws PrismException;
+
+	/**
+	 * Notify the importer that the caller has finished importing (e.g., a model has been built),
+	 * so that it can free any data it is holding to make extraction more efficient.
+	 * This does not affect the correctness of any data extracted afterwards:
+	 * later extraction (or re-extraction) remains possible, but may be slower.
+	 */
+	public void importDone()
+	{
+		// By default, do nothing
+	}
 
 	// Defaults for a single variable when none is specified
 

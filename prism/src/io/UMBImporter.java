@@ -822,6 +822,12 @@ public class UMBImporter extends ExplicitModelImporter
 		}
 	}
 
+	@Override
+	public void importDone()
+	{
+		umbReader.releaseData();
+	}
+
 	// Utility classes
 
 	/**
