@@ -51,7 +51,6 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.DoubleConsumer;
@@ -408,24 +407,7 @@ public class UMBImporter extends ExplicitModelImporter
 			return;
 		}
 		// Otherwise, extract state variable info
-		try {
-			UMBBitPacking bitPacking = umbIndex.getValuationBitPacking(UMBIndex.UMBEntity.STATES);
-			AtomicInteger s = new AtomicInteger(0);
-			int numVars = bitPacking.getNumVariables();
-			umbReader.extractStateValuations(bitString -> {
-				try {
-					//System.out.println(s + ":" + bitPacking.decodeBitString(bitString));
-					for (int i = 0; i < numVars; i++) {
-						storeStateDefn.accept(s.get(), i, getBitStringValue(bitPacking, bitString, i));
-					}
-					s.incrementAndGet();
-				} catch (UMBException | PrismException e) {
-					throw new RuntimeException(e.getMessage());
-				}
-			});
-		} catch (UMBException | RuntimeException e) {
-			throw new PrismException("UMB import problem: " + e.getMessage());
-		}
+		extractValuationDefinitions(UMBIndex.UMBEntity.STATES, storeStateDefn);
 	}
 
 	@Override
@@ -437,17 +419,35 @@ public class UMBImporter extends ExplicitModelImporter
 			return;
 		}
 		// Otherwise, extract observation observable info
+		extractValuationDefinitions(UMBIndex.UMBEntity.OBSERVATIONS, storeObservationDefn);
+	}
+
+	/**
+	 * Extract the values of all variables from the valuations for an entity (states or observations).
+	 * @param entity States or observations?
+	 * @param storeDefn Consumer for (entity index, variable index, value) triples
+	 */
+	private void extractValuationDefinitions(UMBIndex.UMBEntity entity, IOUtils.StateDefnConsumer storeDefn) throws PrismException
+	{
 		try {
-			UMBBitPacking bitPacking = umbIndex.getValuationBitPacking(UMBIndex.UMBEntity.OBSERVATIONS);
-			AtomicInteger s = new AtomicInteger(0);
+			// Look up variable info once, rather than for each valuation
+			UMBBitPacking bitPacking = umbIndex.getValuationBitPacking(entity);
 			int numVars = bitPacking.getNumVariables();
-			umbReader.extractObservationValuations(bitString -> {
+			UMBType.Type[] types = new UMBType.Type[numVars];
+			int[] offsets = new int[numVars];
+			int[] sizes = new int[numVars];
+			for (int i = 0; i < numVars; i++) {
+				types[i] = bitPacking.getVariable(i).getType().type;
+				offsets[i] = bitPacking.getVariableOffset(i);
+				sizes[i] = bitPacking.getVariableSize(i);
+			}
+			int[] index = new int[1];
+			umbReader.extractValuations(entity, bitString -> {
 				try {
-					//System.out.println(s + ":" + bitPacking.decodeBitString(bitString));
+					int s = index[0]++;
 					for (int i = 0; i < numVars; i++) {
-						storeObservationDefn.accept(s.get(), i, getBitStringValue(bitPacking, bitString, i));
+						storeDefn.accept(s, i, getBitStringValue(bitString, types[i], offsets[i], sizes[i], bitPacking, i));
 					}
-					s.incrementAndGet();
 				} catch (UMBException | PrismException e) {
 					throw new RuntimeException(e.getMessage());
 				}
@@ -458,30 +458,30 @@ public class UMBImporter extends ExplicitModelImporter
 	}
 
 	/**
-	 * Get the value of the {@code i}th variable, from a bit string, as an Object
+	 * Get the value of a variable, of the given type, offset and size, from a bit string, as an Object.
+	 * The bit packing and variable index are only used for error messages.
 	 */
-	private Object getBitStringValue(UMBBitPacking bitPacking, UMBBitString bitString, int i) throws UMBException
+	private static Object getBitStringValue(UMBBitString bitString, UMBType.Type type, int offset, int size, UMBBitPacking bitPacking, int i) throws UMBException
 	{
-		UMBBitPacking.BitPackedVariable var = bitPacking.getVariable(i);
-		switch (var.getType().type) {
+		switch (type) {
 			case BOOL:
-				return bitPacking.getBooleanVariableValue(bitString, i);
+				return bitString.getBoolean(offset, size);
 			case INT:
 				try {
-					return SafeCast.toIntExact(bitPacking.getLongVariableValue(bitString, i));
+					return SafeCast.toIntExact(bitString.getLong(offset, size));
 				} catch (ArithmeticException e) {
-					throw new UMBException("UMB variable " + var.name + " exceeds the range of an int");
+					throw new UMBException("UMB variable " + bitPacking.getVariable(i).name + " exceeds the range of an int");
 				}
 			case UINT:
 				try {
-					return SafeCast.toIntExact(bitPacking.getULongVariableValue(bitString, i));
+					return SafeCast.toIntExact(bitString.getULong(offset, size));
 				} catch (ArithmeticException e) {
-					throw new UMBException("UMB variable " + var.name + " exceeds the range of an int");
+					throw new UMBException("UMB variable " + bitPacking.getVariable(i).name + " exceeds the range of an int");
 				}
 			case DOUBLE:
-				return bitPacking.getDoubleVariableValue(bitString, i);
+				return bitString.getDouble(offset, size);
 			default:
-				throw new UMBException("Unknown UMB variable type: " + var.getType().type);
+				throw new UMBException("Unknown UMB variable type: " + type);
 		}
 	}
 
