@@ -334,6 +334,8 @@ public class UMBImporter extends ExplicitModelImporter
 			}
 			UMBBitPacking bitPacking = umbIndex.getValuationBitPacking(entity);
 			int numVars = bitPacking.getNumVariables();
+			// Compute ranges of all integer variables (in a single pass)
+			UMBReader.LongRange[] varLongRanges = umbReader.getValuationLongRanges(entity, bitPacking);
 			for (int i = 0; i < numVars; i++) {
 				UMBBitPacking.BitPackedVariable var = bitPacking.getVariable(i);
 				// Get valid, unique variable name (usually just the provided variable name)
@@ -353,7 +355,7 @@ public class UMBImporter extends ExplicitModelImporter
 						int varIntMin;
 						int varIntMax;
 						if (computeRange) {
-							UMBReader.LongRange varLongRange = umbReader.getValuationLongRange(entity, bitPacking, i);
+							UMBReader.LongRange varLongRange = varLongRanges[i];
 							long varLongMin = varLongRange.getMin();
 							long varLongMax = varLongRange.getMax();
 							try {
