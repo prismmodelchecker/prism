@@ -49,6 +49,7 @@ import prism.RewardInfo;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.BitSet;
 import java.util.List;
 import java.util.function.BiConsumer;
@@ -606,6 +607,52 @@ public class UMBImporter extends ExplicitModelImporter
 	}
 
 	@Override
+	public IOUtils.SparseMCTransitions extractMCTransitionsSparse() throws PrismException
+	{
+		// We can extract directly from the UMB file for (double-valued) DTMCs
+		// (assuming, as for extractMCTransitions, one choice per state)
+		UMBType probType = umbIndex.getBranchProbabilityType();
+		boolean direct = getModelInfo().getModelType() == ModelType.DTMC && numChoices == numStates
+				&& probType != null && probType.type.isDouble() && !probType.type.isInterval();
+		if (!direct) {
+			return super.extractMCTransitionsSparse();
+		}
+		try {
+			IOUtils.SparseMCTransitions trans = new IOUtils.SparseMCTransitions();
+			trans.rowStarts = extractIntArray(numChoices + 1, umbReader::extractChoiceBranchOffsets);
+			trans.successors = extractIntArray(numTransitions, umbReader::extractBranchTargets);
+			trans.probabilities = extractDoubleArray(numTransitions, umbReader::extractBranchProbabilities);
+			trans.actions = extractActions(numTransitions, umbReader.hasBranchActionIndices() ? umbReader::extractBranchActionIndices : null);
+			return trans;
+		} catch (UMBException | RuntimeException e) {
+			throw new PrismException("UMB import problem: " + e.getMessage());
+		}
+	}
+
+	@Override
+	public IOUtils.SparseMDPTransitions extractMDPTransitionsSparse() throws PrismException
+	{
+		// We can extract directly from the UMB file for (double-valued) MDPs
+		UMBType probType = umbIndex.getBranchProbabilityType();
+		boolean direct = getModelInfo().getModelType() == ModelType.MDP
+				&& probType != null && probType.type.isDouble() && !probType.type.isInterval();
+		if (!direct) {
+			return super.extractMDPTransitionsSparse();
+		}
+		try {
+			IOUtils.SparseMDPTransitions trans = new IOUtils.SparseMDPTransitions();
+			trans.rowStarts = extractIntArray(numStates + 1, umbReader::extractStateChoiceOffsets);
+			trans.choiceStarts = extractIntArray(numChoices + 1, umbReader::extractChoiceBranchOffsets);
+			trans.successors = extractIntArray(numTransitions, umbReader::extractBranchTargets);
+			trans.probabilities = extractDoubleArray(numTransitions, umbReader::extractBranchProbabilities);
+			trans.actions = extractActions(numChoices, umbReader.hasChoiceActionIndices() ? umbReader::extractChoiceActionIndices : null);
+			return trans;
+		} catch (UMBException | RuntimeException e) {
+			throw new PrismException("UMB import problem: " + e.getMessage());
+		}
+	}
+
+	@Override
 	public void extractLTSTransitions(IOUtils.LTSTransitionConsumer storeTransition) throws PrismException
 	{
 		try {
@@ -828,6 +875,83 @@ public class UMBImporter extends ExplicitModelImporter
 	public void importDone()
 	{
 		umbReader.releaseData();
+	}
+
+	// Utility methods
+
+	/**
+	 * Something that extracts (long) values from a UMB file and passes them to a consumer.
+	 */
+	@FunctionalInterface
+	private interface UMBLongExtractor
+	{
+		void extract(LongConsumer longConsumer) throws UMBException;
+	}
+
+	/**
+	 * Something that extracts (int) values from a UMB file and passes them to a consumer.
+	 */
+	@FunctionalInterface
+	private interface UMBIntExtractor
+	{
+		void extract(IntConsumer intConsumer) throws UMBException;
+	}
+
+	/**
+	 * Something that extracts (double) values from a UMB file and passes them to a consumer.
+	 */
+	@FunctionalInterface
+	private interface UMBDoubleExtractor
+	{
+		void extract(it.unimi.dsi.fastutil.doubles.DoubleConsumer doubleConsumer) throws UMBException;
+	}
+
+	/**
+	 * Extract (long) values from a UMB file into a new int array of the specified size.
+	 */
+	private static int[] extractIntArray(int size, UMBLongExtractor extractor) throws UMBException
+	{
+		int[] array = new int[size];
+		int[] count = new int[1];
+		extractor.extract(l -> array[count[0]++] = SafeCast.toIntExact(l));
+		if (count[0] != size) {
+			throw new UMBException("Expected " + size + " values but found " + count[0]);
+		}
+		return array;
+	}
+
+	/**
+	 * Extract (double) values from a UMB file into a new double array of the specified size.
+	 */
+	private static double[] extractDoubleArray(int size, UMBDoubleExtractor extractor) throws UMBException
+	{
+		double[] array = new double[size];
+		int[] count = new int[1];
+		extractor.extract(d -> array[count[0]++] = d);
+		if (count[0] != size) {
+			throw new UMBException("Expected " + size + " values but found " + count[0]);
+		}
+		return array;
+	}
+
+	/**
+	 * Extract action indices from a UMB file and convert them to a new array of action objects,
+	 * or, if {@code extractor} is null, create an array storing the first (default) action.
+	 */
+	private Object[] extractActions(int size, UMBIntExtractor extractor) throws UMBException, PrismException
+	{
+		List<Object> actionList = getModelInfo().getActions();
+		Object[] actions = new Object[size];
+		if (extractor == null) {
+			Arrays.fill(actions, actionList.get(0));
+		} else {
+			int[] count = new int[1];
+			extractor.extract(i -> actions[count[0]++] = actionList.get(i));
+			if (count[0] != size) {
+				throw new UMBException("Expected " + size + " actions but found " + count[0]);
+			}
+		}
+		return actions;
 	}
 
 	// Utility classes
