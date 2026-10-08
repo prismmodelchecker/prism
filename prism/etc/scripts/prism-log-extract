@@ -23,17 +23,20 @@ all_fields_details = [\
     {'name': 'prog_version', 'descr': 'Version of program run', 'type': 'string', 'regexp': 'Version: ([^ \n]+)'}, \
     {'name': 'log_dir', 'descr': 'Name of directory containing log file', 'type': 'string'}, \
     {'name': 'log_file', 'descr': 'Name of log file', 'type': 'string'}, \
-    {'name': 'model_file', 'descr': 'Name of PRISM model file', 'type': 'file', 'regexp': 'Parsing model file "(.+)"...'}, \
+    {'name': 'model_file', 'descr': 'Name of PRISM model file', 'type': 'file', 'regexps': ['Parsing PRISM model file "(.+)"...', r'Importing model from "([^"]+)"']}, \
     {'name': 'model_consts', 'descr': 'Constants defined for model', 'type': 'string', 'regexp': 'Model constants: (.+)'}, \
+    {'name': 'import_model_file', 'descr': 'Name of PRISM model import file', 'type': 'file', 'regexp': r'Importing model from "([^"]+)"'}, \
     {'name': 'model_type', 'descr': 'Model type', 'regexp': 'Type: *(.+)'}, \
-    {'name': 'states', 'descr': 'Number of states in model', 'regexp': 'States: *(.+) \((.+) initial\)'}, \
+    {'name': 'states', 'descr': 'Number of states in model', 'regexp': r'States: *(.+) \((.+) initial\)'}, \
+    {'name': 'transitions', 'descr': 'Number of transitions in model', 'regexp': 'Transitions: *(.+)'}, \
     {'name': 'dd_nodes', 'descr': 'Number of nodes in the DD for the model', 'regexp': 'Transition matrix: *(.+) nodes'}, \
     {'name': 'time_constr', 'descr': 'Time to construct the model', 'regexp': 'Time for model construction: *(.+) sec'}, \
     {'name': 'prop_file', 'descr': 'Name of PRISM property file', 'type': 'file', 'regexp': 'Parsing properties file "(.+)"...'}, \
     {'name': 'prop_consts', 'descr': 'Constants defined for property', 'type': 'string', 'regexp': 'Property constants: (.+)'}, \
     {'name': 'iters_check', 'descr': 'Iterations for (numerica) model checking', 'regexp': 'took ([^ \n]+) iterations', 'match': 'last'}, \
-    {'name': 'time_check', 'descr': 'Time to perform mode checking', 'regexp': 'Time for model checking: *(.+) sec'}, \
-    {'name': 'result', 'descr': 'Result of mode checking', 'regexp': '^Result.*: ([^( \n]+)'}, \
+    {'name': 'time_check', 'descr': 'Time to perform model checking', 'regexp': 'Time for model checking: *(.+) sec'}, \
+    {'name': 'time_export', 'descr': 'Time to perform model export', 'regexp': 'Time for exporting: *(.+) sec'}, \
+    {'name': 'result', 'descr': 'Result of model checking', 'regexp': '^Result.*: ([^( \n]+)'}, \
 ]
 
 # Names of all fields
@@ -115,14 +118,20 @@ def grep_for_info_file(logFile, fields):
             # We assume the first line printed out is the tool name
             if line_num == 1:
                 info['prog_name'] = line.strip()
-            # For most fields, a regexp is used to grep the log
+            # For most fields, one or more regexps is used to grep the log
             for field in fields:
                 field_details = get_field_details(field)
-                if 'regexp' in field_details and (info[field] == '' or ('match' in field_details and field_details['match'] == 'last')):
-                    regexp = field_details['regexp']
-                    m = re.search(regexp, line)
-                    if not m is None:
-                        info[field] = m.group(1)
+                regexps = []
+                if 'regexps' in field_details:
+                    regexps = field_details['regexps']
+                elif 'regexp' in field_details:
+                    regexps = [field_details['regexp']]
+                if info[field] == '' or ('match' in field_details and field_details['match'] == 'last'):
+                    for regexp in  regexps:
+                        m = re.search(regexp, line)
+                        if not m is None:
+                            info[field] = m.group(1)
+                            break
             line_num = line_num + 1
     # Some field processing based on type
     for field in info.keys():
@@ -265,6 +274,6 @@ if group_by:
     infos = infos_new
 
 # Print entries (header, then rows)
-print(','.join(fields))
+print(','.join(f'"{f}"' for f in fields))
 for info in infos:
     print_info(info, fields)
