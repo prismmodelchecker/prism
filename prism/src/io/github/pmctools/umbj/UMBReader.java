@@ -1065,6 +1065,24 @@ public class UMBReader
 		}
 
 		/**
+		 * Read up to {@code numBytes} bytes from the current entry (file) of the archive into {@code bytes}.
+		 * Unlike a single call to {@code read}, this only stops early if the end of the entry is reached.
+		 * Returns the number of bytes actually read.
+		 */
+		private int readFully(byte[] bytes, int numBytes) throws IOException
+		{
+			int offset = 0;
+			while (offset < numBytes) {
+				int n = tarIn.read(bytes, offset, numBytes - offset);
+				if (n == -1) {
+					break;
+				}
+				offset += n;
+			}
+			return offset;
+		}
+
+		/**
 		 * Read the specified number of bytes from the current entry (file) of the archive.
 		 * Returns the bytes in a {@link ByteBuffer}, or returns null if no or too few bytes are available.
 		 */
@@ -1076,7 +1094,7 @@ public class UMBReader
 			}
 			try {
 				byte[] bytes = byteBuffer.array();
-				int bytesRead = tarIn.read(bytes, 0, numBytes);
+				int bytesRead = readFully(bytes, numBytes);
 				byteBuffer.position(numBytes);
 				if (bytesRead < numBytes) {
 					return null;
@@ -1103,7 +1121,7 @@ public class UMBReader
 			}
 			try {
 				byte[] bytes = byteBuffer.array();
-				int bytesRead = tarIn.read(bytes, 0, numBytes);
+				int bytesRead = readFully(bytes, numBytes);
 				byteBuffer.position(numBytes);
 				if (bytesRead <= 0) {
 					return null;
@@ -1131,7 +1149,7 @@ public class UMBReader
 			}
 			try {
 				byte[] bytes = byteBuffer.array();
-				int bytesRead = tarIn.read(bytes, 0, length);
+				int bytesRead = readFully(bytes, length);
 				byteBuffer.position(length);
 				if (bytesRead < length) {
 					return null;
