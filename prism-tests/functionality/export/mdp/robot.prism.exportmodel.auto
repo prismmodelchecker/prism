@@ -32,3 +32,9 @@
 -exportmodel robot.prism.exact.srew -exact
 -exportmodel robot.prism.exact.trew -exact
 -exportmodel robot.prism.exact.pexp -exact
+
+# Export in DRN format from the symbolic engine (via conversion to an explicit model),
+# including with settings not supported by the explicit engine (e.g. fairness)
+
+-exportmodel robot.prism.drn
+-exportmodel robot.prism.drn -fair

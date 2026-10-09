@@ -2870,7 +2870,9 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 			if (exportTask.getExportOptions().getFormat() == ModelExportFormat.DRN || exportTask.getExportOptions().getFormat() == ModelExportFormat.UMB) {
 				MTBDD2ExplicitModel m2m = new MTBDD2ExplicitModel(this);
 				explicit.Model<Double> modelExpl = m2m.convertModel(getBuiltModelSymbolic());
-				explicit.StateModelChecker mcExpl = explicit.StateModelChecker.createModelChecker(getModelType(), this);
+				// Export only needs a basic (explicit) model checker; using one for the model type
+				// would fail if the engine settings are unsupported by the explicit engine (e.g. -fair)
+				explicit.StateModelChecker mcExpl = new explicit.StateModelChecker(this);
 				RewardGenerator<Double> rewardGen = m2m.getRewardConverter(getBuiltModelSymbolic(), modelExpl, getRewardInfo());
 				mcExpl.setModelCheckingInfo(getModelInfo(), propertiesFile, rewardGen);
 				mcExpl.exportModel(modelExpl, exportTask);
