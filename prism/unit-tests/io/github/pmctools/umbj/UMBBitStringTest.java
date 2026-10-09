@@ -78,6 +78,40 @@ public class UMBBitStringTest
 	}
 
 	@Test
+	public void testSettersMatchReference() throws UMBException
+	{
+		Random random = new Random(42);
+		int numBytes = 24;
+		UMBBitString bitString = new UMBBitString(numBytes);
+		for (int trial = 0; trial < 20; trial++) {
+			for (int n = 1; n <= 64; n++) {
+				for (int offset = 0; offset + n <= numBytes * 8; offset += 1 + random.nextInt(5)) {
+					random.nextBytes(bitString.bytes);
+					byte[] before = bitString.bytes.clone();
+					long value = random.nextLong();
+					if (n <= 32) {
+						bitString.setInt(offset, n, (int) value);
+					} else if (n < 64) {
+						bitString.setULong(offset, n, value);
+					} else {
+						bitString.setDouble(offset, n, Double.longBitsToDouble(value));
+						// (the raw bits of a NaN may not be preserved)
+						value = Double.doubleToLongBits(Double.longBitsToDouble(value));
+					}
+					long mask = n < 64 ? (1L << n) - 1 : -1L;
+					assertEquals(value & mask, referenceBits(bitString.bytes, offset, n), "set(" + offset + "," + n + ")");
+					// Bits outside the portion must be unchanged
+					for (int i = 0; i < numBytes * 8; i++) {
+						if (i < offset || i >= offset + n) {
+							assertEquals(referenceBits(before, i, 1), referenceBits(bitString.bytes, i, 1), "bit " + i + " after set(" + offset + "," + n + ")");
+						}
+					}
+				}
+			}
+		}
+	}
+
+	@Test
 	public void testSetGetRoundTrip() throws UMBException
 	{
 		UMBBitString bitString = new UMBBitString(16);
