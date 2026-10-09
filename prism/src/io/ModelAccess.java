@@ -403,6 +403,22 @@ public interface ModelAccess<Value>
 
 			// Overrides of default implementations, for efficiency
 
+			@Override
+			public int getNumChoices()
+			{
+				if (model instanceof NondetModel) {
+					return ((NondetModel<Value>) model).getNumChoices();
+				} else {
+					return ModelAccess.super.getNumChoices();
+				}
+			}
+
+			@Override
+			public int getNumTransitions()
+			{
+				return model.getNumTransitions();
+			}
+
 			// For sparse matrix storage, provide transition info directly from the underlying arrays
 
 			@Override
