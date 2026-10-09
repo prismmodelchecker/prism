@@ -374,41 +374,61 @@ public class UMBExporter<Value> extends ModelExporter<Value>
 			bitPacking.padToByteBoundary();
 			umbWriter.addValuationDescription(entity, true, bitPacking);
 
+			// Look up variable info once, rather than for each valuation
+			UMBType.Type[] typesUMB = new UMBType.Type[numVars];
+			Type[] types = new Type[numVars];
+			int[] offsets = new int[numVars];
+			int[] sizes = new int[numVars];
+			for (int i = 0; i < numVars; i++) {
+				typesUMB[i] = bitPacking.getVariable(i).getType().type;
+				types[i] = varList.getType(i);
+				offsets[i] = bitPacking.getVariableOffset(i);
+				sizes[i] = bitPacking.getVariableSize(i);
+			}
 			// Build an iterator to supply the bit-packed variable/observable values, add data
-			Iterator<UMBBitString> iter = statesList.stream()
-					.map(s -> {
-						UMBBitString bitString = bitPacking.newBitString();
-						Object v = null;
-						try {
-							for (int i = 0; i < numVars; i++) {
-								UMBType.Type varTypeUMB = bitPacking.getVariable(i).getType().type;
-								v = s.varValues[i];
-								v = varList.getType(i).castValueTo(v, EvaluateContext.EvalMode.FP);
-								switch (varTypeUMB) {
-									case BOOL:
-										bitPacking.setBooleanVariableValue(bitString, i, (boolean) v);
-										break;
-									case INT:
-										bitPacking.setIntVariableValue(bitString, i, (int) v);
-										break;
-									case UINT:
-										bitPacking.setUIntVariableValue(bitString, i, (int) v);
-										break;
-									case DOUBLE:
-										bitPacking.setDoubleVariableValue(bitString, i, (double) v);
-										break;
-									default:
-										throw new PrismException("Unsupported variable type in UMB export: " + varTypeUMB);
-								}
+			Iterator<State> statesIter = statesList.iterator();
+			Iterator<UMBBitString> iter = new Iterator<>()
+			{
+				@Override
+				public boolean hasNext()
+				{
+					return statesIter.hasNext();
+				}
+
+				@Override
+				public UMBBitString next()
+				{
+					State s = statesIter.next();
+					UMBBitString bitString = bitPacking.newBitString();
+					Object v = null;
+					try {
+						for (int i = 0; i < numVars; i++) {
+							v = types[i].castValueTo(s.varValues[i], EvaluateContext.EvalMode.FP);
+							switch (typesUMB[i]) {
+								case BOOL:
+									bitString.setBoolean(offsets[i], sizes[i], (boolean) v);
+									break;
+								case INT:
+									bitString.setInt(offsets[i], sizes[i], (int) v);
+									break;
+								case UINT:
+									bitString.setUInt(offsets[i], sizes[i], (int) v);
+									break;
+								case DOUBLE:
+									bitString.setDouble(offsets[i], sizes[i], (double) v);
+									break;
+								default:
+									throw new PrismException("Unsupported variable type in UMB export: " + typesUMB[i]);
 							}
-						} catch (ClassCastException e) {
-							throw new RuntimeException("Was not expecting data as " + v.getClass().getSimpleName());
-						} catch (UMBException | PrismException e) {
-							throw new RuntimeException(e);
 						}
-						return bitString;
-					})
-					.iterator();
+					} catch (ClassCastException e) {
+						throw new RuntimeException("Was not expecting data as " + v.getClass().getSimpleName());
+					} catch (UMBException | PrismException e) {
+						throw new RuntimeException(e);
+					}
+					return bitString;
+				}
+			};
 			umbWriter.addValuations(entity, iter, bitPacking);
 	} catch (UMBException | RuntimeException e) {
 			throw new PrismException("UMB export problem: " + e.getMessage());
