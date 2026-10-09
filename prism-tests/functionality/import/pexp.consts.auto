@@ -1,0 +1,6 @@
+# Model checking of imported models with properties that use constants
+# (defined or undefined) from the properties file
+
+-importmodel dice.pexp dice.consts.props -const J=1:2
+-importmodel dice.pexp dice.consts.props -const J=3 -ex
+-importmodel dice.pexp dice.consts.props -const J=4 -exact

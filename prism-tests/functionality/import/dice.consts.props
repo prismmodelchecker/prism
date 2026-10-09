@@ -1,0 +1,10 @@
+// Constants defined in a properties file, used with an imported model
+
+const int K = 6;
+const int J;
+
+// RESULT: 1/6
+P=? [ F d=K ];
+
+// RESULT: 1/6
+P=? [ F d=J ];

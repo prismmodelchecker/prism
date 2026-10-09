@@ -494,7 +494,7 @@ public interface ModelInfo
 			return true;
 		}
 		Values v = getConstantValues();
-		if (v != null & v.contains(ident)) {
+		if (v != null && v.contains(ident)) {
 			return true;
 		}
 		return false;
