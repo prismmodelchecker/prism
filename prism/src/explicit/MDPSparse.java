@@ -397,6 +397,21 @@ public class MDPSparse extends MDPExplicit<Double>
 		}
 	}
 
+	/**
+	 * Get (direct, read-only access to) the transitions of this MDP, in sparse matrix form.
+	 * The arrays are those used to store the model, not copies, so must not be modified.
+	 */
+	public IOUtils.SparseMDPTransitions getSparseTransitions()
+	{
+		IOUtils.SparseMDPTransitions trans = new IOUtils.SparseMDPTransitions();
+		trans.rowStarts = rowStarts;
+		trans.choiceStarts = choiceStarts;
+		trans.successors = cols;
+		trans.probabilities = nonZeros;
+		trans.actions = actions;
+		return trans;
+	}
+
 	// Accessors (for Model)
 
 	@Override

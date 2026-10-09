@@ -401,6 +401,65 @@ public interface ModelAccess<Value>
 				}
 			}
 
+			// Overrides of default implementations, for efficiency
+
+			// For sparse matrix storage, provide transition info directly from the underlying arrays
+
+			@Override
+			public PrimitiveIterator.OfInt getStateChoiceOffsets()
+			{
+				if (model instanceof MDPSparse) {
+					return IntIterators.wrap(((MDPSparse) model).getSparseTransitions().rowStarts, 0, getNumStates() + 1);
+				} else {
+					return ModelAccess.super.getStateChoiceOffsets();
+				}
+			}
+
+			@Override
+			public PrimitiveIterator.OfInt getStateTransitionOffsets()
+			{
+				if (model instanceof DTMCSparse) {
+					return IntIterators.wrap(((DTMCSparse) model).getSparseTransitions().rowStarts, 0, getNumStates() + 1);
+				} else {
+					return ModelAccess.super.getStateTransitionOffsets();
+				}
+			}
+
+			@Override
+			public PrimitiveIterator.OfInt getChoiceTransitionOffsets()
+			{
+				if (model instanceof MDPSparse) {
+					return IntIterators.wrap(((MDPSparse) model).getSparseTransitions().choiceStarts, 0, getNumChoices() + 1);
+				} else {
+					return ModelAccess.super.getChoiceTransitionOffsets();
+				}
+			}
+
+			@Override
+			@SuppressWarnings("unchecked")
+			public Iterator<Value> getTransitionProbabilities()
+			{
+				if (model instanceof DTMCSparse) {
+					return (Iterator<Value>) DoubleIterators.wrap(((DTMCSparse) model).getSparseTransitions().probabilities, 0, model.getNumTransitions());
+				} else if (model instanceof MDPSparse) {
+					return (Iterator<Value>) DoubleIterators.wrap(((MDPSparse) model).getSparseTransitions().probabilities, 0, model.getNumTransitions());
+				} else {
+					return ModelAccess.super.getTransitionProbabilities();
+				}
+			}
+
+			@Override
+			public PrimitiveIterator.OfInt getTransitionSuccessors()
+			{
+				if (model instanceof DTMCSparse) {
+					return IntIterators.wrap(((DTMCSparse) model).getSparseTransitions().successors, 0, model.getNumTransitions());
+				} else if (model instanceof MDPSparse) {
+					return IntIterators.wrap(((MDPSparse) model).getSparseTransitions().successors, 0, model.getNumTransitions());
+				} else {
+					return ModelAccess.super.getTransitionSuccessors();
+				}
+			}
+
 		};
 	}
 
