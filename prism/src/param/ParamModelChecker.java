@@ -532,6 +532,17 @@ final public class ParamModelChecker extends PrismComponent
 			}
 			return regionFactory.completeCover(stateValues);
 		} else {
+			// First look at labels attached directly to model
+			BitSet bs = model.getLabelStates(expr.getName());
+			if (bs != null) {
+				int numStates = model.getNumStates();
+				StateValues stateValues = new StateValues(numStates, model.getFirstInitialState());
+				for (i = 0; i < numStates; i++) {
+					stateValues.setStateValue(i, bs.get(i));
+				}
+				return regionFactory.completeCover(stateValues);
+			}
+			// Failing that, look in the label list (from properties file / modules file)
 			ll = propertiesFile.getCombinedLabelList();
 			i = ll.getLabelIndex(expr.getName());
 			if (i == -1)

@@ -1,0 +1,8 @@
+# Model checking of imported models in exact mode, including properties
+# that refer to labels attached to the imported model (rather than defined in a PRISM model)
+
+# DTMC: dice
+-importmodel dice.pexp dice.pm.props -exact
+
+# MDP: robot
+-importmodel robot.pexp robot.prism.props -exact
