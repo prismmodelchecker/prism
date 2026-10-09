@@ -1,0 +1,9 @@
+# Multi-objective (total) rewards on an imported model, with the sparse engine.
+# For models built from imported files, reward matrices could contain entries for choices
+# removed from the (filtered) transition matrix, causing out-of-bounds memory writes
+# when building sparse matrices (seen as crashes, typically later and elsewhere).
+# The model is multi-lp-rmin-positive-ec.prism, exported in .pexp format.
+
+-importmodel multi-sparse-import-rewards.pexp multi-lp-rmin-positive-ec.prism.props -s
+-importmodel multi-sparse-import-rewards.pexp multi-lp-rmin-positive-ec.prism.props -s -lp
+-importmodel multi-sparse-import-rewards.pexp multi-lp-rmin-positive-ec.prism.props -s -gs

@@ -1,0 +1,28 @@
+# Transitions (MDP)
+3 5 5
+0 0 1 1 exit
+0 1 2 1 trap
+0 2 0 1 loop
+1 0 1 1 done
+2 0 2 1 stay
+
+# States
+(s)
+0:(0)
+1:(1)
+2:(2)
+
+# Labels
+0="init" 1="deadlock"
+0: 0
+
+# Reward structure "r"
+# State rewards
+3 0
+
+# Reward structure "r"
+# Transition rewards
+3 5 3
+0 0 1 5
+0 2 0 1
+2 0 2 1

@@ -789,6 +789,12 @@ NDSparseMatrix *build_sub_nd_sparse_matrix(DdManager *ddman, DdNode *mdp, DdNode
 	// try/catch for memory allocation/deallocation
 	try {
 	
+	// only consider entries of the sub-MDP that are also in the MDP
+	// (any others would have nowhere to be stored)
+	Cudd_Ref(submdp);
+	Cudd_Ref(mdp);
+	submdp = DD_Apply(ddman, APPLY_TIMES, submdp, DD_GreaterThan(ddman, mdp, 0));
+	
 	// create new data structure
 	ndsm = NULL; ndsm = new NDSparseMatrix();
 	
@@ -900,6 +906,7 @@ NDSparseMatrix *build_sub_nd_sparse_matrix(DdManager *ddman, DdNode *mdp, DdNode
 		}
 		if (starts) delete[] starts;
 		if (starts2) delete[] starts2;
+		Cudd_RecursiveDeref(ddman, submdp);
 		throw e;
 	}
 	
@@ -911,6 +918,7 @@ NDSparseMatrix *build_sub_nd_sparse_matrix(DdManager *ddman, DdNode *mdp, DdNode
 	delete[] matrices;
 	delete[] submatrices;
 	delete[] matrices_bdds;
+	Cudd_RecursiveDeref(ddman, submdp);
 	
 	return ndsm;
 }
