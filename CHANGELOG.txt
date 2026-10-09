@@ -1,7 +1,7 @@
 This file contains details of the changes in each new version of PRISM.
 
 -----------------------------------------------------------------------------
-Changes since last release (up to dc4286614)
+Changes since last release (up to d4a723e86)
 -----------------------------------------------------------------------------
 
 * Expanded support for reward properties
@@ -18,6 +18,9 @@ Changes since last release (up to dc4286614)
   - MDP solution via linear programming in explicit engine (-lp)
   - counterexamples/witnesses for E[F], A[G] in the explicit engine
   - simulator/statistical model checking fixes: "init"/"deadlock"
+  - exact/parametric model checking supports labels of imported models
+  - multi-objective model checking fixes
+  - various fixes and extensions to optimal strategy generation
 
 * Import/export functionality
   - new combined explicit model format (.pexp): single file with
@@ -26,14 +29,18 @@ Changes since last release (up to dc4286614)
   - import/export of zipped (gzip/xz) explicit model files
   - strategy export to full (annotated) induced model, e.g. .pexp, .umb
   - -exporttrans, -exportstates, etc. take options (e.g. precision=x)
+  - faster, lower-memory import of UMB files
   
 * Command-line/script improvements
   - -xx:opt allowed as shorthand for -xx:opt=true
   - :append option for -mainlog
   - prism-auto: --single-log option and better local file finding
   - launch scripts use bash not sh
+  - -buildall switch: build all labels/rewards during model construction
+  - -test:pexp: roundtrip testing of models via .pexp files
+  - prism-log-extract: new import/transitions/export fields
 
-* Various bugfixes
+* Various bugfixes, including GUI fixes
 
 * Development and code-level changes:
   - CLI switch handling refactoring (and auto-generated help for switches)
@@ -41,7 +48,8 @@ Changes since last release (up to dc4286614)
   - LP solver abstraction (currently for lpsolve)
   - updated version numbering (e.g. 4.10.2-dev) and version scripts
   - improved GitHub release building automation
-  
+  - multi-objective code refactored into engine-agnostic base classes
+
 -----------------------------------------------------------------------------
 Version 4.10.1 (first released 2/4/2026)
 -----------------------------------------------------------------------------
