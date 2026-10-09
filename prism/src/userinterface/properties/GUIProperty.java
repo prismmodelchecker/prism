@@ -263,8 +263,17 @@ public class GUIProperty
 		case STATUS_RESULT_ERROR:
 			return getResultString();
 		default:
-			return "<html>Result: " + getResultString().replaceAll("\n", "<br/>") + "</html>";
+			return "<html>Result: " + toHtml(getResultString()) + "</html>";
 		}
+	}
+
+	/**
+	 * Convert a plain text string for display in HTML (e.g. in a Swing label),
+	 * escaping special characters and converting newlines to line breaks.
+	 */
+	public static String toHtml(String s)
+	{
+		return s.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;").replace("\n", "<br/>");
 	}
 
 	public String getConstantsString()
