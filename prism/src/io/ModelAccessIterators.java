@@ -275,6 +275,7 @@ public class ModelAccessIterators
 			}
 			intValue = getIntValue();
 			incr();
+			skipEmpty();
 			return intValue;
 		}
 	}
