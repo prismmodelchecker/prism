@@ -108,6 +108,13 @@ public class UMBFormat
 	public static final CompressionFormat DEFAULT_COMPRESSION_FORMAT = CompressionFormat.GZIP;
 
 	/**
+	 * Compression level used when writing gzip-compressed files.
+	 * The fastest level (1) is used: on typical model data, it is several times faster
+	 * than the gzip default (6), while giving files only slightly larger.
+	 */
+	public static final int GZIP_COMPRESSION_LEVEL = 1;
+
+	/**
 	 * Get the filename for the offsets mapping string indices to string data within some folder
 	 */
 	public static String stringOffsetsFile(String folderName)

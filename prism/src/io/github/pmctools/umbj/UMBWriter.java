@@ -24,6 +24,8 @@ import org.apache.commons.compress.archivers.tar.TarArchiveOutputStream;
 import org.apache.commons.compress.compressors.CompressorException;
 import org.apache.commons.compress.compressors.CompressorOutputStream;
 import org.apache.commons.compress.compressors.CompressorStreamFactory;
+import org.apache.commons.compress.compressors.gzip.GzipCompressorOutputStream;
+import org.apache.commons.compress.compressors.gzip.GzipParameters;
 
 import java.io.BufferedOutputStream;
 import java.io.File;
@@ -895,7 +897,13 @@ public class UMBWriter
 					if (compressionFormat == null) {
 						compressionFormat = UMBFormat.DEFAULT_COMPRESSION_FORMAT;
 					}
-					zipOut = new CompressorStreamFactory().createCompressorOutputStream(compressionFormat.extension(), fsOut);
+					if (compressionFormat == UMBFormat.CompressionFormat.GZIP) {
+						GzipParameters gzipParameters = new GzipParameters();
+						gzipParameters.setCompressionLevel(UMBFormat.GZIP_COMPRESSION_LEVEL);
+						zipOut = new GzipCompressorOutputStream(fsOut, gzipParameters);
+					} else {
+						zipOut = new CompressorStreamFactory().createCompressorOutputStream(compressionFormat.extension(), fsOut);
+					}
 					tarOut = new TarArchiveOutputStream(zipOut);
 				} else {
 					zipOut = null;
