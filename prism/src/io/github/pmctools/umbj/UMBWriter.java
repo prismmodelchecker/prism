@@ -573,7 +573,7 @@ public class UMBWriter
 		long[] stringOffsets = new long[numStrings + 1];
 		stringOffsets[0] = 0;
 		for (int i = 0; i < numStrings; i++) {
-			stringOffsets[i + 1] = stringOffsets[i] + strings.get(i).getBytes().length;
+			stringOffsets[i + 1] = stringOffsets[i] + strings.get(i).getBytes(StandardCharsets.UTF_8).length;
 		}
 		PrimitiveIterator.OfLong it = Arrays.stream(stringOffsets).iterator();
 		addLongArray(stringOffsetsFilename, it, strings.size() + 1);
