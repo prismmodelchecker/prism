@@ -1,7 +1,7 @@
 This file contains details of the changes in each new version of PRISM.
 
 -----------------------------------------------------------------------------
-Changes since last release (up to d4a723e86)
+Version 4.11 (first released 9/10/2026)
 -----------------------------------------------------------------------------
 
 * Expanded support for reward properties
