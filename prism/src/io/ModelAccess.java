@@ -471,6 +471,39 @@ public interface ModelAccess<Value>
 					return IntIterators.wrap(((DTMCSparse) model).getSparseTransitions().successors, 0, model.getNumTransitions());
 				} else if (model instanceof MDPSparse) {
 					return IntIterators.wrap(((MDPSparse) model).getSparseTransitions().successors, 0, model.getNumTransitions());
+				} else if (model instanceof CTMCSimple) {
+					// For CTMCs, avoid the embedded DTMC transitions (used by default),
+					// which compute exit rates and probabilities that are not needed here
+					CTMCSimple<Value> ctmc = (CTMCSimple<Value>) model;
+					int numStates = getNumStates();
+					return new PrimitiveIterator.OfInt()
+					{
+						int s = 0;
+						Iterator<Integer> it = numStates > 0 ? ctmc.getSuccessorsIterator(0) : null;
+
+						@Override
+						public boolean hasNext()
+						{
+							while (s < numStates) {
+								if (it.hasNext()) {
+									return true;
+								}
+								if (++s < numStates) {
+									it = ctmc.getSuccessorsIterator(s);
+								}
+							}
+							return false;
+						}
+
+						@Override
+						public int nextInt()
+						{
+							if (!hasNext()) {
+								throw new NoSuchElementException();
+							}
+							return it.next();
+						}
+					};
 				} else {
 					return ModelAccess.super.getTransitionSuccessors();
 				}
