@@ -29,7 +29,7 @@ Changes since last release (up to d4a723e86)
   - import/export of zipped (gzip/xz) explicit model files
   - strategy export to full (annotated) induced model, e.g. .pexp, .umb
   - -exporttrans, -exportstates, etc. take options (e.g. precision=x)
-  - faster, lower-memory import of UMB files
+  - faster, lower-memory import/export of UMB files
   
 * Command-line/script improvements
   - -xx:opt allowed as shorthand for -xx:opt=true
