@@ -83,13 +83,13 @@ a.varlink { text-decoration:none;}
 --></style>  <meta name='robots' content='noindex,nofollow' />
 
 
-<link type="text/css" rel="stylesheet" href="http://www.prismmodelchecker.org/css/base.css"/>
-<link type="text/css" rel="stylesheet" href="http://www.prismmodelchecker.org/css/prism.css"/>
-<link type="text/css" rel="stylesheet" href="http://www.prismmodelchecker.org/css/print.css" media="print"/>
-<link type="text/css" rel="stylesheet" href="http://www.prismmodelchecker.org/css/bib.css"/>
+<link type="text/css" rel="stylesheet" href="https://www.prismmodelchecker.org/css/base.css"/>
+<link type="text/css" rel="stylesheet" href="https://www.prismmodelchecker.org/css/prism.css"/>
+<link type="text/css" rel="stylesheet" href="https://www.prismmodelchecker.org/css/print.css" media="print"/>
+<link type="text/css" rel="stylesheet" href="https://www.prismmodelchecker.org/css/bib.css"/>
 
-<link type="text/css" rel="stylesheet" href="http://www.prismmodelchecker.org/manual/pub/skins/prismprint/css/prismmanual.css"/>
-<link type="text/css" rel="stylesheet" href="http://www.prismmodelchecker.org/manual/pub/skins/prismprint/css/prismprint.css"/>
+<link type="text/css" rel="stylesheet" href="https://www.prismmodelchecker.org/manual/pub/skins/prismprint/css/prismmanual.css"/>
+<link type="text/css" rel="stylesheet" href="https://www.prismmodelchecker.org/manual/pub/skins/prismprint/css/prismprint.css"/>
 </head>
 
 <body text="#000000" bgcolor="#ffffcc">
@@ -114,7 +114,7 @@ a.varlink { text-decoration:none;}
 <div class='sourceblock ' id='sourceblock1'>
   <div class='sourceblocktext'><div class="prism"><span class="prismkeyword">const</span> <span class="prismkeyword">double</span> <span class="prismident">x</span>;<br/>
 </div></div>
-  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/RunningPRISM/ParametricModelChecking?action=sourceblock&amp;num=1' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='https://www.prismmodelchecker.org/manual/RunningPRISM/ParametricModelChecking?action=sourceblock&amp;num=1' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 <p class='vspace'>These parameters can only be used to describe probabilities (or rates). For example:
@@ -123,7 +123,7 @@ a.varlink { text-decoration:none;}
 <div class='sourceblock ' id='sourceblock2'>
   <div class='sourceblocktext'><div class="prism">[] <span class="prismident">s</span>=<span class="prismnum">0</span> -&gt; <span class="prismident">x</span> : (<span class="prismident">s</span>'=<span class="prismnum">1</span>) + <span class="prismnum">1</span>-<span class="prismident">x</span> : (<span class="prismident">s</span>'=<span class="prismnum">2</span>);<br/>
 </div></div>
-  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/RunningPRISM/ParametricModelChecking?action=sourceblock&amp;num=2' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='https://www.prismmodelchecker.org/manual/RunningPRISM/ParametricModelChecking?action=sourceblock&amp;num=2' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 <p class='vspace'>They may not be used in guards or updates. The parametric definitions of probabilities or rates (e.g. <code>x</code> and <code>1-x</code> in the above) must be rational functions (fractions of polynomials). PRISM currently supports parametric versions of discrete-time Markov chains (DTMCs), continuous-time Markov chains (CTMCs) and Markov decision processes (MDPs). The classes of properties that be checked on these models are as follows:
@@ -136,7 +136,7 @@ a.varlink { text-decoration:none;}
 <div class='sourceblock ' id='sourceblock3'>
   <div class='sourceblocktext'><div class="shell"><span style="font-weight:bold;">prism model.pm model.props -param x=0.2:0.4,y=-2:2</span><br/>
 </div></div>
-  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/RunningPRISM/ParametricModelChecking?action=sourceblock&amp;num=3' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='https://www.prismmodelchecker.org/manual/RunningPRISM/ParametricModelChecking?action=sourceblock&amp;num=3' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 <p class='vspace'>would specify a parameter <code>x</code> with lower bound 0.2 and upper bound 0.4, and a parameter <code>y</code> with values between -2 and 2. You can also omit the bounds for a parameter, in which case it will be assumed to have range 0 to 1.
@@ -149,7 +149,7 @@ a.varlink { text-decoration:none;}
 <span style="font-style:italic;">...</span><br/>
 <span style="font-style:italic;">Result: ([0.0,1.0]): { 2 x - 5  | 8 x - 12  }</span><br/>
 </div></div>
-  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/RunningPRISM/ParametricModelChecking?action=sourceblock&amp;num=4' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='https://www.prismmodelchecker.org/manual/RunningPRISM/ParametricModelChecking?action=sourceblock&amp;num=4' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 <p class='vspace'>which indicates that, for the full range ([0,1]) of the parameter <code>x</code>, the result of model checking is the expression <code>(2x-5)/(8x-2)</code>.

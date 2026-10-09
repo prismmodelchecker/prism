@@ -83,13 +83,13 @@ a.varlink { text-decoration:none;}
 --></style>  <meta name='robots' content='noindex,nofollow' />
 
 
-<link type="text/css" rel="stylesheet" href="http://www.prismmodelchecker.org/css/base.css"/>
-<link type="text/css" rel="stylesheet" href="http://www.prismmodelchecker.org/css/prism.css"/>
-<link type="text/css" rel="stylesheet" href="http://www.prismmodelchecker.org/css/print.css" media="print"/>
-<link type="text/css" rel="stylesheet" href="http://www.prismmodelchecker.org/css/bib.css"/>
+<link type="text/css" rel="stylesheet" href="https://www.prismmodelchecker.org/css/base.css"/>
+<link type="text/css" rel="stylesheet" href="https://www.prismmodelchecker.org/css/prism.css"/>
+<link type="text/css" rel="stylesheet" href="https://www.prismmodelchecker.org/css/print.css" media="print"/>
+<link type="text/css" rel="stylesheet" href="https://www.prismmodelchecker.org/css/bib.css"/>
 
-<link type="text/css" rel="stylesheet" href="http://www.prismmodelchecker.org/manual/pub/skins/prismprint/css/prismmanual.css"/>
-<link type="text/css" rel="stylesheet" href="http://www.prismmodelchecker.org/manual/pub/skins/prismprint/css/prismprint.css"/>
+<link type="text/css" rel="stylesheet" href="https://www.prismmodelchecker.org/manual/pub/skins/prismprint/css/prismmanual.css"/>
+<link type="text/css" rel="stylesheet" href="https://www.prismmodelchecker.org/manual/pub/skins/prismprint/css/prismprint.css"/>
 </head>
 
 <body text="#000000" bgcolor="#ffffcc">
@@ -109,17 +109,17 @@ This is achieved using the <code><strong>R</strong></code> operator, which works
 <div class='sourceblock ' id='sourceblock1'>
   <div class='sourceblocktext'><div class="prism"> <span class="prismkeyword">R</span> <span class="prismident">bound</span> [ <span class="prismident">rewardprop</span> ] <br/>
 </div></div>
-  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/PropertySpecification/Reward-basedProperties?action=sourceblock&amp;num=1' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='https://www.prismmodelchecker.org/manual/PropertySpecification/Reward-basedProperties?action=sourceblock&amp;num=1' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
-<p class='vspace'>where <code>bound</code> takes the form <code>&lt;r</code>, <code>&lt;=r</code>, <code>&gt;r</code> or <code>&gt;=r</code> for an expression <code>r</code> evaluating to a non-negative double,
+<p class='vspace'>where <code>bound</code> takes the form <code>&lt;r</code>, <code>&lt;=r</code>, <code>&gt;r</code> or <code>&gt;=r</code> for an expression <code>r</code> evaluating to a double,
 or a real-valued query, e.g.:
 </p>
 <div class='vspace'></div>
 <div class='sourceblock ' id='sourceblock2'>
   <div class='sourceblocktext'><div class="prism"> <span class="prismkeyword">R</span> <span class="prismident">query</span> [ <span class="prismident">rewardprop</span> ] <br/>
 </div></div>
-  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/PropertySpecification/Reward-basedProperties?action=sourceblock&amp;num=2' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='https://www.prismmodelchecker.org/manual/PropertySpecification/Reward-basedProperties?action=sourceblock&amp;num=2' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 <p class='vspace'>where <code>query</code> is <code>=?</code>, <code>min=?</code> or <code>max=?</code>.
@@ -132,7 +132,7 @@ meets the bound <code>bound</code> and "<code><strong>R</strong> query [ rewardp
 <p class='vspace'>There are various different types of reward properties:
 </p>
 <div class='vspace'></div><ul><li>"reachability reward": <code><strong>F</strong> prop</code>
-</li><li>"co-safe LTL reward": e.g. <code><strong>F</strong> (prop1 &amp; <strong>F</strong> prop2)</code>
+</li><li>"co-safe LTL reward": e.g. <code><strong>F</strong> (prop1 &amp; (<strong>F</strong> prop2))</code>
 </li><li>"cumulative reward" : <code><strong>C</strong>&lt;=t</code>
 </li><li>"total reward" : <code><strong>C</strong></code>
 </li><li>"instantaneous reward" : <code><strong>I</strong>=t</code>
@@ -141,6 +141,9 @@ meets the bound <code>bound</code> and "<code><strong>R</strong> query [ rewardp
 The descriptions here are kept relatively informal.
 Precise definitions for most of these can be found in, for example,
 [<a class='wikilink' href='../Main/References.html#KNP07a'>KNP07a</a>] (for DTMCs and CTMCs) or [<a class='wikilink' href='../Main/References.html#FKNP11'>FKNP11</a>] (for MDPs).
+</p>
+<p class='vspace'>For all but instantaneous reward properties,
+it is currently required that rewards are non-negative.
 </p>
 <div class='vspace'></div><h3>"Reachability reward" properties</h3>
 <p>"Reachability reward" properties associate a reward with each path of a model.
@@ -168,7 +171,7 @@ One can then state, for example:
 <div class='sourceblock ' id='sourceblock3'>
   <div class='sourceblocktext'><div class="prism"> <span class="prismkeyword">R</span>&lt;=<span class="prismnum">9.5</span> [ <span class="prismkeyword">F</span> <span class="prismident">z</span>=<span class="prismnum">2</span> ] <br/>
 </div></div>
-  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/PropertySpecification/Reward-basedProperties?action=sourceblock&amp;num=3' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='https://www.prismmodelchecker.org/manual/PropertySpecification/Reward-basedProperties?action=sourceblock&amp;num=3' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 <p class='vspace'>which is true in a state <em>s</em> if "the expected time taken to reach, from <em>s</em>, a state where <code>z</code> equals 2 is less than or equal to 9.5".
@@ -183,7 +186,7 @@ queries the expected reward accumulated until first <code>goal</code> equals 1 a
 <div class='sourceblock ' id='sourceblock4'>
   <div class='sourceblocktext'><div class="prism"> <span class="prismkeyword">R</span>=? [ <span class="prismkeyword">F</span> (<span class="prismident">goal</span>=<span class="prismnum">1</span> &amp; <span class="prismkeyword">F</span> <span class="prismident">goal</span>=<span class="prismnum">2</span>) ] <br/>
 </div></div>
-  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/PropertySpecification/Reward-basedProperties?action=sourceblock&amp;num=4' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='https://www.prismmodelchecker.org/manual/PropertySpecification/Reward-basedProperties?action=sourceblock&amp;num=4' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 <p class='vspace'>and this property, for an MDP, minimises the expected reward until <code>loc</code> equals 1,
@@ -193,7 +196,7 @@ having passed only through states where <code>loc</code> never equals 4
 <div class='sourceblock ' id='sourceblock5'>
   <div class='sourceblocktext'><div class="prism"> <span class="prismkeyword">Rmin</span>=? [ <span class="prismident">loc</span>!=<span class="prismnum">4</span> <span class="prismkeyword">U</span> <span class="prismident">loc</span>=<span class="prismnum">1</span> ] <br/>
 </div></div>
-  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/PropertySpecification/Reward-basedProperties?action=sourceblock&amp;num=5' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='https://www.prismmodelchecker.org/manual/PropertySpecification/Reward-basedProperties?action=sourceblock&amp;num=5' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 <p class='vspace'>As for reachability rewards, if the probability of satisfying the formula is less than 1,
@@ -225,7 +228,7 @@ then the property:
 <div class='sourceblock ' id='sourceblock6'>
   <div class='sourceblocktext'><div class="prism"> <span class="prismkeyword">R</span>=? [ <span class="prismkeyword">C</span>&lt;=<span class="prismnum">15.5</span> ] <br/>
 </div></div>
-  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/PropertySpecification/Reward-basedProperties?action=sourceblock&amp;num=6' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='https://www.prismmodelchecker.org/manual/PropertySpecification/Reward-basedProperties?action=sourceblock&amp;num=6' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 <p class='vspace'>would return, for a given state of the model,
@@ -246,7 +249,7 @@ the total reward will be infinite.
 <div class='sourceblock ' id='sourceblock7'>
   <div class='sourceblocktext'><div class="prism"> <span class="prismkeyword">R</span>=? [ <span class="prismkeyword">C</span> ] <br/>
 </div></div>
-  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/PropertySpecification/Reward-basedProperties?action=sourceblock&amp;num=7' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='https://www.prismmodelchecker.org/manual/PropertySpecification/Reward-basedProperties?action=sourceblock&amp;num=7' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 <p class='vspace'>returns "the expected total number of lost requests".
@@ -266,7 +269,7 @@ Then, the following property:
 <div class='sourceblock ' id='sourceblock8'>
   <div class='sourceblocktext'><div class="prism"> <span class="prismkeyword">R</span>&lt;<span class="prismnum">4.4</span> [ <span class="prismkeyword">I</span>=<span class="prismnum">100</span> ] <br/>
 </div></div>
-  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/PropertySpecification/Reward-basedProperties?action=sourceblock&amp;num=8' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='https://www.prismmodelchecker.org/manual/PropertySpecification/Reward-basedProperties?action=sourceblock&amp;num=8' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 <p class='vspace'>would be true in a state <em>s</em> of the model if
@@ -284,7 +287,7 @@ the rewards associated with the model correspond to power consumption, the prope
 <div class='sourceblock ' id='sourceblock9'>
   <div class='sourceblocktext'><div class="prism"> <span class="prismkeyword">R</span>&lt;=<span class="prismnum">0.7</span> [ <span class="prismkeyword">S</span> ] <br/>
 </div></div>
-  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/PropertySpecification/Reward-basedProperties?action=sourceblock&amp;num=9' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='https://www.prismmodelchecker.org/manual/PropertySpecification/Reward-basedProperties?action=sourceblock&amp;num=9' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 <p class='vspace'>which is true in a state <em>s</em> if "starting from <em>s</em>, the long-run average power consumption is less than 0.7".
@@ -298,22 +301,27 @@ the rewards associated with the model correspond to power consumption, the prope
 <span class="prismkeyword">R</span>{"<span class="prismident">time</span>"}=? [ <span class="prismkeyword">F</span> <span class="prismident">step</span>=<span class="prismident">final</span> ]<br/>
 <span class="prismkeyword">R</span>{<span class="prismnum">2</span>}=? [ <span class="prismkeyword">F</span> <span class="prismident">step</span>=<span class="prismident">final</span> ]<br/>
 </div></div>
-  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/PropertySpecification/Reward-basedProperties?action=sourceblock&amp;num=10' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='https://www.prismmodelchecker.org/manual/PropertySpecification/Reward-basedProperties?action=sourceblock&amp;num=10' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 <p class='vspace'>Note that when using an index to specify the reward structure, you can actually put any expression that evaluates to an integer. This allows you to, for example, write a property of the form <code>R{c}=?[...]</code> where <code>c</code> is an undefined integer constant. You can then vary the value of <code>c</code> in an experiment and compute values for several different reward structures at once.
 </p>
 <p class='vspace'>If you don't specify a reward structure to the <code>R</code> operator, by default, the first one in the model file is used.
 </p>
-<div class='vspace'></div><h3>Availability</h3>
-<p>There are currently a few restrictions on the model checking <a class='wikilink' href='../ConfiguringPRISM/ComputationEngines.html'>engines</a> that can be used for some reward properties. The following table summarises the currently availability, where S, M, H and E denote the "sparse", "MTBDD", "hybrid" and "explicit" engines, respectively, for DTMCs, CTMCs and MDPs. For PTAs, support for rewards is currently quite restrictive; see the later section on <a class='wikilink' href='Real-timeModels.html'>real-time model properties</a> for details.
+<div class='vspace'></div><h3>Discounts</h3>
+<p>For core the reward operators that refer to accumulated rewards,
+i.e., <code><strong>F</strong> prop</code>, <code><strong>C</strong>&lt;=t</code> and <code><strong>C</strong></code>,
+rewards on DTMCs and MDPs can be <em>discounted</em> using a specified factor. Examples are:
 </p>
 <div class='vspace'></div>
-<table border='1' cellpadding='5' ><tr ><td >&nbsp;</td><td  align='center'><code><strong>F</strong></code></td><td  align='center'>cosafe</td><td  align='center'><code><strong>C</strong>&lt;=t</code></td><td  align='center'><code><strong>C</strong></code></td><td  align='left'><code><strong>I</strong>=t</code></td><td  align='right'><code><strong>S</strong></code></td></tr>
-<tr ><td  align='center'><strong>DTMCs</strong></td><td  align='center'>SMHE</td><td  align='center'>SMHE</td><td  align='center'>SMHE</td><td  align='center'>SMHE</td><td  align='center'>SMHE</td><td  align='right'>SMHE</td></tr>
-<tr ><td  align='center'><strong>CTMCs</strong></td><td  align='center'>SMHE</td><td  align='center'>SMHE</td><td  align='center'>SMHE</td><td  align='center'>SMHE</td><td  align='center'>SMHE</td><td  align='right'>SMHE</td></tr>
-<tr ><td  align='center'><strong>MDPs</strong></td><td  align='center'>SM-E</td><td  align='center'>SMHE</td><td  align='center'>S--E</td><td  align='center'>----</td><td  align='center'>SM-E</td><td  align='right'>----</td></tr>
-</table>
+<div class='sourceblock ' id='sourceblock11'>
+  <div class='sourceblocktext'><div class="prism"><span class="prismkeyword">Rmin</span>=? [ <span class="prismkeyword">F</span>{<span class="prismident">discount</span>=<span class="prismnum">0.9</span>} "<span class="prismident">goal</span>" ]<br/>
+<span class="prismkeyword">R</span>=? [ <span class="prismkeyword">C</span>{<span class="prismident">discount</span>=<span class="prismnum">0.5</span>}&lt;=<span class="prismnum">100</span> ]<br/>
+<span class="prismkeyword">Rmax</span>=? [ <span class="prismkeyword">C</span>{<span class="prismident">discount</span>=<span class="prismnum">0.9</span>} ]<br/>
+</div></div>
+  <div class='sourceblocklink'><a href='https://www.prismmodelchecker.org/manual/PropertySpecification/Reward-basedProperties?action=sourceblock&amp;num=11' type='text/plain'>[&#036;[Get Code]]</a></div>
+</div>
+
 </div>
 
 

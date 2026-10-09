@@ -83,13 +83,13 @@ a.varlink { text-decoration:none;}
 --></style>  <meta name='robots' content='noindex,nofollow' />
 
 
-<link type="text/css" rel="stylesheet" href="http://www.prismmodelchecker.org/css/base.css"/>
-<link type="text/css" rel="stylesheet" href="http://www.prismmodelchecker.org/css/prism.css"/>
-<link type="text/css" rel="stylesheet" href="http://www.prismmodelchecker.org/css/print.css" media="print"/>
-<link type="text/css" rel="stylesheet" href="http://www.prismmodelchecker.org/css/bib.css"/>
+<link type="text/css" rel="stylesheet" href="https://www.prismmodelchecker.org/css/base.css"/>
+<link type="text/css" rel="stylesheet" href="https://www.prismmodelchecker.org/css/prism.css"/>
+<link type="text/css" rel="stylesheet" href="https://www.prismmodelchecker.org/css/print.css" media="print"/>
+<link type="text/css" rel="stylesheet" href="https://www.prismmodelchecker.org/css/bib.css"/>
 
-<link type="text/css" rel="stylesheet" href="http://www.prismmodelchecker.org/manual/pub/skins/prismprint/css/prismmanual.css"/>
-<link type="text/css" rel="stylesheet" href="http://www.prismmodelchecker.org/manual/pub/skins/prismprint/css/prismprint.css"/>
+<link type="text/css" rel="stylesheet" href="https://www.prismmodelchecker.org/manual/pub/skins/prismprint/css/prismmanual.css"/>
+<link type="text/css" rel="stylesheet" href="https://www.prismmodelchecker.org/manual/pub/skins/prismprint/css/prismprint.css"/>
 </head>
 
 <body text="#000000" bgcolor="#ffffcc">
@@ -103,7 +103,7 @@ a.varlink { text-decoration:none;}
 <p>It is also possible to construct models in PRISM through direct specification of their transition matrix.
 Two formats for explicit model import are currently supported:
 </p>
-<div class='vspace'></div><ul><li><a class='wikilink' href='../Appendices/ExplicitModelFiles.html'>plain text</a> files (sometimes referred to as "explicit" or "<code>.tra</code>" files)
+<div class='vspace'></div><ul><li><a class='wikilink' href='../Appendices/ExplicitModelFiles.html'>plain text</a> files (sometimes referred to as "explicit" or "<code>.tra</code>" or "<code>.pexp</code>" files)
 </li><li><a class='urllink' href='https://pmc-tools.github.io/umb/'>UMB</a> (Unified Markov binary) format, a binary format supported by other probabilistic model checkers
 </li></ul><p class='vspace'>Presently, this functionality is only supported in the command-line version of the tool, usually using the <code>-importmodel</code> switch.
 In a similar fashion to <code>-exportmodel</code> switch, the type of import is usually determined from the file extension.
@@ -114,31 +114,42 @@ In a similar fashion to <code>-exportmodel</code> switch, the type of import is 
 <div class='sourceblock ' id='sourceblock1'>
   <div class='sourceblocktext'><div class="shell"><span style="font-weight:bold;">prism -importmodel poll2.umb</span><br/>
 </div></div>
-  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/RunningPRISM/ExplicitModelImport?action=sourceblock&amp;num=1' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='https://www.prismmodelchecker.org/manual/RunningPRISM/ExplicitModelImport?action=sourceblock&amp;num=1' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 <p class='vspace'>For the plain text files (<code>.tra</code> etc.), various options are possible.
-To just import the core part of the model (the transition function) use:
+To import everything (in the combined <code>.pexp</code> format) use:
 </p>
 <div class='vspace'></div>
 <div class='sourceblock ' id='sourceblock2'>
-  <div class='sourceblocktext'><div class="shell"><span style="font-weight:bold;">prism -importmodel poll2.tra</span><br/>
+  <div class='sourceblocktext'><div class="shell"><span style="font-weight:bold;">prism -importmodel poll2.pexp</span><br/>
 </div></div>
-  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/RunningPRISM/ExplicitModelImport?action=sourceblock&amp;num=2' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='https://www.prismmodelchecker.org/manual/RunningPRISM/ExplicitModelImport?action=sourceblock&amp;num=2' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
-<p class='vspace'>PRISM tries to determine the model type from the format of the <code>.tra</code> file,
-but if this does not work, the model type can be overwritten using the <code>-dtmc</code>, <code>-ctmc</code> and <code>-mdp</code> switches.
-For example:
+<p class='vspace'>To just import the core part of the model (the transition function) use:
 </p>
 <div class='vspace'></div>
 <div class='sourceblock ' id='sourceblock3'>
-  <div class='sourceblocktext'><div class="shell"><span style="font-weight:bold;">prism -importmodel poll2.tra -ctmc</span><br/>
+  <div class='sourceblocktext'><div class="shell"><span style="font-weight:bold;">prism -importmodel poll2.tra</span><br/>
 </div></div>
-  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/RunningPRISM/ExplicitModelImport?action=sourceblock&amp;num=3' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='https://www.prismmodelchecker.org/manual/RunningPRISM/ExplicitModelImport?action=sourceblock&amp;num=3' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
-<p class='vspace'>Using the same formats as for <a class='wikilink' href='ExportingTheModel.html'>model export</a>, other parts of the model can also be imported:
+<p class='vspace'>From explicit format, PRISM tries to determine the model type from the transitions data,
+using the model type included in the header, if present,
+and guessing from the format of the data if not.
+If this does not work, the model type can be overwritten using the <code>-dtmc</code>, <code>-ctmc</code> and <code>-mdp</code> switches.
+For example:
+</p>
+<div class='vspace'></div>
+<div class='sourceblock ' id='sourceblock4'>
+  <div class='sourceblocktext'><div class="shell"><span style="font-weight:bold;">prism -importmodel poll2.tra -ctmc</span><br/>
+</div></div>
+  <div class='sourceblocklink'><a href='https://www.prismmodelchecker.org/manual/RunningPRISM/ExplicitModelImport?action=sourceblock&amp;num=4' type='text/plain'>[&#036;[Get Code]]</a></div>
+</div>
+
+<p class='vspace'>Using the same formats as for <a class='wikilink' href='ExportingTheModel.html'>model export</a>, multiple other parts of the model can also be imported separately:
 </p>
 <div class='vspace'></div><ul><li><code>.lab</code> - labels
 </li><li><code>.srew</code>, <code>.trew</code> - rewards: states, transitions
@@ -147,10 +158,10 @@ For example:
 </li></ul><p class='vspace'>Here is an example of also importing labels and states:
 </p>
 <div class='vspace'></div>
-<div class='sourceblock ' id='sourceblock4'>
+<div class='sourceblock ' id='sourceblock5'>
   <div class='sourceblocktext'><div class="shell"><span style="font-weight:bold;">prism -importmodel poll2.tra,sta,lab</span><br/>
 </div></div>
-  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/RunningPRISM/ExplicitModelImport?action=sourceblock&amp;num=4' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='https://www.prismmodelchecker.org/manual/RunningPRISM/ExplicitModelImport?action=sourceblock&amp;num=5' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 <p class='vspace'>If state information is not imported, a single zero-indexed variable <code>x</code> is assumed.
@@ -160,24 +171,28 @@ but are included in the labels file, this should also be used to designate a par
 Otherwise, state 0 is assumed to be the initial state or,
 if state information is imported, the state in which all variables take their minimum value is used.
 </p>
-<p class='vspace'>Use the extension <code>.all</code> to import from any matching files with appropriate extensions:
-</p>
-<div class='vspace'></div>
-<div class='sourceblock ' id='sourceblock5'>
-  <div class='sourceblocktext'><div class="shell"><span style="font-weight:bold;">prism -importmodel poll2.all</span><br/>
-</div></div>
-  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/RunningPRISM/ExplicitModelImport?action=sourceblock&amp;num=5' type='text/plain'>[&#036;[Get Code]]</a></div>
-</div>
-
-<p class='vspace'>In this case, you can omit the <code>-importmodel</code> switch and just specify the <code>.all</code>-ended filename, e.g.:
+<p class='vspace'>Use the extension <code>.all</code> to import from multiple files containing separate parts of the model, named with appropriate file extensions:
 </p>
 <div class='vspace'></div>
 <div class='sourceblock ' id='sourceblock6'>
-  <div class='sourceblocktext'><div class="shell"><span style="font-weight:bold;">prism poll2.all</span><br/>
+  <div class='sourceblocktext'><div class="shell"><span style="font-weight:bold;">prism -importmodel poll2.all</span><br/>
 </div></div>
-  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/RunningPRISM/ExplicitModelImport?action=sourceblock&amp;num=6' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='https://www.prismmodelchecker.org/manual/RunningPRISM/ExplicitModelImport?action=sourceblock&amp;num=6' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
+<p class='vspace'>When providing the whole model, you can omit the <code>-importmodel</code> switch, e.g.:
+</p>
+<div class='vspace'></div>
+<div class='sourceblock ' id='sourceblock7'>
+  <div class='sourceblocktext'><div class="shell"><span style="font-weight:bold;">prism poll2.pexp</span><br/>
+<span style="font-weight:bold;">prism poll2.all</span><br/>
+</div></div>
+  <div class='sourceblocklink'><a href='https://www.prismmodelchecker.org/manual/RunningPRISM/ExplicitModelImport?action=sourceblock&amp;num=7' type='text/plain'>[&#036;[Get Code]]</a></div>
+</div>
+
+<p class='vspace'>Any files can be zipped, and this will be detected by their (<code>.gz</code> or <code>.xz</code>) filename extension.
+These are decompressed automatically on import.
+</p>
 <div class='vspace'></div><h3>Efficiency</h3>
 <p>Please note, for PRISM's symbolic model construction/engines, which are often used by default,
 this explicit method of constructing models in PRISM is typically less efficient than using the PRISM language.
@@ -186,10 +201,10 @@ function better when there is high-level structure and regularity to exploit.
 You may want to switch to the "explicit" engine:
 </p>
 <div class='vspace'></div>
-<div class='sourceblock ' id='sourceblock7'>
+<div class='sourceblock ' id='sourceblock8'>
   <div class='sourceblocktext'><div class="shell"><span style="font-weight:bold;">prism -importmodel poll2.tra -ex</span><br/>
 </div></div>
-  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/RunningPRISM/ExplicitModelImport?action=sourceblock&amp;num=7' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='https://www.prismmodelchecker.org/manual/RunningPRISM/ExplicitModelImport?action=sourceblock&amp;num=8' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 <p class='vspace'>The situation can also be alleviated to a certain extent for the symbolic implementations by importing
@@ -201,13 +216,13 @@ the <code>.sta</code> file, since the composition of the states reintroduces som
 <p>In a similar style to PRISM's <a class='wikilink' href='ExportingTheModel.html'><code>-exportmodel</code></a> switch, while <code>-importmodel</code> is usually the most convenient, you can also specify each part separately, e.g.:
 </p>
 <div class='vspace'></div>
-<div class='sourceblock ' id='sourceblock8'>
+<div class='sourceblock ' id='sourceblock9'>
   <div class='sourceblocktext'><div class="shell"><span style="font-weight:bold;">prism -importtrans poll2.tra -importstates poll2.sta -importlabels poll2.lab -ctmc</span><br/>
 </div></div>
-  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/RunningPRISM/ExplicitModelImport?action=sourceblock&amp;num=8' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='https://www.prismmodelchecker.org/manual/RunningPRISM/ExplicitModelImport?action=sourceblock&amp;num=9' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
-<p class='vspace'>There are also <code>-importstaterewards</code> and <code>-impottransrewards</code> switches.
+<p class='vspace'>There are also <code>-importstaterewards</code> and <code>-importtransrewards</code> switches.
 You can import multiple reward structures using multiple instances of the these switches.
 If present in the rewards files (see the appendix "<a class='wikilink' href='../Appendices/ExplicitModelFiles.html'>Explicit Model Files</a>"),
 the names of the reward structures are read too.

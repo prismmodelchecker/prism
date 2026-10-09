@@ -83,13 +83,13 @@ a.varlink { text-decoration:none;}
 --></style>  <meta name='robots' content='noindex,nofollow' />
 
 
-<link type="text/css" rel="stylesheet" href="http://www.prismmodelchecker.org/css/base.css"/>
-<link type="text/css" rel="stylesheet" href="http://www.prismmodelchecker.org/css/prism.css"/>
-<link type="text/css" rel="stylesheet" href="http://www.prismmodelchecker.org/css/print.css" media="print"/>
-<link type="text/css" rel="stylesheet" href="http://www.prismmodelchecker.org/css/bib.css"/>
+<link type="text/css" rel="stylesheet" href="https://www.prismmodelchecker.org/css/base.css"/>
+<link type="text/css" rel="stylesheet" href="https://www.prismmodelchecker.org/css/prism.css"/>
+<link type="text/css" rel="stylesheet" href="https://www.prismmodelchecker.org/css/print.css" media="print"/>
+<link type="text/css" rel="stylesheet" href="https://www.prismmodelchecker.org/css/bib.css"/>
 
-<link type="text/css" rel="stylesheet" href="http://www.prismmodelchecker.org/manual/pub/skins/prismprint/css/prismmanual.css"/>
-<link type="text/css" rel="stylesheet" href="http://www.prismmodelchecker.org/manual/pub/skins/prismprint/css/prismprint.css"/>
+<link type="text/css" rel="stylesheet" href="https://www.prismmodelchecker.org/manual/pub/skins/prismprint/css/prismmanual.css"/>
+<link type="text/css" rel="stylesheet" href="https://www.prismmodelchecker.org/manual/pub/skins/prismprint/css/prismprint.css"/>
 </head>
 
 <body text="#000000" bgcolor="#ffffcc">
@@ -109,7 +109,7 @@ a.varlink { text-decoration:none;}
 <div class='sourceblock ' id='sourceblock1'>
   <div class='sourceblocktext'><div class="prism"><span class="prismkeyword">R</span>=? [ <span class="prismkeyword">F</span> "<span class="prismident">end</span>" ]<br/>
 </div></div>
-  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/FrequentlyAskedQuestions/PRISMProperties?action=sourceblock&amp;num=1' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='https://www.prismmodelchecker.org/manual/FrequentlyAskedQuestions/PRISMProperties?action=sourceblock&amp;num=1' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 <p class='vspace'>As mentioned <a class='wikilink' href='../PropertySpecification/Reward-basedProperties.html'>earlier</a>, this kind of property returns infinity if <code>"end"</code> is not eventually reached with probability 1. This is a choice that we made when designing the property specification language. Often, it is reasonable to assume that, if a path continues indefinitely without reaching a goal state, then reward will continue to be accumulated infinitely often (this would usually be true when modelling time as a reward structure, for instance). If there is a non-zero probability of <em>not</em> reaching the target (i.e. the probability of reaching it is less than 1), we would then expect the overall expected reward to be infinite.
@@ -120,7 +120,7 @@ a.varlink { text-decoration:none;}
 <div class='sourceblock ' id='sourceblock2'>
   <div class='sourceblocktext'><div class="prism"><span class="prismkeyword">P</span>=? [ <span class="prismkeyword">F</span> "<span class="prismident">end</span>" ]<br/>
 </div></div>
-  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/FrequentlyAskedQuestions/PRISMProperties?action=sourceblock&amp;num=2' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='https://www.prismmodelchecker.org/manual/FrequentlyAskedQuestions/PRISMProperties?action=sourceblock&amp;num=2' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 <p class='vspace'>A similar situation arises with models that contain nondeterminism, such as MDPs. The <em>maximum</em> expected reward to reach a target is finite if and only if the <em>minimum</em> probability of reaching the target is 1. Conversely, the <em>minimum</em> expected reward is finite if and only if the <em>maximum</em> probability is 1. 
@@ -135,7 +135,7 @@ a.varlink { text-decoration:none;}
 <div class='sourceblock ' id='sourceblock3'>
   <div class='sourceblocktext'><div class="prism"><span class="prismkeyword">P</span>&lt;<span class="prismnum">0.01</span> [ <span class="prismkeyword">F</span> "<span class="prismident">error</span>" ]<br/>
 </div></div>
-  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/FrequentlyAskedQuestions/PRISMProperties?action=sourceblock&amp;num=3' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='https://www.prismmodelchecker.org/manual/FrequentlyAskedQuestions/PRISMProperties?action=sourceblock&amp;num=3' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 <p class='vspace'>i.e. "the probability of reaching a state labelled with <code>"error"</code> is less than 0.01. By default, when model checking this query, PRISM will report the result of this property <em>for the initial state</em> of the model, i.e. whether, <em>starting from the initial state</em>, the probability of reaching <code>"error"</code> is below 0.01.
@@ -148,7 +148,7 @@ illustrated below:
 <div class='sourceblock ' id='sourceblock4'>
   <div class='sourceblocktext'><div class="prism"><span class="prismkeyword">filter</span>(<span class="prismident">forall</span>, <span class="prismkeyword">P</span>&lt;<span class="prismnum">0.01</span> [ <span class="prismkeyword">F</span> "<span class="prismident">error</span>" ], "<span class="prismident">safe</span>")<br/>
 </div></div>
-  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/FrequentlyAskedQuestions/PRISMProperties?action=sourceblock&amp;num=4' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='https://www.prismmodelchecker.org/manual/FrequentlyAskedQuestions/PRISMProperties?action=sourceblock&amp;num=4' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 <p class='vspace'>If you want to check whether the property is true for <em>all</em> reachable states, you can use either of the following two (equivalent) properties:
@@ -158,7 +158,7 @@ illustrated below:
   <div class='sourceblocktext'><div class="prism"><span class="prismkeyword">filter</span>(<span class="prismident">forall</span>, <span class="prismkeyword">P</span>&lt;<span class="prismnum">0.01</span> [ <span class="prismkeyword">F</span> "<span class="prismident">error</span>" ], <span class="prismkeyword">true</span>)<br/>
 <span class="prismkeyword">filter</span>(<span class="prismident">forall</span>, <span class="prismkeyword">P</span>&lt;<span class="prismnum">0.01</span> [ <span class="prismkeyword">F</span> "<span class="prismident">error</span>" ])<br/>
 </div></div>
-  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/FrequentlyAskedQuestions/PRISMProperties?action=sourceblock&amp;num=5' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='https://www.prismmodelchecker.org/manual/FrequentlyAskedQuestions/PRISMProperties?action=sourceblock&amp;num=5' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 <p class='vspace'>In older versions of PRISM, checking that a property was true in a particular set of states was done using implication (<code>=&gt;</code>). If you wish, you can still use a similar form of property to achieve this, as shown by the following example: 
@@ -166,7 +166,7 @@ illustrated below:
 <div class='sourceblock ' id='sourceblock6'>
   <div class='sourceblocktext'><div class="prism"><span class="prismkeyword">filter</span>(<span class="prismident">forall</span>, "<span class="prismident">safe</span>" =&gt; <span class="prismkeyword">P</span>&lt;<span class="prismnum">0.01</span> [ <span class="prismkeyword">F</span> "<span class="prismident">error</span>" ])<br/>
 </div></div>
-  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/FrequentlyAskedQuestions/PRISMProperties?action=sourceblock&amp;num=6' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='https://www.prismmodelchecker.org/manual/FrequentlyAskedQuestions/PRISMProperties?action=sourceblock&amp;num=6' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 </div>
@@ -179,7 +179,7 @@ illustrated below:
 <div class='sourceblock ' id='sourceblock7'>
   <div class='sourceblocktext'><div class="prism"><span class="prismkeyword">P</span>=? [ <span class="prismkeyword">F</span> "<span class="prismident">error</span>" ]<br/>
 </div></div>
-  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/FrequentlyAskedQuestions/PRISMProperties?action=sourceblock&amp;num=7' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='https://www.prismmodelchecker.org/manual/FrequentlyAskedQuestions/PRISMProperties?action=sourceblock&amp;num=7' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 <p class='vspace'>So how do you compute the probability of a some action <code>b</code> occurring? You need to make a small change to your model. The cleanest way to do this is to add a small module that changes state when the action occurs, e.g.:
@@ -195,7 +195,7 @@ illustrated below:
 <br/>
 <span class="prismkeyword">endmodule</span><br/>
 </div></div>
-  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/FrequentlyAskedQuestions/PRISMProperties?action=sourceblock&amp;num=8' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='https://www.prismmodelchecker.org/manual/FrequentlyAskedQuestions/PRISMProperties?action=sourceblock&amp;num=8' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 <p class='vspace'>You can determine the probability of action <code>b</code> occurring in the model with the property:
@@ -204,7 +204,7 @@ illustrated below:
 <div class='sourceblock ' id='sourceblock9'>
   <div class='sourceblocktext'><div class="prism"><span class="prismkeyword">P</span>=? [ <span class="prismkeyword">F</span> <span class="prismident">q</span>=<span class="prismnum">1</span> ]<br/>
 </div></div>
-  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/FrequentlyAskedQuestions/PRISMProperties?action=sourceblock&amp;num=9' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='https://www.prismmodelchecker.org/manual/FrequentlyAskedQuestions/PRISMProperties?action=sourceblock&amp;num=9' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 <p class='vspace'>By design, the module above will not affect the behaviour (timing, probability, etc.) of your model at all, so all other properties will remain unchanged. This is true for any of the model types that PRISM supports. It may, though, lead to a (hopefully small) increase in total model size.
@@ -216,7 +216,7 @@ illustrated below:
   <div class='sourceblocktext'><div class="prism"><span class="prismkeyword">P</span>=? [ <span class="prismkeyword">F</span>&lt;=<span class="prismident">T</span> <span class="prismident">q</span>=<span class="prismnum">1</span> ]<br/>
 <span class="prismkeyword">R</span>{"<span class="prismident">time</span>"}=? [ <span class="prismkeyword">F</span> <span class="prismident">q</span>=<span class="prismnum">1</span> ]<br/>
 </div></div>
-  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/FrequentlyAskedQuestions/PRISMProperties?action=sourceblock&amp;num=10' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='https://www.prismmodelchecker.org/manual/FrequentlyAskedQuestions/PRISMProperties?action=sourceblock&amp;num=10' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 <p class='vspace'>(where a constant <code>T</code> or reward structure <code>time</code> have been added to the model, as appropriate).

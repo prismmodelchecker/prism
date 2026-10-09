@@ -100,13 +100,13 @@ a.varlink { text-decoration:none;}
 --></style>  <meta name='robots' content='noindex,nofollow' />
 
 
-<link type="text/css" rel="stylesheet" href="http://www.prismmodelchecker.org/css/base.css"/>
-<link type="text/css" rel="stylesheet" href="http://www.prismmodelchecker.org/css/prism.css"/>
-<link type="text/css" rel="stylesheet" href="http://www.prismmodelchecker.org/css/print.css" media="print"/>
-<link type="text/css" rel="stylesheet" href="http://www.prismmodelchecker.org/css/bib.css"/>
+<link type="text/css" rel="stylesheet" href="https://www.prismmodelchecker.org/css/base.css"/>
+<link type="text/css" rel="stylesheet" href="https://www.prismmodelchecker.org/css/prism.css"/>
+<link type="text/css" rel="stylesheet" href="https://www.prismmodelchecker.org/css/print.css" media="print"/>
+<link type="text/css" rel="stylesheet" href="https://www.prismmodelchecker.org/css/bib.css"/>
 
-<link type="text/css" rel="stylesheet" href="http://www.prismmodelchecker.org/manual/pub/skins/prismprint/css/prismmanual.css"/>
-<link type="text/css" rel="stylesheet" href="http://www.prismmodelchecker.org/manual/pub/skins/prismprint/css/prismprint.css"/>
+<link type="text/css" rel="stylesheet" href="https://www.prismmodelchecker.org/manual/pub/skins/prismprint/css/prismmanual.css"/>
+<link type="text/css" rel="stylesheet" href="https://www.prismmodelchecker.org/manual/pub/skins/prismprint/css/prismprint.css"/>
 </head>
 
 <body text="#000000" bgcolor="#ffffcc">
@@ -124,7 +124,7 @@ For example, this property:
 <div class='sourceblock ' id='sourceblock1'>
   <div class='sourceblocktext'><div class="prism"><span class="prismkeyword">Pmax</span>=? [ <span class="prismkeyword">F</span> "<span class="prismident">goal</span>" ]<br/>
 </div></div>
-  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/RunningPRISM/Strategies?action=sourceblock&amp;num=1' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='https://www.prismmodelchecker.org/manual/RunningPRISM/Strategies?action=sourceblock&amp;num=1' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 <p class='vspace'>determines the maximum probability, over all strategies, of reaching a state satisfying the label <code>"goal"</code>. When checking such properties, you can also ask PRISM to generate a corresponding (optimal) strategy, which yields this maximum probability when followed. The strategy can then be viewed, exported or simulated.
@@ -138,12 +138,16 @@ The old <em>adversary generation</em> functionality (see below) still exists for
 <div class='vspace'></div>
 <div class='sourceblock ' id='sourceblock2'>
   <div class='sourceblocktext'><div class="shell"><span style="font-weight:bold;">prism mdp.prism -pf 'Pmax=? [ F "goal" ]' -exportstrat stdout</span><br/>
-<span style="font-weight:bold;">prism mdp.prism -pf 'Pmax=? [ F "goal" ]' -exportstrat strat.tra</span><br/>
+<span style="font-weight:bold;">prism mdp.prism -pf 'Pmax=? [ F "goal" ]' -exportstrat strat.pexp</span><br/>
+<span style="font-weight:bold;">prism mdp.prism -pf 'Pmax=? [ F "goal" ]' -exportstrat strat.umb</span><br/>
 <span style="font-weight:bold;">prism mdp.prism -pf 'Pmax=? [ F "goal" ]' -exportstrat strat.dot</span><br/>
+<span style="font-weight:bold;">prism mdp.prism -pf 'Pmax=? [ F "goal" ]' -exportstrat strat.tra</span><br/>
 </div></div>
-  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/RunningPRISM/Strategies?action=sourceblock&amp;num=2' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='https://www.prismmodelchecker.org/manual/RunningPRISM/Strategies?action=sourceblock&amp;num=2' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
+<p class='vspace'>The first of these exports actions, the others export induced models (see below).
+</p>
 <p class='vspace'>From the GUI, you can trigger strategy generation by ticking the "Generate strategy" box either on the popup menu that appears when you right-click a property, or from the "Strategies" menu at the top. As long as it is supported, a strategy will be then generated once "Verify" is clicked.
 </p>
 <p class='vspace'>From the same menu(s), you can then
@@ -162,65 +166,72 @@ The old <em>adversary generation</em> functionality (see below) still exists for
 (0,2):north<br />
 (1,0):south<br />
 ...</div></div>
-  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/RunningPRISM/Strategies?action=sourceblock&amp;num=3' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='https://www.prismmodelchecker.org/manual/RunningPRISM/Strategies?action=sourceblock&amp;num=3' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 <p class='vspace'>where states, by default, are shown as a tuple of variable values.
 </p>
 <p class='vspace'>(ii) <em>Induced model</em>. This is a representation of the model that is induced when the strategy is applied. There are two "modes" for this export. The first (and default) is 
-<em>reduce</em>, which removes the nondeterminism resolved by the strategy (e.g., an MDP becomes a DTMC). This can be useful to re-import the model back into PRISM and analyse the induced model. The second is <em>restrict</em>, which shows the original model but with a restricted set of choices (e.g., an MDP with just one choice in each state). In each case, the transitions of the induced model are presented as a <code>.tra</code> file (as for normal <a class='wikilink' href='../Appendices/ExplicitModelFiles.html'>model export</a>), e.g.:
+<em>reduce</em>, which removes the nondeterminism resolved by the strategy (e.g., an MDP becomes a DTMC). This can be useful to re-import the model back into PRISM and analyse the induced model. The second is <em>restrict</em>, which shows the original model but with a restricted set of choices (e.g., an MDP with just one choice in each state). 
 </p>
-<div class='vspace'></div>
-<div class='sourceblock ' id='sourceblock4'>
-  <div class='sourceblocktext'><div class="text">9 11<br />
-0 5 1 east<br />
-1 10 1 north<br />
-2 15 0.9 north<br />
-2 16 0.1 north<br />
-...</div></div>
-  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/RunningPRISM/Strategies?action=sourceblock&amp;num=4' type='text/plain'>[&#036;[Get Code]]</a></div>
-</div>
-
+<p class='vspace'>In each case, the induced model can be exported in various formats,
+as for regular <a class='wikilink' href='ExportingTheModel.html'>model export</a>,
+including UMB or explicit format,
+the latter either a combined (<code>.pexp</code>) file or just the transitions (<code>.tra</code>).
+</p>
 <p class='vspace'>(iii) <em>Dot file</em>. This is, like the previous format, a view of the model induced by the strategy, but in <a class='urllink' href='http://www.graphviz.org'>Dot</a> format, which allows it to be visualised.
 </p>
 <p class='vspace'><strong>Configuring strategy export</strong>. 
-As hinted in the command-line examples above, the <code>-exportstrat</code> switch uses the file extension to determine the preferred format: if the strategy is exported to a file with extension <code>.tra</code> or <code>.dot</code>, then it uses an induced model or Dot file, respectively. Otherwise, the default is an action list. You can specify the desired format:
+As hinted in the command-line examples above, the <code>-exportstrat</code> switch uses the file extension to determine the preferred format: if the strategy is exported to a file with extension <code>.umb</code>/<code>.pexp</code>/<code>.tra</code> or <code>.dot</code>, then it uses an induced model or Dot file, respectively. Otherwise, the default is an action list. You can specify the desired format:
 </p>
 <div class='vspace'></div>
-<div class='sourceblock ' id='sourceblock5'>
+<div class='sourceblock ' id='sourceblock4'>
   <div class='sourceblocktext'><div class="shell"><span style="font-weight:bold;">prism mdp.prism -pf 'Pmax=? [ F "goal" ]' -exportstrat file.txt:type=actions</span><br/>
 <span style="font-weight:bold;">prism mdp.prism -pf 'Pmax=? [ F "goal" ]' -exportstrat file.txt:type=induced</span><br/>
 <span style="font-weight:bold;">prism mdp.prism -pf 'Pmax=? [ F "goal" ]' -exportstrat file.txt:type=dot</span><br/>
 </div></div>
-  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/RunningPRISM/Strategies?action=sourceblock&amp;num=5' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='https://www.prismmodelchecker.org/manual/RunningPRISM/Strategies?action=sourceblock&amp;num=4' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 <p class='vspace'>Further options can be added, e.g., to specify whether an induced model is exported in "restrict" or "reduce" mode:
 </p>
 <div class='vspace'></div>
-<div class='sourceblock ' id='sourceblock6'>
+<div class='sourceblock ' id='sourceblock5'>
   <div class='sourceblocktext'><div class="shell"><span style="font-weight:bold;">prism mdp.prism -pf 'Pmax=? [ F "goal" ]' -exportstrat file.txt:type=induced,mode=restrict</span><br/>
 </div></div>
-  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/RunningPRISM/Strategies?action=sourceblock&amp;num=6' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='https://www.prismmodelchecker.org/manual/RunningPRISM/Strategies?action=sourceblock&amp;num=5' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
-<p class='vspace'>A full list of available options is as follows:
+<p class='vspace'>A list of available options is as follows:
 </p>
 <div class='vspace'></div><ul><li><code>type</code> (<code>actions</code>, <code>induced</code> or <code>dot</code>): the type of strategy export to use (action list, induced model or Dot file)
 </li><li><code>mode</code> (<code>restrict</code> or <code>reduce</code>): when exporting as an induced model or Dot file, whether to "restrict" or "reduce" the model (see above); the default is "restrict"
-</li><li><code>reach</code> (<code>true</code> or <code>false</code>): whether to restrict the strategy to states that are reachable when it is applied to the model (this is currently only used for exporting induced models and Dot files, and the default value is false and true, respectively, in these two cases)
+</li><li><code>reach</code> (<code>true</code> or <code>false</code>): whether to restrict the strategy to states that are reachable when it is applied to the model (this is currently only used for exporting induced models and Dot files, and the default value is true, except for exporting just transitions in <code>.tra</code> format)
 </li><li><code>states</code> (<code>true</code> or <code>false</code>): whether to show states, rather than state indices, for actions lists or Dot files; this is true by default
-</li><li><code>obs</code> (<code>true</code> or <code>false</code>): for partially observable models, whether to merge observationally equivalent states; this is true by default
+</li><li><code>mergeobs</code> (<code>true</code> or <code>false</code>): for partially observable models, whether to merge observationally equivalent states; this is true by default (and was previously called <code>obs</code>).
+</li></ul><p class='vspace'>Mirroring the <code>-exportmodel</code> switch (<a class='wikilink' href='ExportingTheModel.html'>see here</a>),
+several other options are available for induced model export:
+</p>
+<div class='vspace'></div><ul><li><code>format</code> (=<code>explicit</code>/<code>dot</code>/<code>umb</code>) - the format to export in
+</li><li><code>states</code> (=<code>true</code>/<code>false</code>) - whether to include states
+</li><li><code>rewards</code> (=<code>true</code>/<code>false</code>) - whether to include rewards
+</li><li><code>labels</code> (=<code>true</code>/<code>false</code>) - whether to include labels
+</li><li><code>actions</code> (=<code>true</code>/<code>false</code>) - whether to include actions on choices/transitions
+</li><li><code>obs</code> (=<code>true</code>/<code>false</code>) - whether to include observations
+</li><li><code>precision</code> (=<code>&lt;n&gt;</code>) - use <code>&lt;n&gt;</code> significant figures for floating point values (in text)
+</li><li><code>zip</code> (<code>=true/false/gzip/xz</code>) - whether to zip the output and in what format
+</li><li><code>headers</code> (<code>=true/false</code>) - whether to include headers when exporting rewards
+</li><li><code>text</code> (<code>=true/false</code>) - whether to use textual form for UMB
 </li></ul><p class='vspace'><strong>Strategy types</strong>. PRISM generates several types of strategies. The simplest are <em>memoryless deterministic</em> strategies, which pick a single action in each state, as in the examples above. For some query types (e.g., step-bounded properties, or LTL-based properties), <em>finite-memory</em> strategies are generated, where an additional memory value is used. For these, induced models or Dot files are most useful since they will also show how the memory values are updated as the strategy is executed. Note that, in these cases, the state indices of the strategy will correspond to the product model constructed during model checking, not the original model. The product model can be exported using the <code>-exportprodtrans</code> and <code>-exportprodstates</code> switches.
 </p>
 <p class='vspace'><strong>Adversary generation</strong>. As mentioned above, the "sparse" model checking engine still includes older so-called "adversary generation" functionality. This can be used to export the induced model to a file using the <code>-exportadv</code> switch, e.g.:
 </p>
 <div class='vspace'></div>
-<div class='sourceblock ' id='sourceblock7'>
+<div class='sourceblock ' id='sourceblock6'>
   <div class='sourceblocktext'><div class="shell"><span style="font-weight:bold;">prism mdp.nm -pf 'Pmax=? [ F "goal" ]' -exportadv adv.tra -s</span><br/>
 <span style="font-weight:bold;">prism mdp.nm -pf 'Pmax=? [ F "goal" ]' -exportadvmdp adv.tra -s</span><br/>
 </div></div>
-  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/RunningPRISM/Strategies?action=sourceblock&amp;num=7' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='https://www.prismmodelchecker.org/manual/RunningPRISM/Strategies?action=sourceblock&amp;num=6' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 <p class='vspace'>where the <code>-exportadv</code> and <code>-exportadvmdp</code> export a DTMC and an MDP, respectively, i.e., corresponding to the "reduce" and "restrict" modes described above.

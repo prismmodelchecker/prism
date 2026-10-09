@@ -83,13 +83,13 @@ a.varlink { text-decoration:none;}
 --></style>  <meta name='robots' content='noindex,nofollow' />
 
 
-<link type="text/css" rel="stylesheet" href="http://www.prismmodelchecker.org/css/base.css"/>
-<link type="text/css" rel="stylesheet" href="http://www.prismmodelchecker.org/css/prism.css"/>
-<link type="text/css" rel="stylesheet" href="http://www.prismmodelchecker.org/css/print.css" media="print"/>
-<link type="text/css" rel="stylesheet" href="http://www.prismmodelchecker.org/css/bib.css"/>
+<link type="text/css" rel="stylesheet" href="https://www.prismmodelchecker.org/css/base.css"/>
+<link type="text/css" rel="stylesheet" href="https://www.prismmodelchecker.org/css/prism.css"/>
+<link type="text/css" rel="stylesheet" href="https://www.prismmodelchecker.org/css/print.css" media="print"/>
+<link type="text/css" rel="stylesheet" href="https://www.prismmodelchecker.org/css/bib.css"/>
 
-<link type="text/css" rel="stylesheet" href="http://www.prismmodelchecker.org/manual/pub/skins/prismprint/css/prismmanual.css"/>
-<link type="text/css" rel="stylesheet" href="http://www.prismmodelchecker.org/manual/pub/skins/prismprint/css/prismprint.css"/>
+<link type="text/css" rel="stylesheet" href="https://www.prismmodelchecker.org/manual/pub/skins/prismprint/css/prismmanual.css"/>
+<link type="text/css" rel="stylesheet" href="https://www.prismmodelchecker.org/manual/pub/skins/prismprint/css/prismprint.css"/>
 </head>
 
 <body text="#000000" bgcolor="#ffffcc">
@@ -108,7 +108,7 @@ The first command of module <code>M1</code> in our <a class='wikilink' href='Exa
 <div class='sourceblock ' id='sourceblock1'>
   <div class='sourceblocktext'><div class="prism"> [] <span class="prismident">x</span>=<span class="prismnum">0</span> -&gt; <span class="prismnum">0.8</span>:(<span class="prismident">x</span>'=<span class="prismnum">0</span>) + <span class="prismnum">0.2</span>:(<span class="prismident">x</span>'=<span class="prismnum">1</span>); <br/>
 </div></div>
-  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/ThePRISMLanguage/Commands?action=sourceblock&amp;num=1' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='https://www.prismmodelchecker.org/manual/ThePRISMLanguage/Commands?action=sourceblock&amp;num=1' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 <p class='vspace'>The guard <code>x=0</code> indicates that this describes the behaviour of the module when the variable <code>x</code> has value 0.
@@ -124,7 +124,7 @@ Note also that PRISM will complain if the probabilities on the right hand side o
 <div class='sourceblock ' id='sourceblock2'>
   <div class='sourceblocktext'><div class="prism"> [] <span class="prismident">x</span>=<span class="prismnum">1</span> &amp; <span class="prismident">y</span>!=<span class="prismnum">2</span> -&gt; (<span class="prismident">x</span>'=<span class="prismnum">2</span>); <br/>
 </div></div>
-  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/ThePRISMLanguage/Commands?action=sourceblock&amp;num=2' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='https://www.prismmodelchecker.org/manual/ThePRISMLanguage/Commands?action=sourceblock&amp;num=2' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 <p class='vspace'>illustrates that guards can contain constraints on any variable, not just the ones in that module,
@@ -141,7 +141,7 @@ For example, if it had two variables <code>x1</code> and <code>x2</code>, a poss
 <div class='sourceblock ' id='sourceblock3'>
   <div class='sourceblocktext'><div class="prism"> [] <span class="prismident">x1</span>=<span class="prismnum">0</span> &amp; <span class="prismident">x2</span>&gt;<span class="prismnum">0</span> &amp; <span class="prismident">x2</span>&lt;<span class="prismnum">10</span> -&gt; <span class="prismnum">0.5</span>:(<span class="prismident">x1</span>'=<span class="prismnum">1</span>)&amp;(<span class="prismident">x2</span>'=<span class="prismident">x2</span>+<span class="prismnum">1</span>) + <span class="prismnum">0.5</span>:(<span class="prismident">x1</span>'=<span class="prismnum">2</span>)&amp;(<span class="prismident">x2</span>'=<span class="prismident">x2</span>-<span class="prismnum">1</span>); <br/>
 </div></div>
-  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/ThePRISMLanguage/Commands?action=sourceblock&amp;num=3' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='https://www.prismmodelchecker.org/manual/ThePRISMLanguage/Commands?action=sourceblock&amp;num=3' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 <p class='vspace'>Notice that elements of the updates are concatenated with <code>&amp;</code> and that each element must be bracketed individually.
@@ -154,7 +154,7 @@ As a special case, the keyword <code><strong>true</strong></code> can be used to
 [] <span class="prismident">x1</span>&gt;<span class="prismnum">10</span> | <span class="prismident">x2</span>&gt;<span class="prismnum">10</span> -&gt; (<span class="prismident">x1</span>'=<span class="prismident">x1</span>);<br/>
 [] <span class="prismident">x1</span>&gt;<span class="prismnum">10</span> | <span class="prismident">x2</span>&gt;<span class="prismnum">10</span> -&gt; <span class="prismkeyword">true</span>;<br/>
 </div></div>
-  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/ThePRISMLanguage/Commands?action=sourceblock&amp;num=4' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='https://www.prismmodelchecker.org/manual/ThePRISMLanguage/Commands?action=sourceblock&amp;num=4' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 <p class='vspace'>Finally, it is important to remember that the expressions on the right hand side of each update refer to the state of the model <em>before</em> the update occurs. So, for example, this command:
@@ -163,7 +163,7 @@ As a special case, the keyword <code><strong>true</strong></code> can be used to
 <div class='sourceblock ' id='sourceblock5'>
   <div class='sourceblocktext'><div class="prism"> [] <span class="prismident">x1</span>=<span class="prismnum">0</span> &amp; <span class="prismident">x2</span>=<span class="prismnum">1</span> -&gt; (<span class="prismident">x1</span>'=<span class="prismnum">2</span>)&amp;(<span class="prismident">x2</span>'=<span class="prismident">x1</span>) <br/>
 </div></div>
-  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/ThePRISMLanguage/Commands?action=sourceblock&amp;num=5' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='https://www.prismmodelchecker.org/manual/ThePRISMLanguage/Commands?action=sourceblock&amp;num=5' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 <p class='vspace'>updates variable <code>x2</code> to 0, not 2.
