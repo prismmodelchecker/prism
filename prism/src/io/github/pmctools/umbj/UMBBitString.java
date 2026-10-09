@@ -45,13 +45,7 @@ public class UMBBitString
 		if (n > 32) {
 			throw new UMBException("Cannot store integer of " + n + " bits (too large for Java int)");
 		}
-		// Store bits into the byte array
-		for (int i = 0; i < n; i++) {
-			// Copy the i-th (least significant) bit of value to the appropriate bit in bytes
-			char valueBitShifted = (char) (((value >>> i) & 1) << ((offset + i) & 7));
-			char byteMask = (char) ('\u0001' << ((offset + i) & 7));
-			bytes[(offset + i) >> 3] = (byte) ((bytes[(offset + i) >> 3] & ~(byteMask)) | (valueBitShifted));
-		}
+		setBits(offset, n, value);
 	}
 
 	/**
@@ -82,13 +76,7 @@ public class UMBBitString
 		if (n > 64) {
 			throw new UMBException("Cannot store integer of " + n + " bits (too large for Java long)");
 		}
-		// Store bits into the byte array
-		for (int i = 0; i < n; i++) {
-			// Copy the i-th (least significant) bit of value to the appropriate bit in bytes
-			char valueBitShifted = (char) (((value >>> i) & 1) << ((offset + i) & 7));
-			char byteMask = (char) ('\u0001' << ((offset + i) & 7));
-			bytes[(offset + i) >> 3] = (byte) ((bytes[(offset + i) >> 3] & ~(byteMask)) | (valueBitShifted));
-		}
+		setBits(offset, n, value);
 	}
 
 	/**
@@ -118,14 +106,7 @@ public class UMBBitString
 		if (n != 64) {
 			throw new UMBException("Cannot store double of " + n + " bits (should be 64)");
 		}
-		// Store bits in a long and then copy to the byte array
-		long valueLong = Double.doubleToLongBits(value);
-		for (int i = 0; i < n; i++) {
-			// Copy the i-th (least significant) bit of valueLong to the appropriate bit in bytes
-			char valueBitShifted = (char) (((valueLong >>> i) & 1) << ((offset + i) & 7));
-			char byteMask = (char) ('\u0001' << ((offset + i) & 7));
-			bytes[(offset + i) >> 3] = (byte) ((bytes[(offset + i) >> 3] & ~(byteMask)) | (valueBitShifted));
-		}
+		setBits(offset, n, Double.doubleToLongBits(value));
 	}
 
 	/**
@@ -226,6 +207,29 @@ public class UMBBitString
 			throw new UMBException("Cannot extract boolean of " + n + " bits (too large for Java int)");
 		}
 		return getUInt(offset, n) != 0;
+	}
+
+	/**
+	 * Store the low {@code n} bits of a {@code long} in a portion of the bit string
+	 * (the least significant bit goes to bit {@code offset} of the bit string).
+	 * Other bits of the bit string are left unchanged.
+	 * @param offset The first bit of the bitstring portion
+	 * @param n The size (in bits) of the bitstring portion (at most 64)
+	 * @param value The bits to store
+	 */
+	private void setBits(int offset, int n, long value)
+	{
+		// Write (part of) a byte at a time
+		while (n > 0) {
+			int byteIndex = offset >> 3;
+			int shift = offset & 7;
+			int numBits = Math.min(8 - shift, n);
+			int mask = ((1 << numBits) - 1) << shift;
+			bytes[byteIndex] = (byte) ((bytes[byteIndex] & ~mask) | (((int) value << shift) & mask));
+			value >>>= numBits;
+			offset += numBits;
+			n -= numBits;
+		}
 	}
 
 	/**
