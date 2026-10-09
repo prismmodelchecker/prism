@@ -49,6 +49,9 @@ public class ExplicitFiles2Model extends PrismComponent
 	// Should deadlocks be fixed (by adding a self-loop) when detected?
 	private boolean fixdl;
 
+	// Should the importer be notified that importing is done at the end of building?
+	private boolean importDoneOnBuild = true;
+
 	// Label bitsets
 	private List<BitSet> labelBitSets;
 	
@@ -78,6 +81,18 @@ public class ExplicitFiles2Model extends PrismComponent
 	}
 
 	/**
+	 * Should the importer be notified that importing is done
+	 * (see {@link ExplicitModelImporter#importDone()}) at the end of building?
+	 * This is true by default. A caller that will extract further data from the
+	 * importer straight away (e.g. rewards) can disable it, and then call
+	 * {@link ExplicitModelImporter#importDone()} itself afterwards.
+	 */
+	public void setImportDoneOnBuild(boolean importDoneOnBuild)
+	{
+		this.importDoneOnBuild = importDoneOnBuild;
+	}
+
+	/**
 	 * Build a Model corresponding to the passed in explicit files importer.
 	 * The transition probabilities/rates are assumed to be of type double.
 	 * @param  modelImporter Importer from files
@@ -98,8 +113,10 @@ public class ExplicitFiles2Model extends PrismComponent
 		try {
 			return doBuild(modelImporter, eval);
 		} finally {
-			// Notify importer that we are done, whether or not the build succeeded
-			modelImporter.importDone();
+			// Notify importer that we are done (if required), whether or not the build succeeded
+			if (importDoneOnBuild) {
+				modelImporter.importDone();
+			}
 		}
 	}
 

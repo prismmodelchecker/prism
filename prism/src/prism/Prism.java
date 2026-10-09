@@ -2357,6 +2357,8 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 			case EXACT:
 			case PARAM:
 				explicit.Model<?> newModelExpl;
+				// Will reward structures be attached to the model straight after building? (see below)
+				boolean attachRewards = getGenStrat() || (getBuildAll() && getCurrentEngine() != PrismEngine.PARAM);
 				switch (getModelSource()) {
 				case PRISM_MODEL:
 				case MODEL_GENERATOR:
@@ -2372,8 +2374,18 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 					break;
 				case EXPLICIT_FILES:
 					ExplicitFiles2Model expf2model = new ExplicitFiles2Model(this);
+					// If rewards are to be attached straight after building (see below),
+					// only notify the importer that we are done after that
+					expf2model.setImportDoneOnBuild(!attachRewards);
 					Evaluator<?> eval = (getCurrentEngine() == PrismEngine.EXACT) ? Evaluator.forBigRational() : Evaluator.forDouble();
-					newModelExpl = expf2model.build(modelImporter, eval);
+					try {
+						newModelExpl = expf2model.build(modelImporter, eval);
+					} catch (PrismException e) {
+						if (attachRewards) {
+							modelImporter.importDone();
+						}
+						throw e;
+					}
 					setBuiltModel(getModelBuildTypeForEngine(getCurrentEngine()), newModelExpl);
 					// Also build a Model/RewardGenerator
 					// (the latter since rewards are built later, the former e.g. for simulation)
@@ -2392,8 +2404,15 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 				// Also do this if building/storing of everything was requested
 				// (no need to do this for labels, which are always attached during construction),
 				// except for the parametric engine, which does not use rewards attached to the model.
-				if (getGenStrat() || (getBuildAll() && getCurrentEngine() != PrismEngine.PARAM)) {
-					attachRewardsToModel(newModelExpl);
+				if (attachRewards) {
+					try {
+						attachRewardsToModel(newModelExpl);
+					} finally {
+						// For models built from files, notify importer that we are now done (see above)
+						if (getModelSource() == ModelSource.EXPLICIT_FILES) {
+							modelImporter.importDone();
+						}
+					}
 				}
 				break;
 			default:
