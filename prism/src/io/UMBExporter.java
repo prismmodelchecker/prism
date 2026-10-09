@@ -101,6 +101,7 @@ public class UMBExporter<Value> extends ModelExporter<Value>
 			try (PrismFileLog out = new PrismFileLog(fileOut.getPath())) {
 				exportModel(model, out);
 			}
+			return;
 		}
 		// Otherwise export in binary mode
 		// Load all model info into a UMBWriter, then export
