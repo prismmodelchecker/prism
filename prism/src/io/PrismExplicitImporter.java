@@ -453,11 +453,19 @@ public class PrismExplicitImporter extends ExplicitModelImporter
 	{
 		final SectionKind kind;
 		final int startLine;
+		// For reward sections, the reward structure name (if present)
+		final Optional<String> rewardName;
 
 		Header(SectionKind kind, int startLine)
 		{
+			this(kind, startLine, Optional.empty());
+		}
+
+		Header(SectionKind kind, int startLine, Optional<String> rewardName)
+		{
 			this.kind = kind;
 			this.startLine = startLine;
+			this.rewardName = rewardName;
 		}
 	}
 
@@ -490,6 +498,16 @@ public class PrismExplicitImporter extends ExplicitModelImporter
 					headers.add(new Header(SectionKind.LABELS, lineNum));
 				} else if (line.startsWith("# Reward structure")) {
 					int headerLine = lineNum;
+					// Extract the reward structure name (if present) now, to avoid re-reading it later
+					Optional<String> rewardName = Optional.empty();
+					Matcher nameMatcher = REWARD_NAME_PATTERN.matcher(line);
+					if (nameMatcher.matches()) {
+						try {
+							rewardName = Optional.of(checkRewardName(nameMatcher.group(2)));
+						} catch (PrismException e) {
+							throw new PrismException("Error detected (" + e.getMessage() + ") at line " + headerLine + " of rewards file \"" + pexpFile + "\"");
+						}
+					}
 					String next = in.readLine();
 					if (next == null) {
 						throw new PrismException("Reward structure header at line " + headerLine
@@ -497,9 +515,9 @@ public class PrismExplicitImporter extends ExplicitModelImporter
 					}
 					lineNum++;
 					if (next.startsWith("# State rewards")) {
-						headers.add(new Header(SectionKind.SREW, headerLine));
+						headers.add(new Header(SectionKind.SREW, headerLine, rewardName));
 					} else if (next.startsWith("# Transition rewards")) {
-						headers.add(new Header(SectionKind.TREW, headerLine));
+						headers.add(new Header(SectionKind.TREW, headerLine, rewardName));
 					} else {
 						throw new PrismException("Reward structure header at line " + headerLine
 								+ " of \"" + pexpFile + "\" not followed by \"# State rewards\" or \"# Transition rewards\"");
@@ -537,11 +555,11 @@ public class PrismExplicitImporter extends ExplicitModelImporter
 					break;
 				case SREW:
 					stateRewardsFiles.add(pexpFile);
-					stateRewardsReaders.add(new RewardFile(section));
+					stateRewardsReaders.add(new RewardFile(section, headers.get(i).rewardName));
 					break;
 				case TREW:
 					transRewardsFiles.add(pexpFile);
-					transRewardsReaders.add(new RewardFile(section));
+					transRewardsReaders.add(new RewardFile(section, headers.get(i).rewardName));
 					break;
 			}
 		}
@@ -1695,6 +1713,16 @@ public class PrismExplicitImporter extends ExplicitModelImporter
 		{
 			this.file = Objects.requireNonNull(file);
 			this.name = extractRewardStructureName(file);
+		}
+
+		/**
+		 * Create a RewardFile whose reward structure name is already known
+		 * (e.g. from scanning a combined file), avoiding the need to read the file to find it.
+		 */
+		public RewardFile(FileSection file, Optional<String> name)
+		{
+			this.file = Objects.requireNonNull(file);
+			this.name = Objects.requireNonNull(name);
 		}
 
 		public Optional<String> getName()
