@@ -215,6 +215,10 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 
 	// Test mode(s)
 	private boolean testUMB = false;
+	// In UMB test mode, the reward generator installed after a roundtrip (from the imported model),
+	// and the one it replaced (from the original model), so that the latter can be restored
+	private RewardGenerator<?> testUMBImportedRewardGenerator = null;
+	private RewardGenerator<?> testUMBOrigRewardGenerator = null;
 
 	//------------------------------------------------------------------------------
 	// Parsers/translators/model checkers/simulators/etc.
@@ -2391,26 +2395,9 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 			l = System.currentTimeMillis() - l;
 			mainLog.println("\nTime for model construction: " + l / 1000.0 + " seconds.");
 
-			// In UMB test mode, to an export/import roundtrip
+			// In UMB test mode, do an export/import roundtrip
 			if (testUMB && !(getModelSource() == ModelSource.EXPLICIT_FILES)) {
-				File umbTestFile;
-				try {
-					umbTestFile = File.createTempFile("built", ".umb");
-					exportBuiltModel(umbTestFile, ModelExportFormat.UMB);
-				} catch(java.io.IOException | PrismNotSupportedException e){
-					umbTestFile = null;
-					mainLog.printWarning("UMB export failed; skipping testing");
-				}
-				if (umbTestFile != null) {
-					Values constantsCached = getModelInfo().getConstantValues();
-					clearBuiltModel();
-					loadModelFromUMBFile(umbTestFile);
-					buildModel();
-					getModelInfo().setSomeUndefinedConstants(constantsCached);
-					if (getBuiltModelType() == ModelBuildType.SYMBOLIC) {
-						((ModelSymbolic) getBuiltModelSymbolic()).setConstantValues(constantsCached);
-					}
-				}
+				doUMBRoundTrip();
 			}
 
 			// For digital clocks, do some extra checks on the built model
@@ -2483,6 +2470,54 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 			}
 			// Throw exception anyway
 			throw e;
+		}
+	}
+
+	/**
+	 * In UMB test mode, do an export/import roundtrip for the just-built model:
+	 * export it to a (temporary) UMB file, then import and build from that,
+	 * keeping the imported built model (and its rewards) for subsequent model checking.
+	 */
+	private void doUMBRoundTrip() throws PrismException
+	{
+		// Restore the original model's reward generator, if replaced by a previous roundtrip
+		if (testUMBImportedRewardGenerator != null && getRewardGenerator() == testUMBImportedRewardGenerator) {
+			setRewardGenerator(testUMBOrigRewardGenerator);
+		}
+		testUMBImportedRewardGenerator = testUMBOrigRewardGenerator = null;
+		File umbTestFile = null;
+		try {
+			umbTestFile = File.createTempFile("built", ".umb");
+			// The file is read lazily (e.g. for rewards) so can only be deleted on exit
+			umbTestFile.deleteOnExit();
+			exportBuiltModel(umbTestFile, ModelExportFormat.UMB);
+		} catch(java.io.IOException | PrismNotSupportedException e){
+			if (umbTestFile != null) {
+				umbTestFile.delete();
+			}
+			umbTestFile = null;
+			mainLog.printWarning("UMB export failed (" + e.getMessage() + "); skipping testing");
+		}
+		if (umbTestFile != null) {
+			// Store details of the original model, to restore after the roundtrip
+			ModelDetails origModelDetails = new ModelDetails(currentModelDetails);
+			clearBuiltModel();
+			loadModelFromUMBFile(umbTestFile);
+			buildModel();
+			// Restore the original model details (so that, e.g., the model can be rebuilt
+			// for other constant values), but keep the imported built model and its rewards
+			ModelDetails importedModelDetails = currentModelDetails;
+			currentModelDetails = new ModelDetails(origModelDetails);
+			currentModelDetails.model = importedModelDetails.model;
+			currentModelDetails.modelSymb = importedModelDetails.modelSymb;
+			currentModelDetails.modelExpl = importedModelDetails.modelExpl;
+			currentModelDetails.modelBuildType = importedModelDetails.modelBuildType;
+			currentModelDetails.rewardGenerator = importedModelDetails.rewardGenerator;
+			testUMBImportedRewardGenerator = importedModelDetails.rewardGenerator;
+			testUMBOrigRewardGenerator = origModelDetails.rewardGenerator;
+			if (getBuiltModelType() == ModelBuildType.SYMBOLIC) {
+				((ModelSymbolic) getBuiltModelSymbolic()).setConstantValues(getModelInfo().getConstantValues());
+			}
 		}
 	}
 
