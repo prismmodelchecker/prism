@@ -1193,7 +1193,9 @@ public class PrismCL implements PrismModelListener
 		registry.addSwitch("nobuild", new FlagSwitch(() -> nobuild = true),
 			"", "Skip model construction (just do parse/export)");
 		registry.addSwitch("test", new OptionsOnlySwitch(
-				new OptionParser().flag("umb", "Enable UMB round trip test", () -> prism.setTestUMB(true)),
+				new OptionParser()
+						.flag("umb", "Enable UMB round trip test", () -> prism.setTestRoundTrip(ModelExportFormat.UMB))
+						.flag("pexp", "Enable explicit (.pexp) round trip test", () -> prism.setTestRoundTrip(ModelExportFormat.EXPLICIT)),
 				parse -> { test = true; parse.run(); }),
 				"[:<options>]", "Enable \"test\" mode");
 		registry.addSwitch("testall", new FlagSwitch(() -> { test = true; testExitsOnFail = false; }),
