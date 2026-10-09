@@ -57,6 +57,8 @@ import java.util.function.IntConsumer;
  * it should call {@link #importDone()} so that this can be freed.
  * Doing so never affects the correctness of the data subsequently extracted:
  * the importer remains fully usable, but later extraction (or re-extraction) may be slower.
+ * An importer may also free some data itself, once it has been extracted (e.g., all transitions),
+ * again with no effect on correctness, only on the speed of any later re-extraction.
  */
 public abstract class ExplicitModelImporter
 {

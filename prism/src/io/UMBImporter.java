@@ -547,6 +547,8 @@ public class UMBImporter extends ExplicitModelImporter
 				}
 			}
 
+			// Transitions now extracted, so the UMB reader no longer needs to hold them
+			umbReader.releaseTransitionData();
 		} catch (UMBException e) {
 			throw new PrismException("UMB import problem: " + e.getMessage());
 		}
@@ -601,6 +603,8 @@ public class UMBImporter extends ExplicitModelImporter
 				}
 			}
 
+			// Transitions now extracted, so the UMB reader no longer needs to hold them
+			umbReader.releaseTransitionData();
 		} catch (UMBException e) {
 			throw new PrismException("UMB import problem: " + e.getMessage());
 		}
@@ -623,6 +627,8 @@ public class UMBImporter extends ExplicitModelImporter
 			trans.successors = extractIntArray(numTransitions, umbReader::extractBranchTargets);
 			trans.probabilities = extractDoubleArray(numTransitions, umbReader::extractBranchProbabilities);
 			trans.actions = extractActions(numTransitions, umbReader.hasBranchActionIndices() ? umbReader::extractBranchActionIndices : null);
+			// Transitions now extracted, so the UMB reader no longer needs to hold them
+			umbReader.releaseTransitionData();
 			return trans;
 		} catch (UMBException | RuntimeException e) {
 			throw new PrismException("UMB import problem: " + e.getMessage());
@@ -646,6 +652,8 @@ public class UMBImporter extends ExplicitModelImporter
 			trans.successors = extractIntArray(numTransitions, umbReader::extractBranchTargets);
 			trans.probabilities = extractDoubleArray(numTransitions, umbReader::extractBranchProbabilities);
 			trans.actions = extractActions(numChoices, umbReader.hasChoiceActionIndices() ? umbReader::extractChoiceActionIndices : null);
+			// Transitions now extracted, so the UMB reader no longer needs to hold them
+			umbReader.releaseTransitionData();
 			return trans;
 		} catch (UMBException | RuntimeException e) {
 			throw new PrismException("UMB import problem: " + e.getMessage());
@@ -684,6 +692,8 @@ public class UMBImporter extends ExplicitModelImporter
 				}
 			}
 
+			// Transitions now extracted, so the UMB reader no longer needs to hold them
+			umbReader.releaseTransitionData();
 		} catch (UMBException e) {
 			throw new PrismException("UMB import problem: " + e.getMessage());
 		}
