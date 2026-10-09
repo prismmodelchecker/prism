@@ -824,12 +824,12 @@ public class UMBReader
 	{
 		long sizeNew = type.type.isInterval() ? size * 2 : size;
 		if (type.type.isDouble()) {
-			extractDoubleArray(filename, sizeNew, (it.unimi.dsi.fastutil.doubles.DoubleConsumer) ((Consumer<Double>) consumer)::accept);
+			extractDoubleArray(filename, sizeNew, asDoubleConsumer(consumer));
 		} else if (type.type.isRational()) {
 			if (!type.isDefaultSize()) {
 				throw new UMBException("Non-default sized rationals are not yet supported");
 			}
-			extractLongArray(filename, sizeNew * 2, (it.unimi.dsi.fastutil.longs.LongConsumer) ((Consumer<Long>) consumer)::accept);
+			extractLongArray(filename, sizeNew * 2, asLongConsumer(consumer));
 		} else {
 			throw new UMBException("Unsupported continuous numeric type " + type);
 		}
@@ -939,7 +939,7 @@ public class UMBReader
 	{
 		long sizeNew = type.type.isInterval() ? size * 2 : size;
 		if (type.type.isDouble()) {
-			DoubleConsumer doubleConsumer = (DoubleConsumer) consumer;
+			DoubleConsumer doubleConsumer = asDoubleConsumer(consumer);
 			double doubleValue;
 			switch (value) {
 				case ZERO:
@@ -958,7 +958,7 @@ public class UMBReader
 			if (!type.isDefaultSize()) {
 				throw new UMBException("Non-default sized rationals are not yet supported");
 			}
-			LongConsumer longConsumer = (it.unimi.dsi.fastutil.longs.LongConsumer) consumer;
+			LongConsumer longConsumer = asLongConsumer(consumer);
 			long longValue1;
 			long longValue2;
 			switch (value) {
@@ -1151,6 +1151,36 @@ public class UMBReader
 				throw new UMBException("I/O error closing UMB file");
 			}
 		}
+	}
+
+	// Utility methods
+
+	/**
+	 * Convert a consumer passed for (continuous numeric) double values to a {@link DoubleConsumer}.
+	 * If it is already a {@link DoubleConsumer} (e.g., a fastutil one), values are passed to it directly;
+	 * otherwise, it should be a {@code Consumer<Double>}, and values are boxed.
+	 */
+	@SuppressWarnings("unchecked")
+	private static DoubleConsumer asDoubleConsumer(Consumer<?> consumer)
+	{
+		if (consumer instanceof DoubleConsumer) {
+			return (DoubleConsumer) consumer;
+		}
+		return ((Consumer<Double>) consumer)::accept;
+	}
+
+	/**
+	 * Convert a consumer passed for (continuous numeric) long values (e.g., rationals) to a {@link LongConsumer}.
+	 * If it is already a {@link LongConsumer} (e.g., a fastutil one), values are passed to it directly;
+	 * otherwise, it should be a {@code Consumer<Long>}, and values are boxed.
+	 */
+	@SuppressWarnings("unchecked")
+	private static LongConsumer asLongConsumer(Consumer<?> consumer)
+	{
+		if (consumer instanceof LongConsumer) {
+			return (LongConsumer) consumer;
+		}
+		return ((Consumer<Long>) consumer)::accept;
 	}
 
 	// Utility classes
