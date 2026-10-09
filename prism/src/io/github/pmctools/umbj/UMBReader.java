@@ -33,6 +33,7 @@ import java.nio.ByteOrder;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -87,6 +88,11 @@ public class UMBReader
 	private boolean dataReleased = false;
 
 	/**
+	 * Names of individual entries whose in-memory copies have been released (see {@link #releaseTransitionData()}).
+	 */
+	private Set<String> releasedEntries = new HashSet<>();
+
+	/**
 	 * Construct a new {@link UMBReader} reading from the specified file.
 	 * @param fileIn The UMB file to read from.
 	 */
@@ -130,6 +136,37 @@ public class UMBReader
 	{
 		entryData = new HashMap<>();
 		dataReleased = true;
+	}
+
+	/**
+	 * Release the in-memory copy of the archive entries storing the model's transitions,
+	 * i.e., choice/branch offsets, branch targets/probabilities, exit rates and actions.
+	 * This can be used once they have been extracted, to avoid holding them twice.
+	 * Subsequent extraction remains possible, but each one re-reads its entry from the file.
+	 */
+	public void releaseTransitionData()
+	{
+		releaseEntries(List.of(
+				UMBFormat.STATE_CHOICE_OFFSETS_FILE,
+				UMBFormat.CHOICE_BRANCH_OFFSETS_FILE,
+				UMBFormat.BRANCH_TARGETS_FILE,
+				UMBFormat.BRANCH_PROBABILITIES_FILE,
+				UMBFormat.STATE_EXIT_RATES_FILE,
+				umbIndex.actionsAnnotation.getFilename(UMBIndex.UMBEntity.CHOICES),
+				umbIndex.actionsAnnotation.getFilename(UMBIndex.UMBEntity.BRANCHES)
+		));
+	}
+
+	/**
+	 * Release the in-memory copies of the specified archive entries.
+	 * Subsequent extraction remains possible, but each one re-reads its entry from the file.
+	 */
+	private void releaseEntries(Collection<String> filenames)
+	{
+		for (String filename : filenames) {
+			entryData.remove(filename);
+			releasedEntries.add(filename);
+		}
 	}
 
 	// Methods to extract core model info
@@ -703,7 +740,7 @@ public class UMBReader
 	{
 		byte[] bytes = entryData.get(filename);
 		if (bytes == null && (entryNames == null || entryNames.contains(filename))) {
-			if (dataReleased) {
+			if (dataReleased || releasedEntries.contains(filename)) {
 				// Read just this entry (not retained)
 				Map<String, byte[]> data = new HashMap<>();
 				scanEntries(filename::equals, data);
@@ -712,8 +749,8 @@ public class UMBReader
 				if (entryNames == null && isMetadataEntry(filename)) {
 					scanEntries(UMBReader::isMetadataEntry, entryData);
 				} else {
-					// Read all entries not already read
-					scanEntries(name -> !entryData.containsKey(name), entryData);
+					// Read all entries not already read (or released)
+					scanEntries(name -> !entryData.containsKey(name) && !releasedEntries.contains(name), entryData);
 					allEntriesLoaded = true;
 				}
 				bytes = entryData.get(filename);
