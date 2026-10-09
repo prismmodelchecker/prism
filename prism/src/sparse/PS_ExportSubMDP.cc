@@ -85,7 +85,7 @@ jstring ht		// header text (NULL = no header printed)
 	nc = ndsm->nc;
 	
 	// print file header
-	if (export_type == EXPORT_PLAIN && ht != NULL) {
+	if ((export_type == EXPORT_PLAIN || export_type == EXPORT_ROWS) && ht != NULL) {
 		const char *header = env->GetStringUTFChars(ht, 0);
 		export_string("%s", header);
 		env->ReleaseStringUTFChars(ht, header);
