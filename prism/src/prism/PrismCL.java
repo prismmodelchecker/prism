@@ -1869,7 +1869,7 @@ public class PrismCL implements PrismModelListener
 			ModelExportTask task = new ModelExportTask(entity, file);
 			task.getExportOptions().apply(pendingExportOptions);
 			if (zip != null) {
-				task.setZipFileExtension(zip[1]);
+				task.setRequestedZipFileExtension(zip[1]);
 			}
 			postProcess.accept(task);
 			modelExportTasks.add(task);
@@ -1927,7 +1927,7 @@ public class PrismCL implements PrismModelListener
 		for (ModelExportTask exportTask : newModelExportTasks) {
 			exportTask.getExportOptions().apply(pendingExportOptions);
 			if (zip != null) {
-				exportTask.setZipFileExtension(zip[1]);
+				exportTask.setRequestedZipFileExtension(zip[1]);
 			}
 		}
 		// Add export tasks to the main list

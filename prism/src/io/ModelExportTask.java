@@ -344,12 +344,29 @@ public class ModelExportTask
 	}
 
 	/**
-	 * If the file to be exported to is of the form ".ext", plug in the supplied basename,
+	 * Set the file extension used for zipping, as explicitly requested via the filename
+	 * (e.g. "out.umb.gz" -> "gz", where the file for this task is "out.umb"),
+	 * and adjust the filename, if needed, so that the exported file has exactly the requested
+	 * name, whether or not zipping is done. Call this once the export options are finalised.
+	 * Zipping (other than for UMB) appends the extension on export, so this is only needed otherwise;
+	 * UMB files are zipped in place (no extension added on export), so it is always needed.
+	 */
+	public void setRequestedZipFileExtension(String zipFileExtension)
+	{
+		setZipFileExtension(zipFileExtension);
+		boolean extAddedOnExport = exportOptions.getFormat() != ModelExportFormat.UMB && exportOptions.getZipped();
+		if (!extAddedOnExport && file != null) {
+			file = new File(file.getPath() + "." + zipFileExtension);
+		}
+	}
+
+	/**
+	 * If the file to be exported to is of the form ".ext" (or ".ext.zipext"), plug in the supplied basename,
 	 * i.e., make the new filename "basename.ext".
 	 */
 	public void replaceEmptyFileBasename(String basename)
 	{
-		if (file != null && file.getName().matches("\\.[a-zA-Z]+")) {
+		if (file != null && file.getName().matches("\\.[a-zA-Z]+(\\.[a-zA-Z0-9]+)?")) {
 			file = new File(basename + file.getName());
 		}
 	}
