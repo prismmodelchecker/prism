@@ -82,6 +82,25 @@ public class ModelExportZipper
 		zip(file, exportOptions, exportOptions.getCompressionFormat().extension());
 	}
 
+	/**
+	 * Get the file that the given export task's output will finally end up in,
+	 * i.e., including the zip extension if the file will be zipped (see {@link #zipIfRequested(ModelExportTask)}).
+	 * Returns null if exporting to standard output (no file).
+	 * @param exportTask The export task
+	 */
+	public static File getFinalFile(ModelExportTask exportTask)
+	{
+		return getFinalFile(exportTask.getFile(), exportTask.getExportOptions(), exportTask.getZipFileExtension());
+	}
+
+	private static File getFinalFile(File file, ModelExportOptions exportOptions, String zipExtension)
+	{
+		if (file == null || !isZippable(exportOptions)) {
+			return file;
+		}
+		return new File(file.getPath() + "." + zipExtension);
+	}
+
 	private static boolean isZippable(ModelExportOptions exportOptions)
 	{
 		// Not zipped for UMB (handled separately, see above) or if not requested;
@@ -96,7 +115,7 @@ public class ModelExportZipper
 		if (file == null) {
 			return;
 		}
-		File zippedFile = new File(file.getPath() + "." + zipExtension);
+		File zippedFile = getFinalFile(file, exportOptions, zipExtension);
 		try (
 				InputStream in = new BufferedInputStream(new FileInputStream(file));
 				OutputStream fileOut = new BufferedOutputStream(new FileOutputStream(zippedFile));

@@ -466,7 +466,7 @@ public class ModelExportTask
 	{
 		String s = "Exporting " + entity.description();
 		s += " " + exportOptions.getFormat().description();
-		s += " " + getDestinationStringForFile(file);
+		s += " " + getDestinationStringForFile(ModelExportZipper.getFinalFile(this));
 		return s;
 	}
 
