@@ -76,6 +76,12 @@ public interface PartiallyObservableModel<Value> extends Model<Value>
 	 */
 	void setObservation(int s, int o) throws PrismException;
 
+	/**
+	 * Assign unobservation with index u to state s.
+	 * (assumes unobservation has already been added to the list)
+	 */
+	void setUnobservation(int s, int u);
+
 	// Accessors
 
 	/**

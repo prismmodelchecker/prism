@@ -165,6 +165,12 @@ public class IPOMDPSimple<Value> extends ModelExplicitWrapper<Value> implements 
         pomdp.setObservation(s, o);
     }
 
+    @Override
+    public void setUnobservation(int s, int u)
+    {
+        pomdp.setUnobservation(s, u);
+    }
+
     // Mutators (other)
 
     /**

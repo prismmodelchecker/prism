@@ -154,6 +154,12 @@ public class POMDPSimple<Value> extends MDPSimple<Value> implements POMDP<Value>
 	{
 		observations.setObservation(s, o, this);
 	}
+
+	@Override
+	public void setUnobservation(int s, int u)
+	{
+		observations.setUnobservation(s, u);
+	}
 	
 	// Accessors (for PartiallyObservableModel)
 	
