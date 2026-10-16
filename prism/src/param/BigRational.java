@@ -48,8 +48,6 @@ public final class BigRational extends Number implements Comparable<BigRational>
 
 	/** the BigInteger "-1" */
 	private final static BigInteger BMONE = BigInteger.ONE.negate();
-	/** the BigInteger "2" */
-	private final static BigInteger BITWO = BigInteger.TWO;
 	/** the BigInteger "10" */
 	private final static BigInteger BITEN = BigInteger.TEN;
 
@@ -612,16 +610,36 @@ public final class BigRational extends Number implements Comparable<BigRational>
 		} else if (isZero()) {
 			return 0.0;
 		}
-		BigInteger shiftedNum;
 		int signum = num.signum() * den.signum();
 		BigInteger posNum = num.abs();
 		BigInteger posDen = den.abs();
-		shiftedNum = posNum.shiftLeft(55);
-		BigInteger div = shiftedNum.divide(posDen);
-		if (shiftedNum.remainder(posDen).multiply(BITWO).compareTo(posDen) == 1) {
-			div = div.add(BigInteger.ONE);
+		// Compute the quotient, scaled by 2^shift, with at least 64 bits,
+		// setting the lowest bit if the division is inexact ("sticky" bit),
+		// so that (correctly rounded) BigInteger.doubleValue() gives the right mantissa
+		int shift = 65 - (posNum.bitLength() - posDen.bitLength());
+		BigInteger[] qr = scaledDivide(posNum, posDen, shift);
+		BigInteger q = qr[1].signum() == 0 ? qr[0] : qr[0].setBit(0);
+		double d = Math.scalb(q.doubleValue(), -shift);
+		if (d < Double.MIN_NORMAL) {
+			// For subnormal results, scaling would round twice, so round directly
+			qr = scaledDivide(posNum, posDen, 1074);
+			q = qr[0];
+			int cmp = qr[1].shiftLeft(1).compareTo(posDen);
+			if (cmp > 0 || (cmp == 0 && q.testBit(0))) {
+				q = q.add(BigInteger.ONE);
+			}
+			d = Math.scalb(q.doubleValue(), -1074);
 		}
-		return signum * div.doubleValue() / Math.pow(2.0, 55);
+		return signum * d;
+	}
+
+	/**
+	 * Compute the quotient and remainder of (num * 2^shift) / den,
+	 * where {@code shift} may be negative.
+	 */
+	private static BigInteger[] scaledDivide(BigInteger num, BigInteger den, int shift)
+	{
+		return shift >= 0 ? num.shiftLeft(shift).divideAndRemainder(den) : num.divideAndRemainder(den.shiftLeft(-shift));
 	}
 
 	/**
