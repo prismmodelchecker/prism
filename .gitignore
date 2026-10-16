@@ -41,3 +41,7 @@ prism/\.settings/
 prism/etc/jars/.gradle/
 prism/etc/jars/build/
 prism/etc/jars/local-libs/
+
+# Claude Code local worktrees
+.claude/worktrees/
+prism/.claude/worktrees/
