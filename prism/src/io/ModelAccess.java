@@ -30,9 +30,7 @@ import common.Interval;
 import common.iterable.SingletonIterator;
 import explicit.*;
 import explicit.rewards.Rewards;
-import it.unimi.dsi.fastutil.doubles.DoubleArrayList;
 import it.unimi.dsi.fastutil.doubles.DoubleIterators;
-import it.unimi.dsi.fastutil.doubles.DoubleList;
 import it.unimi.dsi.fastutil.ints.IntIterators;
 import param.BigRational;
 import prism.Evaluator;
@@ -803,50 +801,6 @@ public interface ModelAccess<Value>
 			return new ModelAccessIterators.UnpackBigRationals((Iterator<BigRational>) values);
 		} else {
 			return DoubleIterators.asDoubleIterator(values);
-		}
-	}
-
-	/**
-	 * Decode (continuous numerical) values, supplied via a consumer,
-	 * from an encoding into primitive types, and pass to a Value consumer.
-	 * Double values are passed as-is, while BigRational values are converted to pairs of longs
-	 * @param eval Evaluator for the values
-	 * @param valueConsumer The consumer for the values to encode
-	 */
-	static <Value> Consumer<?> primitivesToValues(Evaluator<Value> eval, Consumer<Value> valueConsumer)
-	{
-		if (eval.exact()) {
-			Consumer<BigRational> consumerBigRationals = (Consumer<BigRational>) valueConsumer;
-			return new ModelAccessIterators.PackBigRationals(consumerBigRationals);
-		} else {
-			return valueConsumer;
-		}
-	}
-
-	// Utility classes
-
-	/**
-	 * Helper class to create a list of Values, decoded from their
-	 * encoding into primitives (see {@link #valuesToPrimitives(Iterator)}).
-	 */
-	class ValueListFromPrimitives<Value>
-	{
-		List<Value> valueList;
-		Consumer<?> primitiveConsumer;
-
-		@SuppressWarnings("unchecked")
-		ValueListFromPrimitives(Evaluator<Value> eval, int size)
-		{
-			if (eval.exact()) {
-				//LongList valueListLongs = new LongArrayList(numTransitions);
-				List<BigRational> valueListBigRationals = new ArrayList<>(size);
-				valueList = (List<Value>) valueListBigRationals;
-				primitiveConsumer = new ModelAccessIterators.PackBigRationals(valueListBigRationals::add);
-			} else {
-				DoubleList valueListDoubles = new DoubleArrayList(size);
-				valueList = (List<Value>) valueListDoubles;
-				primitiveConsumer = (it.unimi.dsi.fastutil.doubles.DoubleConsumer) valueListDoubles::add;
-			}
 		}
 	}
 }

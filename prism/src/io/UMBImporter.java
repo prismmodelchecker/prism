@@ -29,8 +29,11 @@ package io;
 import common.Interval;
 import common.SafeCast;
 import io.github.pmctools.umbj.*;
+import it.unimi.dsi.fastutil.doubles.DoubleArrayList;
+import it.unimi.dsi.fastutil.doubles.DoubleList;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
+import param.BigRational;
 import parser.EvaluateContext;
 import parser.VarList;
 import parser.ast.DeclarationBool;
@@ -51,6 +54,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.BitSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
@@ -505,7 +509,7 @@ public class UMBImporter extends ExplicitModelImporter
 			umbReader.extractChoiceBranchOffsets(l -> choiceTransitionOffsets.add((int) l));
 			IntList transitionSuccessors = new IntArrayList(numTransitions);
 			umbReader.extractBranchTargets(l -> transitionSuccessors.add((int) l));
-			ModelAccess.ValueListFromPrimitives<Value> valueListFromPrimitives = new ModelAccess.ValueListFromPrimitives<>(eval, numTransitions);
+			ValueListFromPrimitives<Value> valueListFromPrimitives = new ValueListFromPrimitives<>(eval, numTransitions);
 			List<Value> transitionProbabilities = valueListFromPrimitives.valueList;
 			umbReader.extractBranchProbabilities(valueListFromPrimitives.primitiveConsumer);
 
@@ -513,7 +517,7 @@ public class UMBImporter extends ExplicitModelImporter
 			List<Value> exitRates = null;
 			boolean ctmc = getModelInfo().getModelType() == ModelType.CTMC;
 			if (ctmc) {
-				valueListFromPrimitives = new ModelAccess.ValueListFromPrimitives<>(eval, numStates);
+				valueListFromPrimitives = new ValueListFromPrimitives<>(eval, numStates);
 				exitRates = valueListFromPrimitives.valueList;
 				umbReader.extractExitRates(valueListFromPrimitives.primitiveConsumer);
 			}
@@ -565,7 +569,7 @@ public class UMBImporter extends ExplicitModelImporter
 			umbReader.extractChoiceBranchOffsets(l -> choiceTransitionOffsets.add((int) l));
 			IntList transitionSuccessors = new IntArrayList(numTransitions);
 			umbReader.extractBranchTargets(l -> transitionSuccessors.add((int) l));
-			ModelAccess.ValueListFromPrimitives<Value> valueListFromPrimitives = new ModelAccess.ValueListFromPrimitives<>(eval, numTransitions);
+			ValueListFromPrimitives<Value> valueListFromPrimitives = new ValueListFromPrimitives<>(eval, numTransitions);
 			List<Value> transitionProbabilities = valueListFromPrimitives.valueList;
 			umbReader.extractBranchProbabilities(valueListFromPrimitives.primitiveConsumer);
 
@@ -751,7 +755,7 @@ public class UMBImporter extends ExplicitModelImporter
 			if (!basicRewardInfo.rewardStructHasStateRewards(rewardIndex)) {
 				return;
 			}
-			umbReader.extractStateRewards(rewardIndex, ModelAccess.primitivesToValues(eval, new IndexedConsumer<>(storeReward)));
+			umbReader.extractStateRewards(rewardIndex, primitivesToValues(eval, new IndexedConsumer<>(storeReward)));
 		} catch (UMBException e) {
 			throw new PrismException("UMB import problem: " + e.getMessage());
 		}
@@ -766,7 +770,7 @@ public class UMBImporter extends ExplicitModelImporter
 
 		try {
 			// Extract transition rewards from UMB
-			ModelAccess.ValueListFromPrimitives<Value> valueListFromPrimitives = new ModelAccess.ValueListFromPrimitives<>(eval, numTransitions);
+			ValueListFromPrimitives<Value> valueListFromPrimitives = new ValueListFromPrimitives<>(eval, numTransitions);
 			List<Value> transRewards = valueListFromPrimitives.valueList;
 			umbReader.extractBranchRewards(rewardIndex, valueListFromPrimitives.primitiveConsumer);
 
@@ -842,7 +846,7 @@ public class UMBImporter extends ExplicitModelImporter
 
 		try {
 			// Extract transition rewards from UMB
-			ModelAccess.ValueListFromPrimitives<Value> valueListFromPrimitives = new ModelAccess.ValueListFromPrimitives<>(eval, numChoices);
+			ValueListFromPrimitives<Value> valueListFromPrimitives = new ValueListFromPrimitives<>(eval, numChoices);
 			List<Value> transRewards = valueListFromPrimitives.valueList;
 			umbReader.extractChoiceRewards(rewardIndex, valueListFromPrimitives.primitiveConsumer);
 
@@ -964,7 +968,50 @@ public class UMBImporter extends ExplicitModelImporter
 		return actions;
 	}
 
+	/**
+	 * Decode (continuous numerical) values, supplied via a consumer,
+	 * from an encoding into primitive types, and pass to a Value consumer.
+	 * Double values are passed as-is, while BigRational values are converted to pairs of longs
+	 * (see {@link ModelAccess#valuesToPrimitives(Iterator)}).
+	 * @param eval Evaluator for the values
+	 * @param valueConsumer The consumer for the values to encode
+	 */
+	@SuppressWarnings("unchecked")
+	private static <Value> Consumer<?> primitivesToValues(Evaluator<Value> eval, Consumer<Value> valueConsumer)
+	{
+		if (eval.exact()) {
+			Consumer<BigRational> consumerBigRationals = (Consumer<BigRational>) valueConsumer;
+			return new ModelAccessIterators.PackBigRationals(consumerBigRationals);
+		} else {
+			return valueConsumer;
+		}
+	}
+
 	// Utility classes
+
+	/**
+	 * Helper class to create a list of Values, decoded from their encoding into primitives
+	 * (see {@link #primitivesToValues(Evaluator, Consumer)}).
+	 */
+	private static class ValueListFromPrimitives<Value>
+	{
+		List<Value> valueList;
+		Consumer<?> primitiveConsumer;
+
+		@SuppressWarnings("unchecked")
+		ValueListFromPrimitives(Evaluator<Value> eval, int size)
+		{
+			if (eval.exact()) {
+				List<BigRational> valueListBigRationals = new ArrayList<>(size);
+				valueList = (List<Value>) valueListBigRationals;
+				primitiveConsumer = new ModelAccessIterators.PackBigRationals(valueListBigRationals::add);
+			} else {
+				DoubleList valueListDoubles = new DoubleArrayList(size);
+				valueList = (List<Value>) valueListDoubles;
+				primitiveConsumer = (it.unimi.dsi.fastutil.doubles.DoubleConsumer) valueListDoubles::add;
+			}
+		}
+	}
 
 	/**
 	 * Class to map a long consumer to an int consumer.
