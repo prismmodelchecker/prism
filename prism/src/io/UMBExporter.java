@@ -215,18 +215,18 @@ public class UMBExporter<Value> extends ModelExporter<Value>
 					Rewards<Value> reward = getReward(r);
 					String id = umbWriter.addRewards(getRewardName(r), evalRewards.exact());
 					if (reward.hasStateRewards()) {
-						umbWriter.addStateRewardsByID(id, valuesToPrimitives(modelAccess.getStateRewards(getReward(r)), eval));
+						umbWriter.addStateRewardsByID(id, valuesToPrimitives(modelAccess.getStateRewards(getReward(r)), evalRewards));
 					}
 					if (reward.hasTransitionRewards()) {
 						if (modelType.nondeterministic()) {
-							umbWriter.addChoiceRewardsByID(id, valuesToPrimitives(modelAccess.getTransitionRewards(getReward(r)), eval));
+							umbWriter.addChoiceRewardsByID(id, valuesToPrimitives(modelAccess.getTransitionRewards(getReward(r)), evalRewards));
 						} else {
-							umbWriter.addBranchRewardsByID(id, valuesToPrimitives(modelAccess.getTransitionRewards(getReward(r)), eval));
+							umbWriter.addBranchRewardsByID(id, valuesToPrimitives(modelAccess.getTransitionRewards(getReward(r)), evalRewards));
 						}
 					}
 					// If there are no rewards, add some dummy zero state rewards
 					if (!(reward.hasStateRewards() || reward.hasTransitionRewards())) {
-						umbWriter.addStateRewardsByID(id, Collections.nCopies(numStates, 0.0).iterator());
+						umbWriter.addStateRewardsByID(id, valuesToPrimitives(Collections.nCopies(numStates, evalRewards.zero()).iterator(), evalRewards));
 					}
 				}
 			}

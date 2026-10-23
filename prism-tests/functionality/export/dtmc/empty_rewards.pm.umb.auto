@@ -1,0 +1,5 @@
+# Export to UMB, including in exact mode, for a model with an empty reward structure
+# (there is no UMB file to compare against, so this just checks that export succeeds)
+
+-exportmodel empty_rewards.pm.umb empty_rewards.pm.props
+-exportmodel empty_rewards.pm.umb empty_rewards.pm.props -exact

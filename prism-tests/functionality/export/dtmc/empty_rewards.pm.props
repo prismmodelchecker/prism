@@ -1,0 +1,5 @@
+// RESULT: 0
+R{"none"}=? [ F s=1 ]
+
+// RESULT: 3/2
+R{"r"}=? [ F s=1 ]
