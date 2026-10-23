@@ -32,12 +32,10 @@ import explicit.*;
 import explicit.rewards.Rewards;
 import it.unimi.dsi.fastutil.doubles.DoubleIterators;
 import it.unimi.dsi.fastutil.ints.IntIterators;
-import param.BigRational;
 import prism.Evaluator;
 import prism.ModelType;
 
 import java.util.*;
-import java.util.function.Consumer;
 
 /**
  * Interface for (read-only) access to model data, unified across all model types.
@@ -608,16 +606,6 @@ public interface ModelAccess<Value>
 	}
 
 	/**
-	 * Get the probabilities for all transitions, as an iterator,
-	 * encoded into primitive types (see {@link #valuesToPrimitives(Iterator)}).
-	 * For interval models, this returns two probabilities (lower then upper bound) for each transition.
-	 */
-	default Iterator<?> getTransitionProbabilitiesAsPrimitives()
-	{
-		return valuesToPrimitives(getTransitionProbabilities());
-	}
-
-	/**
 	 * Get the successor states for all transitions, as an iterator.
 	 */
 	default PrimitiveIterator.OfInt getTransitionSuccessors()
@@ -645,15 +633,6 @@ public interface ModelAccess<Value>
 				return model.getExitRate(s);
 			}
 		};
-	}
-
-	/**
-	 * Get the exit rates for all states, as an iterator,
-	 * encoded into primitive types (see {@link #valuesToPrimitives(Iterator)}).
-	 */
-	default Iterator<?> getExitRatesAsPrimitives()
-	{
-		return valuesToPrimitives(getExitRates());
 	}
 
 	/**
@@ -741,16 +720,6 @@ public interface ModelAccess<Value>
 	}
 
 	/**
-	 * Get all state rewards from a {@link Rewards} object, as an iterator,
-	 * encoded into primitive types (see {@link #valuesToPrimitives(Iterator)}).
-	 * @param rewards The rewards
-	 */
-	default <E> Iterator<?> getStateRewardsAsPrimitives(Rewards<E> rewards)
-	{
-		return valuesToPrimitives(getStateRewards(rewards));
-	}
-
-	/**
 	 * Get all transition rewards from a {@link Rewards} object, as an iterator.
 	 * @param rewards The rewards
 	 */
@@ -774,33 +743,6 @@ public interface ModelAccess<Value>
 					return rewards.getTransitionReward(s, j);
 				}
 			};
-		}
-	}
-
-	/**
-	 * Get all transition rewards from a {@link Rewards} object, as an iterator,
-	 * encoded into primitive types (see {@link #valuesToPrimitives(Iterator)}).
-	 * @param rewards The rewards
-	 */
-	default <E> Iterator<?> getTransitionRewardsAsPrimitives(Rewards<E> rewards)
-	{
-		return valuesToPrimitives(getTransitionRewards(rewards));
-	}
-
-	// Utility methods
-
-	/**
-	 * Convert (continuous numerical) values, supplied via an iterator,
-	 * to an encoding into primitive types, also as an iterator.
-	 * Double values are returned as-is, while BigRational values are unpacked into pairs of longs
-	 * @param values The values to encode
-	 */
-	default Iterator<?> valuesToPrimitives(Iterator<?> values)
-	{
-		if (getEvaluator().exact()) {
-			return new ModelAccessIterators.UnpackBigRationals((Iterator<BigRational>) values);
-		} else {
-			return DoubleIterators.asDoubleIterator(values);
 		}
 	}
 }

@@ -31,6 +31,8 @@ import explicit.Model;
 import explicit.PartiallyObservableModel;
 import explicit.rewards.Rewards;
 import io.github.pmctools.umbj.*;
+import it.unimi.dsi.fastutil.doubles.DoubleIterators;
+import param.BigRational;
 import parser.EvaluateContext;
 import parser.State;
 import parser.VarList;
@@ -161,9 +163,9 @@ public class UMBExporter<Value> extends ModelExporter<Value>
 				umbWriter.addChoiceBranchOffsets(modelAccess.getStateTransitionOffsets());
 			}
 			if (model.getModelType().isProbabilistic()) {
-				umbWriter.addBranchProbabilities(modelAccess.getTransitionProbabilitiesAsPrimitives());
+				umbWriter.addBranchProbabilities(valuesToPrimitives(modelAccess.getTransitionProbabilities(), eval));
 				if (model.getModelType() == ModelType.CTMC) {
-					umbWriter.addExitRates(modelAccess.getExitRatesAsPrimitives());
+					umbWriter.addExitRates(valuesToPrimitives(modelAccess.getExitRates(), eval));
 				}
 			}
 			umbWriter.addBranchTargets(modelAccess.getTransitionSuccessors());
@@ -213,13 +215,13 @@ public class UMBExporter<Value> extends ModelExporter<Value>
 					Rewards<Value> reward = getReward(r);
 					String id = umbWriter.addRewards(getRewardName(r), evalRewards.exact());
 					if (reward.hasStateRewards()) {
-						umbWriter.addStateRewardsByID(id, modelAccess.getStateRewardsAsPrimitives(getReward(r)));
+						umbWriter.addStateRewardsByID(id, valuesToPrimitives(modelAccess.getStateRewards(getReward(r)), eval));
 					}
 					if (reward.hasTransitionRewards()) {
 						if (modelType.nondeterministic()) {
-							umbWriter.addChoiceRewardsByID(id, modelAccess.getTransitionRewardsAsPrimitives(getReward(r)));
+							umbWriter.addChoiceRewardsByID(id, valuesToPrimitives(modelAccess.getTransitionRewards(getReward(r)), eval));
 						} else {
-							umbWriter.addBranchRewardsByID(id, modelAccess.getTransitionRewardsAsPrimitives(getReward(r)));
+							umbWriter.addBranchRewardsByID(id, valuesToPrimitives(modelAccess.getTransitionRewards(getReward(r)), eval));
 						}
 					}
 					// If there are no rewards, add some dummy zero state rewards
@@ -432,6 +434,25 @@ public class UMBExporter<Value> extends ModelExporter<Value>
 			umbWriter.addValuations(entity, iter, bitPacking);
 	} catch (UMBException | RuntimeException e) {
 			throw new PrismException("UMB export problem: " + e.getMessage());
+		}
+	}
+
+	// Utility methods
+
+	/**
+	 * Convert (continuous numerical) values, supplied via an iterator,
+	 * to an encoding into primitive types for UMB, also as an iterator.
+	 * Double values are returned as-is, while BigRational values are unpacked into pairs of longs
+	 * @param values The values to encode
+	 * @param eval Evaluator for the values
+	 */
+	@SuppressWarnings("unchecked")
+	private static Iterator<?> valuesToPrimitives(Iterator<?> values, Evaluator<?> eval)
+	{
+		if (eval.exact()) {
+			return new ModelAccessIterators.UnpackBigRationals((Iterator<BigRational>) values);
+		} else {
+			return DoubleIterators.asDoubleIterator(values);
 		}
 	}
 }

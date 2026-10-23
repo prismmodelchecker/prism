@@ -54,7 +54,6 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.BitSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
@@ -972,7 +971,7 @@ public class UMBImporter extends ExplicitModelImporter
 	 * Decode (continuous numerical) values, supplied via a consumer,
 	 * from an encoding into primitive types, and pass to a Value consumer.
 	 * Double values are passed as-is, while BigRational values are converted to pairs of longs
-	 * (see {@link ModelAccess#valuesToPrimitives(Iterator)}).
+	 * (as done for export by UMBExporter).
 	 * @param eval Evaluator for the values
 	 * @param valueConsumer The consumer for the values to encode
 	 */
