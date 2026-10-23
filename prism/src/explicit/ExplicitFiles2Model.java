@@ -126,11 +126,6 @@ public class ExplicitFiles2Model extends PrismComponent
 	 */
 	private <Value> Model<Value> doBuild(ExplicitModelImporter modelImporter, Evaluator<Value> eval) throws PrismException
 	{
-		// Check model is defined as doubles
-		if (modelImporter.modelIsExact() && !eval.exact()) {
-			throw new PrismException("Cannot import an exact model unless in exact mode");
-		}
-
 		modelImporter.setFixDeadlocks(fixdl);
 		ModelExplicit<Value> model = null;
 		ModelInfo modelInfo = modelImporter.getModelInfo();

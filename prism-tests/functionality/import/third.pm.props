@@ -1,0 +1,5 @@
+// RESULT: 1/3
+P=? [ F "target" ]
+
+// RESULT: 10/21
+R{"r"}=? [ F s>0 ]

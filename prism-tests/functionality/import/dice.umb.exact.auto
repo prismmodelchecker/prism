@@ -1,0 +1,5 @@
+# Import a UMB file with double-valued probabilities/rewards in exact mode
+# (doubles are converted to rationals via their decimal representation, e.g. 0.5 -> 1/2)
+# dice.umb was exported from dice.pm.orig
+
+-importmodel dice.umb dice.pm.props -exact

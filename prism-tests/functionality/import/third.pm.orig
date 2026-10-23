@@ -1,0 +1,16 @@
+// Simple DTMC with probabilities/rewards that are not exactly representable as doubles
+dtmc
+
+module m
+	s : [0..2] init 0;
+	[] s=0 -> 1/3 : (s'=1) + 2/3 : (s'=2);
+	[] s=1 -> 1 : (s'=1);
+	[] s=2 -> 1 : (s'=2);
+endmodule
+
+label "target" = s=1;
+
+rewards "r"
+	s=0 : 1/3;
+	[] s=0 : 1/7;
+endrewards

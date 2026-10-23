@@ -389,7 +389,7 @@ public interface Evaluator<Value>
 		@Override
 		public Double fromString(String s) throws NumberFormatException
 		{
-			return Double.parseDouble(s);
+			return parseDouble(s);
 		}
 
 		@Override
@@ -843,7 +843,7 @@ public interface Evaluator<Value>
 			if (ss.length != 2) {
 				throw new NumberFormatException("Illegal interval " + s);
 			}
-			return new Interval<Double>(Double.parseDouble(ss[0]), Double.parseDouble(ss[1]));
+			return new Interval<Double>(parseDouble(ss[0]), parseDouble(ss[1]));
 		}
 		
 		@Override
@@ -1015,5 +1015,19 @@ public interface Evaluator<Value>
 		{
 			return EvalMode.EXACT;
 		}
+	}
+
+	// Utility methods
+
+	/**
+	 * Parse a string as a double, also allowing rationals, e.g., "1/3",
+	 * which are converted to the closest double.
+	 */
+	public static double parseDouble(String s) throws NumberFormatException
+	{
+		if (s.indexOf('/') >= 0) {
+			return new BigRational(s).doubleValue();
+		}
+		return Double.parseDouble(s);
 	}
 }

@@ -133,11 +133,6 @@ public class ExplicitFiles2MTBDD extends PrismNativeComponent
 		modelVariables = new ModelVariablesDD();
 		rewardInfo = importer.getRewardInfo();
 
-		// Check model is defined as doubles
-		if (importer.modelIsExact()) {
-			throw new PrismException("Cannot import an exact model unless in exact mode");
-		}
-
 		// Tell importer we need state-indexed transition rewards
 		importer.setTransitionRewardIndexing(ExplicitModelImporter.TransitionRewardIndexing.STATE);
 

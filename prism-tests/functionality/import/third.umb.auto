@@ -1,0 +1,14 @@
+# Import of models with rational and/or double values, including in non-exact mode,
+# where rationals are converted to doubles (and in exact mode, for rational models)
+# third.umb, third.exact.umb and third.exact.* were exported from third.pm.orig;
+# third.mixed.umb (double probabilities, rational rewards) and third.mixed2.umb
+# (rational probabilities, double rewards) were then created by combining them
+
+-importmodel third.umb third.pm.props
+-importmodel third.exact.umb third.pm.props
+-importmodel third.exact.umb third.pm.props -exact
+-importmodel third.exact.umb third.pm.props -mtbdd
+-importmodel third.mixed.umb third.pm.props
+-importmodel third.mixed2.umb third.pm.props
+-importmodel third.exact.all third.pm.props
+-importmodel third.exact.all third.pm.props -mtbdd
