@@ -72,8 +72,7 @@ Extra `prism-auto` options can be passed to `make tests` via `TESTS_ARGS=...`.
 To run a single JUnit test class (after `make unittests` has compiled):
 
 ```bash
-java -jar lib/junit-platform-console-standalone-*.jar \
-  -cp classes \
+java -cp "classes:lib/*" org.junit.platform.console.ConsoleLauncher \
   --select-class <fully.qualified.TestClassName> \
   --details=summary
 ```

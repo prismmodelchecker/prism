@@ -588,10 +588,11 @@ count_loc:
 ###########
 
 # Run all unit tests
-JUNIT_JAR = $(wildcard $(PRISM_LIB_DIR)/junit-platform-console-standalone*.jar)
+# (the JUnit console launcher is in the lib directory, which is on the classpath,
+# as are the libraries that PRISM uses; only the test classes directory is scanned for tests)
 unittests: $(JAVA_TESTS_COMPILED_STAMP)
 	# Provide Regex to match our test classes. If none is given, only certain test classes are excluded by default.
-	$(JAVA) -jar $(JUNIT_JAR) -cp classes --include-classname '^(Test.*|.+[.$$]Test.*|.+Tests?[.$$].+|.*Tests?)$$' -scan-classpath --details=summary
+	$(JAVA) -classpath $(PRISM_CLASSPATH) org.junit.platform.console.ConsoleLauncher --include-classname '^(Test.*|.+[.$$]Test.*|.+Tests?[.$$].+|.*Tests?)$$' --scan-classpath $(JAVA_TESTS_CLASSES_DIR) --details=summary
 
 # Run a single test case from the test suite (useful quick check that the build was ok)
 test:
