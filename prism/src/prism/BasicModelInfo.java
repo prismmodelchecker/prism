@@ -283,6 +283,13 @@ public class BasicModelInfo implements ModelInfo
 	}
 
 	@Override
+	public boolean isVarObservable(int i)
+	{
+		// A variable is observable if there is an observable with the same name
+		return observableNameList.contains(getVarName(i));
+	}
+
+	@Override
 	public List<String> getLabelNames()
 	{
 		return labelNameList;

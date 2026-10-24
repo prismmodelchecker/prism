@@ -272,18 +272,17 @@ public class ExplicitFiles2Model extends PrismComponent
 	/**
 	 * Compute and store the unobservations for the model's states.
 	 * As for models built from PRISM models, the unobservation of a state comprises
-	 * the values of all variables that are not observable (i.e., do not appear as an observable),
+	 * the values of all variables that are not observable (see {@link ModelInfo#isVarObservable(int)}),
 	 * provided that these, together with observations, identify states uniquely.
 	 * Otherwise, each state is taken to be its own unobservation.
 	 */
 	private void loadUnobservations(ModelInfo modelInfo, PartiallyObservableModel<?> model, List<State> statesList) throws PrismException
 	{
 		// Find the variables that are not observable
-		List<String> observableNames = modelInfo.getObservableNames();
 		int numVars = modelInfo.getNumVars();
 		List<Integer> unobsVars = new ArrayList<>();
 		for (int i = 0; i < numVars; i++) {
-			if (!observableNames.contains(modelInfo.getVarName(i))) {
+			if (!modelInfo.isVarObservable(i)) {
 				unobsVars.add(i);
 			}
 		}
