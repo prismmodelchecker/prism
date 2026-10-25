@@ -516,7 +516,7 @@ public class SimulatorEngine extends PrismComponent
 					return -1;
 				case FIRST:
 					// Use the (projected) action of the first choice as the decision
-					act = stratGen.projectAction(modelGen.getChoiceAction(0));
+					act = stratGen.projectAction(getStrategyChoiceAction(0));
 					first = true;
 					break;
 				case ERROR:
@@ -530,7 +530,7 @@ public class SimulatorEngine extends PrismComponent
 			}
 			if (act != Strategy.UNDEFINED) {
 				// (for FIRST, any choice with this action is fine, so ambiguity does not matter)
-				i = first ? modelGen.getChoiceIndexByAction(act) : getChoiceIndexForStrategyAction(act);
+				i = first ? getChoiceIndexByStrategyAction(act) : getChoiceIndexForStrategyAction(act);
 				if (i == -1) {
 					throw new PrismException("Action " + act + " requested by strategy is unavailable");
 				}
@@ -553,12 +553,42 @@ public class SimulatorEngine extends PrismComponent
 	 */
 	private int getChoiceIndexForStrategyAction(Object act) throws PrismException
 	{
-		int i = modelGen.getChoiceIndexByAction(act);
+		int i = getChoiceIndexByStrategyAction(act);
 		if (i != -1 && isStrategyActionAmbiguous(act)) {
 			throw new PrismException("Strategy is ambiguous in state " + getCurrentState() + ": action \"" + (act == null ? "" : act)
 					+ "\" labels several choices, so it is not clear which is picked (action labels need to be unique in each state)");
 		}
 		return i;
+	}
+
+	/**
+	 * Get the index of the first choice in the current state with an action label
+	 * picked by a strategy (comparing actions as seen by the strategy,
+	 * see {@link #getStrategyChoiceAction(int)}). Returns -1 if there is no such choice.
+	 * @param act The action picked by the strategy
+	 */
+	private int getChoiceIndexByStrategyAction(Object act) throws PrismException
+	{
+		int numChoices = modelGen.getNumChoices();
+		for (int i = 0; i < numChoices; i++) {
+			if (Objects.equals(getStrategyChoiceAction(i), act)) {
+				return i;
+			}
+		}
+		return -1;
+	}
+
+	/**
+	 * Get the action of the {@code i}th choice in the current state, as seen by the strategy,
+	 * i.e., in the form used for the actions in its decisions. This is used for all
+	 * comparisons between the model's actions and the strategy's decisions.
+	 * By default, this is just the model's action for the choice;
+	 * subclasses can override this to convert to a different representation.
+	 * @param i Choice index
+	 */
+	protected Object getStrategyChoiceAction(int i) throws PrismException
+	{
+		return modelGen.getChoiceAction(i);
 	}
 
 	/**
@@ -571,7 +601,7 @@ public class SimulatorEngine extends PrismComponent
 		Map<State, Double> first = null;
 		int numChoices = modelGen.getNumChoices();
 		for (int i = 0; i < numChoices; i++) {
-			if (!Objects.equals(modelGen.getChoiceAction(i), act)) {
+			if (!Objects.equals(getStrategyChoiceAction(i), act)) {
 				continue;
 			}
 			Map<State, Double> trans = new HashMap<>();
@@ -1481,7 +1511,7 @@ public class SimulatorEngine extends PrismComponent
 		// Otherwise interpret decision stored from strategy
 		else {
 			int i = modelGen.getChoiceIndexOfTransition(index);
-			Object act = modelGen.getChoiceAction(i);
+			Object act = getStrategyChoiceAction(i);
 			// Ambiguous (several choices with this action) - assume enabled
 			if (stratGen.isActionChosen(decision, act) && isStrategyActionAmbiguous(act)) {
 				return true;
@@ -1512,7 +1542,7 @@ public class SimulatorEngine extends PrismComponent
 		else {
 			// Otherwise interpret decision stored from strategy
 			int i = modelGen.getChoiceIndexOfTransition(index);
-			Object act = modelGen.getChoiceAction(i);
+			Object act = getStrategyChoiceAction(i);
 			// Ambiguous (several choices with this action): show "?"
 			if (stratGen.isActionChosen(decision, act) && isStrategyActionAmbiguous(act)) {
 				return "?";
