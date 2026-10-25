@@ -6,6 +6,7 @@ import org.junit.jupiter.api.Test;
 
 import prism.PrismException;
 import strat.MDStrategyArray;
+import strat.MRStrategy;
 import strat.StrategyExportOptions.InducedModelMode;
 import strat.StrategyInfo.UndefinedReason;
 import strat.UndefinedChoicePolicy;
@@ -99,5 +100,38 @@ public class ConstructInducedModelTest
 		assertThrows(PrismException.class, () -> induce(buildMDP(), choices, new UndefinedChoicePolicy().set(UndefinedReason.SATISFIED, Resolution.ERROR)));
 		// Default: UNKNOWN gives an error
 		assertThrows(PrismException.class, () -> induce(buildMDP(), new int[] { UndefinedReason.UNKNOWN.getCode(), 0, 0, 0 }, new UndefinedChoicePolicy()));
+	}
+
+	/**
+	 * In "restrict" mode, the choices picked by a randomised decision are merged
+	 * into one choice, labelled with the decision's support in choice order.
+	 */
+	@Test
+	public void randomisedDecisionLabels() throws PrismException
+	{
+		// State 0 has choices "a", "b", "c" (to 1, 2, 3); states 1..3 have self-loops
+		MDPSimple<Double> mdp = new MDPSimple<>(4);
+		mdp.addInitialState(0);
+		mdp.addActionLabelledChoice(0, dirac(1), "a");
+		mdp.addActionLabelledChoice(0, dirac(2), "b");
+		mdp.addActionLabelledChoice(0, dirac(3), "c");
+		for (int s = 1; s < 4; s++) {
+			mdp.addActionLabelledChoice(s, dirac(s), "d");
+		}
+		// Randomised: support in choice order ("a_c"), regardless of the order set
+		MRStrategy<Double> strat = new MRStrategy<>(mdp);
+		strat.setChoiceProbability(0, 2, 0.25);
+		strat.setChoiceProbability(0, 0, 0.75);
+		for (int s = 1; s < 4; s++) {
+			strat.setChoiceProbability(s, 0, 1.0);
+		}
+		ConstructInducedModel cim = new ConstructInducedModel().setMode(InducedModelMode.RESTRICT).setReachOnly(false);
+		MDPSimple<Double> induced = (MDPSimple<Double>) cim.constructInducedModel(mdp, strat);
+		assertEquals(1, induced.getNumChoices(0));
+		assertEquals("a_c", induced.getAction(0, 0));
+		assertEquals(0.75, induced.getChoice(0, 0).get(1), 1e-12);
+		assertEquals(0.25, induced.getChoice(0, 0).get(3), 1e-12);
+		// Probability 1 on one action: the action is kept
+		assertEquals("d", induced.getAction(1, 0));
 	}
 }

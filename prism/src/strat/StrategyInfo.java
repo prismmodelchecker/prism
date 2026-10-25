@@ -27,11 +27,12 @@
 package strat;
 
 import java.util.Objects;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import explicit.DistributionOver;
 import prism.Evaluator;
 import prism.ModelType;
-import prism.Prism;
 import prism.PrismNotSupportedException;
 import simulator.RandomNumberGenerator;
 import strat.StrategyExportOptions.InducedModelMode;
@@ -236,7 +237,9 @@ public interface StrategyInfo<Value>
 	 * picked choices with the same label are merged into one choice of the induced model.
 	 * <br><br>
 	 * For a deterministic strategy, the label is unchanged.
-	 * For a randomised strategy, a descriptive string identifier is created.
+	 * For a randomised strategy, the label combines the actions in the support
+	 * of the decision, in the order of the model's choices, e.g., "a_b"
+	 * (a decision whose support is a single action keeps that action).
 	 * Strategies that only decide part of an action (e.g., for some players of a game)
 	 * can override this, e.g., to give one induced choice per action of the remaining players.
 	 * @param decision The decision taken by the strategy
@@ -249,9 +252,23 @@ public interface StrategyInfo<Value>
 			return null;
 		}
 		if (decision instanceof DistributionOver) {
-			return Prism.toIdentifier(decision);
+			return combineActionSupport(((DistributionOver<?, ?>) decision).getSupport());
 		} else {
 			return decision;
+		}
+	}
+
+	/**
+	 * Convert the support of a randomised decision (a set of actions) into a single action:
+	 * either the action itself, for a singleton support,
+	 * or the actions converted to strings, joined with "_", e.g., "a_b".
+	 */
+	public static Object combineActionSupport(Set<?> actionSupport)
+	{
+		if (actionSupport.size() == 1) {
+			return actionSupport.iterator().next();
+		} else {
+			return actionSupport.stream().map(a -> Objects.toString(a, "")).collect(Collectors.joining("_"));
 		}
 	}
 

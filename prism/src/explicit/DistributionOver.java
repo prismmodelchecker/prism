@@ -28,6 +28,7 @@ package explicit;
 
 import java.util.AbstractMap;
 import java.util.Iterator;
+import java.util.LinkedHashSet;
 import java.util.Objects;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -98,10 +99,22 @@ public class DistributionOver<Value,T> implements Iterable<Entry<T, Value>>
 
 	/**
 	 * Get the support of the distribution.
+	 * The ordering of the support follows that of the indices
+	 * of the underlying distribution (for any duplicates, the first is kept).
 	 */
 	public Set<T> getSupport()
 	{
-		return distr.getSupport().stream().map(objects::apply).collect(Collectors.toSet());
+		return getSupportMapped(Function.identity());
+	}
+
+	/**
+	 * Get the support of the distribution, with each element mapped by {@code map}.
+	 * The ordering of the (mapped) support follows that of the indices
+	 * of the underlying distribution (for any duplicates, the first is kept).
+	 */
+	public <U> Set<U> getSupportMapped(Function<T, U> map)
+	{
+		return distr.getSupport().stream().sorted().map(objects::apply).map(map).collect(Collectors.toCollection(LinkedHashSet::new));
 	}
 
 	/**
@@ -109,7 +122,7 @@ public class DistributionOver<Value,T> implements Iterable<Entry<T, Value>>
 	 */
 	public String getSupportString()
 	{
-		return distr.getSupport().stream().map(i -> Objects.toString(objects.apply(i), "")).collect(Collectors.joining(","));
+		return distr.getSupport().stream().sorted().map(i -> Objects.toString(objects.apply(i), "")).collect(Collectors.joining(","));
 	}
 
 	/**
