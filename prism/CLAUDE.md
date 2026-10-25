@@ -148,7 +148,7 @@ of commit messages for the former type should be prefixed "umbj: ".
 
 - Keep fixes minimal and localized; do not refactor unrelated code in the same change.
 - Preserve existing style and naming conventions throughout.
-- Add or adjust tests when behavior changes or bugs are fixed (see the `prism-add-test` skill in `.claude/skills/`).
+- Add or adjust tests when behaviour changes or bugs are fixed (see the `prism-add-test` skill in `.claude/skills/`).
 - Don't add tests whose expected output pins one particular strategy/policy when several are equally optimal: PRISM does not specify which one is chosen. Only test a strategy when it is the unique valid one.
 - Avoid introducing new dependencies unless explicitly requested.
 - Java language level 11 is required — do not use features from Java 12+.
@@ -160,3 +160,44 @@ of commit messages for the former type should be prefixed "umbj: ".
 3. Rebuild (`make` or `make prism_java` for Java-only changes).
 4. Re-run the reproduction command (multiple times if nondeterministic).
 5. Run nearby regression tests where feasible.
+
+When summarising a bug fix, include:
+
+- the exact command(s) used,
+- whether the issue reproduced before the fix,
+- evidence after the fix (exit codes / key output),
+- any residual risk.
+
+## Git Hygiene
+
+- Never discard or overwrite user changes you did not make.
+- Keep edits scoped to the task.
+- Avoid destructive commands (`reset --hard`, `checkout --`) unless explicitly asked.
+- If the tree is dirty, work around unrelated files and do not clean them up automatically.
+
+## Pull Requests
+
+- Feature branches are usually pushed to the user's own fork of the repository (a separate git remote), not to `origin`.
+- PRs should target `origin` (`prismmodelchecker/prism`), with `--head <user>:<branch>` pointing at the branch on the fork.
+- Merge locally and push, rather than merging via the GitHub UI or `gh pr merge`. A local fast-forward preserves the commit hash; GitHub's squash/rebase merge creates a new hash, which forces rebasing of any dependent branches.
+
+For example, for GitHub user `davexparker`, whose fork is set up as a remote also named `davexparker`:
+
+```bash
+git push davexparker <branch>
+
+gh pr create \
+  --base master \
+  --head davexparker:<branch> \
+  --repo prismmodelchecker/prism \
+  --title "..." --body "..."
+```
+
+After the PR has passed review/CI, merge and clean up locally:
+
+```bash
+git checkout master
+git merge --ff-only <branch>
+git push origin master        # closes the PR automatically
+git branch -d <branch>
+```
