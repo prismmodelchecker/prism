@@ -1547,9 +1547,9 @@ public class SimulatorEngine extends PrismComponent
 			if (stratGen.isActionChosen(decision, act) && isStrategyActionAmbiguous(act)) {
 				return "?";
 			}
-			// Randomised strategy: show probability
+			// Randomised strategy: show probability (or nothing, if the choice is not picked)
 			if (stratGen.isRandomised()) {
-				return stratGen.getChoiceActionProbability(decision, act) + "";
+				return stratGen.isActionChosen(decision, act) ? stratGen.getChoiceActionProbability(decision, act) + "" : "";
 			}
 			// Deterministic strategy: mark selected choice with an arrow ("->")
 			else {
