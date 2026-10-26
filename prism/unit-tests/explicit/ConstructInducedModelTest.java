@@ -134,4 +134,53 @@ public class ConstructInducedModelTest
 		// Probability 1 on one action: the action is kept
 		assertEquals("d", induced.getAction(1, 0));
 	}
+
+	/**
+	 * For a randomised strategy, an undefined choice resolved with ALL is
+	 * kept separate from the strategy's own randomisation: in "reduce" mode,
+	 * all choices are picked uniformly; in "restrict" mode, they are kept
+	 * as separate choices (each with its own action, unscaled), whereas
+	 * the choices picked by a randomised decision are merged into one.
+	 */
+	@Test
+	public void randomisedStrategyWithAll() throws PrismException
+	{
+		// State 0 has choices "a", "b" (to 1, 2); state 1 has choices "c", "e" (to 1, 3);
+		// states 2, 3 have self-loops
+		MDPSimple<Double> mdp = new MDPSimple<>(4);
+		mdp.addInitialState(0);
+		mdp.addActionLabelledChoice(0, dirac(1), "a");
+		mdp.addActionLabelledChoice(0, dirac(2), "b");
+		mdp.addActionLabelledChoice(1, dirac(1), "c");
+		mdp.addActionLabelledChoice(1, dirac(3), "e");
+		mdp.addActionLabelledChoice(2, dirac(2), "f");
+		mdp.addActionLabelledChoice(3, dirac(3), "f");
+		// Randomised in state 0; undefined (satisfied) in state 1
+		MRStrategy<Double> strat = new MRStrategy<>(mdp);
+		strat.setChoiceProbability(0, 0, 0.25);
+		strat.setChoiceProbability(0, 1, 0.75);
+		strat.setUndefinedReason(1, UndefinedReason.SATISFIED);
+		strat.setChoiceProbability(2, 0, 1.0);
+		strat.setChoiceProbability(3, 0, 1.0);
+		UndefinedChoicePolicy policy = new UndefinedChoicePolicy().set(UndefinedReason.SATISFIED, Resolution.ALL);
+		// Reduce: strategy's probabilities in state 0, uniform in state 1
+		ConstructInducedModel cim = new ConstructInducedModel().setMode(InducedModelMode.REDUCE).setReachOnly(false).setUndefinedChoicePolicy(policy);
+		DTMCSimple<Double> dtmc = (DTMCSimple<Double>) cim.constructInducedModel(mdp, strat);
+		assertEquals(0.25, dtmc.getTransitions(0).get(1), 1e-12);
+		assertEquals(0.75, dtmc.getTransitions(0).get(2), 1e-12);
+		assertEquals(0.5, dtmc.getTransitions(1).get(1), 1e-12);
+		assertEquals(0.5, dtmc.getTransitions(1).get(3), 1e-12);
+		// Restrict: one merged choice in state 0, two separate choices in state 1
+		cim = new ConstructInducedModel().setMode(InducedModelMode.RESTRICT).setReachOnly(false).setUndefinedChoicePolicy(policy);
+		MDPSimple<Double> induced = (MDPSimple<Double>) cim.constructInducedModel(mdp, strat);
+		assertEquals(1, induced.getNumChoices(0));
+		assertEquals("a_b", induced.getAction(0, 0));
+		assertEquals(0.25, induced.getChoice(0, 0).get(1), 1e-12);
+		assertEquals(0.75, induced.getChoice(0, 0).get(2), 1e-12);
+		assertEquals(2, induced.getNumChoices(1));
+		assertEquals("c", induced.getAction(1, 0));
+		assertEquals(1.0, induced.getChoice(1, 0).get(1), 1e-12);
+		assertEquals("e", induced.getAction(1, 1));
+		assertEquals(1.0, induced.getChoice(1, 1).get(3), 1e-12);
+	}
 }
