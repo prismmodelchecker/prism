@@ -1782,6 +1782,11 @@ public class MDPModelChecker extends ProbModelChecker
 		long timer;
 		double soln[], soln2[], tmpsoln[];
 
+		// Strategy generation not supported
+		if (genStrat) {
+			throw new PrismNotSupportedException("Currently, explicit engine does not support strategy generation for cumulative reward (C<=k) properties");
+		}
+
 		// Start expected cumulative reward
 		timer = System.currentTimeMillis();
 		String discDescription = disc < 1.0 ? ", discount=" + disc : "";
@@ -2283,12 +2288,17 @@ public class MDPModelChecker extends ProbModelChecker
 	 * @param k the number of steps
 	 * @param min Min or max rewards (true=min, false=max)
 	 */
-	public ModelCheckerResult computeInstantaneousRewards(MDP<Double> mdp, MDPRewards<Double> mdpRewards, final int k, boolean min)
+	public ModelCheckerResult computeInstantaneousRewards(MDP<Double> mdp, MDPRewards<Double> mdpRewards, final int k, boolean min) throws PrismException
 	{
 		ModelCheckerResult res = null;
 		int i, n, iters;
 		double soln[], soln2[], tmpsoln[];
 		long timer;
+
+		// Strategy generation not supported
+		if (genStrat) {
+			throw new PrismNotSupportedException("Currently, explicit engine does not support strategy generation for instantaneous reward (I=k) properties");
+		}
 
 		// Store num states
 		n = mdp.getNumStates();
