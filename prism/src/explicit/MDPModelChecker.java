@@ -3322,6 +3322,16 @@ public class MDPModelChecker extends ProbModelChecker
 			}
 		}
 
+		// The strategy passed in may have undefined choices initially (e.g., unknown),
+		// which are only replaced above for states where they are not optimal;
+		// pick an optimal choice for any (non-target/inf) states still left undefined
+		for (i = 0; i < n; i++) {
+			if (strat[i] < 0 && !(target.get(i) || inf.get(i)) && mdp.getNumChoices(i) > 0) {
+				double val = mdp.mvMultRewMinMaxSingle(i, soln, mdpRewards, min, null);
+				strat[i] = mdp.mvMultRewMinMaxSingleChoices(i, soln, mdpRewards, min, val).get(0);
+			}
+		}
+
 		// Finished policy iteration
 		timer = System.currentTimeMillis() - timer;
 		mainLog.print("Policy iteration");
