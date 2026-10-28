@@ -2140,6 +2140,8 @@ public class SimulatorEngine extends PrismComponent
 		boolean stoppedEarly = false;
 		boolean deadlocksFound = false;
 		State deadlockState = null;
+		boolean strategyStopped = false;
+		State strategyStopState = null;
 		boolean allDone = false;
 		boolean allKnown = false;
 		boolean someUnknownButBounded = false;
@@ -2216,8 +2218,15 @@ public class SimulatorEngine extends PrismComponent
 				if ((allKnown || i >= maxPathLength) && !someUnknownButBounded)
 					break;
 				// Make a random transition
-				// (ignore return value; need to check deadlocks separately above)
-				automaticTransition();
+				// (deadlocks are checked separately above, so if no transition is taken,
+				// a strategy being followed says to stop here, e.g. for an undefined choice:
+				// the path cannot be extended, so stop and report an error, as for deadlocks)
+				if (!automaticTransition()) {
+					strategyStopped = true;
+					strategyStopState = new State(path.getCurrentState());
+					shouldStopSampling = true;
+					break;
+				}
 				i++;
 			}
 
@@ -2257,6 +2266,11 @@ public class SimulatorEngine extends PrismComponent
 		if (deadlocksFound) {
 			mainLog.println("\nDeadlock found in state " + deadlockState);
 			throw new PrismException("Deadlock state found");
+		}
+
+		// If a strategy being followed stopped a path, report error
+		if (strategyStopped) {
+			throw new PrismException("Path stopped in state " + strategyStopState + " by the strategy being followed (undefined choice resolved as stop or loop)");
 		}
 
 		// Print a warning if simulation was stopped by the user
