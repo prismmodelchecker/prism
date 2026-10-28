@@ -155,6 +155,14 @@ public class IMDPSimple<Value> extends ModelExplicitWrapper<Value> implements No
 	}
 
 	/**
+	 * Set whether to allow duplicate choices in a state (see {@link MDPSimple#setAllowDupes(boolean)}).
+	 */
+	public void setAllowDupes(boolean allowDupes)
+	{
+		mdp.setAllowDupes(allowDupes);
+	}
+
+	/**
 	 * Add a choice (uncertain distribution {@code udistr}) labelled with {@code action} to state {@code s} (which must exist).
 	 * Returns the index of the (newly added) distribution.
 	 * Returns -1 in case of error.

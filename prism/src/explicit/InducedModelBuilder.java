@@ -150,6 +150,14 @@ class InducedModelBuilder<Value>
 		intervalEvaluator = interval ? ((IntervalModel<Value>) model).getIntervalEvaluator() : null;
 		transAdder = inducedModel instanceof DTMCSimple ? ((DTMCSimple<Value>) inducedModel)::addToProbability : null;
 		transAdderIntv = inducedModel instanceof IDTMCSimple ? ((IDTMCSimple<Value>) inducedModel)::addToProbability : null;
+		// Keep all induced choices of a state, even if identical: they correspond to
+		// distinct (groups of) choices of the original model, e.g., for the ALL resolution
+		// of undefined choices in restrict mode, and transition rewards are indexed accordingly
+		if (inducedModel instanceof MDPSimple) {
+			((MDPSimple<Value>) inducedModel).setAllowDupes(true);
+		} else if (inducedModel instanceof IMDPSimple) {
+			((IMDPSimple<Value>) inducedModel).setAllowDupes(true);
+		}
 		// Create empty label bitsets for the induced model, if needed
 		if (copyLabels) {
 			origLabels = model.getLabelToStatesMap();

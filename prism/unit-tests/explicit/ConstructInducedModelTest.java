@@ -183,4 +183,40 @@ public class ConstructInducedModelTest
 		assertEquals("e", induced.getAction(1, 1));
 		assertEquals(1.0, induced.getChoice(1, 1).get(3), 1e-12);
 	}
+
+	/**
+	 * In "restrict" mode, all choices picked for an undefined choice (ALL) are kept as
+	 * separate choices, even if some are identical, with their transition rewards.
+	 */
+	@Test
+	public void allKeepsIdenticalChoices() throws PrismException
+	{
+		// State 0 has choices "a", "a" (identical, to 1) and "b" (to 2), with transition rewards 2, 7, 11
+		MDPSimple<Double> mdp = new MDPSimple<>(3);
+		mdp.setAllowDupes(true);
+		mdp.addInitialState(0);
+		mdp.addActionLabelledChoice(0, dirac(1), "a");
+		mdp.addActionLabelledChoice(0, dirac(1), "a");
+		mdp.addActionLabelledChoice(0, dirac(2), "b");
+		mdp.addActionLabelledChoice(1, dirac(1), "c");
+		mdp.addActionLabelledChoice(2, dirac(2), "c");
+		explicit.rewards.RewardsSimple<Double> rews = new explicit.rewards.RewardsSimple<>(3);
+		rews.setEvaluator(prism.Evaluator.forDouble());
+		rews.setTransitionReward(0, 0, 2.0);
+		rews.setTransitionReward(0, 1, 7.0);
+		rews.setTransitionReward(0, 2, 11.0);
+		mdp.addRewards("r", rews);
+		// Undefined (satisfied) choice in state 0
+		int[] choices = new int[] { UndefinedReason.SATISFIED.getCode(), 0, 0 };
+		UndefinedChoicePolicy policy = new UndefinedChoicePolicy().set(UndefinedReason.SATISFIED, Resolution.ALL);
+		ConstructInducedModel cim = new ConstructInducedModel().setMode(InducedModelMode.RESTRICT).setReachOnly(false).setUndefinedChoicePolicy(policy);
+		MDPSimple<Double> induced = (MDPSimple<Double>) cim.constructInducedModel(mdp, new MDStrategyArray<>(mdp, choices));
+		assertEquals(3, induced.getNumChoices(0));
+		assertEquals("a", induced.getAction(0, 0));
+		assertEquals("a", induced.getAction(0, 1));
+		assertEquals("b", induced.getAction(0, 2));
+		assertEquals(2.0, induced.getRewards(0).getTransitionReward(0, 0), 1e-12);
+		assertEquals(7.0, induced.getRewards(0).getTransitionReward(0, 1), 1e-12);
+		assertEquals(11.0, induced.getRewards(0).getTransitionReward(0, 2), 1e-12);
+	}
 }

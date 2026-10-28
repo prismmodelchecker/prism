@@ -278,6 +278,16 @@ public class MDPSimple<Value> extends MDPExplicit<Value> implements NondetModelS
 	// Mutators (other)
 
 	/**
+	 * Set whether to allow duplicate choices in a state (i.e., with identical distributions
+	 * and actions): if so, {@link #addChoice} and {@link #addActionLabelledChoice} always
+	 * add a new choice, rather than returning the index of an existing identical one.
+	 */
+	public void setAllowDupes(boolean allowDupes)
+	{
+		this.allowDupes = allowDupes;
+	}
+
+	/**
 	 * Add a choice (distribution {@code distr}) to state {@code s} (which must exist).
 	 * Distribution is only actually added if it does not already exists for state {@code s}.
 	 * (Assuming {@code allowDupes} flag is not enabled.)
