@@ -598,24 +598,39 @@ public class SimulatorEngine extends PrismComponent
 	 */
 	private boolean isStrategyActionAmbiguous(Object act) throws PrismException
 	{
-		Map<State, Double> first = null;
+		// Find the choices with this action (cheap): there is no ambiguity unless there are several
+		List<Integer> matching = new ArrayList<>();
 		int numChoices = modelGen.getNumChoices();
 		for (int i = 0; i < numChoices; i++) {
-			if (!Objects.equals(getStrategyChoiceAction(i), act)) {
-				continue;
+			if (Objects.equals(getStrategyChoiceAction(i), act)) {
+				matching.add(i);
 			}
-			Map<State, Double> trans = new HashMap<>();
-			int numTransitions = modelGen.getNumTransitions(i);
-			for (int j = 0; j < numTransitions; j++) {
-				trans.merge(modelGen.computeTransitionTarget(i, j), modelGen.getTransitionProbability(i, j), Double::sum);
-			}
-			if (first == null) {
-				first = trans;
-			} else if (!first.equals(trans)) {
+		}
+		if (matching.size() < 2) {
+			return false;
+		}
+		// Otherwise, compare their transitions (which requires computing successor states)
+		Map<State, Double> first = getChoiceTransitionsMap(matching.get(0));
+		for (int k = 1; k < matching.size(); k++) {
+			if (!first.equals(getChoiceTransitionsMap(matching.get(k)))) {
 				return true;
 			}
 		}
 		return false;
+	}
+
+	/**
+	 * Get the transitions of the {@code i}th choice in the current state, as a map from successor states to probabilities.
+	 * @param i Choice index
+	 */
+	private Map<State, Double> getChoiceTransitionsMap(int i) throws PrismException
+	{
+		Map<State, Double> trans = new HashMap<>();
+		int numTransitions = modelGen.getNumTransitions(i);
+		for (int j = 0; j < numTransitions; j++) {
+			trans.merge(modelGen.computeTransitionTarget(i, j), modelGen.getTransitionProbability(i, j), Double::sum);
+		}
+		return trans;
 	}
 
 	/**
