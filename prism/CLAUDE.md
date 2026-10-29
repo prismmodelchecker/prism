@@ -178,10 +178,10 @@ When summarising a bug fix, include:
 ## Pull Requests
 
 - Feature branches are usually pushed to the user's own fork of the repository (a separate git remote), not to `origin`.
-- PRs should target `origin` (`prismmodelchecker/prism`), with `--head <user>:<branch>` pointing at the branch on the fork.
+- PRs should target the repository of the `origin` remote (e.g. `prismmodelchecker/prism`, or `prismmodelchecker/prism-games` in prism-games), with `--head <user>:<branch>` pointing at the branch on the fork.
 - Merge locally and push, rather than merging via the GitHub UI or `gh pr merge`. A local fast-forward preserves the commit hash; GitHub's squash/rebase merge creates a new hash, which forces rebasing of any dependent branches.
 
-For example, for GitHub user `davexparker`, whose fork is set up as a remote also named `davexparker`:
+For example, for GitHub user `davexparker`, whose fork is set up as a remote also named `davexparker`, in the `prismmodelchecker/prism` repository:
 
 ```bash
 git push davexparker <branch>
