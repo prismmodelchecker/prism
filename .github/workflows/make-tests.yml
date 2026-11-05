@@ -8,6 +8,20 @@ on:
 
 jobs:
 
+  doc:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - name: Set up Node
+      uses: actions/setup-node@v4
+      with:
+        node-version: '22'
+    - name: Build manual
+      shell: bash
+      working-directory: ./prism
+      run: |
+        make doc
+
   build:
     strategy:
       matrix:

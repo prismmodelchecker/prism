@@ -1,0 +1,37 @@
+# References
+
+- <a id="AD94"></a>**[AD94]** R. Alur and D. Dill. A theory of timed automata. *Theoretical Computer Science*, 1994.
+- <a id="AH99"></a>**[AH99]** R. Alur and T. Henzinger. Reactive Modules. *Formal Methods in System Design*, 1999.
+- <a id="ASSB96"></a>**[ASSB96]** A. Aziz, K. Sanwal, V. Singhal and R. Brayton. Verifying Continuous Time Markov Chains. *Proc. 8th International Conference on Computer Aided Verification (CAV'96)*, 1996.
+- <a id="Bai98"></a>**[Bai98]** C. Baier. On Algorithmic Verification Methods for Probabilistic Systems. 1998.
+- <a id="BdA95"></a>**[BdA95]** A. Bianco and L. de Alfaro. Model Checking of Probabilistic and Nondeterministic Systems. *Proc. 15th Conference on Foundations of Software Technology and Theoretical Computer Science*, 1995.
+- <a id="BK98"></a>**[BK98]** C. Baier and M. Kwiatkowska. Model Checking for a Probabilistic Branching Time Logic with Fairness. *Distributed Computing*, 1998.
+- <a id="BKH99"></a>**[BKH99]** C. Baier, J.-P. Katoen and H. Hermanns . Approximate Symbolic Model Checking of Continuous-Time Markov Chains. *Proc. 10th International Conference on Concurrency Theory (CONCUR'99)*, 1999.
+- <a id="BKLPW17"></a>**[BKLPW17]** Christel Baier, Joachim Klein, Linda Leuschner, David Parker and Sascha Wunderlich. Ensuring the Reliability of Your Model Checker: Interval Iteration for Markov Decision Processes. *Proc. 28th International Conference on Computer Aided Verification (CAV'17)*, July 2017.
+- <a id="CHH+13"></a>**[CHH+13]** Taolue Chen, Ernst Moritz Hahn, Tingting Han, Marta Kwiatkowska, Hongyang Qu and Lijun Zhang. Model Repair for Markov Decision Processes. *Proc. 7th International Symposium on Theoretical Aspects of Software Engineering (TASE'13)*, July 2013.
+- <a id="DHK13"></a>**[DHK13]** Frits Dannenberg, Ernst Moritz Hahn and Marta Kwiatkowska. Computing Cumulative Rewards using Fast Adaptive Uniformisation. *Proc. 11th International Conference on Computational Methods in Systems Biology (CMSB'13)*, September 2013.
+- <a id="FKN+11"></a>**[FKN+11]**  Vojtěch Forejt, Marta Kwiatkowska, Gethin Norman, David Parker and Hongyang Qu. Quantitative Multi-Objective Verification for Probabilistic Systems. *Proc. 17th International Conference on Tools and Algorithms for the Construction and Analysis of Systems (TACAS'11)*, March 2011.
+- <a id="FKNP11"></a>**[FKNP11]** Vojtěch Forejt, Marta Kwiatkowska, Gethin Norman and David Parker. Automated Verification Techniques for Probabilistic Systems. *Springer*, June 2011.
+- <a id="FKP12"></a>**[FKP12]** Vojtěch Forejt, Marta Kwiatkowska and David Parker. Pareto Curves for Probabilistic Model Checking. *Proc. 10th International Symposium on Automated Technology for Verification and Analysis (ATVA'12)*, October 2012.
+- <a id="HHZ11"></a>**[HHZ11]** Ernst Moritz Hahn and Tingting Han and Lijun Zhang. Synthesis for PCTL in Parametric Markov Decision Processes. *Proc. 3rd NASA Formal Methods Symposium (NFM'11)*, April 2011.
+- <a id="HHZ11b"></a>**[HHZ11b]** E. M. Hahn, H. Hermanns, and L. Zhang. Probabilistic reachability for parametric Markov models. *Software Tools for Technology Transfer*, 2011.
+- <a id="Hil96"></a>**[Hil96]** J. Hillston. A Compositional Approach to Performance Modelling. *Cambridge University Press*, 1996.
+- <a id="HJ94"></a>**[HJ94]** H. Hansson and B. Jonsson. A Logic for Reasoning about Time and Reliability. *Formal Aspects of Computing*, 1994.
+- <a id="HKN+03"></a>**[HKN+03]** Holger Hermanns, Marta Kwiatkowska, Gethin Norman, David Parker and Markus Siegle. On the use of MTBDDs for Performability Analysis and Verification of Stochastic Systems. *Journal of Logic and Algebraic Programming: Special Issue on Probabilistic Techniques for the Design and Analysis of Systems*, June 2003.
+- <a id="HLMP04"></a>**[HLMP04]** T. Hérault, R. Lassaigne, F. Magniette and S. Peyronnet. Approximate Probabilistic Model Checking. *Proc. 5th International Conference on Verification, Model Checking and Abstract Interpretation (VMCAI'04)*, January 2004.
+- <a id="HM14"></a>**[HM14]** S. Haddad and B. Monmege. Reachability in MDPs: Refining convergence of value iteration. *8th International Workshop on Reachability Problems (RP)*, 2014.
+- <a id="KNP04b"></a>**[KNP04b]** Marta Kwiatkowska, Gethin Norman and David Parker. Probabilistic Symbolic Model Checking with PRISM: A Hybrid Approach. *International Journal on Software Tools for Technology Transfer (STTT)*, September 2004.
+- <a id="KNP07a"></a>**[KNP07a]** Marta Kwiatkowska, Gethin Norman and David Parker. Stochastic Model Checking. *Springer*, June 2007.
+- <a id="KNP09c"></a>**[KNP09c]** Marta Kwiatkowska, Gethin Norman and David Parker. Stochastic Games for Verification of Probabilistic Timed Automata. *Proc. 7th International Conference on Formal Modeling and Analysis of Timed Systems (FORMATS'09)*, September 2009.
+- <a id="KNPS06"></a>**[KNPS06]** Marta Kwiatkowska, Gethin Norman, David Parker and Jeremy Sproston. Performance Analysis of Probabilistic Timed Automata using Digital Clocks. *Formal Methods in System Design*, August 2006.
+- <a id="KNSW07"></a>**[KNSW07]** M. Kwiatkowska, G. Norman, J. Sproston and F. Wang. Symbolic Model Checking for Probabilistic Timed Automata. *Information and Computation*, July 2007.
+- <a id="KSK76"></a>**[KSK76]** J. Kemeny, J. Snell and A. Knapp. Denumerable Markov Chains. *Springer-Verlag*, 1976.
+- <a id="MWDH10"></a>**[MWDH10]** M. Mateescu, V. Wolf, F. Didier and T. Henzinger. Fast adaptive uniformisation of the chemical master equation. *IET Syst Biol*, 2010.
+- <a id="Nim10"></a>**[Nim10]** Vincent Nimal. Statistical Approaches for Probabilistic Model Checking. *Oxford University Computing Laboratory*, September 2010.
+- <a id="NPS13"></a>**[NPS13]** Gethin Norman, David Parker and Jeremy Sproston. Model Checking for Probabilistic Timed Automata. *Formal Methods in System Design*, September 2013.
+- <a id="NPZ17"></a>**[NPZ17]** Gethin Norman, David Parker and Xueyi Zou. Verification and Control of Partially Observable Probabilistic Systems. *Real-Time Systems*, April 2017.
+- <a id="Par02"></a>**[Par02]** David Parker. Implementation of Symbolic Model Checking for Probabilistic Systems. *University of Birmingham*, 2002.
+- <a id="Put94"></a>**[Put94]** M. Puterman. Markov Decision Processes: Discrete Stochastic Dynamic Programming. *John Wiley and Sons*, 1994.
+- <a id="Seg95"></a>**[Seg95]** R. Segala. Modelling and Verification of Randomized Distributed Real Time Systems. *Massachusetts Institute of Technology*, 1995.
+- <a id="Ste94"></a>**[Ste94]** W. J. Stewart. Introduction to the Numerical Solution of Markov Chains. *Princeton*, 1994.
+- <a id="YS02"></a>**[YS02]** H. Younes and R. Simmons. Probabilistic Verification of Discrete Event Systems Using Acceptance Sampling. *Proc. 14th International Conference on Computer Aided Verification (CAV'02)*, 2002.

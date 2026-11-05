@@ -651,11 +651,31 @@ source-jar:
 	@jar cf $(PRISM_LIB_DIR)/prism-sources.jar @prism-sources.txt
 	@rm -f prism-sources.txt
 
-# Download a local html copy of the manual
-#PRISM_MANUAL_WEBSITE := http://prismmodelchecker.localhost/manual/
-PRISM_MANUAL_WEBSITE := http://www.prismmodelchecker.org/manual/
-doc: clean_doc
-	(cd .. && wget -r -np -k -E -nH --no-cookies --header "Cookie: setskin=offline" --restrict-file-names=windows --reject '*action=sourceblock*' $(PRISM_MANUAL_WEBSITE) $(PRISM_MANUAL_WEBSITE)/pub/skins/offline/images/)
+# Build a local html copy of the manual (../manual) from doc/manual: a single page (index.html)
+# plus the files it uses (files/), made by the website's own build code (this needs node/npm).
+# PRISM_WWW is a checkout of the website repo to use (after "npm ci" there), by default ../../prism-www.
+# If that doesn't exist, or with PRISM_WWW= (empty), the parts of the repo needed are cloned
+# into a temporary folder instead (this needs git).
+PRISM_WWW ?= ../../prism-www
+PRISM_WWW_REPO := https://github.com/prismmodelchecker/prism-www.git
+doc:
+	@www="$(PRISM_WWW)"; \
+	if [ -n "$$www" ] && [ ! -d "$$www" ] && [ "$(origin PRISM_WWW)" != file ]; then \
+		echo "No checkout of the website repo at PRISM_WWW=$$www"; exit 1; \
+	fi; \
+	if [ -n "$$www" ] && [ -d "$$www" ]; then \
+		if [ ! -d "$$www/node_modules" ]; then echo "Run \"npm ci\" in $$www first"; exit 1; fi; \
+		echo "Building the manual with the website code in $$www"; \
+		node "$$www/scripts/manual-offline.js" ../doc/manual ../manual "$(VERSION)"; \
+	else \
+		echo "Building the manual with the website code from $(PRISM_WWW_REPO)"; \
+		www=`mktemp -d` && \
+		git clone -q --depth 1 --filter=blob:none --sparse $(PRISM_WWW_REPO) "$$www" && \
+		git -C "$$www" sparse-checkout set scripts src/_data src/_includes src/_lib src/manual && \
+		(cd "$$www" && npm ci --silent --no-audit --no-fund) && \
+		node "$$www/scripts/manual-offline.js" ../doc/manual ../manual "$(VERSION)"; \
+		status=$$?; rm -rf "$$www"; exit $$status; \
+	fi
 clean_doc:
 	rm -rf ../manual
 
@@ -676,10 +696,15 @@ BIN_DIST_INST = $(BIN_DIST_DIR)-installer.exe
 
 # Build a (binary) distribution in the release directory
 
-release: clean_all all binary release_check_version build_release clean_binary
+release: release_check_version release_check_manual clean_all all binary build_release clean_binary
 
 release_check_version:
 	@if [ "$(VERSION)" = "" ]; then echo "Usage: make release VERSION=4.5"; exit 1; fi
+
+# (the website's manual-offline.njk sets the title that this checks)
+release_check_manual:
+	@if [ ! -f ../manual/index.html ]; then echo "No local copy of the manual (../manual): run \"make doc\" first"; exit 1; fi
+	@if ! grep -qF "<title>PRISM Manual $(VERSION)</title>" ../manual/index.html; then echo "The local copy of the manual (../manual) is not for version $(VERSION): run \"make doc VERSION=$(VERSION)\" first"; exit 1; fi
 
 build_release:
 	@if [ "$(BINDISTSUFFIX)" = "win32" -o "$(BINDISTSUFFIX)" = "win64" ]; then \
@@ -697,7 +722,7 @@ build_release:
 		(cd release && tar cfz "$(BIN_DIST_FILE)" "$(BIN_DIST_DIR)") && rm -rf "release/$(BIN_DIST_DIR)"; \
 	fi
 
-release_source: release_check_version build_release_source
+release_source: release_check_version release_check_manual build_release_source
 
 build_release_source:
 	@echo Creating source distribution from branch "$(BRANCH)" in "release/$(SRC_DIST_FILE)"... && \
@@ -706,6 +731,7 @@ build_release_source:
 	rm -f "release/$(SRC_DIST_FILE)" && \
 	mkdir -p "release/$(SRC_DIST_DIR)" && \
 	(cd .. && git archive $(BRANCH) --format=tar) | tar xf - -C "release/$(SRC_DIST_DIR)" && \
+	cp -R ../manual "release/$(SRC_DIST_DIR)/" && \
 	(cd release && tar cfz "$(SRC_DIST_FILE)" "$(SRC_DIST_DIR)") && rm -rf "release/$(SRC_DIST_DIR)"
 
 # Build Javadoc (and put in javadoc directory)

@@ -12,7 +12,8 @@ repo-root/
   prism-tests/   ← regression test suite
   prism-examples/ ← example models and properties
   cudd/          ← CUDD BDD library (C source)
-  manual/        ← HTML user manual
+  doc/manual/    ← user manual (Markdown)
+  manual/        ← HTML copy of the manual, built by `make doc` (not in git)
 ```
 
 Inside `prism/`:
@@ -152,6 +153,14 @@ of commit messages for the former type should be prefixed "umbj: ".
 - Don't add tests whose expected output pins one particular strategy/policy when several are equally optimal: PRISM does not specify which one is chosen. Only test a strategy when it is the unique valid one.
 - Avoid introducing new dependencies unless explicitly requested.
 - Java language level 11 is required — do not use features from Java 12+.
+
+## Documentation
+
+The user manual is in `../doc/manual/`, in Markdown, and `../doc/README.md` describes its layout and conventions.
+
+- When a change adds or alters something users see (the modelling or property languages, command-line switches, settings, the GUI, file formats), update the manual in the same change.
+- Say which version a feature appeared in ("Since PRISM x.y"): the website publishes the manual from master, ahead of the release.
+- Edit `doc/manual/`, never the generated top-level `manual/`.
 
 ## Bug Fix Workflow
 

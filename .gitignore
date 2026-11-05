@@ -15,6 +15,7 @@
 *.dll
 
 # build artefact directories:
+/manual/
 prism/bin/
 prism/classes/
 prism/obj/

@@ -9,9 +9,7 @@ For detailed installation instructions, check the online manual at:
 
   https://www.prismmodelchecker.org/manual/InstallingPRISM/Instructions
   
-or see the local copy included in this distribution:
-
- * `manual/InstallingPRISM/Instructions.html`
+or see the local copy included in distributions (`manual/index.html`).
 
 Very abbreviated instructions for installing/running PRISM are as follows:
 
@@ -40,9 +38,11 @@ The best source of information about using PRISM is the online manual:
 
   https://www.prismmodelchecker.org/manual/
 
-You can also view the local copy included in this distribution:
+You can also view the local copy included in distributions:
 
   * `manual/index.html`
+
+or, from source code versions, browse the (Markdown) manual source in `doc/manual/`.
 
 For other PRISM-related information, see the website:
 

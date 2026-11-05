@@ -20,7 +20,31 @@ on:
 
 jobs:
 
+  # The html copy of the manual (manual/), built from doc/manual, for all the distributions
+  build_doc:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        # Use the tag from manual input, otherwise fall back to the git ref
+        ref: ${{ github.event.inputs.tag_name || github.ref }}
+    - name: Set up Node
+      uses: actions/setup-node@v4
+      with:
+        node-version: '22'
+    - name: Build manual
+      shell: bash
+      working-directory: ./prism
+      run: |
+        make doc
+    - name: Upload artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: prism-manual
+        path: manual/
+
   build_src:
+    needs: build_doc
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
@@ -28,6 +52,11 @@ jobs:
         # Use the tag from manual input, otherwise fall back to the git ref
         ref: ${{ github.event.inputs.tag_name || github.ref }}
         fetch-depth: 0 # Fetches all tags and history
+    - name: Get the html copy of the manual
+      uses: actions/download-artifact@v4
+      with:
+        name: prism-manual
+        path: manual
     - name: Build source
       shell: bash
       working-directory: ./prism
@@ -40,6 +69,7 @@ jobs:
         path: prism/release/*.tar.gz
 
   build:
+    needs: build_doc
     strategy:
       matrix:
         include:
@@ -59,6 +89,11 @@ jobs:
         # Use the tag from manual input, otherwise fall back to the git ref
         ref: ${{ github.event.inputs.tag_name || github.ref }}
         fetch-depth: 0 # Fetches all tags and history
+    - name: Get the html copy of the manual
+      uses: actions/download-artifact@v4
+      with:
+        name: prism-manual
+        path: manual
     - name: Set up JDK
       uses: actions/setup-java@v4
       with:
@@ -76,6 +111,7 @@ jobs:
         path: prism/release/*.tar.gz
 
   build_win:
+    needs: build_doc
     strategy:
       matrix:
         include:
@@ -90,6 +126,11 @@ jobs:
         # Use the tag from manual input, otherwise fall back to the git ref
         ref: ${{ github.event.inputs.tag_name || github.ref }}
         fetch-depth: 0 # Fetches all tags and history
+    - name: Get the html copy of the manual
+      uses: actions/download-artifact@v4
+      with:
+        name: prism-manual
+        path: manual
     - name: Set up JDK
       uses: actions/setup-java@v4
       with:
@@ -151,6 +192,7 @@ jobs:
         tar -xzf prism*.tar.gz
         rm prism*.tar.gz
         cd prism-*
+        test -f manual/index.html
         ./install.sh
         etc/tests/run.sh
 

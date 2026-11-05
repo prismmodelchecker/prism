@@ -1,0 +1,26 @@
+# The PRISM Language
+
+PRISM models are written in the PRISM language, a simple, state-based language based on Reactive Modules. This section describes the language, starting with two small examples.
+
+- [Introduction](Introduction.md)
+- [Example 1](Example1.md)
+- [Model Type](ModelType.md)
+- [Modules And Variables](ModulesAndVariables.md)
+- [Commands](Commands.md)
+- [Parallel Composition](ParallelComposition.md)
+- [Local Nondeterminism](LocalNondeterminism.md)
+- [CTMCs](CTMCs.md)
+- [Example 2](Example2.md)
+- [Constants](Constants.md)
+- [Expressions](Expressions.md)
+- [Synchronisation](Synchronisation.md)
+- [Module Renaming](ModuleRenaming.md)
+- [Multiple Initial States](MultipleInitialStates.md)
+- [Global Variables](GlobalVariables.md)
+- [Formulas And Labels](FormulasAndLabels.md)
+- [Costs And Rewards](CostsAndRewards.md)
+- [Real-time Models](Real-timeModels.md)
+- [Partially Observable Models](PartiallyObservableModels.md)
+- [Uncertain Models](UncertainModels.md)
+- [Process Algebra Operators](ProcessAlgebraOperators.md)
+- [PRISM Model Files](PRISMModelFiles.md)
