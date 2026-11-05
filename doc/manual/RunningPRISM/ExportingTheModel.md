@@ -84,7 +84,7 @@ You can always use `stdout` instead of a filename. For example:
 prism model.prism -exportmodel stdout
 ```
 
-is a quick way to print all all parts of a (small) model to the terminal, or
+is a quick way to print all parts of a (small) model to the terminal, or
 
 ```shell
 prism model.prism -exportmodel stdout.sta

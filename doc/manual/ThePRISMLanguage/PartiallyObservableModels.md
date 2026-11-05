@@ -45,6 +45,6 @@ The above two styles of definition can also be mixed
 to specify a combined set of observables.
 
 POPTAs (partially observable PTAs) combine the features of both PTAs and POMDPs.
-They are are currently analysed using the digital clocks engine,
+They are currently analysed using the digital clocks engine,
 so inherit the [restrictions for that engine](Real-timeModels.md).
 Furthermore, for a POPTA, all clock variables must be observable.

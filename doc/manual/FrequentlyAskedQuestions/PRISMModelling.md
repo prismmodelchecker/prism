@@ -34,7 +34,7 @@ Because PRISM is a symbolic model checker, the amount of memory required to stor
 
 - Variables which are related to most or all other variables should appear near the start of the ordering
 
-Variables `x` and `y` are "related" if, for example, the value of one is has an effect on how the other changes (e.g. `(y'=x+1)`) or if both appear together in an expression (e.g. a guard).
+Variables `x` and `y` are "related" if, for example, the value of one has an effect on how the other changes (e.g. `(y'=x+1)`) or if both appear together in an expression (e.g. a guard).
 
 These heuristics also apply to the ordering of *modules* within the model file.
 
@@ -72,7 +72,7 @@ module main
 endmodule
 ```
 
-In the model, the occurrence of the the go-labelled action occurs with an Erlang distribution with mean `mean` and shape `k`. The special case of `k`=1 is just an exponential distribution. The graph below shows the probability distribution of the delay, i.e. of `P=? [ F<=T x=1 ]` for different values of `k`.
+In the model, the occurrence of the go-labelled action occurs with an Erlang distribution with mean `mean` and shape `k`. The special case of `k`=1 is just an exponential distribution. The graph below shows the probability distribution of the delay, i.e. of `P=? [ F<=T x=1 ]` for different values of `k`.
 
 ![Plot of probability against time T from 0 to 50, one curve per shape k (1 to 10, and 1000). The k=1 curve rises gradually like an exponential distribution; as k increases the curves become steeper around T=10, and for k=1000 the probability jumps from 0 to 1 almost exactly at T=10.](../files/faq-erlang.jpg)
 

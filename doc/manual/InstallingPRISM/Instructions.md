@@ -108,7 +108,7 @@ make OSTYPE=cygwin JAVA_DIR="/cygdrive/c/Program Files/Java/jdk1.8.0"
 
 Note the use of double quotes for the case where the directory contains a space. If you don't know the location of your Java installation, try typing `which javac`. If the result is e.g. `/usr/java/jdk1.8.0/bin/javac` then your Java directory is `/usr/java/jdk1.8.0`. Sometimes `javac` will be a symbolic link, in which case use "`ls -l`" to determine the actual location.
 
-It is also possible to to set the environment variables directly or edit their values in the Makefile directly. Note that even when you specify `JAVA_DIR` explicitly (in either way), PRISM still uses the version of `javac` that is in your path. To override this, you can also specify a specific version by setting `JAVAC`.
+It is also possible to set the environment variables directly or edit their values in the Makefile directly. Note that even when you specify `JAVA_DIR` explicitly (in either way), PRISM still uses the version of `javac` that is in your path. To override this, you can also specify a specific version by setting `JAVAC`.
 
 **Problems?** See the section "[Common Problems And Questions](CommonProblemsAndQuestions.md)".
 

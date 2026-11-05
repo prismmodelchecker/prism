@@ -33,7 +33,7 @@ It is also possible to:
 - export a path to a text file
 
 Notice that the table containing the path displays not just the value of each variable in each
-state but also the time spent in that state and any rewards accumulated there. You can configure exactly which columns appear by right-clicking on the path and selecting "Configure view". For rewards (and for CTMC models, for the time-values), you can can opt to display the reward/time for each individual state and/or the cumulative total up until each point in the path.
+state but also the time spent in that state and any rewards accumulated there. You can configure exactly which columns appear by right-clicking on the path and selecting "Configure view". For rewards (and for CTMC models, for the time-values), you can opt to display the reward/time for each individual state and/or the cumulative total up until each point in the path.
 
 At the top-right of the interface, any labels contained in the currently loaded model/properties file are displayed, along with their value in the currently selected state of the path. In addition, the built-in [labels](../PropertySpecification/PropertiesFiles.md#labels) `"init"` and `"deadlock"` are also included. Selecting a label from the list highlights all states in the current path which satisfy it.
 

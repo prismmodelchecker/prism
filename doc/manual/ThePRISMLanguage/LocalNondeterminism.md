@@ -16,7 +16,7 @@ with the commands:
 ```
 
 Assuming we do the same for module `M2`, in state `(0,0)` of the MDP
-there will be a nondeterministic choice between the three (trivial) probability distributions listed below. (There are three, not four, distributions because two possibilities result in identical behaviour: staying with probability 1 in the state state.)
+there will be a nondeterministic choice between the three (trivial) probability distributions listed below. (There are three, not four, distributions because two possibilities result in identical behaviour: staying with probability 1 in the same state.)
 
 - `1.0:(0,0)`
 - `1.0:(1,0)`

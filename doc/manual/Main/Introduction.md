@@ -33,6 +33,6 @@ Properties of these models are written in the PRISM [property specification lang
 - (probabiistic) LTL (linear time logic),
 - PCTL\* (which subsumes both PCTL and LTL).
 
-The property language also supports [costs and rewards](../PropertySpecification/Reward-basedProperties.md), "[numerical](../PropertySpecification/ThePOperator.md)" properties, several other custom features and extensions, and also also incorporates the non-probabilistic temporal logics CTL (computation tree logic) and LTL.
+The property language also supports [costs and rewards](../PropertySpecification/Reward-basedProperties.md), "[numerical](../PropertySpecification/ThePOperator.md)" properties, several other custom features and extensions, and also incorporates the non-probabilistic temporal logics CTL (computation tree logic) and LTL.
 
 PRISM performs probabilistic model checking, based on exhaustive search and numerical solution, to automatically analyse such properties. It also contains a [discrete-event simulation](../RunningPRISM/DebuggingModelsWithTheSimulator.md) engine for [approximate model checking](../RunningPRISM/StatisticalModelChecking.md).

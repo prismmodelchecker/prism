@@ -182,7 +182,7 @@ If you are using a binary (rather than source code) distribution of PRISM, repla
 
 Alternatively (on Linux or Mac OS X), ensure `prism` is in your path and then save the script below as an executable file called `sbml2prism`:
 
-```bash
+```shell
 #!/bin/sh
 
 # Startup script for SBML-to-PRISM translator
@@ -224,7 +224,7 @@ The basic structure of the translation process is as follows:
 
 As described above, this translation process is designed for discrete systems and so the amount of each species in the model is represented by an integer variable. It is therefore assumed that the initial amount for each species specified in the SBML file is also given as an integer. If this is not the case, then the values will need to be scaled accordingly first.
 
-Furthermore, since PRISM is primarily a model checking (rather than simulation) tool, it is important that the amount of each species also has an upper bound (to ensure a finite state space). When model checking, the efficiency (or even feasibility) of the process is likely to be very sensitive to the upper bound(s) chosen. When using the discrete-event simulation functionality of PRISM, this is not the case and the bounds can can be set much higher. By default the translator uses an upper bound of 100 (which is increased if the initial amount exceeds this). A different value can specified through a second command-line argument as follows:
+Furthermore, since PRISM is primarily a model checking (rather than simulation) tool, it is important that the amount of each species also has an upper bound (to ensure a finite state space). When model checking, the efficiency (or even feasibility) of the process is likely to be very sensitive to the upper bound(s) chosen. When using the discrete-event simulation functionality of PRISM, this is not the case and the bounds can be set much higher. By default the translator uses an upper bound of 100 (which is increased if the initial amount exceeds this). A different value can be specified through a second command-line argument as follows:
 
 ```shell
 cd prism

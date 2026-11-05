@@ -4,7 +4,7 @@ There are two versions of PRISM, one based on a graphical user interface (GUI),
 the other based on a command line interface. Both use the same underlying model checker.
 The latter is useful for running large batches of jobs, leaving long-running model checking tasks in the background, or simply for running the tool quickly and easily once you are familiar with its operation.
 
-Details how how to run PRISM can be found in the [installation instructions](../InstallingPRISM/Instructions.md).
+Details of how to run PRISM can be found in the [installation instructions](../InstallingPRISM/Instructions.md).
 In short, to run the PRISM GUI:
 
 - (on Windows) click the short-cut (to `xprism.bat`) installed on the Desktop/Start Menu

@@ -10,7 +10,7 @@ prism model.pm -pf "P=? [ G F x=1 ]" -ltl2datool hoa-ltl2dstar-for-prism -ltl2da
 
 The `-ltl2datool` switch specifies the location of the program to be executed to perform the LTL-to-automaton conversion. This will be called by PRISM as "`exec` `in-file` `out-file`", where `exec` is the executable, `in-file` is the name of a file containing the LTL formula to be converted and `out-file` is the name of a file where the resulting automaton should be written, in HOA format. Typically, the executable will be a script. Here is a simple example (called as `hoa-ltl2dstar-for-prism` in the above example), which calls an external copy of `ltl2dstar` in the required fashion (assuming that the `ltl2dstar` and [`ltl2ba`](http://www.lsv.ens-cachan.fr/~gastin/ltl2ba/)  executables are located in the current directory or on the PATH).
 
-```bash
+```shell
 #! /bin/bash
 ltl2dstar --output=automaton --output-format=hoa "$1" "$2"
 ```

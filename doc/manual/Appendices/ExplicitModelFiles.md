@@ -77,7 +77,7 @@ These contain an explicit list of the transitions making up a probabilistic mode
 
 **DTMCs and CTMCs**
 
-For Markov chains the initial line take the form "`n m`", giving the number of states (`n`) and the number of transitions (`m`). The remaining lines are of the form "`i j x`" or "`i j x a`", where `i` and `j` are the indices of the source state (row) and destination state (column) of the transition, and `x` is the probability (for a DTMC) or rate (for a CTMC) of the transition. State indices are zero-indexed (i.e. between `0` and `n-1`). Probability/rate values are written as (positive) floating point numbers (examples: `0.5`, `.5`, `5.6e-6`, `1`). `a` is optional and gives the action label for the transition. Action labels can be present for some, all or no transitions.
+For Markov chains the initial line takes the form "`n m`", giving the number of states (`n`) and the number of transitions (`m`). The remaining lines are of the form "`i j x`" or "`i j x a`", where `i` and `j` are the indices of the source state (row) and destination state (column) of the transition, and `x` is the probability (for a DTMC) or rate (for a CTMC) of the transition. State indices are zero-indexed (i.e. between `0` and `n-1`). Probability/rate values are written as (positive) floating point numbers (examples: `0.5`, `.5`, `5.6e-6`, `1`). `a` is optional and gives the action label for the transition. Action labels can be present for some, all or no transitions.
 
 It is assumed that source states (rows) are in ascending order, but there is no assumption about the ordering of destination states (columns) within the transitions for each source state.
 
@@ -171,7 +171,7 @@ and here is an action-labelled version of the same model, [lec12mdpa.nm](../file
 The format of a `.tra` file for a POMDP is similar to an MDP,
 but also contains information about observations.
 
-The initial line of the file take the form "`n c m o`", where `n`, `c` and `m` are, as for MDPs, the numbers of states, choices and transitions,
+The initial line of the file takes the form "`n c m o`", where `n`, `c` and `m` are, as for MDPs, the numbers of states, choices and transitions,
 and `o` is the number of observations.
 The lines that list transitions contain an additional integer after the transition probability
 (and before the action, if present), giving the (deterministic) observation that is made
@@ -214,7 +214,7 @@ An example file is:
 
 ## Transitions (.tra) files (row form)
 
-There is alternative format for transition matrices (see the [rows](../RunningPRISM/ExportingTheModel.md#other) option for `-exportmodel`) where transitions for each state/choice are collated on a single line.
+There is an alternative format for transition matrices (see the [rows](../RunningPRISM/ExportingTheModel.md#other) option for `-exportmodel`) where transitions for each state/choice are collated on a single line.
 
 Here is the result for the [lec3.pm](../files/lec3.pm) example from above (a DTMC):
 
@@ -263,7 +263,7 @@ These contain an explicit list of which [labels](../ThePRISMLanguage/FormulasAnd
 After a header, showing `Labels`,
 the first line lists the labels, assigning each one an index.
 The remaining lines list indices of all states satisfying one or more labels,
-followed by a list of the the indices of labels that that are satisfied in it.
+followed by a list of the indices of labels that are satisfied in it.
 This includes the built-in labels `"init"` (initial states) and `deadlock` (deadlock states).
 An example is shown below, where, for example, both `"heads"` and `"end"` are satisfied in state 2.
 
@@ -321,7 +321,7 @@ For the [lec3.pm](../files/lec3.pm) (6-state) DTMC example from above, we get no
 2 5 2
 ```
 
-And or the [lec12mdpa.nm](../files/lec12mdpa.nm) (4-state) MDP example, we get non-zero transition rewards on 4 transitions:
+And for the [lec12mdpa.nm](../files/lec12mdpa.nm) (4-state) MDP example, we get non-zero transition rewards on 4 transitions:
 
 ```text
 # Reward structure "r"

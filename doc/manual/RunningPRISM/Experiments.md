@@ -155,4 +155,4 @@ From the GUI, it is also possible to *import* previously exported results (in [D
 A related option is the `-exportvector <file>` switch, useful in general contexts, not for experiments.
 This exports the results for all states of the model
 (typically, the log just displays the result for the initial state, unless a [filter](../PropertySpecification/Filters.md) has been used)
-to the the file `file`.
+to the file `file`.

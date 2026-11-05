@@ -135,7 +135,7 @@ filter(max, P=? [ pathprop ], states)
 filter(range, P=? [ pathprop ], states)
 ```
 
-Notice that the first of the four properties above (i.e. an old-style filter of the form `{states}` will result in an error if `states` is not satisfied by exactly one state of the model. Older versions of PRISM just gave you the value for the first state state satisfying the filter, without warning you about this. If you want to recreate the old behaviour, just use a `first` filter:
+Notice that the first of the four properties above (i.e. an old-style filter of the form `{states}`) will result in an error if `states` is not satisfied by exactly one state of the model. Older versions of PRISM just gave you the value for the first state satisfying the filter, without warning you about this. If you want to recreate the old behaviour, just use a `first` filter:
 
 ```prism
 filter(first, P=? [ pathprop ], states)
