@@ -25,7 +25,7 @@ P>=1 [ F "terminate" ]
 "the algorithm eventually terminates successfully with probability 1"
 
 ```prism
-"P<0.1 [ F<=100 num_errors > 5 ]
+P<0.1 [ F<=100 num_errors > 5 ]
 ```
 
 "the probability that more than 5 errors occur within the first 100 time units is less than 0.1"

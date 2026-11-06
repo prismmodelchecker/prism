@@ -37,7 +37,7 @@ See the files themselves for details of any configuration required, possible opt
 
 There is also a `hoa-rabinizer-for-prism.bat` script for connecting to Rabinizer on Windows.
 
-The `-ltl2dasyntax` switch is used to specify the textual format for passing the LTL formula to the external converter (i.e., in the file `out-file`). The options are:
+The `-ltl2dasyntax` switch is used to specify the textual format for passing the LTL formula to the external converter (i.e., in the file `in-file`). The options are:
 
 - `lbt` - LBT format
 - `spin` - SPIN format

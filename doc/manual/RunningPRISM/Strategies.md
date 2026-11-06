@@ -75,7 +75,7 @@ prism mdp.prism -pf 'Pmax=? [ F "goal" ]' -exportstrat file.txt:type=induced,mod
 A list of available options is as follows:
 
 - `type` (`actions`, `induced` or `dot`): the type of strategy export to use (action list, induced model or Dot file)
-- `mode` (`restrict` or `reduce`): when exporting as an induced model or Dot file, whether to "restrict" or "reduce" the model (see above); the default is "restrict"
+- `mode` (`restrict` or `reduce`): when exporting as an induced model or Dot file, whether to "restrict" or "reduce" the model (see above); the default is "reduce"
 - `reach` (`true` or `false`): whether to restrict the strategy to states that are reachable when it is applied to the model (this is currently only used for exporting induced models and Dot files, and the default value is true, except for exporting just transitions in `.tra` format)
 - `states` (`true` or `false`): whether to show states, rather than state indices, for actions lists or Dot files; this is true by default
 - `mergeobs` (`true` or `false`): for partially observable models, whether to merge observationally equivalent states; this is true by default (and was previously called `obs`).

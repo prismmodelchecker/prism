@@ -10,6 +10,7 @@
 	"InstallingPRISM/Main": "InstallingPRISM/README.md",
 	"Main/Contents": "README.md",
 	"Main/Main": "README.md",
+	"Main/Welcome": "README.md",
 	"PropertySpecification/Contents": "PropertySpecification/README.md",
 	"PropertySpecification/Main": "PropertySpecification/README.md",
 	"PropertySpecification/PTAs": "PropertySpecification/Real-timeModels.md",

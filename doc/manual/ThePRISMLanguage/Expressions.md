@@ -69,5 +69,5 @@ Expressions can be used in a wide range of places in a PRISM language descriptio
 This allows, for example, the probability in a command to be dependent on the current state:
 
 ```prism
-[] (x>=1 & x<=10) -> x/10 : (x'=max(1,x-1)) + 1-x/10 : (x'=min(10,x+1))
+[] (x>=1 & x<=10) -> x/10 : (x'=max(1,x-1)) + 1-x/10 : (x'=min(10,x+1));
 ```

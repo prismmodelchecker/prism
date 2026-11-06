@@ -48,7 +48,7 @@ As a special case, the keyword `true` can be used to denote an update where no v
 Finally, it is important to remember that the expressions on the right hand side of each update refer to the state of the model *before* the update occurs. So, for example, this command:
 
 ```prism
-[] x1=0 & x2=1 -> (x1'=2)&(x2'=x1)
+[] x1=0 & x2=1 -> (x1'=2)&(x2'=x1);
 ```
 
 updates variable `x2` to 0, not 2.

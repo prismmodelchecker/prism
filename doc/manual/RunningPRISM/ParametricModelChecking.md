@@ -44,7 +44,7 @@ prism model.pm model.props -param x=0:1
 #Result: ([0.0,1.0]): { 2 x - 5  | 8 x - 12  }
 ```
 
-which indicates that, for the full range ([0,1]) of the parameter `x`, the result of model checking is the expression `(2x-5)/(8x-2)`.
+which indicates that, for the full range ([0,1]) of the parameter `x`, the result of model checking is the expression `(2x-5)/(8x-12)`.
 
 Parametric model checking can be configured with the following options:
 
