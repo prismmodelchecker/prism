@@ -251,7 +251,15 @@ void sendChunk(unsigned int size, char chunkType, char* buf) {
   bytesSent = sendAll(nailgunsocket, header, CHUNK_HEADER_LEN);
   if (bytesSent != 0 && size > 0) {
     bytesSent = sendAll(nailgunsocket, buf, size);
+#ifdef WIN32
+  /* Heartbeats are sent from their own thread, so one can fail just as the
+     server finishes. That must not exit the client: the main thread gets the
+     real exit code, or sees the failure in recv() if the server has gone.
+     (Winsock does not set errno, so we cannot test for EPIPE as below.) */
+  } else if (bytesSent == 0 && chunkType != CHUNKTYPE_HEARTBEAT) {
+#else
   } else if (bytesSent == 0 && (chunkType != CHUNKTYPE_HEARTBEAT || errno != EPIPE)) {
+#endif
     perror("send");
     handleSocketClose();
   }
