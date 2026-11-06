@@ -1,0 +1,9 @@
+// RESULT: 2
+Rmin=? [ !("a" W "b") ];
+
+// RESULT: Infinity
+Rmax=? [ !("a" W "b") ];
+
+// Not the same as F !a, for which "stop" gives a smaller value
+// RESULT: 1
+Rmin=? [ F !"a" ];

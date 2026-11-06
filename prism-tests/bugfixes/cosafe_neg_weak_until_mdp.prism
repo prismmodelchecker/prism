@@ -1,0 +1,22 @@
+// Negated weak until in a reward property: !(a W b) is co-safe, since it is
+// equivalent to (a&!b) U (!a&!b), but was wrongly converted to a release formula
+// and so rejected with "not syntactically co-safe" (PR #316).
+//
+// From s=0, "go" eventually reaches s=1 (neither a nor b), satisfying !(a W b),
+// whereas "stop" moves straight to s=2 (b), so that !(a W b) can never hold.
+
+mdp
+
+module m
+	s : [0..2] init 0;
+	[go] s=0 -> 0.5:(s'=0) + 0.5:(s'=1);
+	[stop] s=0 -> (s'=2);
+	[] s>0 -> true;
+endmodule
+
+label "a" = s=0;
+label "b" = s=2;
+
+rewards
+	true : 1;
+endrewards

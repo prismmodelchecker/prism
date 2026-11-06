@@ -1,0 +1,20 @@
+// Negated weak until in a reward property, for DTMCs
+// (see also cosafe_neg_weak_until_mdp.prism).
+//
+// s=0 (a) moves eventually to s=1 (neither a nor b). So !(a W b) holds on all paths,
+// and !(b W a) on none of them, since b W a holds immediately in s=0.
+
+dtmc
+
+module m
+	s : [0..2] init 0;
+	[] s=0 -> 0.5:(s'=0) + 0.5:(s'=1);
+	[] s>0 -> true;
+endmodule
+
+label "a" = s=0;
+label "b" = s=2;
+
+rewards
+	true : 1;
+endrewards

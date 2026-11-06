@@ -1,0 +1,5 @@
+// RESULT: 2
+R=? [ !("a" W "b") ];
+
+// RESULT: Infinity
+R=? [ !("b" W "a") ];
