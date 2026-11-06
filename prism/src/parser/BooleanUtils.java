@@ -231,7 +231,7 @@ public class BooleanUtils
 						aNeg = doConversionToPositiveNormalForm(Expression.Not(a), ltl);
 						bNegCopy = doConversionToPositiveNormalForm(Expression.Not(b.deepCopy()), ltl);
 						// !(a W b) == a&!b U !a&!b
-						result = new ExpressionTemporal(ExpressionTemporal.P_R, Expression.And(aCopy, bNeg), Expression.And(aNeg, bNegCopy));
+						result = new ExpressionTemporal(ExpressionTemporal.P_U, Expression.And(aCopy, bNeg), Expression.And(aNeg, bNegCopy));
 						result.setBoundsFrom(exprTemp);
 						return result;
 					case ExpressionTemporal.P_R:
