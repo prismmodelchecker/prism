@@ -1,7 +1,7 @@
-# Frequently Asked Questions
+# Frequently asked questions
 
 Answers to frequently asked questions about memory use, modelling and properties.
 
-- [Memory Problems](MemoryProblems.md)
-- [PRISM Modelling](PRISMModelling.md)
-- [PRISM Properties](PRISMProperties.md)
+- [Memory problems](MemoryProblems.md)
+- [PRISM modelling](PRISMModelling.md)
+- [PRISM properties](PRISMProperties.md)

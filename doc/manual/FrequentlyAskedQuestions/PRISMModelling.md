@@ -1,4 +1,4 @@
-# PRISM Modelling
+# PRISM modelling
 
 <a id="max_model_size"></a>
 

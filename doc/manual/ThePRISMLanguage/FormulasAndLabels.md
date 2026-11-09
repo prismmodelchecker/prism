@@ -1,4 +1,4 @@
-# Formulas And Labels
+# Formulas and labels
 
 PRISM models can include *formulas* which are used to avoid duplication of code.
 A formula comprises a name (an identifier) and an [expression](Expressions.md).

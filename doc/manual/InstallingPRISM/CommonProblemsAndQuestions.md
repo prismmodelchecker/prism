@@ -1,4 +1,4 @@
-# Common Problems And Questions
+# Common problems and questions
 
 This section describes some of the most common problems and questions related to the installation and running of PRISM. These are grouped into the following categories:
 

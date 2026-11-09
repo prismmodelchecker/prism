@@ -1,4 +1,4 @@
-# Explicit Model Import
+# Explicit model import
 
 It is also possible to construct models in PRISM through direct specification of their transition matrix.
 Two formats for explicit model import are currently supported:
@@ -102,5 +102,5 @@ prism -importtrans poll2.tra -importstates poll2.sta -importlabels poll2.lab -ct
 
 There are also `-importstaterewards` and `-importtransrewards` switches.
 You can import multiple reward structures using multiple instances of the these switches.
-If present in the rewards files (see the appendix "[Explicit Model Files](../Appendices/ExplicitModelFiles.md)"),
+If present in the rewards files (see the appendix "[Explicit model files](../Appendices/ExplicitModelFiles.md)"),
 the names of the reward structures are read too.

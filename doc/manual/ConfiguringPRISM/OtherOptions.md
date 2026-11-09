@@ -1,4 +1,4 @@
-# Other Options
+# Other options
 
 ## Output options
 

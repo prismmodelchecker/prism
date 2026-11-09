@@ -1,4 +1,4 @@
-# Support For SBML
+# Support for SBML
 
 PRISM includes a (prototype) tool to translate specifications in [SBML](http://sbml.org/) (Systems Biology Markup Language) to model descriptions in the PRISM language. SBML is an XML-based format for representing models of biochemical reaction networks. The translator currently works with Level 2 Version 1 of the SBML specification, details of which can be found [here](http://sbml.org/documents/).
 

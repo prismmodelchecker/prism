@@ -1,17 +1,17 @@
-# Property Specification
+# Property specification
 
 How to specify the properties of a model to be analysed by PRISM: the property specification language, based on temporal logics such as PCTL, CSL and LTL, and properties files.
 
 - [Introduction](Introduction.md)
-- [Identifying A Set Of States](IdentifyingASetOfStates.md)
-- [The P Operator](ThePOperator.md)
-- [The S Operator](TheSOperator.md)
-- [Reward-based Properties](Reward-basedProperties.md)
-- [Multi-objective Properties](Multi-objectiveProperties.md)
-- [Real-time Models](Real-timeModels.md)
-- [Partially Observable Models](PartiallyObservableModels.md)
-- [Uncertain Models](UncertainModels.md)
-- [Non-probabilistic Properties](Non-probabilisticProperties.md)
-- [Syntax And Semantics](SyntaxAndSemantics.md)
+- [Identifying a set of states](IdentifyingASetOfStates.md)
+- [The P operator](ThePOperator.md)
+- [The S operator](TheSOperator.md)
+- [Reward-based properties](Reward-basedProperties.md)
+- [Multi-objective properties](Multi-objectiveProperties.md)
+- [Real-time models](Real-timeModels.md)
+- [Partially observable models](PartiallyObservableModels.md)
+- [Uncertain models](UncertainModels.md)
+- [Non-probabilistic properties](Non-probabilisticProperties.md)
+- [Syntax and semantics](SyntaxAndSemantics.md)
 - [Filters](Filters.md)
-- [Properties Files](PropertiesFiles.md)
+- [Properties files](PropertiesFiles.md)

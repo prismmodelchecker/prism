@@ -1,4 +1,4 @@
-# Explicit Model Files
+# Explicit model files
 
 This appendix details the plain text file formats used by PRISM for [exporting](../RunningPRISM/ExportingTheModel.md) and [importing](../RunningPRISM/ExplicitModelImport.md) models that have already been constructed, i.e., they comprise an explicit list of states, transitions, etc. making up the model, rather than a high-level model description in the [PRISM modelling language](../ThePRISMLanguage/Introduction.md).
 Below, we describe:

@@ -1,4 +1,4 @@
-# Debugging Models With The Simulator
+# Debugging models with the simulator
 
 PRISM includes a *simulator*, a tool which can be used to generate sample paths (executions) through a PRISM model. From the GUI, the simulator allows you to explore a model by interactively generating such paths. This is particularly useful for debugging models during development and for running sanity checks on completed models. Paths can also be generated from the command-line.
 

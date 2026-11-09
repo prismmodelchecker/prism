@@ -1,4 +1,4 @@
-# Multiple Initial States
+# Multiple initial states
 
 Typically, a [variable](ModulesAndVariables.md) declaration
 specifies the initial value for that variable.

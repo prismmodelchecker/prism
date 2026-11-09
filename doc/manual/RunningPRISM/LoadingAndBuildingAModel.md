@@ -1,4 +1,4 @@
-# Loading And Building a Model
+# Loading and building a model
 
 Typically, when using PRISM, the first step is to load a model that has been specified in the PRISM modelling language. If using the GUI, select menu option "Model | Open Model" and choose a file. There are a selection of sample PRISM model files in the `prism-examples` directory of the distribution.
 A few very small models are contained in the subdirectory `simple`;

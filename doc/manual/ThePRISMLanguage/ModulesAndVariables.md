@@ -1,4 +1,4 @@
-# Modules And Variables
+# Modules and variables
 
 The [previous example](Example1.md) uses two modules, `M1` and `M2`, one representing each process.
 A module is specified as:

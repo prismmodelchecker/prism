@@ -44,7 +44,7 @@ prism ..\prism-examples\simple\dice\dice.pm
 
 You can also edit the file `bin\prism.bat` to allow it to be run from any location. See the instructions within the file for further details.
 
-**Problems?** See the section "[Common Problems And Questions](CommonProblemsAndQuestions.md)".
+**Problems?** See the section "[Common problems and questions](CommonProblemsAndQuestions.md)".
 
 ---
 
@@ -73,7 +73,7 @@ You do not need to be root to install PRISM. The install script simply makes som
 
 To run PRISM, execute either the `xprism` or `prism` script (for the graphical user interface or command-line version, respectively). These can be found in the `bin` directory. These scripts are designed to be run from anywhere and you can easily create symbolic links or aliases to them. If you want icons to create desktop shortcuts to PRISM, you can find some in the `etc` directory.
 
-**Problems?** See the section "[Common Problems And Questions](CommonProblemsAndQuestions.md)".
+**Problems?** See the section "[Common problems and questions](CommonProblemsAndQuestions.md)".
 
 ---
 
@@ -110,7 +110,7 @@ Note the use of double quotes for the case where the directory contains a space.
 
 It is also possible to set the environment variables directly or edit their values in the Makefile directly. Note that even when you specify `JAVA_DIR` explicitly (in either way), PRISM still uses the version of `javac` that is in your path. To override this, you can also specify a specific version by setting `JAVAC`.
 
-**Problems?** See the section "[Common Problems And Questions](CommonProblemsAndQuestions.md)".
+**Problems?** See the section "[Common problems and questions](CommonProblemsAndQuestions.md)".
 
 ---
 
@@ -135,7 +135,7 @@ If you use a native Windows version of git, you may want to disable the Unix-to-
 
 - `git config --global core.autocrlf false`
 
-**Problems?** See the section "[Common Problems And Questions](CommonProblemsAndQuestions.md)".
+**Problems?** See the section "[Common problems and questions](CommonProblemsAndQuestions.md)".
 
 ---
 
@@ -170,4 +170,4 @@ make OSTYPE=cygwin CC=/mingw64/bin/gcc CXX=/mingw64/bin/g++
 ./install.sh
 ```
 
-**Problems?** See the section "[Common Problems And Questions](CommonProblemsAndQuestions.md)".
+**Problems?** See the section "[Common problems and questions](CommonProblemsAndQuestions.md)".

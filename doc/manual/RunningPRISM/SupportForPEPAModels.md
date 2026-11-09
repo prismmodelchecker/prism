@@ -1,4 +1,4 @@
-# Support For PEPA Models
+# Support for PEPA models
 
 For CTMCs, PRISM also accepts model descriptions in the stochastic process algebra [PEPA](http://www.dcs.ed.ac.uk/pepa/) [[Hil96](../Main/References.md#Hil96)].
 The tool compiles such descriptions into the PRISM language and then constructs the model as normal.

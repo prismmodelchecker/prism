@@ -1,4 +1,4 @@
-# Memory Problems
+# Memory problems
 
 <a id="crash"></a>
 
@@ -80,9 +80,9 @@ then PRISM ran out of memory whilst trying to construct the model.
 Model construction in PRISM is performed using BDDs (binary decision diagrams) and MTBDDs (multi-terminal) BDDs which are implemented in the CUDD library.
 The first thing to try in this case is to increase the amount of memory available to CUDD. See the entry "CUDD memory" in the section "[Configuring PRISM - Other Options](../ConfiguringPRISM/OtherOptions.md)" for details of this.
 
-If increasing this memory limit does not resolve the problem, then you will need to consider ways to reduce the size of your model. You can find some tips on this in the [PRISM Modelling](PRISMModelling.md) section. Bear in mind also that if you are having to increase the CUDD memory limit too high (e.g. close to the physical memory available on your computer) just for model construction, then it is unlikely that you will have enough memory for subsequent model checking operations.
+If increasing this memory limit does not resolve the problem, then you will need to consider ways to reduce the size of your model. You can find some tips on this in the [PRISM modelling](PRISMModelling.md) section. Bear in mind also that if you are having to increase the CUDD memory limit too high (e.g. close to the physical memory available on your computer) just for model construction, then it is unlikely that you will have enough memory for subsequent model checking operations.
 
-Finally, it is also worth considering the ordering of the modules and variables in your model since this can have a (in some cases dramatic) effect on the size of MTBDD representation of the model. This topic is covered in the "[PRISM Modelling](PRISMModelling.md)" section of this FAQ.
+Finally, it is also worth considering the ordering of the modules and variables in your model since this can have a (in some cases dramatic) effect on the size of MTBDD representation of the model. This topic is covered in the "[PRISM modelling](PRISMModelling.md)" section of this FAQ.
 
 <a id="memout_check"></a>
 
@@ -106,7 +106,7 @@ Here are some general tips:
 
 - Try experimenting with using the different *engines* in PRISM. Read the section "[Configuring PRISM - Computation Engines](../ConfiguringPRISM/ComputationEngines.md)" for details.
 
-- Look at the detailed output of PRISM for information about memory usage. If you are using the hybrid (or sparse) engine and the limiting factor in terms of memory is creation of the vectors, then you have no choice but to try and reduce the size (number of states) of your model. If you are using the MTBDD engine, it is also well worth considering the variable ordering of your model. Both topics are discussed in the "[PRISM Modelling](PRISMModelling.md)" section of this FAQ.
+- Look at the detailed output of PRISM for information about memory usage. If you are using the hybrid (or sparse) engine and the limiting factor in terms of memory is creation of the vectors, then you have no choice but to try and reduce the size (number of states) of your model. If you are using the MTBDD engine, it is also well worth considering the variable ordering of your model. Both topics are discussed in the "[PRISM modelling](PRISMModelling.md)" section of this FAQ.
 
 - Finally, if you can find no way to reduce the size of your model and are happy to consider an approximate (rather than exact) analysis, you may wish to try using PRISM's [discrete-event simulation engine](../RunningPRISM/StatisticalModelChecking.md) for analysis.
 

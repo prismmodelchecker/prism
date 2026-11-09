@@ -1,4 +1,4 @@
-# Global Variables
+# Global variables
 
 In addition to the local variables belonging to each module, a PRISM model can also include *global variables*,
 which can be written to, as well as read, by all modules.

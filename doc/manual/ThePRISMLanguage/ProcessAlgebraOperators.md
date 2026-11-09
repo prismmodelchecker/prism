@@ -1,4 +1,4 @@
-# Process Algebra Operators
+# Process algebra operators
 
 To make the concept of synchronisation described above more powerful,
 PRISM allows you to define precisely the way in which the set of modules are composed in parallel.

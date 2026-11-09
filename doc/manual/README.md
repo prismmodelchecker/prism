@@ -1,4 +1,4 @@
-# PRISM Manual
+# PRISM manual
 
 This is the user manual for [PRISM](https://www.prismmodelchecker.org/),
 published at <https://www.prismmodelchecker.org/manual/>.
@@ -9,10 +9,10 @@ see [doc/README.md](https://github.com/prismmodelchecker/prism/blob/master/doc/R
 
 - [Introduction](Main/Introduction.md)
 - [Installing PRISM](InstallingPRISM/README.md)
-- [The PRISM Language](ThePRISMLanguage/README.md)
-- [Property Specification](PropertySpecification/README.md)
+- [The PRISM language](ThePRISMLanguage/README.md)
+- [Property specification](PropertySpecification/README.md)
 - [Running PRISM](RunningPRISM/README.md)
 - [Configuring PRISM](ConfiguringPRISM/README.md)
 - [References](Main/References.md)
 - [Appendices](Appendices/README.md)
-- [Frequently Asked Questions](FrequentlyAskedQuestions/README.md)
+- [Frequently asked questions](FrequentlyAskedQuestions/README.md)

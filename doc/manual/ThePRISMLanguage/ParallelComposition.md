@@ -1,4 +1,4 @@
-# Parallel Composition
+# Parallel composition
 
 The probabilistic model corresponding to a PRISM language description is constructed as the *parallel composition* of its modules. In every state of the model, there is a set of commands (belonging to any of the modules) which are enabled, i.e. whose guards are satisfied in that state. The choice between which command is performed (i.e. the *scheduling*) depends on the model type.
 
@@ -26,4 +26,4 @@ the following probability distribution would result:
 For a [CTMC](CTMCs.md), as will be discussed shortly,
 the choice is modelled as a "race" between transitions.
 
-See the later sections on "[Synchronisation](Synchronisation.md)" and "[Process Algebra Operators](ProcessAlgebraOperators.md)" for other topics related to parallel composition.
+See the later sections on "[Synchronisation](Synchronisation.md)" and "[Process algebra operators](ProcessAlgebraOperators.md)" for other topics related to parallel composition.

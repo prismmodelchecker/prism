@@ -1,4 +1,4 @@
-# PRISM Properties
+# PRISM properties
 
 <a id="inf_rewards"></a>
 

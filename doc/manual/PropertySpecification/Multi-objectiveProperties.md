@@ -1,4 +1,4 @@
-# Multi-objective Properties
+# Multi-objective properties
 
 For MDPs, PRISM supports *multi-objective* properties. Consider a property that uses the `P` operator. For example:
 
@@ -34,7 +34,7 @@ multi(Pmin=? [ F "error1" ], Pmin=? [ F "error2" ])
 
 This asks PRISM to compute (approximately), the *Pareto curve* for this pair objectives. Intuitively, this is the set of pairs of probabilities (of reaching `"error1"`/`"error2"`) such that reducing one probability any more would necessitate an increase in the other probability.
 
-## Types of Objectives
+## Types of objectives
 
 For simplicity, the examples above all refer to the probability of reaching classes of states in the model. Other types of property (objective) are also possible.
 
@@ -77,7 +77,7 @@ Finally, time-bounded variants of both probabilistic reachability and expected c
 multi(R{"power"}min=? [ C<=k ], R{"queue"}<=r [ C<=k ])
 ```
 
-## Solution Methods
+## Solution methods
 
 PRISM can perform multi-objective model checking using two distinct solution methods, which are described in [[FKN+11](../Main/References.md#FKN+11)] and [[FKP12](../Main/References.md#FKP12)]. The former is based on the use of linear programming; the latter reduces multi-objective model checking to a series of simpler problems, solved using value iteration (or the Gauss-Seidel variant of value iteration). The default is "Value iteration". You can change this in the GUI using the option "MDP multi-objective solution methods", or using the command-line switches `-lp`, `-valiter`, `-gs`.
 

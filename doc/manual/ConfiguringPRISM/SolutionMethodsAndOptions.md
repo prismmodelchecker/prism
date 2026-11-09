@@ -1,4 +1,4 @@
-# Solution Methods And Options
+# Solution methods and options
 
 Separately from the choice of [engines](ComputationEngines.md),
 PRISM often offers several different solution methods

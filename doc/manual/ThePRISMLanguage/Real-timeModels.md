@@ -1,4 +1,4 @@
-# Real-time Models
+# Real-time models
 
 So far in this section, we have mainly focused on three types of models: DTMCs, MDPs and CTMCs,
 in which all the variables making up their state are finite.

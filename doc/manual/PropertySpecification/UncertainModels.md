@@ -1,4 +1,4 @@
-# Uncertain Models
+# Uncertain models
 
 For uncertain models, currently interval MDPs (IMDPs) or interval DTMCs (IDTMCs), PRISM performs *robust* verification, which considers the best- or worst-case behaviour that can arise depending on the way that probabilities are selected from intervals.
 

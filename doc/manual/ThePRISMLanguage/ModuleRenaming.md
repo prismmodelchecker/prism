@@ -1,4 +1,4 @@
-# Module Renaming
+# Module renaming
 
 PRISM also supports *module renaming*, which allows duplication of modules.
 In [Example 1](Example1.md), module `M2` is identical to module `M1` so we can in fact replace its entire definition with:

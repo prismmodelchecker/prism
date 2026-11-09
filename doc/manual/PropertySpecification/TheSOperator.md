@@ -1,4 +1,4 @@
-# The S Operator
+# The S operator
 
 The `S` operator is used to reason about the *steady-state* behaviour of a model,
 i.e. its behaviour in the *long-run* or *equilibrium*.

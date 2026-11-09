@@ -1,4 +1,4 @@
-# Costs And Rewards
+# Costs and rewards
 
 PRISM supports the specification and analysis of
 properties based on *costs* and *rewards*.

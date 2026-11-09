@@ -1,4 +1,4 @@
-# Exporting The Model
+# Exporting the model
 
 If required, once the model has been constructed, it can be exported, either for manual examination or for use in another tool. The following can all be exported:
 
@@ -100,7 +100,7 @@ When exporting multiple reward structures to individual files, a (1-indexed) suf
 By default each part of the model is prefixed by a header (starting `#`),
 identifying what it is, plus some additional details,
 e.g., the name of a reward structure or the type of a model
-(see the "[Explicit Model Files](../Appendices/ExplicitModelFiles.md#srew)" appendix).
+(see the "[Explicit model files](../Appendices/ExplicitModelFiles.md#srew)" appendix).
 This can be omitted - see the options below - or via the option "Include headers in model exports" in the GUI.
 
 <a id="umb"></a>

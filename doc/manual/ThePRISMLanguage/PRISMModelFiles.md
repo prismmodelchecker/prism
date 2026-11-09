@@ -1,4 +1,4 @@
-# PRISM Model Files
+# PRISM model files
 
 Files containing model descriptions written in the PRISM language
 can contain any amount of white space (spaces, tabs, new lines, etc.),

@@ -1,4 +1,4 @@
-# Automata Generation
+# Automata generation
 
 When PRISM performs verification of [LTL formulas](../PropertySpecification/ThePOperator.md#ltl), it does so by converting the formula into an automaton (such as a deterministic Rabin automaton) and then analysing a larger product model, constructed from the model being verified and the omega automaton. For this reason, the size of the automaton has an important effect on the efficiency of verification.
 

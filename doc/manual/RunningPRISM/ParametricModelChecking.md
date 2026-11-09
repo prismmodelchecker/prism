@@ -1,4 +1,4 @@
-# Parametric Model Checking
+# Parametric model checking
 
 Often, PRISM models contain [constants](../ThePRISMLanguage/Constants.md), representing parameters of the system being modelled, which define for example the transition probabilities in the model. In order to perform model checking, these constants have to be assigned concrete values. PRISM also allows [experiments](Experiments.md), where model checking is performed for a range of different values for the constants.
 

@@ -1,4 +1,4 @@
-# Syntax And Semantics
+# Syntax and semantics
 
 ## Syntax
 

@@ -1,4 +1,4 @@
-# Reward-based Properties
+# Reward-based properties
 
 PRISM models can be augmented with information about [rewards](../ThePRISMLanguage/CostsAndRewards.md) (or, equivalently, costs).
 The tool can analyse properties which relate to the *expected values* of these rewards.

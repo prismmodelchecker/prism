@@ -1,4 +1,4 @@
-# Partially Observable Models
+# Partially observable models
 
 For partially observable models (POMDPs and POPTAs),
 PRISM uses the same property language as the their

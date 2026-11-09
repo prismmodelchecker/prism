@@ -1,4 +1,4 @@
-# Partially Observable Models
+# Partially observable models
 
 PRISM supports analysis of *partially observable* probabilistic models,
 most notably partially observable Markov decision processes (POMDPs),

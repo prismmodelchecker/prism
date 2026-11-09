@@ -1,4 +1,4 @@
-# Computation Engines
+# Computation engines
 
 ## Computation engines
 
@@ -69,7 +69,7 @@ PRISM also provides approximate/statistical model checking,
 which is based on the use of discrete-event simulation.
 From the GUI, this is enabled by choosing "Simulate" menu items or tick boxes;
 from the command-line, add the `-sim` switch.
-See the "[Statistical Model Checking](../RunningPRISM/StatisticalModelChecking.md)"
+See the "[Statistical model checking](../RunningPRISM/StatisticalModelChecking.md)"
 section for more details.
 
 <a id="exact"></a>

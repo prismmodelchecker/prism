@@ -1,7 +1,7 @@
-# Model Checking
+# Model checking
 
 Typically, once a model has been constructed, it is analysed through model checking.
-Properties are specified as described in the "[Property Specification](../PropertySpecification/Introduction.md)" section,
+Properties are specified as described in the "[Property specification](../PropertySpecification/Introduction.md)" section,
 and are usually kept in files with extensions `.props`, `.pctl` or `.csl`.
 There are properties files accompanying most of the sample PRISM models in the `prism-examples` directory.
 

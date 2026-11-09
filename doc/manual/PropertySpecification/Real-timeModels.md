@@ -1,4 +1,4 @@
-# Real-time Models
+# Real-time models
 
 The classes of property that can be checked for real-time models (PTAs and POPTAs) are currently more restricted than for the other kinds of models that PRISM supports. This is because the model checking procedures are quite different for this type of model. We describe these restrictions here. The situation is also dependent on which of the PTA model checking [engines](../ConfiguringPRISM/ComputationEngines.md#pta) is being used.
 

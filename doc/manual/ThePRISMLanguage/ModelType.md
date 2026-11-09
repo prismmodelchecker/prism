@@ -1,4 +1,4 @@
-# Model Type
+# Model type
 
 As mentioned above, the PRISM language can be used to describe several types of probabilistic models.
 To indicate which type is being described, a PRISM model usually includes a model type keyword:

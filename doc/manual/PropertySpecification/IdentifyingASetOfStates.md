@@ -1,4 +1,4 @@
-# Identifying A Set Of States
+# Identifying a set of states
 
 One of the most fundamental tasks when specifying properties of a model
 is to identify particular sets or classes of states of the model.
