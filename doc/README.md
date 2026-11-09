@@ -33,6 +33,9 @@ and anything the website adds must be invisible on GitHub rather than broken.
   In `shell` blocks, write commands as they are and start each line of output with `#`
   (the website shows a `$` before each command, and the output without the `#`); start a script with `#!`.
   Inline code (keywords, properties, switches, file names) is plain backticks, not syntax highlighted.
+- **Maths:** LaTeX between dollar signs, which GitHub and the website both show as maths: `$\alpha$` inline,
+  and `$$ ... $$` on lines of their own for a displayed formula (e.g. `$$N = \frac{\ln(2/\delta)}{2\varepsilon^2}$$`).
+  Use it for formulas and symbols, not for PRISM syntax (properties, expressions), which goes in backticks.
 - **Versions:** say which version a feature appeared in ("Since PRISM 4.10, ...") rather than "now",
   "currently" or "in newer versions", which date badly. Don't hard-code the current version
   (e.g. in file names, write `prism-X.Y-linux64-x86`).

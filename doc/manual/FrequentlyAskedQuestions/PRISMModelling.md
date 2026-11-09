@@ -6,7 +6,7 @@
 
 There is no definitive answer to this. Because of PRISM's symbolic implementation, using data structures based on binary decision diagrams (BDDs), its performance can be unpredictable in this respect. There are also several factors that affect performance, including the type of model and property being checked and the engine being used (PRISM has several different engines, which have varying performance).
 
-Having said that, using the default engine in PRISM (the “hybrid” engine), you can normally expect to be able to handle models with up to 10<sup>7</sup>-10<sup>8</sup> states on a typical PC. Using the MTBDD engine, you may be able to analyse much larger models (on some of the PRISM case studies, for example, PRISM can do numerical analysis of models with as many as 10<sup>10</sup> or 10<sup>11</sup> states). The manual has more information about PRISM's [engines](../ConfiguringPRISM/ComputationEngines.md).
+Having said that, using the default engine in PRISM (the “hybrid” engine), you can normally expect to be able to handle models with up to $10^7$–$10^8$ states on a typical PC. Using the MTBDD engine, you may be able to analyse much larger models (on some of the PRISM case studies, for example, PRISM can do numerical analysis of models with as many as 10<sup>10</sup> or 10<sup>11</sup> states). The manual has more information about PRISM's [engines](../ConfiguringPRISM/ComputationEngines.md).
 
 <a id="model_size"></a>
 

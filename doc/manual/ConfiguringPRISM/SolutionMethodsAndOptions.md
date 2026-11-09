@@ -111,7 +111,7 @@ The following options can be used to configure FAU:
 ## Convergence
 
 Common to all of these methods is the way that PRISM checks convergence, i.e. decides when to terminate the iterative methods because the answers have converged sufficiently. This is done by checking when the maximum difference between elements in the solution vectors from successive iterations drops below a given threshold (or, in the case of interval iteration, if the difference of the elements in the iterations from above and below are below the threshold).
-The default value for this threshold is 10<sup>-6</sup> but it can be altered with the "Termination epsilon" option (switch `-epsilon <val>`). The way that the maximum difference is computed can also be varied:
+The default value for this threshold is $10^{-6}$ but it can be altered with the "Termination epsilon" option (switch `-epsilon <val>`). The way that the maximum difference is computed can also be varied:
 either "relative" or "absolute" (the default is "relative"). This can be changed using the "Termination criteria" option (command-line switches `-relative` and `-absolute`, or `-rel` and `-abs` for short).
 
 Also, the maximum number of iterations performed is given an upper limit

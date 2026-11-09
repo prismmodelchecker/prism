@@ -28,22 +28,27 @@ Details for the case of an `R` operator can be found in [[Nim10](../Main/Referen
 The CI method gives a *confidence interval* for the approximate value generated for a `P=?` property, based on a given *confidence level* and the number of samples generated.
 The parameters of the method are:
 
-- "Width" (*w*)
-- "Confidence" (*alpha*)
-- "Number of samples" (*N*)
+- "Width" ($w$)
+- "Confidence" ($\alpha$)
+- "Number of samples" ($N$)
 
-Let *X* denote the true result of the query `P=?[...]` and *Y* the approximation generated.
-The confidence interval is [*Y-w*,*Y+w*], i.e. *w* gives the half-width of the interval.
-The confidence level, which is usually stated as a percentage, is 100(1-*alpha*)%.
-This means that the actual value *X* should fall into the confidence interval [*Y-w*,*Y+w*] 100(1-*alpha*)% of the time.
+Let $X$ denote the true result of the query `P=?[...]` and $Y$ the approximation generated.
+The confidence interval is $[Y-w, Y+w]$, i.e. $w$ gives the half-width of the interval.
+The confidence level, which is usually stated as a percentage, is $100(1-\alpha)\%$.
+This means that the actual value $X$ should fall into the confidence interval $[Y-w, Y+w]$ $100(1-\alpha)\%$ of the time.
 
-To determine, for example, the width *w* for given *alpha* and *N*,
-we use *w* = *q* \* sqrt(*v* / *N*) where
-*q* is a quantile, for probability 1-*alpha*/2, from the Student's t-distribution with *N*-1 degrees of freedom and *v* is (an estimation of) the variance for *X*.
-Similarly, we can determine the required number of iterations, from *w* and *alpha*,
-as N = (*v* \* *q*<sup>2</sup>)/*w*<sup>2</sup>, where *q* and *v* are as before.
+To determine, for example, the width $w$ for given $\alpha$ and $N$, we use
 
-For a bounded property  `P~p[...]`, the (Boolean) result is determined according to the generated approximation for the probability. This is not the case, however, if the threshold *p* falls within the confidence interval [*Y-w*,*Y+w*], in which case no value is returned.
+$$w = q \sqrt{v / N}$$
+
+where $q$ is a quantile, for probability $1-\alpha/2$, from the Student's t-distribution with $N-1$ degrees of freedom and $v$ is (an estimation of) the variance for $X$.
+Similarly, we can determine the required number of iterations, from $w$ and $\alpha$, as
+
+$$N = \frac{v q^2}{w^2}$$
+
+where $q$ and $v$ are as before.
+
+For a bounded property  `P~p[...]`, the (Boolean) result is determined according to the generated approximation for the probability. This is not the case, however, if the threshold $p$ falls within the confidence interval $[Y-w, Y+w]$, in which case no value is returned.
 
 ## ACI (Asymptotic Confidence Interval) Method
 
@@ -54,20 +59,22 @@ The ACI method works in exactly same fashion as the CI method, except that it us
 The APMC method, based on [[HLMP04](../Main/References.md#HLMP04)], offers a probabilistic guarantee on the accuracy of the  approximate value generated for a `P=?` property, based on the Chernoff-Hoeffding bound.
 The parameters of the method are:
 
-- "Approximation" (*epsilon*)
-- "Confidence" (*delta*)
-- "Number of samples" (*N*)
+- "Approximation" ($\varepsilon$)
+- "Confidence" ($\delta$)
+- "Number of samples" ($N$)
 
-Letting *X* denote the true result of the query `P=?[...]` and *Y* the approximation generated, we have:
+Letting $X$ denote the true result of the query `P=?[...]` and $Y$ the approximation generated, we have:
 
-- Prob(|*Y*-*X*| &gt; *epsilon*) &lt; *delta*
+$$\mathrm{Prob}(|Y-X| > \varepsilon) < \delta$$
 
 where the parameters are related as follows:
-*N* = ln(2/*delta*) / 2*epsilon*<sup>2</sup>.
-This imposes certain restrictions on the parameters,
-namely that *N*(*epsilon*<sup>2</sup>) &#8805; ln(2/delta)/2.
 
-In similar fashion to the CI/ACI methods, the APMC method can be also be used for bounded properties such as `P~p[...]`, as long as the threshold *p* falls outside the interval [*Y-epsilon*,*Y+epsilon*].
+$$N = \frac{\ln(2/\delta)}{2\varepsilon^2}$$
+
+This imposes certain restrictions on the parameters,
+namely that $N \varepsilon^2 \ge \ln(2/\delta)/2$.
+
+In similar fashion to the CI/ACI methods, the APMC method can be also be used for bounded properties such as `P~p[...]`, as long as the threshold $p$ falls outside the interval $[Y-\varepsilon, Y+\varepsilon]$.
 
 ## SPRT (Sequential Probability Ratio Test) Method
 
@@ -75,10 +82,10 @@ The SPRT method is specifically for bounded properties, such as `P~p[...]` and i
 
 The parameters of the method are:
 
-- "Indifference" (*delta*)
-- "Type I/II error" (*alpha*/*beta*)
+- "Indifference" ($\delta$)
+- "Type I/II error" ($\alpha$/$\beta$)
 
-Consider a property of the form `P>=p[...]`. The parameter *delta* is used as the half-width of an *indifference region* [p-delta,p+delta]. PRISM will attempt to determine whether either the hypothesis `P>=(p+delta)[...]` or `P<=(p-delta)[...]` is true, based on which it will return either `true` or `false`, respectively. The parameters *alpha* and *beta* represent the probability of the occurrence of a *type I error* (wrongly accepting the first hypothesis) and a *type II error* (wrongly accepting the second hypothesis), respectively. For simplicity, PRISM assigns the same value to both *alpha* and *beta*.
+Consider a property of the form `P>=p[...]`. The parameter $\delta$ is used as the half-width of an *indifference region* $[p-\delta, p+\delta]$. PRISM will attempt to determine whether either the hypothesis `P>=(p+delta)[...]` or `P<=(p-delta)[...]` is true, based on which it will return either `true` or `false`, respectively. The parameters $\alpha$ and $\beta$ represent the probability of the occurrence of a *type I error* (wrongly accepting the first hypothesis) and a *type II error* (wrongly accepting the second hypothesis), respectively. For simplicity, PRISM assigns the same value to both $\alpha$ and $\beta$.
 
 ## Maximum Path Length
 
