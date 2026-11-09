@@ -30,6 +30,8 @@ and anything the website adds must be invisible on GitHub rather than broken.
 - **Citations:** `[[KNP11](../Main/References.md#KNP11)]`. `Main/References.md` lists every cited paper, by key,
   and is edited by hand: when adding a citation, add an entry there too (the website build warns if the two don't match).
 - **Code:** fenced blocks with a language: `prism` (models and properties, highlighted on the website), `shell`, `text`, `xml`.
+  In `shell` blocks, write commands as they are and start each line of output with `#`
+  (the website shows a `$` before each command, and the output without the `#`); start a script with `#!`.
   Inline code (keywords, properties, switches, file names) is plain backticks, not syntax highlighted.
 - **Versions:** say which version a feature appeared in ("Since PRISM 4.10, ...") rather than "now",
   "currently" or "in newer versions", which date badly. Don't hard-code the current version
