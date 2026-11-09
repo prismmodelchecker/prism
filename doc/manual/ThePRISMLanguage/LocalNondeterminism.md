@@ -1,6 +1,6 @@
 # Local nondeterminism
 
-PRISM models that support nondeterminism, such as are MDPs, can also exhibit *local nondeterminism*,
+PRISM models that support nondeterminism, such as MDPs, can also exhibit *local nondeterminism*,
 which allows the modules themselves to make nondeterministic choices.
 In [Example 1](Example1.md), we can make the probabilistic choice in the first state of module `M1` nondeterministic by replacing the command:
 

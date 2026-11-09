@@ -53,7 +53,7 @@ prism poll2.sm poll.csl -prop safe
 ```
 
 You can also provide a comma-separated list of multiple properties to check,
-using neither numerical indices or property names:
+using numerical indices, property names or a mix of the two:
 
 ```shell
 prism poll2.sm poll.csl -prop 4,5,safe

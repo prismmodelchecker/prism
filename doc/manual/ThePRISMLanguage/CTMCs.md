@@ -14,7 +14,7 @@ rate_1:update_1 + rate_2:update_2 + ...
 In a CTMC, when multiple possible transitions are available in a state, a *race condition* occurs
 (see e.g. [[KNP07a](../Main/References.md#KNP07a)] for more details).
 In terms of PRISM commands, this can arise in several ways.
-Firstly, within in a module, multiple transitions can be specified either as several different updates in a command, or as multiple commands with overlapping guards. The following, for example. are equivalent:
+Firstly, within a module, multiple transitions can be specified either as several different updates in a command, or as multiple commands with overlapping guards. The following, for example. are equivalent:
 
 ```prism
 [] x=0 -> 50:(x'=1) + 60:(x'=2);
@@ -26,4 +26,4 @@ Firstly, within in a module, multiple transitions can be specified either as sev
 ```
 
 Furthermore, parallel composition between modules in a CTMC is modelled as a race condition,
-rather as a nondeterministic choice, like for [MDPs](ParallelComposition.md).
+rather than as a nondeterministic choice, like for [MDPs](ParallelComposition.md).

@@ -1,8 +1,7 @@
 # Partially observable models
 
 For partially observable models (POMDPs and POPTAs),
-PRISM uses the same property language as the their
-fully observational equivalents (MDPs and PTAs).
+PRISM uses the same property language as their fully observational equivalents (MDPs and PTAs).
 However, a more limited range of properties are available.
 For POMDPs, PRISM currently supports probabilistic reachability,
 probabilistic until, or expected reachability rewards properties, i.e.:

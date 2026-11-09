@@ -17,14 +17,14 @@ You can also change the level of precision used to check that probabilities sum 
 
 ## CUDD memory
 
-CUDD, the underlying BDD and MTBDD library used in PRISM has an upper memory limit. By default, this limit is 1 GB. If you are working on a machine with significantly more memory this and PRISM runs out of memory when model checking, it may help to change this. To set the limit, from the command-line, use the `-cuddmaxmem` switch. For example:
+CUDD, the underlying BDD and MTBDD library used in PRISM has an upper memory limit. By default, this limit is 1 GB. If you are working on a machine with significantly more memory than this and PRISM runs out of memory when model checking, it may help to change this. To set the limit, from the command-line, use the `-cuddmaxmem` switch. For example:
 
 ```shell
 prism -cuddmaxmem 2g big_model.pm
 ```
 
 Above, `g` denotes GB. You can also use `m` for MB.
-You can also the CUDD maximum memory setting from the options panel in the GUI, but you will need to close and restart the GUI (saving the settings as you do) for this to take effect.
+You can also change the CUDD maximum memory setting from the options panel in the GUI, but you will need to close and restart the GUI (saving the settings as you do) for this to take effect.
 
 <a id="javamaxmem"></a>
 

@@ -22,7 +22,7 @@ e.g. until (`U`) properties are allowed, as are clock variables in expressions a
 1 - Pmin=? [ F target ]
 ```
 
-This engine, like the "stochastic games" engine, does not allowed nested properties. Also, references to clocks must, like in the modelling language, not use strict comparisons
+This engine, like the "stochastic games" engine, does not allow nested properties. Also, references to clocks must, like in the modelling language, not use strict comparisons
 (e.g. `x<=5` is allowed, `x<5` is not).
 
 The digital clocks also has support for rewards:
@@ -34,6 +34,6 @@ Rmax=? [ F target ]
 ```
 
 Reward structures specified in the model, though, must not depend on clock variables.
-Formally, the class of PTAs with this kind of reward structure is sometime called *linearly priced PTAs* (see e.g. [[KNPS06](../Main/References.md#KNPS06)].
+Formally, the class of PTAs with this kind of reward structure is sometimes called *linearly priced PTAs* (see e.g. [[KNPS06](../Main/References.md#KNPS06)]).
 
 The digital clocks method is based on a language-level translation from a PTA model to an MDP one. If you want to see the MDP PRISM model that was generated, add the switch `-exportdigital digital.nm` when model checking property to export the model file to `digital.nm`.

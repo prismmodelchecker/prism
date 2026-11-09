@@ -4,14 +4,14 @@ In order to analyse a probabilistic model which has been specified and construct
 it is necessary to identify one or more *properties* of the model
 which can be evaluated by the tool.
 PRISM's *property specification language* subsumes several well-known probabilistic temporal logics, including PCTL, CSL, probabilistic LTL and PCTL\*.
-PCTL is used for specifying properties of discrete-time models such as DTMCs or PTAs,
+PCTL is used for specifying properties of discrete-time models such as DTMCs or MDPs,
 and also real-time models such as PTAs; CSL is an extension of PCTL for CTMCs;
 LTL and PCTL\* can be used to specify properties of
 discrete-time models (or untimed properties of CTMCs).
 PRISM also supports most of the (non-probabilistic) temporal logic CTL.
 
-In fact, PRISM also supports numerous additional customisations and extensions of these two logics.
-Full details of the property specifications permitted in PRISM are provided in the following sections. The presentation given here is relatively informal. For the precise syntax and semantics of the various logics, see [[HJ94](../Main/References.md#HJ94)],[[BdA95](../Main/References.md#BdA95)] for PCTL, [[ASSB96](../Main/References.md#ASSB96)],[[BKH99](../Main/References.md#BKH99)] for CSL and, for example, [[Bai98](../Main/References.md#Bai98)] for LTL and PCTL\*. You can also find various pointers to useful papers in the [About](https://www.prismmodelchecker.org/about.php) and [Documentation](https://www.prismmodelchecker.org/doc/) sections of the PRISM website.
+In fact, PRISM also supports numerous additional customisations and extensions of these logics.
+Full details of the property specifications permitted in PRISM are provided in the following sections. The presentation given here is relatively informal. For the precise syntax and semantics of the various logics, see [[HJ94](../Main/References.md#HJ94)],[[BdA95](../Main/References.md#BdA95)] for PCTL, [[ASSB96](../Main/References.md#ASSB96)],[[BKH99](../Main/References.md#BKH99)] for CSL and, for example, [[Bai98](../Main/References.md#Bai98)] for LTL and PCTL\*. You can also find various pointers to useful papers in the [About](https://www.prismmodelchecker.org/about/) and [Documentation](https://www.prismmodelchecker.org/doc/) sections of the PRISM website.
 
 Before discussing property specifications in more detail,
 it is perhaps instructive to first illustrate some typical examples of properties which PRISM can handle.

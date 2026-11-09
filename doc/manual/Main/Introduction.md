@@ -30,7 +30,7 @@ Properties of these models are written in the PRISM [property specification lang
 
 - PCTL (probabilistic computation tree logic),
 - CSL (continuous stochastic logic),
-- (probabiistic) LTL (linear time logic),
+- (probabilistic) LTL (linear time logic),
 - PCTL\* (which subsumes both PCTL and LTL).
 
 The property language also supports [costs and rewards](../PropertySpecification/Reward-basedProperties.md), "[numerical](../PropertySpecification/ThePOperator.md)" properties, several other custom features and extensions, and also incorporates the non-probabilistic temporal logics CTL (computation tree logic) and LTL.

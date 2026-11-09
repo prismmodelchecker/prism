@@ -33,7 +33,7 @@ Things to check:
 
 (3) Are you running on Mac OS? See the next question.
 
-(3) Are you running on an old version of Mac OS (notably El Capitan)? This had some issues with PRISM calling `java`.
+(4) Are you running on an old version of Mac OS (notably El Capitan)? This had some issues with PRISM calling `java`.
 A workaround is to specify the exact path to the `java` when running PRISM, e.g.:
 
 `PRISM_JAVA=/Library/Java/JavaVirtualMachines/jdk1.9.jdk/Contents/Home/bin/java prism`
@@ -72,7 +72,7 @@ This is probably due to the detection of Java failing. Specify the location of y
 **When I try to compile PRISM, I get errors of the form:<br>
 `/usr/bin/libtool: for architecture: cputype (16777234) cpusubtype (0) file: -lSystem is not an object file (not allowed in a library)`**
 
-Are you compiling PRISM on Max OS X? If so, the likely explanation is that you have upgraded to a new version of Mac OS X but have not upgraded the developer tools (eg. XCode). Upgrade and try again.
+Are you compiling PRISM on Mac OS X? If so, the likely explanation is that you have upgraded to a new version of Mac OS X but have not upgraded the developer tools (eg. XCode). Upgrade and try again.
 
 **When I try to compile PRISM, nothing seems to happen**
 

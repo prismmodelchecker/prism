@@ -189,7 +189,7 @@ If you don't specify a reward structure to the `R` operator, by default, the fir
 
 ## Discounts
 
-For core the reward operators that refer to accumulated rewards,
+For the reward operators that refer to accumulated rewards,
 i.e., `F prop`, `C<=t` and `C`,
 rewards on DTMCs and MDPs can be *discounted* using a specified factor. Examples are:
 

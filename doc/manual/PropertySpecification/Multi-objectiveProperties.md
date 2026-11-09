@@ -32,7 +32,7 @@ A "Pareto" queries leaves both of the objectives unbounded, e.g.:
 multi(Pmin=? [ F "error1" ], Pmin=? [ F "error2" ])
 ```
 
-This asks PRISM to compute (approximately), the *Pareto curve* for this pair objectives. Intuitively, this is the set of pairs of probabilities (of reaching `"error1"`/`"error2"`) such that reducing one probability any more would necessitate an increase in the other probability.
+This asks PRISM to compute (approximately), the *Pareto curve* for this pair of objectives. Intuitively, this is the set of pairs of probabilities (of reaching `"error1"`/`"error2"`) such that reducing one probability any more would necessitate an increase in the other probability.
 
 ## Types of objectives
 

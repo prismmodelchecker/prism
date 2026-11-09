@@ -109,7 +109,7 @@ The property `F prop` is true for a path if `prop` eventually becomes true at so
 P<0.1 [ F z>2 ]
 ```
 
-which is true in a state if "the probability that `z` is eventually greater than 2is less than 0.1".
+which is true in a state if "the probability that `z` is eventually greater than 2 is less than 0.1".
 
 ## "Globally" path properties
 
@@ -125,10 +125,10 @@ states that, with probability at least 0.99, `z` never exceeds 10.
 
 Like `F` and `G`, the operators `W` and `R` are derivable from other temporal operators.
 
-Weak until (`a W b`), which is equivalent to `(a U b) | G a`, requires that `a` remains true until `b` becomes true, but does not require that `b` ever does becomes true (i.e. `a` remains true forever). For example, a weak form of the until example used above is:
+Weak until (`a W b`), which is equivalent to `(a U b) | G a`, requires that `a` remains true until `b` becomes true, but does not require that `b` ever becomes true (i.e. `a` remains true forever). For example, a weak form of the until example used above is:
 
 ```prism
-P>0.5 [ z<2 U z=2 ]
+P>0.5 [ z<2 W z=2 ]
 ```
 
 which states that, with probability greater than 0.5, either `z` is always less than 2, or it is less than 2 until the point where `z` is 2.

@@ -25,7 +25,7 @@ PRISM is known to work with these HOA-enabled tools:
 and contains ready-made scripts for calling them in the `etc/scripts/hoa` directory of the distribution:
 
 - `hoa-ltl2dstar-for-prism` <br>
-     ([ltl2dstar](http://ltl2dstar.de/), using [Spot](https://spot.lre.epita.fr/)'s [`ltl2tgba`](https://spot.lre.epita.fr/ltl2tgba.html), [`ltl2ba`](http://www.lsv.ens-cachan.fr/~gastin/ltl2ba/) or [LTL3BA](https://github.com/xblahoud/ltl3dra) as the LTL-to-NBA tool as the LTL-to-NBA tool)
+     ([ltl2dstar](http://ltl2dstar.de/), using [Spot](https://spot.lre.epita.fr/)'s [`ltl2tgba`](https://spot.lre.epita.fr/ltl2tgba.html), [`ltl2ba`](http://www.lsv.ens-cachan.fr/~gastin/ltl2ba/) or [LTL3BA](https://github.com/xblahoud/ltl3dra) as the LTL-to-NBA tool)
 - `hoa-ltl2tgba-for-prism` <br>
      ([Spot](https://spot.lre.epita.fr/)'s [`ltl2tgba`](https://spot.lre.epita.fr/ltl2tgba.html))
 - `hoa-ltl3dra-for-prism` <br>

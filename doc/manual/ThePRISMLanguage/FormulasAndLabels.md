@@ -6,7 +6,7 @@ The formula name can then be used as shorthand for the expression anywhere an ex
 A formula is defined as follows:
 
 ```prism
-formula num_tokens = q1+q2+q3+q+q5;
+formula num_tokens = q1+q2+q3+q4+q5;
 ```
 
 It can then be used anywhere within that file, as for example in this command:
@@ -18,7 +18,7 @@ It can then be used anywhere within that file, as for example in this command:
 The effect is exactly as if the following had been typed:
 
 ```prism
-[] p1=2 & (q1+q2+q3+q+q5)=5 -> (p1'=4);
+[] p1=2 & (q1+q2+q3+q4+q5)=5 -> (p1'=4);
 ```
 
 Formulas defined in a model can also be used when specifying its properties.

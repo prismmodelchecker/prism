@@ -81,7 +81,7 @@ To run PRISM, execute either the `xprism` or `prism` script (for the graphical u
 
 ## Building PRISM from source (non-Windows)
 
-To compile PRISM form source code, you will need:
+To compile PRISM from source code, you will need:
 
 - GNU make (sometimes called gmake)
 - a C/C++ compiler (e.g. gcc/g++)

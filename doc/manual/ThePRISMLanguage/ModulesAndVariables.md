@@ -39,7 +39,7 @@ x : [0..2];
 b : bool;
 ```
 
-We also mention that, for a few kinds of model analysis (typically those based on simulation, such as [approximate model checking](../RunningPRISM/StatisticalModelChecking.md) or [fast adaptive simulation](../ConfiguringPRISM/SolutionMethodsAndOptions.md#fau), it is also permissable to use integer variables with unbounded ranges, denoted as:
+We also mention that, for a few kinds of model analysis (typically those based on simulation, such as [approximate model checking](../RunningPRISM/StatisticalModelChecking.md) or [fast adaptive uniformisation](../ConfiguringPRISM/SolutionMethodsAndOptions.md#fau)), it is also permissible to use integer variables with unbounded ranges, denoted as:
 
 ```prism
 x : int;
