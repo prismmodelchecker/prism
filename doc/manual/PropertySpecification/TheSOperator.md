@@ -3,7 +3,7 @@
 The `S` operator is used to reason about the *steady-state* behaviour of a model,
 i.e. its behaviour in the *long-run* or *equilibrium*.
 PRISM currently only provides support for DTMCs and CTMCs.
-The definition of steady-state (long-run) probabilities for finite DTMCS and CTMCs is well defined (see e.g. [[Ste94](../Main/References.md#Ste94)]).
+The definition of steady-state (long-run) probabilities for finite DTMCS and CTMCs is well defined (see e.g. [[Ste94](../Reference/References.md#Ste94)]).
 Informally, the property:
 
 ```prism
@@ -20,7 +20,7 @@ S<0.05 [ queue_size / max_size > 0.75 ]
 
 which means: "the long-run probability of the queue being more than 75% full is less than 0.05".
 
-Like the `P` [operator](ThePOperator.md), the `S` operator can be used in a *quantitative* form, which returns the actual probability value, e.g.:
+Like the `P` operator, the `S` operator can be used in a [numerical](ThePOperator.md#numerical) form, which returns the actual probability value, e.g.:
 
 ```prism
 S=? [ queue_size / max_size > 0.75 ]

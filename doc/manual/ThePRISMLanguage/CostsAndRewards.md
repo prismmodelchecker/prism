@@ -1,29 +1,25 @@
 # Costs and rewards
 
 PRISM supports the specification and analysis of
-properties based on *costs* and *rewards*.
+properties based on **costs** and **rewards**.
 This means that it can be used to reason,
 not just about the probability that a model behaves in a certain fashion,
 but about a wider range of quantitative measures relating to model behaviour.
 For example, PRISM can be used to compute properties such as
-"expected time", "expected number of lost messages" or "expected power consumption".
-The implementation of cost- and reward-based techniques in the tool is only partially completed and is still ongoing.
-If you have questions, comments or feature-requests relating to this functionality,
-please feel free to contact the PRISM team about this.
+"expected time", "expected number of lost messages" or "expected energy consumption".
 
-The basic idea is that probabilistic models (of all types) developed in PRISM
-can be augmented with costs or rewards: real values associated with certain states or transitions of the model.
-In fact, since there is no practical distinction between costs and rewards
-(except that costs are generally perceived to be "bad" and rewards to be "good"),
-PRISM only supports rewards.
-The user is, however, free to interpret the values however they choose.
+To achieve this, PRISM allows states and transitions to be annotated with numerical values,
+representing for example the time taken for a transition or its energy consumption.
+Although these examples are all "costs" (which we would intuitively like to minimise),
+following classical definitions of MDPs in the literature,
+PRISM consistently refers to these values as **rewards**.
+But in practice they equally well represent costs.
+This section describes how to specify rewards in a PRISM model.
+We later describe [reward-based property specifications](../PropertySpecification/Reward-basedProperties.md).
 
-In this section, we describe how models described in the PRISM language
-can be augmented with rewards.
-Later, we will discuss how to express properties that relate to these rewards.
 Rewards are associated with models using `rewards ... endrewards` constructs,
 which can appear anywhere in a model file except within a module definition.
-These constructs contains one or more *reward items*.
+These constructs contain one or more **reward items**.
 Consider the following simple example:
 
 ```prism
@@ -94,3 +90,8 @@ rewards "num_failures"
     [fail] true : 1;
 endrewards
 ```
+
+The first assigns a reward of 1 to every state, which, for a [CTMC](ContinuousTime.md), accumulates as time passes;
+the second counts transitions labelled `fail`, as in the [repair example](ContinuousTime.md#example).
+A property can then [refer to a reward structure](../PropertySpecification/Reward-basedProperties.md#reward-structure) by its name,
+e.g., `R{"num_failures"}=? [ C<=10 ]` gives the expected number of failures up to time 10.

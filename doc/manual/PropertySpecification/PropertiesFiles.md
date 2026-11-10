@@ -1,70 +1,49 @@
-# Properties files
+# Properties and properties files
 
-## Constants
+Properties can be specified individually to PRISM
+or can be collated together into a **properties file**,
+a plain text file with file extension `.props`.
+This contains one or more properties,
+each of which should be terminated with a semicolon (but the parser is not strict on this).
+Properties can refer to various aspects of the model to which they relate
+(variables names, labels, etc.) but can also define further
+[constants and labels](../ThePRISMLanguage/ConstantsLabelsAndFormulas.md)
+in the same style as in model files.
+Comments are also allowed.
+An example file is:
 
-Files containing properties to be analysed by PRISM can also contain constants, as is the case for model files.
-These are defined in identical fashion, for example:
+[examples.props](../files/examples.props "include")
 
-```prism
-const int k = 7;
-const double T = 9.5;
-const double p = 0.01;
+As in the examples above, **labels** (such as `"terminate"` or `"phase1"`) are frequently used in properties to identify sets of states.
+These are essentially the same as **atomic propositions** in temporal logic.
+Labels are just Boolean-valued expressions over the states variables of the model (and, optionally, constants).
+Such expressions can also be used directly in properties, without labels, as in the final example above.
+This is useful when a property is parameterised by a constant.
 
-P<p [ F<=T x=k ];
-```
-
-As before, these constants can actually be left undefined and then later
-assigned either a single value or a range of values using [experiments](../RunningPRISM/Experiments.md).
-
-In fact, values such as the probability bounds for the `P` or `S` operators (like `P` above)
-and upper or lower bounds for the `U` operator (like `T` above)
-can be arbitrary expressions, provided they are constant.
-Furthermore, expressions in the properties file can also refer to constants previous defined in the model file.
-
-<a id="labels"></a>
-
-## Labels
-
-Another feature of properties files is *labels*. These are a way of defining sets of states that will be referred to in properties (they correspond to *atomic propositions* in a temporal logic setting). As described [earlier](../ThePRISMLanguage/FormulasAndLabels.md), labels can be defined in either model files or property files.
-
-Labels are defined using the keyword `label`, followed by a name (identifier) in double quotes, and then an expression which evaluates to a Boolean. Definition and usage of labels are illustrated in the following example:
-
-```prism
-label "safe" = temp<=100 | alarm=true;
-label "fail" = temp>100 & alarm=false;
-
-P>=0.99 [ "safe" U "fail" ];
-```
-
-Two special cases are the `"init"` and `"deadlock"` labels which are always defined.
+Two special cases of labels are the `"init"` and `"deadlock"` labels which are always defined.
 These are true in initial states of the model and states where deadlocks were found (and, usually, fixed by adding self-loops), respectively.
 
 <a id="names"></a>
-
 ## Property names
 
 For convenience, properties can be annotated with *names*, as shown in the following example:
 
 ```prism
-"safe": P<0.01 [ F temperature > t_max ];
+"surely_terminate": P>=1 [ F "terminate" ];
 ```
 
-which gives the name `"safe"` to the property. It is then possible to include named properties as sub-expressions of other properties, e.g.:
+which gives the name `"surely_terminate"` to the property.
+
+The name can be referred to when telling PRISM which properties to [model check](../RunningPRISM/ModelChecking.md#cl).
+It can also be referred to in other properties, as in this example of a *nested* property:
 
 ```prism
-filter(forall, num_sensors>0 => "safe");
+// "Safe" states, where we can return to the base
+// in at most 10 time units with probability at least 0.99
+"safe_return": P>=0.99 [ F<=10 "base" ];
+
+// What is the probability of always remaining in the safe states?
+"stay_safe": P=? [ G "safe_return" ];
 ```
-
-Notice that the syntax for referring to named properties is identical to the syntax for labels. For this reason, property names must be disjoint from those of any existing labels.
-
-You can refer to property names when using the command-line switch [`-prop`](../RunningPRISM/ModelChecking.md#cl) to specify which property is to be model checked.
-
-## Properties files
-
-A PRISM properties file can contain any number of properties.
-It is good practice, as shown in the examples above, to terminate each property with a semicolon. Currently, this is not enforced by PRISM (to prevent incompatibility with old properties files) but this may change in the future.
-
-Like model files, properties can also include any amount of white space (spaces, tabs, new lines, etc.) and C-style comments, which are both ignored.
-The recommended file extension for PRISM properties is now `.props`.
-Previously, though, the convention was to use extension `.pctl` for properties of DTMCs, MDPs or PTAs
-and extension `.csl` for properties of CTMCs, so these are still also valid.
+Notice that the syntax for referring to named properties is identical to the syntax for labels.
+For this reason, property names must be disjoint from those of any existing labels.

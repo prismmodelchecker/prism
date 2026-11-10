@@ -1,0 +1,17 @@
+// Two parallel processes, reading each others variables
+
+mdp
+
+module P1
+	s1 : [0..1] init 0;
+
+	[a] s1=0 -> 0.9:(s1'=1) + 0.1:(s1'=0);
+	[a] s1=1 -> (s1'=s2);
+endmodule
+
+module P2
+	s2 : [0..1] init 0;
+
+	[b] s2=0 -> 0.8:(s2'=1) + 0.2:(s2'=0);
+	[b] s2=1 -> (s2'=s1);
+endmodule

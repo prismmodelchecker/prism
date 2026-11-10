@@ -1,12 +1,11 @@
 # Model checking
 
 Typically, once a model has been constructed, it is analysed through model checking.
-Properties are specified as described in the "[Property specification](../PropertySpecification/Introduction.md)" section,
-and are usually kept in files with extensions `.props`, `.pctl` or `.csl`.
+Properties are specified as described in the "[Property specification](../PropertySpecification/README.md)" section,
+and are usually kept in [properties files](../PropertySpecification/PropertiesFiles.md) with extension `.props`.
 There are properties files accompanying most of the sample PRISM models in the `prism-examples` directory.
 
 <a id="gui"></a>
-
 ## GUI
 
 To load a file containing properties into the GUI, select menu option "Properties | Open properties list".
@@ -28,7 +27,6 @@ Upon completion, the icon next to the property changes according to the result o
 In addition, this and further information about model checking is displayed in the log in the "Log" tab.
 
 <a id="cl"></a>
-
 ## Command-line
 
 From the command-line, model checking is achieved by passing both a model file and a properties file as arguments, e.g.:

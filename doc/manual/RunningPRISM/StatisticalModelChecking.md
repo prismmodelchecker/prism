@@ -15,13 +15,13 @@ PRISM supports four different methods for performing statistical model checking:
 - APMC (Approximate Probabilistic Model Checking)
 - SPRT (Sequential Probability Ratio Test)
 
-The first three of these are intended primarily for "[quantitative](../PropertySpecification/ThePOperator.md)" properties (e.g. of the form `P=?[...]`), but can also be used for "bounded" properties (e.g. of the form `P<p[...]`). The SPRT method is only applicable to "bounded" properties.
+The first three of these are intended primarily for [numerical](../PropertySpecification/ThePOperator.md#numerical) properties (e.g. of the form `P=?[...]`), but can also be used for Boolean properties with a bound (e.g. of the form `P<p[...]`). The SPRT method is only applicable to Boolean properties.
 
 Each method has several parameters that control its execution, i.e. the number of samples that are generated and the accuracy of the computed approximation. In most cases, these parameters are inter-related so one of them must be left unspecified and its value computed automatically based on the others. In some cases, this is done before simulation; in others, it must be done afterwards.
 
 Below, we describe each method in more detail.
 For simplicity, we describe the case of checking a `P` operator.
-Details for the case of an `R` operator can be found in [[Nim10](../Main/References.md#Nim10)].
+Details for the case of an `R` operator can be found in [[Nim10](../Reference/References.md#Nim10)].
 
 ## CI (Confidence Interval) Method
 
@@ -56,7 +56,7 @@ The ACI method works in exactly same fashion as the CI method, except that it us
 
 ## APMC (Approximate Probabilistic Model Checking) Method
 
-The APMC method, based on [[HLMP04](../Main/References.md#HLMP04)], offers a probabilistic guarantee on the accuracy of the  approximate value generated for a `P=?` property, based on the Chernoff-Hoeffding bound.
+The APMC method, based on [[HLMP04](../Reference/References.md#HLMP04)], offers a probabilistic guarantee on the accuracy of the  approximate value generated for a `P=?` property, based on the Chernoff-Hoeffding bound.
 The parameters of the method are:
 
 - "Approximation" ($\varepsilon$)
@@ -78,7 +78,7 @@ In similar fashion to the CI/ACI methods, the APMC method can be also be used fo
 
 ## SPRT (Sequential Probability Ratio Test) Method
 
-The SPRT method is specifically for bounded properties, such as `P~p[...]` and is based on *acceptance sampling* techniques [[YS02](../Main/References.md#YS02)]. It uses Wald's sequential probability ratio test (SPRT), which generates a succession of samples, deciding on-the-fly when an answer can be given with a sufficiently high confidence.
+The SPRT method is specifically for bounded properties, such as `P~p[...]` and is based on *acceptance sampling* techniques [[YS02](../Reference/References.md#YS02)]. It uses Wald's sequential probability ratio test (SPRT), which generates a succession of samples, deciding on-the-fly when an answer can be given with a sufficiently high confidence.
 
 The parameters of the method are:
 
@@ -95,7 +95,7 @@ If, for a given property, statistical model checking results in one or more path
 
 ## Command-line Statistical Model Checking
 
-Statistical model checking can also be enabled from the command-line version of PRISM, by including the `-sim` switch. The default methods used are CI (Confidence Interval) for "quantitative" properties and SPRT (Sequential Probability Ratio Test) for "bounded" properties. To select a particular method, use switch `-simmethod <method>` where `<method>` is one of `ci`, `aci`, `apmc` and `sprt`. For example:
+Statistical model checking can also be enabled from the command-line version of PRISM, by including the `-sim` switch. The default methods used are CI (Confidence Interval) for numerical properties and SPRT (Sequential Probability Ratio Test) for Boolean properties. To select a particular method, use switch `-simmethod <method>` where `<method>` is one of `ci`, `aci`, `apmc` and `sprt`. For example:
 
 ```shell
 prism model.pm model.pctl -prop 1 -sim -simmethod aci

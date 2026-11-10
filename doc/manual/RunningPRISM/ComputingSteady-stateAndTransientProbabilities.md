@@ -1,4 +1,4 @@
-# Computing steady-state and transient probabilities
+# Transient and steady-state probabilities
 
 If the model is a CTMC or DTMC, it is possible to compute corresponding vectors of
 steady-state or transient probabilities directly

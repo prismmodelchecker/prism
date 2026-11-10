@@ -8,8 +8,8 @@ Informally, the property:
 P bound [ pathprop ]
 ```
 
-is true in a state *s* of a model if
-"the probability that path property `pathprop` is satisfied by the paths from state *s*
+is true in a state of a model if
+"the probability that path property `pathprop` is satisfied by the paths from the state
 meets the bound `bound`".
 A typical example of a bound would be:
 
@@ -17,49 +17,78 @@ A typical example of a bound would be:
 P>0.98 [ pathprop ]
 ```
 
-which means: "the probability that `pathprop` is satisfied by the paths from state *s* is greater than 0.98". More precisely, `bound` can be any of `>=p`, `>p`, `<=p` or `<p`,
-where `p` is a PRISM language expression evaluating to a double in the range [0,1].
+which means: "the probability that `pathprop` is satisfied by the paths from the state is greater than 0.98".
+
+More precisely, `bound` can be any of `>=p`, `>p`, `<=p` or `<p`,
+where `p` is any constant [expression](../Reference/PRISMLanguageSyntax.md#expressions) evaluating to a double in the range [0,1], for example:
+
+```prism
+P>=1.0 [ pathprop ]
+P<q [ pathprop ]
+P<=(1-2*q) [ pathprop ]
+```
 
 The types of path property supported by PRISM and their semantics will be discussed shortly.
 
+<a id="nondeterminism"></a>
 ## Nondeterminism
 
-For models that can exhibit nondeterministic behaviour, such as MDPs or PTAs, some additional clarifications are necessary. Whereas for fully probabilistic models such as DTMCs and CTMCs, probability measures over paths are well defined (see e.g. [[KSK76](../Main/References.md#KSK76)] and [[BKH99](../Main/References.md#BKH99)], respectively), for nondeterministic models a probability measure can only be feasibly defined once all nondeterminism has been removed.
+Many of the model types supported by PRISM exhibit **nondeterminism**,
+notably MDPs and their various generalisations, such as PTAs and POMDPs.
+These models use the notion of a **policy**
+(called a **strategy** in PRISM, and also sometimes referred to as a *scheduler* or *adversary*)
+which defines one possible way of resolving the nondeterministic choices in a model.
 
-Hence, the actual meaning of the property `P bound [ pathprop ]` in these cases is:
-"the probability that `pathprop` is satisfied by the paths from state *s*
-meets the bound `bound` *for all possible resolutions of nondeterminism*".
-This means that, properties using the `P` operator then effectively reason about the
+For such models, the meaning of the property `P bound [ pathprop ]` is:
+"the probability that `pathprop` is satisfied meets the bound `bound`
+*for all possible policies/strategies*".
+This means that properties using the `P` operator effectively reason about the
 *minimum* or *maximum* probability, over all possible resolutions of nondeterminism,
 that a certain type of behaviour is observed.
-This depends on the bound attached to the `P` operator:
-a lower bound (`>` or `>=`) relates to minimum probabilities
-and an upper bound (`<` or `<=`) to maximum probabilities.
 
-## Quantitative properties
+<a id="numerical"></a>
+## Numerical properties
 
-It is also very often useful to take a *quantitative* approach to probabilistic model checking, computing the actual probability that some behaviour of a model is observed,
+It is very often useful to compute the actual probability that some behaviour of a model is observed,
 rather than just verifying whether or not the probability is above or below a given bound.
-Hence, PRISM allows the `P` operator to take the following form:
+Hence, PRISM allows the `P` operator to take the following **numerical** form:
 
 ```prism
 P=? [ pathprop ]
 ```
 
-These properties return a numerical rather than a Boolean value.
+This asks "what is the propability that `pathprop` is satisfied?"
+and returns a numerical rather than a Boolean value.
 The [S](TheSOperator.md) and [R](Reward-basedProperties.md) operators, discussed later, can also be used in this way.
 
-As mentioned above, for nondeterministic models (MDPs or PTAs), either minimum or maximum probability values can be computed. Therefore, in this case, we have two possible types of property:
+For nondeterministic models such as MDPs (discussed above),
+either minimum or maximum probability values can be queried in this way:
 
 ```prism
 Pmin=? [ pathprop ]
 Pmax=? [ pathprop ]
 ```
 
-which return the minimum and maximum probabilities, respectively.
+which return the minimum and maximum probabilities, respectively, over all policies/strategies.
+As well as computing an optimal value, PRISM can also [generate a strategy](../RunningPRISM/Strategies.md) that achieves it.
 
-It is also possible to specify to which state the probability returned by a quantitative property refers. This is covered in the later section on [filters](Filters.md).
+PRISM properties generalise the syntax for [expressions](../Reference/PRISMLanguageSyntax.md#expressions) in the PRISM language
+so further numerical properties can be constructed by combining them with arithmetic operators and functions, e.g.:
 
+```prism
+1 - P=? [ pathprop ]
+```
+
+"the probability that `pathprop` is *not* true"
+
+```prism
+P=? [ F fail_A ] / P=? [ F any_fail ]
+```
+
+"the (conditional) probability that component A eventually fails, given
+that at least one component fails"
+
+<a id="path"></a>
 ## Path properties
 
 PRISM supports a wide range of path properties that can be used with the `P` operator.
@@ -78,6 +107,7 @@ The basic different types of path property that can be used inside the `P` opera
 
 In the following sections, we describe each of these *temporal operators*. We then discuss the (optional) use of time bounds with these operators. Finally, we also discuss LTL-style path properties.
 
+<a id="next"></a>
 ## "Next" path properties
 
 The property `X prop` is true for a path if `prop` is true in its second state,
@@ -89,6 +119,7 @@ P<0.01 [ X y=1 ]
 
 which is true in a state if "the probability of the expression `y=1` being true in the next state is less than 0.01".
 
+<a id="until"></a>
 ## "Until" path properties
 
 The property `prop1 U prop2` is true for a path if
@@ -101,6 +132,7 @@ P>0.5 [ z<2 U z=2 ]
 
 which is true in a state if "the probability that `z` is eventually equal to 2, and that `z` remains less than 2 up until that point, is greater than 0.5".
 
+<a id="eventually"></a>
 ## "Eventually" path properties
 
 The property `F prop` is true for a path if `prop` eventually becomes true at some point along the path. The `F` operator is in fact a special case of the `U` operator (you will often see `F prop` written as `true U prop`). A simple example is:
@@ -111,6 +143,7 @@ P<0.1 [ F z>2 ]
 
 which is true in a state if "the probability that `z` is eventually greater than 2 is less than 0.1".
 
+<a id="globally"></a>
 ## "Globally" path properties
 
 Whereas the `F` operator is used for "reachability" properties, `G` represents "invariance". The property `G prop` is true of a path if `prop` remains true at all states along the path. Thus, for example:
@@ -121,6 +154,7 @@ P>=0.99 [ G z<10 ]
 
 states that, with probability at least 0.99, `z` never exceeds 10.
 
+<a id="weak-until-release"></a>
 ## "Weak until" and "release" path properties
 
 Like `F` and `G`, the operators `W` and `R` are derivable from other temporal operators.
@@ -136,7 +170,6 @@ which states that, with probability greater than 0.5, either `z` is always less 
 Release (`a R b`),  which is equivalent to `!(!a U !b)`, informally means that `b` is true until `a` becomes true, or `b` is true forever.
 
 <a id="bounded"></a>
-
 ## "Bounded" variants of path properties
 
 All of the temporal operators given above, with the exception of `X`, have "bounded" variants, where an additional time bound is imposed on the property being satisfied.
@@ -189,6 +222,7 @@ P>=0.25 [ y<=1 U<=6.5 y>1 ]
 
 means that the probability of `y` being greater than 1 within 6.5 time-units (and remaining less than or equal to 1 at all preceding time-points) is at least 0.25.
 
+<a id="transient"></a>
 ## Transient probabilities
 
 We can also use the bounded `F` operator to refer to a single time instant, e.g.:
@@ -206,7 +240,6 @@ P=? [ F=10 y=6 ]
 both of which give the probability of `y` being 6 at time instant 10.
 
 <a id="ltl"></a>
-
 ## LTL-style path properties
 
 PRISM also supports probabilistic model checking of the temporal logic LTL (and, in fact, PCTL\*). LTL provides a richer set of path properties for use with the `P` operator, by permitting temporal operators to be combined. Here are a few examples of properties expressible using this functionality:

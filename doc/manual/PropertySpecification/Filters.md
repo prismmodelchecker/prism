@@ -1,9 +1,33 @@
 # Filters
 
-As discussed above, when reporting the result of model checking a property, PRISM will by default return the value for the (single) initial state of the model. However, since PRISM in fact usually has to compute values for *all* states simultaneously, you can customise PRISM properties to obtain different results. This is done using *filters*.
+A property in the PRISM property language is evaluated with respect to a particular *state* of a model,
+and can yield a value of various types (Boolean, numerical, etc.), depending on the type of property.
+When performing model checking, PRISM often computes the value of a property for *all* states of the model,
+but typically just reports the result as a single value.
+Usually, this is the value for the (single) initial state of the model. For example, this:
 
-Filters are created using the `filter` keyword. They take the following form:
+```prism
+P=? [ F "error" ]
+```
 
+will report the probability, from the initial state of the model, of reaching an "error" state.
+This:
+
+```prism
+P>0.5 [ F "error" ]
+```
+
+will return `true` if and only if the probability, from the initial state, is greater than 0.5.
+
+For models with [multiple initial states](../ThePRISMLanguage/Variables.md#multiple-initial-states), we need to adapt these definitions slightly.
+In this case, the two properties above will yield, respectively:
+
+- the range of values (over all initial states) of the probability of reaching "error"
+
+- `true` if and only if the probability is greater than 0.5 from *all* initial states.
+
+Using **filters**, you can ask PRISM to obtain different results.
+This is done using `filter` properties, which have the form:
 ```prism
 filter(op, prop, states)
 ```
@@ -40,9 +64,8 @@ filter(forall, "ready" => P>=1 [ F "done" ])
 filter(forall, P>=1 [ F "done" ], "ready")
 ```
 
-**Note:** In older versions of PRISM, the property above could be written just as `"ready" => P>=1 [ F "done" ]` since the result was checked for all states by default, not just the [initial state](SyntaxAndSemantics.md). Now, you need to explicitly include a filter, as shown above, to achieve this.
-
-## Types of filter
+<a id="filter-operators"></a>
+## Filter operators
 
 Most filters of the form `filter(op, prop, states)`
 apply some operator `op` to the values of property `prop`
@@ -68,7 +91,8 @@ There are also a few filters that, rather than returning a single value, return 
 - `print`: does not change the result of `prop` but prints the (non-zero) values to the log
 - `printall`: like `print`, but displays *all* values, even for states where the value is zero
 
-## More examples
+<a id="examples"></a>
+## Examples
 
 Here are some further illustrative examples of properties that use filters.
 
@@ -112,35 +136,10 @@ The `range` filter, unlike most PRISM expressions which are of type Boolean, int
 filter(range, P=? [ F count=10 ], count=0)
 ```
 
-gives the range of all possible values for the probability of reach a state satisfying `count=10`, from all states satisfying `count=0`.
-As will be described below, this kind of property also results from the use of old-style (`{...}`) filters and properties on models with multiple initial states.
+gives the range of all possible values for the probability of reaching a state satisfying `count=10`, from all states satisfying `count=0`.
+This kind of value also results from numerical properties on models with multiple initial states (see above).
 
-## Old-style filters
-
-In older versions of PRISM, filters were also available, but in a less expressive form. Previously, they were only usable on `P`, `S` or `R` properties and only a small set of filter operators were permitted. They were also specified in a different way, using braces (`{`...`}`). For compatibility with old properties files (and for compactness), these forms of filters are still allowed. These old-style forms of filters:
-
-```prism
-P=? [ pathprop {states} ]
-P=? [ pathprop {states}{min} ]
-P=? [ pathprop {states}{max} ]
-P=? [ pathprop {states}{min}{max} ]
-```
-
-are equivalent to:
-
-```prism
-filter(state, P=? [ pathprop ], states)
-filter(min, P=? [ pathprop ], states)
-filter(max, P=? [ pathprop ], states)
-filter(range, P=? [ pathprop ], states)
-```
-
-Notice that the first of the four properties above (i.e. an old-style filter of the form `{states}`) will result in an error if `states` is not satisfied by exactly one state of the model. Older versions of PRISM just gave you the value for the first state satisfying the filter, without warning you about this. If you want to recreate the old behaviour, just use a `first` filter:
-
-```prism
-filter(first, P=? [ pathprop ], states)
-```
-
+<a id="defaults"></a>
 ## Default filters
 
 Finally, for completeness, we show what the *default* filters are in PRISM,

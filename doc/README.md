@@ -9,16 +9,25 @@ and anything the website adds must be invisible on GitHub rather than broken.
 ## Layout
 
 - **Sections:** each section of the manual is a folder (`ThePRISMLanguage/`) with a contents page, `README.md`:
-  a `# Title`, a sentence or two of introduction, then the section's pages, in order, as `- [Title](Page.md)` items.
+  a `# Title`, an introduction to the section, then the section's pages, in order, as `- [Title](Page.md)` items,
+  each optionally followed by a short description (`- [Strategies](Strategies.md): generating and exporting strategies`),
+  which the website shows as a tooltip in the menu; the first paragraph of the introduction is the section's tooltip.
   GitHub shows it below the folder's files; the website publishes it at `/manual/ThePRISMLanguage/`,
   and the section's heading in the menu links to it. An indented item linking to `Page.md#anchor` adds an extra
-  menu entry for part of a page. Only list items that start with a link to a `.md` file count as pages.
-- **Contents:** `manual/README.md` lists the sections (`- [Title](Folder/README.md)`) and any pages outside
-  a section (`- [Introduction](Main/Introduction.md)`), in order. The website builds its menu, and
-  previous/next links, from this and the sections' contents pages, so add new pages there.
+  menu entry for part of a page. Only list items that start with a link to a `.md` file count as pages,
+  and if the page has a `## Contents` heading, only those under it (up to the next heading),
+  so lists of links elsewhere on the page, such as in the introduction, are left alone.
+- **Contents:** `manual/README.md` is the manual's front page. It lists the sections (`- [Title](Folder/README.md)`),
+  in order. The website builds its menu, and previous/next links, from this and the sections' contents pages,
+  so add new pages there. Every page belongs to a section (the build warns about any that don't).
 - **One file per page:** `Section/Page.md`, starting with a `# Title` line. It is published at `/manual/Section/Page/`.
 - **Images and example files** go in `manual/files/` and are linked relatively (`../files/x.png`).
   Every image needs alt text describing what it shows: `![A plot of ... against ...](../files/x.png)`.
+- **Example models and properties** that readers may want to download go in `manual/files/` as real files
+  (`.prism`, `.props`), and are included in a page with a link alone in its paragraph, titled `"include"`:
+  `[mutex.prism](../files/mutex.prism "include")`. The website shows the file's contents, highlighted,
+  with a download link below; GitHub shows just the link. So the file is the only copy: don't also paste
+  it into a code block. Short fragments that aren't whole files stay as ```` ```prism ```` blocks.
 
 ## Writing pages
 
@@ -27,7 +36,7 @@ and anything the website adds must be invisible on GitHub rather than broken.
 - **Anchors:** headings get ids automatically, as on GitHub (`## Reward structures` becomes `#reward-structures`).
   Where other pages or outside links point at a heading, give it a fixed anchor that won't change if the heading
   is reworded: put `<a id="name"></a>` on the line before it. (Not `{#name}` after the heading: GitHub would show it.)
-- **Citations:** `[[KNP11](../Main/References.md#KNP11)]`. `Main/References.md` lists every cited paper, by key,
+- **Citations:** `[[KNP11](../Reference/References.md#KNP11)]`. `Reference/References.md` lists every cited paper, by key,
   and is edited by hand: when adding a citation, add an entry there too (the website build warns if the two don't match).
 - **Code:** fenced blocks with a language: `prism` (models and properties, highlighted on the website), `shell`, `text`, `xml`.
   In `shell` blocks, write commands as they are and start each line of output with `#`
@@ -40,6 +49,11 @@ and anything the website adds must be invisible on GitHub rather than broken.
   "currently" or "in newer versions", which date badly. Don't hard-code the current version
   (e.g. in file names, write `prism-X.Y-linux64-x86`).
   The website publishes the manual from master, so changes appear straight away, ahead of the release they describe.
+
+- **Generated parts:** some lists come from PRISM itself, such as the keywords in `Reference/PRISMLanguageSyntax.md`.
+  They sit between `<!-- generated: NAME ... -->` and `<!-- end generated -->` comments and must not be edited by hand:
+  after building PRISM, run `doc/update-generated.py` (from the repo root) and commit the result;
+  `doc/update-generated.py --check` reports any that are out of date.
 
 ## Renaming, moving and merging pages
 

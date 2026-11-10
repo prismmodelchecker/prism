@@ -1,14 +1,17 @@
-# Parametric model checking
+# Exact and parametric model checking
 
-Often, PRISM models contain [constants](../ThePRISMLanguage/Constants.md), representing parameters of the system being modelled, which define for example the transition probabilities in the model. In order to perform model checking, these constants have to be assigned concrete values. PRISM also allows [experiments](Experiments.md), where model checking is performed for a range of different values for the constants.
+<a id="parametric"></a>
+## Parametric model checking
 
-PRISM's *parametric model checking* [[HHZ11b](../Main/References.md#HHZ11b)],[[HHZ11](../Main/References.md#HHZ11)] functionality, however, provides a more powerful method for analysing probabilistic models whose transition probabilities are specified as functions over a set of parameters. Depending on the property under consideration, the result is then given as either a rational function over the parameters or as a mapping from regions of these parameters to rational functions or truth values. This function (or functions) can then be used to, for example:
+Often, PRISM models contain [constants](../ThePRISMLanguage/ConstantsLabelsAndFormulas.md#constants), representing parameters of the system being modelled, which define for example the transition probabilities in the model. In order to perform model checking, these constants have to be assigned concrete values. PRISM also allows [experiments](Experiments.md), where model checking is performed for a range of different values for the constants.
+
+PRISM's *parametric model checking* [[HHZ11b](../Reference/References.md#HHZ11b)],[[HHZ11](../Reference/References.md#HHZ11)] functionality, however, provides a more powerful method for analysing probabilistic models whose transition probabilities are specified as functions over a set of parameters. Depending on the property under consideration, the result is then given as either a rational function over the parameters or as a mapping from regions of these parameters to rational functions or truth values. This function (or functions) can then be used to, for example:
 
 - plot a graph showing how the parameter affects the result of the property; or
 
 - use optimisation methods to find parameter values that minimise or maximise the result.
 
-PRISM's implementation of parametric model checking [[CHH+13](../Main/References.md#CHH+13)] re-implements the techniques previously included in the [PARAM](http://depend.cs.uni-sb.de/tools/param/) tool.
+PRISM's implementation of parametric model checking [[CHH+13](../Reference/References.md#CHH+13)] re-implements the techniques previously included in the [PARAM](http://depend.cs.uni-sb.de/tools/param/) tool.
 
 Parameters are specified as undefined constants in the model file, e.g.:
 
@@ -61,3 +64,8 @@ Parametric model checking can be configured with the following options:
 - `-paramrandompoints <n>`: Under some conditions, it has to be decided whether certain properties hold for all parameter valuations of a given region. This is the case for instance when computing truth values of properties for parametric DTMCs, CTMCs and MDPs, and also when computing any value for MDPs. At the moment, the truth values are only computed approximately, by evaluating and checking values at the edges of regions (as they are hyper-rectangles) and some random points. The exact number of random points to use is given with this option. The default is 5.
 
 - `-paramsubsumeregions <b>`: During the parametric analysis, quite a number of different regions might be created, which have to be stored in memory. If this option is used (`<b>=true`), PRISM tries to subsume neighbouring regions with the same value. The default is to use it.
+
+<a id="exact"></a>
+## Exact model checking
+
+Most of PRISM's model checking functionality uses numerical solution based on floating point arithmetic and, often, this uses iterative numerical methods, which are run until some user-specified precision is reached. PRISM currently has some support for "exact" model checking, i.e., using arbitrary precision arithmetic to provide exact numerical values. Currently, this is implemented as a special case of [parametric model checking](../RunningPRISM/ParametricModelChecking.md), which limits its application to relatively small models. It can be used for analysing DTMCs/CTMCs (unbounded until, steady-state probabilities, reachability reward and steady-state reward) or MDPs (unbounded until and reachability rewards). You can enable this functionality using the "Do exact model checking" option in the GUI or using switch `-exact` from the command line.

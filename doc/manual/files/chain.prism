@@ -1,0 +1,18 @@
+// A "chain" MDP: At each step, choose action a (move along the chain) or b
+// (go back to the start), but with probability slip, the other one happens
+
+mdp
+
+// Number of states in the chain
+const int N = 4;
+// Probability that the chosen action slips
+const double slip = 0.2;
+
+module chain
+
+	s : [0..N-1] init 0;
+
+	[a] true -> 1-slip : (s'=min(s+1,N-1)) + slip : (s'=0);
+	[b] true -> 1-slip : (s'=0) + slip : (s'=min(s+1,N-1));
+
+endmodule

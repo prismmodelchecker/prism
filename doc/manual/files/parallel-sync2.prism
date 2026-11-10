@@ -1,0 +1,17 @@
+// Two parallel processes, synchronising on both a and c
+
+mdp
+
+module P1
+	s1 : [0..1] init 0;
+
+	[a] s1=0 -> 0.9:(s1'=1) + 0.1:(s1'=0);
+	[c] s1=1 -> (s1'=0);
+endmodule
+
+module P2
+	s2 : [0..1] init 0;
+
+	[a] s2=0 -> 0.8:(s2'=1) + 0.2:(s2'=0);
+	[c] s2=1 -> (s2'=0);
+endmodule

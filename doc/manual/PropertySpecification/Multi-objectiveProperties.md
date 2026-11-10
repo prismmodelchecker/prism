@@ -16,7 +16,7 @@ multi(P<0.01 [ F "error1" ], P<0.02 [ F "error2" ])
 
 means: "does there exist a strategy of the MDP under which the probability of reaching an `"error1"` state is less than 0.01 *and* the probability of reaching an `"error2"` state is less than 0.02?"
 
-To use the terminology from [[FKP12](../Main/References.md#FKP12)], the above is an "achievability" query (i.e., is this combination of objectives achievable by some strategy?). PRISM also supports two other kinds of multi-objective query: "numerical" and "Pareto" queries.
+To use the terminology from [[FKP12](../Reference/References.md#FKP12)], the above is an "achievability" query (i.e., is this combination of objectives achievable by some strategy?). PRISM also supports two other kinds of multi-objective query: "numerical" and "Pareto" queries.
 
 A "numerical" query looks like:
 
@@ -34,6 +34,7 @@ multi(Pmin=? [ F "error1" ], Pmin=? [ F "error2" ])
 
 This asks PRISM to compute (approximately), the *Pareto curve* for this pair of objectives. Intuitively, this is the set of pairs of probabilities (of reaching `"error1"`/`"error2"`) such that reducing one probability any more would necessitate an increase in the other probability.
 
+<a id="objectives"></a>
 ## Types of objectives
 
 For simplicity, the examples above all refer to the probability of reaching classes of states in the model. Other types of property (objective) are also possible.
@@ -69,7 +70,7 @@ A few important notes regarding rewards:
 
 - Currently only transition rewards are supported; state rewards are not.
 
-- Certain assumptions are made regarding the finiteness of rewards; see p.7 of [[FKP12](../Main/References.md#FKP12)] for details.
+- Certain assumptions are made regarding the finiteness of rewards; see p.7 of [[FKP12](../Reference/References.md#FKP12)] for details.
 
 Finally, time-bounded variants of both probabilistic reachability and expected cumulative rewards objectives can be used. Here is an example that uses the latter:
 
@@ -77,9 +78,10 @@ Finally, time-bounded variants of both probabilistic reachability and expected c
 multi(R{"power"}min=? [ C<=k ], R{"queue"}<=r [ C<=k ])
 ```
 
+<a id="methods"></a>
 ## Solution methods
 
-PRISM can perform multi-objective model checking using two distinct solution methods, which are described in [[FKN+11](../Main/References.md#FKN+11)] and [[FKP12](../Main/References.md#FKP12)]. The former is based on the use of linear programming; the latter reduces multi-objective model checking to a series of simpler problems, solved using value iteration (or the Gauss-Seidel variant of value iteration). The default is "Value iteration". You can change this in the GUI using the option "MDP multi-objective solution methods", or using the command-line switches `-lp`, `-valiter`, `-gs`.
+PRISM can perform multi-objective model checking using two distinct solution methods, which are described in [[FKN+11](../Reference/References.md#FKN+11)] and [[FKP12](../Reference/References.md#FKP12)]. The former is based on the use of linear programming; the latter reduces multi-objective model checking to a series of simpler problems, solved using value iteration (or the Gauss-Seidel variant of value iteration). The default is "Value iteration". You can change this in the GUI using the option "MDP multi-objective solution methods", or using the command-line switches `-lp`, `-valiter`, `-gs`.
 
 There are some restrictions for the different methods, e.g.
 

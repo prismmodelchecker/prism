@@ -35,11 +35,12 @@ There are various different types of reward properties:
 Below, we consider each of these cases in turn.
 The descriptions here are kept relatively informal.
 Precise definitions for most of these can be found in, for example,
-[[KNP07a](../Main/References.md#KNP07a)] (for DTMCs and CTMCs) or [[FKNP11](../Main/References.md#FKNP11)] (for MDPs).
+[[KNP07a](../Reference/References.md#KNP07a)] (for DTMCs and CTMCs) or [[FKNP11](../Reference/References.md#FKNP11)] (for MDPs).
 
 For all but instantaneous reward properties,
 it is currently required that rewards are non-negative.
 
+<a id="reachability"></a>
 ## "Reachability reward" properties
 
 "Reachability reward" properties associate a reward with each path of a model.
@@ -69,6 +70,7 @@ R<=9.5 [ F z=2 ]
 
 which is true in a state *s* if "the expected time taken to reach, from *s*, a state where `z` equals 2 is less than or equal to 9.5".
 
+<a id="cosafe"></a>
 ## "Co-safe LTL reward" properties
 
 These generalise the "reachability" properties above. Again, reward is accumulated along a path up until some point,
@@ -97,6 +99,7 @@ which is defined as any LTL formula that only uses the temporal operators `F`, `
 (but not `G`, for example).
 PRISM's notation for LTL formulas is described [here](ThePOperator.md).
 
+<a id="cumulative"></a>
 ## "Cumulative reward" properties
 
 "Cumulative reward" properties also associate a reward with each path of a model,
@@ -121,7 +124,6 @@ would return, for a given state of the model,
 "the expected number of lost requests within 15.5 time units of operation".
 
 <a id="total"></a>
-
 ## "Total reward" properties
 
 "Total reward" properties refer to the accumulation of state and transition rewards
@@ -139,6 +141,7 @@ R=? [ C ]
 
 returns "the expected total number of lost requests".
 
+<a id="instantaneous"></a>
 ## "Instantaneous reward" properties
 
 "Instantaneous reward" properties refer to the reward of a model at a particular instant in time.
@@ -160,6 +163,7 @@ would be true in a state *s* of the model if
 Note that, for this type of reward property, state rewards for CTMCs do not have to refer to rates;
 they can refer to any instantaneous measure of interest for a state.
 
+<a id="steady-state"></a>
 ## "Steady-state reward" properties
 
 Unlike the previous three types of property,
@@ -173,6 +177,7 @@ R<=0.7 [ S ]
 
 which is true in a state *s* if "starting from *s*, the long-run average power consumption is less than 0.7".
 
+<a id="reward-structure"></a>
 ## Which reward structure?
 
 In the case where a PRISM model has multiple [reward structures](../ThePRISMLanguage/CostsAndRewards.md) you may need to specify which reward structure your property refers to. This is done by placing the information in braces (`{}`) after the `R` operator. You can do so either using the name assigned to a reward structure (if any) or using the index (where `1` means the first rewards structure in the PRISM model file, `2` the second, etc.). Examples are:
@@ -187,6 +192,7 @@ Note that when using an index to specify the reward structure, you can actually 
 
 If you don't specify a reward structure to the `R` operator, by default, the first one in the model file is used.
 
+<a id="discounts"></a>
 ## Discounts
 
 For the reward operators that refer to accumulated rewards,

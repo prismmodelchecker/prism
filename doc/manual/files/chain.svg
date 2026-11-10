@@ -1,0 +1,69 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="669" height="343" viewBox="0 0 608 312" font-family="Helvetica, Arial, sans-serif">
+<defs><marker id="a" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="10" markerHeight="10" markerUnits="userSpaceOnUse" orient="auto"><path d="M0,1.5 L10,5 L0,8.5 z" fill="#000"/></marker></defs>
+<rect width="608" height="312" fill="#fff"/>
+<line x1="99.0" y1="137.7" x2="132.0" y2="102.0" stroke="#000" stroke-width="1.4"/>
+<text x="123.5" y="128.8" font-size="14" text-anchor="start" dominant-baseline="central" font-style="italic" fill="#b3001b">a</text>
+<circle cx="132" cy="102" r="3.5" fill="#000"/>
+<line x1="132.0" y1="102.0" x2="195.1" y2="141.6" stroke="#000" stroke-width="1.4" marker-end="url(#a)"/>
+<text x="171.6" y="113.8" font-size="14" text-anchor="start" dominant-baseline="central">0.8</text>
+<path d="M132.0,102.0 C127.0,72.0 100.5,92.6 95.5,132.6" fill="none" stroke="#000" stroke-width="1.4" marker-end="url(#a)"/>
+<text x="140.0" y="85.0" font-size="14" text-anchor="start" dominant-baseline="central">0.2</text>
+<line x1="99.0" y1="174.3" x2="132.0" y2="210.0" stroke="#000" stroke-width="1.4"/>
+<text x="123.5" y="183.2" font-size="14" text-anchor="start" dominant-baseline="central" font-style="italic" fill="#b3001b">b</text>
+<circle cx="132" cy="210" r="3.5" fill="#000"/>
+<line x1="132.0" y1="210.0" x2="195.1" y2="170.4" stroke="#000" stroke-width="1.4" marker-end="url(#a)"/>
+<text x="171.6" y="198.2" font-size="14" text-anchor="start" dominant-baseline="central">0.2</text>
+<path d="M132.0,210.0 C127.0,240.0 100.5,219.4 95.5,179.4" fill="none" stroke="#000" stroke-width="1.4" marker-end="url(#a)"/>
+<text x="140.0" y="227.0" font-size="14" text-anchor="start" dominant-baseline="central">0.8</text>
+<line x1="235.0" y1="137.7" x2="268.0" y2="102.0" stroke="#000" stroke-width="1.4"/>
+<text x="242.5" y="117.8" font-size="14" text-anchor="end" dominant-baseline="central" font-style="italic" fill="#b3001b">a</text>
+<circle cx="268" cy="102" r="3.5" fill="#000"/>
+<line x1="268.0" y1="102.0" x2="331.1" y2="141.6" stroke="#000" stroke-width="1.4" marker-end="url(#a)"/>
+<text x="307.6" y="113.8" font-size="14" text-anchor="start" dominant-baseline="central">0.8</text>
+<path d="M268.0,102.0 L268.0,86.0 Q268.0,74.0 256.0,74.0 L92.0,74.0 C49.8,74.0 55.0,89.2 71.9,131.0" fill="none" stroke="#000" stroke-width="1.4" marker-end="url(#a)"/>
+<text x="275.0" y="78.0" font-size="14" text-anchor="start" dominant-baseline="central">0.2</text>
+<line x1="235.0" y1="174.3" x2="268.0" y2="210.0" stroke="#000" stroke-width="1.4"/>
+<text x="242.5" y="194.2" font-size="14" text-anchor="end" dominant-baseline="central" font-style="italic" fill="#b3001b">b</text>
+<circle cx="268" cy="210" r="3.5" fill="#000"/>
+<line x1="268.0" y1="210.0" x2="331.1" y2="170.4" stroke="#000" stroke-width="1.4" marker-end="url(#a)"/>
+<text x="307.6" y="198.2" font-size="14" text-anchor="start" dominant-baseline="central">0.2</text>
+<path d="M268.0,210.0 L268.0,226.0 Q268.0,238.0 256.0,238.0 L92.0,238.0 C49.8,238.0 55.0,222.8 71.9,181.0" fill="none" stroke="#000" stroke-width="1.4" marker-end="url(#a)"/>
+<text x="275.0" y="234.0" font-size="14" text-anchor="start" dominant-baseline="central">0.8</text>
+<line x1="371.0" y1="137.7" x2="404.0" y2="102.0" stroke="#000" stroke-width="1.4"/>
+<text x="378.5" y="117.8" font-size="14" text-anchor="end" dominant-baseline="central" font-style="italic" fill="#b3001b">a</text>
+<circle cx="404" cy="102" r="3.5" fill="#000"/>
+<line x1="404.0" y1="102.0" x2="467.1" y2="141.6" stroke="#000" stroke-width="1.4" marker-end="url(#a)"/>
+<text x="443.6" y="113.8" font-size="14" text-anchor="start" dominant-baseline="central">0.8</text>
+<path d="M404.0,102.0 L404.0,65.0 Q404.0,53.0 392.0,53.0 L92.0,53.0 C34.4,53.0 29.4,91.0 65.0,135.0" fill="none" stroke="#000" stroke-width="1.4" marker-end="url(#a)"/>
+<text x="411.0" y="78.0" font-size="14" text-anchor="start" dominant-baseline="central">0.2</text>
+<line x1="371.0" y1="174.3" x2="404.0" y2="210.0" stroke="#000" stroke-width="1.4"/>
+<text x="378.5" y="194.2" font-size="14" text-anchor="end" dominant-baseline="central" font-style="italic" fill="#b3001b">b</text>
+<circle cx="404" cy="210" r="3.5" fill="#000"/>
+<line x1="404.0" y1="210.0" x2="467.1" y2="170.4" stroke="#000" stroke-width="1.4" marker-end="url(#a)"/>
+<text x="443.6" y="198.2" font-size="14" text-anchor="start" dominant-baseline="central">0.2</text>
+<path d="M404.0,210.0 L404.0,247.0 Q404.0,259.0 392.0,259.0 L92.0,259.0 C34.4,259.0 29.4,221.0 65.0,177.0" fill="none" stroke="#000" stroke-width="1.4" marker-end="url(#a)"/>
+<text x="411.0" y="234.0" font-size="14" text-anchor="start" dominant-baseline="central">0.8</text>
+<line x1="507.0" y1="137.7" x2="540.0" y2="102.0" stroke="#000" stroke-width="1.4"/>
+<text x="514.5" y="117.8" font-size="14" text-anchor="end" dominant-baseline="central" font-style="italic" fill="#b3001b">a</text>
+<circle cx="540" cy="102" r="3.5" fill="#000"/>
+<path d="M540.0,102.0 C580.0,92.0 559.5,144.6 514.5,144.6" fill="none" stroke="#000" stroke-width="1.4" marker-end="url(#a)"/>
+<text x="582.0" y="123.3" font-size="14" text-anchor="start" dominant-baseline="central">0.8</text>
+<path d="M540.0,102.0 L540.0,44.0 Q540.0,32.0 528.0,32.0 L92.0,32.0 C18.6,32.0 3.1,102.8 59.6,140.9" fill="none" stroke="#000" stroke-width="1.4" marker-end="url(#a)"/>
+<text x="547.0" y="78.0" font-size="14" text-anchor="start" dominant-baseline="central">0.2</text>
+<line x1="507.0" y1="174.3" x2="540.0" y2="210.0" stroke="#000" stroke-width="1.4"/>
+<text x="514.5" y="194.2" font-size="14" text-anchor="end" dominant-baseline="central" font-style="italic" fill="#b3001b">b</text>
+<circle cx="540" cy="210" r="3.5" fill="#000"/>
+<path d="M540.0,210.0 C580.0,220.0 559.5,167.4 514.5,167.4" fill="none" stroke="#000" stroke-width="1.4" marker-end="url(#a)"/>
+<text x="582.0" y="188.7" font-size="14" text-anchor="start" dominant-baseline="central">0.2</text>
+<path d="M540.0,210.0 L540.0,268.0 Q540.0,280.0 528.0,280.0 L92.0,280.0 C18.6,280.0 3.1,209.2 59.6,171.1" fill="none" stroke="#000" stroke-width="1.4" marker-end="url(#a)"/>
+<text x="547.0" y="234.0" font-size="14" text-anchor="start" dominant-baseline="central">0.8</text>
+<line x1="23.0" y1="156.0" x2="55.0" y2="156.0" stroke="#000" stroke-width="1.4" marker-end="url(#a)"/>
+<circle cx="82" cy="156" r="25" fill="#fdf7de" stroke="#eedc8c" stroke-width="1.4"/>
+<text x="82.0" y="156.0" font-size="15" text-anchor="middle" dominant-baseline="central">0</text>
+<circle cx="218" cy="156" r="25" fill="#fdf7de" stroke="#eedc8c" stroke-width="1.4"/>
+<text x="218.0" y="156.0" font-size="15" text-anchor="middle" dominant-baseline="central">1</text>
+<circle cx="354" cy="156" r="25" fill="#fdf7de" stroke="#eedc8c" stroke-width="1.4"/>
+<text x="354.0" y="156.0" font-size="15" text-anchor="middle" dominant-baseline="central">2</text>
+<circle cx="490" cy="156" r="25" fill="#fdf7de" stroke="#eedc8c" stroke-width="1.4"/>
+<text x="490.0" y="156.0" font-size="15" text-anchor="middle" dominant-baseline="central">3</text>
+</svg>

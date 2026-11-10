@@ -1,7 +1,6 @@
 # PRISM properties
 
 <a id="inf_rewards"></a>
-
 ## Why is my expected reward infinite?
 
 This mostly commonly occurs when you are computing the expected reward that is accumulated up until some target set of states is reached ("reachability reward" properties). For example:
@@ -21,7 +20,6 @@ P=? [ F "end" ]
 A similar situation arises with models that contain nondeterminism, such as MDPs. The *maximum* expected reward to reach a target is finite if and only if the *minimum* probability of reaching the target is 1. Conversely, the *minimum* expected reward is finite if and only if the *maximum* probability is 1.
 
 <a id="mult_states"></a>
-
 ## How do I check if a property is true in multiple (or all) states?
 
 Consider a typical boolean-valued PRISM property, such as:
@@ -54,7 +52,6 @@ filter(forall, "safe" => P<0.01 [ F "error" ])
 ```
 
 <a id="action"></a>
-
 ## How do I compute the probability of an action occurring?
 
 PRISM's property specification language is primarily state-based, e.g. you can compute the probability of reaching a *state* that satisfies the label `"error"`:

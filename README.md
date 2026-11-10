@@ -7,7 +7,7 @@ This is PRISM (Probabilistic Symbolic Model Checker).
 
 For detailed installation instructions, check the online manual at:
 
-  https://www.prismmodelchecker.org/manual/InstallingPRISM/Instructions
+  https://www.prismmodelchecker.org/manual/GettingStarted/Installing
   
 or see the local copy included in distributions (`manual/index.html`).
 

@@ -22,8 +22,8 @@ is carried out differently for the three engines.
 The "MTBDD" engine is implemented purely using MTBDDs and BDDs;
 the "sparse" engine uses sparse matrices;
 and the "hybrid" engine uses a combination of the other two.
-The "hybrid" engine is described in [[KNP04b](../Main/References.md#KNP04b)].
-For detailed information about all three engines, see [[Par02](../Main/References.md#Par02)].
+The "hybrid" engine is described in [[KNP04b](../Reference/References.md#KNP04b)].
+For detailed information about all three engines, see [[Par02](../Reference/References.md#Par02)].
 
 The fourth engine, "explicit", performs all aspects of model construction
 and model checking using *explicit-state* data structures.
@@ -73,25 +73,15 @@ See the "[Statistical model checking](../RunningPRISM/StatisticalModelChecking.m
 section for more details.
 
 <a id="exact"></a>
-
 ## Exact model checking
 
-Most of PRISM's model checking functionality uses numerical solution based on floating point arithmetic and, often, this uses iterative numerical methods, which are run until some user-specified precision is reached. PRISM currently has some support for "exact" model checking, i.e., using arbitrary precision arithmetic to provide exact numerical values. Currently, this is implemented as a special case of [parametric model checking](../RunningPRISM/ParametricModelChecking.md), which limits its application to relatively small models. It can be used for analysing DTMCs/CTMCs (unbounded until, steady-state probabilities, reachability reward and steady-state reward) or MDPs (unbounded until and reachability rewards). You can enable this functionality using the "Do exact model checking" option in the GUI or using switch `-exact` from the command line.
+PRISM can also compute exact results, using arbitrary precision arithmetic (switch `-exact`):
+see "[Exact and parametric model checking](../RunningPRISM/ParametricModelChecking.md#exact)".
 
 <a id="pta"></a>
-
 ## PTA engines
 
-The techniques used to model check PTAs are different to the ones used for DTMCs, MDPs and CTMCs. For PTAs, PRISM currently has three distinct engines that can be used:
-
-- The **stochastic games** engine uses abstraction-refinement techniques based on stochastic two-player games [[KNP09c](../Main/References.md#KNP09c)].
-
-- The **digital clocks** engine performs a discretisation, in the form of a language-level model translation, that reduces the problem to one of model checking over a finite-state MDP [[KNPS06](../Main/References.md#KNPS06)].
-
-- The **backwards reachability** engine is a zone-based method based on a backwards traversal of the state space and solution of the resulting finite-state MDP [[KNSW07](../Main/References.md#KNSW07)].
-
-The default engine for PTAs is "stochastic games". The engine to be used can be specified using the "PTA model checking method" setting in the "PRISM" options panel in the GUI. From the command-line, switch `-ptamethod <name>` should be used where `<name>` is either `games`, `digital` or `backwards`.
-
-The choice of engine for PTA model checking affects restrictions that imposed on both
-the [modelling language](../ThePRISMLanguage/Real-timeModels.md)
-and the types of [properties](../PropertySpecification/Real-timeModels.md) that can be checked.
+Probabilistic timed automata (PTAs) are analysed with their own engines:
+"stochastic games", "digital clocks" and "backwards reachability",
+chosen with the "PTA model checking method" setting in the GUI or the switch `-ptamethod` on the command line.
+These are described, with the restrictions each imposes, on the [PTA page](../ModelTypes/Real-timeModels.md#engines).

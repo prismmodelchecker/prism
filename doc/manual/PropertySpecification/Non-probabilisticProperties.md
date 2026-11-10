@@ -30,6 +30,7 @@ E [ F "ready" & (X "launch") ] // There exists a path along which label "ready" 
 A [ (G F x=1) | (G F x=2) ] // Along all paths, either x=1 or x=2 is true infinitely often
 ```
 
+<a id="counterexamples"></a>
 ## Counterexamples and witnesses
 
 If you check a CTL property of the form `A [ G "inv" ]` and it is false, PRISM will generate a counterexample in the form of a path that reaches a state where `"inv"` is not true. This is displayed either in the simulator (from the GUI) or at the command-line. Similarly, if you check `E [ F "goal" ]` and the result is true, a witness (a path reaching a `"goal"` state) will be generated.

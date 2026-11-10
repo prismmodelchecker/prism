@@ -1,7 +1,7 @@
 # Experiments
 
 PRISM supports *experiments*, which is a way of automating multiple instances of model checking.
-This is done by leaving one or more [constants](../ThePRISMLanguage/Constants.md) undefined, e.g.:
+This is done by leaving one or more [constants](../ThePRISMLanguage/ConstantsLabelsAndFormulas.md#constants) undefined, e.g.:
 
 ```prism
 const int N;
@@ -58,7 +58,6 @@ or as code which can be used to generate the graph in Matlab.
 Approximate computation of quantitive results obtained with the [simulator](StatisticalModelChecking.md) can also be used on experiments. In the GUI, select the "Use Simulation" option when defining the parameters for the experiment. From the command-line, just add the `-sim` switch as usual.
 
 <a id="exportresults"></a>
-
 ## Exporting results
 
 You can export all the results from an experiment to a file or to the screen. From the command-line, use the `-exportresults` switch, for example:

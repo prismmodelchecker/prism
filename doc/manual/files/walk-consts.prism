@@ -1,0 +1,21 @@
+// Variant of a random walk
+
+dtmc
+
+// Max value of random walk
+const int N = 3;
+// Probability of increment
+const double p = 0.5;
+// Probability of changing y when incrementing
+const double q = 0.2;
+
+module M
+
+	x : [0..N] init 0;
+	y : [0..1] init 0;
+
+	[] y=0 & x<N -> 1-p:(x'=max(x-1,0)) + p*(1-q):(x'=x+1) + p*q:(x'=x+1)&(y'=1);
+	[] y=0 & x=N -> true;
+	[] y=1 -> (y'=0);
+
+endmodule

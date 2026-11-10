@@ -1,0 +1,17 @@
+// N identical components, each of which fails at rate lambda,
+// and a single repair unit, which repairs them one at a time at rate mu
+
+ctmc
+
+const int N = 3; // number of components
+const double lambda = 0.1; // failure rate of each component (mean time to failure: 10)
+const double mu = 2; // repair rate (mean repair time: 0.5)
+
+module components
+
+	f : [0..N] init 0; // number of failed components
+
+	[fail]   f<N -> (N-f)*lambda : (f'=f+1);
+	[repair] f>0 -> mu : (f'=f-1);
+
+endmodule

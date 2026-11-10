@@ -1,0 +1,15 @@
+// Two similar parallel processes, defined using module renaming
+
+mdp
+
+const double p1 = 0.9;
+const double p2 = 0.8;
+
+module P1
+	s1 : [0..1] init 0;
+
+	[a] s1=0 -> p1:(s1'=1) + 1-p1:(s1'=0);
+	[a] s1=1 -> (s1'=s2);
+endmodule
+
+module P2 = P1 [ s1=s2, s2=s1, a=b, p1=p2 ] endmodule

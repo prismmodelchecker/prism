@@ -1,0 +1,14 @@
+// Two processes from Herman's self-stabilisation algorithm, moving in lockstep
+
+dtmc
+
+module process1
+
+	x1 : [0..1] init 1;
+	
+	[step] (x1=x2) -> 0.5 : (x1'=0) + 0.5 : (x1'=1);
+	[step] !(x1=x2) -> (x1'=x2);
+	
+endmodule
+
+module process2 = process1 [ x1=x2, x2=x1 ] endmodule

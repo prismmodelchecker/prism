@@ -23,7 +23,6 @@ where `model.nm` is the name of the file containing the model description.
 For some types of models, notably PTAs, models are not constructed in this way (because the models are infinite-state). In these cases, analysis of the model is not performed until model checking is performed.
 
 <a id="deadlocks"></a>
-
 ## Deadlocks
 
 You should be aware of the possibility of *deadlock states* (or *deadlocks*) in the model,

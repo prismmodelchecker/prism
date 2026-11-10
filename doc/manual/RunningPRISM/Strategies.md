@@ -51,7 +51,7 @@ where states, by default, are shown as a tuple of variable values.
 *reduce*, which removes the nondeterminism resolved by the strategy (e.g., an MDP becomes a DTMC). This can be useful to re-import the model back into PRISM and analyse the induced model. The second is *restrict*, which shows the original model but with a restricted set of choices (e.g., an MDP with just one choice in each state).
 
 In each case, the induced model can be exported in various formats,
-as for regular [model export](ExportingTheModel.md),
+as for regular [model export](ImportingAndExportingModels.md#exporting),
 including UMB or explicit format,
 the latter either a combined (`.pexp`) file or just the transitions (`.tra`).
 
@@ -80,7 +80,7 @@ A list of available options is as follows:
 - `states` (`true` or `false`): whether to show states, rather than state indices, for actions lists or Dot files; this is true by default
 - `mergeobs` (`true` or `false`): for partially observable models, whether to merge observationally equivalent states; this is true by default (and was previously called `obs`).
 
-Mirroring the `-exportmodel` switch ([see here](ExportingTheModel.md)),
+Mirroring the `-exportmodel` switch ([see here](ImportingAndExportingModels.md#exporting)),
 several other options are available for induced model export:
 
 - `format` (=`explicit`/`dot`/`umb`) - the format to export in

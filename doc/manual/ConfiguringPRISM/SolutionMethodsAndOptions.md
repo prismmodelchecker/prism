@@ -23,7 +23,7 @@ The corresponding GUI option is "Linear equations method".
 - Backwards SOR method: `-bsor`
 
 When using the MTBDD engine, Gauss-Seidel/SOR based methods are not available.
-When using the hybrid engine, *pseudo* variants of Gauss-Seidel/SOR based method can also be used [[Par02](../Main/References.md#Par02)]
+When using the hybrid engine, *pseudo* variants of Gauss-Seidel/SOR based method can also be used [[Par02](../Reference/References.md#Par02)]
 (type `prism -help` at the command-line for details of the corresponding switches).
 For methods which use over-relaxation (JOR/SOR), the over-relaxation parameter (between 0.0 and 2.0)
 can also be specified with option "Over-relaxation parameter" (switch `-omega <val>`).
@@ -32,15 +32,14 @@ For options relating to convergence (of this and other iterative methods),
 see the [Convergence](SolutionMethodsAndOptions.md#convergence) section below.
 
 <a id="mdp"></a>
-
 ## MDP Solution Methods
 
 When analysing MDPs, there are multiple solution methods on offer.
 For most of these, you can select them under the "MDP solution method" setting from the GUI,
 or use the command-line switches listed below.
 Currently, all except value iteration are only supported by the [explicit engine](ComputationEngines.md).
-For more details of the methods, see e.g. [[FKNP11](../Main/References.md#FKNP11)] (about probabilistic verification of MDPs)
-or classic MDP texts such as [[Put94](../Main/References.md#Put94)]).
+For more details of the methods, see e.g. [[FKNP11](../Reference/References.md#FKNP11)] (about probabilistic verification of MDPs)
+or classic MDP texts such as [[Put94](../Reference/References.md#Put94)]).
 
 - **Value iteration** (switch `-valiter`) [this is the default]
 - **Gauss Seidel** (switch `-gs`)
@@ -52,10 +51,9 @@ Where the methods above use iterative numerical solution,
 you can also use the settings under described in the [Convergence](SolutionMethodsAndOptions.md#convergence) section below.
 
 <a id="iiter"></a>
-
 ## Interval Iteration
 
-Interval iteration [[HM14](../Main/References.md#HM14)],[[BKLPW17](../Main/References.md#BKLPW17)] is an alternative solution method for either MDPs or DTMCs
+Interval iteration [[HM14](../Reference/References.md#HM14)],[[BKLPW17](../Reference/References.md#BKLPW17)] is an alternative solution method for either MDPs or DTMCs
 which performs two separate instances of numerical iterative solution,
 one from below and one from above. This is designed to provide clearer information
 about the accuracy of the computed values and avoid possible problems with premature convergence.
@@ -65,10 +63,9 @@ A variety of options can be configured, either using
 `-intervaliter:option1,option2,...` or by
 setting the string "`option1,option2,...`" under "Interval iteration options" in the GUI.
 Type `prism -help intervaliter` from the command-line for a list of the options
-and see [[BKLPW17](../Main/References.md#BKLPW17)] for the details.
+and see [[BKLPW17](../Reference/References.md#BKLPW17)] for the details.
 
 <a id="topo"></a>
-
 ## Topological Value Iteration
 
 Topological value iteration is a variant of value iteration which improves efficiency
@@ -79,7 +76,6 @@ In addition to standard value iteration for MDPs, the topological variant can be
 both interval iteration (see above) and the numerical solution of DTMCs.
 
 <a id="transient"></a>
-
 ## CTMC Transient Analysis
 
 When computing transient probabilities of a CTMC
@@ -90,9 +86,9 @@ When computing transient probabilities of a CTMC
 As an optimisation, when it is detected that the transient probabilities have converged, no further iterations are performed. If necessary (e.g. in case of round-off problems), this optimisation can be disabled with the "Use steady-state detection" option (command-line switch `-nossdetect`).
 
 <a id="fau"></a>
-**Fast adaptive uniformisation** (FAU) [[MWDH10](../Main/References.md#MWDH10)] is a method to efficiently approximate transient properties of large CTMCs. The basic idea is that only the parts of the model that are relevant for the current time period are kept in memory. In more detail, starting with the initial states, in each step FAU
+**Fast adaptive uniformisation** (FAU) [[MWDH10](../Reference/References.md#MWDH10)] is a method to efficiently approximate transient properties of large CTMCs. The basic idea is that only the parts of the model that are relevant for the current time period are kept in memory. In more detail, starting with the initial states, in each step FAU
 explores further states in a DTMC which is a discrete-time version of the original CTMC. By combining the
-probabilities there with those of a certain continuous-time stochastic process (a birth process), transient properties in the original CTMC can be computed. If it turns out that the probability of being in some state in the DTMC is below a given threshold, this state is removed from the model explored so far. After a given number of steps, which corresponds to the number of steps which are likely to happen within the time bound, the exploration can be stopped. In the implementation in PRISM [[DHK13](../Main/References.md#DHK13)], FAU can be used to compute transient probability distributions and to model check the following types of non-nested CSL formulas: time-bounded until, instantaneous reward, cumulative reward.
+probabilities there with those of a certain continuous-time stochastic process (a birth process), transient properties in the original CTMC can be computed. If it turns out that the probability of being in some state in the DTMC is below a given threshold, this state is removed from the model explored so far. After a given number of steps, which corresponds to the number of steps which are likely to happen within the time bound, the exploration can be stopped. In the implementation in PRISM [[DHK13](../Reference/References.md#DHK13)], FAU can be used to compute transient probability distributions and to model check the following types of non-nested CSL formulas: time-bounded until, instantaneous reward, cumulative reward.
 
 The following options can be used to configure FAU:
 
@@ -107,7 +103,6 @@ The following options can be used to configure FAU:
 - "FAU initial time interval" (switch `-fauinitival <x>`): It is also possible to specify an additional initial time interval which is handled separately from the rest of the time. This is often advantageous, because in this interval certain parameters of the model can be explored, which can subsequently be used to speed up the computation of the remaining time interval. The default for this option is 1.0.
 
 <a id="convergence"></a>
-
 ## Convergence
 
 Common to all of these methods is the way that PRISM checks convergence, i.e. decides when to terminate the iterative methods because the answers have converged sufficiently. This is done by checking when the maximum difference between elements in the solution vectors from successive iterations drops below a given threshold (or, in the case of interval iteration, if the difference of the elements in the iterations from above and below are below the threshold).

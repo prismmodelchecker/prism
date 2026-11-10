@@ -1,0 +1,13 @@
+const int T;
+const int k;
+
+label "phase1" = s=4 & phase=1;
+
+// The algorithm eventually terminates successfully with probability 1
+P>=1 [ F "terminate" ];
+
+// The probability of completing phase 1 within time T
+P=? [ F<=T "phase1" ];
+
+// The expected time to complete phase k
+R=? [ F s=4 & phase=k ];

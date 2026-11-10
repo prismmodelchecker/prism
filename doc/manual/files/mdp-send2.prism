@@ -1,0 +1,21 @@
+// Module P1 "sends" a value (1 or 2) to P2, which reads it while synchronising on c
+
+mdp
+
+module P1
+
+	s1 : [0..2] init 0;
+
+	[a] s1=0 -> 0.9:(s1'=1) + 0.1:(s1'=2);
+	[c] s1>0 -> (s1'=0);
+
+endmodule
+
+module P2
+
+	s2 : [0..2] init 0;
+
+	[c] s2=0 -> (s2'=s1);
+	[d] s2>0 -> (s2'=0);
+
+endmodule

@@ -1,9 +1,8 @@
-# Debugging models with the simulator
+# Simulation
 
 PRISM includes a *simulator*, a tool which can be used to generate sample paths (executions) through a PRISM model. From the GUI, the simulator allows you to explore a model by interactively generating such paths. This is particularly useful for debugging models during development and for running sanity checks on completed models. Paths can also be generated from the command-line.
 
 <a id="gui"></a>
-
 ## Generating a path in the GUI
 
 Once you have loaded a model into the PRISM GUI
@@ -35,14 +34,13 @@ It is also possible to:
 Notice that the table containing the path displays not just the value of each variable in each
 state but also the time spent in that state and any rewards accumulated there. You can configure exactly which columns appear by right-clicking on the path and selecting "Configure view". For rewards (and for CTMC models, for the time-values), you can opt to display the reward/time for each individual state and/or the cumulative total up until each point in the path.
 
-At the top-right of the interface, any labels contained in the currently loaded model/properties file are displayed, along with their value in the currently selected state of the path. In addition, the built-in [labels](../PropertySpecification/PropertiesFiles.md#labels) `"init"` and `"deadlock"` are also included. Selecting a label from the list highlights all states in the current path which satisfy it.
+At the top-right of the interface, any labels contained in the currently loaded model/properties file are displayed, along with their value in the currently selected state of the path. In addition, the built-in [labels](../PropertySpecification/PropertiesFiles.md) `"init"` and `"deadlock"` are also included. Selecting a label from the list highlights all states in the current path which satisfy it.
 
 The other tabs in this panel allow the value of path operators (taken from properties in the current file) to be viewed for the current path, as well as various other statistics.
 
 Another very useful feature for some models is to use the "Plot new path" option from the simulator, which generates a plot of some/all of the variable/reward values for a particular randomly generated path through the model.
 
 <a id="cl"></a>
-
 ## Path generation from the command-line
 
 It is also possible to generate random paths through a model using the command-line version of PRISM. This is achieved using the `-simpath` switch, which requires two arguments, the first describing the path to be generated and the second specifying the file to which the path should be output (as usual, specifying `stdout` sends output to the terminal). The following examples illustrate the various ways of generating paths in this way:
@@ -190,7 +188,7 @@ prism dice.pm -simpath 10,loopcheck=false stdout
 ```
 
 One final note: the `-simpath` switch only generates paths up to the maximum path length setting of the simulator (the default is 10,000). If you want to generate longer paths, either change the
-[default setting](../ConfiguringPRISM/Introduction.md) or override it temporarily from the command-line using the `-simpathlen` switch.
+[default setting](../ConfiguringPRISM/SettingsFile.md) or override it temporarily from the command-line using the `-simpathlen` switch.
 You might also use the latter to decrease the setting,
 e.g. to look for a path leading to a deadlock state,
 but only within 100 steps:
