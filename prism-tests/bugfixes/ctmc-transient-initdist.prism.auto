@@ -1,0 +1,30 @@
+# Transient probabilities for a CTMC where an initial distribution vector is passed to
+# the symbolic engines: for the 2nd and later points of a time range (the previous
+# result is reused), and with -importinitdist. Both used to crash the JVM with a native
+# double free (sparse/hybrid) or double deref (MTBDD), since Prism cleared the vector
+# after the native code had already freed it. Most lines just check PRISM runs cleanly
+# (no exported values are compared, since the last digits differ across engines/platforms).
+# ctmc-transient-initdist.prism.initdist.txt is the distribution at time 1.
+
+# Time ranges
+-tr 0.1:0.01:0.2 -h
+-tr 0.1:0.01:0.2 -s
+-tr 0.1:0.01:0.2 -m
+-tr 0.1:0.01:0.2 -ex
+-tr 0:0.5:1 -h
+-tr 0:0.5:1 -s
+-tr 0:0.5:1 -m
+
+# Imported initial distribution, single time point and a range
+-tr 1.0 -importinitdist ctmc-transient-initdist.prism.initdist.txt -h
+-tr 1.0 -importinitdist ctmc-transient-initdist.prism.initdist.txt -s
+-tr 1.0 -importinitdist ctmc-transient-initdist.prism.initdist.txt -m
+-tr 1.0 -importinitdist ctmc-transient-initdist.prism.initdist.txt -ex
+-tr 0.5:0.5:1 -importinitdist ctmc-transient-initdist.prism.initdist.txt -h
+-tr 0.5:0.5:1 -importinitdist ctmc-transient-initdist.prism.initdist.txt -s
+-tr 0.5:0.5:1 -importinitdist ctmc-transient-initdist.prism.initdist.txt -m
+
+# At time 0, the imported distribution should be exported unchanged
+-tr 0 -importinitdist ctmc-transient-initdist.prism.initdist.txt -exporttr ctmc-transient-initdist.prism.initdist.txt -h
+-tr 0 -importinitdist ctmc-transient-initdist.prism.initdist.txt -exporttr ctmc-transient-initdist.prism.initdist.txt -s
+-tr 0 -importinitdist ctmc-transient-initdist.prism.initdist.txt -exporttr ctmc-transient-initdist.prism.initdist.txt -m

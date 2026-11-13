@@ -4344,9 +4344,9 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 							}
 							probs = probsSym = ((ProbModelChecker) mc).doTransient(timeInt - initTimeInt, initDistSym);
 						}
-						if (initDistSym != null) {
-							initDistSym.clear();
-						}
+						// No need to clear initDistSym: the symbolic transient methods take
+						// ownership of the passed-in vector (the native code frees/derefs it,
+						// or it is returned as the result itself if the time is 0)
 						break;
 					case EXPLICIT:
 						if (getModelType().continuousTime()) {
