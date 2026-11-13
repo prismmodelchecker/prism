@@ -134,4 +134,4 @@ The only thing that is not removed via either of these methods is the `.prism` f
 
 **I still have a problem installing/running PRISM. What can I do?**
 
-Please post a message in the discussion group (see the [support](https://www.prismmodelchecker.org/support.php) section of the PRISM website).
+Please post a message in the discussion forum (see "[Getting help](https://www.prismmodelchecker.org/support/)" on the PRISM website).
