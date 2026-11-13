@@ -43,7 +43,7 @@ and [multi-objective](PropertySpecification/Multi-objectiveProperties.md) querie
 
 PRISM checks properties exhaustively, using numerical solution methods,
 and can also [generate strategies](RunningPRISM/Strategies.md) that achieve optimal values.
-It also includes a [discrete-event simulator](RunningPRISM/DebuggingModelsWithTheSimulator.md),
+It also includes a [discrete-event simulator](RunningPRISM/Simulation.md),
 for [statistical model checking](RunningPRISM/StatisticalModelChecking.md).
 
 ## Where to start

@@ -44,7 +44,7 @@ prism dice.pm -pf 'E[F "deadlock"]'
 
 a path to a deadlock will be displayed in the log.
 
-Finally, in the eventuality that the model is too large to be model checked, you can still use the [simulator](DebuggingModelsWithTheSimulator.md) to search for deadlocks. This can be done either by manually generating random paths using the [simulator in the GUI](DebuggingModelsWithTheSimulator.md#gui) or, [from the command-line](DebuggingModelsWithTheSimulator.md#cl), e.g. by running:
+Finally, in the eventuality that the model is too large to be model checked, you can still use the [simulator](Simulation.md) to search for deadlocks. This can be done either by manually generating random paths using the [simulator in the GUI](Simulation.md#gui) or, [from the command-line](Simulation.md#cl), e.g. by running:
 
 ```shell
 prism dice.pm -simpath deadlock stdout

@@ -9,7 +9,7 @@ How to start the GUI and the command-line version is described in "[First steps]
 - [Model checking](ModelChecking.md): checking properties, in the GUI and on the command line
 - [Experiments](Experiments.md): checking properties for ranges of constants, and plotting the results
 - [Strategies](Strategies.md): generating and exporting strategies (policies) for MDPs and other models
-- [Simulation](DebuggingModelsWithTheSimulator.md): exploring a model step by step, and generating random paths
+- [Simulation](Simulation.md): exploring a model step by step, and generating random paths
 - [Statistical model checking](StatisticalModelChecking.md): approximate results by simulation
 - [Transient and steady-state probabilities](ComputingSteady-stateAndTransientProbabilities.md): probability distributions over a model's states
 - [Exact and parametric model checking](ParametricModelChecking.md): exact results, and results as functions of model parameters

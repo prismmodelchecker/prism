@@ -34,6 +34,7 @@
 	"RunningPRISM/ApproximateComputationOfQuantitativeProperties": "RunningPRISM/StatisticalModelChecking.md",
 	"RunningPRISM/ApproximateModelChecking": "RunningPRISM/StatisticalModelChecking.md",
 	"RunningPRISM/Contents": "RunningPRISM/README.md",
+	"RunningPRISM/DebuggingModelsWithTheSimulator": "RunningPRISM/Simulation.md",
 	"RunningPRISM/ExplicitModelImport": "RunningPRISM/ImportingAndExportingModels.md#importing",
 	"RunningPRISM/ExportingTheModel": "RunningPRISM/ImportingAndExportingModels.md#exporting",
 	"RunningPRISM/Main": "RunningPRISM/README.md",
