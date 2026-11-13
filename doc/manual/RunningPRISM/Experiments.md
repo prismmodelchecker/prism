@@ -12,13 +12,16 @@ This can be done for constants in the model file, the properties file, or both.
 Before any verification can be performed, values must be provided for any such constants. In the GUI, a dialog appears in which the user is required to enter values. From the command line, the `-const` switch must be used, e.g.:
 
 ```shell
-prism cluster.sm cluster.csl -const N=4,T=85.9
+prism cluster.sm cluster.csl -prop 4 -const N=4,T=85.9
 ```
+
+Here, the model `cluster.sm` and properties `cluster.csl` are from the `prism-examples` directory,
+and [`-prop 4`](ModelChecking.md#cl) checks just the fourth property in the file.
 
 To run an experiment, provide a *range* of values for one or more of the constants. Model checking will be performed for all combinations of the constant values provided. For example:
 
 ```shell
-prism cluster.sm cluster.csl -const N=4:6,T=60:10:100
+prism cluster.sm cluster.csl -prop 4 -const N=4:6,T=60:10:100
 ```
 
 where `N=4:6` means that values of 4,5 and 6 are used for `N`,
@@ -28,7 +31,7 @@ For convenience, constant specifications can be split across separate instances 
 You can also specify double-valued constants as fractions rather than decimals. For example:
 
 ```shell
-prism cluster.sm cluster.csl -const N=4,T=85.9 -const p=1/3
+prism cluster.sm cluster.csl -prop 4 -const N=4 -const T=1/3
 ```
 
 From the GUI, the same thing can be achieved by selecting a single property,

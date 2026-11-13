@@ -139,15 +139,16 @@ prism poll2.sm -simpath 'time=5.0,snapshot=0.5' stdout
 You can also use the `sep=...` option to specify the column separator. Possible values are `space` (the default), `tab` and `comma`. For example:
 
 ```shell
-prism poll2.sm -simpath '10,vars=(a,b),sep=comma' stdout
+prism poll2.sm -simpath '200,vars=(a,s1),sep=comma' stdout
 #...
-#step,a,b,time
-#0,0,0,0.0
-#2,1,0,0.058443536856580006
-#3,1,1,0.09281024515535738
-#6,1,2,0.2556555786269585
-#7,1,3,0.284062896359802
-#8,1,4,1.1792064236954896
+#action,step,time,a,s1
+#-,0,0.0,0,0
+#[loop2b],71,0.30227293267212296,1,0
+#station1,72,0.7818965999769389,1,1
+#[serve2],73,1.132620216421162,0,1
+#[loop1b],74,1.1350805223051847,1,1
+#[serve1],76,5.305834484838731,0,0
+#...
 ```
 
 When generating paths to a deadlock state, additional `repeat=...` option is available which will construct multiple paths until a deadlock is found. For example:

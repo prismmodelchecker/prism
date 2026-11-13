@@ -96,12 +96,8 @@ several other options are available for induced model export:
 
 **Strategy types**. PRISM generates several types of strategies. The simplest are *memoryless deterministic* strategies, which pick a single action in each state, as in the examples above. For some query types (e.g., step-bounded properties, or LTL-based properties), *finite-memory* strategies are generated, where an additional memory value is used. For these, induced models or Dot files are most useful since they will also show how the memory values are updated as the strategy is executed. Note that, in these cases, the state indices of the strategy will correspond to the product model constructed during model checking, not the original model. The product model can be exported using the `-exportprodtrans` and `-exportprodstates` switches.
 
-**Adversary generation**. As mentioned above, the "sparse" model checking engine still includes older so-called "adversary generation" functionality. This can be used to export the induced model to a file using the `-exportadv` switch, e.g.:
-
-```shell
-prism mdp.nm -pf 'Pmax=? [ F "goal" ]' -exportadv adv.tra -s
-prism mdp.nm -pf 'Pmax=? [ F "goal" ]' -exportadvmdp adv.tra -s
-```
-
-where the `-exportadv` and `-exportadvmdp` export a DTMC and an MDP, respectively, i.e., corresponding to the "reduce" and "restrict" modes described above.
-From the GUI, change the "Adversary export" option (under the "PRISM" settings) from "None" to "DTMC" or "MDP". You can also change the filename for the export adversary which, by default, is `adv.tra` as in the example above.
+**Adversary generation**. The "sparse" engine still includes PRISM's older "adversary generation" functionality,
+which exports the induced model of an optimal strategy for MDPs, as a DTMC or an MDP
+(switches [`-exportadv`](../Reference/CommandLineSwitches.md#exportadv) and [`-exportadvmdp`](../Reference/CommandLineSwitches.md#exportadvmdp),
+or the "Adversary export" option in the GUI).
+This is superseded by `-exportstrat`, described above, whose `reduce` and `restrict` modes give the same two models.
