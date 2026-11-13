@@ -8,7 +8,7 @@ By default PRISM uses a port of the [ltl2dstar](http://www.ltl2dstar.de/) librar
 prism model.pm -pf "P=? [ G F x=1 ]" -ltl2datool hoa-ltl2dstar-for-prism -ltl2dasyntax lbt
 ```
 
-The `-ltl2datool` switch specifies the location of the program to be executed to perform the LTL-to-automaton conversion. This will be called by PRISM as "`exec` `in-file` `out-file`", where `exec` is the executable, `in-file` is the name of a file containing the LTL formula to be converted and `out-file` is the name of a file where the resulting automaton should be written, in HOA format. Typically, the executable will be a script. Here is a simple example (called as `hoa-ltl2dstar-for-prism` in the above example), which calls an external copy of `ltl2dstar` in the required fashion (assuming that the `ltl2dstar` and [`ltl2ba`](http://www.lsv.ens-cachan.fr/~gastin/ltl2ba/)  executables are located in the current directory or on the PATH).
+The [`-ltl2datool`](../Reference/CommandLineSwitches.md#ltl2datool) switch specifies the location of the program to be executed to perform the LTL-to-automaton conversion. This will be called by PRISM as "`exec` `in-file` `out-file`", where `exec` is the executable, `in-file` is the name of a file containing the LTL formula to be converted and `out-file` is the name of a file where the resulting automaton should be written, in HOA format. Typically, the executable will be a script. Here is a simple example (called as `hoa-ltl2dstar-for-prism` in the above example), which calls an external copy of `ltl2dstar` in the required fashion (assuming that the `ltl2dstar` and [`ltl2ba`](http://www.lsv.ens-cachan.fr/~gastin/ltl2ba/)  executables are located in the current directory or on the PATH).
 
 ```shell
 #! /bin/bash
@@ -37,7 +37,7 @@ See the files themselves for details of any configuration required, possible opt
 
 There is also a `hoa-rabinizer-for-prism.bat` script for connecting to Rabinizer on Windows.
 
-The `-ltl2dasyntax` switch is used to specify the textual format for passing the LTL formula to the external converter (i.e., in the file `in-file`). The options are:
+The [`-ltl2dasyntax`](../Reference/CommandLineSwitches.md#ltl2dasyntax) switch is used to specify the textual format for passing the LTL formula to the external converter (i.e., in the file `in-file`). The options are:
 
 - `lbt` - LBT format
 - `spin` - SPIN format
@@ -56,7 +56,7 @@ prism model.pm -pf "P=? [ G F x=1 ]" -ltl2datool hoa-rabinizer-for-prism -ltl2da
 From the GUI, configuring the external LTL converter is done with the two options
 "Use external LTL-&gt;DA tool" and "LTL syntax for external LTL-&gt;DA tool".
 
-Another related option is "All path formulas via automata" (command-line switch `-pathviaautomata`), which forces construction of an automata
+Another related option is "All path formulas via automata" (command-line switch [`-pathviaautomata`](../Reference/CommandLineSwitches.md#pathviaautomata)), which forces construction of an automata
 when computing the probability of a path formula, even if it is not needed. This is primarily intended for debugging/testing, not regular use.
 
 As mentioned above, PRISM's external LTL-to-automaton interfacing works using the

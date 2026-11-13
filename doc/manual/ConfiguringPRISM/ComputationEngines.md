@@ -45,7 +45,7 @@ Performance (time and space), however, may vary significantly and if you are usi
 
 - The **explicit** engine is similar to the sparse engine, in that it can be a good option for relatively small models, but will not scale up to some of the models that can be handled by the hybrid or MTBDD engines. However, unlike the sparse engine, the explicit engine does not use symbolic data structures for model construction, which can be beneficial in some cases. One example is models with a potentially very large state space, only a fraction of which is actually reachable.
 
-When using the PRISM GUI, the engine to be used for model checking can be selected from the "Engine" option under the "PRISM" tab of the "Options" dialog. From the command-line, engines are activated using the `-mtbdd`, `-sparse`, `-hybrid` and `-explicit` (or `-m`, `-s`, `-h` and `-ex`, respectively) switches, e.g.:
+When using the PRISM GUI, the engine to be used for model checking can be selected from the "Engine" option under the "PRISM" tab of the "Options" dialog. From the command-line, engines are activated using the [`-mtbdd`](../Reference/CommandLineSwitches.md#mtbdd), [`-sparse`](../Reference/CommandLineSwitches.md#sparse), [`-hybrid`](../Reference/CommandLineSwitches.md#hybrid) and [`-explicit`](../Reference/CommandLineSwitches.md#explicit) (or `-m`, `-s`, `-h` and `-ex`, respectively) switches, e.g.:
 
 ```shell
 prism poll2.sm -tr 1000 -m
@@ -62,20 +62,21 @@ Use, for example, `-heuristic speed` from the command-line to choose options
 which target computation speed rather than saving memory.
 This is also available from the "Heuristic" option under the "PRISM" tab of the "Options" dialog in the GUI.
 
+<a id="statistical"></a>
 ## Approximate/statistical model checking
 
 Although it is not treated as a separate "engine", like those above,
 PRISM also provides approximate/statistical model checking,
 which is based on the use of discrete-event simulation.
 From the GUI, this is enabled by choosing "Simulate" menu items or tick boxes;
-from the command-line, add the `-sim` switch.
+from the command-line, add the [`-sim`](../Reference/CommandLineSwitches.md#sim) switch.
 See the "[Statistical model checking](../RunningPRISM/StatisticalModelChecking.md)"
 section for more details.
 
 <a id="exact"></a>
 ## Exact model checking
 
-PRISM can also compute exact results, using arbitrary precision arithmetic (switch `-exact`):
+PRISM can also compute exact results, using arbitrary precision arithmetic (switch [`-exact`](../Reference/CommandLineSwitches.md#exact)):
 see "[Exact and parametric model checking](../RunningPRISM/ParametricModelChecking.md#exact)".
 
 <a id="pta"></a>
@@ -83,5 +84,5 @@ see "[Exact and parametric model checking](../RunningPRISM/ParametricModelChecki
 
 Probabilistic timed automata (PTAs) are analysed with their own engines:
 "stochastic games", "digital clocks" and "backwards reachability",
-chosen with the "PTA model checking method" setting in the GUI or the switch `-ptamethod` on the command line.
+chosen with the "PTA model checking method" setting in the GUI or the switch [`-ptamethod`](../Reference/CommandLineSwitches.md#ptamethod) on the command line.
 These are described, with the restrictions each imposes, on the [PTA page](../ModelTypes/Real-timeModels.md#engines).

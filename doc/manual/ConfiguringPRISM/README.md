@@ -4,7 +4,7 @@ The settings that control how PRISM works, such as its computation engines, nume
 and how to deal with large models and limited memory.
 
 In the GUI, settings are made in the "Options" dialog and saved in a [settings file](SettingsFile.md);
-on the command line, they are made with switches (`prism -help` lists them all).
+on the command line, they are made with switches, all of which are listed in "[Command-line switches](../Reference/CommandLineSwitches.md)".
 
 ## Contents
 

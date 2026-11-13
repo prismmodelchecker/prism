@@ -10,7 +10,9 @@ User options and settings for the GUI are saved in a file locally and reused. Cu
 - `$HOME/Library/Preferences/prism.settings` (on Mac OS)
 - `.prism` in the user's home directory, e.g. `C:\Documents and Settings\username` (on Windows)
 
-From the command-line version of PRISM, options are controlled by switches. A full list can be displayed by typing:
+From the command-line version of PRISM, options are controlled by switches,
+all of which are listed, with the details below, in "[Command-line switches](../Reference/CommandLineSwitches.md)".
+A full list can also be displayed by typing:
 
 ```shell
 prism -help
@@ -25,7 +27,7 @@ prism -help exportresults
 prism -help exportmodel
 ```
 
-The settings file is *ignored* by the command-line version (unlike earlier versions of PRISM, where it was used). You can, however, request that the settings file *is* read, using the `-settings` switch, e.g.:
+The settings file is *ignored* by the command-line version (unlike earlier versions of PRISM, where it was used). You can, however, request that the settings file *is* read, using the [`-settings`](../Reference/CommandLineSwitches.md#settings) switch, e.g.:
 
 ```shell
 prism -settings ~/.prism
