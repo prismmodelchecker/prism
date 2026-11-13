@@ -1171,7 +1171,7 @@ public class PrismCL implements PrismModelListener
 				log.println("<vals> is a comma-separated list of values or value ranges for undefined constants");
 				log.println("in the model or properties (i.e. those declared without values, such as \"const int a;\").");
 				log.println("You can either specify a single value (a=1), a range (a=1:10) or a range with a step (a=1:2:50).");
-				log.println("For convenience, constant definutions can also be split across multiple -const switches.");
+				log.println("For convenience, constant definitions can also be split across multiple -const switches.");
 				log.println("\nExamples:");
 				log.println(" -const a=1,b=5.6,c=true");
 				log.println(" -const a=1:10,b=5.6");
@@ -1218,6 +1218,7 @@ public class PrismCL implements PrismModelListener
 
 		// Hidden general switches
 		registry.addSwitch("keywords", new FlagSwitch(() -> { printListOfKeywords(); exit(); }));
+		registry.addSwitch("helpjson", new FlagSwitch(() -> { printHelpJson(); exit(); }));
 		registry.addSwitch("dddebug", new FlagSwitch(() -> jdd.DebugJDD.enable()));
 		registry.addSwitch("ddtraceall", new FlagSwitch(() -> jdd.DebugJDD.traceAll = true));
 		registry.addSwitch("ddtracefollowcopies", new FlagSwitch(() -> jdd.DebugJDD.traceFollowCopies = true));
@@ -2352,6 +2353,82 @@ public class PrismCL implements PrismModelListener
 			mainLog.print(" " + s);
 		}
 		mainLog.println();
+	}
+
+	/**
+	 * Print all command-line switches, in {@code -help} order, as a JSON array
+	 * (used to generate the switch reference in the manual: see doc/update-generated.py).
+	 * Each entry has: "name", "names" (all names it can be given by), "group" (or null),
+	 * "hidden" (not listed by {@code -help}), and, if not hidden, "aliases" (as shown in {@code -help}),
+	 * "arg" (argument hint, "" for none), "text" (one-line description) and "details" (as for {@code -help <switch>}).
+	 * A switch listed in two groups appears twice, the second time with "repeat": true.
+	 */
+	private void printHelpJson()
+	{
+		Map<SwitchEntry, List<String>> names = new LinkedHashMap<>();
+		for (Map.Entry<String, SwitchEntry> e : switchHandlers.entrySet()) {
+			if (!e.getKey().startsWith("__"))
+				names.computeIfAbsent(e.getValue(), k -> new ArrayList<>()).add(e.getKey());
+		}
+		Set<SwitchEntry> seen = new HashSet<>();
+		List<String> items = new ArrayList<>();
+		for (Map.Entry<String, SwitchEntry> e : switchHandlers.entrySet()) {
+			SwitchEntry entry = e.getValue();
+			if (entry.primaryName == null || !seen.add(entry))
+				continue;
+			boolean repeat = e.getKey().startsWith("__alias_");
+			boolean hidden = entry.argHint == null;
+			StringBuilder item = new StringBuilder("{\"name\": ").append(jsonString(entry.primaryName));
+			List<String> all = repeat ? List.of(entry.primaryName) : names.get(entry);
+			item.append(", \"names\": ").append(jsonArray(all));
+			item.append(", \"group\": ").append(entry.group == null ? "null" : jsonString(entry.group));
+			item.append(", \"hidden\": ").append(hidden);
+			if (repeat)
+				item.append(", \"repeat\": true");
+			if (!hidden) {
+				item.append(", \"aliases\": ").append(jsonArray(Arrays.asList(entry.shownAliases)));
+				item.append(", \"arg\": ").append(jsonString(entry.argHint));
+				item.append(", \"text\": ").append(jsonString(entry.shortText));
+				// Detailed help, as for -help <switch>, without its "Switch: ..." header line
+				SwitchEntry full = repeat ? switchHandlers.get(entry.primaryName) : entry;
+				java.io.ByteArrayOutputStream bytes = new java.io.ByteArrayOutputStream();
+				PrismLog log = new PrismPrintStreamLog(new java.io.PrintStream(bytes, true));
+				full.printLongDesc(log);
+				log.flush();
+				String details = bytes.toString().replace("\r\n", "\n");
+				details = details.substring(details.indexOf('\n') + 1).strip();
+				item.append(", \"details\": ").append(jsonString(details));
+			}
+			items.add(item.append("}").toString());
+		}
+		mainLog.println("[\n" + String.join(",\n", items) + "\n]");
+	}
+
+	private static String jsonArray(List<String> strings)
+	{
+		List<String> quoted = new ArrayList<>();
+		for (String str : strings)
+			quoted.add(jsonString(str));
+		return "[" + String.join(", ", quoted) + "]";
+	}
+
+	private static String jsonString(String str)
+	{
+		StringBuilder sb = new StringBuilder("\"");
+		for (char c : str.toCharArray()) {
+			switch (c) {
+			case '"': sb.append("\\\""); break;
+			case '\\': sb.append("\\\\"); break;
+			case '\n': sb.append("\\n"); break;
+			case '\t': sb.append("\\t"); break;
+			default:
+				if (c < 0x20)
+					sb.append(String.format("\\u%04x", (int) c));
+				else
+					sb.append(c);
+			}
+		}
+		return sb.append("\"").toString();
 	}
 
 	/**
