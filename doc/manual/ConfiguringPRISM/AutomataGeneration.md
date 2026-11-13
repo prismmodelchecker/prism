@@ -5,7 +5,7 @@ When PRISM performs verification of [LTL formulas](../PropertySpecification/TheP
 By default PRISM uses a port of the [ltl2dstar](http://www.ltl2dstar.de/) library to construct these automata. But it also allows the use of external LTL-to-automata converters producing deterministic automata through support for the [Hanoi Omega Automaton](http://adl.github.io/hoaf/) (HOA) format. From the command line, an example of this is:
 
 ```shell
-prism model.pm -pf "P=? [ G F x=1 ]" -ltl2datool hoa-ltl2dstar-for-prism -ltl2dasyntax lbt
+prism model.prism -pf "P=? [ G F x=1 ]" -ltl2datool hoa-ltl2dstar-for-prism -ltl2dasyntax lbt
 ```
 
 The [`-ltl2datool`](../Reference/CommandLineSwitches.md#ltl2datool) switch specifies the location of the program to be executed to perform the LTL-to-automaton conversion. This will be called by PRISM as "`exec` `in-file` `out-file`", where `exec` is the executable, `in-file` is the name of a file containing the LTL formula to be converted and `out-file` is the name of a file where the resulting automaton should be written, in HOA format. Typically, the executable will be a script. Here is a simple example (called as `hoa-ltl2dstar-for-prism` in the above example), which calls an external copy of `ltl2dstar` in the required fashion (assuming that the `ltl2dstar` and [`ltl2ba`](http://www.lsv.ens-cachan.fr/~gastin/ltl2ba/)  executables are located in the current directory or on the PATH).
@@ -47,10 +47,10 @@ The [`-ltl2dasyntax`](../Reference/CommandLineSwitches.md#ltl2dasyntax) switch i
 Typical usage is:
 
 ```shell
-prism model.pm -pf "P=? [ G F x=1 ]" -ltl2datool hoa-ltl2dstar-for-prism -ltl2dasyntax lbt
-prism model.pm -pf "P=? [ G F x=1 ]" -ltl2datool hoa-ltl2tgba-for-prism -ltl2dasyntax lbt
-prism model.pm -pf "P=? [ G F x=1 ]" -ltl2datool hoa-ltl3dra-for-prism -ltl2dasyntax spin
-prism model.pm -pf "P=? [ G F x=1 ]" -ltl2datool hoa-rabinizer-for-prism -ltl2dasyntax rabinizer
+prism model.prism -pf "P=? [ G F x=1 ]" -ltl2datool hoa-ltl2dstar-for-prism -ltl2dasyntax lbt
+prism model.prism -pf "P=? [ G F x=1 ]" -ltl2datool hoa-ltl2tgba-for-prism -ltl2dasyntax lbt
+prism model.prism -pf "P=? [ G F x=1 ]" -ltl2datool hoa-ltl3dra-for-prism -ltl2dasyntax spin
+prism model.prism -pf "P=? [ G F x=1 ]" -ltl2datool hoa-rabinizer-for-prism -ltl2dasyntax rabinizer
 ```
 
 From the GUI, configuring the external LTL converter is done with the two options

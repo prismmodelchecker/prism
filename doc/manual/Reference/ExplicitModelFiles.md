@@ -20,7 +20,7 @@ The default now for exporting models in textual format from PRISM
 is to do so in a combined .pexp file, that includes all parts of the model,
 as described individually in more detail below.
 
-Here is an example, for the (DTMC) PRISM model [lec3.pm](../files/lec3.pm) (which looks like [this](../files/lec3.dot.pdf)):
+Here is an example, for the (DTMC) PRISM model [lec3.prism](../files/lec3.prism) (which looks like [this](../files/lec3.dot.pdf)):
 
 ```text
 # Transitions (DTMC)
@@ -81,7 +81,7 @@ It is assumed that source states (rows) are in ascending order, but there is no 
 
 For a DTMC, the probabilities for the outgoing transitions of each state should sum to 1.
 
-Here is an example, for the (DTMC) PRISM model [lec3.pm](../files/lec3.pm) (which looks like [this](../files/lec3.dot.pdf)):
+Here is an example, for the (DTMC) PRISM model [lec3.prism](../files/lec3.prism) (which looks like [this](../files/lec3.dot.pdf)):
 
 ```text
 # Transitions (DTMC)
@@ -136,7 +136,7 @@ The first (non-header) line of the file take the form "`n c m`", giving the numb
 State indices and choice indices are all zero-indexed. Probability values (as above) are written as (positive) floating point numbers and should sum to 1 for each choice.
 It is assumed that source states (rows) and choices within states are in ascending order, but there is no assumption about the ordering of destination states (columns) within the transitions for each choice.
 
-Here is an example, for the (MDP) PRISM model [lec12mdp.nm](../files/lec12mdp.nm) (which looks like [this](../files/lec12mdp.dot.pdf)):
+Here is an example, for the (MDP) PRISM model [lec12mdp.prism](../files/lec12mdp.prism) (which looks like [this](../files/lec12mdp.dot.pdf)):
 
 ```text
 # Transitions (MDP)
@@ -150,7 +150,7 @@ Here is an example, for the (MDP) PRISM model [lec12mdp.nm](../files/lec12mdp.nm
 3 0 3 1
 ```
 
-and here is an action-labelled version of the same model, [lec12mdpa.nm](../files/lec12mdpa.nm) (which looks like [this](../files/lec12mdpa.dot.pdf)):
+and here is an action-labelled version of the same model, [lec12mdpa.prism](../files/lec12mdpa.prism) (which looks like [this](../files/lec12mdpa.dot.pdf)):
 
 ```text
 # Transitions (MDP)
@@ -213,7 +213,7 @@ An example file is:
 
 There is an alternative format for transition matrices (see the [rows](../RunningPRISM/ImportingAndExportingModels.md#other) option for `-exportmodel`) where transitions for each state/choice are collated on a single line.
 
-Here is the result for the [lec3.pm](../files/lec3.pm) example from above (a DTMC):
+Here is the result for the [lec3.prism](../files/lec3.prism) example from above (a DTMC):
 
 ```text
 # Transitions (DTMC)
@@ -226,7 +226,7 @@ Here is the result for the [lec3.pm](../files/lec3.pm) example from above (a DTM
 5 1:2
 ```
 
-for the [lec12mdp.nm](../files/lec12mdp.nm) example (an MDP):
+for the [lec12mdp.prism](../files/lec12mdp.prism) example (an MDP):
 
 ```text
 # Transitions (MDP)
@@ -238,7 +238,7 @@ for the [lec12mdp.nm](../files/lec12mdp.nm) example (an MDP):
 3 1:3
 ```
 
-and for the [lec12mdpa.nm](../files/lec12mdpa.nm) example (an MDP with actions):
+and for the [lec12mdpa.prism](../files/lec12mdpa.prism) example (an MDP with actions):
 
 ```text
 # Transitions (MDP)
@@ -282,7 +282,7 @@ For state rewards, the information following this header is an explicit list of 
 The first line is of the form `n m` where `n` is the number of states in the model and `m` is the number of non-zero state rewards.
 The following `m` lines are of the form `i r`, denoting that the state reward for state `i` is `r`.
 
-For the [lec3.pm](../files/lec3.pm) (6-state) DTMC example from above, we get rewards in 3 states (0, 4 and 5):
+For the [lec3.prism](../files/lec3.prism) (6-state) DTMC example from above, we get rewards in 3 states (0, 4 and 5):
 
 ```text
 # Reward structure "r"
@@ -303,7 +303,7 @@ The rest of the file is formatted identically to transitions files (see [above](
 except that probabilities/rates are replaced with reward values,
 and the number of transitions (the last number on the first line) is replaced with the number of non-zero transition rewards.
 
-For the [lec3.pm](../files/lec3.pm) (6-state) DTMC example from above, we get non-zero transition rewards on 4 transitions:
+For the [lec3.prism](../files/lec3.prism) (6-state) DTMC example from above, we get non-zero transition rewards on 4 transitions:
 
 ```text
 # Reward structure "r"
@@ -315,7 +315,7 @@ For the [lec3.pm](../files/lec3.pm) (6-state) DTMC example from above, we get no
 2 5 2
 ```
 
-And for the [lec12mdpa.nm](../files/lec12mdpa.nm) (4-state) MDP example, we get non-zero transition rewards on 4 transitions:
+And for the [lec12mdpa.prism](../files/lec12mdpa.prism) (4-state) MDP example, we get non-zero transition rewards on 4 transitions:
 
 ```text
 # Reward structure "r"

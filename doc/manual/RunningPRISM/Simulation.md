@@ -46,9 +46,9 @@ Another very useful feature for some models is to use the "Plot new path" option
 It is also possible to generate random paths through a model using the command-line version of PRISM. This is achieved using the `-simpath` switch, which requires two arguments, the first describing the path to be generated and the second specifying the file to which the path should be output (as usual, specifying `stdout` sends output to the terminal). The following examples illustrate the various ways of generating paths in this way:
 
 ```shell
-prism model.pm -simpath 10 path.txt
-prism model.pm -simpath time=7.5 path.txt
-prism model.pm -simpath deadlock path.txt
+prism model.prism -simpath 10 path.txt
+prism model.prism -simpath time=7.5 path.txt
+prism model.prism -simpath deadlock path.txt
 ```
 
 These generate a path of 10 steps, a path of at least 7.5 time units and a path ending in deadlock, respectively.
@@ -154,7 +154,7 @@ prism poll2.sm -simpath '200,vars=(a,s1),sep=comma' stdout
 When generating paths to a deadlock state, additional `repeat=...` option is available which will construct multiple paths until a deadlock is found. For example:
 
 ```shell
-prism model.sm -simpath 'deadlock,repeat=100' stdout
+prism model.prism -simpath 'deadlock,repeat=100' stdout
 ```
 
 By default, the simulator detects deterministic loops in paths (e.g. if a path reaches a state from which there is a just a single self-loop leaving that state) and stops generating the path any further. You can disable this behaviour with the `loopcheck=false` option. For example:
@@ -195,5 +195,5 @@ e.g. to look for a path leading to a deadlock state,
 but only within 100 steps:
 
 ```shell
-prism model.sm -simpath deadlock stdout -simpathlen 100
+prism model.prism -simpath deadlock stdout -simpathlen 100
 ```

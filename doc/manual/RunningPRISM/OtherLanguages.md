@@ -213,7 +213,7 @@ At present, the SBML-to-PRISM translator is included in the PRISM code-base, but
 
 ```shell
 cd prism
-java -cp classes prism.SBML2Prism sbml_file.xml > prism_file.sm
+java -cp classes prism.SBML2Prism sbml_file.xml > prism_file.prism
 ```
 
 If you are using a binary (rather than source code) distribution of PRISM, replace `classes` with `lib/prism.jar` in the above.
@@ -234,7 +234,7 @@ prism "$@"
 Then use:
 
 ```shell
-sbml2prism sbml_file.xml > prism_file.sm
+sbml2prism sbml_file.xml > prism_file.prism
 ```
 
 The following PRISM properties file will also be useful:
@@ -266,7 +266,7 @@ Furthermore, since PRISM is primarily a model checking (rather than simulation) 
 
 ```shell
 cd prism
-java -cp classes prism.SBML2Prism sbml_file.xml 1000 > prism_file.sm
+java -cp classes prism.SBML2Prism sbml_file.xml 1000 > prism_file.prism
 ```
 
 Alternatively, upper bounds can be modified manually after the translation process.

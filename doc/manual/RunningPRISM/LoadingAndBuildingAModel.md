@@ -15,10 +15,10 @@ Model construction is done automatically when you perform [model checking](Model
 From the command-line, simply type:
 
 ```shell
-prism model.nm
+prism model.prism
 ```
 
-where `model.nm` is the name of the file containing the model description.
+where `model.prism` is the name of the file containing the model description.
 
 For some types of models, notably PTAs, models are not constructed in this way (because the models are infinite-state). In these cases, analysis of the model is not performed until model checking is performed.
 

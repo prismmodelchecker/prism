@@ -77,7 +77,7 @@ For the **digital clocks** engine:
 
 - Diagonal clock constraints are not allowed, i.e. those containing references to two clocks, such as `x<=y`.
 
-The digital clocks method is based on a language-level translation from a PTA model to an MDP one. If you want to see the MDP PRISM model that was generated, add the switch `-exportdigital digital.nm` when model checking property to export the model file to `digital.nm`.
+The digital clocks method is based on a language-level translation from a PTA model to an MDP one. If you want to see the MDP PRISM model that was generated, add the switch `-exportdigital digital.prism` when model checking property to export the model file to `digital.prism`.
 
 <a id="properties"></a>
 ## Properties

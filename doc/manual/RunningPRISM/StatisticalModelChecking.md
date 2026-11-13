@@ -98,7 +98,7 @@ If, for a given property, statistical model checking results in one or more path
 Statistical model checking can also be enabled from the command-line version of PRISM, by including the `-sim` switch. The default methods used are CI (Confidence Interval) for numerical properties and SPRT (Sequential Probability Ratio Test) for Boolean properties. To select a particular method, use switch `-simmethod <method>` where `<method>` is one of `ci`, `aci`, `apmc` and `sprt`. For example:
 
 ```shell
-prism model.pm model.pctl -prop 1 -sim -simmethod aci
+prism model.prism model.props -prop 1 -sim -simmethod aci
 ```
 
 PRISM has default values for the various simulation method parameters, but these can also be specified using the switches `-simsamples`, `-simconf`, `-simwidth` and `-simapprox`. The exact meaning of these switches for each simulation method is given in the table below.

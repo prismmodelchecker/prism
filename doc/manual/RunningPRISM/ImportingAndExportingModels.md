@@ -199,7 +199,7 @@ prism model.prism -exportbsccs stdout
 For an MDP, you can also export the set of maximal end components (MECs):
 
 ```shell
-prism mdp.nm -exportmecs stdout
+prism mdp.prism -exportmecs stdout
 ```
 
 <a id="importing"></a>

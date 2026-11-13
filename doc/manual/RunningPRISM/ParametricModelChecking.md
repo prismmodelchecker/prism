@@ -34,7 +34,7 @@ They may not be used in guards or updates. The parametric definitions of probabi
 Currently, parametric model checking can only be performed from the command-line. This is done by using the switch `-param <vals>`, where `<vals>` lists the undefined constants that should be treated as parameters. A range of possible values should also be provided for each parameter, in the form `<parameter>=<lower-bound>:<upper-bound>`. For example:
 
 ```shell
-prism model.pm model.props -param x=0.2:0.4,y=-2:2
+prism model.prism model.props -param x=0.2:0.4,y=-2:2
 ```
 
 would specify a parameter `x` with lower bound 0.2 and upper bound 0.4, and a parameter `y` with values between -2 and 2. You can also omit the bounds for a parameter, in which case it will be assumed to have range 0 to 1.
@@ -42,7 +42,7 @@ would specify a parameter `x` with lower bound 0.2 and upper bound 0.4, and a pa
 The result of parametric model checking will be a mapping from regions (subsets of parameter valuations) to functions over the parameters. The regions are given as hyper-rectangles, e.g. "[ [0.2,0.3],[-2,0] ]" would represent the region of parameter valuations in which the first parameter is between 0.2 and 0.3 and the second is between -2 and 0. The results obtained are exact, that is no rounding errors are made during computation. Here is an example of the output of model checking:
 
 ```shell
-prism model.pm model.props -param x=0:1
+prism model.prism model.props -param x=0:1
 #...
 #Result: ([0.0,1.0]): { 2 x - 5  | 8 x - 12  }
 ```
