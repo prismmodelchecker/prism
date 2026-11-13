@@ -50,7 +50,7 @@ and anything the website adds must be invisible on GitHub rather than broken.
   (e.g. in file names, write `prism-X.Y-linux64-x86`).
   The website publishes the manual from master, so changes appear straight away, ahead of the release they describe.
 
-- **Generated parts:** some lists come from PRISM itself, such as the keywords in `Reference/PRISMLanguageSyntax.md`.
+- **Generated parts:** some lists come from PRISM itself, such as the keywords in `Reference/PRISMLanguageSyntax.md` and the switches in `Reference/CommandLineSwitches.md`.
   They sit between `<!-- generated: NAME ... -->` and `<!-- end generated -->` comments and must not be edited by hand:
   after building PRISM, run `doc/update-generated.py` (from the repo root) and commit the result;
   `doc/update-generated.py --check` reports any that are out of date.

@@ -62,7 +62,7 @@ and the [Reference](Reference/README.md) section.
 - [Extended model types](ModelTypes/README.md): probabilistic timed automata, partially observable models and interval models
 - [Running PRISM](RunningPRISM/README.md): building models, model checking, experiments, strategies, simulation, and importing and exporting models
 - [Configuration and performance](ConfiguringPRISM/README.md): engines, solution methods and other settings, and memory
-- [Reference](Reference/README.md): language syntax, file formats and references
+- [Reference](Reference/README.md): language syntax, command-line switches, file formats and references
 - [Frequently asked questions](FrequentlyAskedQuestions/README.md): memory problems, modelling and properties
 
 How the files of this manual are organised is described in
