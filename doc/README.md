@@ -53,7 +53,7 @@ and anything the website adds must be invisible on GitHub rather than broken.
 - **Generated parts:** some lists come from PRISM itself, such as the keywords in `Reference/PRISMLanguageSyntax.md` and the switches in `Reference/CommandLineSwitches.md`.
   They sit between `<!-- generated: NAME ... -->` and `<!-- end generated -->` comments and must not be edited by hand:
   after building PRISM, run `doc/update-generated.py` (from the repo root) and commit the result;
-  `doc/update-generated.py --check` reports any that are out of date.
+  `doc/update-generated.py --check` reports any that are out of date (the regression tests on GitHub run it after building PRISM).
 
 ## Renaming, moving and merging pages
 

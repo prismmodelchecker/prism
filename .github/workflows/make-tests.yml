@@ -45,6 +45,13 @@ jobs:
         make
         make unittests
         make tests
+    # The manual's generated parts (keywords, switch reference) must match this build of PRISM:
+    # if not, run doc/update-generated.py and commit the result
+    - name: Check generated parts of the manual
+      if: matrix.os == 'ubuntu-latest' && matrix.java == 21
+      shell: bash
+      run: |
+        python3 doc/update-generated.py --check
 
   build-win:
     strategy:
