@@ -2,7 +2,9 @@
 
 ## Prerequisites
 
-PRISM is known to run on Linux, Windows and macOS, both 64-bit and 32-bit versions.
+PRISM runs on Linux, Windows and macOS.
+Pre-compiled binaries are available for 64-bit Linux (x86 and Arm), macOS (Apple silicon and Intel) and Windows (x86);
+on other platforms, you can build PRISM from source.
 
 You will need **Java**, version 11 or above.
 To run binary versions of PRISM, you only need the Java Runtime Environment (JRE), not the full Java Development Kit (JDK).
@@ -22,8 +24,6 @@ which install the required dependencies and PRISM itself. They can be found in t
 - Script to build on a clean install of Fedora-based Linux (e.g. Amazon Linux): [prism-install-fedora](https://raw.githubusercontent.com/prismmodelchecker/prism/master/prism/etc/scripts/prism-install-fedora)
 - Scripts to build on a clean install of Windows: [prism-install-windows.bat](https://raw.githubusercontent.com/prismmodelchecker/prism/master/prism/etc/scripts/prism-install-windows.bat) and [prism-install-cygwin](https://raw.githubusercontent.com/prismmodelchecker/prism/master/prism/etc/scripts/prism-install-cygwin)
 
----
-
 <a id="windows"></a>
 <a id="windows64"></a>
 ## Installation on Windows
@@ -37,15 +37,13 @@ If requested, the installer will place shortcuts to run PRISM on the desktop and
 If you wish to use the command-line version of PRISM on Windows, open a command prompt window and type for example:
 
 ```shell
-cd "c:\Program Files\prism-4.8-win\bin"
+cd "c:\Program Files\prism-4.11\bin"
 prism ..\prism-examples\simple\dice\dice.pm
 ```
 
 You can also edit the file `bin\prism.bat` to allow it to be run from any location. See the instructions within the file for further details.
 
-**Problems?** See the section "[Common problems and questions](Troubleshooting.md)".
-
----
+**Problems?** See "[Troubleshooting](Troubleshooting.md)".
 
 <a id="binaries"></a>
 ## Installation of Linux/Mac binary versions
@@ -55,8 +53,8 @@ We provide pre-compiled [binary distributions](https://www.prismmodelchecker.org
 To install a binary distribution, unpack the tarred/zipped PRISM distribution into a suitable location, enter the directory and run the `install.sh` script, e.g.:
 
 ```shell
-tar xfz prism-4.8-linux64-x86.tar.gz
-cd prism-4.8-linux64-x86
+tar xfz prism-4.11-linux64-x86.tar.gz
+cd prism-4.11-linux64-x86
 ./install.sh
 ```
 
@@ -71,9 +69,7 @@ You do not need to be root to install PRISM. The install script simply makes som
 
 To run PRISM, execute either the `xprism` or `prism` script (for the graphical user interface or command-line version, respectively). These can be found in the `bin` directory. These scripts are designed to be run from anywhere and you can easily create symbolic links or aliases to them. If you want icons to create desktop shortcuts to PRISM, you can find some in the `etc` directory.
 
-**Problems?** See the section "[Common problems and questions](Troubleshooting.md)".
-
----
+**Problems?** See "[Troubleshooting](Troubleshooting.md)".
 
 <a id="source"></a>
 ## Building PRISM from source (non-Windows)
@@ -89,8 +85,8 @@ To check that you have the development kit, type `javac`. If you get an error me
 Hopefully, you can build PRISM simply by entering the PRISM directory and running `make`, e.g.:
 
 ```shell
-tar xfz prism-4.8-src.tar.gz
-cd prism-4.8-src/prism
+tar xfz prism-4.11-src.tar.gz
+cd prism-4.11-src/prism
 make
 ```
 
@@ -99,17 +95,15 @@ For this process to complete correctly, PRISM needs to be able to determine your
 ```shell
 make OSTYPE=linux
 make OSTYPE=linux ARCH=aarch64
-make JAVA_DIR=/usr/java/jdk1.8.0
-make OSTYPE=cygwin JAVA_DIR="/cygdrive/c/Program Files/Java/jdk1.8.0"
+make JAVA_DIR=/usr/lib/jvm/java-21-openjdk
+make OSTYPE=cygwin JAVA_DIR="/cygdrive/c/Program Files/Java/jdk-21"
 ```
 
-Note the use of double quotes for the case where the directory contains a space. If you don't know the location of your Java installation, try typing `which javac`. If the result is e.g. `/usr/java/jdk1.8.0/bin/javac` then your Java directory is `/usr/java/jdk1.8.0`. Sometimes `javac` will be a symbolic link, in which case use "`ls -l`" to determine the actual location.
+Note the use of double quotes for the case where the directory contains a space. If you don't know the location of your Java installation, try typing `which javac`. If the result is e.g. `/usr/lib/jvm/java-21-openjdk/bin/javac` then your Java directory is `/usr/lib/jvm/java-21-openjdk`. Sometimes `javac` will be a symbolic link, in which case use "`ls -l`" to determine the actual location.
 
 It is also possible to set the environment variables directly or edit their values in the Makefile directly. Note that even when you specify `JAVA_DIR` explicitly (in either way), PRISM still uses the version of `javac` that is in your path. To override this, you can also specify a specific version by setting `JAVAC`.
 
-**Problems?** See the section "[Common problems and questions](Troubleshooting.md)".
-
----
+**Problems?** See "[Troubleshooting](Troubleshooting.md)".
 
 <a id="cygwin"></a>
 ## Building PRISM from source on Windows using Cygwin
@@ -131,9 +125,7 @@ If you use a native Windows version of git, you may want to disable the Unix-to-
 
 - `git config --global core.autocrlf false`
 
-**Problems?** See the section "[Common problems and questions](Troubleshooting.md)".
-
----
+**Problems?** See "[Troubleshooting](Troubleshooting.md)".
 
 <a id="msys"></a>
 ## Building PRISM from source on Windows using MSYS2
@@ -145,24 +137,11 @@ You can install the required MSYS2 packages like this:
 pacman -S make mingw-w64-x86_64-gcc binutils dos2unix git wget unzip python nano
 ```
 
-The environment is currently not directly supported in the Makefile,
-which can be fixed as follows:
+Build as for Cygwin, but with MSYS2's MinGW compilers:
 
 ```shell
-make OSTYPE=cygwin CC=/mingw64/bin/gcc CXX=/mingw64/bin/g++
-```
-
-Additionally, MSYS2 does not handle symlinks in the same way as Cygwin does.
-At some point `make` will fail, saying that it cannot find the CUDD library.
-You can solve this as follows:
-
-```shell
-cd ../cudd/
-rmdir lib/
-./setup.sh
-cd ../prism
 make OSTYPE=cygwin CC=/mingw64/bin/gcc CXX=/mingw64/bin/g++
 ./install.sh
 ```
 
-**Problems?** See the section "[Common problems and questions](Troubleshooting.md)".
+**Problems?** See "[Troubleshooting](Troubleshooting.md)".
