@@ -39,13 +39,15 @@ If you have unwanted or unexpected deadlocks in your model, there are several wa
 To find out *how* deadlocks occur, i.e. which paths through the model lead to a deadlock state, there are several possibilities. Firstly, you can model check the [CTL](../PropertySpecification/Non-probabilisticProperties.md) property `E[F "deadlock"]`. When checked from the GUI, this will provide you with the option of display a path to a deadlock in the simulator. From the command-line, for example with:
 
 ```shell
-prism dice.pm -pf 'E[F "deadlock"]'
+prism dice.prism -pf 'E[F "deadlock"]'
 ```
+
+[`dice.prism`](../files/dice.prism) is a DTMC model of Knuth's algorithm for simulating a die with a coin.
 
 a path to a deadlock will be displayed in the log.
 
 Finally, in the eventuality that the model is too large to be model checked, you can still use the [simulator](Simulation.md) to search for deadlocks. This can be done either by manually generating random paths using the [simulator in the GUI](Simulation.md#gui) or, [from the command-line](Simulation.md#cl), e.g. by running:
 
 ```shell
-prism dice.pm -simpath deadlock stdout
+prism dice.prism -simpath deadlock stdout
 ```

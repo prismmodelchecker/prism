@@ -12,16 +12,16 @@ This can be done for constants in the model file, the properties file, or both.
 Before any verification can be performed, values must be provided for any such constants. In the GUI, a dialog appears in which the user is required to enter values. From the command line, the `-const` switch must be used, e.g.:
 
 ```shell
-prism cluster.sm cluster.csl -prop 4 -const N=4,T=85.9
+prism cluster.prism cluster.props -prop 4 -const N=4,T=85.9
 ```
 
-Here, the model `cluster.sm` and properties `cluster.csl` are from the `prism-examples` directory,
+Here, the model [`cluster.prism`](../files/cluster.prism) and properties [`cluster.props`](../files/cluster.props) are a CTMC of a workstation cluster and some of its properties,
 and [`-prop 4`](ModelChecking.md#cl) checks just the fourth property in the file.
 
 To run an experiment, provide a *range* of values for one or more of the constants. Model checking will be performed for all combinations of the constant values provided. For example:
 
 ```shell
-prism cluster.sm cluster.csl -prop 4 -const N=4:6,T=60:10:100
+prism cluster.prism cluster.props -prop 4 -const N=4:6,T=60:10:100
 ```
 
 where `N=4:6` means that values of 4,5 and 6 are used for `N`,
@@ -31,7 +31,7 @@ For convenience, constant specifications can be split across separate instances 
 You can also specify double-valued constants as fractions rather than decimals. For example:
 
 ```shell
-prism cluster.sm cluster.csl -prop 4 -const N=4 -const T=1/3
+prism cluster.prism cluster.props -prop 4 -const N=4 -const T=1/3
 ```
 
 From the GUI, the same thing can be achieved by selecting a single property,
@@ -66,13 +66,13 @@ Approximate computation of quantitive results obtained with the [simulator](Stat
 You can export all the results from an experiment to a file or to the screen. From the command-line, use the `-exportresults` switch, for example:
 
 ```shell
-prism cluster.sm cluster.csl -prop 4 -const N=4:5,T=0:10:20 -exportresults res.txt
+prism cluster.prism cluster.props -prop 4 -const N=4:5,T=0:10:20 -exportresults res.txt
 ```
 
 to send to output file `res.txt`, or:
 
 ```shell
-prism cluster.sm cluster.csl -prop 4 -const N=4:5,T=0:10:20 -exportresults stdout
+prism cluster.prism cluster.props -prop 4 -const N=4:5,T=0:10:20 -exportresults stdout
 ```
 
 to send the results straight to the screen. From the GUI, right click on the experiment and select "Export results".
@@ -92,7 +92,7 @@ N	T	Result
 You can change the format in which the results are exported by appending one or more comma-separated options to the end of the `-exportresults` switch, for example to export in CSV (comma-separated values) format:
 
 ```shell
-prism cluster.sm cluster.csl -prop 4 -const N=4:5,T=0:10:20 -exportresults res.txt:csv
+prism cluster.prism cluster.props -prop 4 -const N=4:5,T=0:10:20 -exportresults res.txt:csv
 ```
 
 ```text
@@ -108,7 +108,7 @@ N, T, Result
 or in [DataFrame](https://pandas.pydata.org/docs/reference/api/pandas.DataFrame.html) format:
 
 ```shell
-prism cluster.sm cluster.csl -prop 4 -const N=4:5,T=0:10:20 -exportresults res.txt:dataframe
+prism cluster.prism cluster.props -prop 4 -const N=4:5,T=0:10:20 -exportresults res.txt:dataframe
 ```
 
 ```text
@@ -125,7 +125,7 @@ You can also add the `matrix` option, to export the results as one or more 2D ma
 This is particularly useful if you want to create a surface plot from results that vary over two constants.
 
 ```shell
-prism cluster.sm cluster.csl -prop 4 -const N=4:5,T=0:10:20 -exportresults res.txt:csv,matrix
+prism cluster.prism cluster.props -prop 4 -const N=4:5,T=0:10:20 -exportresults res.txt:csv,matrix
 ```
 
 ```text
@@ -140,7 +140,7 @@ The `matrix` option is also available in normal (non-CSV) mode.
 You can also export results in the form of comments, used by PRISM's [regression testing](https://github.com/prismmodelchecker/prism/wiki/Regression-Testing) functionality:
 
 ```shell
-prism cluster.sm cluster.csl -prop 4 -const N=4:5,T=0:10:20 -exportresults res.txt:comment
+prism cluster.prism cluster.props -prop 4 -const N=4:5,T=0:10:20 -exportresults res.txt:comment
 ```
 
 ```prism

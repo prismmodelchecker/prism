@@ -56,7 +56,7 @@ These generate a path of 10 steps, a path of at least 7.5 time units and a path 
 Here's an example of the output:
 
 ```shell
-prism poll2.sm -simpath 10 stdout
+prism poll2.prism -simpath 10 stdout
 #...
 #action step time s a s1 s2
 #- 0 0.0 1 0 0 0
@@ -72,13 +72,15 @@ prism poll2.sm -simpath 10 stdout
 #[loop2a] 10 0.055031679365844674 1 0 0 0
 ```
 
+[`poll2.prism`](../files/poll2.prism) is a CTMC model of a simple polling system (also shown, with a diagram, in "[Explicit model files](../Reference/ExplicitModelFiles.md#poll2)").
+
 This shows the sequence of states in the path, i.e. the values of the variables in each state. In the example above, there are 4 variables: `s`, `a`, `s1` and `s2`.
 The first three columns show the type of transition taken to reach that state, its index within the path (starting from 0) and the time at which it was entered. The latter is only shown for continuous time models. The type of the transition is written as *[act]* if action label `act` was taken, and as *module1* if the module named `module1` takes an unlabelled transition).
 
 Further options can also be appended to the first parameter. For example, option `probs=true` also displays the probability/rate associated with each transition. For example:
 
 ```shell
-prism poll2.sm -simpath '5,probs=true' stdout
+prism poll2.prism -simpath '5,probs=true' stdout
 #...
 #action probability step time s a s1 s2
 #- - 0 0.0 1 0 0 0
@@ -95,7 +97,7 @@ To show the state/transition rewards for each step, use option `rewards=true`.
 If you are only interested in values of certain variables of your model, use the `vars=(...)` option. For example:
 
 ```shell
-prism poll2.sm -simpath '500,probs=true,vars=(a,s1,s2)' stdout
+prism poll2.prism -simpath '500,probs=true,vars=(a,s1,s2)' stdout
 #...
 #action probability step time a s1 s2
 #- - 0 0.0 0 0 0
@@ -120,7 +122,7 @@ Notice also that the above only displays states in which the values of some vari
 An alternative way of viewing paths is to only display paths at certain fixed points in time. This is achieved with the `snapshot=x` option, where `x` is the time step. For example:
 
 ```shell
-prism poll2.sm -simpath 'time=5.0,snapshot=0.5' stdout
+prism poll2.prism -simpath 'time=5.0,snapshot=0.5' stdout
 #...
 #step time s a s1 s2
 #0 0.0 1 0 0 0
@@ -139,7 +141,7 @@ prism poll2.sm -simpath 'time=5.0,snapshot=0.5' stdout
 You can also use the `sep=...` option to specify the column separator. Possible values are `space` (the default), `tab` and `comma`. For example:
 
 ```shell
-prism poll2.sm -simpath '200,vars=(a,s1),sep=comma' stdout
+prism poll2.prism -simpath '200,vars=(a,s1),sep=comma' stdout
 #...
 #action,step,time,a,s1
 #-,0,0.0,0,0
@@ -160,7 +162,7 @@ prism model.prism -simpath 'deadlock,repeat=100' stdout
 By default, the simulator detects deterministic loops in paths (e.g. if a path reaches a state from which there is a just a single self-loop leaving that state) and stops generating the path any further. You can disable this behaviour with the `loopcheck=false` option. For example:
 
 ```shell
-prism dice.pm -simpath 10 stdout
+prism dice.prism -simpath 10 stdout
 #...
 #Warning: Deterministic loop detected after 6 steps (use loopcheck=false option to extend path).
 #action step s d
@@ -171,8 +173,10 @@ prism dice.pm -simpath 10 stdout
 #die 4 7 3
 ```
 
+[`dice.prism`](../files/dice.prism) is a DTMC model of Knuth's algorithm for simulating a die with a coin.
+
 ```shell
-prism dice.pm -simpath 10,loopcheck=false stdout
+prism dice.prism -simpath 10,loopcheck=false stdout
 #...
 #action step s d
 #- 0 0 0

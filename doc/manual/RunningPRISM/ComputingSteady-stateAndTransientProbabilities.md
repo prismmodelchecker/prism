@@ -9,13 +9,15 @@ time value for which you wish to compute probabilities.
 From the command-line, add the `-steadystate` (or `-ss`) switch:
 
 ```shell
-prism poll2.sm -ss
+prism poll2.prism -ss
 ```
+
+[`poll2.prism`](../files/poll2.prism) is a CTMC model of a simple polling system (also shown, with a diagram, in "[Explicit model files](../Reference/ExplicitModelFiles.md#poll2)").
 
 for steady-state probabilities or the `-transient` (or `-tr`) switch:
 
 ```shell
-prism poll2.sm -tr 2.0
+prism poll2.prism -tr 2.0
 ```
 
 for transient probabilities, again specifying a time value in the latter case.
@@ -25,8 +27,8 @@ either on the screen (from the command-line) or in the log (from the GUI).
 To instead export the vector of computed probabilities to a file, use the "Model | Compute/export" option from the GUI, or the [`-exportsteadystate`](../Reference/CommandLineSwitches.md#exportsteadystate) and [`-exporttransient`](../Reference/CommandLineSwitches.md#exporttransient) switches from the command-line:
 
 ```shell
-prism poll2.sm -ss -exportsteadystate poll2-ss.txt
-prism poll2.sm -tr 2.0 -exporttransient poll2-tr2.txt
+prism poll2.prism -ss -exportsteadystate poll2-ss.txt
+prism poll2.prism -tr 2.0 -exporttransient poll2-tr2.txt
 ```
 
 From the command-line, you can request that the probability vectors exported are in Matlab format by adding the `-exportmatlab` switch.
@@ -39,14 +41,14 @@ an equiprobable choice over the set of initial states.
 You can override this and provide a specific initial distribution. This is done using the `-importinitdist` switch. The format for this imported distribution is identical to the ones exported by PRISM, i.e. simply a list of probabilities for all states separated by new lines. For example, this:
 
 ```shell
-prism poll2.sm -tr 1.0 -exporttransient poll2-tr1.txt
-prism poll2.sm -tr 1.0 -importinitdist poll2-tr1.txt -exporttransient poll2-tr2.txt
+prism poll2.prism -tr 1.0 -exporttransient poll2-tr1.txt
+prism poll2.prism -tr 1.0 -importinitdist poll2-tr1.txt -exporttransient poll2-tr2.txt
 ```
 
 is (essentially) equivalent to this:
 
 ```shell
-prism poll2.sm -tr 2.0 -exporttransient poll2-tr2.txt
+prism poll2.prism -tr 2.0 -exporttransient poll2-tr2.txt
 ```
 
 ## Ranges of time values
@@ -54,7 +56,7 @@ prism poll2.sm -tr 2.0 -exporttransient poll2-tr2.txt
 Finally, you can compute transient probabilities for a range of time values, e.g.:
 
 ```shell
-prism poll2.sm -tr 0.1:0.01:0.2
+prism poll2.prism -tr 0.1:0.01:0.2
 ```
 
 which computes transient probabilities for the time points 0.1, 0.11, 0.12, .., 0.2. In this case, the computation is done incrementally, with probabilities for each time point being computed from the previous point for efficiency.

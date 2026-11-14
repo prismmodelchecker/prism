@@ -48,11 +48,13 @@ Performance (time and space), however, may vary significantly and if you are usi
 When using the PRISM GUI, the engine to be used for model checking can be selected from the "Engine" option under the "PRISM" tab of the "Options" dialog. From the command-line, engines are activated using the [`-mtbdd`](../Reference/CommandLineSwitches.md#mtbdd), [`-sparse`](../Reference/CommandLineSwitches.md#sparse), [`-hybrid`](../Reference/CommandLineSwitches.md#hybrid) and [`-explicit`](../Reference/CommandLineSwitches.md#explicit) (or `-m`, `-s`, `-h` and `-ex`, respectively) switches, e.g.:
 
 ```shell
-prism poll2.sm -tr 1000 -m
-prism poll2.sm -tr 1000 -s
-prism poll2.sm -tr 1000 -h
-prism poll2.sm -tr 1000 -ex
+prism poll2.prism -tr 1000 -m
+prism poll2.prism -tr 1000 -s
+prism poll2.prism -tr 1000 -h
+prism poll2.prism -tr 1000 -ex
 ```
+
+[`poll2.prism`](../files/poll2.prism) is a CTMC model of a simple polling system (also shown, with a diagram, in "[Explicit model files](../Reference/ExplicitModelFiles.md#poll2)").
 
 Note also that precise details regarding the memory usage of the current engine are displayed during model checking (from the GUI, check the "Log" tab). This can provide valuable feedback when experimenting with different engines.
 

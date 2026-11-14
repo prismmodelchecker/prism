@@ -32,18 +32,20 @@ In addition, this and further information about model checking is displayed in t
 From the command-line, model checking is achieved by passing both a model file and a properties file as arguments, e.g.:
 
 ```shell
-prism poll2.sm poll.csl -const T=10
+prism poll2.prism poll.props -const T=10
 ```
 
-(The properties file `poll.csl`, from the `prism-examples` directory, has a constant `T` with no value,
-which is given here with the [`-const`](../Reference/CommandLineSwitches.md#const) switch: see "[Experiments](Experiments.md)".)
+Here, [`poll2.prism`](../files/poll2.prism) is a CTMC model of a simple polling system
+(also shown in "[Explicit model files](../Reference/ExplicitModelFiles.md#poll2)"),
+and the properties file [`poll.props`](../files/poll.props) has a constant `T` with no value,
+which is given here with the [`-const`](../Reference/CommandLineSwitches.md#const) switch: see "[Experiments](Experiments.md)".
 The results of model checking are sent to the display and are as described above for the GUI version.
 By default, all properties in the file are checked.
 To model check only a single property, use the `-prop` switch.
 For example, to check only the fourth property in the file:
 
 ```shell
-prism poll2.sm poll.csl -prop 4
+prism poll2.prism poll.props -prop 4
 ```
 
 Properties can also be referred to by [name](../PropertySpecification/PropertiesFiles.md#names).
@@ -63,7 +65,7 @@ prism model.prism model.props -prop 4,5,safe
 Alternatively, the contents of a properties file can be specified directly from the command-line, using the `-pf` switch:
 
 ```shell
-prism poll2.sm -pf 'P>=0.5 [ true U<=5 (s=1 & a=0) ]'
+prism poll2.prism -pf 'P>=0.5 [ true U<=5 (s=1 & a=0) ]'
 ```
 
 The switches `-pctl` and `-csl` are aliases for `-pf`.
