@@ -16,6 +16,7 @@ endmodule
 
 label "heads" = s=2;
 label "tails" = s=3;
+label "end" = s=2|s=3;
 
 rewards "r"
 	[b] true : 5;
