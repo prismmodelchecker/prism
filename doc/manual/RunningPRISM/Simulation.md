@@ -21,7 +21,7 @@ There are also options (in the accompanying drop-down menu) to allow generation 
 
 The figure shows the simulator in action.
 
-![Screenshot of the Simulator tab: controls for automatic and manual exploration and backtracking at the top, a list of state labels on the right, and below a table of the path so far, one row per step showing the action taken, the time and the value of each variable](../files/gui-sim.png)
+![Screenshot of the Simulator tab: controls for automatic and manual exploration, backtracking and strategies at the top, a list of state labels on the right, and below a table of the path so far, one row per step showing the action taken, the time and the value of each variable](../files/gui-sim.png)
 *The PRISM GUI: exploring a model using the simulator*
 
 It is also possible to:

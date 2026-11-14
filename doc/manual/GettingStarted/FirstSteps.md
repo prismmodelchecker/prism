@@ -39,8 +39,8 @@ For a more introductory guide to using the tool, try the
 [tutorial](https://www.prismmodelchecker.org/tutorial/) on the PRISM web site.
 Some screenshots of the GUI version of PRISM are shown below.
 
-![Screenshot of the Model tab: a tree of the model's modules, variables and constants on the left, and an editor showing the PRISM code of a workstation cluster CTMC on the right](../files/gui1.gif)
+![Screenshot of the Model tab: the model's name and type, and the size of the built model, on the left, and an editor showing the PRISM code of a workstation cluster CTMC on the right](../files/gui1.png)
 *The PRISM GUI (editing a model)*
 
-![Screenshot of the Properties tab: a list of properties, constants and labels on the left, and on the right a table of experiments with their progress and a graph plotting probability against T for N=3, 4 and 5](../files/gui2.gif)
+![Screenshot of the Properties tab: a list of properties, constants and labels on the left, and on the right a table of experiments with their progress and a graph plotting probability against T for N=3, 4 and 5](../files/gui2.png)
 *The PRISM GUI (model checking)*
