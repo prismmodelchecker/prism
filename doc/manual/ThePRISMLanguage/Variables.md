@@ -20,7 +20,7 @@ name : type init initial_value;
 
 where `name` is a valid [identifier](../Reference/PRISMLanguageSyntax.md#identifiers).
 The most commonly used type is an integer with bounded range, specified as `[lower..upper]`,
-as in the earlier `walk.prism` example:
+as in the earlier `walk-var.prism` example:
 
 ```prism
 x : [0..3] init 0;

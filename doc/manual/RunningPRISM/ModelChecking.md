@@ -8,7 +8,13 @@ There are properties files accompanying most of the sample PRISM models in the `
 <a id="gui"></a>
 ## GUI
 
-To load a file containing properties into the GUI, select menu option "Properties | Open properties list".
+A properties file can be loaded into the GUI along with a model when starting it, e.g.:
+
+```shell
+xprism example.prism example.props
+```
+
+Otherwise, after first loading a model, select menu option "Properties | Open properties list".
 The file can only be loaded if there are no errors, otherwise an error is displayed.
 Note that it may be necessary to have loaded the corresponding model first,
 since the properties will probably make reference to variables (and perhaps constants) declared in the model file.

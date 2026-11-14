@@ -6,6 +6,8 @@ the rest are in subdirectories grouped by model type.
 
 The model will then be displayed in the editor in the "Model" tab of the GUI window. The file is parsed upon loading. If there are no errors, information about the modules, variables, and other components of the model is displayed in the panel to the left and a green tick will be visible. If there are errors in the file, a red cross will appear instead and the errors will be highlighted in the model editor. To view details of the error, position the mouse pointer over the source of the error (or over the red cross). Alternatively, select menu option "Model | Parse Model" and the error message will be displayed in a message box. Model descriptions can, of course, also be typed from scratch into the GUI's editor.
 
+![Screenshot of the Model tab in the PRISM GUI](../files/gui1.png)
+
 ## Building the model
 
 In order to perform model checking, PRISM will (in most cases) need to construct the corresponding probabilistic model, i.e. convert the PRISM model description to, for example, an MDP, DTMC, etc. During this process, PRISM computes the set of states in the model which are reachable from the initial states and the transition matrix which represents the model.

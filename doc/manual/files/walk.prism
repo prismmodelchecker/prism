@@ -1,14 +1,17 @@
-// Variant of a random walk
+// A one-sided, one-dimensional random walk
 
 dtmc
 
+const int N = 10;
+const double p = 0.5;
+
 module M
 
-	x : [0..3] init 0;
-	y : [0..1] init 0;
+	x : [0..N] init 0;
 
-	[] y=0 & x<3 -> 0.5:(x'=max(x-1,0)) + 0.4:(x'=x+1) + 0.1:(x'=x+1)&(y'=1);
-	[] y=0 & x=3 -> true;
-	[] y=1 -> (y'=0);
+	[] x<N -> p:(x'=max(x-1,0)) + 1-p:(x'=x+1);
+	[] x=N -> true;
 
 endmodule
+
+label "end" = x=N;

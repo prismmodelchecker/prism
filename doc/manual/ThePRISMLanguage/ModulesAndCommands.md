@@ -11,7 +11,7 @@ and **commands**, which describe how the state of the module evolves over time.
 The following simple example illustrates these basic concepts
 on a PRISM model that defines a **discrete-time Markov chain** (DTMC).
 
-[walk.prism](../files/walk.prism "include")
+[walk-var.prism](../files/walk-var.prism "include")
 
 The model's type (discrete-time Markov chain) is denoted by the initial `dtmc` keyword.
 It contains one module `M` whose state is defined by two integer-valued variables `x` and `y`,
@@ -24,7 +24,7 @@ It will then be reset to `0` one step later.
 
 The resulting Markov chain, whose states take the form `(x,y)`, is shown below.
 
-![Markov chain for the random walk](../files/walk.svg)
+![Markov chain for the random walk](../files/walk-var.svg)
 
 <a id="commands"></a>
 ## Commands
@@ -61,7 +61,7 @@ which, when variable `x` has value `0`, randomly updates it to either `1` or `2`
 
 The right-hand side of an update can be an [expression](../Reference/PRISMLanguageSyntax.md#expressions)
 in terms of the current values of the model's variables,
-as in the first command of the `walk.prism` example above:
+as in the first command of the `walk-var.prism` example above:
 
 ```prism
 [] y=0 & x<3 -> 0.5:(x'=max(x-1,0)) + 0.4:(x'=x+1) + 0.1:(x'=x+1)&(y'=1);

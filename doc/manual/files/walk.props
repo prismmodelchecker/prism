@@ -1,0 +1,8 @@
+const int k;
+
+// The walk reaches the end with probability 1
+P>=1 [ F "end" ];
+
+// What is the probability of reaching the end within k steps?
+P=? [ F<=k "end" ];
+

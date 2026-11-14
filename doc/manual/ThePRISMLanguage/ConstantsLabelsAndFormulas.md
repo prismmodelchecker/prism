@@ -6,10 +6,10 @@
 PRISM models often contain **constants**, which can be used to parameterise some values within the model,
 such as the range of a variable or the probability associated with an update.
 These constants can then appear in expressions anywhere in the model.
-For example, we can rewrite the earlier `walk.prism` with constants,
+For example, we can rewrite the earlier `walk-var.prism` with constants,
 making it much easier to change the size of the random walk or its probabilities:
 
-[walk-consts.prism](../files/walk-consts.prism "include")
+[walk-var-consts.prism](../files/walk-var-consts.prism "include")
 
 Constants can be defined anywhere in a model file (but outside its modules)
 and can be of type integer, double or Boolean.

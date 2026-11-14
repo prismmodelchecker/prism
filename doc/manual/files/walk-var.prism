@@ -1,0 +1,14 @@
+// Variant of a random walk
+
+dtmc
+
+module M
+
+	x : [0..3] init 0;
+	y : [0..1] init 0;
+
+	[] y=0 & x<3 -> 0.5:(x'=max(x-1,0)) + 0.4:(x'=x+1) + 0.1:(x'=x+1)&(y'=1);
+	[] y=0 & x=3 -> true;
+	[] y=1 -> (y'=0);
+
+endmodule

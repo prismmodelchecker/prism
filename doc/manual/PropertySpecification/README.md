@@ -77,17 +77,19 @@ compute their values for a range of parameters
 and plot graphs of the results using [experiments](../RunningPRISM/Experiments.md).
 This is often a very useful way of identifying interesting
 patterns or trends in the behaviour of a system.
-See the [Case studies](https://www.prismmodelchecker.org/casestudies/) section of the PRISM website for many examples of this kind of analysis.
+See the "[Case studies](https://www.prismmodelchecker.org/casestudies/)" section of the PRISM website for many examples of this kind of analysis.
 
 ## Contents
 
-- [Properties and properties files](PropertiesFiles.md): identifying states, combining operators, the value of a property, and properties files with constants, labels and names
-- [The P operator](ThePOperator.md): the probability of an event, with path properties such as "until" and "eventually"; minimum and maximum probabilities for MDPs and other nondeterministic models
+- [Properties files](PropertiesFiles.md): specifying a set of properties
+- [The P operator](ThePOperator.md): the probability of an event, numerical queries, specifying temporal behaviour
 - [The S operator](TheSOperator.md): long-run (steady-state) behaviour
-- [Reward-based properties](Reward-basedProperties.md): expected costs and rewards, with the R operator
-- [Multi-objective properties](Multi-objectiveProperties.md): several objectives for MDPs at once, and the trade-offs between them
+- [Reward-based properties](Reward-basedProperties.md): expected costs and rewards
+- [Multi-objective properties](Multi-objectiveProperties.md): trade-offs between objectives for MDPs
 - [Non-probabilistic properties](Non-probabilisticProperties.md): CTL and LTL, without probabilities
 - [Filters](Filters.md): results for sets of states other than the initial ones
 
-Properties of [PTAs](../ModelTypes/Real-timeModels.md#properties), [partially observable models](../ModelTypes/PartiallyObservableModels.md#properties)
-and [interval models](../ModelTypes/UncertainModels.md#properties) are described with those models, in "[Extended model types](../ModelTypes/README.md)".
+Property specification for [real-time](../ModelTypes/Real-timeModels.md#properties),
+[partially observable](../ModelTypes/PartiallyObservableModels.md#properties)
+and [uncertain](../ModelTypes/UncertainModels.md#properties)
+models is described later.

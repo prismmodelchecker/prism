@@ -1,4 +1,4 @@
-# Properties and properties files
+# Properties files
 
 Properties can be specified individually to PRISM
 or can be collated together into a **properties file**,

@@ -58,6 +58,8 @@ as an encapsulated Postscript file (EPS),
 in an XML-based format (for reloading back into PRISM),
 or as code which can be used to generate the graph in Matlab.
 
+![Screenshot of running an experiment in the Properties tab of the PRISM GUI](../files/gui2.png)
+
 Approximate computation of quantitive results obtained with the [simulator](StatisticalModelChecking.md) can also be used on experiments. In the GUI, select the "Use Simulation" option when defining the parameters for the experiment. From the command-line, just add the `-sim` switch as usual.
 
 <a id="exportresults"></a>
