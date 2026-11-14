@@ -25,7 +25,7 @@ prism -javamaxmem 4g big_model.prism
 xprism -javamaxmem 4g big_model.prism
 ```
 
-each set the limit to 4GB. Alternatively, you set the environment variable PRISM_JAVAMAXMEM before running PRISM. For example, under a `bash` shell:
+each set the limit to 4GB. Alternatively, you can set the environment variable PRISM_JAVAMAXMEM before running PRISM. For example, under a `bash` shell:
 
 ```shell
 PRISM_JAVAMAXMEM=4g

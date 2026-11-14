@@ -29,74 +29,48 @@ If you are using the **simulator** to generate approximate model checking result
 If PRISM has already output this:
 
 ```shell
-#Building model...
+Building model (engine:symbolic)...
 ```
 
 but there is no line of the form:
 
 ```shell
-#Time for model construction: 34.3 seconds.
+Time for model construction: 34.3 seconds.
 ```
 
 and then you get an error like this:
 
 ```shell
-##
-## An unexpected error has been detected by Java Runtime Environment:
-##
-##  SIGSEGV (0xb) at pc=0xb5249323, pid=19298, tid=3086363536
-##
-## Java VM: Java HotSpot(TM) Client VM (1.6.0-b105 mixed mode, sharing)
-## Problematic frame:
-## C  [libdd.so+0x39323]  Cudd_Ref+0xf
-##
-## An error report file with more information is saved as hs_err_pid19298.log
-##
-## If you would like to submit a bug report, please visit:
-##   http://java.sun.com/webapps/bugreport/crash.jsp
-##
-#/home/dxp/bin/prism: line 50: 19298 Aborted                 "$PRISM_JAVA" #$PRISM_JAVAMAXMEM -Djava.awt.headless=$PRISM_HEADLESS -Djava.library.path=$PRISM_DIR/lib -classpath "$PRISM_CLASSPATH" $PRISM_MAINCLASS "$@"
-```
-
-or like this:
-
-```shell
-##
-## An unexpected error has been detected by HotSpot Virtual Machine:
-##
-## EXCEPTION_ACCESS_VIOLATION (0xc0000005) at pc=0x0b1c7da3, pid=2884, tid=2544
-##
-## Java VM: Java HotSpot(TM) Client VM (1.5.0_06-b05 mixed mode)
-## Problematic frame:
-## C [dd.dll+0x7da3]
-##
-#...
+CUDD internal error detected, from the following stack trace:
+  ...
+Error: Out of memory (or other internal error) in the CUDD library.
+Tip: Try using the -cuddmaxmem switch to increase the memory available to CUDD.
 ```
 
 then PRISM ran out of memory whilst trying to construct the model.
-Model construction in PRISM is performed using BDDs (binary decision diagrams) and MTBDDs (multi-terminal) BDDs which are implemented in the CUDD library.
+With the symbolic engines (MTBDD, hybrid and sparse), model construction is performed using BDDs (binary decision diagrams) and MTBDDs (multi-terminal BDDs), which are implemented in the CUDD library.
 The first thing to try in this case is to increase the amount of memory available to CUDD. See "[CUDD memory](../ConfiguringPRISM/MemoryAndModelSize.md#settings)" for details of this.
 
 If increasing this memory limit does not resolve the problem, then you will need to consider ways to reduce the size of your model. You can find some tips on this in the [PRISM modelling](PRISMModelling.md) section. Bear in mind also that if you are having to increase the CUDD memory limit too high (e.g. close to the physical memory available on your computer) just for model construction, then it is unlikely that you will have enough memory for subsequent model checking operations.
 
-Finally, it is also worth considering the ordering of the modules and variables in your model since this can have a (in some cases dramatic) effect on the size of MTBDD representation of the model. This topic is covered in the "[PRISM modelling](PRISMModelling.md)" section.
+It is also worth considering the ordering of the modules and variables in your model since this can have a (in some cases dramatic) effect on the size of MTBDD representation of the model. This topic is covered in the "[PRISM modelling](PRISMModelling.md)" section.
+
+With the explicit engine, the model is built in Java, and running out of memory gives an error like this:
+
+```shell
+Exception in thread "main" java.lang.OutOfMemoryError: Java heap space
+```
+
+In this case, increase the memory available to Java instead (see "[Java memory](../ConfiguringPRISM/MemoryAndModelSize.md#javamaxmem)").
 
 <a id="memout_check"></a>
 ## I ran out of memory during model checking. What can I do?
 
-If model construction was successfully completed (see previous question) but model checking was not, there are several things you can try. First of all, if the error message you see looks like the one in the previous question or you see a message such as
-
-```shell
-#DD_MatrixMultiply: res is NULL
-```
-
-then it may be worth increasing the memory limit for CUDD (as described above). However, if you see an error more like this:
-
-```shell
-#/home/dxp/bin/prism: line 50:  3139 Aborted                 "$PRISM_JAVA" $PRISM_JAVAMAXMEM -Djava.awt.headless=$PRISM_HEADLESS -Djava.library.path=$PRISM_DIR/lib -classpath "$PRISM_CLASSPATH" $PRISM_MAINCLASS "$@"
-```
-
-then increasing the memory CUDD probably will not help - PRISM is just trying to allocate more memory than is physically available on your system.
+If model construction was successfully completed (see previous question) but model checking was not, there are several things you can try. First of all, if the error message you see is the CUDD one in the previous question,
+then it may be worth increasing the memory limit for CUDD (as described above).
+If it is a Java `OutOfMemoryError`, increase the memory available to Java.
+However, if PRISM is killed or aborts with no such message,
+then increasing these limits probably will not help: PRISM is just trying to allocate more memory than is physically available on your system.
 
 Here are some general tips:
 
