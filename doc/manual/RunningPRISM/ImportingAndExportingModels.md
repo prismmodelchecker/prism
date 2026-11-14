@@ -171,8 +171,8 @@ Other `-exportmodel` options are:
 - `proplabels` - also export labels from a properties file into a `.lab` file
 - `zip` (`=true/false/gzip/xz`) - whether to zip the output and in what format
 
-For plain text export, although `-exportmodel` is now usually the best switch to use,
-other older switches still exist. For example, you can export individual files using
+For plain text export, `-exportmodel` is usually the best switch to use,
+but there are also older switches. For example, you can export individual files using
 `-exporttrans <file>`,
 `-exportstates <file>`,
 `-exportstaterewards <file>`,

@@ -9,9 +9,10 @@ Pmax=? [ F "goal" ]
 
 determines the maximum probability, over all strategies, of reaching a state satisfying the label `"goal"`. When checking such properties, you can also ask PRISM to generate a corresponding (optimal) strategy, which yields this maximum probability when followed. The strategy can then be viewed, exported or simulated.
 
-**Note:** For consistency across models, PRISM now uses the terminology *strategy* (rather than alternatives such as *policy*). In older versions of the tool, these were referred to as *adversaries*. Currently, the newer (and more extensive) *strategy generation* functionality is implemented just for the ["explicit"](../ConfiguringPRISM/ComputationEngines.md) model checking engine,
+**Note:** PRISM uses the term *strategy* for all model types (other common names are *policy*, *scheduler* and *adversary*).
+Strategy generation is implemented in the ["explicit"](../ConfiguringPRISM/ComputationEngines.md) model checking engine,
 which is used automatically if strategy generation is requested.
-The old *adversary generation* functionality (see below) still exists for the "sparse" engine, but will be updated in the future.
+The "sparse" engine has a more limited *adversary generation* feature (see below).
 
 **Generating strategies**. Optimal strategies can be generated either from the command-line or the graphical user interface (GUI). For the former, use the `-exportstrat` switch. Simple examples are:
 

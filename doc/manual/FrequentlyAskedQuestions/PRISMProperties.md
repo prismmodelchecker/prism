@@ -29,7 +29,6 @@ P<0.01 [ F "error" ]
 ```
 
 i.e. "the probability of reaching a state labelled with `"error"` is less than 0.01. By default, when model checking this query, PRISM will report the result of this property *for the initial state* of the model, i.e. whether, *starting from the initial state*, the probability of reaching `"error"` is below 0.01.
-(This is in contrast to older versions of PRISM, which used to report whether the property was true *for all* states.)
 
 To check whether the above property is true for, say, all (reachable) states satisfying the label `"safe"`, you should use [filters](../PropertySpecification/Filters.md), as
 illustrated below:
@@ -45,7 +44,7 @@ filter(forall, P<0.01 [ F "error" ], true)
 filter(forall, P<0.01 [ F "error" ])
 ```
 
-In older versions of PRISM, checking that a property was true in a particular set of states was done using implication (`=>`). If you wish, you can still use a similar form of property to achieve this, as shown by the following example:
+Equivalently, you can use implication (`=>`) inside the filter, as in this example:
 
 ```prism
 filter(forall, "safe" => P<0.01 [ F "error" ])

@@ -218,7 +218,7 @@ java -cp classes prism.SBML2Prism sbml_file.xml > prism_file.prism
 
 If you are using a binary (rather than source code) distribution of PRISM, replace `classes` with `lib/prism.jar` in the above.
 
-Alternatively (on Linux or Mac OS X), ensure `prism` is in your path and then save the script below as an executable file called `sbml2prism`:
+Alternatively (on Linux or macOS), ensure `prism` is in your path and then save the script below as an executable file called `sbml2prism`:
 
 ```shell
 #!/bin/sh

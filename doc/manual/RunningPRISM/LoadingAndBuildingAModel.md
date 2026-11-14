@@ -32,7 +32,7 @@ PRISM will automatically search your model for deadlocks and, by default,
 Since deadlocks are sometimes caused by modelling errors,
 PRISM will display a warning message in the log when deadlocks are fixed in this way.
 
-You can control whether deadlocks are automatically fixed in this way using the "Automatically fix deadlocks" option (or with command-line switches `-nofixdl` and `-fixdl`). When fixing is disabled, PRISM will report and error when the model contains deadlocks (this used to be the default behaviour in older versions of PRISM).
+You can control whether deadlocks are automatically fixed in this way using the "Automatically fix deadlocks" option (or with command-line switches `-nofixdl` and `-fixdl`). When fixing is disabled, PRISM will report an error when the model contains deadlocks.
 
 If you have unwanted or unexpected deadlocks in your model, there are several ways you can detect then. Firstly, by disabling deadlock fixing (as described above), PRISM will display a list of deadlock states in the log. Alternatively, you can model check the [filter](../PropertySpecification/Filters.md) property `filter(print, "deadlock")`, which has the same effect.
 

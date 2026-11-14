@@ -18,7 +18,7 @@ You can also change the CUDD maximum memory setting from the options panel in th
 <a id="javamaxmem"></a>
 ## Java memory
 
-The Java virtual machine (JVM) used to execute PRISM also has upper memory limits. Sometimes this limit will be exceeded and you will see an error of the form `java.lang.OutOfMemory`. To resolve this problem, you can increase this memory limit. On Unix, Linux or Mac OS X platforms, this can done by using the [`-javamaxmem`](../Reference/CommandLineSwitches.md#javamaxmem) switch, passed either to the command-line script `prism` or the GUI launcher `xprism`. For example:
+The Java virtual machine (JVM) used to execute PRISM also has upper memory limits. Sometimes this limit will be exceeded and you will see an error of the form `java.lang.OutOfMemory`. To resolve this problem, you can increase this memory limit. On Unix, Linux or macOS platforms, this can be done by using the [`-javamaxmem`](../Reference/CommandLineSwitches.md#javamaxmem) switch, passed either to the command-line script `prism` or the GUI launcher `xprism`. For example:
 
 ```shell
 prism -javamaxmem 4g big_model.prism
@@ -34,7 +34,7 @@ prism big_model.prism
 ```
 
 If you get an error of the form `java.lang.StackOverflowError`, then you can try increasing the stack size of the JVM.
-On Unix, Linux or Mac OS X platforms, this can done by using the [`-javastack`](../Reference/CommandLineSwitches.md#javastack) switch or the `PRISM_JAVASTACKSIZE` environment variable.
+On Unix, Linux or macOS platforms, this can be done by using the [`-javastack`](../Reference/CommandLineSwitches.md#javastack) switch or the `PRISM_JAVASTACKSIZE` environment variable.
 Examples are:
 
 ```shell
