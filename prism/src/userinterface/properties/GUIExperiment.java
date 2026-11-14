@@ -404,7 +404,7 @@ public class GUIExperiment
 				experimentDone();
 
 				if (results.containsErrors())
-					errorDialog("One or more errors occured during this experiment.\nSelect \"View results\" or check the log for more information");
+					errorDialog("One or more errors occurred during this experiment.\nSelect \"View results\" or check the log for more information");
 			} catch (InterruptedException e) {
 				try {
 					SwingUtilities.invokeAndWait(new Runnable()

@@ -313,7 +313,7 @@ public class MultiObjModelChecker extends prism.MultiObjModelChecker
 					JDD.Deref(tt);
 			}
 			if (constraintViolated) {
-				throw new PrismNotSupportedException("Cannot use multi-objective model checking with maximising objectives and non-zero reward end compoments");
+				throw new PrismNotSupportedException("Cannot use multi-objective model checking with maximising objectives and non-zero reward end components");
 			}
 
 			JDD.Ref(removedActions);

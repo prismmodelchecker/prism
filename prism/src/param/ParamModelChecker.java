@@ -453,7 +453,7 @@ final public class ParamModelChecker extends PrismComponent
 						BigRational exprRat = new BigRational(exprStr);
 						stateValues.setStateValue(state, functionFactory.fromBigRational(exprRat));
 					} else {
-						throw new PrismNotSupportedException("model checking expresssion " + expr + " not supported for " + mode + " models");
+						throw new PrismNotSupportedException("model checking expression " + expr + " not supported for " + mode + " models");
 					}
 				} else if (exprVar instanceof ExpressionConstant) {
 					ExpressionConstant exprConst = (ExpressionConstant) exprVar;

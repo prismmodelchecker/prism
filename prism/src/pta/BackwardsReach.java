@@ -52,7 +52,7 @@ public class BackwardsReach extends PrismComponent
 	public double computeProbabilisticReachability(PTA pta, BitSet targetLocs, boolean min) throws PrismException
 	{
 		if (min)
-			throw new PrismException("Backwards reachability does not yet support minmum probabilities");
+			throw new PrismException("Backwards reachability does not yet support minimum probabilities");
 
 		// Build backwards graph
 		BackwardsReachabilityGraph graph = buildBackwardsGraph(pta, targetLocs);

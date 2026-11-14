@@ -228,7 +228,7 @@ public class MultiObjUtils
 			}
 			fw.close();
 		} catch (IOException ex) {
-			throw new PrismException("An IOException error occured when writing graph files (exception message: " + ex.getMessage() + ").");
+			throw new PrismException("An IOException error occurred when writing graph files (exception message: " + ex.getMessage() + ").");
 		}
 	}
 
@@ -240,7 +240,7 @@ public class MultiObjUtils
 			fw.write(tl.toString());
 			fw.close();
 				} catch (IOException ex) {
-			throw new PrismException("An IOException error occured when writing graph files (exception message: " + ex.getMessage() + ").");
+			throw new PrismException("An IOException error occurred when writing graph files (exception message: " + ex.getMessage() + ").");
 		}
 	}
 	

@@ -376,7 +376,7 @@ public class PrismSettings implements Observer
 			{ CHOICE_TYPE,		PRISM_PARAM_SPLIT,						"Parametric model checking split method",							"4.1",			"Longest",																	"Longest,All",
 																			"Strategy to use when splitting a region during parametric model checking. Either split on longest side, or split on all sides." },
 			{ CHOICE_TYPE,		PRISM_PARAM_BISIM,						"Parametric model checking bisimulation method",					"4.1",			"Weak",																		"Weak,Strong,None",
-																			"Type of bisimulation used to reduce model size during paramteric model checking. For reward-based properties, weak bisimulation cannot be used." },
+																			"Type of bisimulation used to reduce model size during parametric model checking. For reward-based properties, weak bisimulation cannot be used." },
 			{ CHOICE_TYPE,		PRISM_PARAM_FUNCTION,					"Parametric model checking function representation",				"4.1",			"JAS-cached",																"JAS-cached,JAS,DAG",
 																			"Type of representation for functions used during parametric model checking." },
 			{ CHOICE_TYPE,		PRISM_PARAM_ELIM_ORDER,					"Parametric model checking state elimination order",			"4.1",			"Backward",																		"Arbitrary,Forward,Forward-reversed,Backward,Backward-reversed,Random",
@@ -386,7 +386,7 @@ public class PrismSettings implements Observer
 			{ BOOLEAN_TYPE,		PRISM_PARAM_SUBSUME_REGIONS,			"Parametric model checking region subsumption",				"4.1",			Boolean.valueOf(true),															"",
 																			"Subsume adjacent regions during parametric model checking." },
 			{ DOUBLE_TYPE,		PRISM_PARAM_DAG_MAX_ERROR,				"Parametric model checking max. DAG error",	"4.1",			Double.valueOf(1E-100),															"",
-																			"Maximal error probability (i.e. maximum probability of of a wrong result) in DAG function representation used for parametric model checking." },
+																			"Maximal error probability (i.e. maximum probability of a wrong result) in DAG function representation used for parametric model checking." },
 			
 			// FAST ADAPTIVE UNIFORMISATION																
 			{ DOUBLE_TYPE,      PRISM_FAU_EPSILON,						"FAU epsilon",		 					"4.1",   	 	Double.valueOf(1E-6),     													"",
@@ -396,7 +396,7 @@ public class PrismSettings implements Observer
 			{ INTEGER_TYPE,     PRISM_FAU_ARRAYTHRESHOLD,				"FAU array threshold", 					"4.1",   	 	Integer.valueOf(100),    	 													"",
 																			"For fast adaptive uniformisation (FAU), after this number of iterations without changes to the state space, storage is switched to a faster, fixed-size data structure." },
 			{ INTEGER_TYPE,     PRISM_FAU_INTERVALS,					"FAU time intervals",					"4.1",   	 	Integer.valueOf(1),     														"",
-																			"For fast adaptive uniformisation (FAU), the time period is split into this number of of intervals." },
+																			"For fast adaptive uniformisation (FAU), the time period is split into this number of intervals." },
 			{ DOUBLE_TYPE,      PRISM_FAU_INITIVAL,						"FAU initial time interval",			"4.1",   	 	Double.valueOf(1.0),     														"",	
 																			"For fast adaptive uniformisation (FAU), the length of initial time interval to analyse." },
 		},
