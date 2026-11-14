@@ -1,4 +1,4 @@
-# Probabilistic timed automata
+# Real-time models
 
 PRISM supports *real-time* models, in particular,
 *probabilistic timed automata* (PTAs), which extend MDPs with the ability to model real-time behaviour.

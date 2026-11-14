@@ -8,6 +8,6 @@ which properties can be checked for them, and how they are analysed, including a
 
 ## Contents
 
-- [Probabilistic timed automata](Real-timeModels.md): PTAs, which add real-valued clocks to MDPs
+- [Real-time models](Real-timeModels.md): PTAs, which add real-valued clocks to MDPs
 - [Partially observable models](PartiallyObservableModels.md): POMDPs and POPTAs, in which strategies only see observations of the state
-- [Interval models](UncertainModels.md): interval DTMCs and MDPs, whose transition probabilities are only known to lie within intervals
+- [Uncertain models](UncertainModels.md): interval DTMCs and MDPs, whose transition probabilities are only known to lie within intervals
