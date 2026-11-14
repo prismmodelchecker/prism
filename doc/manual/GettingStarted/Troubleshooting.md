@@ -1,18 +1,16 @@
 # Troubleshooting
 
-This page describes some of the most common problems and questions related to the installation and running of PRISM.
-Click on a question to see its answer.
+Here are the answers to some of the most common questions about installing and running PRISM.
+If you are still stuck, see "[Getting help](https://www.prismmodelchecker.org/support/)" on the PRISM website.
 
-## Running PRISM on Windows
+## Running PRISM
 
 <details id="windows-nothing">
-<summary>I double-click the PRISM shortcut but nothing happens</summary>
+<summary>When I double-click the PRISM shortcut on Windows nothing happens</summary>
 
 The most common cause of this is that you either do not have Java installed or the `java` executable is not in your path. In any case, to determine the exact problem, launch a command shell and navigate to the `bin` directory inside the directory where you installed PRISM (you can use the "PRISM (console)" shortcut installed in the start menu to do this). Then, type `prism.bat` and see what error message is displayed.
 
 </details>
-
-## Running PRISM on other platforms
 
 <details id="link-errors">
 <summary>PRISM won't start: <code>NoClassDefFoundError</code> or <code>UnsatisfiedLinkError</code></summary>
@@ -180,12 +178,5 @@ If you installed PRISM on Windows using the self-extracting installer, you can u
 On other platforms, simply delete the directory containing it.
 
 The only thing that is not removed via either of these methods is the file containing your PRISM settings (see "[Settings](../ConfiguringPRISM/SettingsFile.md)" for where it is). You may wish to retain this when upgrading.
-
-</details>
-
-<details id="help">
-<summary>I still have a problem installing/running PRISM. What can I do?</summary>
-
-Please post a message in the discussion forum (see "[Getting help](https://www.prismmodelchecker.org/support/)" on the PRISM website).
 
 </details>
