@@ -2,3 +2,7 @@
 -m
 -s
 -h
+-s -topological
+-m -topological
+-h -topological
+-s -ii -topological

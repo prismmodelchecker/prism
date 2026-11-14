@@ -11,3 +11,7 @@
 -h -ii
 -ex -valiter -ii
 -ex -gs -ii
+-s -topological
+-m -topological
+-h -topological
+-s -ii -topological

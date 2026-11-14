@@ -3485,6 +3485,28 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 				setEngine(Prism.EXPLICIT);
 			}
 		}
+		// Topological value iteration is only implemented in the explicit engine
+		if (settings.getBoolean(PrismSettings.PRISM_TOPOLOGICAL_VI) && getCurrentEngine() == PrismEngine.SYMBOLIC) {
+			if (getModelType() == ModelType.MDP && !Expression.containsMultiObjective(prop.getExpression())) {
+				mainLog.printWarning("Switching to explicit engine to allow topological value iteration.");
+				engineSwitch = true;
+				lastEngine = getEngine();
+				switchedToExplicitEngine = true;
+				setEngine(Prism.EXPLICIT);
+			} else if (getModelType() == ModelType.DTMC || getModelType() == ModelType.CTMC) {
+				// For DTMCs/CTMCs, the explicit engine only supports some linear equation methods
+				String linEqMethod = settings.getString(PrismSettings.PRISM_LIN_EQ_METHOD);
+				if (linEqMethod.equals("Power") || linEqMethod.equals("Jacobi") || linEqMethod.equals("Gauss-Seidel") || linEqMethod.equals("Backwards Gauss-Seidel")) {
+					mainLog.printWarning("Switching to explicit engine to allow topological value iteration.");
+					engineSwitch = true;
+					lastEngine = getEngine();
+					switchedToExplicitEngine = true;
+					setEngine(Prism.EXPLICIT);
+				} else {
+					mainLog.printWarning("Topological value iteration is not supported for linear equation method \"" + linEqMethod + "\" and will be ignored.");
+				}
+			}
+		}
 		if (Expression.containsNonProbLTLFormula(prop.getExpression()) && getCurrentEngine() == PrismEngine.SYMBOLIC) {
 			mainLog.printWarning("Switching to explicit engine to allow non-probabilistic LTL model checking.");
 			engineSwitch = true;

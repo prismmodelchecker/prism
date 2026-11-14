@@ -48,6 +48,15 @@
 -ii -ex -gs -topological
 -ii -ex -bgs -topological
 
+# -topological with symbolic engines switches to the explicit engine
+# (or, for -pgs, which the explicit engine lacks, is ignored with a warning)
+
+-s -gs -topological
+-h -jacobi -topological
+-m -power -topological
+-ii -s -gs -topological
+-h -pgs -topological
+
 -exact
 
 # with all labels/rewards built at model construction time
