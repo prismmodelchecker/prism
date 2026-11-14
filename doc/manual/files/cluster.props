@@ -17,28 +17,28 @@ P=? [ true U<=T !"minimum" ]
 
 // If facing insufficient QoS, the maximum probability of facing
 // the same problem after T time units
-P=? [ true U[T,T] !"minimum"  {!"minimum"}{max} ]
+filter(max, P=? [ true U[T,T] !"minimum" ], !"minimum")
 
 // The minimum probability of going from minimum QoS to premium QoS
 // within T time units
-P=? [ true U<=T "premium" {"minimum"}{min} ]
+filter(min, P=? [ true U<=T "premium" ], "minimum")
 
 // The minimum probability of going from minimum QoS to premium QoS
 // within T time units without violating the minimum QoS constraint along the way
-P=? [ "minimum" U<=T "premium" {"minimum"}{min} ]
+filter(min, P=? [ "minimum" U<=T "premium" ], "minimum")
 
 // The maximum probability that it takes more than T time units
 // to recover from insufficient QoS
-P=? [ !"minimum" U>=T "minimum" {!"minimum"}{max} ]
+filter(max, P=? [ !"minimum" U>=T "minimum" ], !"minimum")
 
 // The minimum percentage of operational workstations at time T
 // when starting from below minimum QoS
-R{"percent_op"}=?[ I=T {!"minimum"}{min} ]
+filter(min, R{"percent_op"}=? [ I=T ], !"minimum")
 
 // The expected time (from the initial state)
 // that the system spends below minimum QoS until time T
-R{"time_not_min"}=?[ C<=T ]
+R{"time_not_min"}=? [ C<=T ]
 
 // The expected number of repairs by time T (starting in the initial state)
-R{"num_repairs"}=?[ C<=T ]
+R{"num_repairs"}=? [ C<=T ]
 
