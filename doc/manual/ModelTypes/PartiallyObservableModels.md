@@ -59,13 +59,15 @@ For partially observable models (POMDPs and POPTAs),
 PRISM uses the same property language as their fully observational equivalents (MDPs and PTAs).
 However, a more limited range of properties are available.
 For POMDPs, PRISM currently supports probabilistic reachability,
-probabilistic until, or expected reachability rewards properties, i.e.:
+probabilistic until, probabilistic invariance (`G`) or expected reachability rewards properties, i.e.:
 
 ```prism
 Pmin=? [ F target ]
 Pmax=? [ F target ]
 Pmin=? [ remain U target ]
 Pmax=? [ remain U target ]
+Pmin=? [ G safe ]
+Pmax=? [ G safe ]
 Rmin=? [ F target ]
 Rmax=? [ F target ]
 ```
@@ -75,7 +77,7 @@ of the `min=?` or `max=?`.
 
 For the verification methods currently implemented,
 there are a few additional restrictions.
-Firstly, the `target` (and `remain`) expression appearing
+Firstly, the `target` (and `remain` or `safe`) expression appearing
 in the property must be an observable.
 In other words, if any state of the POMDP satisfies the expression,
 then all other observationally equivalent states must also satisfy it.

@@ -1,6 +1,7 @@
 # Interval models
 
 PRISM has support for *uncertain* models, in which there is epistemic uncertainty regarding some quantitative aspects of the probabilistic models being verified. In particular, it currently supports *interval MDPs* (IMDPs) and *interval DTMCs* (IDTMCs), which are MDPs or DTMCs in which transition probabilities can be specified as intervals, indicating that the exact probability is not precisely known. This can be useful, for example, when the transition probabilities have been estimated from data.
+Intervals can also be used in POMDPs, giving interval POMDPs (IPOMDPs), but these can currently only be built, not model checked.
 
 <a id="modelling"></a>
 ## Modelling

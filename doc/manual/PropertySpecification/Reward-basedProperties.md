@@ -176,6 +176,7 @@ R<=0.7 [ S ]
 ```
 
 which is true in a state *s* if "starting from *s*, the long-run average power consumption is less than 0.7".
+As for the [S operator](TheSOperator.md), these properties are currently only supported for DTMCs and CTMCs.
 
 <a id="reward-structure"></a>
 ## Which reward structure?

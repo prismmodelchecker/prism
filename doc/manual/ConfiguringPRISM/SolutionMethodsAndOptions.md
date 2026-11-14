@@ -38,7 +38,9 @@ see the [Convergence](SolutionMethodsAndOptions.md#convergence) section below.
 When analysing MDPs, there are multiple solution methods on offer.
 For most of these, you can select them under the "MDP solution method" setting from the GUI,
 or use the command-line switches listed below.
-Currently, all except value iteration are only supported by the [explicit engine](ComputationEngines.md).
+Currently, all except value iteration are only supported by the [explicit engine](ComputationEngines.md),
+which PRISM switches to automatically (with a warning) if one of them is selected;
+the exception is Gauss-Seidel with the MTBDD engine, which gives an error.
 For more details of the methods, see e.g. [[FKNP11](../Reference/References.md#FKNP11)] (about probabilistic verification of MDPs)
 or classic MDP texts such as [[Put94](../Reference/References.md#Put94)]).
 
@@ -63,7 +65,7 @@ or via the "Use interval iteration" GUI option.
 A variety of options can be configured, either using
 `-intervaliter:option1,option2,...` or by
 setting the string "`option1,option2,...`" under "Interval iteration options" in the GUI.
-Type `prism -help intervaliter` from the command-line for a list of the options
+See [`-intervaliter`](../Reference/CommandLineSwitches.md#intervaliter) in the list of command-line switches (or type `prism -help intervaliter`) for the options
 and see [[BKLPW17](../Reference/References.md#BKLPW17)] for the details.
 
 <a id="topo"></a>
@@ -75,6 +77,10 @@ states in an alternative order which increases the speed of convergence.
 Use switch [`-topological`](../Reference/CommandLineSwitches.md#topological) or GUI option "Use topological value iteration" to enable this.
 In addition to standard value iteration for MDPs, the topological variant can be used to optimise
 both interval iteration (see above) and the numerical solution of DTMCs.
+It is currently only implemented in the [explicit engine](ComputationEngines.md),
+which PRISM switches to automatically (with a warning) if another engine is selected.
+The exception is DTMC/CTMC solution with a linear equation method that the explicit engine does not support
+(such as pseudo Gauss-Seidel or SOR), where `-topological` is ignored (again, with a warning).
 
 <a id="transient"></a>
 ## CTMC transient analysis
