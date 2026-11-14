@@ -1,69 +1,57 @@
 # PRISM manual
 
-PRISM is a *probabilistic model checker*,
-a tool for the modelling and analysis of systems that exhibit probabilistic behaviour.
-Probabilistic model checking is a *formal verification* technique:
-you build a precise mathematical model of the system to be analysed,
-express its properties formally in temporal logic,
+PRISM is a **probabilistic model checker**,
+a tool for the modelling and analysis of systems that exhibit random or uncertain behaviour.
+Probabilistic model checking is a formal verification technique:
+you build a precise mathematical **model** of the system to be analysed,
+express its **properties** formally in temporal logic,
 and PRISM analyses them automatically against the model.
 
 ## Models
 
 Models are written in the [PRISM language](ThePRISMLanguage/README.md), a simple, high-level modelling language.
-PRISM supports these types of probabilistic model:
+PRISM supports many different types of probabilistic model. The three most common are:
 
 | Model | Keyword | Use it when |
 | --- | --- | --- |
 | Discrete-time Markov chain (DTMC) | `dtmc` | Behaviour is purely probabilistic, in discrete steps |
 | Continuous-time Markov chain (CTMC) | `ctmc` | Events happen after exponentially distributed delays, in continuous time |
-| Markov decision process (MDP) | `mdp` | There are also nondeterministic choices: decisions to optimise, or unknown scheduling or environment |
-| Probabilistic timed automaton (PTA) | `pta` | An MDP that also needs real-valued clocks and timing constraints |
-| Partially observable MDP (POMDP) | `pomdp` | Decisions can only depend on what is observable, not the full state |
-| Partially observable PTA (POPTA) | `popta` | Likewise, for a PTA |
+| Markov decision process (MDP) | `mdp` | There are also nondeterministic choices: decisions to optimise, or an unknown scheduler/environment |
 
-PRISM's MDPs are in fact the more general model of
-probabilistic automata (PAs) [[Seg95](Reference/References.md#Seg95)], which do not require unique action names in each state.
-Transition probabilities can also be given as intervals, giving [interval DTMCs and MDPs](ModelTypes/UncertainModels.md#modelling),
-for when they are not known exactly.
-PRISM also supports non-probabilistic models, notably labelled transition systems (LTSs).
-For background on these models, see the [resources](https://www.prismmodelchecker.org/about/) on the PRISM website.
+It also supports [real-time models](ModelTypes/Real-timeModels.md#modelling) (e.g., probabilistic timed automata, PTAs),
+[partially observable models](ModelTypes/PartiallyObservableModels.md#modelling) (e.g., partially observable Markov decision processes, POMDPs),
+[uncertain models](ModelTypes/UncertainModels.md#modelling) (e.g., interval Markov decision processes, IMDPs)
+and non-probabilistic models (e.g., labelled transition systems, LTSs).
 
 ## Properties
 
-Properties are written in PRISM's [property specification language](PropertySpecification/README.md),
-which is based on temporal logic. It incorporates several well-known probabilistic temporal logics:
-PCTL (probabilistic computation tree logic),
-CSL (continuous stochastic logic),
-probabilistic LTL (linear temporal logic),
-and PCTL\* (which subsumes both PCTL and LTL),
-as well as the non-probabilistic logics CTL and LTL.
+Properties are written in PRISM's [property specification language](PropertySpecification/README.md),  which is based on temporal logic.
+It incorporates several well-known probabilistic temporal logics, such as PCTL, probabilistic LTL and CSL.
 It also covers [costs and rewards](PropertySpecification/Reward-basedProperties.md),
-[numerical queries](PropertySpecification/ThePOperator.md) such as "what is the probability that…",
-and [multi-objective](PropertySpecification/Multi-objectiveProperties.md) queries.
+[multi-objective](PropertySpecification/Multi-objectiveProperties.md) queries, and much more.
 
-PRISM checks properties exhaustively, using numerical solution methods,
-and can also [generate strategies](RunningPRISM/Strategies.md) that achieve optimal values.
-It also includes a [discrete-event simulator](RunningPRISM/Simulation.md),
-for [statistical model checking](RunningPRISM/StatisticalModelChecking.md).
+PRISM can formally verify that these properties hold
+(e.g., "the probability of a failure occurring within 10 time units is below 0.01")
+or generate [strategies](RunningPRISM/Strategies.md)/policies/controllers that optimise properties
+(e.g., "how can I maximise the probability of reaching a goal location whilst avoiding hazard locations?").
 
 ## Where to start
 
-New to PRISM? See [Getting started](GettingStarted/README.md),
-then work through the [tutorial](https://www.prismmodelchecker.org/tutorial/)
-and the sections on the [PRISM language](ThePRISMLanguage/README.md) and [properties](PropertySpecification/README.md).
-Looking for an option or a file format? Use the search box, or see [Configuration and performance](ConfiguringPRISM/README.md)
-and the [Reference](Reference/README.md) section.
+New to PRISM? See the "[Getting started](GettingStarted/README.md)" section
+for details of [installing](GettingStarted/Installing.md)
+and [running](GettingStarted/FirstSteps.md) PRISM for the first time.
+Work through the [tutorial](https://www.prismmodelchecker.org/tutorial/) to learn what the tools can do,
+or read the sections on the [modelling](ThePRISMLanguage/README.md)
+and [properties](PropertySpecification/README.md) languages.
 
 ## Contents
 
-- [Getting started](GettingStarted/README.md): installing PRISM, solving common problems, and first steps
+- [Getting started](GettingStarted/README.md): installing PRISM, solving common problems and first steps
 - [The PRISM language](ThePRISMLanguage/README.md): how to write models
 - [Property specification](PropertySpecification/README.md): how to write properties
-- [Extended model types](ModelTypes/README.md): probabilistic timed automata, partially observable models and interval models
-- [Running PRISM](RunningPRISM/README.md): building models, model checking, experiments, strategies, simulation, and importing and exporting models
-- [Configuration and performance](ConfiguringPRISM/README.md): engines, solution methods and other settings, and memory
+- [Extended model types](ModelTypes/README.md): real-time, partially observable and uncertain models
+- [Running PRISM](RunningPRISM/README.md): building, simulating, solving, verifying, exporting/importing models
+- [Configuration and performance](ConfiguringPRISM/README.md): engines, solution methods and other settings
 - [Reference](Reference/README.md): language syntax, command-line switches, file formats and references
 - [Frequently asked questions](FrequentlyAskedQuestions/README.md): memory problems, modelling and properties
 
-How the files of this manual are organised is described in
-[doc/README.md](https://github.com/prismmodelchecker/prism/blob/master/doc/README.md).
