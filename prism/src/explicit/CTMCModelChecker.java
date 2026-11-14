@@ -919,6 +919,16 @@ public class CTMCModelChecker extends ProbModelChecker
 		int left, right;
 		double q, qt, acc, weights[], totalWeight;
 
+		// Special case: t = 0, the result is just the initial distribution
+		// (and Fox-Glynn cannot be applied with q.t = 0)
+		if (t == 0.0) {
+			res = new ModelCheckerResult();
+			res.soln = initDist;
+			res.numIters = 0;
+			res.timeTaken = 0.0;
+			return res;
+		}
+
 		// Start bounded probabilistic reachability
 		timer = System.currentTimeMillis();
 		mainLog.println("\nStarting transient probability computation...");

@@ -2,7 +2,8 @@
 # the symbolic engines: for the 2nd and later points of a time range (the previous
 # result is reused), and with -importinitdist. Both used to crash the JVM with a native
 # double free (sparse/hybrid) or double deref (MTBDD), since Prism cleared the vector
-# after the native code had already freed it. Most lines just check PRISM runs cleanly
+# after the native code had already freed it. Also, the explicit engine failed for
+# time 0 (Fox-Glynn called with q.t = 0). Most lines just check PRISM runs cleanly
 # (no exported values are compared, since the last digits differ across engines/platforms).
 # ctmc-transient-initdist.prism.initdist.txt is the distribution at time 1.
 
@@ -14,6 +15,11 @@
 -tr 0:0.5:1 -h
 -tr 0:0.5:1 -s
 -tr 0:0.5:1 -m
+-tr 0:0.5:1 -ex
+-tr 0 -h
+-tr 0 -s
+-tr 0 -m
+-tr 0 -ex
 
 # Imported initial distribution, single time point and a range
 -tr 1.0 -importinitdist ctmc-transient-initdist.prism.initdist.txt -h
@@ -23,8 +29,10 @@
 -tr 0.5:0.5:1 -importinitdist ctmc-transient-initdist.prism.initdist.txt -h
 -tr 0.5:0.5:1 -importinitdist ctmc-transient-initdist.prism.initdist.txt -s
 -tr 0.5:0.5:1 -importinitdist ctmc-transient-initdist.prism.initdist.txt -m
+-tr 0.5:0.5:1 -importinitdist ctmc-transient-initdist.prism.initdist.txt -ex
 
 # At time 0, the imported distribution should be exported unchanged
 -tr 0 -importinitdist ctmc-transient-initdist.prism.initdist.txt -exporttr ctmc-transient-initdist.prism.initdist.txt -h
 -tr 0 -importinitdist ctmc-transient-initdist.prism.initdist.txt -exporttr ctmc-transient-initdist.prism.initdist.txt -s
 -tr 0 -importinitdist ctmc-transient-initdist.prism.initdist.txt -exporttr ctmc-transient-initdist.prism.initdist.txt -m
+-tr 0 -importinitdist ctmc-transient-initdist.prism.initdist.txt -exporttr ctmc-transient-initdist.prism.initdist.txt -ex
