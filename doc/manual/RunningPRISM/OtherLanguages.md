@@ -6,7 +6,7 @@ the stochastic process algebra PEPA, and SBML, the Systems Biology Markup Langua
 <a id="pepa"></a>
 ## PEPA
 
-For CTMCs, PRISM also accepts model descriptions in the stochastic process algebra [PEPA](http://www.dcs.ed.ac.uk/pepa/) [[Hil96](../Reference/References.md#Hil96)].
+For CTMCs, PRISM also accepts model descriptions in the stochastic process algebra [PEPA](https://www.dcs.ed.ac.uk/pepa/) [[Hil96](../Reference/References.md#Hil96)].
 The tool compiles such descriptions into the PRISM language and then constructs the model as normal.
 The language accepted by the PEPA to PRISM compiler is actually a subset of PEPA.
 The restrictions applied to the language are firstly that component identifiers can only be bound to sequential components
@@ -38,9 +38,9 @@ by selecting menu option "Model | View | Parsed PRISM model".
 <a id="sbml"></a>
 ## SBML
 
-PRISM includes a (prototype) tool to translate specifications in [SBML](http://sbml.org/) (Systems Biology Markup Language) to model descriptions in the PRISM language. SBML is an XML-based format for representing models of biochemical reaction networks. The translator currently works with Level 2 Version 1 of the SBML specification, details of which can be found [here](http://sbml.org/documents/).
+PRISM includes a (prototype) tool to translate specifications in [SBML](http://sbml.org/) (Systems Biology Markup Language) to model descriptions in the PRISM language. SBML is an XML-based format for representing models of biochemical reaction networks. The translator works with Level 2 SBML files (it was written for Level 2 Version 1); the SBML specifications can be found [here](https://sbml.org/documents/).
 
-Since PRISM is a tool for analysing discrete-state systems, the translator is designed for SBML files intended for discrete stochastic simulation. A useful set of such files can be found in the CaliBayes [Discrete Stochastic Model Test Suite](http://code.google.com/p/dsmts/). There are also many more SBML files available in the [BioModels Database](http://www.ebi.ac.uk/biomodels/).
+Since PRISM is a tool for analysing discrete-state systems, the translator is designed for SBML files intended for discrete stochastic simulation. A useful set of such files can be found in the CaliBayes [Discrete Stochastic Model Test Suite](https://code.google.com/archive/p/dsmts). There are also many more SBML files available in the [BioModels](https://www.ebi.ac.uk/biomodels/).
 
 We first give a simple example of an SBML file and its PRISM translation. We then give some more precise details of the translation process.
 

@@ -47,7 +47,8 @@ or classic MDP texts such as [[Put94](../Reference/References.md#Put94)]).
 - **Value iteration** (switch [`-valiter`](../Reference/CommandLineSwitches.md#valiter)) [this is the default]
 - **Gauss Seidel** (switch `-gs`)
 - **Policy iteration** (switch [`-politer`](../Reference/CommandLineSwitches.md#politer))
-- **Modified policy iteration** (switch [`-modpoliter`](../Reference/CommandLineSwitches.md#modpoliter))
+- **Modified policy iteration** (switch [`-modpoliter`](../Reference/CommandLineSwitches.md#modpoliter));
+  this is only implemented for probabilities: for reward properties, PRISM switches to Gauss-Seidel (with a warning)
 - **Linear programming** (switch `-lp`)
 
 Where the methods above use iterative numerical solution,
