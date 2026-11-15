@@ -84,16 +84,16 @@ A list of available options is as follows:
 Mirroring the `-exportmodel` switch ([see here](ImportingAndExportingModels.md#exporting)),
 several other options are available for induced model export:
 
-- `format` (=`explicit`/`dot`/`umb`) - the format to export in
-- `states` (=`true`/`false`) - whether to include states
-- `rewards` (=`true`/`false`) - whether to include rewards
-- `labels` (=`true`/`false`) - whether to include labels
-- `actions` (=`true`/`false`) - whether to include actions on choices/transitions
-- `obs` (=`true`/`false`) - whether to include observations
-- `precision` (=`<n>`) - use `<n>` significant figures for floating point values (in text)
-- `zip` (`=true/false/gzip/xz`) - whether to zip the output and in what format
-- `headers` (`=true/false`) - whether to include headers when exporting rewards
-- `text` (`=true/false`) - whether to use textual form for UMB
+- `format` (`explicit`, `dot` or `umb`): the format to export in
+- `states` (`true` or `false`): whether to include states
+- `rewards` (`true` or `false`): whether to include rewards
+- `labels` (`true` or `false`): whether to include labels
+- `actions` (`true` or `false`): whether to include actions on choices/transitions
+- `obs` (`true` or `false`): whether to include observations
+- `precision` (`<n>`): use `<n>` significant figures for floating point values (in text)
+- `zip` (`true`, `false`, `gzip` or `xz`): whether to zip the output and in what format
+- `headers` (`true` or `false`): whether to include headers when exporting rewards
+- `text` (`true` or `false`): whether to use textual form for UMB
 
 **Strategy types**. PRISM generates several types of strategies. The simplest are *memoryless deterministic* strategies, which pick a single action in each state, as in the examples above. For some query types (e.g., step-bounded properties, or LTL-based properties), *finite-memory* strategies are generated, where an additional memory value is used. For these, induced models or Dot files are most useful since they will also show how the memory values are updated as the strategy is executed. Note that, in these cases, the state indices of the strategy will correspond to the product model constructed during model checking, not the original model. The product model can be exported using the `-exportprodtrans` and `-exportprodstates` switches.
 

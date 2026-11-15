@@ -39,10 +39,10 @@ There is also a `hoa-rabinizer-for-prism.bat` script for connecting to Rabinizer
 
 The [`-ltl2dasyntax`](../Reference/CommandLineSwitches.md#ltl2dasyntax) switch is used to specify the textual format for passing the LTL formula to the external converter (i.e., in the file `in-file`). The options are:
 
-- `lbt` - LBT format
-- `spin` - SPIN format
-- `spot` - Spot format
-- `rabinizer` - Rabinizer format
+- `lbt`: LBT format
+- `spin`: SPIN format
+- `spot`: Spot format
+- `rabinizer`: Rabinizer format
 
 Typical usage is:
 

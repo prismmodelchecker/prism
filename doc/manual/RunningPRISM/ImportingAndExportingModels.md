@@ -159,16 +159,16 @@ Other file formats are also available:
 
 Other `-exportmodel` options are:
 
-- `states` (=`true`/`false`) - whether to include states
-- `rewards` (=`true`/`false`) - whether to include rewards
-- `labels` (=`true`/`false`) - whether to include labels
-- `actions` (=`true`/`false`) - whether to include actions on choices/transitions
-- `obs` (=`true`/`false`) - whether to include observations
-- `precision` (=`<n>`) - use `<n>` significant figures for floating point values (in text)
-- `headers` (`=true/false`) - whether to include headers when exporting rewards
-- `rows` - export matrices with one row/distribution on each line (plain text)
-- `proplabels` - also export labels from a properties file into a `.lab` file
-- `zip` (`=true/false/gzip/xz`) - whether to zip the output and in what format
+- `states` (`true` or `false`): whether to include states
+- `rewards` (`true` or `false`): whether to include rewards
+- `labels` (`true` or `false`): whether to include labels
+- `actions` (`true` or `false`): whether to include actions on choices/transitions
+- `obs` (`true` or `false`): whether to include observations
+- `precision` (`<n>`): use `<n>` significant figures for floating point values (in text)
+- `headers` (`true` or `false`): whether to include headers when exporting rewards
+- `rows`: export matrices with one row/distribution on each line (plain text)
+- `proplabels`: also export labels from a properties file into a `.lab` file
+- `zip` (`true`, `false`, `gzip` or `xz`): whether to zip the output and in what format
 
 For plain text export, `-exportmodel` is usually the best switch to use,
 but there are also older switches. For example, you can export individual files using
