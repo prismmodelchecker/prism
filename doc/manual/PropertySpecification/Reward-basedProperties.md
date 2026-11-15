@@ -38,7 +38,7 @@ Precise definitions for most of these can be found in, for example,
 [[KNP07a](../Reference/References.md#KNP07a)] (for DTMCs and CTMCs) or [[FKNP11](../Reference/References.md#FKNP11)] (for MDPs).
 
 For all but instantaneous reward properties,
-it is currently required that rewards are non-negative.
+it is required that rewards are non-negative.
 
 <a id="reachability"></a>
 ## "Reachability reward" properties
@@ -176,7 +176,7 @@ R<=0.7 [ S ]
 ```
 
 which is true in a state *s* if "starting from *s*, the long-run average power consumption is less than 0.7".
-As for the [S operator](TheSOperator.md), these properties are currently only supported for DTMCs and CTMCs.
+As for the [S operator](TheSOperator.md), these properties are only supported for DTMCs and CTMCs.
 
 <a id="reward-structure"></a>
 ## Which reward structure?

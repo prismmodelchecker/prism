@@ -188,7 +188,7 @@ to specify format options affecting all of them.
 <a id="scc"></a>
 ### Exporting (B)SCCs and end components
 
-It is also possible to export the set of (bottom) strongly connected components (SCCs or BSCCs) for a model. This can only be done from the command-line currently. Use, for example:
+It is also possible to export the set of (bottom) strongly connected components (SCCs or BSCCs) for a model. This can only be done from the command-line. Use, for example:
 
 ```shell
 prism model.prism -exportsccs stdout
@@ -205,12 +205,12 @@ prism mdp.prism -exportmecs stdout
 ## Importing models
 
 It is also possible to construct models in PRISM through direct specification of their transition matrix.
-Two formats for explicit model import are currently supported:
+Two formats for explicit model import are supported:
 
 - [plain text](../Reference/ExplicitModelFiles.md) files (sometimes referred to as "explicit" or "`.tra`" or "`.pexp`" files)
 - [UMB](https://pmc-tools.github.io/umb/) (Unified Markov binary) format, a binary format supported by other probabilistic model checkers
 
-Presently, this functionality is only supported in the command-line version of the tool, usually using the `-importmodel` switch.
+This functionality is only supported in the command-line version of the tool, usually using the `-importmodel` switch.
 In a similar fashion to `-exportmodel` switch, the type of import is usually determined from the file extension.
 
 For UMB, all model info is contained in a single file. An example of import is:

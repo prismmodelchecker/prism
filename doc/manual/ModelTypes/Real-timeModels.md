@@ -31,14 +31,14 @@ PRISM makes several assumptions about PTAs, regardless of the engine used.
 
 - Firstly PTAs should not exhibit *timelocks*, i.e. the possibility of reaching a state where no transitions are possible and time cannot elapse beyond a certain point (due to invariant conditions). PRISM checks for timelocks and reports an error if one is found.
 
-- Secondly, PTAs should be *well-formed* and *non-zeno* (see e.g. [[KNSW07](../Reference/References.md#KNSW07)] for details). Currently, PRISM does not check automatically that these assumptions are satisfied.
+- Secondly, PTAs should be *well-formed* and *non-zeno* (see e.g. [[KNSW07](../Reference/References.md#KNSW07)] for details). PRISM does not check automatically that these assumptions are satisfied.
 
 There are also some further restrictions, which depend on the engine used: see [below](#engines).
 
 <a id="engines"></a>
 ## Engines
 
-The techniques used to model check PTAs are different to the ones used for DTMCs, MDPs and CTMCs. For PTAs, PRISM currently has three distinct engines that can be used:
+The techniques used to model check PTAs are different to the ones used for DTMCs, MDPs and CTMCs. For PTAs, PRISM has three distinct engines that can be used:
 
 - The **stochastic games** engine uses abstraction-refinement techniques based on stochastic two-player games [[KNP09c](../Reference/References.md#KNP09c)].
 
@@ -64,7 +64,7 @@ The digital clocks method is based on a language-level translation from a PTA mo
 <a id="properties"></a>
 ## Properties
 
-The classes of property that can be checked for real-time models (PTAs and POPTAs) are currently more restricted than for the other kinds of models that PRISM supports. This is because the model checking procedures are quite different for this type of model. The situation also depends on which of the [engines](#engines) is being used.
+The classes of property that can be checked for real-time models (PTAs and POPTAs) are more restricted than for the other kinds of models that PRISM supports. This is because the model checking procedures are quite different for this type of model. The situation also depends on which of the [engines](#engines) is being used.
 
 For the stochastic games engine, we essentially only allow unbounded or time-bounded probabilistic reachability properties, i.e. properties of the form:
 
@@ -77,7 +77,7 @@ Pmax=? [ F<=T target ]
 
 where `target` is a Boolean-valued expression that does not include references to any clock variables and `T` is an integer-valued expression. The `P` operator cannot be nested and the `S` and `R` operators are not supported.
 
-The backwards reachability engine is similar but currently only handles maximum probabilities.
+The backwards reachability engine is similar but only handles maximum probabilities.
 
 For the digital clocks engine, there is slightly more flexibility,
 e.g. until (`U`) properties are allowed, as are clock variables in expressions and arithmetic expressions such as:

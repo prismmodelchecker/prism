@@ -53,7 +53,7 @@ or:
 libprism.dylib not valid for use in process: library load disallowed by system policy
 ```
 
-PRISM's macOS binaries are currently not signed/notarised,
+PRISM's macOS binaries are not signed/notarised,
 so you need to approve the binary files manually to run them.
 Run this command from the same place you ran `./install.sh`:
 

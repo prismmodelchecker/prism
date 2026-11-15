@@ -210,7 +210,7 @@ From the latter, we can use PRISM to generate a simple plot of the expected amou
 
 ### Using the translator
 
-At present, the SBML-to-PRISM translator is included in the PRISM code-base, but not integrated into the application itself.
+The SBML-to-PRISM translator is included in the PRISM code-base, but not integrated into the application itself.
 
 ```shell
 cd prism
@@ -270,7 +270,7 @@ java -cp classes prism.SBML2Prism sbml_file.xml 1000 > prism_file.prism
 
 Alternatively, upper bounds can be modified manually after the translation process.
 
-Finally, the following aspects of SBML files are not currently supported and are ignored during the translation process:
+Finally, the following aspects of SBML files are not supported and are ignored during the translation process:
 
 - compartments
 - events/triggers

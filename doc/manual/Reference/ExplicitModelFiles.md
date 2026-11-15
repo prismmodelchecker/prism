@@ -172,7 +172,7 @@ and `o` is the number of observations.
 The lines that list transitions contain an additional integer after the transition probability
 (and before the action, if present), giving the (deterministic) observation that is made
 when entering the target state of that transition.
-Currently, it is assumed that these are consistent for all states.
+It is assumed that these are consistent for all states.
 
 In order to also specify the observation for the initial state,
 a dummy transition line of the form `- - s - o` is used,

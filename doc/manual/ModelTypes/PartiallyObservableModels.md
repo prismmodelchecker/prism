@@ -13,7 +13,7 @@ Look in the `prism-examples/pomdps` and `prism-examples/poptas` directories.
 <a id="modelling"></a>
 ## Modelling
 
-PRISM currently supports state-based observations:
+PRISM supports state-based observations:
 this means that, upon entering a new POMDP state,
 the observation is determined by that state.
 In the same way that a model state comprises the values of one or more variables,
@@ -48,7 +48,7 @@ The above two styles of definition can also be mixed
 to specify a combined set of observables.
 
 POPTAs (partially observable PTAs) combine the features of both [PTAs](Real-timeModels.md) and POMDPs.
-They are currently analysed using the digital clocks engine,
+They are analysed using the digital clocks engine,
 so inherit the [restrictions for that engine](Real-timeModels.md#engines).
 Furthermore, for a POPTA, all clock variables must be observable.
 
@@ -58,7 +58,7 @@ Furthermore, for a POPTA, all clock variables must be observable.
 For partially observable models (POMDPs and POPTAs),
 PRISM uses the same property language as their fully observational equivalents (MDPs and PTAs).
 However, a more limited range of properties is available.
-For POMDPs, PRISM currently supports probabilistic reachability,
+For POMDPs, PRISM supports probabilistic reachability,
 probabilistic until, probabilistic invariance (`G`) or expected reachability rewards properties, i.e.:
 
 ```prism
@@ -75,7 +75,7 @@ Rmax=? [ F target ]
 or bounded variants with a probability/threshold instead
 of the `min=?` or `max=?`.
 
-For the verification methods currently implemented,
+For the verification methods that PRISM implements,
 there are a few additional restrictions.
 Firstly, the `target` (and `remain` or `safe`) expression appearing
 in the property must be an observable.
@@ -85,7 +85,7 @@ This is easily achieved by only using either observable variables
 or named observables in the expression, but that is not required.
 Secondly, probabilities and expected rewards are only computed from a single initial state.
 
-POPTAs are currently verified using the "digital clocks" approach to
+POPTAs are verified using the "digital clocks" approach to
 translate them into a POMDP, so they inherit the same
 [restrictions](Real-timeModels.md#properties)
 (that strict or diagonal clock comparisons are not allowed).

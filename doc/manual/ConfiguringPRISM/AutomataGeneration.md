@@ -62,10 +62,10 @@ when computing the probability of a path formula, even if it is not needed. This
 As mentioned above, PRISM's external LTL-to-automaton interfacing works using the
 [HOA](https://adl.github.io/hoaf/) format
 (and, in particular, using the [`jhoafparser`](https://automata.tools/hoa/jhoafparser/) HOA parser).
-Currently, PRISM can handle automata in HOA format that are
+PRISM can handle automata in HOA format that are
 deterministic and complete, with state-based acceptance.
 Automata with transition-based acceptance are converted to state-based acceptance by PRISM.
 For DTMC and  CTMC model checking, generic acceptance conditions are supported, i.e.,
 anything that can be specified as an `Acceptance:` header in HOA format.
-For MDP model checking, currently Rabin and generalised Rabin acceptance
+For MDP model checking, Rabin and generalised Rabin acceptance
 specified via the `acc-name:` header are supported. See the [HOA format specification](https://adl.github.io/hoaf/) for details.

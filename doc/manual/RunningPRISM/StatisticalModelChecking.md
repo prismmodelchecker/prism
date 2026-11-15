@@ -2,7 +2,7 @@
 
 The discrete-event simulator built into PRISM (see the section "[Simulation](Simulation.md)") can also be used to generate *approximate* results for PRISM properties, a technique often called *statistical model checking*. Essentially, this is achieved by *sampling*: generating a large number of random paths through the model, evaluating the result of the given properties on each run, and using this information to generate an approximately correct result. This approach is particularly useful on very large models when normal model checking is infeasible. This is because discrete-event simulation is performed using the PRISM language model description, without explicitly constructing the corresponding probabilistic model.
 
-Currently, statistical model checking can only be applied to `P` or `R` operators
+Statistical model checking can only be applied to `P` or `R` operators
 and does not support LTL-style path properties or [filters](../PropertySpecification/Filters.md).
 There are also a few restrictions on the modelling language features that can be used; see below for details.
 
@@ -114,6 +114,6 @@ The maximum length of simulation paths is set with switch `-simpathlen`.
 
 ## Limitations
 
-Currently, the simulator does not support every part of the PRISM modelling language. For example, it does not handle models with multiple initial states or with `system...endsystem` definitions.
+The simulator does not support every part of the PRISM modelling language. For example, it does not handle models with multiple initial states or with `system...endsystem` definitions.
 
-It is also worth pointing out that statistical model checking techniques are not well suited to models that exhibit nondeterminism, such as MDPs. This is because the techniques rely on generation of *random* paths, which are not well defined for an MDP. PRISM does allow statistical model checking to be performed on an MDP, but does so by simply resolving nondeterministic choices in a (uniformly) random fashion (and displaying a warning message). Currently PTAs are not supported by the simulator.
+It is also worth pointing out that statistical model checking techniques are not well suited to models that exhibit nondeterminism, such as MDPs. This is because the techniques rely on generation of *random* paths, which are not well defined for an MDP. PRISM does allow statistical model checking to be performed on an MDP, but does so by simply resolving nondeterministic choices in a (uniformly) random fashion (and displaying a warning message). PTAs are not supported by the simulator.

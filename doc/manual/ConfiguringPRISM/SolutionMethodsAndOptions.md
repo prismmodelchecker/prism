@@ -38,7 +38,7 @@ see the [Convergence](SolutionMethodsAndOptions.md#convergence) section below.
 When analysing MDPs, there are multiple solution methods on offer.
 For most of these, you can select them under the "MDP solution method" setting from the GUI,
 or use the command-line switches listed below.
-Currently, all except value iteration are only supported by the [explicit engine](ComputationEngines.md),
+All except value iteration are only supported by the [explicit engine](ComputationEngines.md),
 which PRISM switches to automatically (with a warning) if one of them is selected;
 the exception is Gauss-Seidel with the MTBDD engine, which gives an error.
 For more details of the methods, see e.g. [[FKNP11](../Reference/References.md#FKNP11)] (about probabilistic verification of MDPs)
@@ -78,7 +78,7 @@ states in an alternative order which increases the speed of convergence.
 Use switch [`-topological`](../Reference/CommandLineSwitches.md#topological) or GUI option "Use topological value iteration" to enable this.
 In addition to standard value iteration for MDPs, the topological variant can be used to optimise
 both interval iteration (see above) and the numerical solution of DTMCs.
-It is currently only implemented in the [explicit engine](ComputationEngines.md),
+It is only implemented in the [explicit engine](ComputationEngines.md),
 which PRISM switches to automatically (with a warning) if another engine is selected.
 The exception is DTMC/CTMC solution with a linear equation method that the explicit engine does not support
 (such as pseudo Gauss-Seidel or SOR), where `-topological` is ignored (again, with a warning).

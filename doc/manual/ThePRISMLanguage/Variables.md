@@ -1,7 +1,7 @@
 # Variables
 
 Variables are used to describe the state space of a model.
-Currently, PRISM supports just a few simple types of variables:
+PRISM supports just a few simple types of variables:
 they can either be (finite ranges of) integers or Booleans
 (we ignore [clocks](../ModelTypes/Real-timeModels.md#modelling) for now, which are used in real-time models).
 

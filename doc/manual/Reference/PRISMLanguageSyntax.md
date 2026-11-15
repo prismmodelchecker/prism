@@ -18,7 +18,7 @@ all of which is ignored when the file is parsed.
 ## Model types
 
 A **model type** keyword, usually at the very start of a model file, indicates the type of model being specified,
-and can currently be any of the following:
+and can be any of the following:
 
 - `dtmc` (DTMC: discrete-time Markov chain)
 - `ctmc` (CTMC: continuous-time Markov chain)
