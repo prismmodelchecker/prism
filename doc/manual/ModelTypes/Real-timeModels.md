@@ -67,11 +67,11 @@ The default engine for PTAs is "stochastic games". The engine to be used can be 
 
 The choice of engine affects the models that can be analysed, as well as the [properties](#properties) that can be checked.
 
-For the **stochastic games** and **backwards reachability** engines:
+For the stochastic games and backwards reachability engines:
 
 - The model must have a single initial state (i.e. the `init...endinit` construct is not permitted).
 
-For the **digital clocks** engine:
+For the digital clocks engine:
 
 - Clock constraints cannot use strict comparison operators, e.g. `x<=5` is allowed, but `x<5` is not.
 
@@ -84,7 +84,7 @@ The digital clocks method is based on a language-level translation from a PTA mo
 
 The classes of property that can be checked for real-time models (PTAs and POPTAs) are currently more restricted than for the other kinds of models that PRISM supports. This is because the model checking procedures are quite different for this type of model. The situation also depends on which of the [engines](#engines) is being used.
 
-For the "**stochastic games**" engine, we essentially only allow unbounded or time-bounded probabilistic reachability properties, i.e. properties of the form:
+For the stochastic games engine, we essentially only allow unbounded or time-bounded probabilistic reachability properties, i.e. properties of the form:
 
 ```prism
 Pmin=? [ F target ]
@@ -95,9 +95,9 @@ Pmax=? [ F<=T target ]
 
 where `target` is a Boolean-valued expression that does not include references to any clock variables and `T` is an integer-valued expression. The `P` operator cannot be nested and the `S` and `R` operators are not supported.
 
-The "**backwards reachability**" engine is similar but currently only handles maximum probabilities.
+The backwards reachability engine is similar but currently only handles maximum probabilities.
 
-For the "**digital clocks**" engine, there is slightly more flexibility,
+For the digital clocks engine, there is slightly more flexibility,
 e.g. until (`U`) properties are allowed, as are clock variables in expressions and arithmetic expressions such as:
 
 ```prism

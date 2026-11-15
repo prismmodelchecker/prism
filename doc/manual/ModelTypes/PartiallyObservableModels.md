@@ -1,11 +1,11 @@
 # Partially observable models
 
-PRISM supports analysis of *partially observable* probabilistic models,
+PRISM supports analysis of **partially observable** probabilistic models,
 most notably partially observable Markov decision processes (POMDPs),
 but also partially observable probabilistic timed automata (POPTAs).
 POMDPs are a variant of MDPs in which the strategy/policy
 which resolves nondeterministic choices in the model is unable to
-see the precise state of the model, but instead just *observations* of it.
+see the precise state of the model, but instead just **observations** of it.
 For background material on POMDPs and POPTAs, see for example [[NPZ17](../Reference/References.md#NPZ17)].
 You can also find several example models included in the PRISM distribution.
 Look in the `prism-examples/pomdps` and `prism-examples/poptas` directories.
@@ -17,7 +17,7 @@ PRISM currently supports state-based observations:
 this means that, upon entering a new POMDP state,
 the observation is determined by that state.
 In the same way that a model state comprises the values of one or more variables,
-an observation comprises one or more *observables*.
+an observation comprises one or more **observables**.
 There are several ways to define these observables.
 The simplest is to specify a subset of the model's variables
 that are designated as being observable. The rest are unobservable.
