@@ -13,8 +13,6 @@ Below, we describe:
 
 The examples are exported from four small PRISM models, which are shown, with diagrams, in the last section, [Source PRISM files](#source).
 
----
-
 <a id="pexp"></a>
 ## PRISM explicit (.pexp) files
 
@@ -67,8 +65,6 @@ Here is an example, for the (DTMC) PRISM model [lec3.prism](#lec3):
 ```
 
 See below for the format of the constituent parts.
-
----
 
 <a id="tra"></a>
 ## Transitions (.tra) files
@@ -208,8 +204,6 @@ An example file is:
 9 0 9 1 3
 ```
 
----
-
 <a id="trarows"></a>
 ## Transitions (.tra) files (row form)
 
@@ -252,8 +246,6 @@ and for the [lec12mdpa.prism](#lec12mdpa) example (an MDP with actions):
 3 1:3 a
 ```
 
----
-
 <a id="lab"></a>
 ## Labels (.lab) files
 
@@ -272,8 +264,6 @@ An example is shown below, for [lec12mdp.prism](#lec12mdp), where, for example, 
 2: 2 4
 3: 3 4
 ```
-
----
 
 <a id="srew"></a>
 ## State rewards (.srew) files
@@ -294,8 +284,6 @@ For the [lec3.prism](#lec3) (6-state) DTMC example from above, we get rewards in
 4 1
 5 1
 ```
-
----
 
 <a id="trew"></a>
 ## Transition rewards (.trew) files
@@ -329,8 +317,6 @@ And for the [lec12mdpa.prism](#lec12mdpa) (4-state) MDP example, we get non-zero
 1 1 1 5
 ```
 
----
-
 <a id="sta"></a>
 ## States (.sta) files
 
@@ -354,8 +340,6 @@ For the example PRISM model [poll2.prism](#poll2), the states file looks like:
 10:(2,1,0,1)
 11:(2,1,1,1)
 ```
-
----
 
 <a id="source"></a>
 ## Source PRISM files
