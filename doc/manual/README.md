@@ -20,8 +20,9 @@ PRISM supports many different types of probabilistic model. The three most commo
 
 PRISM also supports [real-time models](ModelTypes/Real-timeModels.md#modelling) (e.g., probabilistic timed automata, PTAs),
 [partially observable models](ModelTypes/PartiallyObservableModels.md#modelling) (e.g., partially observable Markov decision processes, POMDPs),
-[uncertain models](ModelTypes/UncertainModels.md#modelling) (e.g., interval Markov decision processes, IMDPs)
-and non-probabilistic models (e.g., labelled transition systems, LTSs).
+and [uncertain models](ModelTypes/UncertainModels.md#modelling) (e.g., interval Markov decision processes, IMDPs).
+It can also analyse [non-probabilistic models](ModelTypes/Non-probabilisticModels.md#modelling) (e.g., labelled transition systems, LTSs),
+using temporal logics such as CTL and LTL.
 
 ## Properties
 

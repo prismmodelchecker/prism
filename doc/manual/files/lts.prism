@@ -1,0 +1,26 @@
+// Two processes sharing a lock (no probabilities)
+
+module P1
+
+    x : [0..2]; // 0=idle, 1=trying, 2=critical
+
+    [try1] x=0 -> (x'=1);
+    [enter1] x=1 -> (x'=2);
+    [exit1] x=2 -> (x'=0);
+
+endmodule
+
+module P2 = P1 [ x=y, try1=try2, enter1=enter2, exit1=exit2 ] endmodule
+
+module Lock
+
+    l : bool; // locked?
+
+    [enter1] !l -> (l'=true);
+    [enter2] !l -> (l'=true);
+    [exit1] l -> (l'=false);
+    [exit2] l -> (l'=false);
+
+endmodule
+
+label "both" = x=2 & y=2;

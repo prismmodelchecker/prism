@@ -3,6 +3,8 @@
 PRISM also supports model checking of the non-probabilistic temporal logics CTL (computation tree logic) and LTL (linear temporal logic).
 Properties in these logics use the `A` (for all) and `E` (there exists) operators,
 instead of the probabilistic `P` operator used in many other properties supported by PRISM.
+They can be checked on any model type, including
+[non-probabilistic models](../ModelTypes/Non-probabilisticModels.md) such as labelled transition systems (LTSs).
 
 Properties take the form:
 

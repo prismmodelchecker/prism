@@ -28,6 +28,8 @@ that support the specification of various other model types:
   notably partially observable Markov decision processes (POMDPs)
 - [Uncertain models](../ModelTypes/UncertainModels.md#modelling),
   such as interval discrete-time Markov chains (IDTMCs) and interval Markov decision processes (IMDPs)
+- [Non-probabilistic models](../ModelTypes/Non-probabilisticModels.md#modelling),
+  notably labelled transition systems (LTSs), which have no probabilities
 
 ## Contents
 

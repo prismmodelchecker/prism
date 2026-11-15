@@ -1,0 +1,8 @@
+// The two processes are never both in the critical section
+A [ G !"both" ];
+
+// It is possible for process 1 to reach the critical section
+E [ F x=2 ];
+
+// Whenever process 1 is trying, it eventually reaches the critical section
+A [ G ((x=1) => (F x=2)) ];

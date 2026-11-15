@@ -34,7 +34,7 @@ Indeed, some model types do not have explicit keywords (e.g., interval MDPs),
 and are only identified by the features that they use.
 
 - The **default** model type is MDP, unless no probabilities are used,
-in which case it is LTS (labelled transition system).
+in which case it is an [LTS](../ModelTypes/Non-probabilisticModels.md) (labelled transition system).
 - An MDP model with [clock](../ModelTypes/Real-timeModels.md#modelling) variables
 is treated as a PTA, even if the `pta` keyword is not used.
 - An MDP or PTA with [observables](../ModelTypes/PartiallyObservableModels.md#modelling)

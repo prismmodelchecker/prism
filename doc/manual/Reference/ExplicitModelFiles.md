@@ -162,6 +162,25 @@ and here is an action-labelled version of the same model, [lec12mdpa.prism](#lec
 3 0 3 1 a
 ```
 
+<a id="lts"></a>
+**LTSs**
+
+For LTSs (labelled transition systems), the format is the same as for MDPs,
+except that there are no probabilities, so each choice comprises a single transition.
+The remaining lines are of the form "`i k j`" or "`i k j a`".
+Here is the start of the file for the LTS
+in [Non-probabilistic models](../ModelTypes/Non-probabilisticModels.md#modelling):
+
+```text
+# Transitions (LTS)
+8 14 14
+0 0 3 try1
+0 1 1 try2
+1 0 4 try1
+1 1 2 enter2
+...
+```
+
 **POMDPs**
 
 The format of a `.tra` file for a POMDP is similar to an MDP,
