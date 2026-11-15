@@ -17,24 +17,7 @@ Before describing how PTA features are incorporated into the PRISM modelling lan
 
 and here is a corresponding PRISM model:
 
-```prism
-pta
-
-module M
-
-    s : [0..2] init 0;
-    x : clock;
-
-    invariant
-        (s=0 => x<=2) &
-        (s=2 => x<=3)
-    endinvariant
-
-    [send] s=0 & x>=1 -> 0.9:(s'=1)&(x'=0) + 0.1:(s'=2)&(x'=0);
-    [retry] s=2 & x>=2 -> 0.95:(s'=1) + 0.05:(s'=2)&(x'=0);
-
-endmodule
-```
+[pta.prism](../files/pta.prism "include")
 
 For modelling PTAs in PRISM, there is a new datatype, `clock`, used for variables that are clocks. Other types of PRISM variables can be defined in the usual way. In the example above, we use just a single integer variable `s` to represent the locations of the PTA.
 
