@@ -4,12 +4,12 @@ In order to verify or analyse a probabilistic model with PRISM, one or more **pr
 This is done using the **PRISM property specification language**, which is based on temporal logic
 and subsumes several well-known logics:
 
-* PCTL (probabilistic computation tree logic)
-* PLTL (probabilistic linear temporal logic)
-* PCTL* (which subsumes PCTL and PLTL)
-* CSL (continuous stochastic logic)
-* CTL (computation tree logic)
-* LTL (linear temporal logic)
+- PCTL (probabilistic computation tree logic)
+- PLTL (probabilistic linear temporal logic)
+- PCTL* (which subsumes PCTL and PLTL)
+- CSL (continuous stochastic logic)
+- CTL (computation tree logic)
+- LTL (linear temporal logic)
 
 and also includes reward-based properties and various other extensions.
 

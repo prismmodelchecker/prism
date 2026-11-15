@@ -74,7 +74,6 @@ For the stochastic games and backwards reachability engines:
 For the digital clocks engine:
 
 - Clock constraints cannot use strict comparison operators, e.g. `x<=5` is allowed, but `x<5` is not.
-
 - Diagonal clock constraints are not allowed, i.e. those containing references to two clocks, such as `x<=y`.
 
 The digital clocks method is based on a language-level translation from a PTA model to an MDP one. If you want to see the MDP PRISM model that was generated, add the switch `-exportdigital digital.prism` when model checking a property to export the model file to `digital.prism`.

@@ -23,7 +23,6 @@ For models with [multiple initial states](../ThePRISMLanguage/Variables.md#multi
 In this case, the two properties above will yield, respectively:
 
 - the range of values (over all initial states) of the probability of reaching "error"
-
 - `true` if and only if the probability is greater than 0.5 from *all* initial states.
 
 Using **filters**, you can ask PRISM to obtain different results.

@@ -20,12 +20,12 @@ all of which is ignored when the file is parsed.
 A **model type** keyword, usually at the very start of a model file, indicates the type of model being specified,
 and can currently be any of the following:
 
-* `dtmc` (DTMC: discrete-time Markov chain)
-* `ctmc` (CTMC: continuous-time Markov chain)
-* `mdp` (MDP: Markov decision process)
-* `pta` (PTA: probabilistic timed automaton)
-* `pomdp` (POMDP: partially observable MDP)
-* `popta` (POPTA: partially observable PTA)
+- `dtmc` (DTMC: discrete-time Markov chain)
+- `ctmc` (CTMC: continuous-time Markov chain)
+- `mdp` (MDP: Markov decision process)
+- `pta` (PTA: probabilistic timed automaton)
+- `pomdp` (POMDP: partially observable MDP)
+- `popta` (POPTA: partially observable PTA)
 
 Based on features that are included in a model,
 PRISM will, to some extent, auto-detect the model type if no keyword is given
@@ -33,13 +33,13 @@ and adapt the model type beyond the keyword if features are added that require a
 Indeed, some model types do not have explicit keywords (e.g., interval MDPs),
 and are only identified by the features that they use.
 
-* The **default** model type is MDP, unless no probabilities are used,
+- The **default** model type is MDP, unless no probabilities are used,
 in which case it is LTS (labelled transition system).
-* An MDP model with [clock](../ModelTypes/Real-timeModels.md#modelling) variables
+- An MDP model with [clock](../ModelTypes/Real-timeModels.md#modelling) variables
 is treated as a PTA, even if the `pta` keyword is not used.
-* An MDP or PTA with [observables](../ModelTypes/PartiallyObservableModels.md#modelling)
+- An MDP or PTA with [observables](../ModelTypes/PartiallyObservableModels.md#modelling)
 is treated as a POMDP or POPTA (partially observable PTA), respectively.
-* If a model uses [intervals](../ModelTypes/UncertainModels.md#modelling) for probabilities,
+- If a model uses [intervals](../ModelTypes/UncertainModels.md#modelling) for probabilities,
 it is treated as an interval variant: an IDTMC (interval DTMC) or IMDP (interval MDP).
 
 <a id="identifiers"></a>
@@ -121,11 +121,11 @@ In properties, the [temporal operators](../PropertySpecification/ThePOperator.md
 Older versions of PRISM used some different conventions and syntax, which are still accepted for compatibility.
 New models and properties should use the current forms.
 
-* File extensions: model files used to have extensions `.pm` (DTMCs), `.nm` (MDPs, PTAs) or `.sm` (CTMCs), not `.prism`.
-* File extensions: property files used to have extensions `.pctl` or `.csl`, not `.props`.
-* Model types: `probabilistic`, `nondeterministic` and `stochastic` were formerly synonyms for `dtmc`, `mdp`, `ctmc`.
-* Integer-valued constants: were previously declared as `const N = 5;`, meaning `const int N = 5;`.
-* Double-valued constants: could previously also be written as `rate r = 0.5;` or `prob p = 0.1;`, meaning `const double r = 0.5;`.
-* Functions: could be written with a special `func` keyword, e.g., `func(floor, x)` or `func(min, a, b)`, instead of the current forms `floor(x)` and `min(a, b)`.
-* Filters: the old-style syntax for [filters](../PropertySpecification/Filters.md) in properties was, e.g., `P=? [ path {states} ]` for `filter(state, P=? [ path ], states)`,
+- File extensions: model files used to have extensions `.pm` (DTMCs), `.nm` (MDPs, PTAs) or `.sm` (CTMCs), not `.prism`.
+- File extensions: property files used to have extensions `.pctl` or `.csl`, not `.props`.
+- Model types: `probabilistic`, `nondeterministic` and `stochastic` were formerly synonyms for `dtmc`, `mdp`, `ctmc`.
+- Integer-valued constants: were previously declared as `const N = 5;`, meaning `const int N = 5;`.
+- Double-valued constants: could previously also be written as `rate r = 0.5;` or `prob p = 0.1;`, meaning `const double r = 0.5;`.
+- Functions: could be written with a special `func` keyword, e.g., `func(floor, x)` or `func(min, a, b)`, instead of the current forms `floor(x)` and `min(a, b)`.
+- Filters: the old-style syntax for [filters](../PropertySpecification/Filters.md) in properties was, e.g., `P=? [ path {states} ]` for `filter(state, P=? [ path ], states)`,
   with `{states}{min}`, `{states}{max}` and `{states}{min}{max}` for the `min`, `max` and `range` filters.

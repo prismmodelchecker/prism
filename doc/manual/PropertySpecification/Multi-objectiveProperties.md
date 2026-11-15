@@ -69,7 +69,6 @@ Note that this `C` reward operator differs from the `F "target"` operator, usual
 A few important notes regarding rewards:
 
 - Currently only transition rewards are supported; state rewards are not.
-
 - Certain assumptions are made regarding the finiteness of rewards; see p.7 of [[FKP12](../Reference/References.md#FKP12)] for details.
 
 Finally, time-bounded variants of both probabilistic reachability and expected cumulative rewards objectives can be used. Here is an example that uses the latter:

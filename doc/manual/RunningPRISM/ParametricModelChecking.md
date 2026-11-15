@@ -8,7 +8,6 @@ Often, PRISM models contain [constants](../ThePRISMLanguage/ConstantsLabelsAndFo
 PRISM's *parametric model checking* [[HHZ11b](../Reference/References.md#HHZ11b)],[[HHZ11](../Reference/References.md#HHZ11)] functionality, however, provides a more powerful method for analysing probabilistic models whose transition probabilities are specified as functions over a set of parameters. Depending on the property under consideration, the result is then given as either a rational function over the parameters or as a mapping from regions of these parameters to rational functions or truth values. This function (or functions) can then be used to, for example:
 
 - plot a graph showing how the parameter affects the result of the property; or
-
 - use optimisation methods to find parameter values that minimise or maximise the result.
 
 PRISM's implementation of parametric model checking [[CHH+13](../Reference/References.md#CHH+13)] re-implements the techniques previously included in the [PARAM](https://depend.cs.uni-saarland.de/tools/param/) tool.
@@ -28,7 +27,6 @@ These parameters can only be used to describe probabilities (or rates). For exam
 They may not be used in guards or updates. The parametric definitions of probabilities or rates (e.g. `x` and `1-x` in the above) must be rational functions (fractions of polynomials). PRISM currently supports parametric versions of discrete-time Markov chains (DTMCs), continuous-time Markov chains (CTMCs) and Markov decision processes (MDPs). The classes of properties that can be checked on these models are as follows:
 
 - parametric DTMCs/CTMCs: unbounded until, steady-state probabilities, reachability reward and steady-state reward;
-
 - parametric MDPs: unbounded until and reachability rewards.
 
 Currently, parametric model checking can only be performed from the command-line. This is done by using the switch `-param <vals>`, where `<vals>` lists the undefined constants that should be treated as parameters. A range of possible values should also be provided for each parameter, in the form `<parameter>=<lower-bound>:<upper-bound>`. For example:

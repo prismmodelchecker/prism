@@ -219,15 +219,11 @@ This is specified using the `system ... endsystem` construct,
 placed at the end of the model description, which should contain a process-algebraic expression.
 This expression should feature each module exactly once, and can use the following (CSP-based) operators:
 
-- `M1 || M2` : alphabetised parallel composition of modules `M1` and `M2` (synchronising on only actions appearing in both `M1` and `M2`)
-
-- `M1 ||| M2` : asynchronous parallel composition of `M1` and `M2` (fully interleaved, no synchronisation)
-
-- `M1 |[a,b,...]| M2` : restricted parallel composition of modules `M1` and `M2` (synchronising only on actions from the set {`a`, `b`,...})
-
-- `M / {a,b,...}` : hiding of actions {`a`, `b`, ...} in module `M`
-
-- `M {a<-b,c<-d,...}` : renaming of actions `a` to `b`, `c` to `d`, etc. in module `M`.
+- `M1 || M2`: alphabetised parallel composition of modules `M1` and `M2` (synchronising on only actions appearing in both `M1` and `M2`)
+- `M1 ||| M2`: asynchronous parallel composition of `M1` and `M2` (fully interleaved, no synchronisation)
+- `M1 |[a,b,...]| M2`: restricted parallel composition of modules `M1` and `M2` (synchronising only on actions from the set {`a`, `b`,...})
+- `M / {a,b,...}`: hiding of actions {`a`, `b`, ...} in module `M`
+- `M {a<-b,c<-d,...}`: renaming of actions `a` to `b`, `c` to `d`, etc. in module `M`
 
 The first two types of parallel composition (`||` and `|||`) are associative and can be applied to more than two modules at once.
 When evaluating the expression, the hiding and renaming operators bind more tightly than the three parallel composition operators.

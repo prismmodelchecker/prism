@@ -34,7 +34,6 @@ The size of a probabilistic model (i.e. the number of states/transitions) is cri
 Because PRISM is a symbolic model checker, the amount of memory required to store the probabilistic model can vary (sometimes unpredictably) according to several factors. One example is the order in which the variables of your model appear in the model file. In general, there is no definitive answer to what the best ordering is but the following heuristics are a good guide.
 
 - Variables which are closely related should appear close together
-
 - Variables which are related to most or all other variables should appear near the start of the ordering
 
 Variables `x` and `y` are "related" if, for example, the value of one has an effect on how the other changes (e.g. `(y'=x+1)`) or if both appear together in an expression (e.g. a guard).
