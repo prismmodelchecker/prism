@@ -33,11 +33,11 @@ that support the specification of various other model types:
 
 This section covers the key modelling features and concepts for the PRISM language:
 
-- [Modules and commands](ModulesAndCommands.md): the basics, through a first example: declaring modules, variables and initial states, and describing their behaviour with commands
-- [Variables](Variables.md): how to declare and use variables in PRISM models
-- [Constants, labels and formulas](ConstantsLabelsAndFormulas.md): naming fixed values (constants), sets of states (labels) and expressions (formulas)
-- [Actions and nondeterminism](ActionsAndNondeterminism.md): how to use action labels to control synchronisation and nondeterministic choices
-- [Continuous time](ContinuousTime.md): how to model continuous-time Markov chains (CTMCs), using rates instead of probabilities, and races between transitions
+- [Modules and commands](ModulesAndCommands.md): the basics (modules, commands, updates) and an example, illustrated for DTMCs
+- [Variables](Variables.md): how to use, declare and initialise variables
+- [Constants, labels and formulas](ConstantsLabelsAndFormulas.md): parameterised values (constants), sets of states (labels) and re-usable expressions (formulas)
+- [Actions and nondeterminism](ActionsAndNondeterminism.md): introducing nondeterminism, primarily for MDPs, and labelling choices with actions
+- [Continuous time](ContinuousTime.md): how to model CTMCs, using rates instead of probabilities, and races between transitions
 - [Composition and synchronisation](CompositionAndSynchronisation.md): how modules are combined into one model, synchronising on actions, module renaming and process algebra operators
 - [Costs and rewards](CostsAndRewards.md): attaching costs or rewards to states and transitions
 

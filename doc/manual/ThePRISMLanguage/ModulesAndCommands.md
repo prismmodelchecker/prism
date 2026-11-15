@@ -57,7 +57,8 @@ A simple command looks like:
 [] x=0 -> 0.8:(x'=1) + 0.2:(x'=2);
 ```
 
-which, when variable `x` has value `0`, randomly updates it to either `1` or `2`, with probabilities `0.8` and `0.2`, respectively.
+which, when variable `x` has value `0`, randomly updates it to either `1` or `2`,
+with probability `0.8` or `0.2`, respectively.
 
 The right-hand side of an update can be an [expression](../Reference/PRISMLanguageSyntax.md#expressions)
 in terms of the current values of the model's variables,

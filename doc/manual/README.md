@@ -12,13 +12,13 @@ and PRISM analyses them automatically against the model.
 Models are written in the [PRISM language](ThePRISMLanguage/README.md), a simple, high-level modelling language.
 PRISM supports many different types of probabilistic model. The three most common are:
 
-| Model | Keyword | Use it when |
-| --- | --- | --- |
-| Discrete-time Markov chain (DTMC) | `dtmc` | Behaviour is purely probabilistic, in discrete steps |
-| Continuous-time Markov chain (CTMC) | `ctmc` | Events happen after exponentially distributed delays, in continuous time |
-| Markov decision process (MDP) | `mdp` | There are also nondeterministic choices: decisions to optimise, or an unknown scheduler/environment |
+| Model | Keyword | Use it when                                                                                           |
+| --- | --- |-------------------------------------------------------------------------------------------------------|
+| Discrete-time Markov chain (DTMC) | `dtmc` | Behaviour is purely probabilistic, in discrete steps                                                  |
+| Continuous-time Markov chain (CTMC) | `ctmc` | Events happen after exponentially distributed delays, in continuous time                              |
+| Markov decision process (MDP) | `mdp` | There are also nondeterministic choices: decisions to optimise, or an unknown scheduler / environment |
 
-It also supports [real-time models](ModelTypes/Real-timeModels.md#modelling) (e.g., probabilistic timed automata, PTAs),
+PRISM also supports [real-time models](ModelTypes/Real-timeModels.md#modelling) (e.g., probabilistic timed automata, PTAs),
 [partially observable models](ModelTypes/PartiallyObservableModels.md#modelling) (e.g., partially observable Markov decision processes, POMDPs),
 [uncertain models](ModelTypes/UncertainModels.md#modelling) (e.g., interval Markov decision processes, IMDPs)
 and non-probabilistic models (e.g., labelled transition systems, LTSs).
@@ -30,9 +30,9 @@ It incorporates several well-known probabilistic temporal logics, such as PCTL, 
 It also covers [costs and rewards](PropertySpecification/Reward-basedProperties.md),
 [multi-objective](PropertySpecification/Multi-objectiveProperties.md) queries, and much more.
 
-PRISM can formally verify that these properties hold
+PRISM can formally **verify** that these properties hold
 (e.g., "the probability of a failure occurring within 10 time units is below 0.01")
-or generate [strategies](RunningPRISM/Strategies.md)/policies/controllers that optimise properties
+or generate [strategies](RunningPRISM/Strategies.md)/policies/controllers that **optimise** properties
 (e.g., "how can I maximise the probability of reaching a goal location whilst avoiding hazard locations?").
 
 ## Where to start
@@ -42,7 +42,7 @@ for details of [installing](GettingStarted/Installing.md)
 and [running](GettingStarted/FirstSteps.md) PRISM for the first time.
 Work through the [tutorial](https://www.prismmodelchecker.org/tutorial/) to learn what the tools can do,
 or read the sections on the [modelling](ThePRISMLanguage/README.md)
-and [properties](PropertySpecification/README.md) languages.
+and [property](PropertySpecification/README.md) languages.
 
 ## Contents
 

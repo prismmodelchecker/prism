@@ -28,7 +28,7 @@ along with their natural language interpretations, are given below:
 P>=1 [ F "terminate" ]
 ```
 
-"the algorithm eventually terminates successfully with probability 1"
+"the algorithm eventually terminates with probability 1"
 
 ```prism
 P<0.1 [ F<=100 num_errors > 5 ]
@@ -46,7 +46,7 @@ S<0.01 [ num_sensors < min_sensors ]
 R{"time"}<=10 [ F "terminate" ]
 ```
 
-"the expected time for the algorithm to terminate successfully is at most 10"
+"the expected time for the algorithm to terminate is at most 10"
 
 Note that the above properties are all assertions,
 i.e., ones to which we would expect a "yes" or "no" answer.
@@ -72,7 +72,7 @@ Rmax=? [ F "terminate" ]
 
 "the worst-case expected termination time for the algorithm"
 
-Furthermore, PRISM makes it easy to combine such properties into more complex expressions,
+Furthermore, PRISM makes it easy to combine such properties into [more complex expressions](ThePOperator.md#numerical-properties),
 compute their values for a range of parameters
 and plot graphs of the results using [experiments](../RunningPRISM/Experiments.md).
 This is often a very useful way of identifying interesting

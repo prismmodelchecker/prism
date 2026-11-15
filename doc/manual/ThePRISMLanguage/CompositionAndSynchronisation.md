@@ -74,11 +74,11 @@ the synchronisation cannot occur, so the enabled `c`-labelled command is blocked
 ![Parallel composition with synchronisation as an MDP](../files/parallel-sync.svg)
 
 The actions over which two modules synchronise are those that appear in both modules;
-any other actions are independent.
+any other actions are performed independently.
 
 Synchronising commands can both have probabilistic updates.
 In the variant below, the first commands of the two modules are both labelled with action `a`,
-so they too have to synchronise:
+so they too have to synchronise.
 
 [parallel-sync2.prism](../files/parallel-sync2.prism "include")
 

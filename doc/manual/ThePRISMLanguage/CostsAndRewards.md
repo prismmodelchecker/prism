@@ -13,7 +13,7 @@ representing for example the time taken for a transition or its energy consumpti
 Although these examples are all "costs" (which we would intuitively like to minimise),
 following classical definitions of MDPs in the literature,
 PRISM consistently refers to these values as **rewards**.
-But in practice they equally well represent costs.
+In practice, though, they equally well represent costs.
 This section describes how to specify rewards in a PRISM model.
 We later describe [reward-based property specifications](../PropertySpecification/Reward-basedProperties.md).
 

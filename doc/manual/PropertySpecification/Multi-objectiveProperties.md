@@ -1,6 +1,6 @@
 # Multi-objective properties
 
-For MDPs, PRISM supports *multi-objective* properties. Consider a property that uses the `P` operator. For example:
+For MDPs, PRISM supports **multi-objective** properties. Consider a property that uses the `P` operator. For example:
 
 ```prism
 P<0.01 [ F "error" ]
@@ -80,9 +80,14 @@ multi(R{"power"}min=? [ C<=k ], R{"queue"}<=r [ C<=k ])
 <a id="methods"></a>
 ## Solution methods
 
-PRISM can perform multi-objective model checking using two distinct solution methods, which are described in [[FKN+11](../Reference/References.md#FKN+11)] and [[FKP12](../Reference/References.md#FKP12)]. The former is based on the use of linear programming; the latter reduces multi-objective model checking to a series of simpler problems, solved using value iteration (or the Gauss-Seidel variant of value iteration). The default is "Value iteration". You can change this in the GUI using the option "MDP multi-objective solution methods", or using the command-line switches `-lp`, `-valiter`, `-gs`.
+PRISM can perform multi-objective model checking using two distinct solution methods,
+which are described in [[FKN+11](../Reference/References.md#FKN+11)] and [[FKP12](../Reference/References.md#FKP12)].
+The former is based on the use of **linear programming**;
+the latter reduces multi-objective model checking to a sweep over a series of simpler problems,
+each solved using **value iteration** (or the Gauss-Seidel variant of value iteration).
+The default is "Value iteration". You can change this in the GUI using the option "MDP multi-objective solution methods", or using the command-line switches `-lp`, `-valiter`, `-gs`.
 
-There are some restrictions:
+There are some restrictions
 
 - Multi-objective queries are implemented in the sparse engine only. If the hybrid engine is selected, PRISM switches to the sparse engine automatically; the MTBDD and explicit engines are not supported.
 - Linear programming does not support time-bounded objectives or Pareto queries; use value iteration for these.

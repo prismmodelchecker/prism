@@ -8,7 +8,7 @@ In this case, each state can have several **choices**,
 each of which defines a probability distribution over successor states.
 Often, but not always, these choices are labelled with **actions**.
 
-In the PRISM language, nondeterminism is modelled by allowing the guards of its commands to overlap.
+In the PRISM language, nondeterminism can be modelled by allowing the guards of its commands to overlap.
 Each enabled command in a state defines a separate choice,
 and its (optional) action label is specified using the square brackets at the start of the command.
 
@@ -48,7 +48,8 @@ The commands above are labelled with actions `a` and `b`, written between the sq
 ```
 
 For an MDP, these actions play several roles.
-Firstly, they allow the definition of [policies](../RunningPRISM/Strategies.md),
+Firstly, they allow the definition of [policies](../RunningPRISM/Strategies.md)
+(referred to as "strategies" in PRISM),
 specifying which action to take in each state
 in order to satisfy or optimise some [property](../PropertySpecification/ThePOperator.md#nondeterminism).
 Actions can also be used (for all model types, not just MDPs)
@@ -76,7 +77,7 @@ from a state have the same action (technically, this is a probabilistic automato
 ```
 
 In both cases (unlabelled choices and duplicate actions),
-restrictions may be imposed on the generation of [policies](../RunningPRISM/Strategies.md).
+restrictions may then be imposed on the generation of policies/strategies.
 
 <a id="local-nondeterminism"></a>
 ## Local nondeterminism

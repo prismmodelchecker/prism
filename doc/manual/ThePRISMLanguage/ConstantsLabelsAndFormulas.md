@@ -60,7 +60,7 @@ The PRISM language supports **formulas**, which are used to avoid duplication of
 commonly repeated expressions within a model definition.
 A formula definition gives its name (a valid [identifier](../Reference/PRISMLanguageSyntax.md#identifiers))
 and an expression that defines it. The latter can be any valid expression,
-of arbitrary type, and including constants, variables, or other formulas.
+of arbitrary type, and including constants, variables or other formulas.
 The formula name can then be used as shorthand for the expression anywhere
 that an expression might usually be accepted.
 A formula is defined as follows:

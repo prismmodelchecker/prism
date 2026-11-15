@@ -29,7 +29,7 @@ Some examples of [properties](../PropertySpecification/README.md) to be checked 
 
 Also loading this properties file into the GUI (e.g., `xprism walk.prism walk.props`),
 we can verify the first property to be true and,
-with a small change to the constant `p` and an [experiment](../RunningPRISM/Experiments.md),
+by making a small change to the constant `p` and running an [experiment](../RunningPRISM/Experiments.md),
 we can start visualising results of the model's analysis:
 
 ![Screenshot of the Properties tab in the PRISM GUI](../files/gui-walk2.png)

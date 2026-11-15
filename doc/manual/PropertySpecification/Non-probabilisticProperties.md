@@ -21,13 +21,18 @@ The syntax for LTL formulas is the same as that allowed within the [P operator](
 Example properties include:
 
 ```prism
-E [ F "goal" ] // There exists a path that reaches a state satisfying "goal"
+// There exists a path that reaches a state satisfying "goal"
+E [ F "goal" ];
 
-A [ G x<=10 ] // Variable x is always at most 10 along all paths of the model
+// Variable x is always at most 10 along all paths of the model
+A [ G x<=10 ];
 
-E [ F "ready" & (X "launch") ] // There exists a path along which label "ready" eventually becomes true and label "launch" is true immediately afterwards
+// There exists a path along which label "ready" eventually becomes true
+// and label "launch" is true immediately afterwards
+E [ F "ready" & (X "launch") ];
 
-A [ (G F x=1) | (G F x=2) ] // Along all paths, either x=1 or x=2 is true infinitely often
+// Along all paths, either x=1 or x=2 is true infinitely often
+A [ (G F x=1) | (G F x=2) ];
 ```
 
 <a id="counterexamples"></a>

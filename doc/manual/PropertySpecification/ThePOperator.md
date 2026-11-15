@@ -1,6 +1,10 @@
 # The P operator
 
-One of the most important operators in the PRISM property specification language is the `P` operator, which is used to reason about the probability of an event's occurrence. This operator was originally proposed in the logic PCTL but also features in the other logics supported by PRISM, such as CSL. The `P` operator is applicable to all types of models supported by PRISM.
+One of the most important operators in the PRISM property specification language is the `P` operator,
+which is used to reason about the probability of an event's occurrence.
+This operator was originally proposed in the logic PCTL
+but also features in the other logics, such as CSL.
+The `P` operator is applicable to all types of models supported by PRISM.
 
 Informally, the property:
 
@@ -23,7 +27,7 @@ More precisely, `bound` can be any of `>=p`, `>p`, `<=p` or `<p`,
 where `p` is any constant [expression](../Reference/PRISMLanguageSyntax.md#expressions) evaluating to a double in the range [0,1], for example:
 
 ```prism
-P>=1.0 [ pathprop ]
+P>=1 [ pathprop ]
 P<q [ pathprop ]
 P<=(1-2*q) [ pathprop ]
 ```
@@ -43,7 +47,7 @@ For such models, the meaning of the property `P bound [ pathprop ]` is:
 "the probability that `pathprop` is satisfied meets the bound `bound`
 *for all possible policies/strategies*".
 This means that properties using the `P` operator effectively reason about the
-*minimum* or *maximum* probability, over all possible resolutions of nondeterminism,
+**minimum** or **maximum** probability, over all possible resolutions of nondeterminism,
 that a certain type of behaviour is observed.
 
 <a id="numerical"></a>
@@ -93,7 +97,7 @@ that at least one component fails"
 
 PRISM supports a wide range of path properties that can be used with the `P` operator.
 A path property is a formula that evaluates to either true or false for a single path in a model.
-Here, we review some of the simpler properties that feature a single *temporal operator*,
+Here, we review some of the simpler properties that feature a single **temporal operator**,
 as used for example in the logics PCTL and CSL. Later, we briefly describe how PRISM also supports more complex LTL-style path properties.
 
 The basic different types of path property that can be used inside the `P` operator are:
@@ -135,7 +139,7 @@ which is true in a state if "the probability that `z` is eventually equal to 2, 
 <a id="eventually"></a>
 ## "Eventually" path properties
 
-The property `F prop` is true for a path if `prop` eventually becomes true at some point along the path. The `F` operator is in fact a special case of the `U` operator (you will often see `F prop` written as `true U prop`). A simple example is:
+The property `F prop` is true for a path if `prop` eventually becomes true at some point along the path. The `F` operator is in fact a special case of the `U` operator (you will sometimes see `F prop` written as `true U prop`). A simple example is:
 
 ```prism
 P<0.1 [ F z>2 ]
@@ -159,7 +163,7 @@ states that, with probability at least 0.99, `z` never exceeds 10.
 
 Like `F` and `G`, the operators `W` and `R` are derivable from other temporal operators.
 
-Weak until (`a W b`), which is equivalent to `(a U b) | G a`, requires that `a` remains true until `b` becomes true, but does not require that `b` ever becomes true (i.e. `a` remains true forever). For example, a weak form of the until example used above is:
+Weak until (`a W b`), which is equivalent to `(a U b) | G a`, requires that `a` remains true until `b` becomes true, but does not require that `b` ever becomes true (i.e., `a` remains true forever). For example, a weak form of the until example used above is:
 
 ```prism
 P>0.5 [ z<2 W z=2 ]
@@ -173,7 +177,7 @@ Release (`a R b`),  which is equivalent to `!(!a U !b)`, informally means that `
 ## "Bounded" variants of path properties
 
 All of the temporal operators given above, with the exception of `X`, have "bounded" variants, where an additional time bound is imposed on the property being satisfied.
-The most common case is to use an upper time bound, i.e. of the form "`<=t`" or "`<t`", where `t` is a PRISM expression evaluating to a constant, non-negative value.
+The most common case is to use an upper time bound, i.e., of the form "`<=t`" or "`<t`", where `t` is a PRISM expression evaluating to a constant, non-negative value.
 
 For example, a bounded until property `prop1 U<=t prop2`, is satisfied along a path if `prop2` becomes true within `t` steps and `prop1` is true in all states before that point.
 A typical example of this would be:
@@ -242,7 +246,7 @@ both of which give the probability of `y` being 6 at time instant 10.
 <a id="ltl"></a>
 ## LTL-style path properties
 
-PRISM also supports probabilistic model checking of the temporal logic LTL (and, in fact, PCTL\*). LTL provides a richer set of path properties for use with the `P` operator, by permitting temporal operators to be combined. Here are a few examples of properties expressible using this functionality:
+PRISM supports probabilistic model checking of the temporal logic LTL (and, in fact, PCTL\*). LTL provides a richer set of path properties for use with the `P` operator, by permitting temporal operators to be combined. Here are a few examples of properties expressible using this functionality:
 
 ```prism
 P>0.99 [ F ( "request" & (X "ack") ) ]

@@ -1,7 +1,7 @@
 # Reward-based properties
 
 PRISM models can be augmented with information about [rewards](../ThePRISMLanguage/CostsAndRewards.md) (or, equivalently, costs).
-The tool can analyse properties which relate to the *expected values* of these rewards.
+The tool can then analyse properties which relate to the *expected values* of these rewards.
 This is achieved using the `R` operator, which works in a similar fashion to the
 `P` and `S` operators, and can be used either in a Boolean-valued query, e.g.:
 
@@ -50,7 +50,7 @@ For DTMCs and MDPs, the total reward for a path is the sum of the state rewards 
 plus the sum of the transition rewards for each transition between these states.
 The situation for CTMCs is similar, except that the state reward assigned to each state
 of the model is interpreted as the *rate* at which rewards are accumulated in that state,
-i.e. if *t* time units are spent in a state with state reward *r*,
+i.e., if *t* time units are spent in a state with state reward *r*,
 the reward accumulated in that state is *r* x *t*.
 Hence, the total reward for a path in a CTMC is the sum of these products for each state along the path
 plus the sum of the transition rewards for each transition between these states.
@@ -68,7 +68,7 @@ One can then state, for example:
 R<=9.5 [ F z=2 ]
 ```
 
-which is true in a state *s* if "the expected time taken to reach, from *s*, a state where `z` equals 2 is less than or equal to 9.5".
+which is true in a state if "the expected time taken to reach a state where `z` equals 2 is less than or equal to 9.5".
 
 <a id="cosafe"></a>
 ## "Co-safe LTL reward" properties
@@ -129,7 +129,7 @@ would return, for a given state of the model,
 "Total reward" properties refer to the accumulation of state and transition rewards
 in the same way as for "reachability reward" and "cumulative reward" properties,
 but the reward is accumulated indefinitely,
-i.e. the total reward accumulated along the whole (infinite) path.
+i.e., the total reward accumulated along the whole (infinite) path.
 Note that this means that, unless a path ends up remaining forever in states with zero reward,
 the total reward will be infinite.
 
@@ -158,8 +158,8 @@ Then, the following property:
 R<4.4 [ I=100 ]
 ```
 
-would be true in a state *s* of the model if
-"starting from *s*, the expected queue size exactly 100 time units later is less than 4.4".
+would be true in a state of the model if
+"the expected queue size exactly 100 time units later is less than 4.4".
 Note that, for this type of reward property, state rewards for CTMCs do not have to refer to rates;
 they can refer to any instantaneous measure of interest for a state.
 

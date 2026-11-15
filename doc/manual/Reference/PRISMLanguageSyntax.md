@@ -69,6 +69,8 @@ The labels `"init"` and `"deadlock"` are built in and cannot be redefined.
 ## Expressions
 
 Expressions are used in both models and properties.
+Depending on the context, they can include references to variables, constants and labels,
+as well as various operators, literals and functions.
 
 <a id="operators"></a>
 ### Operators

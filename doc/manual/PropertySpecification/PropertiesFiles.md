@@ -9,7 +9,7 @@ Properties can refer to various aspects of the model to which they relate
 (variable names, labels, etc.) but can also define further
 [constants and labels](../ThePRISMLanguage/ConstantsLabelsAndFormulas.md)
 in the same style as in model files.
-Comments are also allowed.
+Comments are allowed too.
 An example file is:
 
 [examples.props](../files/examples.props "include")
