@@ -25,7 +25,7 @@ prism -javamaxmem 4g big_model.prism
 xprism -javamaxmem 4g big_model.prism
 ```
 
-each set the limit to 4GB. Alternatively, you can set the environment variable PRISM_JAVAMAXMEM before running PRISM. For example, under a `bash` shell:
+each set the limit to 4 GB. Alternatively, you can set the environment variable PRISM_JAVAMAXMEM before running PRISM. For example, under a `bash` shell:
 
 ```shell
 PRISM_JAVAMAXMEM=4g
@@ -51,8 +51,8 @@ prism big_model.prism
 ```
 
 If you are running PRISM on Windows you will have to make adjustments to Java memory manually, by modifying the `prism.bat` or `xprism.bat` scripts.
-To set the memory to 4GB, for example, add `-Xmx4g` to the list of arguments in the call to `java` or `javaw` at the end of the file.
-To change the stack size to 1GB, add `-Xss1g`.
+To set the memory to 4 GB, for example, add `-Xmx4g` to the list of arguments in the call to `java` or `javaw` at the end of the file.
+To change the stack size to 1 GB, add `-Xss1g`.
 
 <a id="javaparams"></a>
 ## Other Java options
