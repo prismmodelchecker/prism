@@ -207,7 +207,6 @@ rewards "cl_minus" true : cl_minus; endrewards
 From the latter, we can use PRISM to generate a simple plot of the expected amount of Na and Na+ over time (using both model checking and a single random trace from the simulator):
 
 ![Plot of expected amount against time T from 0 to 0.0002: Na falls from 100 to about 36 and Na+ rises from 0 to about 64, crossing at around T=0.0001. Solid lines show model checking results; dashed lines show a single simulated trace that roughly follows them.](../files/sbml_ex_graph.png)
-*Expected amount of Na/Na+ at time T*
 
 ---
 
