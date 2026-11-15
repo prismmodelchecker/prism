@@ -28,7 +28,9 @@ package parser.visitor;
 
 import java.util.Vector;
 
+import parser.Values;
 import parser.ast.*;
+import parser.type.TypeClock;
 import prism.PrismLangException;
 
 /**
@@ -37,7 +39,6 @@ import prism.PrismLangException;
  */
 public class ModulesFileSemanticCheckAfterConstants extends ASTTraverse
 {
-	@SuppressWarnings("unused")
 	private ModulesFile modulesFile;
 
 	public ModulesFileSemanticCheckAfterConstants(ModulesFile modulesFile)
@@ -68,5 +69,20 @@ public class ModulesFileSemanticCheckAfterConstants extends ASTTraverse
 			varsUsed.add(var);
 		}
 		varsUsed.clear();
+
+		// Check that clocks are not reset to negative values
+		// (if all constants needed to evaluate the reset are defined)
+		if (modulesFile != null) {
+			for (i = 0; i < n; i++) {
+				if (e.getType(i) instanceof TypeClock) {
+					Expression expr = e.getExpression(i);
+					Values constantValues = modulesFile.getConstantValues();
+					boolean allDefined = constantValues != null && expr.getAllUndefinedConstantsRecursively(modulesFile.getConstantList(), null, null).stream().allMatch(constantValues::contains);
+					if (allDefined && expr.evaluateInt(modulesFile.getEvaluateContext()) < 0) {
+						throw new PrismLangException("Clocks cannot be reset to negative values", e);
+					}
+				}
+			}
+		}
 	}
 }
