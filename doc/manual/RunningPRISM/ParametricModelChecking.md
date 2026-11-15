@@ -11,7 +11,7 @@ PRISM's *parametric model checking* [[HHZ11b](../Reference/References.md#HHZ11b)
 
 - use optimisation methods to find parameter values that minimise or maximise the result.
 
-PRISM's implementation of parametric model checking [[CHH+13](../Reference/References.md#CHH+13)] re-implements the techniques previously included in the [PARAM](http://depend.cs.uni-sb.de/tools/param/) tool.
+PRISM's implementation of parametric model checking [[CHH+13](../Reference/References.md#CHH+13)] re-implements the techniques previously included in the [PARAM](https://depend.cs.uni-saarland.de/tools/param/) tool.
 
 Parameters are specified as undefined constants in the model file, e.g.:
 

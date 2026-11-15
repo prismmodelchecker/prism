@@ -42,7 +42,7 @@ by selecting menu option "Model | View | Parsed PRISM model".
 <a id="sbml"></a>
 ## SBML
 
-PRISM includes a (prototype) tool to translate specifications in [SBML](http://sbml.org/) (Systems Biology Markup Language) to model descriptions in the PRISM language. SBML is an XML-based format for representing models of biochemical reaction networks. The translator works with Level 2 SBML files (it was written for Level 2 Version 1); see the [SBML specifications](https://sbml.org/documents/).
+PRISM includes a (prototype) tool to translate specifications in [SBML](https://sbml.org/) (Systems Biology Markup Language) to model descriptions in the PRISM language. SBML is an XML-based format for representing models of biochemical reaction networks. The translator works with Level 2 SBML files (it was written for Level 2 Version 1); see the [SBML specifications](https://sbml.org/documents/).
 
 Since PRISM is a tool for analysing discrete-state systems, the translator is designed for SBML files intended for discrete stochastic simulation. A useful set of such files can be found in the CaliBayes [Discrete Stochastic Model Test Suite](https://code.google.com/archive/p/dsmts). There are also many more SBML files available in the [BioModels](https://www.ebi.ac.uk/biomodels/).
 

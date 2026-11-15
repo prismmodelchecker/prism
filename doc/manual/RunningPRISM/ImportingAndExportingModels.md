@@ -154,7 +154,7 @@ prism model.prism -exportmodel model.txt:format=explicit -exportmodel model.dot
 
 Other file formats are also available:
 
-- [Matlab](http://www.mathworks.com/) code (extension `.m`) or `format=matlab`
+- [Matlab](https://www.mathworks.com/) code (extension `.m`) or `format=matlab`
 - Storm's [DRN](https://www.stormchecker.org/documentation/background/drn.html) model format (extension `.drn`) or `format=drn`
 
 Other `-exportmodel` options are:

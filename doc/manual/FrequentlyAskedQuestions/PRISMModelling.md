@@ -50,7 +50,7 @@ For technical details about variable ordering issues, see e.g. section 8 of [[HK
 
 All delays in a CTMC need to be modelled as *exponential* distributions. This is what makes them efficient to analyse. If you included a transition whose delay was *deterministic*, i.e. which always occurred after exactly the same delay,  the model would no longer be a CTMC.
 
-One solution to this, if your model requires such a delay, is to approximate a deterministic delay with an [Erlang distribution](http://en.wikipedia.org/wiki/Erlang_distribution) (a special case of a phase-type distribution). See for example this PRISM model:
+One solution to this, if your model requires such a delay, is to approximate a deterministic delay with an [Erlang distribution](https://en.wikipedia.org/wiki/Erlang_distribution) (a special case of a phase-type distribution). See for example this PRISM model:
 
 ```prism
 ctmc

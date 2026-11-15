@@ -108,7 +108,7 @@ It is also possible to set the environment variables directly or edit their valu
 <a id="cygwin"></a>
 ## Building PRISM from source on Windows using Cygwin
 
-The compilation of PRISM currently relies on a Unix-like environment. On Windows, this can be achieved using the [Cygwin](http://www.cygwin.com/) development environment, with the packages below installed.
+The compilation of PRISM currently relies on a Unix-like environment. On Windows, this can be achieved using the [Cygwin](https://www.cygwin.com/) development environment, with the packages below installed.
 You can run the script [prism-install-windows.bat](https://raw.githubusercontent.com/prismmodelchecker/prism/master/prism/etc/scripts/prism-install-windows.bat) in a Command Prompt to automate this.
 
 - `make`

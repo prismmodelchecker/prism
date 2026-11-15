@@ -32,8 +32,6 @@ const int size;
 const double prob_fail = 1/size;
 ```
 
-<a id="formulas-and-labels"></a>
-<a id="labels"></a>
 ## Labels
 
 Models can be annotated with **labels**,

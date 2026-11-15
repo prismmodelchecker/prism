@@ -67,7 +67,7 @@ For example these commands:
 result, in states `x=3` and `x=4`, in two unlabelled choices incrementing or decrementing `x`.
 
 In similar fashion, PRISM allows the definition of MDPs in which the choices
-from a state have the same action (technically, this is a probabilistic automaton, rather than an MDP):
+from a state have the same action (technically, this is a probabilistic automaton [[Seg95](../Reference/References.md#Seg95)], rather than an MDP):
 
 ```prism
 [a] x<5 -> (x'=x+1);

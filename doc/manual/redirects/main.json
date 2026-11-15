@@ -48,7 +48,7 @@
 	"ThePRISMLanguage/Example1": "ThePRISMLanguage/CompositionAndSynchronisation.md",
 	"ThePRISMLanguage/Example2": "ThePRISMLanguage/CompositionAndSynchronisation.md",
 	"ThePRISMLanguage/Expressions": "ThePRISMLanguage/ConstantsLabelsAndFormulas.md",
-	"ThePRISMLanguage/FormulasAndLabels": "ThePRISMLanguage/ConstantsLabelsAndFormulas.md#formulas-and-labels",
+	"ThePRISMLanguage/FormulasAndLabels": "ThePRISMLanguage/ConstantsLabelsAndFormulas.md",
 	"ThePRISMLanguage/GlobalVariables": "ThePRISMLanguage/CompositionAndSynchronisation.md#global-variables",
 	"ThePRISMLanguage/Introduction": "ThePRISMLanguage/README.md",
 	"ThePRISMLanguage/LocalNondeterminism": "ThePRISMLanguage/ActionsAndNondeterminism.md#local-nondeterminism",

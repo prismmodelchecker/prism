@@ -2,13 +2,13 @@
 
 When PRISM performs verification of [LTL formulas](../PropertySpecification/ThePOperator.md#ltl), it does so by converting the formula into an automaton (such as a deterministic Rabin automaton) and then analysing a larger product model, constructed from the model being verified and the omega automaton. For this reason, the size of the automaton has an important effect on the efficiency of verification.
 
-By default PRISM uses a port of the [ltl2dstar](http://www.ltl2dstar.de/) library to construct these automata. But it also allows the use of external LTL-to-automata converters producing deterministic automata through support for the [Hanoi Omega Automaton](http://adl.github.io/hoaf/) (HOA) format. From the command line, an example of this is:
+By default PRISM uses a port of the [ltl2dstar](https://www.ltl2dstar.de/) library to construct these automata. But it also allows the use of external LTL-to-automata converters producing deterministic automata through support for the [Hanoi Omega Automaton](https://adl.github.io/hoaf/) (HOA) format. From the command line, an example of this is:
 
 ```shell
 prism model.prism -pf "P=? [ G F x=1 ]" -ltl2datool hoa-ltl2dstar-for-prism -ltl2dasyntax lbt
 ```
 
-The [`-ltl2datool`](../Reference/CommandLineSwitches.md#ltl2datool) switch specifies the location of the program to be executed to perform the LTL-to-automaton conversion. This will be called by PRISM as "`exec` `in-file` `out-file`", where `exec` is the executable, `in-file` is the name of a file containing the LTL formula to be converted and `out-file` is the name of a file where the resulting automaton should be written, in HOA format. Typically, the executable will be a script. Here is a simple example (called as `hoa-ltl2dstar-for-prism` in the above example), which calls an external copy of `ltl2dstar` in the required fashion (assuming that the `ltl2dstar` and [`ltl2ba`](http://www.lsv.ens-cachan.fr/~gastin/ltl2ba/)  executables are located in the current directory or on the PATH).
+The [`-ltl2datool`](../Reference/CommandLineSwitches.md#ltl2datool) switch specifies the location of the program to be executed to perform the LTL-to-automaton conversion. This will be called by PRISM as "`exec` `in-file` `out-file`", where `exec` is the executable, `in-file` is the name of a file containing the LTL formula to be converted and `out-file` is the name of a file where the resulting automaton should be written, in HOA format. Typically, the executable will be a script. Here is a simple example (called as `hoa-ltl2dstar-for-prism` in the above example), which calls an external copy of `ltl2dstar` in the required fashion (assuming that the `ltl2dstar` and [`ltl2ba`](https://lsv.ens-paris-saclay.fr/~gastin/ltl2ba/)  executables are located in the current directory or on the PATH).
 
 ```shell
 #! /bin/bash
@@ -17,7 +17,7 @@ ltl2dstar --output=automaton --output-format=hoa "$1" "$2"
 
 PRISM is known to work with these HOA-enabled tools:
 
-- [ltl2dstar](http://ltl2dstar.de/)
+- [ltl2dstar](https://www.ltl2dstar.de/)
 - [Spot](https://spot.lre.epita.fr/)'s [`ltl2tgba`](https://spot.lre.epita.fr/ltl2tgba.html)
 - [ltl3dra](https://github.com/xblahoud/ltl3dra)
 - [Rabinizer](https://www7.in.tum.de/~kretinsk/rabinizer4.html)
@@ -25,7 +25,7 @@ PRISM is known to work with these HOA-enabled tools:
 and contains ready-made scripts for calling them in the `etc/scripts/hoa` directory of the distribution:
 
 - `hoa-ltl2dstar-for-prism` <br>
-     ([ltl2dstar](http://ltl2dstar.de/), using [Spot](https://spot.lre.epita.fr/)'s [`ltl2tgba`](https://spot.lre.epita.fr/ltl2tgba.html), [`ltl2ba`](http://www.lsv.ens-cachan.fr/~gastin/ltl2ba/) or [LTL3BA](https://sourceforge.net/projects/ltl3ba/) as the LTL-to-NBA tool)
+     ([ltl2dstar](https://www.ltl2dstar.de/), using [Spot](https://spot.lre.epita.fr/)'s [`ltl2tgba`](https://spot.lre.epita.fr/ltl2tgba.html), [`ltl2ba`](https://lsv.ens-paris-saclay.fr/~gastin/ltl2ba/) or [LTL3BA](https://sourceforge.net/projects/ltl3ba/) as the LTL-to-NBA tool)
 - `hoa-ltl2tgba-for-prism` <br>
      ([Spot](https://spot.lre.epita.fr/)'s [`ltl2tgba`](https://spot.lre.epita.fr/ltl2tgba.html))
 - `hoa-ltl3dra-for-prism` <br>
@@ -60,12 +60,12 @@ Another related option is "All path formulas via automata" (command-line switch 
 when computing the probability of a path formula, even if it is not needed. This is primarily intended for debugging/testing, not regular use.
 
 As mentioned above, PRISM's external LTL-to-automaton interfacing works using the
-[HOA](http://adl.github.io/hoaf/) format
-(and, in particular, using the [`jhoafparser`](http://automata.tools/hoa/jhoafparser/) HOA parser).
+[HOA](https://adl.github.io/hoaf/) format
+(and, in particular, using the [`jhoafparser`](https://automata.tools/hoa/jhoafparser/) HOA parser).
 Currently, PRISM can handle automata in HOA format that are
 deterministic and complete, with state-based acceptance.
 Automata with transition-based acceptance are converted to state-based acceptance by PRISM.
 For DTMC and  CTMC model checking, generic acceptance conditions are supported, i.e.,
 anything that can be specified as an `Acceptance:` header in HOA format.
 For MDP model checking, currently Rabin and generalised Rabin acceptance
-specified via the `acc-name:` header are supported. See the [HOA format specification](http://adl.github.io/hoaf/) for details.
+specified via the `acc-name:` header are supported. See the [HOA format specification](https://adl.github.io/hoaf/) for details.
