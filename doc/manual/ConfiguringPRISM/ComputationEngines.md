@@ -85,4 +85,4 @@ see "[Exact and parametric model checking](../RunningPRISM/ParametricModelChecki
 Probabilistic timed automata (PTAs) are analysed with their own engines:
 "stochastic games", "digital clocks" and "backwards reachability",
 chosen with the "PTA model checking method" setting in the GUI or the switch [`-ptamethod`](../Reference/CommandLineSwitches.md#ptamethod) on the command line.
-These are described, with the restrictions each imposes, in "[Real-time models](../ModelTypes/Real-timeModels.md#engines)".
+These are described, with the restrictions each imposes, in "[Real-time models](../ModelTypes/Real-timeModels.md#solution-methods)".

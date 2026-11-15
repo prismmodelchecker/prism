@@ -73,7 +73,7 @@ PRISM makes several assumptions about PTAs, regardless of the engine used.
 
 - Secondly, PTAs should be **well-formed** and **non-zeno** (see e.g. [[KNSW07](../Reference/References.md#KNSW07)] for details). PRISM does not check automatically that these assumptions are satisfied.
 
-There are also some further restrictions, which depend on the engine used: see [below](#engines).
+There are also some further restrictions, which depend on the engine used: see [below](#solution-methods).
 
 <a id="properties"></a>
 ## Properties
@@ -81,7 +81,7 @@ There are also some further restrictions, which depend on the engine used: see [
 The classes of property that can be checked for real-time models
 are more restricted than for the other kinds of models that PRISM supports.
 This is because the model checking procedures are quite different for this type of model.
-The situation also depends on which of the [engines](#engines) is being used.
+The situation also depends on which of the [engines](#solution-methods) is being used.
 
 Broadly speaking, PRISM allows single (non-nested) instances of
 unbounded or time-bounded probabilistic reachability properties
@@ -100,8 +100,8 @@ where `target` is a Boolean-valued expression that does not include
 references to any clock variables and `T` is an integer-valued expression.
 In some cases (see below), PRISM also allows until (`U`) properties.
 
-<a id="engines"></a>
-## Engines
+<a id="solution-methods"></a>
+## Solution methods
 
 PRISM has three distinct engines that can be used for analysing PTAs.
 

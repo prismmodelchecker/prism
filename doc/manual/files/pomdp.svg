@@ -1,0 +1,48 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="616" height="330" viewBox="0 0 560 300" font-family="Helvetica, Arial, sans-serif">
+<defs><marker id="a" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="10" markerHeight="10" markerUnits="userSpaceOnUse" orient="auto"><path d="M0,1.5 L10,5 L0,8.5 z" fill="#000"/></marker><marker id="g" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="10" markerHeight="10" markerUnits="userSpaceOnUse" orient="auto"><path d="M0,1.5 L10,5 L0,8.5 z" fill="#999"/></marker></defs>
+<rect width="560" height="300" fill="#fff"/>
+<rect x="222" y="22" width="76" height="256" rx="14" fill="none" stroke="#888" stroke-width="1.2" stroke-dasharray="5,4"/>
+<line x1="10.0" y1="150.0" x2="45.0" y2="150.0" stroke="#000" stroke-width="1.4" marker-end="url(#a)"/>
+<line x1="95.0" y1="150.0" x2="150.0" y2="150.0" stroke="#000" stroke-width="1.4"/>
+<text x="122.0" y="138.0" font-size="14" text-anchor="middle" dominant-baseline="central" font-style="italic" fill="#b3001b">toss</text>
+<line x1="150.0" y1="150.0" x2="240.7" y2="75.8" stroke="#000" stroke-width="1.4" marker-end="url(#a)"/>
+<text x="192.0" y="93.0" font-size="14" text-anchor="end" dominant-baseline="central">0.1</text>
+<line x1="150.0" y1="150.0" x2="235.0" y2="150.0" stroke="#000" stroke-width="1.4" marker-end="url(#a)"/>
+<text x="205.0" y="137.0" font-size="14" text-anchor="middle" dominant-baseline="central">0.3</text>
+<line x1="150.0" y1="150.0" x2="240.7" y2="224.2" stroke="#000" stroke-width="1.4" marker-end="url(#a)"/>
+<text x="192.0" y="207.0" font-size="14" text-anchor="end" dominant-baseline="central">0.6</text>
+<line x1="285.0" y1="60.0" x2="445.0" y2="60.0" stroke="#000" stroke-width="1.4" marker-end="url(#a)"/>
+<line x1="279.0" y1="76.3" x2="451.0" y2="223.7" stroke="#999" stroke-width="1.2" marker-end="url(#g)"/>
+<line x1="283.0" y1="140.2" x2="447.0" y2="69.8" stroke="#000" stroke-width="1.4" marker-end="url(#a)"/>
+<line x1="283.0" y1="159.8" x2="447.0" y2="230.2" stroke="#999" stroke-width="1.2" marker-end="url(#g)"/>
+<line x1="279.0" y1="223.7" x2="451.0" y2="76.3" stroke="#000" stroke-width="1.4" marker-end="url(#a)"/>
+<line x1="285.0" y1="240.0" x2="445.0" y2="240.0" stroke="#999" stroke-width="1.2" marker-end="url(#g)"/>
+<text x="330.0" y="48.0" font-size="14" text-anchor="start" dominant-baseline="central" font-style="italic" fill="#b3001b">guess1</text>
+<text x="304.0" y="153.0" font-size="14" text-anchor="start" dominant-baseline="central" font-style="italic" fill="#b3001b">guess2</text>
+<text x="314.0" y="203.0" font-size="14" text-anchor="start" dominant-baseline="central" font-style="italic" fill="#b3001b">guess3</text>
+<text x="340.0" y="256.0" font-size="13" text-anchor="start" dominant-baseline="central" font-style="italic" fill="#999">other guesses</text>
+<path d="M488.0,43.0 C530.0,15.0 530.0,105.0 488.0,77.0" fill="none" stroke="#000" stroke-width="1.4" marker-end="url(#a)"/>
+<text x="524.0" y="60.0" font-size="14" text-anchor="start" dominant-baseline="central" font-style="italic" fill="#b3001b">done</text>
+<path d="M488.0,223.0 C530.0,195.0 530.0,285.0 488.0,257.0" fill="none" stroke="#000" stroke-width="1.4" marker-end="url(#a)"/>
+<text x="524.0" y="240.0" font-size="14" text-anchor="start" dominant-baseline="central" font-style="italic" fill="#b3001b">done</text>
+<circle cx="70" cy="150" r="25" fill="#fdf7de" stroke="#eedc8c" stroke-width="1.4"/>
+<text x="70.0" y="142.0" font-size="15" text-anchor="middle" dominant-baseline="central">0</text>
+<text x="70.0" y="159.0" font-size="12" text-anchor="middle" dominant-baseline="central" fill="#555">h=0</text>
+<circle cx="260" cy="60" r="25" fill="#fdf7de" stroke="#eedc8c" stroke-width="1.4"/>
+<text x="260.0" y="52.0" font-size="15" text-anchor="middle" dominant-baseline="central">1</text>
+<text x="260.0" y="69.0" font-size="12" text-anchor="middle" dominant-baseline="central" fill="#555">h=1</text>
+<circle cx="260" cy="150" r="25" fill="#fdf7de" stroke="#eedc8c" stroke-width="1.4"/>
+<text x="260.0" y="142.0" font-size="15" text-anchor="middle" dominant-baseline="central">1</text>
+<text x="260.0" y="159.0" font-size="12" text-anchor="middle" dominant-baseline="central" fill="#555">h=2</text>
+<circle cx="260" cy="240" r="25" fill="#fdf7de" stroke="#eedc8c" stroke-width="1.4"/>
+<text x="260.0" y="232.0" font-size="15" text-anchor="middle" dominant-baseline="central">1</text>
+<text x="260.0" y="249.0" font-size="12" text-anchor="middle" dominant-baseline="central" fill="#555">h=3</text>
+<circle cx="470" cy="60" r="25" fill="#fdf7de" stroke="#eedc8c" stroke-width="1.4"/>
+<text x="470.0" y="52.0" font-size="15" text-anchor="middle" dominant-baseline="central">2</text>
+<text x="470.0" y="69.0" font-size="12" text-anchor="middle" dominant-baseline="central" fill="#555">correct</text>
+<circle cx="470" cy="240" r="25" fill="#fdf7de" stroke="#eedc8c" stroke-width="1.4"/>
+<text x="470.0" y="232.0" font-size="15" text-anchor="middle" dominant-baseline="central">3</text>
+<text x="470.0" y="249.0" font-size="12" text-anchor="middle" dominant-baseline="central" fill="#555">wrong</text>
+<circle cx="150" cy="150" r="3.5" fill="#000"/>
+<text x="260.0" y="12.0" font-size="12" text-anchor="middle" dominant-baseline="central" fill="#555">observation s=1</text>
+</svg>

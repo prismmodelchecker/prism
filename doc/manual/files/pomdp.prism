@@ -1,0 +1,23 @@
+// A simple POMDP: guess the value of a hidden variable
+
+pomdp
+
+observables s endobservables
+
+module M
+
+    s : [0..3]; // 0=start, 1=guessing, 2=correct, 3=wrong
+    h : [0..3]; // hidden variable
+
+    // Assign hidden variable randomly
+    [toss] s=0 -> 0.1:(s'=1)&(h'=1) + 0.3:(s'=1)&(h'=2) + 0.6:(s'=1)&(h'=3);
+    // Guess the value of the hidden variable
+    [guess1] s=1 -> (s'=(h=1)?2:3);
+    [guess2] s=1 -> (s'=(h=2)?2:3);
+    [guess3] s=1 -> (s'=(h=3)?2:3);
+    // Done
+    [done] s>=2 -> true;
+
+endmodule
+
+label "correct" = s=2;

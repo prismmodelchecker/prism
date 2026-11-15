@@ -25,6 +25,7 @@
 - <a id="KNP09c"></a>**[KNP09c]** Marta Kwiatkowska, Gethin Norman and David Parker. Stochastic Games for Verification of Probabilistic Timed Automata. In J. Ouaknine and F. Vaandrager, editors, *Proc. 7th International Conference on Formal Modeling and Analysis of Timed Systems (FORMATS'09)*, volume 5813 of LNCS, pages 212-227, Springer, September 2009.
 - <a id="KNPS06"></a>**[KNPS06]** Marta Kwiatkowska, Gethin Norman, David Parker and Jeremy Sproston. Performance Analysis of Probabilistic Timed Automata using Digital Clocks. *Formal Methods in System Design*, 29:33-78, August 2006.
 - <a id="KNSW07"></a>**[KNSW07]** M. Kwiatkowska, G. Norman, J. Sproston and F. Wang. Symbolic Model Checking for Probabilistic Timed Automata. *Information and Computation*, 205(7):1027-1077, July 2007.
+- <a id="Lov91"></a>**[Lov91]** W. S. Lovejoy. Computationally Feasible Bounds for Partially Observed Markov Decision Processes. *Operations Research*, 39(1):162-175, 1991.
 - <a id="MWDH10"></a>**[MWDH10]** M. Mateescu, V. Wolf, F. Didier and T. Henzinger. Fast adaptive uniformisation of the chemical master equation. *IET Syst Biol*, 4(6):441-452, 2010.
 - <a id="Nim10"></a>**[Nim10]** Vincent Nimal. Statistical Approaches for Probabilistic Model Checking. MSc Mini-project Dissertation, *Oxford University Computing Laboratory*, September 2010.
 - <a id="NPS13"></a>**[NPS13]** Gethin Norman, David Parker and Jeremy Sproston. Model Checking for Probabilistic Timed Automata. *Formal Methods in System Design*, 43(2):164-190, September 2013.
