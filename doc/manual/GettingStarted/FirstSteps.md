@@ -39,21 +39,19 @@ Just giving the model file builds it and displays some statistics:
 
 ```shell
 prism walk.prism
-
-# ...
-# Type:        DTMC
-# States:      11 (1 initial)
-# Transitions: 21
-# ...
+#...
+#Type:        DTMC
+#States:      11 (1 initial)
+#Transitions: 21
+#...
 ```
 
 or we can verify a property:
 
 ```shell
 prism walk.prism walk.props -prop 1
-
-# ...
-# Result: true
+#...
+#Result: true
 ```
 
 Full details of both the GUI and command-line versions of PRISM
