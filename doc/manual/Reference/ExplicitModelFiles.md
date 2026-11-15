@@ -1,6 +1,6 @@
 # Explicit model files
 
-This appendix details the plain text file formats used by PRISM for [exporting](../RunningPRISM/ImportingAndExportingModels.md#exporting) and [importing](../RunningPRISM/ImportingAndExportingModels.md#importing) models that have already been constructed, i.e., they comprise an explicit list of states, transitions, etc. making up the model, rather than a high-level model description in the [PRISM modelling language](../ThePRISMLanguage/README.md).
+This page details the plain text file formats used by PRISM for [exporting](../RunningPRISM/ImportingAndExportingModels.md#exporting) and [importing](../RunningPRISM/ImportingAndExportingModels.md#importing) models that have already been constructed, i.e., they comprise an explicit list of states, transitions, etc. making up the model, rather than a high-level model description in the [PRISM modelling language](../ThePRISMLanguage/README.md).
 Below, we describe:
 
 - [PRISM explicit (.pexp) files](#pexp)
@@ -18,7 +18,7 @@ The examples are exported from four small PRISM models, which are shown, with di
 <a id="pexp"></a>
 ## PRISM explicit (.pexp) files
 
-The default now for exporting models in textual format from PRISM
+The default for exporting models in textual format from PRISM
 is to do so in a combined .pexp file, that includes all parts of the model,
 as described individually in more detail below.
 

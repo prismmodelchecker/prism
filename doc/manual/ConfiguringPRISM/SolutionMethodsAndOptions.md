@@ -24,8 +24,8 @@ The corresponding GUI option is "Linear equations method".
 - Backwards SOR method: [`-bsor`](../Reference/CommandLineSwitches.md#bsor)
 
 When using the MTBDD engine, Gauss-Seidel/SOR based methods are not available.
-When using the hybrid engine, *pseudo* variants of Gauss-Seidel/SOR based method can also be used [[Par02](../Reference/References.md#Par02)]
-(type `prism -help` at the command-line for details of the corresponding switches).
+When using the hybrid engine, *pseudo* variants of Gauss-Seidel/SOR based methods can also be used [[Par02](../Reference/References.md#Par02)]
+(see "[Command-line switches](../Reference/CommandLineSwitches.md#linear-equations)" for the corresponding switches).
 For methods which use over-relaxation (JOR/SOR), the over-relaxation parameter (between 0.0 and 2.0)
 can also be specified with option "Over-relaxation parameter" (switch [`-omega <val>`](../Reference/CommandLineSwitches.md#omega)).
 
@@ -42,17 +42,17 @@ Currently, all except value iteration are only supported by the [explicit engine
 which PRISM switches to automatically (with a warning) if one of them is selected;
 the exception is Gauss-Seidel with the MTBDD engine, which gives an error.
 For more details of the methods, see e.g. [[FKNP11](../Reference/References.md#FKNP11)] (about probabilistic verification of MDPs)
-or classic MDP texts such as [[Put94](../Reference/References.md#Put94)]).
+or classic MDP texts such as [[Put94](../Reference/References.md#Put94)].
 
 - **Value iteration** (switch [`-valiter`](../Reference/CommandLineSwitches.md#valiter)) [this is the default]
-- **Gauss Seidel** (switch `-gs`)
+- **Gauss-Seidel** (switch `-gs`)
 - **Policy iteration** (switch [`-politer`](../Reference/CommandLineSwitches.md#politer))
 - **Modified policy iteration** (switch [`-modpoliter`](../Reference/CommandLineSwitches.md#modpoliter));
   this is only implemented for probabilities: for reward properties, PRISM switches to Gauss-Seidel (with a warning)
 - **Linear programming** (switch `-lp`)
 
 Where the methods above use iterative numerical solution,
-you can also use the settings under described in the [Convergence](SolutionMethodsAndOptions.md#convergence) section below.
+you can also use the settings described in the [Convergence](SolutionMethodsAndOptions.md#convergence) section below.
 
 <a id="iiter"></a>
 ## Interval iteration

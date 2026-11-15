@@ -44,7 +44,7 @@ The full MDP is shown below, where each state is labelled with its value of `s`.
 The commands above are labelled with actions `a` and `b`, written between the square brackets, e.g.:
 
 ```prism
-	[a] true -> 1-slip : (s'=min(s+1,N-1)) + slip : (s'=0);
+[a] true -> 1-slip : (s'=min(s+1,N-1)) + slip : (s'=0);
 ```
 
 For an MDP, these actions play several roles.

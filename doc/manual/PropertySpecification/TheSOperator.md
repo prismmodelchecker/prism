@@ -3,7 +3,7 @@
 The `S` operator is used to reason about the *steady-state* behaviour of a model,
 i.e. its behaviour in the *long-run* or *equilibrium*.
 PRISM currently only provides support for DTMCs and CTMCs.
-The definition of steady-state (long-run) probabilities for finite DTMCS and CTMCs is well defined (see e.g. [[Ste94](../Reference/References.md#Ste94)]).
+The definition of steady-state (long-run) probabilities for finite DTMCs and CTMCs is well defined (see e.g. [[Ste94](../Reference/References.md#Ste94)]).
 Informally, the property:
 
 ```prism

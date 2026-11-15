@@ -10,7 +10,7 @@ The file formats are described in "[Explicit model files](../Reference/ExplicitM
 If required, once the model has been constructed, it can be exported, either for manual examination or for use in another tool. The following can all be exported:
 
 - the **transition matrix** (or function);
-- the **rewards** (state/transition) rewards;
+- the **rewards** (state and transition rewards);
 - the **labels** (in the [model](../ThePRISMLanguage/ConstantsLabelsAndFormulas.md#labels) or [properties](../PropertySpecification/PropertiesFiles.md)) and the states that satisfy them
 - the definition of (reachable) **states**, i.e., their variable values
 - the definition of **observations**, i.e., their observable values, for partially observable models
@@ -32,8 +32,7 @@ The main formats for model export are:
 This format either exports all/multiple parts of the model into a single combined file,
 or individual parts of the model in different files. The expected filename extensions are:
 
-- `.pexp` - all parts of the model("PRISM explicit")
-
+- `.pexp` - all parts of the model ("PRISM explicit")
 - `.tra` - transition matrix
 - `.srew`, `.trew`, `.rew` - rewards: states, transitions or both
 - `.lab` - labels
@@ -72,7 +71,7 @@ To export multiple parts, use, e.g.:
 prism model.prism -exportmodel model.tra,sta
 ```
 
-If you omit the file basename of the export files and the basename of the model will be used, so this is equivalent to the above:
+If you omit the basename of the export files, the basename of the model will be used, so this is equivalent to the above:
 
 ```shell
 prism model.prism -exportmodel .tra,sta
@@ -106,7 +105,7 @@ When exporting multiple reward structures to individual files, a (1-indexed) suf
 By default each part of the model is prefixed by a header (starting `#`),
 identifying what it is, plus some additional details,
 e.g., the name of a reward structure or the type of a model
-(see the "[Explicit model files](../Reference/ExplicitModelFiles.md#srew)" appendix).
+(see "[Explicit model files](../Reference/ExplicitModelFiles.md#srew)").
 This can be omitted - see the options below - or via the option "Include headers in model exports" in the GUI.
 
 <a id="umb"></a>
@@ -156,14 +155,14 @@ prism model.prism -exportmodel model.txt:format=explicit -exportmodel model.dot
 Other file formats are also available:
 
 - [Matlab](http://www.mathworks.com/) code (extension `.m`) or `format=matlab`
-- Storm's DRN model format (extension `.drn`) or `format=drn`
+- Storm's [DRN](https://www.stormchecker.org/documentation/background/drn.html) model format (extension `.drn`) or `format=drn`
 
 Other `-exportmodel` options are:
 
 - `states` (=`true`/`false`) - whether to include states
 - `rewards` (=`true`/`false`) - whether to include rewards
 - `labels` (=`true`/`false`) - whether to include labels
-- `actions` (=`true`/`false`) - whether to  actions on choices/transitions
+- `actions` (=`true`/`false`) - whether to include actions on choices/transitions
 - `obs` (=`true`/`false`) - whether to include observations
 - `precision` (=`<n>`) - use `<n>` significant figures for floating point values (in text)
 - `headers` (`=true/false`) - whether to include headers when exporting rewards
@@ -293,7 +292,7 @@ prism -importmodel poll2.tra -ex
 
 The situation can also be alleviated to a certain extent for the symbolic implementations by importing
 the `.sta` file, since the composition of the states reintroduces some regularity
-(although is still typically inefficient to construct).
+(although it is still typically inefficient to construct).
 
 <a id="import-other"></a>
 ### Other options
@@ -305,6 +304,6 @@ prism -importtrans poll2.tra -importstates poll2.sta -importlabels poll2.lab -ct
 ```
 
 There are also `-importstaterewards` and `-importtransrewards` switches.
-You can import multiple reward structures using multiple instances of the these switches.
-If present in the rewards files (see the appendix "[Explicit model files](../Reference/ExplicitModelFiles.md)"),
+You can import multiple reward structures using multiple instances of these switches.
+If present in the rewards files (see "[Explicit model files](../Reference/ExplicitModelFiles.md)"),
 the names of the reward structures are read too.

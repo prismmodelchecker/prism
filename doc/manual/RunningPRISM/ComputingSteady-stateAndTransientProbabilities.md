@@ -6,21 +6,15 @@ steady-state or transient probabilities directly
 From the GUI, select an option from the "Model | Compute" menu.
 For transient probabilities, you will be asked to supply the
 time value for which you wish to compute probabilities.
-From the command-line, add the `-steadystate` (or `-ss`) switch:
+From the command-line, add the `-steadystate` (or `-ss`) switch for steady-state probabilities
+or the `-transient` (or `-tr`) switch for transient probabilities, again specifying a time value in the latter case:
 
 ```shell
 prism poll2.prism -ss
-```
-
-[`poll2.prism`](../files/poll2.prism) is a CTMC model of a simple polling system (also shown, with a diagram, in "[Explicit model files](../Reference/ExplicitModelFiles.md#poll2)").
-
-for steady-state probabilities or the `-transient` (or `-tr`) switch:
-
-```shell
 prism poll2.prism -tr 2.0
 ```
 
-for transient probabilities, again specifying a time value in the latter case.
+Here, [`poll2.prism`](../files/poll2.prism) is a CTMC model of a simple polling system (also shown, with a diagram, in "[Explicit model files](../Reference/ExplicitModelFiles.md#poll2)").
 The probabilities are computed for all states of the model and displayed,
 either on the screen (from the command-line) or in the log (from the GUI).
 
@@ -59,4 +53,4 @@ Finally, you can compute transient probabilities for a range of time values, e.g
 prism poll2.prism -tr 0.1:0.01:0.2
 ```
 
-which computes transient probabilities for the time points 0.1, 0.11, 0.12, .., 0.2. In this case, the computation is done incrementally, with probabilities for each time point being computed from the previous point for efficiency.
+which computes transient probabilities for the time points 0.1, 0.11, 0.12, ..., 0.2. In this case, the computation is done incrementally, with probabilities for each time point being computed from the previous point for efficiency.

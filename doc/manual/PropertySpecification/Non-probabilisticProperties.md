@@ -16,7 +16,7 @@ which are true in a state *s* of a model if
 and
 "path property `pathprop` is satisfied by *some* path from state *s*",
 respectively.
-The syntax for LTL formulas is the same as those allowed within the [P operator](ThePOperator.md#ltl).
+The syntax for LTL formulas is the same as that allowed within the [P operator](ThePOperator.md#ltl).
 
 Example properties include:
 

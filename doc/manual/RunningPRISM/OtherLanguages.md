@@ -13,12 +13,16 @@ The restrictions applied to the language are firstly that component identifiers 
 (formed using prefix and choice and references to other sequential components only).
 Secondly, each local state of a  sequential component must be named.  For example, we would rewrite:
 
-- P = (a,r).(b,s).P;
+```text
+P = (a,r).(b,s).P;
+```
 
 as:
 
-- P = (a,r).P';
-- P' = (b,s).P;
+```text
+P = (a,r).P';
+P' = (b,s).P;
+```
 
 Finally, active/active synchronisations are not allowed since the PRISM
 definition of these differs from the PEPA definition.  Every PEPA
@@ -38,7 +42,7 @@ by selecting menu option "Model | View | Parsed PRISM model".
 <a id="sbml"></a>
 ## SBML
 
-PRISM includes a (prototype) tool to translate specifications in [SBML](http://sbml.org/) (Systems Biology Markup Language) to model descriptions in the PRISM language. SBML is an XML-based format for representing models of biochemical reaction networks. The translator works with Level 2 SBML files (it was written for Level 2 Version 1); the SBML specifications can be found [here](https://sbml.org/documents/).
+PRISM includes a (prototype) tool to translate specifications in [SBML](http://sbml.org/) (Systems Biology Markup Language) to model descriptions in the PRISM language. SBML is an XML-based format for representing models of biochemical reaction networks. The translator works with Level 2 SBML files (it was written for Level 2 Version 1); see the [SBML specifications](https://sbml.org/documents/).
 
 Since PRISM is a tool for analysing discrete-state systems, the translator is designed for SBML files intended for discrete stochastic simulation. A useful set of such files can be found in the CaliBayes [Discrete Stochastic Model Test Suite](https://code.google.com/archive/p/dsmts). There are also many more SBML files available in the [BioModels](https://www.ebi.ac.uk/biomodels/).
 
@@ -254,11 +258,11 @@ This contains a single property which, based on the reward structures in the PRI
 
 The basic structure of the translation process is as follows:
 
-- Each *species* in the SBML file is represented by a [module](../ThePRISMLanguage/Variables.md) in the resulting PRISM file. This module, which (where possible) retains the SBML species id as its name, contains a single [variable](../ThePRISMLanguage/Variables.md) whose value represents the amount of the species present. A corresponding [reward structure](../ThePRISMLanguage/CostsAndRewards.md) for computing the expected amount of the species at a given time instant is also created. Species for which the `boundaryCondition` flag is set to `true` in the SBML file do not have a corresponding module.
+- Each *species* in the SBML file is represented by a [module](../ThePRISMLanguage/ModulesAndCommands.md) in the resulting PRISM file. This module, which (where possible) retains the SBML species id as its name, contains a single [variable](../ThePRISMLanguage/Variables.md) whose value represents the amount of the species present. A corresponding [reward structure](../ThePRISMLanguage/CostsAndRewards.md) for computing the expected amount of the species at a given time instant is also created. Species for which the `boundaryCondition` flag is set to `true` in the SBML file do not have a corresponding module.
 
 - Each *reaction* in the SBML file is associated with a unique [synchronisation action label](../ThePRISMLanguage/CompositionAndSynchronisation.md#synchronisation). The module for each species which takes part in the reaction will include a synchronous [command](../ThePRISMLanguage/ModulesAndCommands.md#commands) to represent this. An additional PRISM module called `reaction_rates` stores the expression representing the rate of each reaction (from the corresponding `kineticLaw` section in the SBML file). Reaction stoichiometry information is respected but must be provided in the scalar `stoichiometry` field of a `speciesReference` element, not in a separate `StoichiometryMath` element.
 
-- Each *parameter* in the SBML file, either global to the file or specific to a reaction, becomes a [constant](../ThePRISMLanguage/ConstantsLabelsAndFormulas.md#constants) in the PRISM file. If a value for this parameter is given, it used. If not, the constant is left as undefined.
+- Each *parameter* in the SBML file, either global to the file or specific to a reaction, becomes a [constant](../ThePRISMLanguage/ConstantsLabelsAndFormulas.md#constants) in the PRISM file. If a value for this parameter is given, it is used. If not, the constant is left as undefined.
 
 As described above, this translation process is designed for discrete systems and so the amount of each species in the model is represented by an integer variable. It is therefore assumed that the initial amount for each species specified in the SBML file is also given as an integer. If this is not the case, then the values will need to be scaled accordingly first.
 
@@ -271,7 +275,7 @@ java -cp classes prism.SBML2Prism sbml_file.xml 1000 > prism_file.prism
 
 Alternatively, upper bounds can be modified manually after the translation process.
 
-Finally, The following aspects of SBML files are not currently supported and are ignored during the translation process:
+Finally, the following aspects of SBML files are not currently supported and are ignored during the translation process:
 
 - compartments
 - events/triggers

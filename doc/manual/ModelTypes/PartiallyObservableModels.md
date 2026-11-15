@@ -16,9 +16,9 @@ Look in the `prism-examples/pomdps` and `prism-examples/poptas` directories.
 PRISM currently supports state-based observations:
 this means that, upon entering a new POMDP state,
 the observation is determined by that state.
-In the same way that a model state comprises the values or one or more variables,
+In the same way that a model state comprises the values of one or more variables,
 an observation comprises one or more *observables*.
-There are several way to define these observables.
+There are several ways to define these observables.
 The simplest is to specify a subset of the model's variables
 that are designated as being observable. The rest are unobservable.
 
@@ -57,7 +57,7 @@ Furthermore, for a POPTA, all clock variables must be observable.
 
 For partially observable models (POMDPs and POPTAs),
 PRISM uses the same property language as their fully observational equivalents (MDPs and PTAs).
-However, a more limited range of properties are available.
+However, a more limited range of properties is available.
 For POMDPs, PRISM currently supports probabilistic reachability,
 probabilistic until, probabilistic invariance (`G`) or expected reachability rewards properties, i.e.:
 
@@ -83,7 +83,7 @@ In other words, if any state of the POMDP satisfies the expression,
 then all other observationally equivalent states must also satisfy it.
 This is easily achieved by only using either observable variables
 or named observables in the expression, but that is not required.
-Secondly, probabilities and expected rewards are only computed from a single state.
+Secondly, probabilities and expected rewards are only computed from a single initial state.
 
 POPTAs are currently verified using the "digital clocks" approach to
 translate them into a POMDP, so they inherit the same

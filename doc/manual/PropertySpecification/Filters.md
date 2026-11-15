@@ -171,5 +171,5 @@ filter(state, P=? [ F "error" ], "init")
 filter(range, P=? [ F "error" ], "init")
 ```
 
-for the cases where there the model has a single initial state
+for the cases where the model has a single initial state
 or multiple initial states, respectively.

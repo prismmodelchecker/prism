@@ -25,7 +25,7 @@ These parameters can only be used to describe probabilities (or rates). For exam
 [] s=0 -> x : (s'=1) + 1-x : (s'=2);
 ```
 
-They may not be used in guards or updates. The parametric definitions of probabilities or rates (e.g. `x` and `1-x` in the above) must be rational functions (fractions of polynomials). PRISM currently supports parametric versions of discrete-time Markov chains (DTMCs), continuous-time Markov chains (CTMCs) and Markov decision processes (MDPs). The classes of properties that be checked on these models are as follows:
+They may not be used in guards or updates. The parametric definitions of probabilities or rates (e.g. `x` and `1-x` in the above) must be rational functions (fractions of polynomials). PRISM currently supports parametric versions of discrete-time Markov chains (DTMCs), continuous-time Markov chains (CTMCs) and Markov decision processes (MDPs). The classes of properties that can be checked on these models are as follows:
 
 - parametric DTMCs/CTMCs: unbounded until, steady-state probabilities, reachability reward and steady-state reward;
 
@@ -68,4 +68,4 @@ Parametric model checking can be configured with the following options:
 <a id="exact"></a>
 ## Exact model checking
 
-Most of PRISM's model checking functionality uses numerical solution based on floating point arithmetic and, often, this uses iterative numerical methods, which are run until some user-specified precision is reached. PRISM currently has some support for "exact" model checking, i.e., using arbitrary precision arithmetic to provide exact numerical values. Currently, this is implemented as a special case of [parametric model checking](../RunningPRISM/ParametricModelChecking.md), which limits its application to relatively small models. It can be used for analysing DTMCs/CTMCs (unbounded until, steady-state probabilities, reachability reward and steady-state reward) or MDPs (unbounded until and reachability rewards). You can enable this functionality using the "Do exact model checking" option in the GUI or using switch `-exact` from the command line.
+Most of PRISM's model checking functionality uses numerical solution based on floating point arithmetic and, often, this uses iterative numerical methods, which are run until some user-specified precision is reached. PRISM currently has some support for "exact" model checking, i.e., using arbitrary precision arithmetic to provide exact numerical values. Currently, this is implemented as a special case of [parametric model checking](#parametric), which limits its application to relatively small models. It can be used for analysing DTMCs/CTMCs (unbounded until, steady-state probabilities, reachability reward and steady-state reward) or MDPs (unbounded until and reachability rewards). You can enable this functionality using the "Do exact model checking" option in the GUI or using switch `-exact` from the command line.

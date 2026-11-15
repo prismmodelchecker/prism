@@ -42,7 +42,7 @@ To determine, for example, the width $w$ for given $\alpha$ and $N$, we use
 $$w = q \sqrt{v / N}$$
 
 where $q$ is a quantile, for probability $1-\alpha/2$, from the Student's t-distribution with $N-1$ degrees of freedom and $v$ is (an estimation of) the variance for $X$.
-Similarly, we can determine the required number of iterations, from $w$ and $\alpha$, as
+Similarly, we can determine the required number of samples, from $w$ and $\alpha$, as
 
 $$N = \frac{v q^2}{w^2}$$
 
@@ -52,7 +52,7 @@ For a bounded property  `P~p[...]`, the (Boolean) result is determined according
 
 ## ACI (Asymptotic Confidence Interval) Method
 
-The ACI method works in exactly same fashion as the CI method, except that it uses the Normal distribution to approximate the Student's t-distribution when determining the confidence interval. This is appropriate when the number of samples is large (because we can get a reliable estimation of the variance from the samples) but may be less accurate for small numbers of samples.
+The ACI method works in exactly the same fashion as the CI method, except that it uses the Normal distribution to approximate the Student's t-distribution when determining the confidence interval. This is appropriate when the number of samples is large (because we can get a reliable estimation of the variance from the samples) but may be less accurate for small numbers of samples.
 
 ## APMC (Approximate Probabilistic Model Checking) Method
 
@@ -74,7 +74,7 @@ $$N = \frac{\ln(2/\delta)}{2\varepsilon^2}$$
 This imposes certain restrictions on the parameters,
 namely that $N \varepsilon^2 \ge \ln(2/\delta)/2$.
 
-In similar fashion to the CI/ACI methods, the APMC method can be also be used for bounded properties such as `P~p[...]`, as long as the threshold $p$ falls outside the interval $[Y-\varepsilon, Y+\varepsilon]$.
+In similar fashion to the CI/ACI methods, the APMC method can also be used for bounded properties such as `P~p[...]`, as long as the threshold $p$ falls outside the interval $[Y-\varepsilon, Y+\varepsilon]$.
 
 ## SPRT (Sequential Probability Ratio Test) Method
 
@@ -105,7 +105,7 @@ PRISM has default values for the various simulation method parameters, but these
 
 | Switch | CI | ACI | APMC | SPRT |
 | --- | --- | --- | --- | --- |
-| `-simsamples` | "Num. samples" | "Num. samples" | "Num. samples" | n/a |
+| `-simsamples` | "Number of samples" | "Number of samples" | "Number of samples" | n/a |
 | `-simconf` | "Confidence" | "Confidence" | "Confidence" | "Type I/II error" |
 | `-simwidth` | "Width" | "Width" | n/a | "Indifference" |
 | `-simapprox` | n/a | n/a | "Approximation" | n/a |
@@ -114,6 +114,6 @@ The maximum length of simulation paths is set with switch `-simpathlen`.
 
 ## Limitations
 
-Currently, the simulator does not support every part of the PRISM modelling languages. For example, it does not handle models with multiple initial states or with `system...endsystem` definitions.
+Currently, the simulator does not support every part of the PRISM modelling language. For example, it does not handle models with multiple initial states or with `system...endsystem` definitions.
 
-It is also worth pointing out that statistical model checking techniques are not well suited to models that exhibit nondeterminism, such as MDPs. This because the techniques rely on generation of *random* paths, which are not well defined for a MDP. PRISM does allow statistical model checking to be performed on an MDP, but does so by simply resolving nondeterministic choices in a (uniformly) random fashion (and displaying a warning message). Currently PTAs are not supported by the simulator.
+It is also worth pointing out that statistical model checking techniques are not well suited to models that exhibit nondeterminism, such as MDPs. This is because the techniques rely on generation of *random* paths, which are not well defined for an MDP. PRISM does allow statistical model checking to be performed on an MDP, but does so by simply resolving nondeterministic choices in a (uniformly) random fashion (and displaying a warning message). Currently PTAs are not supported by the simulator.

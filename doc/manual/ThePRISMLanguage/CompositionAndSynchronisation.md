@@ -10,8 +10,8 @@ but a module can only *write* to its own local variables.
 The manner in which modules are composed depends on the model type.
 We start by describing the case for MDPs, which provide a natural model
 for the parallel composition of probabilistic components,
-use this to introduce some of the key ideas, notably **synchronisation**.
-and then also describe how the composition of modules is handled for DTMCs and CTMCs.
+use this to introduce some of the key ideas, notably **synchronisation**,
+and then also describe how the composition of modules is handled for CTMCs and DTMCs.
 
 <a id="composition-mdps"></a>
 ## Composing modules in MDPs
@@ -113,7 +113,7 @@ except that the choice between enabled commands is a race condition, not nondete
 Consider two commands in different modules that are labelled with actions `a` and `b`,
 where those actions are used only in those modules.
 Then, in a state where both commands are enabled, each results in a separate outgoing transition, with its own rate.
-For two commands with a common action `c` synchronisation occurs,
+For two commands with a common action `c`, synchronisation occurs,
 with both commands being executed simultaneously
 and the rate of the synchronised transition taken as the product of the two individual rates.
 

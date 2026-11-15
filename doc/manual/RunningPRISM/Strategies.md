@@ -26,7 +26,7 @@ prism mdp.prism -pf 'Pmax=? [ F "goal" ]' -exportstrat strat.tra
 
 The first of these exports actions, the others export induced models (see below).
 
-From the GUI, you can trigger strategy generation by ticking the "Generate strategy" box either on the popup menu that appears when you right-click a property, or from the "Strategies" menu at the top. As long as it is supported, a strategy will be then generated once "Verify" is clicked.
+From the GUI, you can trigger strategy generation by ticking the "Generate strategy" box either on the popup menu that appears when you right-click a property, or from the "Strategies" menu at the top. As long as it is supported, a strategy will then be generated once "Verify" is clicked.
 
 From the same menu(s), you can then
 
@@ -56,7 +56,7 @@ as for regular [model export](ImportingAndExportingModels.md#exporting),
 including UMB or explicit format,
 the latter either a combined (`.pexp`) file or just the transitions (`.tra`).
 
-(iii) *Dot file*. This is, like the previous format, a view of the model induced by the strategy, but in [Dot](http://www.graphviz.org) format, which allows it to be visualised.
+(iii) *Dot file*. This is, like the previous format, a view of the model induced by the strategy, but in [Dot](https://www.graphviz.org/) format, which allows it to be visualised.
 
 **Configuring strategy export**.
 As hinted in the command-line examples above, the `-exportstrat` switch uses the file extension to determine the preferred format: if the strategy is exported to a file with extension `.umb`/`.pexp`/`.tra` or `.dot`, then it uses an induced model or Dot file, respectively. Otherwise, the default is an action list. You can specify the desired format:

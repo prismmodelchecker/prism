@@ -26,13 +26,13 @@ A similar situation arises with models that contain nondeterminism, such as MDPs
 <details id="mult_states">
 <summary>How do I check if a property is true in multiple (or all) states?</summary>
 
-Consider a typical boolean-valued PRISM property, such as:
+Consider a typical Boolean-valued PRISM property, such as:
 
 ```prism
 P<0.01 [ F "error" ]
 ```
 
-i.e. "the probability of reaching a state labelled with `"error"` is less than 0.01. By default, when model checking this query, PRISM will report the result of this property *for the initial state* of the model, i.e. whether, *starting from the initial state*, the probability of reaching `"error"` is below 0.01.
+i.e. "the probability of reaching a state labelled with `"error"` is less than 0.01". By default, when model checking this query, PRISM will report the result of this property *for the initial state* of the model, i.e. whether, *starting from the initial state*, the probability of reaching `"error"` is below 0.01.
 
 To check whether the above property is true for, say, all (reachable) states satisfying the label `"safe"`, you should use [filters](../PropertySpecification/Filters.md), as
 illustrated below:
@@ -65,7 +65,7 @@ PRISM's property specification language is primarily state-based, e.g. you can c
 P=? [ F "error" ]
 ```
 
-So how do you compute the probability of a some action `b` occurring? You need to make a small change to your model. The cleanest way to do this is to add a small module that changes state when the action occurs, e.g.:
+So how do you compute the probability of some action `b` occurring? You need to make a small change to your model. The cleanest way to do this is to add a small module that changes state when the action occurs, e.g.:
 
 ```prism
 module checker

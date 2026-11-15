@@ -57,7 +57,7 @@ Hence, PRISM allows the `P` operator to take the following **numerical** form:
 P=? [ pathprop ]
 ```
 
-This asks "what is the propability that `pathprop` is satisfied?"
+This asks "what is the probability that `pathprop` is satisfied?"
 and returns a numerical rather than a Boolean value.
 The [S](TheSOperator.md) and [R](Reward-basedProperties.md) operators, discussed later, can also be used in this way.
 
@@ -110,7 +110,7 @@ In the following sections, we describe each of these *temporal operators*. We th
 <a id="next"></a>
 ## "Next" path properties
 
-The property `X prop` is true for a path if `prop` is true in its second state,
+The property `X prop` is true for a path if `prop` is true in its second state.
 An example of this type of property, used inside a `P` operator, is:
 
 ```prism
@@ -260,7 +260,7 @@ P>=1 [ G F "send" ]
 P=? [ F G ("error" & !"repair") ]
 ```
 
-"the probability of an error occurring that is never repaired”
+"the probability of an error occurring that is never repaired"
 
 Note that logical operators have precedence over temporal ones, so you will often need to include parentheses when using logical operators, e.g.:
 
@@ -275,11 +275,11 @@ So, these are allowed:
 ```prism
 P=? [ F X X X "a" ]
 P=? [ "a" U X X X "error" ]
-P=? [ ("a" U "b") U "c" "error" ]
+P=? [ ("a" U "b") U "c" ]
 ```
 
 but this is not:
 
 ```prism
-P=? [ "a" U "b" U "c" "error" ]
+P=? [ "a" U "b" U "c" ]
 ```

@@ -1,7 +1,5 @@
 # Computation engines
 
-## Computation engines
-
 PRISM contains four main *engines*,
 which implement the majority of its model checking functionality:
 
@@ -27,7 +25,7 @@ For detailed information about all three engines, see [[Par02](../Reference/Refe
 
 The fourth engine, "explicit", performs all aspects of model construction
 and model checking using *explicit-state* data structures.
-Models are typically stored as sparse matrices or variants of.
+Models are typically stored as sparse matrices or variants of them.
 This engine is implemented purely in Java, unlike the other engines
 which make use of code/libraries implemented in C/C++.
 One goal of the "explicit" engine is to provide an easily extensible model

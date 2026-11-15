@@ -75,7 +75,7 @@ prism poll2.prism -simpath 10 stdout
 [`poll2.prism`](../files/poll2.prism) is a CTMC model of a simple polling system (also shown, with a diagram, in "[Explicit model files](../Reference/ExplicitModelFiles.md#poll2)").
 
 This shows the sequence of states in the path, i.e. the values of the variables in each state. In the example above, there are 4 variables: `s`, `a`, `s1` and `s2`.
-The first three columns show the type of transition taken to reach that state, its index within the path (starting from 0) and the time at which it was entered. The latter is only shown for continuous time models. The type of the transition is written as *[act]* if action label `act` was taken, and as *module1* if the module named `module1` takes an unlabelled transition).
+The first three columns show the type of transition taken to reach that state, its index within the path (starting from 0) and the time at which it was entered. The latter is only shown for continuous time models. The type of the transition is written as *[act]* if action label `act` was taken, and as *module1* if the module named `module1` takes an unlabelled transition.
 
 Further options can also be appended to the first parameter. For example, option `probs=true` also displays the probability/rate associated with each transition. For example:
 
@@ -153,16 +153,16 @@ prism poll2.prism -simpath '200,vars=(a,s1),sep=comma' stdout
 #...
 ```
 
-When generating paths to a deadlock state, additional `repeat=...` option is available which will construct multiple paths until a deadlock is found. For example:
+When generating paths to a deadlock state, an additional `repeat=...` option is available, which will construct multiple paths until a deadlock is found. For example:
 
 ```shell
 prism model.prism -simpath 'deadlock,repeat=100' stdout
 ```
 
-By default, the simulator detects deterministic loops in paths (e.g. if a path reaches a state from which there is a just a single self-loop leaving that state) and stops generating the path any further. You can disable this behaviour with the `loopcheck=false` option. For example:
+By default, the simulator detects deterministic loops in paths (e.g. if a path reaches a state from which there is just a single self-loop leaving that state) and stops generating the path any further. You can disable this behaviour with the `loopcheck=false` option. For example:
 
 ```shell
-prism dice.prism -simpath 10 stdout
+prism model.prism -simpath 10 stdout
 #...
 #Warning: Deterministic loop detected after 6 steps (use loopcheck=false option to extend path).
 #action step s d
@@ -172,8 +172,6 @@ prism dice.prism -simpath 10 stdout
 #die 3 7 3
 #die 4 7 3
 ```
-
-[`dice.prism`](../files/dice.prism) is a DTMC model of Knuth's algorithm for simulating a die with a coin.
 
 ```shell
 prism dice.prism -simpath 10,loopcheck=false stdout

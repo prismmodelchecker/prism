@@ -32,7 +32,7 @@ If you don't yet have **Java**, install it, for example with the [Temurin instal
 
 To install PRISM on Windows, just run the self-extracting installer which you [downloaded](https://www.prismmodelchecker.org/download.php). You do **not** need administrator privileges for this, just write-access to the directory chosen for installation.
 
-If requested, the installer will place shortcuts to run PRISM on the desktop and/or start menu. If not, you can run by PRISM double-clicking the file `xprism.bat` (which may just appear as `xprism`) in the `bin` folder of your PRISM folder. If nothing happens, the most likely explanation is that Java is not installed or not in your path. To check, open a command prompt window, navigate to the PRISM directory, type `cd bin`, then `xprism.bat` and examine the resulting error. If you want to create shortcuts to `xprism.bat` manually, you will find some PRISM icons in the `etc` folder.
+If requested, the installer will place shortcuts to run PRISM on the desktop and/or start menu. If not, you can run PRISM by double-clicking the file `xprism.bat` (which may just appear as `xprism`) in the `bin` folder of your PRISM folder. If nothing happens, the most likely explanation is that Java is not installed or not in your path. To check, open a command prompt window, navigate to the PRISM directory, type `cd bin`, then `xprism.bat` and examine the resulting error. If you want to create shortcuts to `xprism.bat` manually, you will find some PRISM icons in the `etc` folder.
 
 If you wish to use the command-line version of PRISM on Windows, open a command prompt window and type for example:
 
@@ -59,7 +59,7 @@ cd prism-4.11-linux64-x86
 ```
 
 On macOS, you may want to run the following command,
-which avoids [manual approving](https://support.apple.com/en-gb/102445) the integrity of the binary files:
+which avoids [manually approving](https://support.apple.com/en-gb/102445) the integrity of the binary files:
 
 ```shell
 xattr -d com.apple.quarantine lib/*lib
@@ -90,7 +90,7 @@ cd prism-4.11-src/prism
 make
 ```
 
-For this process to complete correctly, PRISM needs to be able to determine your operating system (`OSTYPE`), machine architecture (`ARCH`) and the location of your Java distribution (`JAVA_DIR`). If there is a problem with either of these, you will see an error message and will need to specify one or more of these manually, such as in these examples:
+For this process to complete correctly, PRISM needs to be able to determine your operating system (`OSTYPE`), machine architecture (`ARCH`) and the location of your Java distribution (`JAVA_DIR`). If there is a problem with any of these, you will see an error message and will need to specify one or more of these manually, such as in these examples:
 
 ```shell
 make OSTYPE=linux
@@ -110,13 +110,15 @@ It is also possible to set the environment variables directly or edit their valu
 
 The compilation of PRISM currently relies on a Unix-like environment. On Windows, this can be achieved using the [Cygwin](http://www.cygwin.com/) development environment, with the packages below installed.
 You can run the script [prism-install-windows.bat](https://raw.githubusercontent.com/prismmodelchecker/prism/master/prism/etc/scripts/prism-install-windows.bat) in a Command Prompt to automate this.
+
 - `make`
-- `mingw64-x86_64-gcc-g++` (for 64-bit Windows) or `mingw64-i686-gcc-g++` (for 32-bit Windows)
+- `mingw64-x86_64-gcc-g++`
 - `binutils`
 - `dos2unix`
 - `git` (if you will pull source code from GitHub)
 - `wget` (if you will pull source code from the web)
-Then proceed as described in the previous section. Note that the PRISM compilation process uses the [MinGW](http://www.mingw.org/) libraries so that the final result is independent of Cygwin at run-time.
+
+Then proceed as described in the previous section. Note that the PRISM compilation process uses the [MinGW-w64](https://www.mingw-w64.org/) libraries so that the final result is independent of Cygwin at run-time.
 
 One thing to note: make sure you unzip the PRISM distribution from within Cygwin (e.g. using `tar xfz prism-XXX-src.tar.gz`). Don't use a Windows program (Winzip, etc.) since this can cause problems.
 

@@ -25,7 +25,7 @@ PRISM is known to work with these HOA-enabled tools:
 and contains ready-made scripts for calling them in the `etc/scripts/hoa` directory of the distribution:
 
 - `hoa-ltl2dstar-for-prism` <br>
-     ([ltl2dstar](http://ltl2dstar.de/), using [Spot](https://spot.lre.epita.fr/)'s [`ltl2tgba`](https://spot.lre.epita.fr/ltl2tgba.html), [`ltl2ba`](http://www.lsv.ens-cachan.fr/~gastin/ltl2ba/) or [LTL3BA](https://github.com/xblahoud/ltl3dra) as the LTL-to-NBA tool)
+     ([ltl2dstar](http://ltl2dstar.de/), using [Spot](https://spot.lre.epita.fr/)'s [`ltl2tgba`](https://spot.lre.epita.fr/ltl2tgba.html), [`ltl2ba`](http://www.lsv.ens-cachan.fr/~gastin/ltl2ba/) or [LTL3BA](https://sourceforge.net/projects/ltl3ba/) as the LTL-to-NBA tool)
 - `hoa-ltl2tgba-for-prism` <br>
      ([Spot](https://spot.lre.epita.fr/)'s [`ltl2tgba`](https://spot.lre.epita.fr/ltl2tgba.html))
 - `hoa-ltl3dra-for-prism` <br>
@@ -56,16 +56,16 @@ prism model.prism -pf "P=? [ G F x=1 ]" -ltl2datool hoa-rabinizer-for-prism -ltl
 From the GUI, configuring the external LTL converter is done with the two options
 "Use external LTL-&gt;DA tool" and "LTL syntax for external LTL-&gt;DA tool".
 
-Another related option is "All path formulas via automata" (command-line switch [`-pathviaautomata`](../Reference/CommandLineSwitches.md#pathviaautomata)), which forces construction of an automata
+Another related option is "All path formulas via automata" (command-line switch [`-pathviaautomata`](../Reference/CommandLineSwitches.md#pathviaautomata)), which forces construction of an automaton
 when computing the probability of a path formula, even if it is not needed. This is primarily intended for debugging/testing, not regular use.
 
 As mentioned above, PRISM's external LTL-to-automaton interfacing works using the
 [HOA](http://adl.github.io/hoaf/) format
-(and, in particular,  using the [`jhoafparser`](http://automata.tools/hoa/jhoafparser/) HOA parser.
+(and, in particular, using the [`jhoafparser`](http://automata.tools/hoa/jhoafparser/) HOA parser).
 Currently, PRISM can handle automata in HOA format that are
 deterministic and complete, with state-based acceptance.
 Automata with transition-based acceptance are converted to state-based acceptance by PRISM.
 For DTMC and  CTMC model checking, generic acceptance conditions are supported, i.e.,
 anything that can be specified as an `Acceptance:` header in HOA format.
-For MDP model checking, currently Rabin and generalized Rabin acceptance
+For MDP model checking, currently Rabin and generalised Rabin acceptance
 specified via the `acc-name:` header are supported. See the [HOA format specification](http://adl.github.io/hoaf/) for details.

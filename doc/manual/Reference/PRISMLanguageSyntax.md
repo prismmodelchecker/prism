@@ -125,7 +125,7 @@ New models and properties should use the current forms.
 * File extensions: property files used to have extensions `.pctl` or `.csl`, not `.props`.
 * Model types: `probabilistic`, `nondeterministic` and `stochastic` were formerly synonyms for `dtmc`, `mdp`, `ctmc`.
 * Integer-valued constants: were previously declared as `const N = 5;`, meaning `const int N = 5;`.
-* Double-valued constants: could previous also be written as `rate r = 0.5;` or `prob p = 0.1;`, meaning `const double r = 0.5;`.
+* Double-valued constants: could previously also be written as `rate r = 0.5;` or `prob p = 0.1;`, meaning `const double r = 0.5;`.
 * Functions: could be written with a special `func` keyword, e.g., `func(floor, x)` or `func(min, a, b)`, instead of the current forms `floor(x)` and `min(a, b)`.
 * Filters: the old-style syntax for [filters](../PropertySpecification/Filters.md) in properties was, e.g., `P=? [ path {states} ]` for `filter(state, P=? [ path ], states)`,
   with `{states}{min}`, `{states}{max}` and `{states}{min}{max}` for the `min`, `max` and `range` filters.

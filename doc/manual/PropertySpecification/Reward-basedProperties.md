@@ -27,10 +27,10 @@ There are various different types of reward properties:
 
 - "reachability reward": `F prop`
 - "co-safe LTL reward": e.g. `F (prop1 & (F prop2))`
-- "cumulative reward" : `C<=t`
-- "total reward" : `C`
-- "instantaneous reward" : `I=t`
-- "steady-state reward" : `S`.
+- "cumulative reward": `C<=t`
+- "total reward": `C`
+- "instantaneous reward": `I=t`
+- "steady-state reward": `S`
 
 Below, we consider each of these cases in turn.
 The descriptions here are kept relatively informal.
@@ -55,10 +55,10 @@ the reward accumulated in that state is *r* x *t*.
 Hence, the total reward for a path in a CTMC is the sum of these products for each state along the path
 plus the sum of the transition rewards for each transition between these states.
 
-The reward property "`F prop`" corresponds to the reward cumulated along a path
+The reward property "`F prop`" corresponds to the reward accumulated along a path
 until a state satisfying property `prop` is reached,
-where rewards are cumulated as described above.
-State rewards for the `prop`-satisfying state reached are not included in the cumulated value.
+where rewards are accumulated as described above.
+State rewards for the `prop`-satisfying state reached are not included in the accumulated value.
 In the case where the probability of reaching a state satisfying `prop` is less than 1, the reward is equal to infinity.
 
 A common application of this type of property is the case when the rewards associated with the model correspond to time.
@@ -83,7 +83,7 @@ R=? [ F (goal=1 & F goal=2) ]
 ```
 
 and this property, for an MDP, minimises the expected reward until `loc` equals 1,
-having passed only through states where `loc` never equals 4
+having passed only through states where `loc` never equals 4:
 
 ```prism
 Rmin=? [ loc!=4 U loc=1 ]
@@ -97,18 +97,18 @@ and remains true for ever once it becomes true for the first time.
 For simplicity, PRISM actually supports the *syntactic* co-safe fragment of LTL,
 which is defined as any LTL formula that only uses the temporal operators `F`, `U` and `X`
 (but not `G`, for example).
-PRISM's notation for LTL formulas is described [here](ThePOperator.md).
+PRISM's notation for LTL formulas is described in "[LTL-style path properties](ThePOperator.md#ltl)".
 
 <a id="cumulative"></a>
 ## "Cumulative reward" properties
 
 "Cumulative reward" properties also associate a reward with each path of a model,
 but only up to a given time bound.
-The property `C<=t` corresponds to the reward cumulated along a path
+The property `C<=t` corresponds to the reward accumulated along a path
 until `t` time units have elapsed.
 For DTMCs and MDPs, the bound `t` must evaluate to an integer;
 for CTMCs, it can evaluate to double.
-State and transition rewards along a path are cumulated exactly as described in the previous section.
+State and transition rewards along a path are accumulated exactly as described in the previous section.
 
 A typical application of this type of property is the following.
 Consider a model of a disk-drive controller which includes a queue of incoming disk requests.
@@ -128,7 +128,7 @@ would return, for a given state of the model,
 
 "Total reward" properties refer to the accumulation of state and transition rewards
 in the same way as for "reachability reward" and "cumulative reward" properties,
-but the rewards is accumulated indefinitely,
+but the reward is accumulated indefinitely,
 i.e. the total reward accumulated along the whole (infinite) path.
 Note that this means that, unless a path ends up remaining forever in states with zero reward,
 the total reward will be infinite.
@@ -166,7 +166,7 @@ they can refer to any instantaneous measure of interest for a state.
 <a id="steady-state"></a>
 ## "Steady-state reward" properties
 
-Unlike the previous three types of property,
+Unlike the previous types of property,
 "steady-state reward" properties relate not to paths, but rather to the reward in the long-run.
 A typical application of this type of property would be, in the case where
 the rewards associated with the model correspond to power consumption, the property:
@@ -181,7 +181,7 @@ As for the [S operator](TheSOperator.md), these properties are currently only su
 <a id="reward-structure"></a>
 ## Which reward structure?
 
-In the case where a PRISM model has multiple [reward structures](../ThePRISMLanguage/CostsAndRewards.md) you may need to specify which reward structure your property refers to. This is done by placing the information in braces (`{}`) after the `R` operator. You can do so either using the name assigned to a reward structure (if any) or using the index (where `1` means the first rewards structure in the PRISM model file, `2` the second, etc.). Examples are:
+In the case where a PRISM model has multiple [reward structures](../ThePRISMLanguage/CostsAndRewards.md) you may need to specify which reward structure your property refers to. This is done by placing the information in braces (`{}`) after the `R` operator. You can do so either using the name assigned to a reward structure (if any) or using the index (where `1` means the first reward structure in the PRISM model file, `2` the second, etc.). Examples are:
 
 ```prism
 R{"num_failures"}=? [ C<=10.0 ]
@@ -205,3 +205,12 @@ Rmin=? [ F{discount=0.9} "goal" ]
 R=? [ C{discount=0.5}<=100 ]
 Rmax=? [ C{discount=0.9} ]
 ```
+
+With a discount factor $d$, a reward earned in the $i$th step of a path (counting from 0) is multiplied by $d^i$.
+For example, for a DTMC, the property `R=? [ C{discount=d}<=k ]` gives, for a state $s$, the value:
+
+$$\mathbb{E}_s\Big[\, \sum_{i=0}^{k-1} d^i \big( \rho(s_i) + \iota(s_i, s_{i+1}) \big) \Big]$$
+
+where $s_0 s_1 s_2 \ldots$ is a path starting in $s_0 = s$, $\rho$ gives the state rewards and $\iota$ the transition rewards.
+With $d=1$, this is the same as the undiscounted `C<=k`.
+For MDPs, the value is minimised or maximised over strategies, as for other reward properties.

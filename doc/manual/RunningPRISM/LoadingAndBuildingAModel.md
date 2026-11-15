@@ -1,6 +1,6 @@
 # Loading and building a model
 
-Typically, when using PRISM, the first step is to load a model that has been specified in the PRISM modelling language. If using the GUI, select menu option "Model | Open Model" and choose a file. There are a selection of sample PRISM model files in the `prism-examples` directory of the distribution.
+Typically, when using PRISM, the first step is to load a model that has been specified in the PRISM modelling language. If using the GUI, select menu option "Model | Open Model" and choose a file. There is a selection of sample PRISM model files in the `prism-examples` directory of the distribution.
 A few very small models are contained in the subdirectory `simple`;
 the rest are in subdirectories grouped by model type.
 
@@ -36,17 +36,13 @@ PRISM will display a warning message in the log when deadlocks are fixed in this
 
 You can control whether deadlocks are automatically fixed in this way using the "Automatically fix deadlocks" option (or with command-line switches `-nofixdl` and `-fixdl`). When fixing is disabled, PRISM will report an error when the model contains deadlocks.
 
-If you have unwanted or unexpected deadlocks in your model, there are several ways you can detect then. Firstly, by disabling deadlock fixing (as described above), PRISM will display a list of deadlock states in the log. Alternatively, you can model check the [filter](../PropertySpecification/Filters.md) property `filter(print, "deadlock")`, which has the same effect.
+If you have unwanted or unexpected deadlocks in your model, there are several ways you can detect them. Firstly, by disabling deadlock fixing (as described above), PRISM will display a list of deadlock states in the log. Alternatively, you can model check the [filter](../PropertySpecification/Filters.md) property `filter(print, "deadlock")`, which has the same effect.
 
-To find out *how* deadlocks occur, i.e. which paths through the model lead to a deadlock state, there are several possibilities. Firstly, you can model check the [CTL](../PropertySpecification/Non-probabilisticProperties.md) property `E[F "deadlock"]`. When checked from the GUI, this will provide you with the option of display a path to a deadlock in the simulator. From the command-line, for example with:
+To find out *how* deadlocks occur, i.e. which paths through the model lead to a deadlock state, there are several possibilities. Firstly, you can model check the [CTL](../PropertySpecification/Non-probabilisticProperties.md) property `E[F "deadlock"]`. When checked from the GUI, this will provide you with the option of displaying a path to a deadlock in the simulator. From the command-line, a path to a deadlock will be displayed in the log, for example with:
 
 ```shell
-prism dice.prism -pf 'E[F "deadlock"]'
+prism model.prism -pf 'E[F "deadlock"]'
 ```
-
-[`dice.prism`](../files/dice.prism) is a DTMC model of Knuth's algorithm for simulating a die with a coin.
-
-a path to a deadlock will be displayed in the log.
 
 Finally, in the eventuality that the model is too large to be model checked, you can still use the [simulator](Simulation.md) to search for deadlocks. This can be done either by manually generating random paths using the [simulator in the GUI](Simulation.md#gui) or, [from the command-line](Simulation.md#cl), e.g. by running:
 

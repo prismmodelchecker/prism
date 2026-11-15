@@ -25,7 +25,7 @@ by right-clicking on the appropriate list and selecting from the pop-up menu whi
 Positioning the mouse pointer over the property displays the corresponding error message.
 
 The pop-up menu for the properties list also contains a "Verify" option,
-which allows you instruct PRISM to model check the currently selected properties
+which allows you to instruct PRISM to model check the currently selected properties
 (hold down Ctrl/Cmd to select more than one property simultaneously).
 All properties can be model checked at once by selecting "Verify all".
 PRISM verifies each property individually.

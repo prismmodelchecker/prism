@@ -1,8 +1,8 @@
 # Real-time models
 
-PRISM supports *real-time* models, in particular,
-*probabilistic timed automata* (PTAs), which extend MDPs with the ability to model real-time behaviour.
-This is done in the style of *timed automata* [[AD94](../Reference/References.md#AD94)], by adding *clocks*,
+PRISM supports **real-time** models, in particular,
+**probabilistic timed automata** (PTAs), which extend MDPs with the ability to model real-time behaviour.
+This is done in the style of timed automata [[AD94](../Reference/References.md#AD94)], by adding **clocks**,
 real-valued variables which increase with time and can be reset. For background material on PTAs, see for example [[NPS13](../Reference/References.md#NPS13)].
 You can also find several example PTA models included in the PRISM distribution. Look in the `prism-examples/ptas` directory.
 
@@ -36,13 +36,13 @@ module M
 endmodule
 ```
 
-For modelling PTAs in PRISM, there is a new datatype, `clock`, used for variables that are clocks. Other types of PRISM variables can be defined in the usual way. In the example above, we use just a single integer variable `s` to represent the locations of the PTAs.
+For modelling PTAs in PRISM, there is a new datatype, `clock`, used for variables that are clocks. Other types of PRISM variables can be defined in the usual way. In the example above, we use just a single integer variable `s` to represent the locations of the PTA.
 
-In a PTA, transitions can include a *guard*, which constrains when it can occur based on the current value of clocks, and *resets*, which specify that a clock's values should be set to a new (integer) value. These are both specified in PRISM commands in the usual way: see, for example, the inclusion of `x>=1` in the guard for the `send`-labelled command and the updates of the form `(x'=0)` which reset the clock `x` to 0.
+In a PTA, transitions can include a *guard*, which constrains when it can occur based on the current value of clocks, and *resets*, which specify that a clock's value should be set to a new (integer) value. These are both specified in PRISM commands in the usual way: see, for example, the inclusion of `x>=1` in the guard for the `send`-labelled command and the updates of the form `(x'=0)` which reset the clock `x` to 0.
 
-The other new addition is an `invariant` construct, which is used to specify an expression describing the clock *invariants* for each PRISM module. These impose restrictions on the allowable values of clock variables, depending on the values of the other non-clock variables. The `invariant` construct should appear between the variable declarations and the commands of the module. Often, clock invariants are described separately for each PTA location; hence, the invariant will often take the form of a conjunction of implications, as in the example model above, but more general expressions are also permitted. In the example, the clock `x` must satisfy `x<=2` or `x<=3` when local variables `s` is 0 or 2, respectively. If `s` is 1, there is no restriction (since the invariant is effectively `true` in this case).
+The other new addition is an `invariant` construct, which is used to specify an expression describing the clock *invariants* for each PRISM module. These impose restrictions on the allowable values of clock variables, depending on the values of the other non-clock variables. The `invariant` construct should appear between the variable declarations and the commands of the module. Often, clock invariants are described separately for each PTA location; hence, the invariant will often take the form of a conjunction of implications, as in the example model above, but more general expressions are also permitted. In the example, the clock `x` must satisfy `x<=2` or `x<=3` when local variable `s` is 0 or 2, respectively. If `s` is 1, there is no restriction (since the invariant is effectively `true` in this case).
 
-Expressions that include reference to clocks, whether in guards or invariants, must satisfy certain conditions to facilitate model checking. In particular, references to clocks must appear as conjunctions of *simple clock constraints*, i.e. conjunctions of expressions of the form `x~c` or `x~y` where `x` and `y` are clocks, `c` is an integer-valued expression and `~` is one of `<`, `<=`, `>=`, `>`, `=`).
+Expressions that include reference to clocks, whether in guards or invariants, must satisfy certain conditions to facilitate model checking. In particular, references to clocks must appear as conjunctions of *simple clock constraints*, i.e. conjunctions of expressions of the form `x~c` or `x~y` where `x` and `y` are clocks, `c` is an integer-valued expression and `~` is one of `<`, `<=`, `>=`, `>`, `=`.
 
 PRISM makes several assumptions about PTAs, regardless of the engine used.
 
@@ -69,7 +69,7 @@ The choice of engine affects the models that can be analysed, as well as the [pr
 
 For the **stochastic games** and **backwards reachability** engines:
 
-- The model must also have a single initial state (i.e. the `init...endinit` construct is not permitted).
+- The model must have a single initial state (i.e. the `init...endinit` construct is not permitted).
 
 For the **digital clocks** engine:
 
@@ -77,7 +77,7 @@ For the **digital clocks** engine:
 
 - Diagonal clock constraints are not allowed, i.e. those containing references to two clocks, such as `x<=y`.
 
-The digital clocks method is based on a language-level translation from a PTA model to an MDP one. If you want to see the MDP PRISM model that was generated, add the switch `-exportdigital digital.prism` when model checking property to export the model file to `digital.prism`.
+The digital clocks method is based on a language-level translation from a PTA model to an MDP one. If you want to see the MDP PRISM model that was generated, add the switch `-exportdigital digital.prism` when model checking a property to export the model file to `digital.prism`.
 
 <a id="properties"></a>
 ## Properties

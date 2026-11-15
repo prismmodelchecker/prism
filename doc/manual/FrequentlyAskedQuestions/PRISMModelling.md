@@ -7,7 +7,7 @@ Click on a question to see its answer.
 
 There is no definitive answer to this. Because of PRISM's symbolic implementation, using data structures based on binary decision diagrams (BDDs), its performance can be unpredictable in this respect. There are also several factors that affect performance, including the type of model and property being checked and the engine being used (PRISM has several different engines, which have varying performance).
 
-Having said that, using the default engine in PRISM (the “hybrid” engine), you can normally expect to be able to handle models with up to $10^7$–$10^8$ states on a typical PC. Using the MTBDD engine, you may be able to analyse much larger models (on some of the PRISM case studies, for example, PRISM can do numerical analysis of models with as many as 10<sup>10</sup> or 10<sup>11</sup> states). The manual has more information about PRISM's [engines](../ConfiguringPRISM/ComputationEngines.md).
+Having said that, using the default engine in PRISM (the "hybrid" engine), you can normally expect to be able to handle models with up to $10^7$–$10^8$ states on a typical PC. Using the MTBDD engine, you may be able to analyse much larger models (on some of the PRISM case studies, for example, PRISM can do numerical analysis of models with as many as $10^{10}$ or $10^{11}$ states). The manual has more information about PRISM's [engines](../ConfiguringPRISM/ComputationEngines.md).
 
 </details>
 
@@ -20,7 +20,7 @@ The size of a probabilistic model (i.e. the number of states/transitions) is cri
 
 - Similarly, can you (if only temporarily) reduce the number of modules/components of your model? Start with the smallest number of components possible and then add others one by one.
 
-- Do you have any inter-dependencies between variables? For example, perhaps you have some variables which are simply functions of other variables of the model. Even if these are convenient for model checking, they can be replaced with [formulas or labels](../ThePRISMLanguage/ConstantsLabelsAndFormulas.md), which do not contribute to the state space.
+- Do you have any inter-dependencies between variables? For example, perhaps you have some variables which are simply functions of other variables of the model. Even if these are convenient for modelling, they can be replaced with [formulas or labels](../ThePRISMLanguage/ConstantsLabelsAndFormulas.md), which do not contribute to the state space.
 
 - Do any variables include more detail than is necessary for the model? Perhaps this can be exploited in order to reduce the number of variables in your model.
 
@@ -31,7 +31,7 @@ The size of a probabilistic model (i.e. the number of states/transitions) is cri
 <details id="ordering">
 <summary>How can I choose a good variable ordering?</summary>
 
-Because PRISM is a symbolic model checker, the amount of memory required to store the probabilistic model can vary (sometime unpredictably) according to several factors. One example is the order in which the variables of your model appear in the model file. In general, there is no definitive answer to what the best ordering is but the following heuristics are a good guide.
+Because PRISM is a symbolic model checker, the amount of memory required to store the probabilistic model can vary (sometimes unpredictably) according to several factors. One example is the order in which the variables of your model appear in the model file. In general, there is no definitive answer to what the best ordering is but the following heuristics are a good guide.
 
 - Variables which are closely related should appear close together
 
@@ -50,7 +50,7 @@ For technical details about variable ordering issues, see e.g. section 8 of [[HK
 
 All delays in a CTMC need to be modelled as *exponential* distributions. This is what makes them efficient to analyse. If you included a transition whose delay was *deterministic*, i.e. which always occurred after exactly the same delay,  the model would no longer be a CTMC.
 
-One solution to this, if your model require such a delay, is to approximate a deterministic delay with an [Erlang distribution](http://en.wikipedia.org/wiki/Erlang_distribution) (a special case of a phase-type distribution). See for example this PRISM model:
+One solution to this, if your model requires such a delay, is to approximate a deterministic delay with an [Erlang distribution](http://en.wikipedia.org/wiki/Erlang_distribution) (a special case of a phase-type distribution). See for example this PRISM model:
 
 ```prism
 ctmc
@@ -76,7 +76,7 @@ module main
 endmodule
 ```
 
-In the model, the occurrence of the go-labelled action occurs with an Erlang distribution with mean `mean` and shape `k`. The special case of `k`=1 is just an exponential distribution. The graph below shows the probability distribution of the delay, i.e. of `P=? [ F<=T x=1 ]` for different values of `k`.
+In the model, the go-labelled action occurs after a delay with an Erlang distribution with mean `mean` and shape `k`. The special case of `k`=1 is just an exponential distribution. The graph below shows the probability distribution of the delay, i.e. of `P=? [ F<=T x=1 ]` for different values of `k`.
 
 ![Plot of probability against time T from 0 to 50, one curve per shape k (1 to 10, and 1000). The k=1 curve rises gradually like an exponential distribution; as k increases the curves become steeper around T=10, and for k=1000 the probability jumps from 0 to 1 almost exactly at T=10.](../files/faq-erlang.jpg)
 

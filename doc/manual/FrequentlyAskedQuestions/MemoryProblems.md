@@ -82,7 +82,7 @@ then increasing these limits probably will not help: PRISM is just trying to all
 
 Here are some general tips:
 
-- Try experimenting with using the different *engines* in PRISM. Read the section "[Configuring PRISM - Computation Engines](../ConfiguringPRISM/ComputationEngines.md)" for details.
+- Try experimenting with using the different *engines* in PRISM. Read the section "[Computation engines](../ConfiguringPRISM/ComputationEngines.md)" for details.
 
 - Look at the detailed output of PRISM for information about memory usage. If you are using the hybrid (or sparse) engine and the limiting factor in terms of memory is creation of the vectors, then you have no choice but to try and reduce the size (number of states) of your model. If you are using the MTBDD engine, it is also well worth considering the variable ordering of your model. Both topics are discussed in the "[PRISM modelling](PRISMModelling.md)" section.
 
@@ -105,7 +105,7 @@ or:
 Exception in thread "main" java.lang.StackOverflowError
 ```
 
-You can resolve this problem by increasing the memory allocated to Java.
-See "[Java memory](../ConfiguringPRISM/MemoryAndModelSize.md#javamaxmem)" for details of this.
+You can resolve this problem by increasing the memory (for `OutOfMemoryError`) or the stack size (for `StackOverflowError`) allocated to Java.
+See "[Java memory](../ConfiguringPRISM/MemoryAndModelSize.md#javamaxmem)" for details of both.
 
 </details>

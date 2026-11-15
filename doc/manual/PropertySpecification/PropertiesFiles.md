@@ -6,7 +6,7 @@ a plain text file with file extension `.props`.
 This contains one or more properties,
 each of which should be terminated with a semicolon (but the parser is not strict on this).
 Properties can refer to various aspects of the model to which they relate
-(variables names, labels, etc.) but can also define further
+(variable names, labels, etc.) but can also define further
 [constants and labels](../ThePRISMLanguage/ConstantsLabelsAndFormulas.md)
 in the same style as in model files.
 Comments are also allowed.
@@ -16,7 +16,7 @@ An example file is:
 
 As in the examples above, **labels** (such as `"terminate"` or `"phase1"`) are frequently used in properties to identify sets of states.
 These are essentially the same as **atomic propositions** in temporal logic.
-Labels are just Boolean-valued expressions over the states variables of the model (and, optionally, constants).
+Labels are just Boolean-valued expressions over the state variables of the model (and, optionally, constants).
 Such expressions can also be used directly in properties, without labels, as in the final example above.
 This is useful when a property is parameterised by a constant.
 

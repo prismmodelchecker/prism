@@ -26,7 +26,7 @@ multi(Pmin=? [ F "error1" ], P<0.02 [ F "error2" ])
 
 meaning "what is the minimum possible probability of reaching `"error1"`, over all strategies of the MDP for which the probability of reaching `"error2"` is less than 0.02?".
 
-A "Pareto" queries leaves both of the objectives unbounded, e.g.:
+A "Pareto" query leaves both of the objectives unbounded, e.g.:
 
 ```prism
 multi(Pmin=? [ F "error1" ], Pmin=? [ F "error2" ])
@@ -62,9 +62,9 @@ Multi-objective queries can also refer to the expected total cumulative value of
 multi(R{"time"}min=?[ C ], R{"energy"}<=1.45 [ C ])
 ```
 
-"What is the minimum expected cumulative value of reward structure `"time"`, such that the expected cumulative value of reward structure `"energy"` is below 1.45.
+"What is the minimum expected cumulative value of reward structure `"time"`, such that the expected cumulative value of reward structure `"energy"` is below 1.45?"
 
-Note that this `C` reward operator differs from the `F "target"` operator, usually used for standard (single-objective) MDP model checking. Whereas the `F "target"` operator refers to the expected reward accumulated until a `"target"` state is reached the `C` operator refers to the expected *total* reward.
+Note that this `C` reward operator differs from the `F "target"` operator, usually used for standard (single-objective) MDP model checking. Whereas the `F "target"` operator refers to the expected reward accumulated until a `"target"` state is reached, the `C` operator refers to the expected *total* reward.
 
 A few important notes regarding rewards:
 
@@ -83,6 +83,9 @@ multi(R{"power"}min=? [ C<=k ], R{"queue"}<=r [ C<=k ])
 
 PRISM can perform multi-objective model checking using two distinct solution methods, which are described in [[FKN+11](../Reference/References.md#FKN+11)] and [[FKP12](../Reference/References.md#FKP12)]. The former is based on the use of linear programming; the latter reduces multi-objective model checking to a series of simpler problems, solved using value iteration (or the Gauss-Seidel variant of value iteration). The default is "Value iteration". You can change this in the GUI using the option "MDP multi-objective solution methods", or using the command-line switches `-lp`, `-valiter`, `-gs`.
 
-There are some restrictions for the different methods, e.g.
+There are some restrictions:
 
-- Linear programming does not support time-bounded properties or Pareto queries
+- Multi-objective queries are implemented in the sparse engine only. If the hybrid engine is selected, PRISM switches to the sparse engine automatically; the MTBDD and explicit engines are not supported.
+- Linear programming does not support time-bounded objectives or Pareto queries; use value iteration for these.
+- Values are only computed from a single initial state.
+- Fairness and interval iteration are not supported.

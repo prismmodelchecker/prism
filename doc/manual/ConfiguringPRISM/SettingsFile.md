@@ -27,10 +27,16 @@ prism -help exportresults
 prism -help exportmodel
 ```
 
-The settings file is *ignored* by the command-line version (unlike earlier versions of PRISM, where it was used). You can, however, request that the settings file *is* read, using the [`-settings`](../Reference/CommandLineSwitches.md#settings) switch, e.g.:
+The settings file is *ignored* by the command-line version (unlike earlier versions of PRISM, where it was used). You can, however, request that the settings file *is* read, using the [`-settings`](../Reference/CommandLineSwitches.md#settings) switch, e.g., on Linux:
 
 ```shell
-prism -settings ~/.prism
+prism -settings ~/.config/prism.settings
+```
+
+or on macOS:
+
+```shell
+prism -settings ~/Library/Preferences/prism.settings
 ```
 
 The other pages in this section describe the most important configuration options.

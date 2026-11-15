@@ -24,7 +24,7 @@ You can also change the level of precision used to check that probabilities sum 
 <a id="precomputation"></a>
 ## Precomputation
 
-By default, PRISM's probabilistic model checking algorithms use an initial *precomputation* step which uses graph-based techniques to efficient detect trivial cases where probabilities are 0 or 1. This can often result in improved performance and also reduce round-off errors. Occasionally, though, you may want to disable this step for efficiency (e.g. if you know that there are no/few such states and the precomputation process is slow). This can be done with the [`-nopre`](../Reference/CommandLineSwitches.md#nopre) switch. You can also disable the individual algorithms for probability 0/1 using switches [`-noprob0`](../Reference/CommandLineSwitches.md#noprob0) and [`-noprob1`](../Reference/CommandLineSwitches.md#noprob1).
+By default, PRISM's probabilistic model checking algorithms use an initial *precomputation* step which uses graph-based techniques to efficiently detect trivial cases where probabilities are 0 or 1. This can often result in improved performance and also reduce round-off errors. Occasionally, though, you may want to disable this step for efficiency (e.g. if you know that there are no/few such states and the precomputation process is slow). This can be done with the [`-nopre`](../Reference/CommandLineSwitches.md#nopre) switch. You can also disable the individual algorithms for probability 0/1 using switches [`-noprob0`](../Reference/CommandLineSwitches.md#noprob0) and [`-noprob1`](../Reference/CommandLineSwitches.md#noprob1).
 
 <a id="timeouts"></a>
 ## Time-outs
