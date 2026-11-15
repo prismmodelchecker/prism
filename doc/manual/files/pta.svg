@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="501" height="300" viewBox="0 0 455 273" font-family="Helvetica, Arial, sans-serif">
+<defs><marker id="a" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="10" markerHeight="10" markerUnits="userSpaceOnUse" orient="auto"><path d="M0,1.5 L10,5 L0,8.5 z" fill="#000"/></marker></defs>
+<rect width="455" height="273" fill="#fff"/>
+<line x1="10.0" y1="150.0" x2="40.0" y2="150.0" stroke="#000" stroke-width="1.4" marker-end="url(#a)"/>
+<line x1="100.0" y1="150.0" x2="165.0" y2="150.0" stroke="#000" stroke-width="1.4"/>
+<line x1="165.0" y1="150.0" x2="275.0" y2="76.6" stroke="#000" stroke-width="1.4" marker-end="url(#a)"/>
+<line x1="165.0" y1="150.0" x2="275.0" y2="223.4" stroke="#000" stroke-width="1.4" marker-end="url(#a)"/>
+<line x1="322.3" y1="219.9" x2="400.0" y2="150.0" stroke="#000" stroke-width="1.4"/>
+<line x1="400.0" y1="150.0" x2="322.3" y2="80.1" stroke="#000" stroke-width="1.4" marker-end="url(#a)"/>
+<path d="M400.0,150.0 C445.0,215.0 385.0,262.0 329.5,245.2" fill="none" stroke="#000" stroke-width="1.4" marker-end="url(#a)"/>
+<circle cx="165" cy="150" r="3.5" fill="#000"/>
+<circle cx="400" cy="150" r="3.5" fill="#000"/>
+<text x="132.0" y="138.0" font-size="14" text-anchor="middle" dominant-baseline="central" font-style="italic" fill="#b3001b">send</text>
+<text x="132.0" y="163.0" font-size="14" text-anchor="middle" dominant-baseline="central" fill="#1f4e9c">x≥1</text>
+<text x="214.0" y="101.0" font-size="14" text-anchor="end" dominant-baseline="central">0.9</text>
+<text x="226.0" y="126.0" font-size="14" text-anchor="start" dominant-baseline="central" fill="#1f4e9c">x:=0</text>
+<text x="214.0" y="199.0" font-size="14" text-anchor="end" dominant-baseline="central">0.1</text>
+<text x="226.0" y="174.0" font-size="14" text-anchor="start" dominant-baseline="central" fill="#1f4e9c">x:=0</text>
+<text x="352.0" y="176.0" font-size="14" text-anchor="end" dominant-baseline="central" font-style="italic" fill="#b3001b">retry</text>
+<text x="370.0" y="197.0" font-size="14" text-anchor="start" dominant-baseline="central" fill="#1f4e9c">x≥2</text>
+<text x="372.0" y="106.0" font-size="14" text-anchor="start" dominant-baseline="central">0.95</text>
+<text x="418.0" y="240.0" font-size="14" text-anchor="start" dominant-baseline="central">0.05</text>
+<text x="418.0" y="258.0" font-size="14" text-anchor="start" dominant-baseline="central" fill="#1f4e9c">x:=0</text>
+<circle cx="70" cy="150" r="30" fill="#fdf7de" stroke="#eedc8c" stroke-width="1.4"/>
+<text x="70.0" y="141.0" font-size="15" text-anchor="middle" dominant-baseline="central">0</text>
+<text x="70.0" y="160.0" font-size="13" text-anchor="middle" dominant-baseline="central" fill="#1f4e9c">x≤2</text>
+<circle cx="300" cy="60" r="30" fill="#fdf7de" stroke="#eedc8c" stroke-width="1.4"/>
+<text x="300.0" y="51.0" font-size="15" text-anchor="middle" dominant-baseline="central">1</text>
+<text x="300.0" y="70.0" font-size="13" text-anchor="middle" dominant-baseline="central" fill="#1f4e9c">true</text>
+<circle cx="300" cy="240" r="30" fill="#fdf7de" stroke="#eedc8c" stroke-width="1.4"/>
+<text x="300.0" y="231.0" font-size="15" text-anchor="middle" dominant-baseline="central">2</text>
+<text x="300.0" y="250.0" font-size="13" text-anchor="middle" dominant-baseline="central" fill="#1f4e9c">x≤3</text>
+</svg>

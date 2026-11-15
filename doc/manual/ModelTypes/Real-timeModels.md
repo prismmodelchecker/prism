@@ -13,7 +13,7 @@ This page describes how PTAs are modelled, the engines that PRISM uses to analys
 
 Before describing how PTA features are incorporated into the PRISM modelling language, we give a simple example. Here is a small PTA:
 
-![PTA with three locations. Location 0 (invariant x≤2) has a send action, enabled when x≥1, that goes to location 1 (labelled true) with probability 0.9 or location 2 (invariant x≤3) with probability 0.1, resetting x to 0 in both cases. From location 2, a retry action enabled when x≥2 goes to location 1 with probability 0.95, or stays in location 2 with probability 0.05 and resets x to 0.](../files/pta.png)
+![PTA with three locations. Location 0 (invariant x≤2) has a send action, enabled when x≥1, that goes to location 1 (labelled true) with probability 0.9 or location 2 (invariant x≤3) with probability 0.1, resetting x to 0 in both cases. From location 2, a retry action enabled when x≥2 goes to location 1 with probability 0.95, or stays in location 2 with probability 0.05 and resets x to 0.](../files/pta.svg)
 
 and here is a corresponding PRISM model:
 
