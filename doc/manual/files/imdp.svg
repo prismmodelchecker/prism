@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="599" height="275" viewBox="0 0 545 250" font-family="Helvetica, Arial, sans-serif">
+<defs><marker id="a" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="10" markerHeight="10" markerUnits="userSpaceOnUse" orient="auto"><path d="M0,1.5 L10,5 L0,8.5 z" fill="#000"/></marker></defs>
+<rect width="545" height="250" fill="#fff"/>
+<line x1="10.0" y1="120.0" x2="45.0" y2="120.0" stroke="#000" stroke-width="1.4" marker-end="url(#a)"/>
+<line x1="88.3" y1="103.0" x2="165.0" y2="32.0" stroke="#000" stroke-width="1.4"/>
+<text x="112.0" y="66.0" font-size="14" text-anchor="end" dominant-baseline="central" font-style="italic" fill="#b3001b">fast</text>
+<line x1="165.0" y1="32.0" x2="279.1" y2="106.3" stroke="#000" stroke-width="1.4" marker-end="url(#a)"/>
+<text x="222.0" y="94.0" font-size="14" text-anchor="end" dominant-baseline="central">[0.1,0.3]</text>
+<line x1="165.0" y1="32.0" x2="426.1" y2="112.6" stroke="#000" stroke-width="1.4" marker-end="url(#a)"/>
+<text x="320.0" y="52.0" font-size="14" text-anchor="middle" dominant-baseline="central">[0.7,0.9]</text>
+<line x1="90.2" y1="134.8" x2="179.8" y2="200.2" stroke="#000" stroke-width="1.4" marker-end="url(#a)"/>
+<text x="126.0" y="178.0" font-size="14" text-anchor="end" dominant-baseline="central" font-style="italic" fill="#b3001b">slow</text>
+<line x1="225.0" y1="215.0" x2="300.0" y2="215.0" stroke="#000" stroke-width="1.4"/>
+<text x="250.0" y="203.0" font-size="14" text-anchor="middle" dominant-baseline="central" font-style="italic" fill="#b3001b">slow</text>
+<line x1="300.0" y1="215.0" x2="300.0" y2="145.0" stroke="#000" stroke-width="1.4" marker-end="url(#a)"/>
+<text x="292.0" y="170.0" font-size="14" text-anchor="end" dominant-baseline="central">0.2</text>
+<line x1="300.0" y1="215.0" x2="428.9" y2="133.4" stroke="#000" stroke-width="1.4" marker-end="url(#a)"/>
+<text x="386.0" y="184.0" font-size="14" text-anchor="start" dominant-baseline="central">0.8</text>
+<path d="M468.0,103.0 C510.0,75.0 510.0,165.0 468.0,137.0" fill="none" stroke="#000" stroke-width="1.4" marker-end="url(#a)"/>
+<text x="504.0" y="120.0" font-size="14" text-anchor="start" dominant-baseline="central" font-style="italic" fill="#b3001b">done</text>
+<path d="M318.0,103.0 C360.0,75.0 360.0,165.0 318.0,137.0" fill="none" stroke="#000" stroke-width="1.4" marker-end="url(#a)"/>
+<text x="354.0" y="120.0" font-size="14" text-anchor="start" dominant-baseline="central" font-style="italic" fill="#b3001b">done</text>
+<circle cx="70" cy="120" r="25" fill="#fdf7de" stroke="#eedc8c" stroke-width="1.4"/>
+<text x="70.0" y="112.0" font-size="15" text-anchor="middle" dominant-baseline="central">0</text>
+<text x="70.0" y="129.0" font-size="12" text-anchor="middle" dominant-baseline="central" fill="#555">start</text>
+<circle cx="200" cy="215" r="25" fill="#fdf7de" stroke="#eedc8c" stroke-width="1.4"/>
+<text x="200.0" y="207.0" font-size="15" text-anchor="middle" dominant-baseline="central">1</text>
+<text x="200.0" y="224.0" font-size="12" text-anchor="middle" dominant-baseline="central" fill="#555">slow</text>
+<circle cx="300" cy="120" r="25" fill="#fdf7de" stroke="#eedc8c" stroke-width="1.4"/>
+<text x="300.0" y="112.0" font-size="15" text-anchor="middle" dominant-baseline="central">3</text>
+<text x="300.0" y="129.0" font-size="12" text-anchor="middle" dominant-baseline="central" fill="#555">crash</text>
+<circle cx="450" cy="120" r="25" fill="#fdf7de" stroke="#eedc8c" stroke-width="1.4"/>
+<text x="450.0" y="112.0" font-size="15" text-anchor="middle" dominant-baseline="central">2</text>
+<text x="450.0" y="129.0" font-size="12" text-anchor="middle" dominant-baseline="central" fill="#555">goal</text>
+<circle cx="165" cy="32" r="3.5" fill="#000"/>
+<circle cx="300" cy="215" r="3.5" fill="#000"/>
+</svg>

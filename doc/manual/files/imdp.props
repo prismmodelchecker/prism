@@ -1,0 +1,5 @@
+// Maximum probability of reaching the goal (worst case)
+Pmaxmin=? [ F "goal" ];
+
+// Maximum probability of reaching the goal (best case)
+Pmaxmax=? [ F "goal" ];
