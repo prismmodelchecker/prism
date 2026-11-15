@@ -87,6 +87,6 @@ Secondly, probabilities and expected rewards are only computed from a single ini
 
 POPTAs are verified using the "digital clocks" approach to
 translate them into a POMDP, so they inherit the same
-[restrictions](Real-timeModels.md#properties)
+[restrictions](Real-timeModels.md#engines)
 (that strict or diagonal clock comparisons are not allowed).
 However for POPTAs, time-bounded probabilistic reachability is also supported.
