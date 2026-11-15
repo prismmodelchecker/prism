@@ -90,11 +90,15 @@ When computing transient probabilities of a CTMC
 (either [directly](../RunningPRISM/ComputingSteady-stateAndTransientProbabilities.md) or when verifying [time-bounded operators](../PropertySpecification/ThePOperator.md#bounded) of CSL), there are two options:
 *uniformisation* and *fast adaptive uniformisation* (FAU). These can be selected using the GUI option "Transient probability computation method", or using the command-line switch [`-transientmethod <name>`](../Reference/CommandLineSwitches.md#transientmethod), where `<name>` is either `unif` or `fau`.
 
-**Uniformisation** is a standard iterative numerical method for computing transient probabilities on a CTMC, which works by reducing the problem to an analysis of a "uniformised" DTMC.
+### Uniformisation
+
+Uniformisation is a standard iterative numerical method for computing transient probabilities on a CTMC, which works by reducing the problem to an analysis of a "uniformised" DTMC.
 As an optimisation, when it is detected that the transient probabilities have converged, no further iterations are performed. If necessary (e.g. in case of round-off problems), this optimisation can be disabled with the "Use steady-state detection" option (command-line switch [`-nossdetect`](../Reference/CommandLineSwitches.md#nossdetect)).
 
 <a id="fau"></a>
-**Fast adaptive uniformisation** (FAU) [[MWDH10](../Reference/References.md#MWDH10)] is a method to efficiently approximate transient properties of large CTMCs. The basic idea is that only the parts of the model that are relevant for the current time period are kept in memory. In more detail, starting with the initial states, in each step FAU
+### Fast adaptive uniformisation (FAU)
+
+Fast adaptive uniformisation (FAU) [[MWDH10](../Reference/References.md#MWDH10)] is a method to efficiently approximate transient properties of large CTMCs. The basic idea is that only the parts of the model that are relevant for the current time period are kept in memory. In more detail, starting with the initial states, in each step FAU
 explores further states in a DTMC which is a discrete-time version of the original CTMC. By combining the
 probabilities there with those of a certain continuous-time stochastic process (a birth process), transient properties in the original CTMC can be computed. If it turns out that the probability of being in some state in the DTMC is below a given threshold, this state is removed from the model explored so far. After a given number of steps, which corresponds to the number of steps which are likely to happen within the time bound, the exploration can be stopped. In the implementation in PRISM [[DHK13](../Reference/References.md#DHK13)], FAU can be used to compute transient probability distributions and to model check the following types of non-nested CSL formulas: time-bounded until, instantaneous reward, cumulative reward.
 

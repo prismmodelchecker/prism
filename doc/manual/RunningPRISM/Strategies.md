@@ -1,20 +1,25 @@
 # Strategies
 
-Properties to be model checked on MDPs (and their variants, such as POMDPs or IMDPs) usually quantify over *strategies* (or *policies*) of the model, i.e., over the different possible ways that nondeterminism can be resolved in the model.
+Properties to be model checked on MDPs (and their variants, such as POMDPs or IMDPs) usually quantify over **strategies** (or **policies**) of the model,
+i.e., over the different possible ways that nondeterminism can be resolved in the model.
 For example, this property:
 
 ```prism
 Pmax=? [ F "goal" ]
 ```
 
-determines the maximum probability, over all strategies, of reaching a state satisfying the label `"goal"`. When checking such properties, you can also ask PRISM to generate a corresponding (optimal) strategy, which yields this maximum probability when followed. The strategy can then be viewed, exported or simulated.
+determines the maximum probability, over all strategies, of reaching a state satisfying the label `"goal"`.
+When checking such properties, you can also ask PRISM to generate a corresponding (optimal) strategy,
+which yields this maximum probability when followed. The strategy can then be viewed, exported or simulated.
 
 **Note:** PRISM uses the term *strategy* for all model types (other common names are *policy*, *scheduler* and *adversary*).
 Strategy generation is implemented in the ["explicit"](../ConfiguringPRISM/ComputationEngines.md) model checking engine,
 which is used automatically if strategy generation is requested.
 The "sparse" engine has a more limited *adversary generation* feature (see below).
 
-**Generating strategies**. Optimal strategies can be generated either from the command-line or the graphical user interface (GUI). For the former, use the `-exportstrat` switch. Simple examples are:
+## Generating strategies
+
+Optimal strategies can be generated either from the command-line or the graphical user interface (GUI). For the former, use the `-exportstrat` switch. Simple examples are:
 
 ```shell
 prism mdp.prism -pf 'Pmax=? [ F "goal" ]' -exportstrat stdout
@@ -34,9 +39,13 @@ From the same menu(s), you can then
 - view the strategy by printing it in the log
 - explore the strategy in the simulator
 
-**Strategy export types**. Strategies can be viewed or exported in several different formats:
+## Export formats
 
-(i) *Action list*. This is a list of the action taken in each state of the model, e.g.:
+Strategies can be viewed or exported in several different formats:
+
+### Action list
+
+An action list gives the action taken in each state of the model, e.g.:
 
 ```text
 (0,0):east
@@ -48,7 +57,9 @@ From the same menu(s), you can then
 
 where states, by default, are shown as a tuple of variable values.
 
-(ii) *Induced model*. This is a representation of the model that is induced when the strategy is applied. There are two "modes" for this export. The first (and default) is
+### Induced model
+
+An induced model is a representation of the model that is induced when the strategy is applied. There are two "modes" for this export. The first (and default) is
 *reduce*, which removes the nondeterminism resolved by the strategy (e.g., an MDP becomes a DTMC). This can be useful to re-import the model back into PRISM and analyse the induced model. The second is *restrict*, which shows the original model but with a restricted set of choices (e.g., an MDP with just one choice in each state).
 
 In each case, the induced model can be exported in various formats,
@@ -56,9 +67,12 @@ as for regular [model export](ImportingAndExportingModels.md#exporting),
 including UMB or explicit format,
 the latter either a combined (`.pexp`) file or just the transitions (`.tra`).
 
-(iii) *Dot file*. This is, like the previous format, a view of the model induced by the strategy, but in [Dot](https://www.graphviz.org/) format, which allows it to be visualised.
+### Dot file
 
-**Configuring strategy export**.
+A Dot file is, like an induced model, a view of the model induced by the strategy, but in [Dot](https://www.graphviz.org/) format, which allows it to be visualised.
+
+## Configuring strategy export
+
 As hinted in the command-line examples above, the `-exportstrat` switch uses the file extension to determine the preferred format: if the strategy is exported to a file with extension `.umb`/`.pexp`/`.tra` or `.dot`, then it uses an induced model or Dot file, respectively. Otherwise, the default is an action list. You can specify the desired format:
 
 ```shell
@@ -95,9 +109,13 @@ several other options are available for induced model export:
 - `headers` (`true` or `false`): whether to include headers when exporting rewards
 - `text` (`true` or `false`): whether to use textual form for UMB
 
-**Strategy types**. PRISM generates several types of strategies. The simplest are *memoryless deterministic* strategies, which pick a single action in each state, as in the examples above. For some query types (e.g., step-bounded properties, or LTL-based properties), *finite-memory* strategies are generated, where an additional memory value is used. For these, induced models or Dot files are most useful since they will also show how the memory values are updated as the strategy is executed. Note that, in these cases, the state indices of the strategy will correspond to the product model constructed during model checking, not the original model. The product model can be exported using the `-exportprodtrans` and `-exportprodstates` switches.
+## Strategy types
 
-**Adversary generation**. The "sparse" engine still includes PRISM's older "adversary generation" functionality,
+PRISM generates several types of strategies. The simplest are *memoryless deterministic* strategies, which pick a single action in each state, as in the examples above. For some query types (e.g., step-bounded properties, or LTL-based properties), *finite-memory* strategies are generated, where an additional memory value is used. For these, induced models or Dot files are most useful since they will also show how the memory values are updated as the strategy is executed. Note that, in these cases, the state indices of the strategy will correspond to the product model constructed during model checking, not the original model. The product model can be exported using the `-exportprodtrans` and `-exportprodstates` switches.
+
+## Adversary generation
+
+The "sparse" engine still includes PRISM's older "adversary generation" functionality,
 which exports the induced model of an optimal strategy for MDPs, as a DTMC or an MDP
 (switches [`-exportadv`](../Reference/CommandLineSwitches.md#exportadv) and [`-exportadvmdp`](../Reference/CommandLineSwitches.md#exportadvmdp),
 or the "Adversary export" option in the GUI).

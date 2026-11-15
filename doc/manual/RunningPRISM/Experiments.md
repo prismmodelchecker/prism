@@ -1,6 +1,6 @@
 # Experiments
 
-PRISM supports *experiments*, which are a way of automating multiple instances of model checking.
+PRISM supports **experiments**, which are a way of automating multiple instances of model checking.
 This is done by leaving one or more [constants](../ThePRISMLanguage/ConstantsLabelsAndFormulas.md#constants) undefined, e.g.:
 
 ```prism
@@ -18,6 +18,8 @@ prism cluster.prism cluster.props -prop 4 -const N=4,T=85.9
 Here, the model [`cluster.prism`](../files/cluster.prism) and properties [`cluster.props`](../files/cluster.props) are a CTMC of a workstation cluster and some of its properties,
 and [`-prop 4`](ModelChecking.md#cl) checks just the fourth property in the file.
 
+## Running experiments
+
 To run an experiment, provide a *range* of values for one or more of the constants. Model checking will be performed for all combinations of the constant values provided. For example:
 
 ```shell
@@ -34,21 +36,29 @@ You can also specify double-valued constants as fractions rather than decimals. 
 prism cluster.prism cluster.props -prop 4 -const N=4 -const T=1/3
 ```
 
-From the GUI, the same thing can be achieved by selecting a single property,
+## Experiments in the GUI
+
+From the GUI, an experiment is created by selecting a single property,
 right clicking on it and selecting "New experiment"
 (or alternatively using the popup menu in the "Experiments" panel).
 Values or ranges for each undefined constant can then be supplied in the resulting dialog.
+If you wish, you can tick the "Use Simulation" box at this point to use
+[statistical model checking](StatisticalModelChecking.md) for the experiment, rather than normal model checking.
+
 Details of the new experiment and its progress are shown in the panel.
 To stop the experiment before it has completed, click the red "Stop" button and it will
 halt after finishing the current iteration of model checking.
 Once the experiment has finished, right clicking on the experiment produces a pop-up menu,
 from which you can view the results of the experiment or export them to a file.
 
+## Plotting graphs
+
 For experiments based on properties which return numerical results, you can also use the GUI to plot graphs of the results.
 This can be done either before the experiment starts, by selecting the "Create graph" tick-box in the dialog used to create the experiment
 (in fact this box is ticked by default), or after the experiment's completion, by choosing "Plot results" from the pop-up menu on the experiment.
 A dialog appears, where you can choose which constant (if there are more than one) to use for the x-axis of the graph,
 and for which values of any other constants the results should be plotted.
+
 The graph will appear in the panel below the list of experiments.
 Right clicking on a graph and selecting "Graph options" brings up a dialog from which many properties of the graph can be configured.
 From the pop-up menu of a graph, you can also choose to print the graph (to a printer or Postscript file)
@@ -59,8 +69,6 @@ in an XML-based format (for reloading back into PRISM),
 or as code which can be used to generate the graph in Matlab.
 
 ![Screenshot of running an experiment in the Properties tab of the PRISM GUI](../files/gui2.png)
-
-Approximate computation of quantitative results obtained with the [simulator](StatisticalModelChecking.md) can also be used on experiments. In the GUI, select the "Use Simulation" option when defining the parameters for the experiment. From the command-line, just add the `-sim` switch as usual.
 
 <a id="exportresults"></a>
 ## Exporting results

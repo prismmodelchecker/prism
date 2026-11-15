@@ -17,10 +17,14 @@ But in practice they equally well represent costs.
 This section describes how to specify rewards in a PRISM model.
 We later describe [reward-based property specifications](../PropertySpecification/Reward-basedProperties.md).
 
+## State rewards
+
 Rewards are associated with models using `rewards ... endrewards` constructs,
 which can appear anywhere in a model file except within a module definition.
 These constructs contain one or more **reward items**.
-Consider the following simple example:
+Consider the following simple example,
+which defines **state rewards** for a model,
+i.e., a mapping just from its states to numerical values:
 
 ```prism
 rewards "r1"
@@ -29,7 +33,7 @@ endrewards
 ```
 
 This defines a reward structure with name `r1` (the name is optional)
-which assigns a reward of 1 to every state of the model.
+which assigns a reward of `1` to every state of the model.
 It comprises a single reward item, the left part of which (`true`) is a guard
 and the right part of which (`1`) is a reward.
 States of the model which satisfy the predicate in the guard are assigned the corresponding reward.
@@ -55,10 +59,12 @@ Any states which do not satisfy the guard of any reward item will have no reward
 For states which satisfy multiple guards, the reward assigned to the state
 is the sum of the rewards for all the corresponding reward items.
 
+## Transition rewards
+
 Rewards can also be assigned to transitions of a model.
 These are specified in a similar fashion to state rewards,
 within the `rewards ... endrewards` construct.
-Reward items describing transition rewards are of the form `[action] guard : reward;`,
+Reward items describing **transition rewards** are of the form `[action] guard : reward;`,
 the interpretation being that transitions from states which satisfy the guard `guard`
 and are labelled with the action `action` acquire the reward `reward`.
 For example:
@@ -78,6 +84,8 @@ As is the case for states, multiple reward items can specify rewards for a singl
 in which case the resulting reward is the sum of all the individual rewards.
 A model description can specify rewards for both states and transitions.
 These are all placed together in a single `rewards...endrewards` construct.
+
+## Multiple reward structures
 
 A PRISM model will often have multiple reward structures, for example:
 
