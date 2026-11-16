@@ -1,4 +1,4 @@
-# PEPA and SBML models
+# Other modelling languages
 
 As well as models in the PRISM language, PRISM can work with models written in two other languages:
 the stochastic process algebra PEPA, and SBML, the Systems Biology Markup Language.

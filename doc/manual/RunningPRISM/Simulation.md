@@ -1,9 +1,12 @@
 # Simulation
 
-PRISM includes a *simulator*, a tool which can be used to generate sample paths (executions) through a PRISM model. From the GUI, the simulator allows you to explore a model by interactively generating such paths. This is particularly useful for debugging models during development and for running sanity checks on completed models. Paths can also be generated from the command-line.
+PRISM includes a **simulator**, a tool which can be used to generate sample paths (executions) through a PRISM model.
+From the GUI, the simulator allows you to explore a model by interactively generating such paths.
+This is particularly useful for debugging models during development and for running sanity checks on completed models.
+Paths can also be generated from the command-line using the `-simpath` switch.
 
 <a id="gui"></a>
-## Generating a path in the GUI
+## GUI
 
 Once you have loaded a model into the PRISM GUI
 (note that it is not necessary to build the model),
@@ -40,7 +43,7 @@ The other tabs in this panel allow the value of path operators (taken from prope
 Another very useful feature for some models is to use the "Plot new path" option from the simulator, which generates a plot of some/all of the variable/reward values for a particular randomly generated path through the model.
 
 <a id="cl"></a>
-## Path generation from the command-line
+## Command-line
 
 It is also possible to generate random paths through a model using the command-line version of PRISM. This is achieved using the `-simpath` switch, which requires two arguments, the first describing the path to be generated and the second specifying the file to which the path should be output (as usual, specifying `stdout` sends output to the terminal). The following examples illustrate the various ways of generating paths in this way:
 
@@ -73,8 +76,8 @@ prism poll2.prism -simpath 10 stdout
 
 [`poll2.prism`](../files/poll2.prism) is a CTMC model of a simple polling system (also shown, with a diagram, in "[Explicit model files](../Reference/ExplicitModelFiles.md#poll2)").
 
-This shows the sequence of states in the path, i.e. the values of the variables in each state. In the example above, there are 4 variables: `s`, `a`, `s1` and `s2`.
-The first three columns show the type of transition taken to reach that state, its index within the path (starting from 0) and the time at which it was entered. The latter is only shown for continuous time models. The type of the transition is written as *[act]* if action label `act` was taken, and as *module1* if the module named `module1` takes an unlabelled transition.
+This shows the sequence of states in the path, i.e., the values of the variables in each state. In the example above, there are 4 variables: `s`, `a`, `s1` and `s2`.
+The first three columns show the type of transition taken to reach that state, its index within the path (starting from 0) and the time at which it was entered. The latter is only shown for continuous time models. The type of the transition is written as `[act]` if action label `act` was taken, and as `module1` if the module named `module1` takes an unlabelled transition.
 
 Further options can also be appended to the first parameter. For example, option `probs=true` also displays the probability/rate associated with each transition. For example:
 

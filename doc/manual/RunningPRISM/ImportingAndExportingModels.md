@@ -1,7 +1,7 @@
 # Importing and exporting models
 
-Once a model has been built, PRISM can export it to files, for examination or for use in another tool;
-conversely, a model that has already been built, by PRISM or another tool, can be imported from files.
+Once a model has been built, PRISM can **export** it to files, for examination or for use in another tool;
+conversely, you can **import** a model that has already been built, by PRISM or another tool.
 The file formats are described in "[Explicit model files](../Reference/ExplicitModelFiles.md)".
 
 <a id="exporting"></a>

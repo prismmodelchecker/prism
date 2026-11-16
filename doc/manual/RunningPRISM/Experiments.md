@@ -162,7 +162,7 @@ prism cluster.prism cluster.props -prop 4 -const N=4:5,T=0:10:20 -exportresults 
 // RESULT (N=5,T=20): 8.343575060356386E-6
 ```
 
-From the GUI, it is also possible to *import* previously exported results (in [DataFrame](https://pandas.pydata.org/docs/reference/api/pandas.DataFrame.html) format).
+From the GUI, it is also possible to **import** previously exported results (in [DataFrame](https://pandas.pydata.org/docs/reference/api/pandas.DataFrame.html) format).
 
 A related option is the `-exportvector <file>` switch, useful in general contexts, not for experiments.
 This exports the results for all states of the model
