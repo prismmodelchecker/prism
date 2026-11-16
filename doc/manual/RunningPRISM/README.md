@@ -28,6 +28,6 @@ from both the GUI and command line.
 - [Simulation](Simulation.md): exploring a model step by step, and generating random paths
 - [Statistical model checking](StatisticalModelChecking.md): approximate results by simulation
 - [Transient and steady-state probabilities](ComputingSteady-stateAndTransientProbabilities.md): probability distributions over a model's states
-- [Parametric model checking](ParametricModelChecking.md): exact results, and results as functions of model parameters
+- [Parametric model checking](ParametricModelChecking.md): results as functions of model parameters
 - [Importing and exporting models](ImportingAndExportingModels.md): writing a built model to files, and building one from files
 - [Other modelling languages](OtherLanguages.md): models written in the PEPA process algebra, or in SBML

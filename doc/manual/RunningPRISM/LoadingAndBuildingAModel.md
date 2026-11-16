@@ -18,7 +18,7 @@ Models can be edited or written from scratch in the GUI's editor.
 ## Building the model
 
 In order to perform model checking, PRISM will (in most cases) need to construct the corresponding probabilistic model,
-i.e., convert the PRISM model description to, for example, an MDP, DTMC, etc.
+i.e., convert the PRISM model description to an MDP, DTMC, etc.
 During this process, PRISM computes the set of states in the model which are reachable from the initial states and the transition matrix which represents the model.
 
 Model construction is done automatically when you perform [model checking](ModelChecking.md). However, you may also want to explicitly ask PRISM to build the model in order to test for errors or to see how large the model is. From the GUI, you can do this by selecting "Model | Build Model". If there are no errors during model construction, the number of states and transitions in the model will be displayed in the bottom left corner of the window.

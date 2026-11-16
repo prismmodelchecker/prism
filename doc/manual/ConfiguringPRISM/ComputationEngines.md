@@ -77,7 +77,7 @@ section for more details.
 ## Exact model checking
 
 PRISM can also compute exact results, using arbitrary precision arithmetic (switch [`-exact`](../Reference/CommandLineSwitches.md#exact)):
-see "[Exact and parametric model checking](../RunningPRISM/ParametricModelChecking.md#exact)".
+see "[Accuracy of results](../RunningPRISM/ModelChecking.md#accuracy)".
 
 <a id="pta"></a>
 ## PTA engines

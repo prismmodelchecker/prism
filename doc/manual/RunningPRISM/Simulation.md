@@ -161,7 +161,7 @@ When generating paths to a deadlock state, an additional `repeat=...` option is 
 prism model.prism -simpath 'deadlock,repeat=100' stdout
 ```
 
-By default, the simulator detects deterministic loops in paths (e.g. if a path reaches a state from which there is just a single self-loop leaving that state) and stops generating the path any further. You can disable this behaviour with the `loopcheck=false` option. For example:
+By default, the simulator detects deterministic loops in paths (e.g., if a path reaches a state from which there is just a single self-loop leaving that state) and stops generating the path any further. You can disable this behaviour with the `loopcheck=false` option. For example:
 
 ```shell
 prism model.prism -simpath 10 stdout
@@ -195,7 +195,7 @@ prism dice.prism -simpath 10,loopcheck=false stdout
 One final note: the `-simpath` switch only generates paths up to the maximum path length setting of the simulator (the default is 10,000). If you want to generate longer paths, either change the
 [default setting](../ConfiguringPRISM/SettingsFile.md) or override it temporarily from the command-line using the `-simpathlen` switch.
 You might also use the latter to decrease the setting,
-e.g. to look for a path leading to a deadlock state,
+e.g., to look for a path leading to a deadlock state,
 but only within 100 steps:
 
 ```shell

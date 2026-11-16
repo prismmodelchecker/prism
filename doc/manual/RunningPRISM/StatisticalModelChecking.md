@@ -13,14 +13,14 @@ and from the command-line (by using the `-sim` switch); more details are given b
 
 ## Methods and settings
 
-Tou can select between four different methods for performing statistical model checking:
+You can select between four different methods for performing statistical model checking:
 
 - CI (Confidence Interval)
 - ACI (Asymptotic Confidence Interval)
 - APMC (Approximate Probabilistic Model Checking)
 - SPRT (Sequential Probability Ratio Test)
 
-The first three of these are intended primarily for [numerical](../PropertySpecification/ThePOperator.md#numerical) properties (e.g., of the form `P=?[...]`), but can also be used for Boolean properties with a bound (e.g. of the form `P<p[...]`). The SPRT method is only applicable to Boolean properties.
+The first three of these are intended primarily for [numerical](../PropertySpecification/ThePOperator.md#numerical) properties (e.g., of the form `P=?[...]`), but can also be used for Boolean properties with a bound (e.g., of the form `P<p[...]`). The SPRT method is only applicable to Boolean properties.
 
 Each method has several parameters that control its execution, i.e., the number of samples that are generated and the accuracy of the computed approximation. In most cases, these parameters are inter-related so one of them must be left unspecified and its value computed automatically based on the others. In some cases, this is done before simulation; in others, it must be done afterwards.
 
@@ -38,7 +38,7 @@ The parameters of the method are:
 - "Number of samples" ($N$)
 
 Let $X$ denote the true result of the query `P=?[...]` and $Y$ the approximation generated.
-The confidence interval is $[Y-w, Y+w]$, i.e. $w$ gives the half-width of the interval.
+The confidence interval is $[Y-w, Y+w]$, i.e., $w$ gives the half-width of the interval.
 The confidence level, which is usually stated as a percentage, is $100(1-\alpha)\%$.
 This means that the actual value $X$ should fall into the confidence interval $[Y-w, Y+w]$ $100(1-\alpha)\%$ of the time.
 
@@ -103,7 +103,7 @@ If, for a given property, statistical model checking results in one or more path
 ## GUI
 
 To use statistical model checking from the GUI, load a model and some properties
-into PRISM, as described in the previous sections.
+into PRISM, as described in "[Model checking](ModelChecking.md)".
 To generate an approximate value for one or more properties, select them in the list,
 right-click and select "Simulate" (as opposed to "Verify").
 As usual, it is first necessary to provide values for any undefined constants.
@@ -136,11 +136,10 @@ The maximum length of simulation paths is set with switch `-simpathlen`.
 
 ## Restrictions
 
-Statistical model checking can only be applied to `P` or `R` operators
-and does not support nested properties, LTL formulas or [filters](../PropertySpecification/Filters.md).
-There are also a few restrictions on the modelling language features that can be used; see below for details.
+Statistical model checking can only be applied to `P` or `R` operators.
+It does not support nested properties, LTL formulas, [filters](../PropertySpecification/Filters.md),
+cumulative reward properties without a time bound, or discounted rewards for continuous-time models.
 
-
-The simulator does not support every part of the PRISM modelling language. For example, it does not handle models with multiple initial states or with `system...endsystem` definitions.
+The simulator also does not support every part of the PRISM modelling language. For example, it does not handle models with multiple initial states or with `system...endsystem` definitions.
 
 It is also worth pointing out that statistical model checking techniques are not well suited to models that exhibit nondeterminism, such as MDPs. This is because the techniques rely on generation of *random* paths, which are not well defined for an MDP. PRISM does allow statistical model checking to be performed on an MDP, but does so by simply resolving nondeterministic choices in a (uniformly) random fashion (and displaying a warning message). PTAs are not supported by the simulator.

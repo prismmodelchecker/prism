@@ -27,7 +27,7 @@ prism cluster.prism cluster.props -prop 4 -const N=4:6,T=60:10:100
 ```
 
 where `N=4:6` means that values of 4,5 and 6 are used for `N`,
-and `T=60:10:100` means that values of 60, 70, 80, 90 and 100 (i.e. steps of 10) are used for `T`.
+and `T=60:10:100` means that values of 60, 70, 80, 90 and 100 (i.e., steps of 10) are used for `T`.
 
 For convenience, constant specifications can be split across separate instances of the `-const` switch, if desired.
 You can also specify double-valued constants as fractions rather than decimals. For example:
