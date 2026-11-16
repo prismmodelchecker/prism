@@ -58,6 +58,8 @@ From the GUI, configuring the external LTL converter is done with the two option
 
 Another related option is "All path formulas via automata" (command-line switch [`-pathviaautomata`](../Reference/CommandLineSwitches.md#pathviaautomata)), which forces construction of an automaton
 when computing the probability of a path formula, even if it is not needed. This is primarily intended for debugging/testing, not regular use.
+Likewise, by default PRISM simplifies the automata it builds, and their acceptance conditions, where it can;
+[`-nodasimplify`](../Reference/CommandLineSwitches.md#nodasimplify) (GUI option "Do not simplify deterministic automata") switches this off.
 
 As mentioned above, PRISM's external LTL-to-automaton interfacing works using the
 [HOA](https://adl.github.io/hoaf/) format

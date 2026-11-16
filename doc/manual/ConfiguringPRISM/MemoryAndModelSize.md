@@ -64,4 +64,14 @@ For example:
 prism -javaparams "-XX:AutoBoxCacheMax=100000000 -Xmn2g" -javamaxmem 12g big_model.prism
 ```
 
+<a id="environment"></a>
+## Environment variables
+
+On Unix, Linux or macOS platforms, the `prism` and `xprism` scripts also read these environment variables:
+
+- `PRISM_JAVA`: the `java` executable to use (by default, the one on your path)
+- `PRISM_JAVAMAXMEM`: the Java memory limit, as for `-javamaxmem`
+- `PRISM_JAVASTACKSIZE`: the Java stack size, as for `-javastack`
+- `PRISM_JAVA_PARAMS`: further switches for the JVM, as for `-javaparams` (if both are given, both are used)
+
 If PRISM runs out of memory, see "[Memory problems](../FrequentlyAskedQuestions/MemoryProblems.md)" in the FAQ.

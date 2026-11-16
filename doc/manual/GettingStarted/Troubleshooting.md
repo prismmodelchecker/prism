@@ -177,6 +177,6 @@ If you installed PRISM on Windows using the self-extracting installer, you can u
 
 On other platforms, simply delete the directory containing it.
 
-The only thing that is not removed via either of these methods is the file containing your PRISM settings (see "[Settings](../ConfiguringPRISM/SettingsFile.md)" for where it is). You may wish to retain this when upgrading.
+The only thing that is not removed via either of these methods is the file containing your PRISM settings (see "[Settings file](../ConfiguringPRISM/README.md#settings-file)" for where it is). You may wish to retain this when upgrading.
 
 </details>

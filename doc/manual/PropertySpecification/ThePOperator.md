@@ -174,9 +174,17 @@ which states that, with probability greater than 0.5, either `z` is always less 
 Release (`a R b`),  which is equivalent to `!(!a U !b)`, informally means that `b` is true until `a` becomes true, or `b` is true forever.
 
 <a id="bounded"></a>
-## "Bounded" variants of path properties
+## Time-bounded path properties
 
-All of the temporal operators given above, with the exception of `X`, have "bounded" variants, where an additional time bound is imposed on the property being satisfied.
+All of the temporal operators given above, with the exception of `X`,
+have **time-bounded** variants, where an additional bound is imposed on
+the time taken for the property to be satisfied.
+For discrete-time models (e.g., DTMCs and MDPs), this is a **step bound**,
+counting the number of transitions that have occurred,
+often also referred to as **finite-horizon** properties
+(as opposed to the "infinite-horizon" properties).
+For continuous-time models (notably CTMCs), this is a bound the actual time elapsed. 
+
 The most common case is to use an upper time bound, i.e., of the form "`<=t`" or "`<t`", where `t` is a PRISM expression evaluating to a constant, non-negative value.
 
 For example, a bounded until property `prop1 U<=t prop2`, is satisfied along a path if `prop2` becomes true within `t` steps and `prop1` is true in all states before that point.

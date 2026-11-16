@@ -1,88 +1,148 @@
 # Computation engines
 
-PRISM contains four main *engines*,
-which implement the majority of its model checking functionality:
+PRISM contains multiple **engines**: these are distinct implementations of model checking,
+differing in the data structures and technologies used, and in the range of models and properties that they can handle.
 
-- "MTBDD"
-- "sparse"
-- "hybrid"
-- "explicit"
+<a id="core"></a>
+## Core engines
 
-The first three of these engines are either wholly or partly *symbolic*,
-meaning that they use data structures such as
-binary decision diagrams (BDDs) and multi-terminal BDDs (MTBDDs).
-For these three engines, the process of
-constructing a probabilistic model (DTMC, MDP or CTMC)
-is performed in a symbolic fashion,
-representing the model as an MTBDD.
-Subsequent numerical computation performed during model checking, however,
-is carried out differently for the three engines.
-The "MTBDD" engine is implemented purely using MTBDDs and BDDs;
-the "sparse" engine uses sparse matrices;
-and the "hybrid" engine uses a combination of the other two.
-The "hybrid" engine is described in [[KNP04b](../Reference/References.md#KNP04b)].
-For detailed information about all three engines, see [[Par02](../Reference/References.md#Par02)].
+There are four **core engines**, listed below, which are general purpose and all cover the majority of PRISM's functionality
+for the three most commonly used models of DTMCs, MDPs and CTMCs.
+These should yield the same results for the same model and property
+(assuming that the same algorithms and settings are used)
+but vary in performance and scalability (i.e., time and memory usage).
+The latter is discussed in more detail in "[Which engine should I use?](#choosing)" below.
 
-The fourth engine, "explicit", performs all aspects of model construction
-and model checking using *explicit-state* data structures.
-Models are typically stored as sparse matrices or variants of them.
-This engine is implemented purely in Java, unlike the other engines
-which make use of code/libraries implemented in C/C++.
-One goal of the "explicit" engine is to provide an easily extensible model
-checking engine without the complication of symbolic data structures,
-although it also has other benefits (see below).
+- The **explicit** engine: implemented purely in Java, using *explicit-state* data structures
+  (sparse matrices and variants). This supports the widest selection of solution methods,
+  and also the most different model types, for example, it is the only engine that supports
+  POMDPs and uncertain MDPs/DTMCs. PRISM will usually switch to this engine automatically
+  if it is the only one that can handle a particular model or property.
 
-The choice of engine ("MTBDD", "sparse", "hybrid" or "explicit") should not affect the results of model checking - all engines perform essentially the same calculations. In some cases, though, certain functionality is not available with all engines and PRISM will either automatically switch to an appropriate engine, or prompt you to do so.
-Performance (time and space), however, may vary significantly and if you are using too much time/memory with one engine, it may be worth experimenting. Below, we briefly summarise the key characteristics of each engine.
+- The **MTBDD** engine: fully *symbolic*, storing both the model and the vectors computed from it
+  as binary decision diagrams (BDDs) and multi-terminal BDDs (MTBDDs).
+  This can handle extremely large models, as long as they are structured and regular.
 
-- The **hybrid** engine is enabled by default in PRISM. It uses a combination of *symbolic* and *explicit-state* data structures (as used in the MTBDD and sparse engines, respectively). In general it provides the best compromise between time and memory usage: it (almost) always uses less memory than the sparse engine, but is typically slightly slower. The size of model which can be handled with this engine is quite predictable. The limiting factor in terms of memory usage comes from the storage of 2-4 (depending on the computation being performed) arrays of 8-byte values, one for each state in the model. So, a typical PC can handle models with between $10^7$ and $10^8$ states (one vector for $10^7$ states uses approximately 75 MB).
+- The **sparse** engine: builds the model symbolically, as an MTBDD, but then converts it to a sparse matrix
+  for numerical computation. This typically makes it faster to solve, but may use more memory.
 
-- The **sparse** engine can be a good option for smaller models where model checking takes a long time. For larger models, however, memory usage quickly becomes prohibitive. As a rule of thumb, the upper limit for this engine, in terms of model sizes which can be handled, is about a factor of 10 less than the hybrid engine.
+- The **hybrid** engine (the default): builds the model symbolically, like the sparse engine,
+  and performs numerical computation with a combination of MTBDDs (for the model) and arrays (for vectors),
+  representing a trade-off between memory usage and solution speed [[KNP04b](../Reference/References.md#KNP04b)].
 
-- The **MTBDD** engine is much more unpredictable in terms of performance but, when a model exhibits a lot of structure and regularity, can be very effective. This engine has been successfully applied to extremely large structured (but non-trivial) models, in cases where the other two engines cannot be applied. The MTBDD engine often performs poorly when the model (or solutions computed from it) contain lots of distinct probabilities/rates; it performs best when there are few such values. For this reason the engine is often successfully applied to MDP models, but much less frequently to CTMCs. When using the MTBDD engine, the *variable ordering* of your model is especially important. This topic is covered in the [FAQ](../FrequentlyAskedQuestions/PRISMModelling.md#ordering) section.
+The MTBDD, sparse and hybrid engines may be referred to collectively as the **symbolic engines**,
+since they all rely on a symbolic (MTBDD-based) representation of the model being built first.
+These engines are mostly implemented in C++, using the CUDD library for BDDs and MTBDDs.
 
-- The **explicit** engine is similar to the sparse engine, in that it can be a good option for relatively small models, but will not scale up to some of the models that can be handled by the hybrid or MTBDD engines. However, unlike the sparse engine, the explicit engine does not use symbolic data structures for model construction, which can be beneficial in some cases. One example is models with a potentially very large state space, only a fraction of which is actually reachable.
-
-When using the PRISM GUI, the engine to be used for model checking can be selected from the "Engine" option under the "PRISM" tab of the "Options" dialog. From the command-line, engines are activated using the [`-mtbdd`](../Reference/CommandLineSwitches.md#mtbdd), [`-sparse`](../Reference/CommandLineSwitches.md#sparse), [`-hybrid`](../Reference/CommandLineSwitches.md#hybrid) and [`-explicit`](../Reference/CommandLineSwitches.md#explicit) (or `-m`, `-s`, `-h` and `-ex`, respectively) switches, e.g.:
+When using the PRISM GUI, the engine to be used for model checking can be selected from the "Engine" option under the "PRISM" tab of the "Options" dialog. From the command-line, engines are activated using the [`-explicit`](../Reference/CommandLineSwitches.md#explicit), [`-mtbdd`](../Reference/CommandLineSwitches.md#mtbdd), [`-sparse`](../Reference/CommandLineSwitches.md#sparse) and [`-hybrid`](../Reference/CommandLineSwitches.md#hybrid) (or `-ex`, `-m`, `-s` and `-h`, respectively) switches, e.g.:
 
 ```shell
-prism poll2.prism -tr 1000 -m
-prism poll2.prism -tr 1000 -s
-prism poll2.prism -tr 1000 -h
-prism poll2.prism -tr 1000 -ex
+prism model.prism model.props -ex
+prism model.prism model.props -m
+prism model.prism model.props -s
+prism model.prism model.props -h
 ```
 
-[`poll2.prism`](../files/poll2.prism) is a CTMC model of a simple polling system (also shown, with a diagram, in "[Explicit model files](../Reference/ExplicitModelFiles.md#poll2)").
+<a id="other"></a>
+## Other engines
 
-Note also that precise details regarding the memory usage of the current engine are displayed during model checking (from the GUI, check the "Log" tab). This can provide valuable feedback when experimenting with different engines.
+PRISM's other engines typically work on a specific set of models and/or properties,
+and may also vary in the accuracy of the results that they compute.
 
-PRISM also has some basic support for automatically selecting the engine (and other settings) heuristically,
-based on the size and type of the model, and the property being checked.
-Use, for example, `-heuristic speed` from the command-line to choose options
-which target computation speed rather than saving memory.
-This is also available from the "Heuristic" option under the "PRISM" tab of the "Options" dialog in the GUI.
+- <a id="statistical"></a>The **statistical model checking** engine generates approximate results
+  using discrete-event simulation, and without building the full model,
+  often improving scalability, but at the cost of accuracy.
+  From the GUI, it is used by choosing "Simulate" menu items or tick boxes;
+  from the command-line, add the [`-sim`](../Reference/CommandLineSwitches.md#sim) switch.
+  See "[Statistical model checking](../RunningPRISM/StatisticalModelChecking.md)" for details.
 
-<a id="statistical"></a>
-## Approximate/statistical model checking
+- <a id="exact"></a>The **exact** engine computes exact numerical results, using arbitrary precision arithmetic.
+  You can enable this functionality using the "Do exact model checking" option in the GUI
+  or using switch [`-exact`](../Reference/CommandLineSwitches.md#exact) from the command line.
+  This is implemented as a special case of [parametric model checking](../RunningPRISM/ParametricModelChecking.md),
+  which limits its application to relatively small models.
+  It can be used for analysing DTMCs/CTMCs (unbounded until, steady-state probabilities, reachability reward and steady-state reward)
+  or MDPs (unbounded until and reachability rewards).
 
-Although it is not treated as a separate "engine", like those above,
-PRISM also provides approximate/statistical model checking,
-which is based on the use of discrete-event simulation.
-From the GUI, this is enabled by choosing "Simulate" menu items or tick boxes;
-from the command-line, add the [`-sim`](../Reference/CommandLineSwitches.md#sim) switch.
-See the "[Statistical model checking](../RunningPRISM/StatisticalModelChecking.md)"
-section for more details.
+- <a id="parametric"></a>The **parametric** engine computes results exactly, as functions of the model's parameters.
+  It is used with the [`-param`](../Reference/CommandLineSwitches.md#param) switch:
+  see "[Parametric model checking](../RunningPRISM/ParametricModelChecking.md)".
 
-<a id="exact"></a>
-## Exact model checking
+- <a id="pta"></a>PTA model checking is performed with one of three specific engines,
+  **stochastic games**, **digital clocks** and **backwards reachability**,
+  which are described in "[Real-time models](../ModelTypes/Real-timeModels.md#solution-methods)".
+  These are chosen with the "PTA model checking method" setting in the GUI
+  or the [`-ptamethod`](../Reference/CommandLineSwitches.md#ptamethod) switch on the command line.
 
-PRISM can also compute exact results, using arbitrary precision arithmetic (switch [`-exact`](../Reference/CommandLineSwitches.md#exact)):
-see "[Accuracy of results](../RunningPRISM/ModelChecking.md#accuracy)".
+<a id="choosing"></a>
+## Which engine should I use?
 
-<a id="pta"></a>
-## PTA engines
+Sometimes a specific engine is required for a particular model (e.g., for PTAs)
+or is requested in order to achieve a particular accuracy (e.g., exact or parametric results).
+Similarly, the explicit engine is sometimes the only option for a model class, such as POMDPs and uncertain MDPs/DTMCs.
 
-Probabilistic timed automata (PTAs) are analysed with their own engines:
-"stochastic games", "digital clocks" and "backwards reachability",
-chosen with the "PTA model checking method" setting in the GUI or the switch [`-ptamethod`](../Reference/CommandLineSwitches.md#ptamethod) on the command line.
-These are described, with the restrictions each imposes, in "[Real-time models](../ModelTypes/Real-timeModels.md#solution-methods)".
+In other cases, any of the four core engines can normally be used, with the current **default** being the hybrid engine.
+If PRISM is using too much time or memory with one engine, it may be worth experimenting with others,
+since their performance can vary, depending on the size of the model and how it is described.
+Details of the memory usage and model size are displayed during model checking (from the GUI, check the "Log" tab).
+
+- The **explicit** engine has the most predictable performance, 
+  with time and memory usage increasing as the size of the state space does.
+  Unlike the symbolic engines, performance does *not* depend on how compact
+  a model's MTBDD-based representation is, which can be unpredictable.
+  *Building* the model is often slower using the explicit engine,
+  but the solution time is more comparable.
+  The explicit engine is usually the best choice when:
+
+  - **importing** from [explicit-state](../RunningPRISM/ImportingAndExportingModels.md) formats,
+  such as UMB (`.umb`) or PRISM's own "explicit" file formats (`.pexp`, `.tra`, etc.);
+  
+  - building "explicit-style" models (i.e., essentially comprising an unstructured list of states/transitions)
+  but encoded into a textual description in the PRISM modelling language;
+
+  - building models that are *potentially* very large, in terms of the number of model variables
+  and their range, but where only a small fraction of states are reachable.
+  
+- The **hybrid** engine, amongst the three symbolic engines,
+  generally provides the best compromise between time and memory usage:
+  it (almost) always uses less memory than the sparse engine,
+  but is typically slightly slower.
+
+- The **sparse** engine can be a good alternative to the hybrid engine
+  when model checking takes a long time, but the model is small enough to fit in memory
+  (as a rule of thumb, the sparse engine scales up to models about a factor of 10 smaller than the hybrid one).
+
+- The **MTBDD** engine has the potential to scale up to very large models,
+  beyond the range of what can be handled by the other three,
+  but is much more unpredictable in terms of performance.
+  Roughly speaking, when the model description (in the PRISM language) 
+  exhibits a lot of structure and regularity, it can be very effective.
+  But the MTBDD engine often performs poorly when the model (or solutions computed from it)
+  contain many distinct probabilities/rates; it performs best when there are few such values.
+  For this reason the engine is often successfully applied to MDP models,
+  but much less frequently to CTMCs.
+
+For all three symbolic engines (MTBDD, sparse, hybrid),
+various aspects of the (PRISM language) model description can impact performance,
+including its *variable ordering*;
+see "[PRISM modelling](../FrequentlyAskedQuestions/PRISMModelling.md#ordering)" in the FAQ for details.
+
+<a id="engine-options"></a>
+## Symbolic engine options
+
+A few further settings fine-tune the symbolic engines. The defaults are usually fine.
+
+- **Hybrid engine:** to speed up numerical computation, the hybrid engine replaces the lowest levels of its MTBDDs with sparse matrices [[Par02](../Reference/References.md#Par02)].
+  The number of levels replaced is set with [`-sbl <n>`](../Reference/CommandLineSwitches.md#sbl) (the default, -1, lets PRISM choose)
+  and the memory these sparse matrices can use, in KB, with [`-sbmax <n>`](../Reference/CommandLineSwitches.md#sbmax) (default 1024).
+  For the hybrid engine's Gauss-Seidel and SOR methods, the matrix is also divided into blocks:
+  [`-gsl <n>`](../Reference/CommandLineSwitches.md#gsl) and [`-gsmax <n>`](../Reference/CommandLineSwitches.md#gsmax) (or `-sorl` and `-sormax`)
+  set the number of MTBDD levels used for this division and its memory limit in KB.
+- **Sparse and hybrid engines:** by default, sparse matrices and vectors with many repeated values are compressed further;
+  [`-nocompact`](../Reference/CommandLineSwitches.md#nocompact) switches this off.
+- **CUDD**, the BDD/MTBDD library: besides its memory limit (see "[Memory and model size](MemoryAndModelSize.md#settings)"),
+  [`-cuddepsilon <x>`](../Reference/CommandLineSwitches.md#cuddepsilon) sets the precision used when CUDD compares values in its cache (default $10^{-15}$),
+  and [`-ddextrastatevars <n>`](../Reference/CommandLineSwitches.md#ddextrastatevars) and [`-ddextraactionvars <n>`](../Reference/CommandLineSwitches.md#ddextraactionvars)
+  set how many extra MTBDD variables are preallocated for transformations of the model (default 20 each).
+  [`-ddsanity`](../Reference/CommandLineSwitches.md#ddsanity) enables internal sanity checks, for debugging (this slows PRISM down).
+

@@ -193,7 +193,7 @@ prism dice.prism -simpath 10,loopcheck=false stdout
 ```
 
 One final note: the `-simpath` switch only generates paths up to the maximum path length setting of the simulator (the default is 10,000). If you want to generate longer paths, either change the
-[default setting](../ConfiguringPRISM/SettingsFile.md) or override it temporarily from the command-line using the `-simpathlen` switch.
+[default setting](../ConfiguringPRISM/README.md#settings) or override it temporarily from the command-line using the `-simpathlen` switch.
 You might also use the latter to decrease the setting,
 e.g., to look for a path leading to a deadlock state,
 but only within 100 steps:

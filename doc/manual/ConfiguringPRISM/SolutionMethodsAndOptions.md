@@ -124,3 +124,15 @@ either "relative" or "absolute" (the default is "relative"). This can be changed
 Also, the maximum number of iterations performed is given an upper limit
 in order to trap the cases when computation will not converge.
 The default limit is 10,000 but can be changed with the "Termination max. iterations" option (switch [`-maxiters <val>`](../Reference/CommandLineSwitches.md#maxiters)). Computations that reach this upper limit will trigger an error during model checking to alert the user to this fact.
+
+<a id="other"></a>
+## Other model types and methods
+
+Some solution methods, and their settings, are described with the models or analyses they apply to:
+
+- [Real-time models](../ModelTypes/Real-timeModels.md#solution-methods): the PTA model checking methods (switch [`-ptamethod`](../Reference/CommandLineSwitches.md#ptamethod))
+- [Partially observable models](../ModelTypes/PartiallyObservableModels.md#solution-methods): the grid-based approximation for POMDPs, and its resolution (switch [`-gridresolution`](../Reference/CommandLineSwitches.md#gridresolution))
+- [Uncertain models](../ModelTypes/UncertainModels.md#solution-methods): robust value iteration for interval models
+- [Exact model checking](../RunningPRISM/ModelChecking.md#accuracy), with arbitrary precision arithmetic (switch [`-exact`](../Reference/CommandLineSwitches.md#exact))
+- [Parametric model checking](../RunningPRISM/ParametricModelChecking.md) (switch [`-param`](../Reference/CommandLineSwitches.md#param))
+- [Statistical model checking](../RunningPRISM/StatisticalModelChecking.md), based on simulation (switch [`-sim`](../Reference/CommandLineSwitches.md#sim))

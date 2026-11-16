@@ -4,7 +4,7 @@ This page lists the switches accepted by the [command-line](../RunningPRISM/READ
 grouped as in the output of `prism -help`.
 Many of them are described in more detail elsewhere in this manual,
 and most of the settings they change can also be made in the GUI (from the Options menu)
-or in the [settings file](../ConfiguringPRISM/SettingsFile.md).
+or in the [settings file](../ConfiguringPRISM/README.md#settings-file).
 For switches whose syntax is not obvious, `prism -help` followed by the switch, e.g., `prism -help exportmodel`,
 gives the details shown below.
 

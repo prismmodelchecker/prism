@@ -81,29 +81,38 @@ Single quotes may be preferable to double quotes since PRISM properties often in
 <a id="accuracy"></a>
 ## Accuracy of results
 
+The default methods used for model checking in most cases are iterative numerical methods
+implemented using floating point arithmetic.
+The **accuracy** of the resulting values is impacted by both the method chosen and parameters such as the threshold for termination;
+these are discussed more in the "[Configuration and performance](../ConfiguringPRISM/README.md)" section.
+
 When PRISM prints the result of a (numerical) model checking query,
-it typically shows an indication of the accuracy too:
+it typically shows an indication of the accuracy too, for example:
 
 ```shell
 prism model.prism model.props
 # ...
 # Result: 0.15625 (exact floating point)
 # ...
+# Result: 0.1666666865348816 (+/- 1.1920933218335556E-7; rel err 7.152559078349847E-7)
+# ...
 # Result: 0.16666650772094727 (+/- 1.1920928955078125E-6 estimated; rel err 7.1525641942636435E-6)
 ```
 
-The first result is exact, up to the precision of floating point arithmetic.
-The second was computed by an iterative method, and its error bound is only an estimate,
+The first result is exact, up to the precision of floating point arithmetic.,
+in this case because it was the result of a [step-bounded](../PropertySpecification/ThePOperator.md#bounded) (finite-horizon) query needing a fixed number of iterations to compute.
+The second was computed using [interval iteration](../ConfiguringPRISM/SolutionMethodsAndOptions.md#interval-iteration),
+which is an iterative method but that provides a guaranteed error bound on the result.
+The third was computed by [value iteration](../ConfiguringPRISM/SolutionMethodsAndOptions.md#value-iteration), and its error bound is only an estimate,
 based on the check for [convergence](../ConfiguringPRISM/SolutionMethodsAndOptions.md#convergence).
 
-The default methods in most cases are iterative numerical methods
-implemented using floating point arithmetic.
-The accuracy is impacted by both the method chosen and parameters such as the threshold for termination;
-these are discussed more in the "[Configuration and performance](../ConfiguringPRISM/README.md)" section.
+Here is an example of the output when using the [exact](../ConfiguringPRISM/ComputationEngines.md#exact) engine,
+which uses arbitrary precision arithmetic to compute precise results:
 
-We also note here that PRISM has some support for **exact** model checking,
-i.e., using arbitrary precision arithmetic to provide exact numerical values.
-This is implemented as a special case of [parametric model checking](ParametricModelChecking.md),
-which limits its application to relatively small models.
-It can be used for analysing DTMCs/CTMCs (unbounded until, steady-state probabilities, reachability reward and steady-state reward) or MDPs (unbounded until and reachability rewards). You can enable this functionality using the "Do exact model checking" option in the GUI or using switch [`-exact`](../Reference/CommandLineSwitches.md#exact) from the command line.
-Results computed in this way are shown as fractions, e.g., `1/6 (exact)`.
+```shell
+prism model.prism model.props -ex
+# ...
+# Result: 1/6 (exact) (~0.16666666666666666)
+```
+
+An approximate decimal value is also shown, for convenience.
