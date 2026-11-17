@@ -30,7 +30,7 @@ which install the required dependencies and PRISM itself. They can be found in t
 
 If you don't yet have **Java**, install it, for example with the [Temurin installer](https://adoptium.net/temurin/releases).
 
-To install PRISM on Windows, just run the self-extracting installer which you [downloaded](https://www.prismmodelchecker.org/download.php). You do **not** need administrator privileges for this, just write-access to the directory chosen for installation.
+To install PRISM on Windows, just run the self-extracting installer which you [downloaded](https://www.prismmodelchecker.org/download/). You do **not** need administrator privileges for this, just write-access to the directory chosen for installation.
 
 If requested, the installer will place shortcuts to run PRISM on the desktop and/or start menu. If not, you can run PRISM by double-clicking the file `xprism.bat` (which may just appear as `xprism`) in the `bin` folder of your PRISM folder. If nothing happens, the most likely explanation is that Java is not installed or not in your path. To check, open a command prompt window, navigate to the PRISM directory, type `cd bin`, then `xprism.bat` and examine the resulting error. If you want to create shortcuts to `xprism.bat` manually, you will find some PRISM icons in the `etc` folder.
 
@@ -48,7 +48,7 @@ You can also edit the file `bin\prism.bat` to allow it to be run from any locati
 <a id="binaries"></a>
 ## Installation of Linux/Mac binary versions
 
-We provide pre-compiled [binary distributions](https://www.prismmodelchecker.org/download.php) for Linux and macOS
+We provide pre-compiled [binary distributions](https://www.prismmodelchecker.org/download/) for Linux and macOS
 (if you have any problems running these, try compiling PRISM from source instead - see below for instructions).
 To install a binary distribution, unpack the tarred/zipped PRISM distribution into a suitable location, enter the directory and run the `install.sh` script, e.g.:
 
