@@ -19,7 +19,7 @@ and then also describe how the composition of modules is handled for CTMCs and D
 The example below illustrates the parallel composition of two modules in an MDP,
 communicating with each other by reading each other's variables.
 
-[parallel-mdp.prism](../files/parallel-mdp.prism "include")
+[compose-interleave.prism](../files/compose-interleave.prism "include")
 
 Both modules start in local state `0` and randomly move to local state `1` with some probability.
 When in state `1`, they simply copy the other module's state (e.g., `(s1'=s2)` in module `P1`),
@@ -36,7 +36,7 @@ the choice between which one executes is nondeterministic.
 So, even though neither module has overlapping guards,
 all states of the MDP have a choice, between actions `a` and `b`.
 
-![Parallel composition as an MDP](../files/parallel-mdp.svg)
+![Parallel composition as an MDP](../files/compose-interleave.svg)
 
 The above example had no *local nondeterminism*.
 If we changed the second module to the version shown below,
@@ -65,13 +65,13 @@ both are executed simultaneously, and this only happens when both commands are e
 Below, we modify the second commands of the two modules in the previous example,
 removing the references to the other module's variable and using a shared action `c`. 
 
-[parallel-sync.prism](../files/parallel-sync.prism "include")
+[compose-sync.prism](../files/compose-sync.prism "include")
 
 Now, when both modules are in state `1`, they synchronise on action `c` and move to state `(0,0)`.
 And in state `(1,0)` or state `(0,1)`, where only one of the `c`-labelled commands is enabled,
 the synchronisation cannot occur, so the enabled `c`-labelled command is blocked:
 
-![Parallel composition with synchronisation as an MDP](../files/parallel-sync.svg)
+![Parallel composition with synchronisation as an MDP](../files/compose-sync.svg)
 
 The actions over which two modules synchronise are those that appear in both modules;
 any other actions are performed independently.
@@ -80,7 +80,7 @@ Synchronising commands can both have probabilistic updates.
 In the variant below, the first commands of the two modules are both labelled with action `a`,
 so they too have to synchronise.
 
-[parallel-sync2.prism](../files/parallel-sync2.prism "include")
+[compose-sync-all.prism](../files/compose-sync-all.prism "include")
 
 Now, in state `(0,0)`, the two modules move together, in a single choice labelled `a`,
 whose probability distribution is the product of the distributions of the two commands.
@@ -89,7 +89,7 @@ and only `P1` does so with probability 0.9 * 0.2 = 0.18.
 In states `(1,0)` and `(0,1)`, however, neither `a` nor `c` can occur, since each needs both modules,
 so these are [deadlock](ModulesAndCommands.md#commands) states, to which PRISM adds self-loops:
 
-![Parallel composition with synchronisation on two actions as an MDP: from state 0,0, a single choice a goes to 1,1, 1,0, 0,1 and 0,0 with probabilities 0.72, 0.18, 0.08 and 0.02](../files/parallel-sync2.svg)
+![Parallel composition with synchronisation on two actions as an MDP: from state 0,0, a single choice a goes to 1,1, 1,0, 0,1 and 0,0 with probabilities 0.72, 0.18, 0.08 and 0.02](../files/compose-sync-all.svg)
 
 Synchronisation is often used as a simple way to model "sending" data from one module to another.
 In the example below, module `P1` chooses randomly whether to set its local variable `s1` to `1` or `2`.
@@ -97,12 +97,12 @@ It then communicates the result of this to module `P2` by offering either action
 depending on the value of `s1`. In isolation, module `P2` would exhibit local nondeterminism,
 but in parallel with `P1` only ever performs `c1` or `c2` in a state.
 
-[mdp-send.prism](../files/mdp-send.prism "include")
+[compose-send.prism](../files/compose-send.prism "include")
 
 We can achieve the same behaviour in another way by simultaneously synchronising on a single
 action `c` and module `P2` reading the value of `s1` as it updates its own variable `s2`:
 
-[mdp-send2.prism](../files/mdp-send2.prism "include")
+[compose-send-read.prism](../files/compose-send-read.prism "include")
 
 <a id="composition-ctmcs"></a>
 ## Composing modules in CTMCs
@@ -121,11 +121,11 @@ This is illustrated by the model below,
 in which jobs arrive into an `N`-place queue
 and are removed by a server which processes them one at a time.
 
-[queue.prism](../files/queue.prism "include")
+[compose-queue.prism](../files/compose-queue.prism "include")
 
 The CTMC (assuming `N=2`, as above) is shown below, with the states labelled as `q,s`.
 
-![CTMC for the N-place queue example](../files/queue.svg)
+![CTMC for the N-place queue example](../files/compose-queue.svg)
 
 In a CTMC, the product of two rates does not always meaningfully represent the rate of a synchronised transition.
 A common technique, as seen here, is to make one command *passive*, with rate `1`, and the other *active*,
@@ -146,7 +146,7 @@ in which two modules repeatedly move in lockstep,
 with a probabilistic update that depends on the other module's state.
 (The second module is defined using [module renaming](#module-renaming), described below.)
 
-[dtmc-sync.prism](../files/dtmc-sync.prism "include")
+[compose-herman.prism](../files/compose-herman.prism "include")
 
 Both commands of each module are labelled with action `step`,
 and in every state exactly one of them is enabled, so every transition of the DTMC
@@ -163,10 +163,10 @@ and the model moves to the other one of these two states with probability 1.
 
 PRISM also supports **module renaming**, which allows reuse of a module definition
 when there are several modules with (almost) identical behaviour.
-Below, we rewrite the `parallel-mdp.prism` example from above,
+Below, we rewrite the `compose-interleave.prism` example from above,
 using module renaming to define `P2` in terms of `P1`:
 
-[parallel-mdp-rename.prism](../files/parallel-mdp-rename.prism "include")
+[compose-rename.prism](../files/compose-rename.prism "include")
 
 The syntax is as follows:
 

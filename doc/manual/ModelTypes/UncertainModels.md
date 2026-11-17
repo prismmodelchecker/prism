@@ -18,7 +18,7 @@ A robot can choose between two routes to a goal:
 a fast route, whose probability of success is only known to lie in the range `[0.7,0.9]`,
 and a slower route, whose probability of success is known to be 0.8.
 
-[imdp.prism](../files/imdp.prism "include")
+[routes.prism](../files/routes.prism "include")
 
 Intervals are used by simply replacing the probabilities attached to updates in commands
 with intervals, such as `[0.7,0.9]` above.
@@ -30,7 +30,7 @@ but these can only be built, not model checked.
 
 The resulting IMDP is shown below.
 
-![IMDP with four states. From state 0 (start), action fast goes to state 2 (goal) with probability in the interval [0.7,0.9] or to state 3 (crash) with probability in [0.1,0.3]; action slow goes to state 1. From state 1, action slow goes to state 2 (goal) with probability 0.8 or state 3 (crash) with probability 0.2. States 2 and 3 have done self-loops.](../files/imdp.svg)
+![IMDP with four states. From state 0 (start), action fast goes to state 2 (goal) with probability in the interval [0.7,0.9] or to state 3 (crash) with probability in [0.1,0.3]; action slow goes to state 1. From state 1, action slow goes to state 2 (goal) with probability 0.8 or state 3 (crash) with probability 0.2. States 2 and 3 have done self-loops.](../files/routes.svg)
 
 As usual, the interval bounds can be expressions involving constants or state variables, for example:
 
@@ -74,7 +74,7 @@ that transition probabilities can be selected from intervals.
 For these, `min` or `max` appear in that order in the query.
 For example, for the IMDP above:
 
-[imdp.props](../files/imdp.props "include")
+[routes.props](../files/routes.props "include")
 
 The first property asks for the maximum probability of reaching the goal,
 assuming the worst case for the uncertain probabilities;

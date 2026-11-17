@@ -31,7 +31,7 @@ and succeeds with probability 0.9.
 In the case of failure, it then repeatedly retries to send the message,
 waiting for a delay in the range `[2,3]` each time.
 
-[pta.prism](../files/pta.prism "include")
+[retry.prism](../files/retry.prism "include")
 
 The model type is indicated as `pta` at the top of the file
 (in fact PRISM will also detect an MDP model with clock variables and treat it as a PTA).
@@ -57,7 +57,7 @@ If `s` is 1, there is no restriction
 
 The resulting PTA is shown below, where states (locations) are identified by the value of `s`.
 
-![PTA with three locations. Location 0 (invariant x≤2) has a send action, enabled when x≥1, that goes to location 1 (labelled true) with probability 0.9 or location 2 (invariant x≤3) with probability 0.1, resetting x to 0 in both cases. From location 2, a retry action enabled when x≥2 goes to location 1 with probability 0.95, or stays in location 2 with probability 0.05 and resets x to 0.](../files/pta.svg)
+![PTA with three locations. Location 0 (invariant x≤2) has a send action, enabled when x≥1, that goes to location 1 (labelled true) with probability 0.9 or location 2 (invariant x≤3) with probability 0.1, resetting x to 0 in both cases. From location 2, a retry action enabled when x≥2 goes to location 1 with probability 0.95, or stays in location 2 with probability 0.05 and resets x to 0.](../files/retry.svg)
 
 **Rewards:**
 PTA models can include [reward structures](../ThePRISMLanguage/CostsAndRewards.md) in the same way as MDPs.

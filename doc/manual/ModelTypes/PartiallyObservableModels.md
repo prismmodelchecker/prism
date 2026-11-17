@@ -21,7 +21,7 @@ Here is a simple example of a POMDP, modelled in PRISM.
 First, a hidden variable `h` is set randomly to 1, 2 or 3 (with probabilities 0.1, 0.3 and 0.6).
 Then, a single guess is made of its value.
 
-[pomdp.prism](../files/pomdp.prism "include")
+[guess.prism](../files/guess.prism "include")
 
 The model type is indicated as `pomdp` at the top of the file
 (in fact PRISM will also detect an MDP model with observables and treat it as a POMDP).
@@ -39,7 +39,7 @@ all have the same observation (`s=1`), so a strategy cannot distinguish between 
 and must make the same guess in each one.
 For clarity, the final states are shown merged, since the value of `h` no longer matters there.
 
-![POMDP with initial state 0 (h=0), where a toss action goes to three states, all with s=1, where h is 1, 2 or 3, with probabilities 0.1, 0.3 and 0.6. These three states are grouped as a single observation (s=1). From each one, the guess action matching h (guess1, guess2 or guess3) goes to state 2 (correct) and the other guesses go to state 3 (wrong). States 2 and 3 have done self-loops.](../files/pomdp.svg)
+![POMDP with initial state 0 (h=0), where a toss action goes to three states, all with s=1, where h is 1, 2 or 3, with probabilities 0.1, 0.3 and 0.6. These three states are grouped as a single observation (s=1). From each one, the guess action matching h (guess1, guess2 or guess3) goes to state 2 (correct) and the other guesses go to state 3 (wrong). States 2 and 3 have done self-loops.](../files/guess.svg)
 
 There are several ways to define observables.
 The simplest, used above, is to specify a subset of the model's variables
@@ -104,9 +104,9 @@ can, as usual, refer to [labels](../ThePRISMLanguage/ConstantsLabelsAndFormulas.
 but also to additional named observables defined in the model
 (e.g., `"pos"` in the example above).
 
-An example property for the `pomdp.prism` model above is:
+An example property for the `guess.prism` model above is:
 
-[pomdp.props](../files/pomdp.props "include")
+[guess.props](../files/guess.props "include")
 
 This yields a result of 0.6: the best strategy is always to guess the most likely value (3).
 In an MDP, where `h` would be visible, the probability would be 1.
@@ -144,7 +144,7 @@ and an *inner* bound, from the strategy that the approximation generates.
 Both are shown in the log, and the result is reported as the interval between them, e.g.:
 
 ```shell
-prism pomdp.prism pomdp.props
+prism guess.prism guess.props
 # ...
 # Outer bound: 0.6 (exact floating point)
 # Inner bound: 0.6 (exact floating point)

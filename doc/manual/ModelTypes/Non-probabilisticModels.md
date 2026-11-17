@@ -19,7 +19,7 @@ but with no probabilities attached to the updates of commands.
 Here is a simple example: two processes, each of which can be idle, trying or in a critical section,
 which use a lock to ensure mutual exclusion.
 
-[lts.prism](../files/lts.prism "include")
+[lock.prism](../files/lock.prism "include")
 
 The two processes do not synchronise with each other,
 but each one [synchronises](../ThePRISMLanguage/CompositionAndSynchronisation.md#synchronisation)
@@ -37,7 +37,7 @@ and transitions are labelled with their actions.
 Note that the lock is set exactly when one process is in its critical section,
 and that there is no state with `x=2` and `y=2`, where both processes are in the critical section.
 
-![LTS with 8 states, arranged in a 3x3 grid by the values of x (columns) and y (rows), from 0,0,false (initial) to 1,2,true, with no state where x and y are both 2. The lock l is true in the states where x or y is 2. Process 1 moves right, with action try1 from x=0 to x=1, enter1 from x=1 to x=2 (only if y is not 2) and exit1 from x=2 back to x=0. Process 2 moves down in the same way with actions try2, enter2 and exit2.](../files/lts.svg)
+![LTS with 8 states, arranged in a 3x3 grid by the values of x (columns) and y (rows), from 0,0,false (initial) to 1,2,true, with no state where x and y are both 2. The lock l is true in the states where x or y is 2. Process 1 moves right, with action try1 from x=0 to x=1, enter1 from x=1 to x=2 (only if y is not 2) and exit1 from x=2 back to x=0. Process 2 moves down in the same way with actions try2, enter2 and exit2.](../files/lock.svg)
 
 <a id="properties"></a>
 ## Properties
@@ -46,7 +46,7 @@ LTSs can be analysed with [non-probabilistic properties](../PropertySpecificatio
 i.e., CTL and LTL formulas using the `A` (for all paths) and `E` (there exists a path) operators.
 For example, for the model above:
 
-[lts.props](../files/lts.props "include")
+[lock.props](../files/lock.props "include")
 
 The first two properties are true: the protocol ensures mutual exclusion,
 and process 1 can reach its critical section.
