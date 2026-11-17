@@ -2,11 +2,13 @@
 
 Probabilistic model checking can need a lot of memory.
 This page describes how PRISM uses memory, and how to give it more.
+See also the "[Memory problems](../FrequentlyAskedQuestions/MemoryProblems.md)" section of the FAQ.
 
 <a id="settings"></a>
 ## CUDD memory
 
-CUDD, the underlying BDD and MTBDD library used in PRISM, has an upper memory limit. By default, this limit is 1 GB. If you are working on a machine with significantly more memory than this and PRISM runs out of memory when model checking, it may help to change this. To set the limit, from the command-line, use the [`-cuddmaxmem`](../Reference/CommandLineSwitches.md#cuddmaxmem) switch. For example:
+CUDD, the underlying BDD and MTBDD library used in PRISM's [symbolic engines](ComputationEngines.md), has an upper memory limit.
+By default, this limit is 1 GB. If you are working on a machine with significantly more memory than this and PRISM runs out of memory when model checking, it may help to change this. To set the limit, from the command-line, use the [`-cuddmaxmem`](../Reference/CommandLineSwitches.md#cuddmaxmem) switch. For example:
 
 ```shell
 prism -cuddmaxmem 2g big_model.prism
@@ -18,7 +20,9 @@ You can also change the CUDD maximum memory setting from the options panel in th
 <a id="javamaxmem"></a>
 ## Java memory
 
-The Java virtual machine (JVM) used to execute PRISM also has upper memory limits. Sometimes this limit will be exceeded and you will see an error of the form `java.lang.OutOfMemoryError`. To resolve this problem, you can increase this memory limit. On Unix, Linux or macOS platforms, this can be done by using the [`-javamaxmem`](../Reference/CommandLineSwitches.md#javamaxmem) switch, passed either to the command-line script `prism` or the GUI launcher `xprism`. For example:
+The Java virtual machine (JVM) used to execute PRISM also has upper memory limits.
+This is more likely to impact the [explicit engine](ComputationEngines.md).
+Sometimes this limit will be exceeded and you will see an error of the form `java.lang.OutOfMemoryError`. To resolve this problem, you can increase this memory limit. On Unix, Linux or macOS platforms, this can be done by using the [`-javamaxmem`](../Reference/CommandLineSwitches.md#javamaxmem) switch, passed either to the command-line script `prism` or the GUI launcher `xprism`. For example:
 
 ```shell
 prism -javamaxmem 4g big_model.prism
@@ -64,14 +68,7 @@ For example:
 prism -javaparams "-XX:AutoBoxCacheMax=100000000 -Xmn2g" -javamaxmem 12g big_model.prism
 ```
 
-<a id="environment"></a>
-## Environment variables
+Alternatively (or in conjunction with `-javaparams`), the `PRISM_JAVA_PARAMS` environment variable passes switches to the JVM.
 
-On Unix, Linux or macOS platforms, the `prism` and `xprism` scripts also read these environment variables:
+Finally, the `PRISM_JAVA` environment variable can be used to specify the `java` executable to use (by default, it is the one on your path).
 
-- `PRISM_JAVA`: the `java` executable to use (by default, the one on your path)
-- `PRISM_JAVAMAXMEM`: the Java memory limit, as for `-javamaxmem`
-- `PRISM_JAVASTACKSIZE`: the Java stack size, as for `-javastack`
-- `PRISM_JAVA_PARAMS`: further switches for the JVM, as for `-javaparams` (if both are given, both are used)
-
-If PRISM runs out of memory, see "[Memory problems](../FrequentlyAskedQuestions/MemoryProblems.md)" in the FAQ.

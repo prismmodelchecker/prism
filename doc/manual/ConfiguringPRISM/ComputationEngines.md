@@ -17,11 +17,11 @@ The latter is discussed in more detail in "[Which engine should I use?](#choosin
   (sparse matrices and variants). This supports the widest selection of solution methods,
   and also the most different model types, for example, it is the only engine that supports
   POMDPs and uncertain MDPs/DTMCs. PRISM will usually switch to this engine automatically
-  if it is the only one that can handle a particular model or property.
+  if it is the only one that can handle a particular model, property or solution method.
 
-- The **MTBDD** engine: fully *symbolic*, storing both the model and the vectors computed from it
+- The **MTBDD** engine: fully *symbolic*, storing both the model and the value vectors computed from it
   as binary decision diagrams (BDDs) and multi-terminal BDDs (MTBDDs).
-  This can handle extremely large models, as long as they are structured and regular.
+  This engine can handle extremely large models, as long as they are structured and regular.
 
 - The **sparse** engine: builds the model symbolically, as an MTBDD, but then converts it to a sparse matrix
   for numerical computation. This typically makes it faster to solve, but may use more memory.
@@ -30,7 +30,7 @@ The latter is discussed in more detail in "[Which engine should I use?](#choosin
   and performs numerical computation with a combination of MTBDDs (for the model) and arrays (for vectors),
   representing a trade-off between memory usage and solution speed [[KNP04b](../Reference/References.md#KNP04b)].
 
-The MTBDD, sparse and hybrid engines may be referred to collectively as the **symbolic engines**,
+PRISM's MTBDD, sparse and hybrid engines are referred to collectively as its **symbolic engines**,
 since they all rely on a symbolic (MTBDD-based) representation of the model being built first.
 These engines are mostly implemented in C++, using the CUDD library for BDDs and MTBDDs.
 
@@ -51,7 +51,7 @@ and may also vary in the accuracy of the results that they compute.
 
 - <a id="statistical"></a>The **statistical model checking** engine generates approximate results
   using discrete-event simulation, and without building the full model,
-  often improving scalability, but at the cost of accuracy.
+  often improving scalability but at the cost of accuracy.
   From the GUI, it is used by choosing "Simulate" menu items or tick boxes;
   from the command-line, add the [`-sim`](../Reference/CommandLineSwitches.md#sim) switch.
   See "[Statistical model checking](../RunningPRISM/StatisticalModelChecking.md)" for details.
@@ -87,25 +87,25 @@ since their performance can vary, depending on the size of the model and how it 
 Details of the memory usage and model size are displayed during model checking (from the GUI, check the "Log" tab).
 
 - The **explicit** engine has the most predictable performance, 
-  with time and memory usage increasing as the size of the state space does.
+  with time and memory usage increasing as the size of the model does.
   Unlike the symbolic engines, performance does *not* depend on how compact
   a model's MTBDD-based representation is, which can be unpredictable.
   *Building* the model is often slower using the explicit engine,
-  but the solution time is more comparable.
+  but the solution time is more comparable to that of the other core engines.
   The explicit engine is usually the best choice when:
 
   - **importing** from [explicit-state](../RunningPRISM/ImportingAndExportingModels.md) formats,
   such as UMB (`.umb`) or PRISM's own "explicit" file formats (`.pexp`, `.tra`, etc.);
   
-  - building "explicit-style" models (i.e., essentially comprising an unstructured list of states/transitions)
-  but encoded into a textual description in the PRISM modelling language;
+  - building "explicit-style" PRISM models (i.e., essentially comprising an unstructured list of states/transitions,
+  but encoded into a textual description in the PRISM modelling language);
 
   - building models that are *potentially* very large, in terms of the number of model variables
   and their range, but where only a small fraction of states are reachable.
   
 - The **hybrid** engine, amongst the three symbolic engines,
   generally provides the best compromise between time and memory usage:
-  it (almost) always uses less memory than the sparse engine,
+  it uses less memory than the sparse engine,
   but is typically slightly slower.
 
 - The **sparse** engine can be a good alternative to the hybrid engine

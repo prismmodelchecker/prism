@@ -1,10 +1,34 @@
 # Solution methods and options
 
 Separately from the choice of [engines](ComputationEngines.md),
-PRISM often offers several different solution methods
+PRISM often offers several different **solution methods**
 that can be used for the computation of probabilities and expected costs/rewards during model checking.
 Many, but not all, of these are iterative numerical methods.
-The choice of method (and their settings) depends on the type of analysis that is being done (i.e., what type of model and property).
+The choice of method (and their settings) depends on the type of analysis that is being done (i.e., what type of model and property)
+and can also be configured using various options.
+
+This page focuses on core properties for the most common model types (DTMCs, MDPs and CTMCs).
+See the other sections of the manual for solution methods available for
+[real-time models](../ModelTypes/Real-timeModels.md#solution-methods),
+[partially observable models](../ModelTypes/PartiallyObservableModels.md#solution-methods),
+and [uncertain/interval models](../ModelTypes/UncertainModels.md#solution-methods).
+
+<a id="convergence"></a>
+## Convergence
+
+Many of the methods below are iterative: they compute a sequence of approximations to the solution and stop once it has converged sufficiently.
+PRISM checks for convergence by comparing the solution vectors from successive iterations
+(or, for [interval iteration](#iiter), the vectors from the iterations from below and from above).
+The following settings control this, and apply to all of these methods:
+
+- <a id="epsilon"></a>"Termination epsilon" (switch [`-epsilon <val>`](../Reference/CommandLineSwitches.md#epsilon)):
+  iteration stops when the maximum difference between elements of the two vectors drops below this threshold.
+  The default is $10^{-6}$.
+- <a id="criteria"></a>"Termination criteria" (switches [`-relative`](../Reference/CommandLineSwitches.md#relative) and [`-absolute`](../Reference/CommandLineSwitches.md#absolute), or `-rel` and `-abs`):
+  whether that maximum difference is relative or absolute. The default is relative.
+- <a id="maxiters"></a>"Termination max. iterations" (switch [`-maxiters <val>`](../Reference/CommandLineSwitches.md#maxiters)):
+  an upper limit on the number of iterations, to trap cases where computation will not converge.
+  The default is 10,000. Reaching the limit causes an error during model checking.
 
 <a id="linear"></a>
 ## Linear equation systems
@@ -29,59 +53,46 @@ When using the hybrid engine, *pseudo* variants of Gauss-Seidel/SOR based method
 For methods which use over-relaxation (JOR/SOR), the over-relaxation parameter (between 0.0 and 2.0)
 can also be specified with option "Over-relaxation parameter" (switch [`-omega <val>`](../Reference/CommandLineSwitches.md#omega)).
 
-For options relating to convergence (of this and other iterative methods),
-see the [Convergence](SolutionMethodsAndOptions.md#convergence) section below.
+All of these are iterative methods, so the [convergence](#convergence) settings above apply.
 
 <a id="mdp"></a>
 ## MDP solution methods
 
 When analysing MDPs, there are multiple solution methods on offer.
-For most of these, you can select them under the "MDP solution method" setting from the GUI,
-or use the command-line switches listed below.
+A summary, and their command-line switches, are given below.
+From the GUI, the first five can be selected under the "MDP solution method" option.
+The last two are variants that are selected as separate options, and can also be used for DTMCs.
 All except value iteration are only supported by the [explicit engine](ComputationEngines.md),
-which PRISM switches to automatically (with a warning) if one of them is selected;
-the exception is Gauss-Seidel with the MTBDD engine, which gives an error.
-For more details of the methods, see e.g. [[FKNP11](../Reference/References.md#FKNP11)] (about probabilistic verification of MDPs)
-or classic MDP texts such as [[Put94](../Reference/References.md#Put94)].
+which PRISM switches to automatically (with a warning) if one of them is selected.
+Where they are iterative, the [convergence](#convergence) settings above apply.
 
-- **Value iteration** (switch [`-valiter`](../Reference/CommandLineSwitches.md#valiter)) [this is the default]
-- **Gauss-Seidel** (switch `-gs`)
-- **Policy iteration** (switch [`-politer`](../Reference/CommandLineSwitches.md#politer))
-- **Modified policy iteration** (switch [`-modpoliter`](../Reference/CommandLineSwitches.md#modpoliter));
-  this is only implemented for probabilities: for reward properties, PRISM switches to Gauss-Seidel (with a warning)
-- **Linear programming** (switch `-lp`)
-
-Where the methods above use iterative numerical solution,
-you can also use the settings described in the [Convergence](SolutionMethodsAndOptions.md#convergence) section below.
-
-<a id="iiter"></a>
-## Interval iteration
-
-Interval iteration [[HM14](../Reference/References.md#HM14)],[[BKLPW17](../Reference/References.md#BKLPW17)] is an alternative solution method for either MDPs or DTMCs
-which performs two separate instances of numerical iterative solution,
-one from below and one from above. This is designed to provide clearer information
-about the accuracy of the computed values and avoid possible problems with premature convergence.
-This can be enabled using the switch [`-intervaliter`](../Reference/CommandLineSwitches.md#intervaliter) (or `-ii`)
-or via the "Use interval iteration" GUI option.
-A variety of options can be configured, either using
-`-intervaliter:option1,option2,...` or by
-setting the string "`option1,option2,...`" under "Interval iteration options" in the GUI.
-See [`-intervaliter`](../Reference/CommandLineSwitches.md#intervaliter) in the list of command-line switches (or type `prism -help intervaliter`) for the options
-and see [[BKLPW17](../Reference/References.md#BKLPW17)] for the details.
-
-<a id="topo"></a>
-## Topological value iteration
-
-Topological value iteration is a variant of value iteration which improves efficiency
-by analysing the graph structure of the model and using this to update the values for
-states in an alternative order which increases the speed of convergence.
-Use switch [`-topological`](../Reference/CommandLineSwitches.md#topological) or GUI option "Use topological value iteration" to enable this.
-In addition to standard value iteration for MDPs, the topological variant can be used to optimise
-both interval iteration (see above) and the numerical solution of DTMCs.
-It is only implemented in the [explicit engine](ComputationEngines.md),
-which PRISM switches to automatically (with a warning) if another engine is selected.
-The exception is DTMC/CTMC solution with a linear equation method that the explicit engine does not support
-(such as pseudo Gauss-Seidel or SOR), where `-topological` is ignored (again, with a warning).
+- <a id="value-iteration"></a>**Value iteration** (switch [`-valiter`](../Reference/CommandLineSwitches.md#valiter)) [this is the default]:
+  repeatedly updates the value of every state from the values of its successors, until the values converge.
+- **Gauss-Seidel** (switch [`-gs`](../Reference/CommandLineSwitches.md#gs)):
+  a variant of value iteration that uses newly computed values straight away, within the same iteration,
+  which often makes it converge faster.
+- **Policy iteration** (switch [`-politer`](../Reference/CommandLineSwitches.md#politer)):
+  alternates between computing the values for a fixed policy/strategy and improving it, until there is no change.
+- **Modified policy iteration** (switch [`-modpoliter`](../Reference/CommandLineSwitches.md#modpoliter)):
+  like policy iteration, but computes the values for each policy/strategy approximately, with a few steps of value iteration.
+  This is only implemented for probabilities: for reward properties, PRISM switches to Gauss-Seidel (with a warning).
+- **Linear programming** (switch [`-lp`](../Reference/CommandLineSwitches.md#lp)):
+  encodes the problem as a linear program and solves it directly, rather than iteratively.
+- <a id="iiter"></a><a id="interval-iteration"></a>**Interval iteration** [[HM14](../Reference/References.md#HM14)],[[BKLPW17](../Reference/References.md#BKLPW17)]
+  (switch [`-intervaliter`](../Reference/CommandLineSwitches.md#intervaliter) or `-ii`, or GUI option "Use interval iteration"):
+  performs two separate instances of iterative solution, one from below and one from above.
+  This gives clearer information about the accuracy of the computed values and avoids possible problems with premature convergence.
+  A variety of options can be configured, either using `-intervaliter:option1,option2,...`
+  or by setting the string "`option1,option2,...`" under "Interval iteration options" in the GUI.
+  See [`-intervaliter`](../Reference/CommandLineSwitches.md#intervaliter) in the list of command-line switches (or type `prism -help intervaliter`) for the options
+  and [[BKLPW17](../Reference/References.md#BKLPW17)] for the details.
+- <a id="topo"></a>**Topological value iteration** (switch [`-topological`](../Reference/CommandLineSwitches.md#topological), or GUI option "Use topological value iteration"):
+  improves the efficiency of value iteration by analysing the graph structure of the model,
+  and using this to update the values of states in an order that speeds up convergence.
+  It can also be used to optimise interval iteration and the numerical solution of DTMCs.
+  It is only implemented in the explicit engine, which PRISM switches to automatically (with a warning) if another engine is selected.
+  The exception is DTMC/CTMC solution with a linear equation method that the explicit engine does not support
+  (such as pseudo Gauss-Seidel or SOR), where `-topological` is ignored (again, with a warning).
 
 <a id="transient"></a>
 ## CTMC transient analysis
@@ -113,26 +124,3 @@ The following options can be used to configure FAU:
 - "FAU time intervals" (switch [`-fauintervals <x>`](../Reference/CommandLineSwitches.md#fauintervals)): In some cases, it is advantageous to divide the time interval the analysis is done for into several smaller intervals. This option dictates the number of (equal length) intervals used for this split. The default is 1, meaning that only one time interval is used.
 
 - "FAU initial time interval" (switch [`-fauinitival <x>`](../Reference/CommandLineSwitches.md#fauinitival)): It is also possible to specify an additional initial time interval which is handled separately from the rest of the time. This is often advantageous, because in this interval certain parameters of the model can be explored, which can subsequently be used to speed up the computation of the remaining time interval. The default for this option is 1.0.
-
-<a id="convergence"></a>
-## Convergence
-
-Common to all of these methods is the way that PRISM checks convergence, i.e. decides when to terminate the iterative methods because the answers have converged sufficiently. This is done by checking when the maximum difference between elements in the solution vectors from successive iterations drops below a given threshold (or, in the case of interval iteration, if the difference of the elements in the iterations from above and below are below the threshold).
-The default value for this threshold is $10^{-6}$ but it can be altered with the "Termination epsilon" option (switch [`-epsilon <val>`](../Reference/CommandLineSwitches.md#epsilon)). The way that the maximum difference is computed can also be varied:
-either "relative" or "absolute" (the default is "relative"). This can be changed using the "Termination criteria" option (command-line switches [`-relative`](../Reference/CommandLineSwitches.md#relative) and [`-absolute`](../Reference/CommandLineSwitches.md#absolute), or `-rel` and `-abs` for short).
-
-Also, the maximum number of iterations performed is given an upper limit
-in order to trap the cases when computation will not converge.
-The default limit is 10,000 but can be changed with the "Termination max. iterations" option (switch [`-maxiters <val>`](../Reference/CommandLineSwitches.md#maxiters)). Computations that reach this upper limit will trigger an error during model checking to alert the user to this fact.
-
-<a id="other"></a>
-## Other model types and methods
-
-Some solution methods, and their settings, are described with the models or analyses they apply to:
-
-- [Real-time models](../ModelTypes/Real-timeModels.md#solution-methods): the PTA model checking methods (switch [`-ptamethod`](../Reference/CommandLineSwitches.md#ptamethod))
-- [Partially observable models](../ModelTypes/PartiallyObservableModels.md#solution-methods): the grid-based approximation for POMDPs, and its resolution (switch [`-gridresolution`](../Reference/CommandLineSwitches.md#gridresolution))
-- [Uncertain models](../ModelTypes/UncertainModels.md#solution-methods): robust value iteration for interval models
-- [Exact model checking](../RunningPRISM/ModelChecking.md#accuracy), with arbitrary precision arithmetic (switch [`-exact`](../Reference/CommandLineSwitches.md#exact))
-- [Parametric model checking](../RunningPRISM/ParametricModelChecking.md) (switch [`-param`](../Reference/CommandLineSwitches.md#param))
-- [Statistical model checking](../RunningPRISM/StatisticalModelChecking.md), based on simulation (switch [`-sim`](../Reference/CommandLineSwitches.md#sim))

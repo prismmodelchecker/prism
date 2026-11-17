@@ -16,7 +16,10 @@ If PRISM crashes or freezes whilst not using all/most of the available memory (y
 <details id="memout">
 <summary>I ran out of memory. What can I do?</summary>
 
-It depends. First, you need to establish at what point in PRISM's operation, you ran out of memory. If you are running the command-line version of PRISM then the output from the tool so far should give an indication of this. If using the GUI, check the log tab for this information. If PRISM crashed because of its memory usage, the error message can be helpful. If using the GUI, you may need to start the GUI from the command-line to see any error messages.
+First, note that PRISM's different [computation engines](../ConfiguringPRISM/ComputationEngines.md)
+and [solution methods](../ConfiguringPRISM/SolutionMethodsAndOptions.md) can vary significantly in performance.
+
+It also helps to establish at what point in PRISM's operation, you ran out of memory. If you are running the command-line version of PRISM then the output from the tool so far should give an indication of this. If using the GUI, check the log tab for this information. If PRISM crashed because of its memory usage, the error message can be helpful. If using the GUI, you may need to start the GUI from the command-line to see any error messages.
 
 The two main steps that PRISM typically has to perform are:
 

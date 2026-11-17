@@ -6,10 +6,10 @@ All the options available from the command line are listed in "[Command-line swi
 <a id="output"></a>
 ## Output and logging
 
-To increase the amount of information displayed by PRISM (in particular, to display lists of states and probability vectors), you can use the "Verbose output" option (activated with command-line switch [`-verbose`](../Reference/CommandLineSwitches.md#verbose) or `-v`). To display additional statistics about MTBDDs after model construction, use the "Extra MTBDD information" option (switch [`-extraddinfo`](../Reference/CommandLineSwitches.md#extraddinfo)) and, to view MTBDD sizes during the process of reachability, use option "Extra reachability information" (switch [`-extrareachinfo`](../Reference/CommandLineSwitches.md#extrareachinfo)).
-
 From the command line, the log can be written to a file instead of the screen with [`-mainlog <file>`](../Reference/CommandLineSwitches.md#mainlog);
 add `:append` (e.g. `-mainlog log.txt:append`) to add to the end of an existing file rather than overwrite it.
+
+To increase the amount of information displayed by PRISM (in particular, to display lists of states and probability vectors), you can use the "Verbose output" option (activated with command-line switch [`-verbose`](../Reference/CommandLineSwitches.md#verbose) or `-v`). To display additional statistics about MTBDDs after model construction, use the "Extra MTBDD information" option (switch [`-extraddinfo`](../Reference/CommandLineSwitches.md#extraddinfo)) and, to view MTBDD sizes during the process of reachability, use option "Extra reachability information" (switch [`-extrareachinfo`](../Reference/CommandLineSwitches.md#extrareachinfo)).
 
 To see how iterative numerical methods progress, the switch [`-exportiterations`](../Reference/CommandLineSwitches.md#exportiterations)
 (or GUI option "Export iterations (debug/visualisation)") writes the solution vector at each iteration to the file `iterations.html`, for debugging or visualisation.
