@@ -66,6 +66,9 @@ Formally, the class of PTAs with this kind of reward structure is sometimes call
 
 **Restrictions:**
 Expressions in PTA models that include reference to clocks, whether in guards or invariants, must satisfy certain conditions to facilitate model checking. In particular, references to clocks must appear as conjunctions of *simple clock constraints*, i.e., conjunctions of expressions of the form `x~c` or `x~y` where `x` and `y` are clocks, `c` is an integer-valued expression and `~` is one of `<`, `<=`, `>=`, `>` or `=`.
+Clock resets must set a clock to a non-negative integer value that is constant,
+such as `(x'=0)` or `(x'=K)` for an integer constant `K`:
+it cannot depend on the values of other variables or clocks.
 
 PRISM makes several assumptions about PTAs, regardless of the engine used.
 
