@@ -201,4 +201,16 @@ public class AppliedStrategyExplicit<Value> implements AppliedStrategy<Value>, M
 		}
 		return bs;
 	}
+
+	/**
+	 * Attach a label to the induced model, given as a set of states of the original model:
+	 * the label holds in the induced states whose corresponding original state is in the set.
+	 */
+	public void addLabelFromOriginal(String name, BitSet origStates) throws PrismException
+	{
+		if (!(inducedModel instanceof ModelExplicit)) {
+			throw new PrismException("Cannot attach labels to the induced model");
+		}
+		((ModelExplicit<Value>) inducedModel).addLabel(name, pullBack(origStates));
+	}
 }

@@ -36,6 +36,7 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.List;
+import java.util.Map;
 import java.util.regex.Pattern;
 
 import common.iterable.Range;
@@ -70,6 +71,9 @@ import parser.ast.LabelList;
 import parser.ast.ModulesFile;
 import parser.ast.PropertiesFile;
 import parser.ast.Property;
+import parser.type.TypeBool;
+import parser.visitor.RemoveStrategyOptimisation;
+import parser.visitor.ReplaceNestedOperatorsByLabels;
 import pta.DigitalClocks;
 import pta.PTAModelChecker;
 import simulator.GenerateSimulationPath;
@@ -3753,6 +3757,85 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 
 		// Return result
 		return res;
+	}
+
+	/**
+	 * Model check a property on the current model under a strategy, and return the result.
+	 * The strategy is applied (see {@link #applyStrategy(Strategy)}), the property is
+	 * checked on the induced model, and then the strategy is unapplied again.
+	 * If the induced model has no nondeterminism, the property's optimisation
+	 * over strategies is removed: {@code Pmax=?} becomes {@code P=?}, a strategy quantifier
+	 * {@code <<>>} or {@code [[]]} is dropped, and bounds are checked for the strategy;
+	 * for an interval model, the optimisation over the intervals is kept.
+	 * No strategy is generated for the induced model.
+	 * @param propertiesFile Parent property file of property (for labels/constants/...)
+	 * @param prop The property to check
+	 * @param strat The strategy (for the current model)
+	 * @param nestedOnOriginal If true, state subformulas nested inside the property's
+	 * P/R/S/... operators (e.g. P>0.5 [F "goal"] in P=? [ F P>0.5 [F "goal"] ]) are evaluated
+	 * on the current model (i.e., not under the strategy), rather than on the induced model
+	 */
+	public Result modelCheck(PropertiesFile propertiesFile, Property prop, Strategy<?> strat, boolean nestedOnOriginal) throws PrismException
+	{
+		applyStrategy(strat);
+		boolean genStratOld = genStrat;
+		try {
+			AppliedStrategyExplicit<?> applied = (AppliedStrategyExplicit<?>) getAppliedStrategy();
+			Expression expr = prop.getExpression().deepCopy();
+			// Evaluate nested subformulas on the original model (with the original variables)
+			if (nestedOnOriginal) {
+				expr = replaceNestedByLabels(expr, propertiesFile, applied);
+			}
+			// The induced model's variables can differ (e.g., memory), so re-resolve them
+			ModelInfo inducedModelInfo = getModelInfo();
+			PropertiesFile propertiesFileInduced = (PropertiesFile) propertiesFile.deepCopy();
+			propertiesFileInduced.findAllVars(inducedModelInfo.getVarNames(), inducedModelInfo.getVarTypes());
+			expr = (Expression) expr.findAllVars(inducedModelInfo.getVarNames(), inducedModelInfo.getVarTypes());
+			// Remove optimisation over strategies, if none are left
+			if (!getModelType().nondeterministic()) {
+				expr = (Expression) expr.accept(new RemoveStrategyOptimisation(getModelType().uncertain()));
+			}
+			expr.typeCheck();
+			genStrat = false;
+			return modelCheck(propertiesFileInduced, new Property(expr, prop.getName(), prop.getComment()));
+		} finally {
+			genStrat = genStratOld;
+			unapplyStrategy();
+		}
+	}
+
+	/**
+	 * Replace each state subformula nested inside a P/R/S/... operator of {@code expr}
+	 * (outermost ones only) with a new label, attached to the induced model of {@code applied}.
+	 * The label's states are those whose corresponding original state satisfies the subformula,
+	 * evaluated on the original model (whose details are the parent of the current ones).
+	 */
+	private Expression replaceNestedByLabels(Expression expr, PropertiesFile propertiesFile, AppliedStrategyExplicit<?> applied) throws PrismException
+	{
+		explicit.Model<?> inducedModel = applied.getInducedModel();
+		ReplaceNestedOperatorsByLabels replacer = new ReplaceNestedOperatorsByLabels("_nested",
+				name -> inducedModel.getLabels().contains(name) || propertiesFile.getLabelList().getLabelIndex(name) != -1);
+		Expression exprNew = (Expression) expr.accept(replacer);
+		for (Map.Entry<String, Expression> replacement : replacer.getReplacements().entrySet()) {
+			Expression sub = replacement.getValue();
+			sub.typeCheck();
+			if (!(sub.getType() instanceof TypeBool)) {
+				throw new PrismNotSupportedException("Non-Boolean nested subformula " + sub + " is not supported under a strategy");
+			}
+			// Evaluate on the original model
+			ModelDetails inducedDetails = currentModelDetails;
+			currentModelDetails = inducedDetails.parent;
+			BitSet sat;
+			try {
+				explicit.StateModelChecker mc = createModelCheckerExplicit(propertiesFile);
+				mc.setGenStrat(false);
+				sat = mc.checkExpression(applied.getOriginalModel(), sub, null).getBitSet();
+			} finally {
+				currentModelDetails = inducedDetails;
+			}
+			applied.addLabelFromOriginal(replacement.getKey(), sat);
+		}
+		return exprNew;
 	}
 
 	/**
