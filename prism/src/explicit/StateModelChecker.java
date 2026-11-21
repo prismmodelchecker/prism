@@ -126,7 +126,8 @@ public class StateModelChecker extends PrismComponent
 	protected Filter currentFilter;
 
 	// The result of model checking will be stored here
-	protected Result result;
+	// (also created here, in case checkExpression is called directly, rather than via check)
+	protected Result result = new Result();
 
 	/**
 	 * Create a new StateModelChecker, inherit basic state from parent (unless null).
