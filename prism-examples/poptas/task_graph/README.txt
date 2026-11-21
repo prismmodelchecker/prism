@@ -4,7 +4,7 @@ The models here are partially observable probabilistic timed automata (POPTAs),
 as described in [NPZ17]. These extend the the probabilistic timed automaton (PTA)
 version from [NPS13]. Both are extensions of the timed automaton example from [BFLM11].
 
-For more information, see: http://www.prismmodelchecker.org/casestudies/task_graph.php
+For more information, see: https://www.prismmodelchecker.org/casestudies/task_graph/
 
 =====================================================================================
 

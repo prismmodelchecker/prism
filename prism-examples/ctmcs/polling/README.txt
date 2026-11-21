@@ -1,6 +1,6 @@
 This case study is based on a cyclic server polling system, taken from [IT90].
 
-For more information, see: http://www.prismmodelchecker.org/casestudies/polling.php
+For more information, see: https://www.prismmodelchecker.org/casestudies/polling/
 
 =====================================================================================
 

@@ -1,6 +1,6 @@
 This case study is based on a simple tandem queueing network, taken from [HMKS99].
 
-For more information, see: http://www.prismmodelchecker.org/casestudies/tandem.php
+For more information, see: https://www.prismmodelchecker.org/casestudies/tandem/
 
 =====================================================================================
 

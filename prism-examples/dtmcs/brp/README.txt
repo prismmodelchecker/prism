@@ -5,7 +5,7 @@ Its parameters are:
   N = number of chunks in a file
   MAX = maximum number of retransmissions
 
-For more information, see: http://www.prismmodelchecker.org/casestudies/brp.php
+For more information, see: https://www.prismmodelchecker.org/casestudies/brp/
 
 =====================================================================================
 

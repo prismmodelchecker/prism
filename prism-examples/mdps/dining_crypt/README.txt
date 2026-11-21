@@ -1,6 +1,6 @@
 This case study is based on the well known dining cryptographers problem [Cha88].
 
-For more information, see: http://www.prismmodelchecker.org/casestudies/dining_crypt.php
+For more information, see: https://www.prismmodelchecker.org/casestudies/dining_crypt/
 
 =====================================================================================
 

@@ -5,7 +5,7 @@ as described in [NPZ17]. These extend the the probabilistic timed automaton (PTA
 version from [NPS13], the files for which can be found in ../../ptas/repudiation.
 Both are extensions of the PTA model developed in [LMST04].
 
-For more information, see: http://www.prismmodelchecker.org/casestudies/nonrepudiation.php
+For more information, see: https://www.prismmodelchecker.org/casestudies/nonrepudiation/
 
 =====================================================================================
 

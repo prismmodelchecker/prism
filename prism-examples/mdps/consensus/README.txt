@@ -1,6 +1,6 @@
 This case study is based on the shared coin protocol from the randomised consensus algorithm of Aspnes and Herlihy [AH90].
 
-For more information, see: http://www.prismmodelchecker.org/casestudies/consensus_prism.php
+For more information, see: https://www.prismmodelchecker.org/casestudies/consensus_prism/
 
 =====================================================================================
 

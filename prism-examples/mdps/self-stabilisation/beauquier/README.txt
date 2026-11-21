@@ -1,6 +1,6 @@
 This case study is based on Beauquier, Gradinariu and Johnen's self-stabilising algorithm [BGJ99].
 
-For more information, see: http://www.prismmodelchecker.org/casestudies/self-stabilisation.php
+For more information, see: https://www.prismmodelchecker.org/casestudies/self-stabilisation/
 
 =====================================================================================
 

@@ -112,14 +112,14 @@ We also gratefully acknowledge contributions to the PRISM code-base from
 
 For more details see:
 
-  https://www.prismmodelchecker.org/people.php
+  https://www.prismmodelchecker.org/people/
 
 
 ## Contact
 
 If you have problems or questions regarding PRISM, please use the help forum provided. See:
 
-  https://www.prismmodelchecker.org/support.php
+  https://www.prismmodelchecker.org/support/
 
 Other comments and feedback about any aspect of PRISM are also very welcome. Please contact:
 

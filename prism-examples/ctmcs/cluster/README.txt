@@ -1,6 +1,6 @@
 This case study is based on a dependable cluster of workstations, taken from [HHK00].
 
-For more information, see: http://www.prismmodelchecker.org/casestudies/cluster.php
+For more information, see: https://www.prismmodelchecker.org/casestudies/cluster/
 
 =====================================================================================
 

@@ -1,6 +1,6 @@
 This case study is based on the Kanban flexible manufacturing system of [CT96].
 
-For more information, see: http://www.prismmodelchecker.org/casestudies/kanban.php
+For more information, see: https://www.prismmodelchecker.org/casestudies/kanban/
 
 =====================================================================================
 

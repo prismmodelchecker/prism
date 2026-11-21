@@ -3,7 +3,7 @@ This case study concerns the IPv4 Zeroconf Protocol [CAG02]
 We consider the probabilistic timed automata models presented in [KNPS06] using
 the integer semantics also presented in the paper.
 
-For more information, see: http://www.prismmodelchecker.org/casestudies/zeroconf.php
+For more information, see: https://www.prismmodelchecker.org/casestudies/zeroconf/
 
 =====================================================================================
 

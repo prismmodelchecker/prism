@@ -14,7 +14,7 @@ impl: which consists of the parallel composition of two nodes (Node1 and Node2),
 abst: which is represented by a single probabilistic timed automaton and is an abstraction of Impl 
       based on the the probabilistic I/O automaton I1 of [SV99].
 
-For more information, see: http://www.prismmodelchecker.org/casestudies/firewire.php
+For more information, see: https://www.prismmodelchecker.org/casestudies/firewire/
 
 =====================================================================================
 

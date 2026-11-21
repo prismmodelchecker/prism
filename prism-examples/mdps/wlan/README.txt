@@ -6,7 +6,7 @@ The PRISM model is taken from [KNS02a] using the integer semantics given in [KNS
 corresponds to 50μs and to ensure integer bounds, where neccessary, scaling lower bound constraints down and
 upper bound constraints up to sensure a sound abstraction.
 
-For more information on the probabilistic timed automata see: http://www.prismmodelchecker.org/casestudies/wlan.php
+For more information on the probabilistic timed automata see: https://www.prismmodelchecker.org/casestudies/wlan/
 
 PARAMETERS
 

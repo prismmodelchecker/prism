@@ -5,7 +5,7 @@ property file: csma.pctl
 
 where N is the number of stations and K is the maximum backoff
 
-For more information on the probabilistic timed automata see: http://www.prismmodelchecker.org/casestudies/csma.php
+For more information on the probabilistic timed automata see: https://www.prismmodelchecker.org/casestudies/csma/
 
 The PRISM model uses the integer semantics given in [KNPS06].
 

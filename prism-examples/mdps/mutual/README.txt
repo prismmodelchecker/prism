@@ -21,7 +21,7 @@ No:	No:	Description:			State:
 14	18	leaving	critical section	admit
 15	19	leaving	critical section	admit
 
-For more information, see: http://www.prismmodelchecker.org/casestudies/mutual.php
+For more information, see: https://www.prismmodelchecker.org/casestudies/mutual/
 
 =====================================================================================
 

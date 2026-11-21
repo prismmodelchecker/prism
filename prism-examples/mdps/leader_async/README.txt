@@ -1,6 +1,6 @@
 This case study is based on the asynchronous leader election protocol of Itai & Rodeh [IR90].
 
-For more information, see: http://www.prismmodelchecker.org/casestudies/asynchronous_leader.php
+For more information, see: https://www.prismmodelchecker.org/casestudies/asynchronous_leader/
 
 =====================================================================================
 
