@@ -63,7 +63,7 @@ For more information, see:
 PRISM also uses various other libraries (mainly to be found in the lib directory).
 For details of those, including licenses and links to downloads and source code, see:
 
-https://www.prismmodelchecker.org/other-downloads.php
+https://www.prismmodelchecker.org/other-downloads/
 
 
 ## Acknowledgements

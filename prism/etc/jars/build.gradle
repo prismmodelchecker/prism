@@ -31,7 +31,7 @@ configurations.all {
 // Libraries not on Maven Central
 // Get from prismmodelchecker.org and cache in local-libs
 
-def prismJarBaseUrl = "https://www.prismmodelchecker.org/other/"
+def prismJarBaseUrl = "https://www.prismmodelchecker.org/dl/other/"
 def prismJarStashDir = file("local-libs")
 
 def customJars = [

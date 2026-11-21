@@ -24,4 +24,4 @@ This folder contains the following libraries:
 
 See here for more details and links:
 
-http://www.prismmodelchecker.org/other-downloads.php
+https://www.prismmodelchecker.org/other-downloads/
