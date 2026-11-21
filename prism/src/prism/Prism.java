@@ -39,6 +39,7 @@ import java.util.List;
 import java.util.regex.Pattern;
 
 import common.iterable.Range;
+import explicit.AppliedStrategyExplicit;
 import explicit.CTMC;
 import explicit.CTMCModelChecker;
 import explicit.ConstructModel;
@@ -77,6 +78,7 @@ import simulator.SimulatorEngine;
 import simulator.method.SimulationMethod;
 import strat.Strategy;
 import strat.StrategyChoices;
+import strat.StrategyExplicit;
 import strat.StrategyExportOptions;
 import strat.StrategyExportOptions.StrategyExportType;
 import strat.StrategyGenerator;
@@ -252,7 +254,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	private static Path workingDirectory = null;
 
 	public enum ModelSource {
-		PRISM_MODEL, MODEL_GENERATOR, EXPLICIT_FILES, BUILT_MODEL;
+		PRISM_MODEL, MODEL_GENERATOR, EXPLICIT_FILES, BUILT_MODEL, INDUCED;
 		public String description()
 		{
 			switch (this) {
@@ -264,6 +266,8 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 					return "explicit files";
 				case BUILT_MODEL:
 					return "built model";
+				case INDUCED:
+					return "model induced by a strategy";
 				default:
 					return this.toString();
 			}
@@ -337,6 +341,12 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 		ModelBuildType modelBuildType = null;
 		// Are we doing digital clocks translation for PTAs?
 		boolean modelDigitalClocks = false;
+		// The last strategy that was generated for this model (null if none)
+		Strategy<?> strategy = null;
+		// For a model induced by a strategy (see applyStrategy): the applied strategy
+		// and the details of the model it was applied to (both null otherwise)
+		AppliedStrategy<?> appliedStrategy = null;
+		ModelDetails parent = null;
 
 		/** Default constructor */
 		ModelDetails()
@@ -361,14 +371,19 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 			modelExpl = other.modelExpl;
 			modelBuildType = other.modelBuildType;
 			modelDigitalClocks = other.modelDigitalClocks;
+			strategy = other.strategy;
+			appliedStrategy = other.appliedStrategy;
+			parent = other.parent;
 		}
 	}
 
-	/** Info about currently loaded model, if any */
+	/**
+	 * Info about currently loaded model, if any.
+	 * If strategies have been applied (see {@link #applyStrategy(Strategy)}),
+	 * this is the model induced by the last one, and the details of
+	 * the models they were applied to are available via the {@code parent} links.
+	 */
 	private ModelDetails currentModelDetails = new ModelDetails();
-
-	// The last strategy that was generated
-	private Strategy<?> strategy = null;
 	
 	// Info for explicit files load
 	private ExplicitModelImporter modelImporter;
@@ -1752,6 +1767,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	 */
 	public void clearModel() throws PrismException
 	{
+		unapplyAllStrategies();
 		setModelSource(null);
 		setModelType(null);
 		setModelInfo(null);
@@ -1772,6 +1788,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	 */
 	public void loadPRISMModel(ModulesFile modulesFile) throws PrismException
 	{
+		unapplyAllStrategies();
 		if (modulesFile == null) {
 			clearModel();
 		}
@@ -1799,6 +1816,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	 */
 	public void loadModelGenerator(ModelGenerator<?> modelGen) throws PrismException
 	{
+		unapplyAllStrategies();
 		if (modelGen == null) {
 			clearModel();
 		}
@@ -1867,6 +1885,10 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 				getUndefinedModelValues().equals(definedMFConstants) && exactSame) {
 			return;
 		}
+		// A model induced by a strategy is for fixed constant values
+		if (getNumAppliedStrategies() > 0) {
+			throw new PrismException("Model constants cannot be changed while a strategy is applied");
+		}
 
 		// Clear any existing built model(s)
 		clearBuiltModel();
@@ -1891,6 +1913,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	 */
 	public void loadPRISMModelAndBuiltModel(ModulesFile modulesFile, Model model) throws PrismException
 	{
+		unapplyAllStrategies();
 		setModelSource(ModelSource.PRISM_MODEL);
 		// Clear any existing built model(s)
 		clearBuiltModel();
@@ -1913,6 +1936,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	 */
 	public void loadBuiltModel(Model model) throws PrismException
 	{
+		unapplyAllStrategies();
 		setModelSource(ModelSource.BUILT_MODEL);
 		// Clear any existing built model(s)
 		clearBuiltModel();
@@ -1968,6 +1992,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	 */
 	public void loadModelFromExplicitFiles(ExplicitModelImporter importer) throws PrismException
 	{
+		unapplyAllStrategies();
 		mainLog.println("\nImporting model from " + importer.sourceString() + "...");
 		// Update model source info
 		setModelSource(ModelSource.EXPLICIT_FILES);
@@ -2123,6 +2148,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 				}
 				break;
 			case MODEL_GENERATOR:
+			case INDUCED:
 				// Not present - must be an error
 				throw new PrismException("There is no currently loaded model generator");
 			case BUILT_MODEL:
@@ -2262,7 +2288,120 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	 */
 	public Strategy<?> getStrategy()
 	{
-		return strategy;
+		return currentModelDetails.strategy;
+	}
+
+	/**
+	 * Apply the currently stored strategy (see {@link #getStrategy()}) to the current model.
+	 * See {@link #applyStrategy(Strategy)}.
+	 */
+	public void applyStrategy() throws PrismException
+	{
+		applyStrategy(getStrategy());
+	}
+
+	/**
+	 * Apply a strategy to the current model, i.e., replace the current model with the
+	 * model induced by the strategy, which is then used for subsequent model checking,
+	 * simulation, exports, etc. The strategy must be for the current (built) model.
+	 * The previous model is restored by {@link #unapplyStrategy()}. Strategies can be applied
+	 * repeatedly, e.g. to resolve the choices of different players in a game one at a time.
+	 * Model constants cannot be changed while a strategy is applied, and loading
+	 * a new model unapplies all strategies first.
+	 * <br><br>
+	 * The induced model is constructed in "reduce" mode, restricted to reachable states,
+	 * with labels and rewards copied from the current model. For strategies with memory,
+	 * it has an extra variable for the memory. Its initial states correspond to those of the
+	 * current model (with the strategy's initial memory, if any).
+	 * The applied strategy is available afterwards via {@link #getAppliedStrategy()}.
+	 */
+	public void applyStrategy(Strategy<?> strat) throws PrismException
+	{
+		if (strat == null) {
+			throw new PrismException("There is no strategy to apply");
+		}
+		if (!(strat instanceof StrategyExplicit)) {
+			throw new PrismNotSupportedException("Applying strategies is not supported for this type of strategy (e.g., from symbolic engines)");
+		}
+		StrategyExplicit<?> stratExpl = (StrategyExplicit<?>) strat;
+		if (getBuiltModelExplicit() == null || stratExpl.getModel() != getBuiltModelExplicit()) {
+			throw new PrismException("The strategy is not for the current (built) model");
+		}
+		mainLog.println("\nApplying strategy...");
+		// Rewards are copied from the current model to the induced one, so need to be attached
+		attachRewardsToModel(getBuiltModelExplicit());
+		AppliedStrategyExplicit<?> applied = createAppliedStrategy(stratExpl);
+		explicit.Model<?> inducedModel = applied.getInducedModel();
+		Values definedMFConstants = getUndefinedModelValues();
+		boolean definedMFConstantsAreExact = areUndefinedModelValuesExact();
+		ModelBuildType buildType = getBuiltModelType();
+		// Switch to new details for the induced model, keeping the current ones as its parent
+		ModelDetails parentDetails = currentModelDetails;
+		currentModelDetails = new ModelDetails();
+		currentModelDetails.parent = parentDetails;
+		setModelSource(ModelSource.INDUCED);
+		setModelType(inducedModel.getModelType());
+		setModelInfo(applied.getInducedModelInfo());
+		setModelGenerator(new ModelModelGenerator<>(inducedModel, applied.getInducedModelInfo()));
+		setRewardInfo(applied.getInducedRewardInfo());
+		setRewardGenerator(applied.getInducedRewardGenerator());
+		setDefinedMFConstants(definedMFConstants, definedMFConstantsAreExact);
+		setBuiltModel(buildType, inducedModel);
+		setAppliedStrategy(applied);
+		mainLog.println("Induced model (" + inducedModel.getModelType() + "): " + inducedModel.infoString());
+	}
+
+	/**
+	 * Create an applied strategy (helper method for {@link #applyStrategy(Strategy)}).
+	 */
+	private <Value> AppliedStrategyExplicit<Value> createAppliedStrategy(StrategyExplicit<Value> strat) throws PrismException
+	{
+		return new AppliedStrategyExplicit<>(strat, getModelInfo(), getRewardInfo());
+	}
+
+	/**
+	 * Unapply the last strategy applied with {@link #applyStrategy(Strategy)},
+	 * restoring the model it was applied to (and its stored strategy).
+	 * Any strategy generated for the induced model is discarded.
+	 */
+	public void unapplyStrategy() throws PrismException
+	{
+		if (currentModelDetails.parent == null) {
+			throw new PrismException("No strategy has been applied");
+		}
+		clearStrategy();
+		currentModelDetails = currentModelDetails.parent;
+	}
+
+	/**
+	 * Unapply all strategies applied with {@link #applyStrategy(Strategy)}, if any.
+	 */
+	private void unapplyAllStrategies() throws PrismException
+	{
+		while (currentModelDetails.parent != null) {
+			unapplyStrategy();
+		}
+	}
+
+	/**
+	 * Get the strategy that was applied to obtain the current model
+	 * (see {@link #applyStrategy(Strategy)}), or null if none.
+	 */
+	public AppliedStrategy<?> getAppliedStrategy()
+	{
+		return currentModelDetails.appliedStrategy;
+	}
+
+	/**
+	 * Get the number of strategies currently applied (see {@link #applyStrategy(Strategy)}).
+	 */
+	public int getNumAppliedStrategies()
+	{
+		int n = 0;
+		for (ModelDetails md = currentModelDetails; md.parent != null; md = md.parent) {
+			n++;
+		}
+		return n;
 	}
 
 	/**
@@ -2296,33 +2435,41 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	private void chooseEngineForModelBuild()
 	{
 		// For some models, automatically switch engine
+		String reason = null;
 		switch (getModelType()) {
 			case IDTMC:
 			case IMDP:
 			case LTS:
 			case POMDP:
 			case IPOMDP:
-				if (getCurrentEngine() == PrismEngine.SYMBOLIC) {
-					mainLog.println("\nSwitching to explicit engine, which supports " + getModelType() + "s...");
-					engineOld = getEngine();
-					engineSwitched = true;
-					try {
-						setEngine(Prism.EXPLICIT);
-					} catch (PrismException e) {
-						// Won't happen
-					}
-				}
+				reason = "which supports " + getModelType() + "s";
 				break;
-			// For other models, switch engine back if changed earlier
 			default:
-				if (engineSwitched) {
-					try {
-						setEngine(engineOld);
-					} catch (PrismException e) {
-						// Won't happen
-					}
-					engineSwitched = false;
+				// A model induced by a strategy cannot be rebuilt, so use an engine for how it is stored
+				if (getModelSource() == ModelSource.INDUCED && getBuiltModelType() == ModelBuildType.EXPLICIT) {
+					reason = "since the model induced by the strategy is stored explicitly";
 				}
+		}
+		if (reason != null) {
+			if (getCurrentEngine() == PrismEngine.SYMBOLIC) {
+				mainLog.println("\nSwitching to explicit engine, " + reason + "...");
+				engineOld = getEngine();
+				engineSwitched = true;
+				try {
+					setEngine(Prism.EXPLICIT);
+				} catch (PrismException e) {
+					// Won't happen
+				}
+			}
+		}
+		// For other models, switch engine back if changed earlier
+		else if (engineSwitched) {
+			try {
+				setEngine(engineOld);
+			} catch (PrismException e) {
+				// Won't happen
+			}
+			engineSwitched = false;
 		}
 	}
 
@@ -2335,6 +2482,11 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	private void doBuildModel() throws PrismException
 	{
 		long l; // timer
+
+		// A model induced by a strategy cannot be (re)built
+		if (getModelSource() == ModelSource.INDUCED) {
+			throw new PrismException("The model induced by a strategy cannot be rebuilt (e.g., for the " + getCurrentEngine().description() + " engine)");
+		}
 
 		// Clear any existing built model(s)
 		clearBuiltModel();
@@ -3620,7 +3772,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 			
 			// If model checking generated a strategy, store it
 			if (res.getStrategy() != null) {
-				strategy = res.getStrategy();
+				setStrategy(res.getStrategy());
 			}
 		} finally {
 			// Undo auto-switch (if any)
@@ -3672,14 +3824,14 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 			} finally {
 				setModelSourceIsDigitalClocks(false);
 				// Preserve strategy (setting to null stops it being cleared with model)
-				Strategy strategyDigital = strategy;
-				strategy = null;
+				Strategy<?> strategyDigital = getStrategy();
+				setStrategy(null);
 				// Restore/clear model info
 				setPRISMModel(oldModulesFile);
 				setModelType(oldModulesFile.getModelType());
 				clearBuiltModel();
 				// Restore strategy
-				strategy = strategyDigital;
+				setStrategy(strategyDigital);
 			}
 		}
 		// Other methods
@@ -4622,6 +4774,22 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	}
 
 	/**
+	 * Set the stored strategy for the currently loaded model (null if none).
+	 */
+	private void setStrategy(Strategy<?> strategy)
+	{
+		currentModelDetails.strategy = strategy;
+	}
+
+	/**
+	 * Set the strategy that was applied to obtain the currently loaded model (null if none).
+	 */
+	private void setAppliedStrategy(AppliedStrategy<?> appliedStrategy)
+	{
+		currentModelDetails.appliedStrategy = appliedStrategy;
+	}
+
+	/**
 	 * Store the built model.
 	 */
 	private void setBuiltModel(ModelBuildType buildType, prism.Model<?> newModel) throws PrismException
@@ -4670,13 +4838,13 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 
 	/**
 	 * Clear the currently stored strategy if present (free/deallocate memory etc).
-	 * This resets {@code strategy} to {@code null}.
+	 * This resets the strategy for the current model to {@code null}.
 	 */
 	private void clearStrategy()
 	{
-		if (strategy != null) {
-			strategy.clear();
-			strategy = null;
+		if (getStrategy() != null) {
+			getStrategy().clear();
+			setStrategy(null);
 		}
 	}
 
