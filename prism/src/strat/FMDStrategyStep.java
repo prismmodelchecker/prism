@@ -28,11 +28,13 @@ package strat;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import explicit.ConstructInducedModel;
 import explicit.ConstructStrategyProduct;
+import explicit.InducedStateMap;
 import explicit.Model;
 import explicit.NondetModel;
 import parser.State;
@@ -179,10 +181,14 @@ public class FMDStrategyStep<Value> extends StrategyExplicit<Value>
 	}
 
 	@Override
-	public explicit.Model<Value> constructInducedModel(StrategyExportOptions options) throws PrismException
+	public explicit.Model<Value> constructInducedModel(StrategyExportOptions options, Consumer<InducedStateMap> stateMapConsumer) throws PrismException
 	{
 		ConstructStrategyProduct csp = new ConstructStrategyProduct(options);
+		csp.setStoreStateMap(stateMapConsumer != null);
 		Model<Value> prodModel = csp.constructProductModel(model, this);
+		if (stateMapConsumer != null) {
+			stateMapConsumer.accept(csp.getStateMap());
+		}
 		return prodModel;
 	}
 

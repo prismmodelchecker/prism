@@ -27,6 +27,7 @@
 package strat;
 
 import explicit.ConstructInducedModel;
+import explicit.InducedStateMap;
 import explicit.Model;
 import explicit.NondetModel;
 import parser.State;
@@ -34,6 +35,7 @@ import prism.PrismException;
 import prism.PrismLog;
 
 import java.util.List;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -77,10 +79,14 @@ public class MDStrategyArray<Value> extends StrategyExplicit<Value> implements M
 	}
 
 	@Override
-	public explicit.Model<Value> constructInducedModel(StrategyExportOptions options) throws PrismException
+	public explicit.Model<Value> constructInducedModel(StrategyExportOptions options, Consumer<InducedStateMap> stateMapConsumer) throws PrismException
 	{
 		ConstructInducedModel cim = new ConstructInducedModel(options);
+		cim.setStoreStateMap(stateMapConsumer != null);
 		Model<Value> inducedModel = cim.constructInducedModel(model, this);
+		if (stateMapConsumer != null) {
+			stateMapConsumer.accept(cim.getStateMap());
+		}
 		// NB: for reach=false (and MDPs), it would be slightly cheaper to use:
 		//Model<Value> inducedModel = model.constructInducedModel(this);
 		return inducedModel;

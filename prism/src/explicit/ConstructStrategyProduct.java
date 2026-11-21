@@ -183,6 +183,15 @@ public class ConstructStrategyProduct
 	}
 
 	/**
+	 * Get the map from states of the last product model constructed to states of the original
+	 * model and strategy memory, or null if it was not stored (see {@link #setStoreStateMap(boolean)}).
+	 */
+	public InducedStateMap getStateMap()
+	{
+		return origStates == null ? null : new InducedStateMap(origStates, memories);
+	}
+
+	/**
 	 * Construct the product model induced by a finite-memory strategy on a nondeterministic model
 	 * @param model The model
 	 * @param strat The strategy
