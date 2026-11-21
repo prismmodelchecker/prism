@@ -36,6 +36,8 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.List;
+import java.util.Map;
+import java.util.function.Predicate;
 import java.util.regex.Pattern;
 
 import common.iterable.Range;
@@ -70,6 +72,12 @@ import parser.ast.LabelList;
 import parser.ast.ModulesFile;
 import parser.ast.PropertiesFile;
 import parser.ast.Property;
+import parser.type.TypeBool;
+import parser.visitor.ExpandPropRefsAndLabels;
+import parser.visitor.RemoveStrategyOptimisation;
+import parser.visitor.ReplaceNestedOperatorsByLabels;
+import parser.visitor.ReplaceObservablesByLabels;
+import parser.visitor.ReplaceSubformulasByLabels;
 import pta.DigitalClocks;
 import pta.PTAModelChecker;
 import simulator.GenerateSimulationPath;
@@ -3618,6 +3626,10 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 
 		// Check that property is valid for the current model type
 		prop.getExpression().checkValid(getModelType());
+		// Check that the property can be checked on a model induced by a strategy
+		if (getAppliedStrategy() != null) {
+			getAppliedStrategy().checkPropertySupported(prop.getExpression(), new Values(getModelInfo().getConstantValues(), definedPFConstants));
+		}
 
 		// Remove old strategy if present
 		clearStrategy();
@@ -3783,6 +3795,99 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 
 		// Return result
 		return res;
+	}
+
+	/**
+	 * Model check a property on the current model under a strategy, and return the result.
+	 * The strategy is applied (see {@link #applyStrategy(Strategy)}), the property is
+	 * checked on the induced model, and then the strategy is unapplied again.
+	 * If the induced model has no nondeterminism, the property's optimisation
+	 * over strategies is removed: {@code Pmax=?} becomes {@code P=?}, a strategy quantifier
+	 * {@code <<>>} or {@code [[]]} is dropped, and bounds are checked for the strategy;
+	 * for an interval model, the optimisation over the intervals is kept.
+	 * No strategy is generated for the induced model.
+	 * @param propertiesFile Parent property file of property (for labels/constants/...)
+	 * @param prop The property to check
+	 * @param strat The strategy (for the current model)
+	 * @param nestedOnOriginal If true, state subformulas nested inside the property's
+	 * P/R/S/... operators (e.g. P>0.5 [F "goal"] in P=? [ F P>0.5 [F "goal"] ]) are evaluated
+	 * on the current model (i.e., not under the strategy), rather than on the induced model
+	 */
+	public Result modelCheck(PropertiesFile propertiesFile, Property prop, Strategy<?> strat, boolean nestedOnOriginal) throws PrismException
+	{
+		applyStrategy(strat);
+		boolean genStratOld = genStrat;
+		try {
+			AppliedStrategyExplicit<?> applied = (AppliedStrategyExplicit<?>) getAppliedStrategy();
+			// Expand property references and labels from the properties file,
+			// so that they are rewritten below too
+			Expression expr = prop.getExpression().deepCopy();
+			expr = (Expression) expr.accept(new ExpandPropRefsAndLabels(propertiesFile, propertiesFile.getLabelList()));
+			// Evaluate nested subformulas on the original model (with the original variables)
+			if (nestedOnOriginal) {
+				expr = replaceByLabels(expr, propertiesFile, applied, new ReplaceNestedOperatorsByLabels("_nested", labelUsed(propertiesFile, applied)));
+			}
+			// The induced model has no observations, so evaluate observables on the original model too
+			if (applied.getOriginalModel().getModelType().partiallyObservable()) {
+				expr = replaceByLabels(expr, propertiesFile, applied, new ReplaceObservablesByLabels("_obs", labelUsed(propertiesFile, applied)));
+			}
+			// The induced model's variables can differ (e.g., memory), so re-resolve them
+			ModelInfo inducedModelInfo = getModelInfo();
+			PropertiesFile propertiesFileInduced = (PropertiesFile) propertiesFile.deepCopy();
+			propertiesFileInduced.findAllVars(inducedModelInfo.getVarNames(), inducedModelInfo.getVarTypes());
+			propertiesFileInduced.getCombinedLabelList().findAllVars(inducedModelInfo.getVarNames(), inducedModelInfo.getVarTypes());
+			expr = (Expression) expr.findAllVars(inducedModelInfo.getVarNames(), inducedModelInfo.getVarTypes());
+			// Remove optimisation over strategies, if none are left
+			if (!getModelType().nondeterministic()) {
+				expr = (Expression) expr.accept(new RemoveStrategyOptimisation(getModelType().uncertain()));
+			}
+			expr.typeCheck();
+			genStrat = false;
+			return modelCheck(propertiesFileInduced, new Property(expr, prop.getName(), prop.getComment()));
+		} finally {
+			genStrat = genStratOld;
+			unapplyStrategy();
+		}
+	}
+
+	/**
+	 * Which label names are used, by the induced model of {@code applied} or the properties file
+	 * (helper method for {@link #modelCheck(PropertiesFile, Property, Strategy, boolean)}).
+	 */
+	private static Predicate<String> labelUsed(PropertiesFile propertiesFile, AppliedStrategyExplicit<?> applied)
+	{
+		return name -> applied.getInducedModel().getLabels().contains(name) || propertiesFile.getCombinedLabelList().getLabelIndex(name) != -1;
+	}
+
+	/**
+	 * Replace some (Boolean-valued) subformulas of {@code expr}, as chosen by {@code replacer},
+	 * with new labels, attached to the induced model of {@code applied}. The label's states are
+	 * those whose corresponding original state satisfies the subformula, evaluated on the
+	 * original model (whose details are the parent of the current ones).
+	 */
+	private Expression replaceByLabels(Expression expr, PropertiesFile propertiesFile, AppliedStrategyExplicit<?> applied, ReplaceSubformulasByLabels replacer) throws PrismException
+	{
+		Expression exprNew = (Expression) expr.accept(replacer);
+		for (Map.Entry<String, Expression> replacement : replacer.getReplacements().entrySet()) {
+			Expression sub = replacement.getValue();
+			sub.typeCheck();
+			if (!(sub.getType() instanceof TypeBool)) {
+				throw new PrismNotSupportedException("Non-Boolean subformula " + sub + " is not supported under a strategy");
+			}
+			// Evaluate on the original model
+			ModelDetails inducedDetails = currentModelDetails;
+			currentModelDetails = inducedDetails.parent;
+			BitSet sat;
+			try {
+				explicit.StateModelChecker mc = createModelCheckerExplicit(propertiesFile);
+				mc.setGenStrat(false);
+				sat = mc.checkExpression(applied.getOriginalModel(), sub, null).getBitSet();
+			} finally {
+				currentModelDetails = inducedDetails;
+			}
+			applied.addLabelFromOriginal(replacement.getKey(), sat);
+		}
+		return exprNew;
 	}
 
 	/**

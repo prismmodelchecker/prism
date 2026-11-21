@@ -26,6 +26,8 @@
 
 package prism;
 
+import parser.Values;
+import parser.ast.Expression;
 import strat.Strategy;
 
 /**
@@ -84,4 +86,12 @@ public interface AppliedStrategy<Value>
 	 * (-1 if the strategy is memoryless).
 	 */
 	public int getMemory(int s);
+
+	/**
+	 * Check that a property can be checked on the induced model,
+	 * throwing an explanatory exception if not.
+	 * @param expr The property
+	 * @param constantValues Values of constants (for evaluating reward structure indices)
+	 */
+	public void checkPropertySupported(Expression expr, Values constantValues) throws PrismException;
 }

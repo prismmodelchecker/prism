@@ -26,14 +26,22 @@
 
 package explicit;
 
+import java.util.ArrayList;
 import java.util.BitSet;
+import java.util.List;
 
 import explicit.rewards.Rewards;
 import explicit.rewards.Rewards2RewardGenerator;
+import parser.Values;
+import parser.ast.Expression;
+import parser.ast.ExpressionReward;
+import parser.ast.ExpressionTemporal;
+import parser.visitor.ASTTraverse;
 import prism.AppliedStrategy;
 import prism.InducedModelInfo;
 import prism.ModelInfo;
 import prism.PrismException;
+import prism.PrismNotSupportedException;
 import prism.RewardGenerator;
 import prism.RewardInfo;
 import strat.StrategyExplicit;
@@ -149,6 +157,39 @@ public class AppliedStrategyExplicit<Value> implements AppliedStrategy<Value>, M
 		return stateMap.getMemory(s);
 	}
 
+	/**
+	 * {@inheritDoc}
+	 * <br><br>
+	 * If the induced model has no nondeterminism, the transition rewards of the strategy's
+	 * choices are folded into state rewards, which is correct for expected rewards,
+	 * but not for instantaneous ones ({@code R[I=k]}), so these are not supported
+	 * for reward structures with transition rewards.
+	 */
+	@Override
+	public void checkPropertySupported(Expression expr, Values constantValues) throws PrismException
+	{
+		if (inducedModel.getModelType().nondeterministic()) {
+			return;
+		}
+		List<ExpressionReward> instRewards = new ArrayList<>();
+		expr.accept(new ASTTraverse()
+		{
+			@Override
+			public void visitPost(ExpressionReward e)
+			{
+				if (e.getExpression() instanceof ExpressionTemporal && ((ExpressionTemporal) e.getExpression()).getOperator() == ExpressionTemporal.R_I) {
+					instRewards.add(e);
+				}
+			}
+		});
+		for (ExpressionReward e : instRewards) {
+			int r = e.getRewardStructIndexByIndexObject(inducedRewardInfo.getRewardStructNames(), constantValues);
+			if (inducedRewardInfo.rewardStructHasTransitionRewards(r)) {
+				throw new PrismNotSupportedException("Instantaneous rewards for reward structures with transition rewards are not supported under a strategy");
+			}
+		}
+	}
+
 	// Methods to implement ModelTransformation
 
 	@Override
@@ -200,5 +241,17 @@ public class AppliedStrategyExplicit<Value> implements AppliedStrategy<Value>, M
 			}
 		}
 		return bs;
+	}
+
+	/**
+	 * Attach a label to the induced model, given as a set of states of the original model:
+	 * the label holds in the induced states whose corresponding original state is in the set.
+	 */
+	public void addLabelFromOriginal(String name, BitSet origStates) throws PrismException
+	{
+		if (!(inducedModel instanceof ModelExplicit)) {
+			throw new PrismException("Cannot attach labels to the induced model");
+		}
+		((ModelExplicit<Value>) inducedModel).addLabel(name, pullBack(origStates));
 	}
 }

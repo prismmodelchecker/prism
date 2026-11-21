@@ -2,6 +2,7 @@ package explicit;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import java.io.ByteArrayInputStream;
 import java.util.Arrays;
 import java.util.BitSet;
 import java.util.List;
@@ -9,6 +10,8 @@ import java.util.List;
 import org.junit.jupiter.api.Test;
 
 import explicit.rewards.RewardsSimple;
+import parser.PrismParser;
+import parser.Values;
 import parser.VarList;
 import parser.ast.DeclarationInt;
 import parser.ast.Expression;
@@ -16,7 +19,9 @@ import parser.type.TypeDouble;
 import prism.BasicModelInfo;
 import prism.ModelInfo;
 import prism.ModelType;
+import prism.Prism;
 import prism.PrismException;
+import prism.PrismNotSupportedException;
 import prism.RewardInfo;
 import strat.FMDStrategyStep;
 import strat.MDStrategyArray;
@@ -163,5 +168,44 @@ public class AppliedStrategyExplicitTest
 		ModelInfo info = applied.getInducedModelInfo();
 		assertEquals(Arrays.asList("_mem", "s"), info.getVarNames());
 		assertEquals(Arrays.asList("goal"), info.getLabelNames());
+	}
+
+	@Test
+	public void instantaneousRewardsWithTransitionRewards() throws Exception
+	{
+		// Transition rewards are folded into state rewards in the induced DTMC,
+		// so instantaneous rewards are rejected, but other rewards are fine
+		MDPSimple<Double> mdp = buildMDP();
+		AppliedStrategyExplicit<Double> applied = new AppliedStrategyExplicit<>(new MDStrategyArray<>(mdp, new int[] { 0, 0, 0, 0 }), modelInfo(mdp), rewardInfo());
+		assertThrows(PrismNotSupportedException.class, () -> applied.checkPropertySupported(parse("R{\"r\"}=? [ I=1 ]"), new Values()));
+		assertDoesNotThrow(() -> applied.checkPropertySupported(parse("R{\"r\"}=? [ C<=1 ]"), new Values()));
+		// No problem with only state rewards
+		RewardInfo stateRewardsOnly = new RewardInfo()
+		{
+			@Override
+			public List<String> getRewardStructNames()
+			{
+				return Arrays.asList("r");
+			}
+
+			@Override
+			public boolean rewardStructHasTransitionRewards(int r)
+			{
+				return false;
+			}
+		};
+		AppliedStrategyExplicit<Double> applied2 = new AppliedStrategyExplicit<>(new MDStrategyArray<>(mdp, new int[] { 0, 0, 0, 0 }), modelInfo(mdp), stateRewardsOnly);
+		assertDoesNotThrow(() -> applied2.checkPropertySupported(parse("R{\"r\"}=? [ I=1 ]"), new Values()));
+	}
+
+	/** Parse a single property (without semantic checks) */
+	private static Expression parse(String s) throws Exception
+	{
+		PrismParser parser = Prism.getPrismParser();
+		try {
+			return parser.parsePropertiesFile(null, new ByteArrayInputStream(s.getBytes())).getProperty(0);
+		} finally {
+			Prism.releasePrismParser();
+		}
 	}
 }
