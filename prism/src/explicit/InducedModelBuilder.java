@@ -27,6 +27,7 @@
 package explicit;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.BitSet;
 import java.util.Collections;
 import java.util.Iterator;
@@ -121,6 +122,11 @@ class InducedModelBuilder<Value>
 	// Rewards of the original/induced models (null if not copied)
 	private List<Rewards<Value>> origRewardsList = null;
 	private List<RewardsSimple<Value>> inducedRewardsList = null;
+	// Map from induced states to original states and (for strategies with memory) memory,
+	// recorded as states are added, if required (null if not)
+	private int[] origStates = null;
+	private int[] memories = null;
+	private int numStored = 0;
 
 	/**
 	 * Create a builder, which adds states and transitions to an (empty) induced model.
@@ -182,12 +188,67 @@ class InducedModelBuilder<Value>
 	}
 
 	/**
-	 * Add a state to the induced model, corresponding to state {@code s} of the original model.
-	 * Returns the index of the new state.
+	 * Store, for each state of the induced model, the corresponding original state
+	 * (and, if {@code withMemory}, strategy memory), as states are added.
+	 * Call this before adding any states.
+	 * @param withMemory Whether to store strategy memory too
+	 * @param capacity Initial capacity (ideally, the number of induced states, if known)
 	 */
-	@SuppressWarnings("unchecked")
+	void setStoreStateMap(boolean withMemory, int capacity)
+	{
+		capacity = Math.max(capacity, 1);
+		origStates = new int[capacity];
+		memories = withMemory ? new int[capacity] : null;
+		numStored = 0;
+	}
+
+	/**
+	 * Get the original state for each induced state, if stored (see {@link #setStoreStateMap}),
+	 * or null if not. Only valid after {@link #finish}.
+	 */
+	int[] getOriginalStates()
+	{
+		return origStates;
+	}
+
+	/**
+	 * Get the strategy memory for each induced state, if stored (see {@link #setStoreStateMap}),
+	 * or null if not. Only valid after {@link #finish}.
+	 */
+	int[] getMemories()
+	{
+		return memories;
+	}
+
+	/**
+	 * Add a state to the induced model, corresponding to state {@code s} of the original model
+	 * (for a memoryless strategy). Returns the index of the new state.
+	 */
 	int addState(int s)
 	{
+		return addState(s, -1);
+	}
+
+	/**
+	 * Add a state to the induced model, corresponding to state {@code s} of the original model
+	 * and memory {@code m} of the strategy (-1 if memoryless). Returns the index of the new state.
+	 */
+	@SuppressWarnings("unchecked")
+	int addState(int s, int m)
+	{
+		if (origStates != null) {
+			if (numStored == origStates.length) {
+				origStates = Arrays.copyOf(origStates, 2 * numStored);
+				if (memories != null) {
+					memories = Arrays.copyOf(memories, 2 * numStored);
+				}
+			}
+			origStates[numStored] = s;
+			if (memories != null) {
+				memories[numStored] = m;
+			}
+			numStored++;
+		}
 		switch (inducedModelType) {
 		case STPG:
 			((STPGSimple<Value>) inducedModel).addState(((STPG<Value>) model).getPlayer(s));
@@ -437,6 +498,12 @@ class InducedModelBuilder<Value>
 	 */
 	Model<Value> finish(List<State> statesList) throws PrismException
 	{
+		if (origStates != null && numStored < origStates.length) {
+			origStates = Arrays.copyOf(origStates, numStored);
+			if (memories != null) {
+				memories = Arrays.copyOf(memories, numStored);
+			}
+		}
 		inducedModel.findDeadlocks(false);
 		if (statesList != null) {
 			inducedModel.setStatesList(statesList);

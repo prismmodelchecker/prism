@@ -37,6 +37,7 @@ import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.Collections;
 import java.util.List;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -189,10 +190,14 @@ public class FMDObsStrategyBeliefs<Value> extends StrategyExplicit<Value>
     }
 
 	@Override
-	public explicit.Model<Value> constructInducedModel(StrategyExportOptions options) throws PrismException
+	public explicit.Model<Value> constructInducedModel(StrategyExportOptions options, Consumer<InducedStateMap> stateMapConsumer) throws PrismException
 	{
 		ConstructStrategyProduct csp = new ConstructStrategyProduct(options);
+		csp.setStoreStateMap(stateMapConsumer != null);
 		Model<Value> prodModel = csp.constructProductModel(model, this);
+		if (stateMapConsumer != null) {
+			stateMapConsumer.accept(csp.getStateMap());
+		}
 		return prodModel;
 	}
 
