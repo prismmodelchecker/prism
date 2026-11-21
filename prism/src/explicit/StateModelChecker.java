@@ -547,6 +547,11 @@ public class StateModelChecker extends PrismComponent
 	{
 		StateValues res = null;
 
+		// Create storage for result (e.g., strategies), if not called via check()
+		if (result == null) {
+			result = new Result();
+		}
+
 		// If-then-else
 		if (expr instanceof ExpressionITE) {
 			res = checkExpressionITE(model, (ExpressionITE) expr, statesOfInterest);
