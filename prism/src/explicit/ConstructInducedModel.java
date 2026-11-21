@@ -175,6 +175,15 @@ public class ConstructInducedModel
 	}
 
 	/**
+	 * Get the map from states of the last induced model constructed to states of the original
+	 * model, or null if it was not stored (see {@link #setStoreStateMap(boolean)}).
+	 */
+	public InducedStateMap getStateMap()
+	{
+		return origStates == null ? null : new InducedStateMap(origStates, null);
+	}
+
+	/**
 	 * Construct the model induced by a memoryless deterministic strategy on a nondeterministic model
 	 * @param model The model
 	 * @param strat The strategy

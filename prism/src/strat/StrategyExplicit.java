@@ -26,6 +26,9 @@
 
 package strat;
 
+import java.util.function.Consumer;
+
+import explicit.InducedStateMap;
 import explicit.Model;
 import explicit.NondetModel;
 import io.ModelExportFormat;
@@ -64,7 +67,18 @@ public abstract class StrategyExplicit<Value> extends StrategyWithStates<Value>
 	}
 
 	@Override
-	public abstract Model<Value> constructInducedModel(StrategyExportOptions options) throws PrismException;
+	public Model<Value> constructInducedModel(StrategyExportOptions options) throws PrismException
+	{
+		return constructInducedModel(options, null);
+	}
+
+	/**
+	 * Construct the model induced by this strategy.
+	 * If {@code stateMapConsumer} is non-null, the map from states of the induced model
+	 * to states of the original model (and strategy memory) is also stored
+	 * and then passed to it.
+	 */
+	public abstract Model<Value> constructInducedModel(StrategyExportOptions options, Consumer<InducedStateMap> stateMapConsumer) throws PrismException;
 
 	@Override
 	public void exportInducedModel(PrismLog out, StrategyExportOptions options) throws PrismException
