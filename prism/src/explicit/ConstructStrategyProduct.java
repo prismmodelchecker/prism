@@ -73,6 +73,19 @@ public class ConstructStrategyProduct
 	private UndefinedChoicePolicy undefinedChoicePolicy = new UndefinedChoicePolicy();
 
 	/**
+	 * Whether to store, for each state of the product model, the corresponding
+	 * original state and strategy memory
+	 */
+	private boolean storeStateMap = false;
+
+	/**
+	 * For the last product model constructed (if storeStateMap is true):
+	 * the original state and memory for each product state
+	 */
+	private int[] origStates = null;
+	private int[] memories = null;
+
+	/**
 	 * Construct a ConstructStrategyProduct with default options.
 	 */
 	public ConstructStrategyProduct()
@@ -129,6 +142,44 @@ public class ConstructStrategyProduct
 	{
 		this.undefinedChoicePolicy = undefinedChoicePolicy;
 		return this;
+	}
+
+	/**
+	 * Set whether to store, for each state of the product model, the corresponding state
+	 * of the original model and strategy memory, available afterwards via
+	 * {@link #getOriginalState(int)} and {@link #getMemory(int)}.
+	 * This is off by default; it needs two ints per product state.
+	 */
+	public ConstructStrategyProduct setStoreStateMap(boolean storeStateMap)
+	{
+		this.storeStateMap = storeStateMap;
+		return this;
+	}
+
+	/**
+	 * Get the state of the original model corresponding to state {@code productState}
+	 * of the last product model constructed. This needs {@link #setStoreStateMap(boolean)}
+	 * to have been set to true before construction.
+	 */
+	public int getOriginalState(int productState)
+	{
+		if (origStates == null) {
+			throw new IllegalStateException("State map not stored for product model");
+		}
+		return origStates[productState];
+	}
+
+	/**
+	 * Get the strategy memory corresponding to state {@code productState}
+	 * of the last product model constructed. This needs {@link #setStoreStateMap(boolean)}
+	 * to have been set to true before construction.
+	 */
+	public int getMemory(int productState)
+	{
+		if (memories == null) {
+			throw new IllegalStateException("State map not stored for product model");
+		}
+		return memories[productState];
 	}
 
 	/**
@@ -208,6 +259,12 @@ public class ConstructStrategyProduct
 		}
 
 		InducedModelBuilder<Value> builder = new InducedModelBuilder<>(model, strat, prodModel, productModelType, mode, undefinedChoicePolicy, copyLabels, copyRewards, "Product construction");
+		origStates = null;
+		memories = null;
+		if (storeStateMap) {
+			// (the size of the product is not known yet, so start small)
+			builder.setStoreStateMap(true, Math.min(prodNumStates, 1024));
+		}
 
 		// Encoding:
 		// each state s' = <s, q> = s * memSize + q
@@ -248,7 +305,7 @@ public class ConstructStrategyProduct
 			// Add state/transition to model
 			if (!visited.get(s_2 * memSize + q_2) && map[s_2 * memSize + q_2] == -1) {
 				queue.add(new Point(s_2, q_2));
-				map[s_2 * memSize + q_2] = builder.addState(s_2);
+				map[s_2 * memSize + q_2] = builder.addState(s_2, q_2);
 				if (prodStatesList != null) {
 					// Store state information for the product
 					// (memory first, since the memory variable is added at the start of the VarList)
@@ -277,7 +334,10 @@ public class ConstructStrategyProduct
 			builder.addChoices(s_1, q_1, map_1, (act, s_2) -> newStateMap.apply(false, q_1, act, s_2));
 		}
 
-		return builder.finish(prodStatesList);
+		Model<Value> res = builder.finish(prodStatesList);
+		origStates = builder.getOriginalStates();
+		memories = builder.getMemories();
+		return res;
 	}
 
 	@FunctionalInterface

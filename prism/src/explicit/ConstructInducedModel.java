@@ -71,6 +71,17 @@ public class ConstructInducedModel
 	private UndefinedChoicePolicy undefinedChoicePolicy = new UndefinedChoicePolicy();
 
 	/**
+	 * Whether to store, for each state of the induced model, the corresponding original state
+	 */
+	private boolean storeStateMap = false;
+
+	/**
+	 * For the last induced model constructed (if storeStateMap is true):
+	 * the original state for each induced state
+	 */
+	private int[] origStates = null;
+
+	/**
 	 * Construct a ConstructInducedModel with default options.
 	 */
 	public ConstructInducedModel()
@@ -140,6 +151,30 @@ public class ConstructInducedModel
 	}
 
 	/**
+	 * Set whether to store, for each state of the induced model, the corresponding state
+	 * of the original model, available afterwards via {@link #getOriginalState(int)}.
+	 * This is off by default; it needs one int per induced state.
+	 */
+	public ConstructInducedModel setStoreStateMap(boolean storeStateMap)
+	{
+		this.storeStateMap = storeStateMap;
+		return this;
+	}
+
+	/**
+	 * Get the state of the original model corresponding to state {@code inducedState}
+	 * of the last induced model constructed. This needs {@link #setStoreStateMap(boolean)}
+	 * to have been set to true before construction.
+	 */
+	public int getOriginalState(int inducedState)
+	{
+		if (origStates == null) {
+			throw new IllegalStateException("State map not stored for induced model");
+		}
+		return origStates[inducedState];
+	}
+
+	/**
 	 * Construct the model induced by a memoryless deterministic strategy on a nondeterministic model
 	 * @param model The model
 	 * @param strat The strategy
@@ -189,6 +224,7 @@ public class ConstructInducedModel
 	public <Value> Model<Value> doConstructInducedModel(ModelType modelType, ModelType inducedModelType, ModelSimple<Value> inducedModel, NondetModel<Value> model, Strategy<Value> strat) throws PrismException
 	{
 		InducedModelBuilder<Value> builder = new InducedModelBuilder<>(model, strat, inducedModel, inducedModelType, mode, undefinedChoicePolicy, copyLabels, copyRewards, "Induced model construction");
+		origStates = null;
 
 		// Create new states list if needed
 		List<State> inducedStatesList = model.getStatesList();
@@ -199,6 +235,7 @@ public class ConstructInducedModel
 		// Initially create an array with 0s for reachable state indices and -1s for unreachable ones
 		int numStates = model.getNumStates();
 		int[] map = new int[numStates];
+		int numInducedStates = numStates;
 		if (reachOnly) {
 			Arrays.fill(map, -1);
 			BitSet explore = new BitSet();
@@ -233,11 +270,18 @@ public class ConstructInducedModel
 					map[s] = count++;
 				}
 			}
+			numInducedStates = count;
 		} else {
 			// Skip reachability
 			for (int s = 0; s < numStates; s++) {
 				map[s] = s;
 			}
+		}
+
+		// Store the original state of each induced state, if required
+		// (the number of induced states is known by now)
+		if (storeStateMap) {
+			builder.setStoreStateMap(false, numInducedStates);
 		}
 
 		// Iterate through reachable states to create new model
@@ -257,6 +301,8 @@ public class ConstructInducedModel
 			builder.addChoices(s, -1, map[s], (act, s2) -> map[s2]);
 		}
 
-		return builder.finish(inducedStatesList);
+		Model<Value> res = builder.finish(inducedStatesList);
+		origStates = builder.getOriginalStates();
+		return res;
 	}
 }

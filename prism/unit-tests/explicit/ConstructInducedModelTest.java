@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import org.junit.jupiter.api.Test;
 
 import prism.PrismException;
+import strat.FMDStrategyStep;
 import strat.MDStrategyArray;
 import strat.MRStrategy;
 import strat.StrategyExportOptions.InducedModelMode;
@@ -218,5 +219,45 @@ public class ConstructInducedModelTest
 		assertEquals(2.0, induced.getRewards(0).getTransitionReward(0, 0), 1e-12);
 		assertEquals(7.0, induced.getRewards(0).getTransitionReward(0, 1), 1e-12);
 		assertEquals(11.0, induced.getRewards(0).getTransitionReward(0, 2), 1e-12);
+	}
+
+	@Test
+	public void stateMapMemoryless() throws PrismException
+	{
+		// Choice "b" in state 0 goes to 3, so (reachable) induced states are 0, 3
+		MDPSimple<Double> mdp = buildMDP();
+		ConstructInducedModel cim = new ConstructInducedModel().setMode(InducedModelMode.REDUCE).setReachOnly(true).setStoreStateMap(true);
+		Model<Double> induced = cim.constructInducedModel(mdp, new MDStrategyArray<>(mdp, new int[] { 2, 0, 0, 0 }));
+		assertEquals(2, induced.getNumStates());
+		assertEquals(0, cim.getOriginalState(0));
+		assertEquals(3, cim.getOriginalState(1));
+		// Not stored unless requested
+		ConstructInducedModel cimNoMap = new ConstructInducedModel().setMode(InducedModelMode.REDUCE);
+		cimNoMap.constructInducedModel(mdp, new MDStrategyArray<>(mdp, new int[] { 2, 0, 0, 0 }));
+		assertThrows(IllegalStateException.class, () -> cimNoMap.getOriginalState(0));
+	}
+
+	@Test
+	public void stateMapFiniteMemory() throws PrismException
+	{
+		// Chain 0 -> 1 -> 2 (self-loop), plus an unreachable state 3;
+		// a step-bounded strategy with k=2 gives product states (0,0), (1,1), (2,2)
+		MDPSimple<Double> mdp = new MDPSimple<>(4);
+		mdp.addInitialState(0);
+		mdp.addActionLabelledChoice(0, dirac(1), null);
+		mdp.addActionLabelledChoice(1, dirac(2), null);
+		mdp.addActionLabelledChoice(2, dirac(2), null);
+		mdp.addActionLabelledChoice(3, dirac(3), null);
+		FMDStrategyStep<Double> strat = new FMDStrategyStep<>(mdp, 2);
+		strat.setStepChoices(0, new int[] { 0, 0, 0, 0 });
+		strat.setStepChoices(1, new int[] { 0, 0, 0, 0 });
+		strat.setTail(new MDStrategyArray<>(mdp, new int[] { 0, 0, 0, 0 }));
+		ConstructStrategyProduct csp = new ConstructStrategyProduct().setMode(InducedModelMode.REDUCE).setStoreStateMap(true);
+		Model<Double> prod = csp.constructProductModel(mdp, strat);
+		assertEquals(3, prod.getNumStates());
+		for (int i = 0; i < 3; i++) {
+			assertEquals(i, csp.getOriginalState(i));
+			assertEquals(i, csp.getMemory(i));
+		}
 	}
 }
