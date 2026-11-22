@@ -2325,6 +2325,16 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	 */
 	public void applyStrategy(Strategy<?> strat) throws PrismException
 	{
+		applyStrategy(strat, AppliedStrategyExplicit.defaultOptions());
+	}
+
+	/**
+	 * Apply a strategy to the current model, as for {@link #applyStrategy(Strategy)},
+	 * but with the induced model constructed as specified by {@code options}
+	 * (mode, reachable states only, start states and undefined choice policy).
+	 */
+	public void applyStrategy(Strategy<?> strat, StrategyExportOptions options) throws PrismException
+	{
 		if (strat == null) {
 			throw new PrismException("There is no strategy to apply");
 		}
@@ -2338,7 +2348,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 		mainLog.println("\nApplying strategy...");
 		// Rewards are copied from the current model to the induced one, so need to be attached
 		attachRewardsToModel(getBuiltModelExplicit());
-		AppliedStrategyExplicit<?> applied = createAppliedStrategy(stratExpl);
+		AppliedStrategyExplicit<?> applied = createAppliedStrategy(stratExpl, options);
 		explicit.Model<?> inducedModel = applied.getInducedModel();
 		Values definedMFConstants = getUndefinedModelValues();
 		boolean definedMFConstantsAreExact = areUndefinedModelValuesExact();
@@ -2362,9 +2372,9 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	/**
 	 * Create an applied strategy (helper method for {@link #applyStrategy(Strategy)}).
 	 */
-	private <Value> AppliedStrategyExplicit<Value> createAppliedStrategy(StrategyExplicit<Value> strat) throws PrismException
+	private <Value> AppliedStrategyExplicit<Value> createAppliedStrategy(StrategyExplicit<Value> strat, StrategyExportOptions options) throws PrismException
 	{
-		return new AppliedStrategyExplicit<>(strat, getModelInfo(), getRewardInfo());
+		return new AppliedStrategyExplicit<>(strat, getModelInfo(), getRewardInfo(), options);
 	}
 
 	/**
@@ -3816,9 +3826,36 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	public Result modelCheck(PropertiesFile propertiesFile, Property prop, Strategy<?> strat, boolean nestedOnOriginal) throws PrismException
 	{
 		applyStrategy(strat);
+		try {
+			return modelCheckUnderAppliedStrategy(propertiesFile, prop, nestedOnOriginal);
+		} finally {
+			unapplyStrategy();
+		}
+	}
+
+	/**
+	 * Model check a property on the current model, which must have been obtained by applying
+	 * a strategy (see {@link #applyStrategy(Strategy)}), and return the result.
+	 * The property (and properties file) can be for the model the strategy was applied to:
+	 * it is adapted to the induced model as described for
+	 * {@link #modelCheck(PropertiesFile, Property, Strategy, boolean)}.
+	 * No strategy is generated for the induced model.
+	 * @param propertiesFile Parent property file of property (for labels/constants/...)
+	 * @param prop The property to check
+	 * @param nestedOnOriginal If true, state subformulas nested inside the property's
+	 * P/R/S/... operators are evaluated on the model the strategy was applied to
+	 */
+	public Result modelCheckUnderAppliedStrategy(PropertiesFile propertiesFile, Property prop, boolean nestedOnOriginal) throws PrismException
+	{
+		if (getAppliedStrategy() == null) {
+			throw new PrismException("No strategy has been applied");
+		}
+		if (!(getAppliedStrategy() instanceof AppliedStrategyExplicit)) {
+			throw new PrismNotSupportedException("Model checking under this type of applied strategy is not supported");
+		}
+		AppliedStrategyExplicit<?> applied = (AppliedStrategyExplicit<?>) getAppliedStrategy();
 		boolean genStratOld = genStrat;
 		try {
-			AppliedStrategyExplicit<?> applied = (AppliedStrategyExplicit<?>) getAppliedStrategy();
 			// Expand property references and labels from the properties file,
 			// so that they are rewritten below too
 			Expression expr = prop.getExpression().deepCopy();
@@ -3846,13 +3883,12 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 			return modelCheck(propertiesFileInduced, new Property(expr, prop.getName(), prop.getComment()));
 		} finally {
 			genStrat = genStratOld;
-			unapplyStrategy();
 		}
 	}
 
 	/**
 	 * Which label names are used, by the induced model of {@code applied} or the properties file
-	 * (helper method for {@link #modelCheck(PropertiesFile, Property, Strategy, boolean)}).
+	 * (helper method for {@link #modelCheckUnderAppliedStrategy(PropertiesFile, Property, boolean)}).
 	 */
 	private static Predicate<String> labelUsed(PropertiesFile propertiesFile, AppliedStrategyExplicit<?> applied)
 	{

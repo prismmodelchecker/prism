@@ -68,7 +68,8 @@ public class AppliedStrategyExplicit<Value> implements AppliedStrategy<Value>, M
 	private RewardGenerator<Value> inducedRewardGen;
 
 	/**
-	 * Apply a strategy to the model it is for, constructing the induced model.
+	 * Apply a strategy to the model it is for, constructing the induced model
+	 * (in "reduce" mode, restricted to states reachable from the initial states).
 	 * Labels and rewards attached to the original model are copied to the induced model.
 	 * @param strat The strategy
 	 * @param origModelInfo Model info for the original model
@@ -76,10 +77,22 @@ public class AppliedStrategyExplicit<Value> implements AppliedStrategy<Value>, M
 	 */
 	public AppliedStrategyExplicit(StrategyExplicit<Value> strat, ModelInfo origModelInfo, RewardInfo origRewardInfo) throws PrismException
 	{
+		this(strat, origModelInfo, origRewardInfo, defaultOptions());
+	}
+
+	/**
+	 * Apply a strategy to the model it is for, constructing the induced model
+	 * as specified by {@code options} (mode, reachable states only, start states
+	 * and undefined choice policy). Labels and rewards attached to the original model
+	 * are copied to the induced model (unless {@code options} say otherwise).
+	 * @param strat The strategy
+	 * @param origModelInfo Model info for the original model
+	 * @param origRewardInfo Reward info for the original model (null if none)
+	 * @param options Options for induced model construction
+	 */
+	public AppliedStrategyExplicit(StrategyExplicit<Value> strat, ModelInfo origModelInfo, RewardInfo origRewardInfo, StrategyExportOptions options) throws PrismException
+	{
 		this.strat = strat;
-		StrategyExportOptions options = new StrategyExportOptions();
-		options.setMode(InducedModelMode.REDUCE);
-		options.setReachOnly(true);
 		inducedModel = strat.constructInducedModel(options, map -> stateMap = map);
 		inducedModelInfo = new InducedModelInfo(origModelInfo, inducedModel.getModelType(), inducedModel.getVarList());
 		inducedRewardInfo = origRewardInfo != null ? origRewardInfo : new RewardInfo() {};
@@ -99,6 +112,17 @@ public class AppliedStrategyExplicit<Value> implements AppliedStrategy<Value>, M
 				return rews;
 			}
 		};
+	}
+
+	/**
+	 * Default options for induced model construction: "reduce" mode, reachable states only.
+	 */
+	public static StrategyExportOptions defaultOptions()
+	{
+		StrategyExportOptions options = new StrategyExportOptions();
+		options.setMode(InducedModelMode.REDUCE);
+		options.setReachOnly(true);
+		return options;
 	}
 
 	// Methods to implement AppliedStrategy
