@@ -1,0 +1,22 @@
+// Checks that -test allows for floating point rounding in large results.
+// The model is acyclic, so value iteration stops with a zero difference and
+// reports the result as "exact floating point". The reward of 0.1 per step is
+// not exact in binary, so the computed value of 100 has a rounding error of
+// about 1.4e-12, which is more than an absolute 1e-12 but tiny relative to 100.
+
+dtmc
+
+const int N = 1000;
+
+module M
+
+	s : [0..N];
+
+	[] s<N -> (s'=s+1);
+	[] s=N -> true;
+
+endmodule
+
+rewards "r"
+	s<N : 0.1;
+endrewards

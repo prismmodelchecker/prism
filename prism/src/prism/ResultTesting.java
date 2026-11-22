@@ -333,7 +333,7 @@ public class ResultTesting
 			double resLow = accuracy.getResultLowerBound(doubleRes, true);
 			double resHigh = accuracy.getResultUpperBound(doubleRes, true);
 			if (!(resLow <= doubleExp && doubleExp <= resHigh)) {
-				throw new PrismException("Wrong result (expected " + strExpected + ", abs err = " + Math.abs(doubleRes - doubleExp) + " > " + accuracy.getAbsoluteErrorBound(doubleRes) + ")");
+				throw new PrismException("Wrong result (expected " + strExpected + ", abs err = " + Math.abs(doubleRes - doubleExp) + " > " + (resHigh - doubleRes) + ")");
 			}
 		}
 	}

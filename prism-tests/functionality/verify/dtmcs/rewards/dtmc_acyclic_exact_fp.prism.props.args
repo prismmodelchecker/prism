@@ -1,0 +1,7 @@
+-ex
+-ex -gs
+-ex -bgs
+-s
+-s -gs
+-h
+-m

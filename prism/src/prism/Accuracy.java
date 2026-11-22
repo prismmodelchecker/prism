@@ -52,7 +52,9 @@ public class Accuracy
 	public final static double DEFAULT_ERROR_BOUND = 1e-5;
 	
 	/**
-	 * Error bound (absolute) assumed resulting from storage of values using floating point arithmetic.
+	 * Error bound assumed resulting from storage of values using floating point arithmetic.
+	 * This is absolute for values of magnitude up to 1 and relative for larger values
+	 * (see {@link #getFloatingPointErrorBound(double)}).
 	 */
 	public final static double FLOATING_POINT_ERROR = 1e-12;
 	
@@ -248,7 +250,7 @@ public class Accuracy
 	 */
 	public double getResultLowerBound(double result, boolean fpError)
 	{
-		double fpErrorBound = fpError ? FLOATING_POINT_ERROR : 0.0;
+		double fpErrorBound = fpError ? getFloatingPointErrorBound(result) : 0.0;
 		return result - getAbsoluteErrorBound(result) - fpErrorBound;
 	}
 	
@@ -258,8 +260,21 @@ public class Accuracy
 	 */
 	public double getResultUpperBound(double result, boolean fpError)
 	{
-		double fpErrorBound = fpError ? FLOATING_POINT_ERROR : 0.0;
+		double fpErrorBound = fpError ? getFloatingPointErrorBound(result) : 0.0;
 		return result + getAbsoluteErrorBound(result) + fpErrorBound;
+	}
+	
+	/**
+	 * Get the (absolute) error bound assumed to result from floating point arithmetic
+	 * for a (specified) result: {@link #FLOATING_POINT_ERROR}, scaled by the magnitude
+	 * of the result if that is more than 1, since rounding errors grow with it.
+	 */
+	public static double getFloatingPointErrorBound(double result)
+	{
+		if (!Double.isFinite(result)) {
+			return FLOATING_POINT_ERROR;
+		}
+		return FLOATING_POINT_ERROR * Math.max(1.0, Math.abs(result));
 	}
 	
 	/**
