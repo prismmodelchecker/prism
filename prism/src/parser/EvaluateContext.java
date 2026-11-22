@@ -40,6 +40,8 @@ public abstract class EvaluateContext
 	
 	/**
 	 * Evaluation mode (floating point? exact?)
+	 * This is how values are represented when evaluating expressions;
+	 * the arithmetic used for a whole model checking task is a {@link prism.PrecisionMode}.
 	 */
 	public enum EvalMode { FP, EXACT }
 	protected EvalMode evalMode = EvalMode.FP;
