@@ -347,17 +347,6 @@ public class PrismCL implements PrismModelListener
 			prism.setParametric(paramNames, paramLowerBounds, paramUpperBounds);
 		}
 
-		// If -exportadv was used and the explicit engine has been requested for MDPs,
-		// or the model type is only supported by the explicit engine, stop with an error message
-		if (prism.getSettings().getChoice(PrismSettings.PRISM_EXPORT_ADV) != Prism.EXPORT_ADV_NONE) {
-			if (prism.getModelType() == ModelType.MDP && prism.getCurrentEngine() == Prism.PrismEngine.EXPLICIT) {
-				errorAndExit("The -exportadv functionality does not work for the explicit engine; use -exportstrat instead");
-			}
-			if (prism.getModelType().partiallyObservable() || prism.getModelType().uncertain()) {
-				errorAndExit("The -exportadv functionality does not work for the explicit engine; use -exportstrat instead");
-			}
-		}
-
 		// initialise storage for results
 		results = new ResultsCollection[numPropertiesToCheck];
 		for (i = 0; i < numPropertiesToCheck; i++) {
@@ -2096,8 +2085,6 @@ public class PrismCL implements PrismModelListener
 
 	private void processOptions() throws PrismException
 	{
-		int j;
-
 		// make sure a model file is specified
 		if (modelFilename == null) {
 			mainLog.println("Usage: " + Prism.getCommandLineName() + " [options] <model-file> [<properties-file>] [more-options]");
@@ -2119,26 +2106,7 @@ public class PrismCL implements PrismModelListener
 			explicitbuild = false;
 		}
 
-		// check not trying to do gauss-seidel with mtbdd engine
-		// (if we are in test mode, we ignore here; will lead to appropriate 'not supported' error handling during testing)
-		if (prism.getEngine() == Prism.MTBDD && !test) {
-			j = prism.getLinEqMethod();
-			if (j == Prism.GAUSSSEIDEL || j == Prism.BGAUSSSEIDEL || j == Prism.PGAUSSSEIDEL || j == Prism.BPGAUSSSEIDEL) {
-				errorAndExit("Gauss-Seidel and its variants are currently not supported by the MTBDD engine");
-			}
-			if (j == Prism.SOR || j == Prism.BSOR || j == Prism.PSOR || j == Prism.BPSOR) {
-				errorAndExit("SOR and its variants are currently not supported by the MTBDD engine");
-			}
-		}
-
-		// or pseudo methods with sparse engine
-		// (if we are in test mode, we ignore here; will lead to appropriate 'not supported' error handling during testing)
-		else if (prism.getEngine() == Prism.SPARSE && !test) {
-			j = prism.getLinEqMethod();
-			if (j == Prism.PGAUSSSEIDEL || j == Prism.BPGAUSSSEIDEL || j == Prism.PSOR || j == Prism.BPSOR) {
-				errorAndExit("Pseudo Gauss-Seidel/SOR methods are currently not supported by the sparse engine");
-			}
-		}
+		// (checks that the engine supports the chosen methods etc. are done by Prism, see SettingsResolver)
 
 		// process info about parametric constants
 		if (param) {

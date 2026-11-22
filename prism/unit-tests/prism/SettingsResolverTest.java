@@ -258,4 +258,35 @@ public class SettingsResolverTest
 		assertEquals(Prism.HYBRID, prism.getResolvedSettings().getEngine().toPrismConstant());
 		assertEquals(Prism.JACOBI, prism.getResolvedSettings().getLinEqMethodConstant());
 	}
+
+	@Test
+	public void testUnsupportedCombinations() throws PrismException, InterruptedException
+	{
+		// Linear equation methods not supported by the chosen engine (for DTMCs/CTMCs)
+		Request req = new Request().setEngine(Engine.MTBDD).setLinEqMethod("Gauss-Seidel");
+		assertThrows(PrismNotSupportedException.class, () -> check(req, ModelType.DTMC, "P=? [ F x=1 ]"));
+		assertThrows(PrismNotSupportedException.class, () -> check(req.setLinEqMethod("Backwards SOR"), ModelType.CTMC, "P=? [ F x=1 ]"));
+		check(req.setLinEqMethod("JOR"), ModelType.DTMC, "P=? [ F x=1 ]");
+		// Not used for MDPs, so no error
+		check(req.setLinEqMethod("Gauss-Seidel"), ModelType.MDP, "Pmax=? [ F x=1 ]");
+		Request reqS = new Request().setEngine(Engine.SPARSE).setLinEqMethod("Pseudo-Gauss-Seidel");
+		assertThrows(PrismNotSupportedException.class, () -> check(reqS, ModelType.DTMC, "P=? [ F x=1 ]"));
+		// Fine for hybrid (the default)
+		check(new Request().setLinEqMethod("Pseudo-Gauss-Seidel"), ModelType.DTMC, "P=? [ F x=1 ]");
+		check(new Request().setLinEqMethod("Pseudo-SOR"), ModelType.DTMC, "P=? [ F x=1 ]");
+		// But no error if the method is overridden (here, by heuristic=speed)
+		check(reqS.setEngine(Engine.MTBDD).setHeuristic("Speed"), ModelType.DTMC, "P=? [ F x=1 ]");
+		// Adversary export is not supported by the explicit engine
+		Request reqA = new Request().setExportAdv(true);
+		check(reqA, ModelType.MDP, "Pmax=? [ F x=1 ]");
+		assertThrows(PrismNotSupportedException.class, () -> check(reqA.setEngine(Engine.EXPLICIT), ModelType.MDP, "Pmax=? [ F x=1 ]"));
+		assertThrows(PrismNotSupportedException.class, () -> check(reqA.setEngine(Engine.HYBRID), ModelType.POMDP, "Pmax=? [ F x=1 ]"));
+		assertThrows(PrismNotSupportedException.class, () -> check(reqA.setMDPSolnMethod(Prism.MDP_POLITER), ModelType.MDP, "Pmax=? [ F x=1 ]"));
+		// The error keeps the resolution, whose notes explain the switch to explicit
+		SettingsResolver.UnsupportedSettingsException e = assertThrows(SettingsResolver.UnsupportedSettingsException.class,
+				() -> check(new Request().setExportAdv(true).setMDPSolnMethod(Prism.MDP_POLITER), ModelType.MDP, "Pmax=? [ F x=1 ]"));
+		assertEquals(Engine.EXPLICIT, e.getResolvedSettings().getEngine());
+		assertEquals(1, e.getResolvedSettings().getNotes().size());
+		check(reqA.setEngine(Engine.EXPLICIT), ModelType.DTMC, "P=? [ F x=1 ]");
+	}
 }

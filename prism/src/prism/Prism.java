@@ -3746,7 +3746,14 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 
 		// Work out the engine/methods to use (this also checks that exact/parametric
 		// model checking is supported for this model); used below, after the special cases
-		SettingsResolver.ResolvedSettings resolved = settingsResolver.forModelCheck(getSettingsRequest(), getModelType(), isInducedExplicit(), prop.getExpression(), genStrat);
+		SettingsResolver.ResolvedSettings resolved;
+		try {
+			resolved = settingsResolver.forModelCheck(getSettingsRequest(), getModelType(), isInducedExplicit(), prop.getExpression(), genStrat);
+		} catch (SettingsResolver.UnsupportedSettingsException e) {
+			// Report any switches made first, since they may explain the error
+			printResolutionNotes(e.getResolvedSettings(), 0);
+			throw e;
+		}
 		if (resolved.getPrecision() == PrecisionMode.PARAM) {
 			checkParameterNames(paramNames, getPRISMModel(), propertiesFile);
 		}
@@ -4469,6 +4476,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 		} else {
 			throw new PrismException("Steady-state probabilities only computed for DTMCs/CTMCs");
 		}
+		settingsResolver.checkLinEqMethodSupported(getResolvedSettings());
 		return mc.doSteadyState(fileIn);
 	}
 

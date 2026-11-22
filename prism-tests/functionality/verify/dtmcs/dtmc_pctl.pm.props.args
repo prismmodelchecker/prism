@@ -73,3 +73,8 @@
 -engine auto -topological
 -engine auto -heuristic speed
 -heuristic speed
+
+# methods that the engine does not support (reported as not supported)
+
+-m -gs
+-s -pgs

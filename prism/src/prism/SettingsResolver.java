@@ -129,6 +129,7 @@ public class SettingsResolver
 		private String linEqMethod = "Jacobi";
 		private boolean intervalIter = false;
 		private boolean fairness = false;
+		private boolean exportAdv = false;
 
 		/**
 		 * Create a request with the settings in {@code settings}.
@@ -146,6 +147,7 @@ public class SettingsResolver
 			req.linEqMethod = settings.getString(PrismSettings.PRISM_LIN_EQ_METHOD);
 			req.intervalIter = settings.getBoolean(PrismSettings.PRISM_INTERVAL_ITER);
 			req.fairness = settings.getBoolean(PrismSettings.PRISM_FAIRNESS);
+			req.exportAdv = settings.getChoice(PrismSettings.PRISM_EXPORT_ADV) != Prism.EXPORT_ADV_NONE;
 			return req;
 		}
 
@@ -229,6 +231,15 @@ public class SettingsResolver
 			return this;
 		}
 
+		/**
+		 * Set whether adversaries are to be exported (as for {@link PrismSettings#PRISM_EXPORT_ADV}).
+		 */
+		public Request setExportAdv(boolean exportAdv)
+		{
+			this.exportAdv = exportAdv;
+			return this;
+		}
+
 		public Engine getEngine()
 		{
 			return engine;
@@ -297,6 +308,30 @@ public class SettingsResolver
 	 * the engine and precision mode, any solution method overrides,
 	 * and the reasons for changes.
 	 */
+	/**
+	 * An unsupported combination of settings, found after (partly) resolving them:
+	 * the resolution so far is kept, since its notes may explain the problem
+	 * (e.g. a switch to an engine that does not support a chosen option).
+	 */
+	public static class UnsupportedSettingsException extends PrismNotSupportedException
+	{
+		private final ResolvedSettings resolved;
+
+		public UnsupportedSettingsException(String message, ResolvedSettings resolved)
+		{
+			super(message);
+			this.resolved = resolved;
+		}
+
+		/**
+		 * Get the resolution so far (its notes explain any switches made).
+		 */
+		public ResolvedSettings getResolvedSettings()
+		{
+			return resolved;
+		}
+	}
+
 	public static class ResolvedSettings
 	{
 		private Engine engine;
@@ -528,7 +563,48 @@ public class SettingsResolver
 		}
 		// Then the rules for building the model
 		applyBuildRules(res, modelType, inducedExplicit);
+		// Finally, check the resulting combination is supported
+		// (linear equation methods are only used for DTMCs and CTMCs)
+		// (errors keep the resolution, whose notes may explain, e.g., a switch of engine)
+		if (modelType == ModelType.DTMC || modelType == ModelType.CTMC) {
+			try {
+				checkLinEqMethodSupported(res);
+			} catch (PrismNotSupportedException e) {
+				throw new UnsupportedSettingsException(e.getMessage(), res);
+			}
+		}
+		if (req.exportAdv && res.getRoute() == PrismEngine.EXPLICIT) {
+			if (modelType == ModelType.MDP || modelType.partiallyObservable() || modelType.uncertain()) {
+				throw new UnsupportedSettingsException("The -exportadv functionality does not work for the explicit engine; use -exportstrat instead", res);
+			}
+		}
 		return res;
+	}
+
+	/**
+	 * Check that the engine of a resolution supports its linear equation method,
+	 * throwing an explanatory exception if not. Only relevant where linear equations
+	 * are solved, i.e., for DTMCs and CTMCs.
+	 * (Only the symbolic engines are checked here; the explicit engine reports unsupported methods itself.)
+	 */
+	public void checkLinEqMethodSupported(ResolvedSettings res) throws PrismNotSupportedException
+	{
+		if (!res.isSymbolicRoute()) {
+			return;
+		}
+		String method = res.linEqMethod;
+		if (res.engine == Engine.MTBDD) {
+			if (method.contains("Gauss-Seidel")) {
+				throw new PrismNotSupportedException("Gauss-Seidel and its variants are currently not supported by the MTBDD engine");
+			}
+			if (method.contains("SOR")) {
+				throw new PrismNotSupportedException("SOR and its variants are currently not supported by the MTBDD engine");
+			}
+		} else if (res.engine == Engine.SPARSE) {
+			if (method.contains("Pseudo")) {
+				throw new PrismNotSupportedException("Pseudo Gauss-Seidel/SOR methods are currently not supported by the sparse engine");
+			}
+		}
 	}
 
 	/**
