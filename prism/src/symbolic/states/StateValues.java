@@ -79,7 +79,11 @@ public interface StateValues extends StateVector
 	/** Round the values of this vector to the given number of decimal places. */
 	void roundOff(int places);
 
-	/** Subtract all values of this vector from 1 */
+	/**
+	 * Subtract all values of this vector from 1.
+	 * The values are assumed to be probabilities, for the purposes of updating
+	 * the accuracy, if present (see {@link prism.AccuracyFactory#complementOfProbs(prism.Accuracy)}).
+	 */
 	void subtractFromOne();
 
 	/**

@@ -121,6 +121,7 @@ public class UMDPModelChecker extends ProbModelChecker
 		// Subtract from 1 if we're model checking a negated formula for regular Pmin
 		if (minMax.isMin()) {
 			probsProduct.applyFunction(TypeDouble.getInstance(), v -> 1.0 - (double) v);
+			probsProduct.setAccuracy(AccuracyFactory.complementOfProbs(probsProduct.getAccuracy()));
 		}
 
 		// Output vector over product, if required

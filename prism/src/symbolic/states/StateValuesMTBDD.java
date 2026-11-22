@@ -36,6 +36,7 @@ import odd.*;
 import parser.VarList;
 import parser.ast.RelOp;
 import prism.Accuracy;
+import prism.AccuracyFactory;
 import prism.PrismException;
 import prism.PrismLog;
 import prism.PrismNotSupportedException;
@@ -236,6 +237,7 @@ public class StateValuesMTBDD implements StateValues
 	{
 		JDD.Ref(reach);
 		values = JDD.Apply(JDD.MINUS, reach, values);
+		setAccuracy(AccuracyFactory.complementOfProbs(getAccuracy()));
 	}
 
 	@Override

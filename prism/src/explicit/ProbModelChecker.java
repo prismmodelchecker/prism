@@ -718,6 +718,7 @@ public class ProbModelChecker extends NonProbModelChecker
 		if (negated) {
 			// Subtract from 1 for negation
 			probs.applyFunction(TypeDouble.getInstance(), v -> 1.0 - (double) v);
+			probs.setAccuracy(AccuracyFactory.complementOfProbs(probs.getAccuracy()));
 		}
 
 		return probs;

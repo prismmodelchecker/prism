@@ -94,6 +94,27 @@ public class AccuracyFactory
 	}
 	
 	/**
+	 * Get the accuracy of probabilities 1-p, given the accuracy {@code acc} of probabilities p
+	 * (which may be null, meaning unknown, in which case null is returned).
+	 * The absolute error is unchanged by this, but a relative error is not: when p is close
+	 * to 1 (e.g. the result of iterating towards 1), 1-p is close to 0 and the relative error
+	 * of p, applied to 1-p, would give a meaningless absolute error. So a relative error bound
+	 * is converted into an absolute one. Since probabilities are at most 1, a relative error
+	 * bound for p is also an absolute one. This assumes the values are probabilities: the
+	 * computed values may exceed 1 slightly (by rounding), but only negligibly. When p is small,
+	 * the bound for 1-p (close to 1) is then also close to the original (relative) one.
+	 */
+	public static Accuracy complementOfProbs(Accuracy acc)
+	{
+		if (acc == null || acc.getType() == Accuracy.AccuracyType.ABSOLUTE) {
+			return acc;
+		}
+		Accuracy accNew = new Accuracy(acc.getLevel(), acc.getErrorBound(), Accuracy.AccuracyType.ABSOLUTE);
+		accNew.setProbability(acc.getProbability());
+		return accNew;
+	}
+	
+	/**
 	 * Create a pair of a (double) value and an associated {@link Accuracy} object
 	 * representing an interval of values, specified by its lower and upper bounds.
 	 * Optionally, the accuracy of each bound can be specified. 

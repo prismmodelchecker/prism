@@ -34,6 +34,7 @@ import odd.*;
 import parser.VarList;
 import parser.ast.RelOp;
 import prism.Accuracy;
+import prism.AccuracyFactory;
 import prism.PrismException;
 import prism.PrismLog;
 import prism.StateAndValueConsumer;
@@ -234,6 +235,7 @@ public class StateValuesDV implements StateValues
 	public void subtractFromOne()
 	{
 		values.subtractFromOne();
+		setAccuracy(AccuracyFactory.complementOfProbs(getAccuracy()));
 	}
 
 	@Override
