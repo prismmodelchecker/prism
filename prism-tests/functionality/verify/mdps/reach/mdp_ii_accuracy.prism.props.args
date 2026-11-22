@@ -1,0 +1,4 @@
+-ex -ii -e 1e-2
+-s -ii -e 1e-2
+-h -ii -e 1e-2
+-m -ii -e 1e-2

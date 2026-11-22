@@ -34,6 +34,7 @@ import jdd.JDDNode;
 import jdd.JDDVars;
 import jdd.SanityJDD;
 import symbolic.comp.ECComputer;
+import prism.Accuracy;
 import prism.PrismComponent;
 import prism.PrismException;
 import symbolic.states.StateValues;
@@ -115,11 +116,13 @@ public class MDPQuotient implements ModelTransformation<NondetModel,NondetModel>
 	{
 		StateValuesMTBDD sv = svTransformedModel.convertToStateValuesMTBDD();
 		JDDNode v = sv.getJDDNode().copy();
+		// Values are copied from representatives, so the accuracy is unchanged
+		Accuracy accuracy = sv.getAccuracy();
 		sv.clear();
 
 		v = transform.liftFromRepresentatives(v);
 
-		return new StateValuesMTBDD(v, transform.originalModel);
+		return new StateValuesMTBDD(v, transform.originalModel, accuracy);
 	}
 
 	/** Map the given state set from the original model to the quotient model */

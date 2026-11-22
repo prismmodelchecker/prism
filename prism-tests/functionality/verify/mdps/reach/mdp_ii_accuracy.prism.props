@@ -1,0 +1,6 @@
+// RESULT: 10/11
+Pmax=? [ F s=1 ];
+
+// Same, via LTL (product, then quotient)
+// RESULT: 10/11
+Pmax=? [ (F s=1) & (G s!=4) ];
