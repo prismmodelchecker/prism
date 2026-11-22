@@ -406,6 +406,52 @@ public abstract class DefinedConstant<T>
 
 
 
+	/**
+	 * A constant that is a parameter (for parametric model checking), rather than given values.
+	 * Its lower and upper bounds are kept as strings (e.g. "0" and "1/2"),
+	 * so they can be interpreted exactly. It has no values to iterate over.
+	 */
+	public static class Parameter extends DefinedConstant<String>
+	{
+		public Parameter(String name, Type type, String lower, String upper)
+		{
+			super(name, type, lower, upper, null, 1);
+		}
+
+		/** Get the lower bound of the parameter's range (as a string). */
+		public String getLower()
+		{
+			return low;
+		}
+
+		/** Get the upper bound of the parameter's range (as a string). */
+		public String getUpper()
+		{
+			return high;
+		}
+
+		public boolean incr()
+		{
+			throw new UnsupportedOperationException("Parameter " + name + " has no values");
+		}
+
+		public String getValue(int j)
+		{
+			throw new UnsupportedOperationException("Parameter " + name + " has no values");
+		}
+
+		public int getValueIndex(String v)
+		{
+			throw new UnsupportedOperationException("Parameter " + name + " has no values");
+		}
+
+		@Override
+		public String toString()
+		{
+			return name + "=" + low + ":" + high + " (parameter)";
+		}
+	}
+
 	public static class Undefined extends DefinedConstant<Object>
 	{
 		public Undefined(String name, Type type)

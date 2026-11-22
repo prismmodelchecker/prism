@@ -455,7 +455,12 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 
 		// sort out undefined constants
 		UndefinedConstants uCon = new UndefinedConstants(parsedModel, parsedProperties, props);
-		uCon.setExactMode(getPrism().getSettings().getBoolean(PrismSettings.PRISM_EXACT_ENABLED));
+		try {
+			uCon.setExactMode(getPrism().getSettings().getBoolean(PrismSettings.PRISM_EXACT_ENABLED));
+		} catch (PrismException e) {
+			error(e.getMessage());
+			return;
+		}
 		boolean showGraphDialog = false;
 		boolean useSimulation = false;
 		if (uCon.getMFNumUndefined() + uCon.getPFNumUndefined() == 0) {

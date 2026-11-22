@@ -330,9 +330,10 @@ public class PrismCL implements PrismModelListener
 			if (param) {
 				// Parameters must be undefined constants (of the model or properties)
 				Prism.checkParameterNames(paramNames, modulesFile, propertiesFile);
-				undefinedMFConstants.removeConstants(paramNames);
+				UndefinedConstants.checkParamSwitchAgainstConstSwitch(paramSwitch, constSwitch);
+				undefinedMFConstants.defineUsingParamSwitch(paramSwitch, false);
 				for (i = 0; i < numPropertiesToCheck; i++) {
-					undefinedConstants[i].removeConstants(paramNames);
+					undefinedConstants[i].defineUsingParamSwitch(paramSwitch, false);
 				}
 			}
 			// then set up value using const switch definitions
@@ -2110,26 +2111,10 @@ public class PrismCL implements PrismModelListener
 
 		// process info about parametric constants
 		if (param) {
-			String[] paramDefs = paramSwitch.split(",");
-			paramNames = new String[paramDefs.length];
-			paramLowerBounds = new String[paramDefs.length];
-			paramUpperBounds = new String[paramDefs.length];
-			for (int pdNr = 0; pdNr < paramDefs.length; pdNr++) {
-				if (!paramDefs[pdNr].contains("=")) {
-					paramNames[pdNr] = paramDefs[pdNr];
-					paramLowerBounds[pdNr] = "0";
-					paramUpperBounds[pdNr] = "1";
-				} else {
-					String[] paramDefSplit = paramDefs[pdNr].split("=");
-					paramNames[pdNr] = paramDefSplit[0];
-					paramDefSplit[1] = paramDefSplit[1].trim();
-					String[] upperLower = paramDefSplit[1].split(":");
-					if (upperLower.length != 2)
-						throw new PrismException("Invalid range \"" + paramDefSplit[1] + "\" for parameter " + paramNames[pdNr]);
-					paramLowerBounds[pdNr] = upperLower[0].trim();
-					paramUpperBounds[pdNr] = upperLower[1].trim();
-				}
-			}
+			List<DefinedConstant.Parameter> params = UndefinedConstants.parseParamSwitch(paramSwitch);
+			paramNames = params.stream().map(DefinedConstant.Parameter::getName).toArray(String[]::new);
+			paramLowerBounds = params.stream().map(DefinedConstant.Parameter::getLower).toArray(String[]::new);
+			paramUpperBounds = params.stream().map(DefinedConstant.Parameter::getUpper).toArray(String[]::new);
 		}
 
 		// Plug in model basename for model exports where needed
