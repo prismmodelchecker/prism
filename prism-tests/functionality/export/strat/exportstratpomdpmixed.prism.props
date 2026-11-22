@@ -1,0 +1,5 @@
+// Induced model (without merging observations) continues past
+// target and known-value beliefs, where the strategy is undefined
+
+// RESULT: 0.5
+Pmax=? [ "alive" U "goal" ];

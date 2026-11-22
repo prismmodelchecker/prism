@@ -59,8 +59,8 @@ public class FMDObsStrategyBeliefs<Value> extends StrategyExplicit<Value>
 	/** List of beliefs over unobservables, as stored in MDP states */
 	protected List<double[]> unobsBeliefs;
 
-	// Memory values are indices into unobsBeliefs, plus two extra values
-	// for when the model has left the part of the belief space explored by the MDP,
+	// Memory values are indices of MDP states (i.e., an observation and a belief over unobservables),
+	// plus two extra values for when the model has left the part of the belief space explored by the MDP,
 	// via a state where the choice is undefined (and resolved in some other way,
 	// e.g., when building the induced model). Later choices are then undefined too,
 	// for the same reason: SATISFIED if the state left was a target, reasonNonTarget otherwise.
@@ -84,8 +84,8 @@ public class FMDObsStrategyBeliefs<Value> extends StrategyExplicit<Value>
 		this.mdpStrat = mdpStrat;
 		this.mdpStates = mdpStates;
 		this.unobsBeliefs = unobsBeliefs;
-		memLeftTarget = unobsBeliefs.size();
-		memLeftNonTarget = unobsBeliefs.size() + 1;
+		memLeftTarget = mdpStates.size();
+		memLeftNonTarget = mdpStates.size() + 1;
 	}
 
 	@Override
@@ -139,11 +139,8 @@ public class FMDObsStrategyBeliefs<Value> extends StrategyExplicit<Value>
 			return UndefinedReason.UNKNOWN;
 		}
 		// Left the explored belief space: same reason as for the state left
-		if (m == memLeftTarget) {
-			return UndefinedReason.SATISFIED;
-		}
-		if (m == memLeftNonTarget) {
-			return reasonNonTarget;
+		if (isMemLeft(m)) {
+			return whyUndefinedLeft(m);
 		}
 		// No matching state in the MDP: (s,m) cannot be reached
 		int o = pomdp.getObservation(s);
@@ -164,6 +161,23 @@ public class FMDObsStrategyBeliefs<Value> extends StrategyExplicit<Value>
 	}
 
 	/**
+	 * Check whether memory value m denotes having left the explored belief space.
+	 */
+	private boolean isMemLeft(int m)
+	{
+		return m == memLeftTarget || m == memLeftNonTarget;
+	}
+
+	/**
+	 * Get the reason why the choice is undefined for a memory value m
+	 * denoting having left the explored belief space.
+	 */
+	private UndefinedReason whyUndefinedLeft(int m)
+	{
+		return m == memLeftTarget ? UndefinedReason.SATISFIED : reasonNonTarget;
+	}
+
+	/**
 	 * Check whether state i of the belief MDP fragment is a target state.
 	 */
 	private boolean isTargetInMDP(int i)
@@ -175,8 +189,8 @@ public class FMDObsStrategyBeliefs<Value> extends StrategyExplicit<Value>
 	@Override
 	public int getMemorySize()
 	{
-		// Beliefs, plus two values for having left the explored belief space
-		return unobsBeliefs.size() + 2;
+		// MDP states, plus two values for having left the explored belief space
+		return mdpStates.size() + 2;
 	}
 	
 	@Override
@@ -184,11 +198,7 @@ public class FMDObsStrategyBeliefs<Value> extends StrategyExplicit<Value>
 	{
 		int oInit = pomdp.getObservation(sInit);
 		int i = mdpStrat.getFirstInitialState();
-		if (mdpStates.get(i)[0] != oInit) {
-			return -1;
-		} else {
-			return mdpStates.get(i)[1];
-		}
+		return mdpStates.get(i)[0] != oInit ? -1 : i;
 	}
 	
 	@Override
@@ -199,44 +209,21 @@ public class FMDObsStrategyBeliefs<Value> extends StrategyExplicit<Value>
 			return -1;
 		}
 		// Once the explored belief space has been left, stay outside it
-		if (m == memLeftTarget || m == memLeftNonTarget) {
+		if (isMemLeft(m)) {
 			return m;
 		}
-		// Look for a matching transition in the MDP, from a state with memory m
-		// that picks the action taken, and find the memory update
-		// (inefficiently, since they are not sorted).
-		// Also note any states with memory m where the choice is undefined (unexplored).
-		int oNext = pomdp.getObservation(sNext);
-		boolean undefTarget = false;
-		boolean undefNonTarget = false;
-		int n = mdpStates.size();
-		for (int i = 0; i < n; i++) {
-			if (mdpStates.get(i)[1] == m) {
-				Object act = getActionPickedByMDP(i);
-				if (act == UNDEFINED) {
-					if (isTargetInMDP(i)) {
-						undefTarget = true;
-					} else {
-						undefNonTarget = true;
-					}
-				} else if (isActionChosen(act, action)) {
-					int j = findMatchingMemoryUpdate(i, oNext);
-					if (j != -1) {
-						return j;
-					}
-				}
-			}
+		// If the choice is undefined in MDP state m (it is unexplored),
+		// the action was picked in some other way, and the explored belief space is left
+		Object act = getActionPickedByMDP(m);
+		if (act == UNDEFINED) {
+			return isTargetInMDP(m) ? memLeftTarget : memLeftNonTarget;
 		}
-		// No match: the action was taken in a state where the strategy is undefined,
-		// so the explored belief space has been left (if it is clear which kind of state
-		// it was left from; otherwise, the memory is unknown)
-		if (undefTarget && !undefNonTarget) {
-			return memLeftTarget;
+		// Otherwise, if the action taken is the one picked in MDP state m,
+		// find the successor MDP state matching the next observation
+		if (!isActionChosen(act, action)) {
+			return -1;
 		}
-		if (undefNonTarget && !undefTarget) {
-			return memLeftNonTarget;
-		}
-		return -1;
+		return findMatchingMemoryUpdate(m, pomdp.getObservation(sNext));
 	}
 	
 	@Override
@@ -245,10 +232,10 @@ public class FMDObsStrategyBeliefs<Value> extends StrategyExplicit<Value>
 		if (m == -1) {
 			return "?";
 		}
-		if (m == memLeftTarget || m == memLeftNonTarget) {
-			return "?" + whyUndefined(-1, m).toString().toLowerCase();
+		if (isMemLeft(m)) {
+			return "?" + whyUndefinedLeft(m).toString().toLowerCase();
 		}
-		return Belief.toStringUnobs(unobsBeliefs.get(m), pomdp);
+		return Belief.toStringUnobs(unobsBeliefs.get(mdpStates.get(m)[1]), pomdp);
     }
 
 	@Override
@@ -388,36 +375,27 @@ public class FMDObsStrategyBeliefs<Value> extends StrategyExplicit<Value>
 	// Utility methods
 
 	/**
-	 * Find the index of a state (o,m) in the MDP, if there is one
+	 * Get the index of the state of the MDP for observation o and memory value m,
+	 * i.e., m itself, if it is an MDP state with observation o; otherwise -1
 	 */
 	private int findMatchingMDPState(int o, int m)
 	{
-		// If memory value is unknown, there are no matching states
-		if (m == -1) {
+		if (m < 0 || m >= mdpStates.size() || mdpStates.get(m)[0] != o) {
 			return -1;
 		}
-		// Look for a matching state in the MDP
-		// (inefficiently, since they are not sorted)
-		int n = mdpStates.size();
-		for (int i = 0; i < n; i++) {
-			if (mdpStates.get(i)[0] == o && mdpStates.get(i)[1] == m) {
-				return i;
-			}
-		}
-		// No match
-		return -1;
+		return m;
 	}
 
 	/**
 	 * Find a transition in the i-th state of the MDP whose destination state
-	 * has observable oNext, if there is one, and return the automaton state
+	 * has observable oNext, if there is one, and return its index (the new memory value)
 	 */
 	private int findMatchingMemoryUpdate(int i, int oNext)
 	{
 		for (SuccessorsIterator succ = mdpStrat.getSuccessors(i); succ.hasNext();) {
 			int j = succ.nextInt();
 			if (mdpStates.get(j)[0] == oNext) {
-				return mdpStates.get(j)[1];
+				return j;
 			}
 		}
 		// No match

@@ -1,0 +1,22 @@
+// POMDP where an unexplored target belief and an unexplored
+// non-target belief have the same belief over unobservables
+// (the optimal strategy is unique: go)
+
+pomdp
+
+module M
+
+	s : [0..4];
+	h : [0..1]; // hidden var
+
+	[toss] s=0 -> 0.5:(s'=1)&(h'=0) + 0.5:(s'=1)&(h'=1);
+	[go]   s=1 -> 0.5:(s'=2) + 0.5:(s'=3);
+	[stay] s=1 -> (s'=4);
+	[loop] s>=2 -> true;
+
+endmodule
+
+observables s endobservables
+
+label "goal" = s=2;
+label "alive" = s<3;
