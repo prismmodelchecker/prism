@@ -119,6 +119,35 @@ several other options are available for induced model export:
 
 PRISM generates several types of strategies. The simplest are *memoryless deterministic* strategies, which pick a single action in each state, as in the examples above. For some query types (e.g., step-bounded properties, or LTL-based properties), *finite-memory* strategies are generated, where an additional memory value is used. For these, induced models or Dot files are most useful since they will also show how the memory values are updated as the strategy is executed. Note that, in these cases, the state indices of the strategy will correspond to the product model constructed during model checking, not the original model. The product model can be exported using the `-exportprodtrans` and `-exportprodstates` switches.
 
+## Checking strategies
+
+To check that generated strategies are correct, use the switch [`-test:strat`](../Reference/CommandLineSwitches.md#test).
+This is an option of PRISM's *test mode* (`-test`), which compares the result of each property
+with the expected result given in a `// RESULT: ...` comment before the property in the properties file,
+and is used for PRISM's regression tests.
+With `-test:strat`, PRISM also generates a strategy for each property and checks the property again
+on the model induced by the strategy (essentially the one that `-exportstrat ...:type=induced` would export), e.g.:
+
+```shell
+prism mdp.prism mdp.props -test:strat
+```
+
+The two results should match:
+for a query such as `Pmax=? [ F "goal" ]`, the strategy should achieve the optimal value;
+for a bound such as `P>=0.5 [ F "goal" ]`, it should be a witness if the property holds and a counterexample if not.
+Subformulas nested inside the property's operators are checked on the original model, not under the strategy.
+For POMDPs, whose results are approximate, the strategy's value should be no better than the computed bound.
+The outcome is shown after the usual test result as `Testing result: strategy PASS`
+(or `FAIL`, `UNSUPPORTED` or `SKIPPED`, with an explanation).
+Strategies that cannot be generated or applied, e.g., where an action labels several choices in a state,
+are reported as unsupported.
+Properties are skipped if they are not a single `P`, `R`, ... operator (possibly compared with a constant),
+or use a filter other than `state`, or are multi-objective queries.
+Where a strategy leaves a reachable state's choice undefined for an unknown reason,
+the first choice is used (strategy export would report an error), and a warning is shown.
+As with `-exportstrat`, generating strategies may mean that PRISM switches to the explicit engine,
+or changes some settings for other engines, so results are not necessarily computed with the engine requested.
+
 ## Adversary generation
 
 The "sparse" engine still includes PRISM's older "adversary generation" functionality,

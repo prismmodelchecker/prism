@@ -70,6 +70,7 @@ Switches are typed with a single `-`, as shown, but `--` also works, e.g., `--ve
 
   - `umb`: Enable UMB round trip test
   - `pexp`: Enable explicit (.pexp) round trip test
+  - `strat`: Also test generated strategies, by checking properties under them
 
 - <a id="testall"></a>`-testall`: Enable "test" mode, but don't exit on error
 - <a id="javamaxmem"></a>`-javamaxmem <x>`: Set the maximum heap size for Java, e.g. 500m, 4g \[default: 1g\]
