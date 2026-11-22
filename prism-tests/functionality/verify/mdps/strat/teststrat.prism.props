@@ -1,0 +1,69 @@
+// RESULT: Infinity
+Rmax=? [ F "goal" ];
+
+// RESULT: 2.0
+Rmin=? [ F "goal" ];
+
+// RESULT: Infinity
+R{"act"}max=? [ F "goal" ];
+
+// RESULT: 4.0
+R{"act"}min=? [ F "goal" ];
+
+// RESULT: 1.0
+Pmax=? [ F "goal" ];
+
+// RESULT: 0.5
+Pmin=? [ F "goal" ];
+
+// RESULT: 0.75
+Pmax=? [ F<=2 "goal" ];
+
+// RESULT: 0.5
+Pmin=? [ F<=2 "goal" ];
+
+// RESULT: true
+P>=0.5 [ F "goal" ];
+
+// RESULT: 1.0
+Pmax=? [ F P>=0.5 [ X "goal" ] ];
+
+// RESULT: Infinity
+filter(state, Rmax=? [ F "goal" ], s=1);
+
+// RESULT: 2.0
+filter(state, Rmin=? [ F "goal" ], s=1);
+
+// A bound that does not hold: the strategy is a counterexample
+// RESULT: false
+P<=0.4 [ F "goal" ];
+
+// A bound inside a strategy quantifier (an empty coalition: for all strategies)
+// RESULT: false
+<<>> P>=1 [ F "goal" ];
+
+// LTL: a strategy with memory (the induced model has an extra variable)
+// RESULT: 1.0
+Pmax=? [ (F s=1) & (F "goal") ];
+
+// RESULT: 0.0
+Pmin=? [ (F s=1) & (F "goal") ];
+
+// LTL, with a state filter for the initial state
+// RESULT: 1.0
+filter(state, Pmax=? [ (F s=1) & (F "goal") ], s=0);
+
+// A comparison with a constant (the strategy is still tested)
+// RESULT: true
+Pmax=? [ F "goal" ] > 0.9;
+
+// Several top-level operators, needing different strategies (strategy test skipped)
+// RESULT: 0.5
+Pmax=? [ F "goal" ] - Pmin=? [ F "goal" ];
+
+// RESULT: false
+P>=1 [ F "goal" ] | P<=0.5 [ F "goal" ];
+
+// A filter other than "state" (strategy test skipped)
+// RESULT: 0.0
+filter(min, Pmax=? [ F "goal" ], s=3);

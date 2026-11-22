@@ -1,0 +1,31 @@
+// Model for testing the strategy test mode (-test:strat), which checks each
+// property under the strategy generated for it (as -exportstrat would export it)
+// and compares the result with the one from model checking.
+// From s=0, action a reaches the goal (s=2) with probability 1 but never visits s=1;
+// b goes to s=1, from where the goal is reached with probability 1 (a) or 0.5 (b).
+// Several optimal strategies exist for some of the properties: the test only
+// checks the value achieved, not which strategy is chosen.
+
+mdp
+
+module m
+
+	s:[0..3];
+
+	[a] s=0 -> 0.5:(s'=2) + 0.5:(s'=0);
+	[b] s=0 -> (s'=1);
+	[a] s=1 -> 0.5:(s'=2) + 0.5:(s'=1);
+	[b] s=1 -> 0.5:(s'=2) + 0.5:(s'=3);
+	[c] s>=2 -> true;
+
+endmodule
+
+label "goal" = s=2;
+
+rewards "steps"
+	true : 1;
+endrewards
+
+rewards "act"
+	[a] true : 2;
+endrewards
