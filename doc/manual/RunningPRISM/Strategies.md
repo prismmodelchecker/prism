@@ -87,6 +87,12 @@ Further options can be added, e.g., to specify whether an induced model is expor
 prism mdp.prism -pf 'Pmax=? [ F "goal" ]' -exportstrat file.txt:type=induced,mode=restrict
 ```
 
+The switch can be used more than once, to export the same strategy in several ways:
+
+```shell
+prism mdp.prism -pf 'Pmax=? [ F "goal" ]' -exportstrat strat.txt -exportstrat strat.dot
+```
+
 A list of available options is as follows:
 
 - `type` (`actions`, `induced` or `dot`): the type of strategy export to use (action list, induced model or Dot file)

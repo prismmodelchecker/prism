@@ -149,7 +149,6 @@ public class PrismCL implements PrismModelListener
 	private String exportVectorFilename = null;
 	private String exportSteadyStateFilename = null;
 	private String exportTransientFilename = null;
-	private String exportStratFilename = null;
 	private String simpathFilename = null;
 
 	// Unified CLI switch map (handler + help metadata), populated by initSwitchHandlers
@@ -205,7 +204,9 @@ public class PrismCL implements PrismModelListener
 	private boolean simManual = false;
 	private SimulationMethod simMethod = null;
 
-	// strategy export info
+	// strategy export info: (filename, options) for each -exportstrat switch
+	private List<Pair<String, StrategyExportOptions>> exportStratTasks = new ArrayList<>();
+	// options for the -exportstrat switch currently being parsed
 	private StrategyExportOptions exportStratOptions = null;
 
 	// transient state used during option parsing for complex switches
@@ -497,14 +498,17 @@ public class PrismCL implements PrismModelListener
 
 						// if a strategy was generated, and we need to export it, do so
 						if (exportstrat && res.getStrategy() != null) {
-							try {
-								prism.exportStrategy(res.getStrategy(), exportStratOptions, exportStratFilename.equals("stdout") ? null : new File(exportStratFilename));
-							}
-							// in case of error, report it and proceed
-							catch (FileNotFoundException e) {
-								error("Couldn't open file \"" + exportStratFilename + "\" for output");
-							} catch (PrismException e) {
-								error(e.getMessage());
+							for (Pair<String, StrategyExportOptions> exportStratTask : exportStratTasks) {
+								String exportStratFilename = exportStratTask.first;
+								try {
+									prism.exportStrategy(res.getStrategy(), exportStratTask.second, exportStratFilename.equals("stdout") ? null : new File(exportStratFilename));
+								}
+								// in case of error, report it and proceed
+								catch (FileNotFoundException e) {
+									error("Couldn't open file \"" + exportStratFilename + "\" for output");
+								} catch (PrismException e) {
+									error(e.getMessage());
+								}
 							}
 						}
 
@@ -1996,8 +2000,9 @@ public class PrismCL implements PrismModelListener
 		String ext = i == -1 ? "" : fileString.substring(i + 1);
 		// Store some settings (here and in PRISM)
 		exportstrat = true;
-		exportStratFilename = basename.equals("stdout") ? "stdout" : fileString;
+		String exportStratFilename = basename.equals("stdout") ? "stdout" : fileString;
 		exportStratOptions = new StrategyExportOptions();
+		exportStratTasks.add(new Pair<>(exportStratFilename, exportStratOptions));
 		prism.setGenStrat(true);
 		ModelExportOptions inducedModelOptions = null;
 		// Default strategy export type is based on filename extension
