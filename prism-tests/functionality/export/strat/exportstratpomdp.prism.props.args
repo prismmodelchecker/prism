@@ -1,1 +1,2 @@
 -ex -exportstrat exportstratpomdp.prism.props.reduce.pexp:type=induced,mode=reduce,mergeobs=false
+-ex -exportstrat exportstratpomdp.prism.props.dot:mergeobs=false,states=true -exportstrat exportstratpomdp.prism.props.actions.txt:type=actions

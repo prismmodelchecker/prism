@@ -350,7 +350,7 @@ public class FMDObsStrategyBeliefs<Value> extends StrategyExplicit<Value>
 		Model<Value> prodModel = constructInducedModel(options);
 		List<State> stateList = prodModel.getStatesList();
 		// Export product model to dot file, with (if needed) a custom decorator
-		// to extract the final value of each state and convert to a belief
+		// to extract the memory value of each state (the first variable) and convert to a belief
 		List<Decorator> decorators = new ArrayList<>();
 		if (options.getShowStates()) {
 			decorators.add(new Decorator()
@@ -361,13 +361,13 @@ public class FMDObsStrategyBeliefs<Value> extends StrategyExplicit<Value>
 					Object[] varValues = stateList.get(state).varValues;
 					int numVars = varValues.length;
 					String s = "(";
-					for (int i = 0; i < numVars - 1; i++) {
-						if (i > 0)
+					for (int i = 1; i < numVars; i++) {
+						if (i > 1)
 							s += ",";
 						s += State.valueToString(varValues[i]);
 					}
 					s += "),";
-					int m = (int) varValues[numVars - 1];
+					int m = (int) varValues[0];
 					s += getMemoryString(m);
 					d.labelAddBelow(s);
 					return d;
