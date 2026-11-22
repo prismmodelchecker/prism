@@ -534,6 +534,11 @@ public class PrismCL implements PrismModelListener
 							doResultTest(propertiesToCheck.get(j), res, prism.getModelInfo().getConstantValues(), propertiesFile.getConstantValues());
 						}
 
+						// if required, test the generated strategy too
+						if (test && prism.getTestStrat() && !simulate) {
+							doStrategyTest(res);
+						}
+
 						// iterate to next property
 						undefinedConstants[j].iterateProperty();
 					}
@@ -1036,6 +1041,25 @@ public class PrismCL implements PrismModelListener
 	}
 
 	/**
+	 * Report the outcome of testing the strategy generated when model checking a property
+	 * (strategy test mode, {@code -test:strat}), see {@link Prism#setTestStrat(boolean)}.
+	 * Test results are output to the log.
+	 * If a test fails and {@code testExitsOnFail} is {@code true} then {@code errorAndExit} is called.
+	 * @param res the result of model checking the property
+	 */
+	private void doStrategyTest(Result res)
+	{
+		StrategyTesting.TestResult testRes = res.getStrategyTestResult();
+		if (testRes == null) {
+			testRes = new StrategyTesting.TestResult(StrategyTesting.Outcome.SKIPPED, res.getResult() instanceof Exception ? "no result" : "not tested");
+		}
+		mainLog.println("\nTesting result: strategy " + testRes);
+		if (testRes.outcome == StrategyTesting.Outcome.FAIL && testExitsOnFail) {
+			errorAndExit("Testing failed");
+		}
+	}
+
+	/**
 	 * Close down.
 	 */
 	private void closeDown()
@@ -1203,7 +1227,8 @@ public class PrismCL implements PrismModelListener
 		registry.addSwitch("test", new OptionsOnlySwitch(
 				new OptionParser()
 						.flag("umb", "Enable UMB round trip test", () -> prism.setTestRoundTrip(ModelExportFormat.UMB))
-						.flag("pexp", "Enable explicit (.pexp) round trip test", () -> prism.setTestRoundTrip(ModelExportFormat.EXPLICIT)),
+						.flag("pexp", "Enable explicit (.pexp) round trip test", () -> prism.setTestRoundTrip(ModelExportFormat.EXPLICIT))
+						.flag("strat", "Also test generated strategies, by checking properties under them", () -> prism.setTestStrat(true)),
 				parse -> { test = true; parse.run(); }),
 				"[:<options>]", "Enable \"test\" mode");
 		registry.addSwitch("testall", new FlagSwitch(() -> { test = true; testExitsOnFail = false; }),

@@ -228,6 +228,8 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	// Test mode(s)
 	// Format for export/import roundtrip testing of built models (null if off)
 	private ModelExportFormat testRoundTripFormat = null;
+	// Strategy test mode (see setTestStrat)
+	private boolean testStrat = false;
 	// In roundtrip test mode, the reward generator installed after a roundtrip (from the imported model),
 	// and the one it replaced (from the original model), so that the latter can be restored
 	private RewardGenerator<?> testRoundTripImportedRewardGenerator = null;
@@ -851,7 +853,26 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 		this.testRoundTripFormat = format;
 	}
 
+	/**
+	 * Enable (or disable) strategy test mode, in which, for each property model checked
+	 * on a nondeterministic model, a strategy is generated and then tested by checking the property
+	 * under it, see {@link StrategyTesting#testStrategy(Prism, PropertiesFile, Property, Result)}.
+	 * The outcome is stored in the result, see {@link Result#getStrategyTestResult()}.
+	 */
+	public void setTestStrat(boolean testStrat)
+	{
+		this.testStrat = testStrat;
+	}
+
 	// Get methods
+
+	/**
+	 * Is strategy test mode enabled? See {@link #setTestStrat(boolean)}.
+	 */
+	public boolean getTestStrat()
+	{
+		return testStrat;
+	}
 
 	/**
 	 * Get the name of this tool.
@@ -3621,6 +3642,52 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	 */
 	public Result modelCheck(PropertiesFile propertiesFile, Property prop) throws PrismException, PrismLangException
 	{
+		// In strategy test mode, test the strategy too
+		// (but not when checking under a strategy, as is done for the test)
+		if (testStrat && getAppliedStrategy() == null) {
+			return modelCheckAndTestStrategy(propertiesFile, prop);
+		}
+		return doModelCheck(propertiesFile, prop);
+	}
+
+	/**
+	 * Model check a property and, in strategy test mode, test the strategy generated (see {@link #setTestStrat(boolean)}).
+	 * For nondeterministic models, strategy generation is switched on for model checking;
+	 * if model checking then fails (e.g., because strategy generation is not supported for the property),
+	 * it is redone without strategy generation, and the strategy test is reported as unsupported
+	 * (unless strategy generation was already switched on, e.g., for strategy export: then the error stands).
+	 */
+	private Result modelCheckAndTestStrategy(PropertiesFile propertiesFile, Property prop) throws PrismException
+	{
+		boolean genStratOld = genStrat;
+		Result res;
+		if (getModelType().nondeterministic() && !getModelType().realTime() && !genStratOld) {
+			try {
+				genStrat = true;
+				res = doModelCheck(propertiesFile, prop);
+			} catch (PrismException e) {
+				mainLog.println("\nNote: strategy generation failed (" + e.getMessage() + ").");
+				mainLog.println("Re-checking property without strategy generation...");
+				genStrat = false;
+				res = doModelCheck(propertiesFile, prop);
+				res.setStrategyTestResult(new StrategyTesting.TestResult(StrategyTesting.Outcome.UNSUPPORTED, "strategy generation failed: " + e.getMessage()));
+				return res;
+			} finally {
+				genStrat = genStratOld;
+			}
+		} else {
+			res = doModelCheck(propertiesFile, prop);
+		}
+		res.setStrategyTestResult(StrategyTesting.testStrategy(this, propertiesFile, prop, res));
+		return res;
+	}
+
+	/**
+	 * Perform model checking of a property on the current model and return result
+	 * (helper method for {@link #modelCheck(PropertiesFile, Property)}).
+	 */
+	private Result doModelCheck(PropertiesFile propertiesFile, Property prop) throws PrismException, PrismLangException
+	{
 		Result res = null;
 		Values definedPFConstants = propertiesFile.getConstantValues();
 		boolean engineSwitch = false, switchToMTBDDEngine = false, switchedToExplicitEngine = false;
@@ -5016,7 +5083,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	 * Utility method to create and initialise an (explicit) model checker based on the current model.
 	 * @param propertiesFile Optional properties file for extra info needed during model checking (can be null)
 	 */
-	private explicit.StateModelChecker createModelCheckerExplicit(PropertiesFile propertiesFile) throws PrismException
+	explicit.StateModelChecker createModelCheckerExplicit(PropertiesFile propertiesFile) throws PrismException
 	{
 		// Create model checker
 		explicit.StateModelChecker mc = explicit.StateModelChecker.createModelChecker(getModelType(), this);
