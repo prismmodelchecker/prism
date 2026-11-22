@@ -291,6 +291,10 @@ Switches are typed with a single `-`, as shown, but `--` also works, e.g., `--ve
 - <a id="sparse"></a><a id="s"></a>`-sparse` (or `-s`): Use the Sparse engine
 - <a id="hybrid"></a><a id="h"></a>`-hybrid` (or `-h`): Use the Hybrid engine \[default\]
 - <a id="explicit"></a><a id="ex"></a>`-explicit` (or `-ex`): Use the explicit engine
+- <a id="engine"></a>`-engine <name>`: Specify engine (mtbdd, sparse, hybrid, explicit, auto) \[default: hybrid\]
+
+  Valid options: mtbdd, sparse, hybrid, explicit, auto.
+
 - <a id="exact"></a>`-exact`: Perform exact (arbitrary precision) model checking
 - <a id="ptamethod"></a>`-ptamethod <name>`: Specify PTA engine (games, digital, backwards) \[default: games\]
 

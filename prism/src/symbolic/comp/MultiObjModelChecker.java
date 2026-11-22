@@ -669,7 +669,8 @@ public class MultiObjModelChecker extends prism.MultiObjModelChecker
 
 		mainLog.println("\nComputing remaining probabilities...");
 
-		int engine = settings.getChoice(PrismSettings.PRISM_ENGINE);
+		// The engine actually used (which may differ from the one requested)
+		int engine = prism.getResolvedSettings().getEngine().toPrismConstant();
 		int method = prism.getMDPMultiSolnMethod();
 
 		if (engine == Prism.HYBRID) {

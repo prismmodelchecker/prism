@@ -131,7 +131,7 @@ public class StateModelChecker extends PrismNativeComponent implements ModelChec
 
 		// Inherit some options from parent Prism object
 		// Store locally and/or pass onto engines
-		engine = prism.getEngine();
+		engine = prism.getResolvedSettings().getEngine().toPrismConstant();
 		termCritParam = prism.getTermCritParam();
 		doIntervalIteration = settings.getBoolean(PrismSettings.PRISM_INTERVAL_ITER);
 		verbose = prism.getVerbose();

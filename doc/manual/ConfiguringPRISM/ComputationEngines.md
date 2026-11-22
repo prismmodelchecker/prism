@@ -43,6 +43,14 @@ prism model.prism model.props -s
 prism model.prism model.props -h
 ```
 
+or, equivalently, with [`-engine <name>`](../Reference/CommandLineSwitches.md#engine), e.g. `-engine explicit`.
+
+<a id="auto"></a>
+If you don't choose an engine, PRISM uses the hybrid engine, unless the model, property or chosen solution method needs a different one.
+PRISM makes these switches with any engine (see above), but if you picked a specific engine,
+it warns you that it has switched; otherwise, it just reports which engine is used and why.
+From the command line, `-engine auto` returns to this, e.g. to undo an engine chosen earlier in the arguments.
+
 <a id="other"></a>
 ## Other engines
 

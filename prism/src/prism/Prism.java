@@ -404,9 +404,10 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	private String[] paramLowerBounds;
 	private String[] paramUpperBounds;
 
-	// Info about automatic engine switching
-	private int engineOld = -1;
-	private boolean engineSwitched = false;
+	// Working out the engine (and some other settings) actually used, from those requested
+	private SettingsResolver settingsResolver = new SettingsResolver();
+	// The resolved settings for the property currently being model checked (if any)
+	private SettingsResolver.ResolvedSettings resolvedForModelCheck = null;
 
 	//------------------------------------------------------------------------------
 	// Constructors + options methods
@@ -544,9 +545,25 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	// Set methods for main prism settings
 	// (provided for convenience and for compatibility with old code)
 
+	/**
+	 * Set the engine to use (e.g. {@link #HYBRID}).
+	 * PRISM may still use a different engine if needed (e.g. for a model type
+	 * that only the explicit engine supports): see {@link #getResolvedSettings()}.
+	 * To leave the choice to PRISM, use {@link #unsetEngine()} instead.
+	 */
 	public void setEngine(int e) throws PrismException
 	{
 		settings.setChoice(PrismSettings.PRISM_ENGINE, e);
+	}
+
+	/**
+	 * Leave the choice of engine to PRISM (the default): it starts from the default engine
+	 * (hybrid) and switches if needed, reporting this as information rather than a warning.
+	 * The engine actually used is given by {@link #getResolvedSettings()}.
+	 */
+	public void unsetEngine() throws PrismException
+	{
+		settings.unset(PrismSettings.PRISM_ENGINE);
 	}
 
 	public void setVerbose(boolean b) throws PrismException
@@ -918,13 +935,18 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	// Get methods for main prism settings
 	// (as above, provided for convenience and for compatibility with old code)
 
+	/**
+	 * Get the engine requested (e.g. {@link #HYBRID}), or the default if none was.
+	 * The engine actually used may differ: see {@link #getResolvedSettings()}.
+	 */
 	public int getEngine()
 	{
 		return settings.getChoice(PrismSettings.PRISM_ENGINE);
 	}
 
 	/**
-	 * Is the current engine "Explicit"?
+	 * Is the engine requested "Explicit"?
+	 * The engine actually used may differ: see {@link #getResolvedSettings()}.
 	 */
 	public boolean getExplicit()
 	{
@@ -2118,18 +2140,63 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	}
 
 	/**
-	 * Get the currently selected model checking engine.
+	 * Get the way model checking is currently done (symbolic, explicit, exact or parametric),
+	 * for the currently loaded model or the property being checked, including any automatic
+	 * switching of engine (see {@link #getResolvedSettings()}).
 	 */
 	public PrismEngine getCurrentEngine()
 	{
+		return getResolvedSettings().getRoute();
+	}
+
+	/**
+	 * Get the settings (engine, precision, some solution methods) actually in use,
+	 * worked out from those requested and from the currently loaded model
+	 * and, during model checking, the property being checked.
+	 * Unlike {@link #getEngine()} and {@link #getLinEqMethod()}, which are what was requested,
+	 * this includes any automatic switching (e.g. to the explicit engine for models only it supports)
+	 * and overrides (e.g. of the linear equation method for heuristic mode "speed").
+	 */
+	public SettingsResolver.ResolvedSettings getResolvedSettings()
+	{
+		if (resolvedForModelCheck != null) {
+			return resolvedForModelCheck;
+		}
+		return settingsResolver.forBuild(getSettingsRequest(), getModelType(), isInducedExplicit());
+	}
+
+	/**
+	 * Get what is currently requested, as a {@link SettingsResolver.Request}.
+	 */
+	private SettingsResolver.Request getSettingsRequest()
+	{
+		SettingsResolver.Request req = SettingsResolver.Request.fromSettings(settings);
 		if (param) {
-			return PrismEngine.PARAM;
-		} else if (settings.getBoolean(PrismSettings.PRISM_EXACT_ENABLED)) {
-			return PrismEngine.EXACT;
-		} else if (getEngine() == Prism.EXPLICIT) {
-			return PrismEngine.EXPLICIT;
-		} else {
-			return PrismEngine.SYMBOLIC;
+			req.setParameters(java.util.Arrays.asList(paramNames));
+		}
+		return req;
+	}
+
+	/**
+	 * Is the current model one induced by a strategy, stored explicitly (so it cannot be rebuilt)?
+	 */
+	private boolean isInducedExplicit()
+	{
+		return getModelSource() == ModelSource.INDUCED && getBuiltModelType() == ModelBuildType.EXPLICIT;
+	}
+
+	/**
+	 * Print the notes from resolving settings (from index {@code from} onwards) to the log.
+	 */
+	private void printResolutionNotes(SettingsResolver.ResolvedSettings res, int from)
+	{
+		List<SettingsResolver.Note> notes = res.getNotes();
+		for (int i = from; i < notes.size(); i++) {
+			if (notes.get(i).isWarning()) {
+				mainLog.printWarning(notes.get(i).getMessage());
+			} else {
+				mainLog.println("\n" + notes.get(i).getMessage());
+			}
 		}
 	}
 	
@@ -2469,46 +2536,14 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	}
 
 	/**
-	 * If required (based on model type), switch engine to enable building.
+	 * Report any automatic choice of engine for building the model (based on model type).
+	 * The engine used is worked out by {@link #getResolvedSettings()}; settings are not changed.
+	 * During model checking, this has already been done (see {@link #modelCheck(PropertiesFile, Property)}).
 	 */
 	private void chooseEngineForModelBuild()
 	{
-		// For some models, automatically switch engine
-		String reason = null;
-		switch (getModelType()) {
-			case IDTMC:
-			case IMDP:
-			case LTS:
-			case POMDP:
-			case IPOMDP:
-				reason = "which supports " + getModelType() + "s";
-				break;
-			default:
-				// A model induced by a strategy cannot be rebuilt, so use an engine for how it is stored
-				if (getModelSource() == ModelSource.INDUCED && getBuiltModelType() == ModelBuildType.EXPLICIT) {
-					reason = "since the model induced by the strategy is stored explicitly";
-				}
-		}
-		if (reason != null) {
-			if (getCurrentEngine() == PrismEngine.SYMBOLIC) {
-				mainLog.println("\nSwitching to explicit engine, " + reason + "...");
-				engineOld = getEngine();
-				engineSwitched = true;
-				try {
-					setEngine(Prism.EXPLICIT);
-				} catch (PrismException e) {
-					// Won't happen
-				}
-			}
-		}
-		// For other models, switch engine back if changed earlier
-		else if (engineSwitched) {
-			try {
-				setEngine(engineOld);
-			} catch (PrismException e) {
-				// Won't happen
-			}
-			engineSwitched = false;
+		if (resolvedForModelCheck == null) {
+			printResolutionNotes(getResolvedSettings(), 0);
 		}
 	}
 
@@ -3690,8 +3725,6 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	{
 		Result res = null;
 		Values definedPFConstants = propertiesFile.getConstantValues();
-		boolean engineSwitch = false, switchToMTBDDEngine = false, switchedToExplicitEngine = false;
-		int lastEngine = -1;
 
 		if (!isModelSourceDigitalClocks())
 			mainLog.printSeparator();
@@ -3711,20 +3744,10 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 		// Remove old strategy if present
 		clearStrategy();
 
-		// Exact model checking only support for some models
-		if (getCurrentEngine() == PrismEngine.EXACT) {
-			if (!(getModelType() == ModelType.DTMC || getModelType() == ModelType.CTMC || getModelType() == ModelType.MDP || !getModelType().isProbabilistic())) {
-				throw new PrismNotSupportedException("Exact model checking not supported for " + getModelType() + "s");
-			}
-		}
-		// Parametric model checking only support for some models/settings
-		if (getCurrentEngine() == PrismEngine.PARAM) {
-			if (!(getModelType() == ModelType.DTMC || getModelType() == ModelType.CTMC || getModelType() == ModelType.MDP || !getModelType().isProbabilistic())) {
-				throw new PrismNotSupportedException("Parametric model checking not supported for " + getModelType() + "s");
-			}
-			if (getModelType() == ModelType.MDP && getFairness()) {
-				throw new PrismNotSupportedException("Parametric model checking does not support checking MDPs under fairness");
-			}
+		// Work out the engine/methods to use (this also checks that exact/parametric
+		// model checking is supported for this model); used below, after the special cases
+		SettingsResolver.ResolvedSettings resolved = settingsResolver.forModelCheck(getSettingsRequest(), getModelType(), isInducedExplicit(), prop.getExpression(), genStrat);
+		if (resolved.getPrecision() == PrecisionMode.PARAM) {
 			checkParameterNames(paramNames, getPRISMModel(), propertiesFile);
 		}
 		// PTA (and similar) model checking is handled separately
@@ -3737,77 +3760,10 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 			fauMC = new FastAdaptiveUniformisationModelChecker(this, getPRISMModel(), propertiesFile);
 			return fauMC.check(prop.getExpression());
 		}
-		// Heuristic choices of engine/method
-		if (settings.getString(PrismSettings.PRISM_HEURISTIC).equals("Speed")) {
-			mainLog.printWarning("Switching to sparse engine and (backwards) Gauss Seidel (default for heuristic=speed).");
-			engineSwitch = true;
-			lastEngine = getEngine();
-			setEngine(Prism.SPARSE);
-			settings.set(PrismSettings.PRISM_LIN_EQ_METHOD, "Backwards Gauss-Seidel");
-
-		}
-		// Auto-switch to explicit engine if required
-		if (getModelType() == ModelType.MDP && !Expression.containsMultiObjective(prop.getExpression())) {
-			if (getMDPSolnMethod() != Prism.MDP_VALITER && getCurrentEngine() == PrismEngine.SYMBOLIC) {
-				mainLog.printWarning("Switching to explicit engine to allow use of chosen MDP solution method.");
-				engineSwitch = true;
-				lastEngine = getEngine();
-				switchedToExplicitEngine = true;
-				setEngine(Prism.EXPLICIT);
-			}
-		}
-		// Topological value iteration is only implemented in the explicit engine
-		if (settings.getBoolean(PrismSettings.PRISM_TOPOLOGICAL_VI) && getCurrentEngine() == PrismEngine.SYMBOLIC) {
-			if (getModelType() == ModelType.MDP && !Expression.containsMultiObjective(prop.getExpression())) {
-				mainLog.printWarning("Switching to explicit engine to allow topological value iteration.");
-				engineSwitch = true;
-				lastEngine = getEngine();
-				switchedToExplicitEngine = true;
-				setEngine(Prism.EXPLICIT);
-			} else if (getModelType() == ModelType.DTMC || getModelType() == ModelType.CTMC) {
-				// For DTMCs/CTMCs, the explicit engine only supports some linear equation methods
-				String linEqMethod = settings.getString(PrismSettings.PRISM_LIN_EQ_METHOD);
-				if (linEqMethod.equals("Power") || linEqMethod.equals("Jacobi") || linEqMethod.equals("Gauss-Seidel") || linEqMethod.equals("Backwards Gauss-Seidel")) {
-					mainLog.printWarning("Switching to explicit engine to allow topological value iteration.");
-					engineSwitch = true;
-					lastEngine = getEngine();
-					switchedToExplicitEngine = true;
-					setEngine(Prism.EXPLICIT);
-				} else {
-					mainLog.printWarning("Topological value iteration is not supported for linear equation method \"" + linEqMethod + "\" and will be ignored.");
-				}
-			}
-		}
-		if (Expression.containsNonProbLTLFormula(prop.getExpression()) && getCurrentEngine() == PrismEngine.SYMBOLIC) {
-			mainLog.printWarning("Switching to explicit engine to allow non-probabilistic LTL model checking.");
-			engineSwitch = true;
-			lastEngine = getEngine();
-			switchedToExplicitEngine = true;
-			setEngine(Prism.EXPLICIT);
-		}
-		if (settings.getBoolean(PrismSettings.PRISM_INTERVAL_ITER) && getCurrentEngine() == PrismEngine.SYMBOLIC) {
-			if (getModelType() == ModelType.MDP && Expression.containsMinReward(prop.getExpression())) {
-				mainLog.printWarning("Switching to explicit engine to allow interval iteration on Rmin operator.");
-				engineSwitch = true;
-				lastEngine = getEngine();
-				switchedToExplicitEngine = true;
-				setEngine(Prism.EXPLICIT);
-			}
-		}
-		if ((getModelType() == ModelType.IDTMC || getModelType() == ModelType.IMDP) && getCurrentEngine() == PrismEngine.SYMBOLIC) {
-			mainLog.printWarning("Switching to explicit engine to allow model checking of interval model.");
-			engineSwitch = true;
-			lastEngine = getEngine();
-			switchedToExplicitEngine = true;
-			setEngine(Prism.EXPLICIT);
-		}
-		if (genStrat && getCurrentEngine() == PrismEngine.SYMBOLIC) {
-			mainLog.printWarning("Switching to explicit engine to allow strategy generation.");
-			engineSwitch = true;
-			lastEngine = getEngine();
-			switchedToExplicitEngine = true;
-			setEngine(Prism.EXPLICIT);
-		}
+		// Work out the engine and methods to use (e.g. switching to the explicit engine if required)
+		SettingsResolver.ResolvedSettings resolvedOld = resolvedForModelCheck;
+		resolvedForModelCheck = resolved;
+		printResolutionNotes(resolved, 0);
 		try {
 			// Build model, if necessary
 			buildModelIfRequired();
@@ -3820,26 +3776,11 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 							+ "Either switch to the explicit engine or add more action labels to the model");
 			}
 
-			// Check if we need to switch to MTBDD engine
-			if (getCurrentEngine() == PrismEngine.SYMBOLIC && getEngine() != MTBDD && !switchedToExplicitEngine) {
-				// Either because number of states is two big for double-valued solution vectors
-				if (getBuiltModelSymbolic().numStatesExceedsInt()) {
-					mainLog.printWarning("Switching to MTBDD engine, as number of states is too large for " + engineStrings[getEngine()] + " engine.");
-					switchToMTBDDEngine = true;
-				}
-				// Or based on heuristic choices of engine/method
-				// (sparse/hybrid typically v slow if need to work with huge state spaces)
-				else if (settings.getString(PrismSettings.PRISM_HEURISTIC).equals("Speed") && getBuiltModelSymbolic().getNumStates() > MTBDD_STATES_THRESHOLD) {
-					mainLog.printWarning("Switching to MTBDD engine (default for heuristic=speed and this state space size).");
-					switchToMTBDDEngine = true;
-				}
-				// NB: Need to make sure solution methods supported for MTBDDs are used
-				if (switchToMTBDDEngine) {
-					engineSwitch = true;
-					lastEngine = getEngine();
-					setEngine(Prism.MTBDD);
-					settings.set(PrismSettings.PRISM_LIN_EQ_METHOD, "Jacobi");
-				}
+			// Check if we need to switch to MTBDD engine (e.g. if the model is too big for the others)
+			if (getCurrentEngine() == PrismEngine.SYMBOLIC) {
+				int numNotes = resolvedForModelCheck.getNotes().size();
+				resolvedForModelCheck = settingsResolver.afterBuild(resolvedForModelCheck, getSettingsRequest(), getBuiltModelSymbolic().numStatesExceedsInt(), getBuiltModelSymbolic().getNumStates());
+				printResolutionNotes(resolvedForModelCheck, numNotes);
 			}
 
 			// Create new model checker object and do model checking
@@ -3864,10 +3805,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 				setStrategy(res.getStrategy());
 			}
 		} finally {
-			// Undo auto-switch (if any)
-			if (engineSwitch) {
-				setEngine(lastEngine);
-			}
+			resolvedForModelCheck = resolvedOld;
 		}
 
 		// Return result
@@ -5086,7 +5024,17 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	explicit.StateModelChecker createModelCheckerExplicit(PropertiesFile propertiesFile) throws PrismException
 	{
 		// Create model checker
-		explicit.StateModelChecker mc = explicit.StateModelChecker.createModelChecker(getModelType(), this);
+		// (if the linear equation method is overridden, e.g. for heuristic mode "speed",
+		// it is given a copy of the settings, with the override)
+		PrismComponent parent = this;
+		SettingsResolver.ResolvedSettings res = getResolvedSettings();
+		if (res.isLinEqMethodOverridden()) {
+			PrismSettings settingsOverridden = new PrismSettings(settings);
+			settingsOverridden.set(PrismSettings.PRISM_LIN_EQ_METHOD, res.getLinEqMethod());
+			parent = new PrismComponent(this);
+			parent.setSettings(settingsOverridden);
+		}
+		explicit.StateModelChecker mc = explicit.StateModelChecker.createModelChecker(getModelType(), parent);
 		mc.setModelCheckingInfo(getModelInfo(), propertiesFile, getRewardGenerator());
 		// Pass any additional local settings
 		mc.setExportTarget(exportTarget);

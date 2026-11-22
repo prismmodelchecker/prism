@@ -199,4 +199,63 @@ public class SettingsResolverTest
 		Request reqE = new Request().setExact(true);
 		assertEquals(Engine.HYBRID, resolver.afterBuild(check(reqE, ModelType.DTMC, "P=? [ F x=1 ]"), reqE, true, 1e12).getEngine());
 	}
+
+	@Test
+	public void testInducedModel() throws PrismException, InterruptedException
+	{
+		// A model induced by a strategy, stored explicitly, needs an explicit engine
+		ResolvedSettings res = resolver.forBuild(new Request(), ModelType.DTMC, true);
+		assertEquals(Engine.EXPLICIT, res.getEngine());
+		assertTrue(res.isSwitchedToExplicit());
+		assertEquals("Switching to explicit engine, since the model induced by the strategy is stored explicitly...", res.getNotes().get(0).getMessage());
+		assertFalse(res.getNotes().get(0).isWarning());
+		res = resolver.forModelCheck(new Request(), ModelType.DTMC, true, expr("P=? [ F x=1 ]"), false);
+		assertEquals(Engine.EXPLICIT, res.getEngine());
+		// No switch (or note) if explicit already
+		assertTrue(resolver.forBuild(new Request().setEngine(Engine.EXPLICIT), ModelType.DTMC, true).getNotes().isEmpty());
+		// No model (type) yet: no model-specific rules
+		assertEquals(Engine.HYBRID, resolver.forBuild(new Request(), null).getEngine());
+	}
+
+	@Test
+	public void testEngineSpecifiedFromSettings() throws PrismException
+	{
+		PrismSettings settings = new PrismSettings();
+		assertFalse(Request.fromSettings(settings).isEngineSpecified());
+		// Specified, even if it is the default
+		settings.set(PrismSettings.PRISM_ENGINE, "Hybrid");
+		assertTrue(Request.fromSettings(settings).isEngineSpecified());
+		settings.set(PrismSettings.PRISM_ENGINE, "Sparse");
+		assertEquals(Engine.SPARSE, Request.fromSettings(settings).getEngine());
+		// Copies keep this
+		assertTrue(Request.fromSettings(new PrismSettings(settings)).isEngineSpecified());
+		// Unset (e.g. -engine auto)
+		settings.unset(PrismSettings.PRISM_ENGINE);
+		Request req = Request.fromSettings(settings);
+		assertFalse(req.isEngineSpecified());
+		assertEquals(Engine.HYBRID, req.getEngine());
+		assertFalse(new PrismSettings(settings).isSpecified(PrismSettings.PRISM_ENGINE));
+	}
+
+	@Test
+	public void testPrismDoesNotChangeSettings() throws PrismException
+	{
+		// Prism resolves the engine from the settings and model, without changing the settings
+		Prism prism = new Prism(new PrismDevNullLog());
+		prism.loadPRISMModel(prism.parseModelString("pomdp\nobservables o endobservables\nmodule m o : [0..1]; [] o=0 -> (o'=1); endmodule\n"));
+		assertEquals(PrismEngine.EXPLICIT, prism.getCurrentEngine());
+		assertEquals(Prism.EXPLICIT, prism.getResolvedSettings().getEngine().toPrismConstant());
+		assertEquals(Prism.HYBRID, prism.getEngine());
+		prism.loadPRISMModel(prism.parseModelString("dtmc\nmodule m s : [0..1]; [] s=0 -> (s'=1); endmodule\n"));
+		assertEquals(PrismEngine.SYMBOLIC, prism.getCurrentEngine());
+		assertEquals(Prism.HYBRID, prism.getResolvedSettings().getEngine().toPrismConstant());
+		// Unset
+		prism.setEngine(Prism.SPARSE);
+		assertTrue(prism.getSettings().isSpecified(PrismSettings.PRISM_ENGINE));
+		prism.unsetEngine();
+		assertFalse(prism.getSettings().isSpecified(PrismSettings.PRISM_ENGINE));
+		assertEquals(Prism.HYBRID, prism.getEngine());
+		assertEquals(Prism.HYBRID, prism.getResolvedSettings().getEngine().toPrismConstant());
+		assertEquals(Prism.JACOBI, prism.getResolvedSettings().getLinEqMethodConstant());
+	}
 }

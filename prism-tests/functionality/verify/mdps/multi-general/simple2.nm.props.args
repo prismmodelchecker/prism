@@ -1,2 +1,3 @@
 -lp
 -valiter
+-m -heuristic speed -lp

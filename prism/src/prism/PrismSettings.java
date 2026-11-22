@@ -465,6 +465,8 @@ public class PrismSettings implements Observer
 	
 	public DefaultSettingOwner[] optionOwners;
 	private Hashtable<String,Setting> data;
+	// Keys of the options that have been specified, rather than left at their defaults (see isSpecified)
+	private Set<String> specified = new HashSet<>();
 	private boolean modified;
 	
 	private ArrayList<PrismSettingsListener> settingsListeners;
@@ -610,6 +612,8 @@ public class PrismSettings implements Observer
 				System.err.println(ex);
 			}
 		}
+		// And which were specified
+		specified = new HashSet<>(settings.specified);
 	}
 	
 	private void populateHashTable(int size)
@@ -837,6 +841,7 @@ public class PrismSettings implements Observer
 								{
 									Object valObj = set.parseStringValue(value);
 									set.setValue(valObj);
+									markSpecifiedIfNotDefault(key, valObj);
 								}
 								catch(SettingException ee)
 								{
@@ -882,6 +887,7 @@ public class PrismSettings implements Observer
 							{
 								Object valObj = set.parseStringValue(multiline.toString() + line);
 								set.setValue(valObj);
+								markSpecifiedIfNotDefault(key, valObj);
 							}
 							catch(SettingException ee)
 							{
@@ -920,6 +926,7 @@ public class PrismSettings implements Observer
 	
 	public synchronized void loadDefaults()
 	{
+		specified.clear();
 		for(int i = 0; i < propertyOwnerIDs.length; i++)
 		{
 			
@@ -1013,6 +1020,13 @@ public class PrismSettings implements Observer
 			"", "Use the Hybrid engine [default]");
 		reg.addSwitch("explicit", "ex", new FlagSwitch(() -> set(PRISM_ENGINE, "Explicit")),
 			"", "Use the explicit engine");
+		reg.addSwitch("engine", new EnumSwitch()
+			.when("mtbdd",    () -> set(PRISM_ENGINE, "MTBDD"))
+			.when("sparse",   () -> set(PRISM_ENGINE, "Sparse"))
+			.when("hybrid",   () -> set(PRISM_ENGINE, "Hybrid"))
+			.when("explicit", () -> set(PRISM_ENGINE, "Explicit"))
+			.when("auto",     () -> unset(PRISM_ENGINE)),
+			"<name>", "Specify engine (mtbdd, sparse, hybrid, explicit, auto) [default: hybrid]");
 		reg.addSwitch("exact", new FlagSwitch(() -> set(PRISM_EXACT_ENABLED, true)),
 			"", "Perform exact (arbitrary precision) model checking");
 		reg.addSwitch("ptamethod", new EnumSwitch()
@@ -1426,6 +1440,7 @@ public class PrismSettings implements Observer
 			} else {
 				set.setValue(value);
 			}
+			specified.add(key);
 			notifySettingsListeners();
 			if (!set.toString().equals(oldValueString))
 				modified = true;
@@ -1567,7 +1582,59 @@ public class PrismSettings implements Observer
 	public void update(Observable obs, Object obj)
 	{
 		modified = true;
+		// A setting edited (e.g. in the GUI) counts as specified
+		if (obj instanceof Setting && ((Setting) obj).getKey() != null) {
+			specified.add(((Setting) obj).getKey());
+		}
 		notifySettingsListeners();
+	}
+
+	/**
+	 * Was the option with key {@code key} specified, rather than left at its default value?
+	 * Options are specified when set (e.g. with {@link #set(String, Object)}, from a command-line
+	 * switch or in the GUI) or, if their value is not the default, when loaded from a settings file.
+	 * For some unspecified options, PRISM chooses a value itself
+	 * (e.g. the engine: see {@link SettingsResolver}).
+	 */
+	public synchronized boolean isSpecified(String key)
+	{
+		return specified.contains(key);
+	}
+
+	/**
+	 * Unset the option with key {@code key}: return it to its default value,
+	 * and mark it as not specified (see {@link #isSpecified(String)}).
+	 */
+	public synchronized void unset(String key) throws PrismException
+	{
+		set(key, getDefaultValue(key));
+		specified.remove(key);
+	}
+
+	/**
+	 * Get the default value of the option with key {@code key} (null if unknown).
+	 */
+	private Object getDefaultValue(String key)
+	{
+		for (int i = 0; i < propertyData.length; i++) {
+			for (int j = 0; j < propertyData[i].length; j++) {
+				if (propertyData[i][j][1].equals(key)) {
+					return propertyData[i][j][4];
+				}
+			}
+		}
+		return null;
+	}
+
+	/**
+	 * Mark the option with key {@code key} as specified if {@code value} is not its default
+	 * (for options loaded from a settings file, which the GUI saves in full).
+	 */
+	private void markSpecifiedIfNotDefault(String key, Object value)
+	{
+		if (!Objects.equals(value, getDefaultValue(key))) {
+			specified.add(key);
+		}
 	}
 	
 	public static void main(String[]args)

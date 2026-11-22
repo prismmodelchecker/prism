@@ -46,8 +46,9 @@ import prism.Prism.PrismEngine;
  * and, for the symbolic engines, after it is built ({@link #afterBuild}),
  * when its size is known.
  * <br><br>
- * The rules currently reproduce PRISM's existing automatic engine switching
- * (in {@link Prism}). The same rules apply whether or not the engine was specified;
+ * {@link Prism} uses this to decide which engine to use (see {@link Prism#getResolvedSettings()}),
+ * rather than changing the engine setting. The rules are those of PRISM's automatic engine switching.
+ * The same rules apply whether or not the engine was specified (see {@link PrismSettings#isSpecified(String)});
  * if it was, changes are reported as warnings, and otherwise just as information.
  * <br><br>
  * Precision: if any parameters are given, the mode is {@link PrecisionMode#PARAM};
@@ -137,8 +138,7 @@ public class SettingsResolver
 		{
 			Request req = new Request();
 			req.engine = Engine.fromPrismConstant(settings.getChoice(PrismSettings.PRISM_ENGINE));
-			// (PrismSettings does not record whether a setting was specified, so assume it was)
-			req.engineSpecified = true;
+			req.engineSpecified = settings.isSpecified(PrismSettings.PRISM_ENGINE);
 			req.exact = settings.getBoolean(PrismSettings.PRISM_EXACT_ENABLED);
 			req.heuristic = settings.getString(PrismSettings.PRISM_HEURISTIC);
 			req.mdpSolnMethod = settings.getChoice(PrismSettings.PRISM_MDP_SOLN_METHOD);
@@ -362,6 +362,27 @@ public class SettingsResolver
 		}
 
 		/**
+		 * Get the linear equation method to use, as a constant in {@link Prism} (e.g. {@link Prism#JACOBI}).
+		 */
+		public int getLinEqMethodConstant()
+		{
+			switch (linEqMethod) {
+			case "Power": return Prism.POWER;
+			case "Jacobi": return Prism.JACOBI;
+			case "Gauss-Seidel": return Prism.GAUSSSEIDEL;
+			case "Backwards Gauss-Seidel": return Prism.BGAUSSSEIDEL;
+			case "Pseudo-Gauss-Seidel": return Prism.PGAUSSSEIDEL;
+			case "Backwards Pseudo-Gauss-Seidel": return Prism.BPGAUSSSEIDEL;
+			case "JOR": return Prism.JOR;
+			case "SOR": return Prism.SOR;
+			case "Backwards SOR": return Prism.BSOR;
+			case "Pseudo-SOR": return Prism.PSOR;
+			case "Backwards Pseudo-SOR": return Prism.BPSOR;
+			default: throw new IllegalArgumentException("Unknown linear equation method " + linEqMethod);
+			}
+		}
+
+		/**
 		 * Was the requested linear equation method overridden?
 		 */
 		public boolean isLinEqMethodOverridden()
@@ -403,8 +424,21 @@ public class SettingsResolver
 	 */
 	public ResolvedSettings forBuild(Request req, ModelType modelType)
 	{
+		return forBuild(req, modelType, false);
+	}
+
+	/**
+	 * Resolve the engine to build a model of type {@code modelType},
+	 * e.g. for a call to {@link Prism#buildModel()}.
+	 * @param req What was requested
+	 * @param modelType The model type (if null, no model-specific rules are applied)
+	 * @param inducedExplicit Whether the model is one induced by a strategy, stored explicitly,
+	 * which cannot be rebuilt (so needs an explicit engine)
+	 */
+	public ResolvedSettings forBuild(Request req, ModelType modelType, boolean inducedExplicit)
+	{
 		ResolvedSettings res = initialResolution(req);
-		applyBuildRules(res, modelType);
+		applyBuildRules(res, modelType, inducedExplicit);
 		return res;
 	}
 
@@ -419,6 +453,23 @@ public class SettingsResolver
 	 * @param genStrat Whether a strategy is to be generated
 	 */
 	public ResolvedSettings forModelCheck(Request req, ModelType modelType, Expression expr, boolean genStrat) throws PrismNotSupportedException
+	{
+		return forModelCheck(req, modelType, false, expr, genStrat);
+	}
+
+	/**
+	 * Resolve the engine to model check property {@code expr} on a model of type {@code modelType},
+	 * before the model is built. The rules for building ({@link #forBuild}) are included.
+	 * Real-time models (PTAs etc.) and fast adaptive uniformisation are handled separately
+	 * by {@link Prism}, so are not considered here.
+	 * @param req What was requested
+	 * @param modelType The model type
+	 * @param inducedExplicit Whether the model is one induced by a strategy, stored explicitly,
+	 * which cannot be rebuilt (so needs an explicit engine)
+	 * @param expr The property
+	 * @param genStrat Whether a strategy is to be generated
+	 */
+	public ResolvedSettings forModelCheck(Request req, ModelType modelType, boolean inducedExplicit, Expression expr, boolean genStrat) throws PrismNotSupportedException
 	{
 		ResolvedSettings res = initialResolution(req);
 		boolean warn = req.isEngineSpecified();
@@ -476,7 +527,7 @@ public class SettingsResolver
 			switchToExplicit(res, warn, "Switching to explicit engine to allow strategy generation.");
 		}
 		// Then the rules for building the model
-		applyBuildRules(res, modelType);
+		applyBuildRules(res, modelType, inducedExplicit);
 		return res;
 	}
 
@@ -523,22 +574,31 @@ public class SettingsResolver
 		return new ResolvedSettings(engine, req.getPrecision(), req.linEqMethod);
 	}
 
-	private void applyBuildRules(ResolvedSettings res, ModelType modelType)
+	private void applyBuildRules(ResolvedSettings res, ModelType modelType, boolean inducedExplicit)
 	{
+		if (modelType == null) {
+			return;
+		}
+		String reason = null;
 		switch (modelType) {
 		case IDTMC:
 		case IMDP:
 		case LTS:
 		case POMDP:
 		case IPOMDP:
-			if (res.isSymbolicRoute()) {
-				res.notes.add(new Note(false, "Switching to explicit engine, which supports " + modelType + "s..."));
-				res.engine = Engine.EXPLICIT;
-				res.switchedToExplicit = true;
-			}
+			reason = "which supports " + modelType + "s";
 			break;
 		default:
+			// A model induced by a strategy cannot be rebuilt, so use an engine for how it is stored
+			if (inducedExplicit) {
+				reason = "since the model induced by the strategy is stored explicitly";
+			}
 			break;
+		}
+		if (reason != null && res.isSymbolicRoute()) {
+			res.notes.add(new Note(false, "Switching to explicit engine, " + reason + "..."));
+			res.engine = Engine.EXPLICIT;
+			res.switchedToExplicit = true;
 		}
 	}
 
