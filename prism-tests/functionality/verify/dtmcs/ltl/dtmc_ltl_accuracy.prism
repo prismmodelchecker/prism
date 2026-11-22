@@ -1,0 +1,20 @@
+// Checks that the accuracy of an LTL result is propagated from the
+// product model back to the original model on all engines.
+// Interval iteration with a loose epsilon (-e 1e-2, see .args) gives a
+// guaranteed error bound much larger than the default testing tolerance,
+// so the test only passes if that bound is attached to the final result.
+
+dtmc
+
+module M
+
+	s : [0..5];
+
+	[] s=0 -> 0.5:(s'=1) + 0.5:(s'=3);
+	[] s=1 -> 0.5:(s'=0) + 0.25:(s'=2) + 0.25:(s'=4);
+	[] s=2 -> 1:(s'=5);
+	[] s=3 -> 1:(s'=3);
+	[] s=4 -> 1:(s'=4);
+	[] s=5 -> 1:(s'=2);
+
+endmodule

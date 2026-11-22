@@ -356,7 +356,7 @@ public class StateValuesDV implements StateValues
 
 		tmp = values.sumOverDDVars(model.getAllDDRowVars(), odd, newModel.getODD(), sumVars.getMinVarIndex(), sumVars.getMaxVarIndex());
 
-		return (StateValues) new StateValuesDV(tmp, newModel);
+		return (StateValues) new StateValuesDV(tmp, newModel, accuracy);
 	}
 
 	@Override

@@ -176,6 +176,9 @@ public interface StateValues extends StateVector
 	/**
 	* Sum up the elements of the vector, over a subset of its DD vars,
 	* store the result in a new StateValues (for newModel).
+	* The accuracy info is copied across unchanged, which assumes
+	* (as when projecting from a product model) that at most one
+	* of the summed values is non-zero for each state of newModel.
 	* <br>[ DEREFS: <i>none</i> ]
 	*/
 	StateValues sumOverDDVars(JDDVars sumVars, Model newModel) throws PrismException;

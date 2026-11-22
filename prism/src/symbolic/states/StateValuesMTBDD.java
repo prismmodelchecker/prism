@@ -498,7 +498,7 @@ public class StateValuesMTBDD implements StateValues
 		JDD.Ref(values);
 		tmp = JDD.SumAbstract(values, sumVars);
 		
-		return new StateValuesMTBDD(tmp, newModel);
+		return new StateValuesMTBDD(tmp, newModel, accuracy);
 	}
 
 	@Override
