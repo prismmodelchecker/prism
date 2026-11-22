@@ -73,6 +73,11 @@ public class ConstructStrategyProduct
 	private UndefinedChoicePolicy undefinedChoicePolicy = new UndefinedChoicePolicy();
 
 	/**
+	 * States of the original model to start from (null: its initial states)
+	 */
+	private BitSet initialStates = null;
+
+	/**
 	 * Whether to store, for each state of the product model, the corresponding
 	 * original state and strategy memory
 	 */
@@ -102,6 +107,7 @@ public class ConstructStrategyProduct
 		setCopyLabels(options.getInducedModelExportOptions().getShowLabels());
 		setCopyRewards(options.getInducedModelExportOptions().getShowRewards());
 		setUndefinedChoicePolicy(options.getUndefinedChoicePolicy());
+		setInitialStates(options.getInitialStates());
 	}
 
 	/**
@@ -141,6 +147,19 @@ public class ConstructStrategyProduct
 	public ConstructStrategyProduct setUndefinedChoicePolicy(UndefinedChoicePolicy undefinedChoicePolicy)
 	{
 		this.undefinedChoicePolicy = undefinedChoicePolicy;
+		return this;
+	}
+
+	/**
+	 * Set the states of the original model from which to construct the product model
+	 * (which become its initial states), instead of the model's initial states.
+	 * Null means the initial states of the original model (the default).
+	 * Each of these states starts with the strategy's initial memory for it,
+	 * even if it is not an initial state of the original model.
+	 */
+	public ConstructStrategyProduct setInitialStates(BitSet initialStates)
+	{
+		this.initialStates = initialStates;
 		return this;
 	}
 
@@ -325,7 +344,7 @@ public class ConstructStrategyProduct
 		};
 
 		// Get initial states
-		for (int s_0 : model.getInitialStates()) {
+		for (int s_0 : getInitialStates(model)) {
 			int map_0 = newStateMap.apply(true, -1, null, s_0);
 			prodModel.addInitialState(map_0);
 		}
@@ -354,4 +373,12 @@ public class ConstructStrategyProduct
 	{
 		int apply(boolean init, int q_1, Object act, int s_2) throws PrismException;
 	};
+
+	/**
+	 * Get the states of the original model to start construction from.
+	 */
+	private Iterable<Integer> getInitialStates(Model<?> model)
+	{
+		return initialStates == null ? model.getInitialStates() : () -> initialStates.stream().iterator();
+	}
 }

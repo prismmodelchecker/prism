@@ -71,6 +71,11 @@ public class ConstructInducedModel
 	private UndefinedChoicePolicy undefinedChoicePolicy = new UndefinedChoicePolicy();
 
 	/**
+	 * States of the original model to start from (null: its initial states)
+	 */
+	private BitSet initialStates = null;
+
+	/**
 	 * Whether to store, for each state of the induced model, the corresponding original state
 	 */
 	private boolean storeStateMap = false;
@@ -99,6 +104,7 @@ public class ConstructInducedModel
 		setCopyLabels(options.getInducedModelExportOptions().getShowLabels());
 		setCopyRewards(options.getInducedModelExportOptions().getShowRewards());
 		setUndefinedChoicePolicy(options.getUndefinedChoicePolicy());
+		setInitialStates(options.getInitialStates());
 	}
 
 	/**
@@ -147,6 +153,17 @@ public class ConstructInducedModel
 	public ConstructInducedModel setUndefinedChoicePolicy(UndefinedChoicePolicy undefinedChoicePolicy)
 	{
 		this.undefinedChoicePolicy = undefinedChoicePolicy;
+		return this;
+	}
+
+	/**
+	 * Set the states of the original model from which to construct the induced model
+	 * (which become its initial states), instead of the model's initial states.
+	 * Null means the initial states of the original model (the default).
+	 */
+	public ConstructInducedModel setInitialStates(BitSet initialStates)
+	{
+		this.initialStates = initialStates;
 		return this;
 	}
 
@@ -249,7 +266,7 @@ public class ConstructInducedModel
 			Arrays.fill(map, -1);
 			BitSet explore = new BitSet();
 			// Get initial states
-			for (int is : model.getInitialStates()) {
+			for (int is : getInitialStates(model)) {
 				map[is] = 0;
 				explore.set(is);
 			}
@@ -300,7 +317,7 @@ public class ConstructInducedModel
 			}
 			// Add state to model, with its labels/rewards and the choices/transitions picked by the strategy
 			builder.addState(s);
-			if (model.isInitialState(s)) {
+			if (initialStates == null ? model.isInitialState(s) : initialStates.get(s)) {
 				inducedModel.addInitialState(map[s]);
 			}
 			if (reachOnly && inducedStatesList != null) {
@@ -313,5 +330,13 @@ public class ConstructInducedModel
 		Model<Value> res = builder.finish(inducedStatesList);
 		origStates = builder.getOriginalStates();
 		return res;
+	}
+
+	/**
+	 * Get the states of the original model to start construction from.
+	 */
+	private Iterable<Integer> getInitialStates(Model<?> model)
+	{
+		return initialStates == null ? model.getInitialStates() : () -> initialStates.stream().iterator();
 	}
 }
