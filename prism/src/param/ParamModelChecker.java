@@ -102,6 +102,7 @@ import prism.ModelInfo;
 import prism.ModelType;
 import prism.PrismComponent;
 import prism.PrismException;
+import prism.PrismLangException;
 import prism.PrismSettings;
 import prism.PrismNotSupportedException;
 import prism.Result;
@@ -457,6 +458,10 @@ final public class ParamModelChecker extends PrismComponent
 					}
 				} else if (exprVar instanceof ExpressionConstant) {
 					ExpressionConstant exprConst = (ExpressionConstant) exprVar;
+					// A constant that is not a parameter should have been evaluated already
+					if (!functionFactory.hasVar(exprConst.getName())) {
+						throw new PrismLangException("Could not evaluate constant", exprConst);
+					}
 					stateValues.setStateValue(state, functionFactory.getVar(exprConst.getName()));
 				} else {
 					throw new PrismNotSupportedException("cannot handle expression " + expr + " in " + mode + " analysis");

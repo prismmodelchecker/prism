@@ -1,0 +1,12 @@
+// A constant whose value cannot be computed
+const int c = pow(2,-2);
+
+// RESULT: Error:Could not evaluate constant
+c;
+
+// RESULT: Error:Could not evaluate constant
+P=? [ F s=c ];
+
+// Other properties are still fine
+// RESULT: p
+P=? [ F s=1 ];

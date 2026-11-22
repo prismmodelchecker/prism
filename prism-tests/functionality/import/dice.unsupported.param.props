@@ -1,0 +1,4 @@
+// Parametric model checking of imported models is not supported:
+// this should be reported as such, not crash.
+// RESULT: Error:not supported for imported models
+P=? [ F d=6 ]

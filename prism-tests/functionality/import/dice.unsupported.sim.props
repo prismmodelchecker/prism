@@ -1,0 +1,4 @@
+// Simulation of imported models needs the explicit engine:
+// this should be reported as such with a symbolic engine.
+// RESULT: Error:use the explicit engine
+P=? [ F<=100 d=6 ]

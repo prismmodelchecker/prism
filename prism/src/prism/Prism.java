@@ -689,6 +689,28 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 		param = false;
 	}
 
+	/**
+	 * Check that the names of parameters for parametric model checking
+	 * are all undefined constants of a PRISM model or (optionally) properties file.
+	 * If not, an explanatory exception is thrown.
+	 * @param paramNames Parameter names
+	 * @param modulesFile The PRISM model (if null, no check is done)
+	 * @param propertiesFile The properties file (may be null)
+	 */
+	public static void checkParameterNames(String[] paramNames, ModulesFile modulesFile, PropertiesFile propertiesFile) throws PrismException
+	{
+		if (paramNames == null || modulesFile == null) {
+			return;
+		}
+		List<String> mfConsts = modulesFile.getUndefinedConstants();
+		List<String> pfConsts = propertiesFile == null ? List.of() : propertiesFile.getUndefinedConstants();
+		for (String paramName : paramNames) {
+			if (!mfConsts.contains(paramName) && !pfConsts.contains(paramName)) {
+				throw new PrismException("Parameter \"" + paramName + "\" is not an undefined constant of the model or properties");
+			}
+		}
+	}
+
 	public void setExportDigital(boolean b) throws PrismException
 	{
 		exportDigital = b;
@@ -2114,6 +2136,10 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 		}
 		// Default error message if we failed to create a ModelGenerator
 		if (currentModelDetails.modelGenerator == null && buildIfMissing) {
+			// For models imported from files, only the explicit engine creates one
+			if (getModelSource() == ModelSource.EXPLICIT_FILES && getCurrentEngine() == PrismEngine.SYMBOLIC) {
+				throw new PrismException("Could not create a model generator (for an imported model, use the explicit engine)");
+			}
 			throw new PrismException("Could not create a model generator");
 		}
 		return currentModelDetails.modelGenerator;
@@ -2375,6 +2401,9 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 					setBuiltModel(getModelBuildTypeForEngine(getCurrentEngine()), newModelExpl);
 					break;
 				case EXPLICIT_FILES:
+					if (getCurrentEngine() == PrismEngine.PARAM) {
+						throw new PrismNotSupportedException("Parametric model checking is not supported for imported models");
+					}
 					ExplicitFiles2Model expf2model = new ExplicitFiles2Model(this);
 					// If rewards are to be attached straight after building (see below),
 					// only notify the importer that we are done after that
@@ -3455,6 +3484,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 			if (getModelType() == ModelType.MDP && getFairness()) {
 				throw new PrismNotSupportedException("Parametric model checking does not support checking MDPs under fairness");
 			}
+			checkParameterNames(paramNames, getPRISMModel(), propertiesFile);
 		}
 		// PTA (and similar) model checking is handled separately
 		if (getModelType().realTime()) {
@@ -3669,13 +3699,39 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 		// Get (but ignore) the ModelGenerator.
 		// If creation failed before, this tries again, throwing an explanatory exception.
 		try {
-			getModelGenerator();
+			checkModelGeneratorForSimulation(getModelGenerator());
 			// No support for real-time models yet
 			if (getModelType().realTime()) {
 				throw new PrismException(getModelType() + "s are not currently supported");
 			}
 		} catch (PrismException e) {
 			throw e.prepend("Simulation not possible: ");
+		}
+	}
+
+	/**
+	 * Check that a ModelGenerator can be used by the simulator,
+	 * which works with doubles, so not with exact/parametric ones.
+	 * If not, an explanatory exception is thrown.
+	 */
+	private void checkModelGeneratorForSimulation(ModelGenerator<?> modelGen) throws PrismException
+	{
+		if (modelGen.getEvaluator().exact()) {
+			String mode = modelGen.getEvaluator().isSymbolic() ? "parametric" : "exact";
+			throw new PrismNotSupportedException(mode + " computation is not supported");
+		}
+	}
+
+	/**
+	 * Check that the currently selected engine can be used with the simulator
+	 * (i.e., it is not exact/parametric computation).
+	 * If not, an explanatory exception is thrown.
+	 */
+	private void checkEngineForSimulation() throws PrismException
+	{
+		if (getCurrentEngine() == PrismEngine.EXACT || getCurrentEngine() == PrismEngine.PARAM) {
+			String mode = getCurrentEngine() == PrismEngine.PARAM ? "parametric" : "exact";
+			throw new PrismNotSupportedException("Simulation does not support " + mode + " computation");
 		}
 	}
 
@@ -3689,6 +3745,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 		ModelGenerator<?> modelGenForSim = null;
 		try {
 			modelGenForSim = getModelGenerator();
+			checkModelGeneratorForSimulation(modelGenForSim);
 		} catch (PrismException e) {
 			throw e.prepend("Simulation not possible: ");
 		}
@@ -3742,9 +3799,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	public Result modelCheckSimulator(PropertiesFile propertiesFile, Expression expr, Values definedPFConstants, State initialState, long maxPathLength,
 			SimulationMethod simMethod) throws PrismException
 	{
-		if (getCurrentEngine() == PrismEngine.EXACT) {
-			throw new PrismNotSupportedException("Simulation does not support exact computation");
-		}
+		checkEngineForSimulation();
 
 		// Print info
 		mainLog.printSeparator();
@@ -3788,9 +3843,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	public Result[] modelCheckSimulatorSimultaneously(PropertiesFile propertiesFile, List<Expression> exprs, Values definedPFConstants, State initialState,
 			long maxPathLength, SimulationMethod simMethod) throws PrismException
 	{
-		if (getCurrentEngine() == PrismEngine.EXACT) {
-			throw new PrismNotSupportedException("Simulation does not support exact computation");
-		}
+		checkEngineForSimulation();
 
 		// Print info
 		mainLog.printSeparator();
@@ -3848,9 +3901,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	public void modelCheckSimulatorExperiment(PropertiesFile propertiesFile, UndefinedConstants undefinedConstants, ResultsCollection results, Expression expr,
 			State initialState, long maxPathLength, SimulationMethod simMethod) throws PrismException, InterruptedException
 	{
-		if (getCurrentEngine() == PrismEngine.EXACT) {
-			throw new PrismNotSupportedException("Simulation does not support exact computation");
-		}
+		checkEngineForSimulation();
 
 		// Print info
 		mainLog.printSeparator();

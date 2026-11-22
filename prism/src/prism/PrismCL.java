@@ -327,6 +327,8 @@ public class PrismCL implements PrismModelListener
 			}
 			// may need to remove some constants if they are used for parametric methods
 			if (param) {
+				// Parameters must be undefined constants (of the model or properties)
+				Prism.checkParameterNames(paramNames, modulesFile, propertiesFile);
 				undefinedMFConstants.removeConstants(paramNames);
 				for (i = 0; i < numPropertiesToCheck; i++) {
 					undefinedConstants[i].removeConstants(paramNames);

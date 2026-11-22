@@ -183,6 +183,16 @@ public abstract class FunctionFactory
 	public Function getVar(String var) {
 		return getVar(varnameToInt.get(var));
 	}
+
+	/**
+	 * Returns whether there is a variable (parameter) with the given name.
+	 *
+	 * @param var name of the variable
+	 * @return true if {@code var} is a variable of this factory
+	 */
+	public boolean hasVar(String var) {
+		return varnameToInt.containsKey(var);
+	}
 	
 	/**
 	 * Returns name of variable with the given index.
@@ -272,8 +282,11 @@ public abstract class FunctionFactory
 			if (constantValues != null && constantValues.contains(exprString)) {
 				Object val = constantValues.getValueOf(exprString);
 				return fromBigRational(new BigRational(val.toString()));
-			} else {
+			} else if (hasVar(exprString)) {
 				return getVar(exprString);
+			} else {
+				// A constant that is not a parameter should have been evaluated already
+				throw new PrismLangException("Could not evaluate constant", expr);
 			}
 		} else if (expr instanceof ExpressionBinaryOp) {
 			ExpressionBinaryOp binExpr = ((ExpressionBinaryOp) expr);

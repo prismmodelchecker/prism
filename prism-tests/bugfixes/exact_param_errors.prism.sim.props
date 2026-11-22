@@ -1,0 +1,4 @@
+// Simulation is not supported in exact or parametric mode: this should be
+// reported as such (the test runner shows UNSUPPORTED), not crash.
+// RESULT: Error:Simulation does not support
+P=? [ F<=10 s=1 ];

@@ -1,0 +1,18 @@
+// Errors in exact and parametric mode that used to be crashes:
+// * a property constant whose value cannot be computed (here, an integer
+//   power with a negative exponent) gave a NullPointerException in the
+//   exact/parametric model checker, rather than "Could not evaluate constant"
+//   as for the other engines (see exact_param_errors.prism.props);
+// * simulation (-sim) in parametric mode gave a ClassCastException, rather than
+//   an error saying it is not supported, as in exact mode (see
+//   exact_param_errors.prism.sim.props).
+
+dtmc
+
+const double p;
+
+module m
+	s : [0..2] init 0;
+	[] s=0 -> p:(s'=1) + (1-p):(s'=2);
+	[] s>0 -> true;
+endmodule

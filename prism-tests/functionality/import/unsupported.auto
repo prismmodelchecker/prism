@@ -1,0 +1,7 @@
+# Unsupported analyses of imported models give clear errors
+
+# Parametric model checking
+-importmodel dice.pexp dice.unsupported.param.props -param p
+
+# Simulation with a symbolic engine
+-importmodel dice.pexp dice.unsupported.sim.props -sim -mtbdd
