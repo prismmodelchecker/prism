@@ -34,6 +34,7 @@ import java.util.Set;
 import explicit.NondetModel;
 import parser.State;
 import prism.PrismException;
+import prism.PrismNotSupportedException;
 import strat.StrategyInfo.UndefinedReason;
 
 /**
@@ -83,7 +84,8 @@ public class StrategyChoices
 	 * and ERROR throws an exception.
 	 * <br><br>
 	 * A (defined) decision is ambiguous if it picks several choices with the same action label,
-	 * since it is then unclear which of them is meant: an exception is thrown in this case.
+	 * since it is then unclear which of them is meant: an exception is thrown in this case
+	 * (a {@link PrismNotSupportedException}, since such strategies are not yet supported).
 	 * @param model The model
 	 * @param strat The strategy
 	 * @param s The state
@@ -128,7 +130,7 @@ public class StrategyChoices
 				if (resolution != null) {
 					continue;
 				}
-				throw new PrismException("Strategy is ambiguous in state " + stateString(model, strat, s, m) + ": action \"" + (act == null ? "" : act)
+				throw new PrismNotSupportedException("Strategy is ambiguous in state " + stateString(model, strat, s, m) + ": action \"" + (act == null ? "" : act)
 						+ "\" labels several choices, so it is not clear which is picked (action labels need to be unique in each state)");
 			}
 			chosen.set(j);
