@@ -59,6 +59,18 @@ public class FMDObsStrategyBeliefs<Value> extends StrategyExplicit<Value>
 	/** List of beliefs over unobservables, as stored in MDP states */
 	protected List<double[]> unobsBeliefs;
 
+	// Memory values are indices into unobsBeliefs, plus two extra values
+	// for when the model has left the part of the belief space explored by the MDP,
+	// via a state where the choice is undefined (and resolved in some other way,
+	// e.g., when building the induced model). Later choices are then undefined too,
+	// for the same reason: SATISFIED if the state left was a target, reasonNonTarget otherwise.
+
+	/** Memory value: left the explored belief space via a target state */
+	protected int memLeftTarget;
+
+	/** Memory value: left the explored belief space via a non-target state */
+	protected int memLeftNonTarget;
+
 	/** Reason why the choice is undefined in (unexplored) states of the MDP that are not targets */
 	protected UndefinedReason reasonNonTarget = UndefinedReason.UNKNOWN;
 
@@ -72,6 +84,8 @@ public class FMDObsStrategyBeliefs<Value> extends StrategyExplicit<Value>
 		this.mdpStrat = mdpStrat;
 		this.mdpStates = mdpStates;
 		this.unobsBeliefs = unobsBeliefs;
+		memLeftTarget = unobsBeliefs.size();
+		memLeftNonTarget = unobsBeliefs.size() + 1;
 	}
 
 	@Override
@@ -124,6 +138,13 @@ public class FMDObsStrategyBeliefs<Value> extends StrategyExplicit<Value>
 		if (m == -1) {
 			return UndefinedReason.UNKNOWN;
 		}
+		// Left the explored belief space: same reason as for the state left
+		if (m == memLeftTarget) {
+			return UndefinedReason.SATISFIED;
+		}
+		if (m == memLeftNonTarget) {
+			return reasonNonTarget;
+		}
 		// No matching state in the MDP: (s,m) cannot be reached
 		int o = pomdp.getObservation(s);
 		int i = findMatchingMDPState(o, m);
@@ -139,14 +160,23 @@ public class FMDObsStrategyBeliefs<Value> extends StrategyExplicit<Value>
 	 */
 	private UndefinedReason whyUndefinedInMDP(int i)
 	{
+		return isTargetInMDP(i) ? UndefinedReason.SATISFIED : reasonNonTarget;
+	}
+
+	/**
+	 * Check whether state i of the belief MDP fragment is a target state.
+	 */
+	private boolean isTargetInMDP(int i)
+	{
 		BitSet target = mdpStrat.getLabelStates("target");
-		return (target != null && target.get(i)) ? UndefinedReason.SATISFIED : reasonNonTarget;
+		return target != null && target.get(i);
 	}
 
 	@Override
 	public int getMemorySize()
 	{
-		return unobsBeliefs.size();
+		// Beliefs, plus two values for having left the explored belief space
+		return unobsBeliefs.size() + 2;
 	}
 	
 	@Override
@@ -168,17 +198,43 @@ public class FMDObsStrategyBeliefs<Value> extends StrategyExplicit<Value>
 		if (m == -1) {
 			return -1;
 		}
-		// Look for a matching transition in the MDP and find the memory update
-		// (inefficiently, since they are not sorted)
+		// Once the explored belief space has been left, stay outside it
+		if (m == memLeftTarget || m == memLeftNonTarget) {
+			return m;
+		}
+		// Look for a matching transition in the MDP, from a state with memory m
+		// that picks the action taken, and find the memory update
+		// (inefficiently, since they are not sorted).
+		// Also note any states with memory m where the choice is undefined (unexplored).
 		int oNext = pomdp.getObservation(sNext);
+		boolean undefTarget = false;
+		boolean undefNonTarget = false;
 		int n = mdpStates.size();
 		for (int i = 0; i < n; i++) {
 			if (mdpStates.get(i)[1] == m) {
-				int j = findMatchingMemoryUpdate(i, oNext);
-				if (j != -1) {
-					return j;
+				Object act = getActionPickedByMDP(i);
+				if (act == UNDEFINED) {
+					if (isTargetInMDP(i)) {
+						undefTarget = true;
+					} else {
+						undefNonTarget = true;
+					}
+				} else if (isActionChosen(act, action)) {
+					int j = findMatchingMemoryUpdate(i, oNext);
+					if (j != -1) {
+						return j;
+					}
 				}
 			}
+		}
+		// No match: the action was taken in a state where the strategy is undefined,
+		// so the explored belief space has been left (if it is clear which kind of state
+		// it was left from; otherwise, the memory is unknown)
+		if (undefTarget && !undefNonTarget) {
+			return memLeftTarget;
+		}
+		if (undefNonTarget && !undefTarget) {
+			return memLeftNonTarget;
 		}
 		return -1;
 	}
@@ -186,7 +242,13 @@ public class FMDObsStrategyBeliefs<Value> extends StrategyExplicit<Value>
 	@Override
     public String getMemoryString(int m)
     {
-		return m == -1 ? "?" : Belief.toStringUnobs(unobsBeliefs.get(m), pomdp);
+		if (m == -1) {
+			return "?";
+		}
+		if (m == memLeftTarget || m == memLeftNonTarget) {
+			return "?" + whyUndefined(-1, m).toString().toLowerCase();
+		}
+		return Belief.toStringUnobs(unobsBeliefs.get(m), pomdp);
     }
 
 	@Override
