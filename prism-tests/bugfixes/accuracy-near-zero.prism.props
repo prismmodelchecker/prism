@@ -1,0 +1,7 @@
+// Negated path formula: 1 - Pmax=?[F "goal"]
+// RESULT: 0.0
+Pmin=? [ G !"goal" ];
+
+// Filters: states 0, 1 and 2 all have value 0 (but 0 and 1 only approximately)
+// RESULT: 3
+filter(count, filter(argmin, Pmin=? [ G !"goal" ]));

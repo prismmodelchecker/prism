@@ -846,13 +846,14 @@ public class StateValues implements StateVector, Iterable<Object>
 	/**
 	 * Get a BitSet for the states whose value is (approximately) equal to {@code value}.
 	 * For double values, equality is only checked approximately, either using the stored
-	 * accuracy for the vector, if present, or a default accuracy level otherwise.
+	 * accuracy for the vector, if present, or a default accuracy level otherwise,
+	 * as for testing results, around {@code value} (see {@link ResultTesting#getTestingAccuracy(Accuracy, double)}).
 	 * For other types, values must be identical.
 	 * The type of {@code value} is assumed to match that of the vector.
 	 */
 	public BitSet getBitSetFromCloseValue(Object value) throws PrismException
 	{
-		Accuracy accuracy = ResultTesting.getTestingAccuracy(getAccuracy());
+		Accuracy accuracy = value instanceof Double ? ResultTesting.getTestingAccuracy(getAccuracy(), (Double) value) : ResultTesting.getTestingAccuracy(getAccuracy());
 		return getBitSetFromCloseValue(value, accuracy);
 	}
 

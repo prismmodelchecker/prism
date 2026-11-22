@@ -1,0 +1,20 @@
+// Accuracy of iterative results whose value is close to 0.
+// With precomputation (Prob1) off, Pmax=?[F "goal"] from s=0 is found by
+// value iteration converging to 1 from below, and Pmin=?[G !"goal"] is
+// 1 minus that, i.e. just above the true value 0 (~1e-6). The estimated
+// accuracy must be converted from relative to absolute when subtracting
+// from 1, and testing must use it, or the result is wrongly reported
+// as having an error of ~1e-11 and -test fails against 0.
+
+mdp
+
+module m
+	s : [0..3] init 0;
+	[a] s=0 -> 0.5:(s'=2) + 0.5:(s'=0);
+	[b] s=0 -> (s'=1);
+	[a] s=1 -> 0.5:(s'=2) + 0.5:(s'=1);
+	[b] s=1 -> 0.5:(s'=2) + 0.5:(s'=3);
+	[c] s>=2 -> true;
+endmodule
+
+label "goal" = s=2;

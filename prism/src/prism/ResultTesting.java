@@ -67,6 +67,33 @@ public class ResultTesting
 	}
 	
 	/**
+	 * Maximum (absolute) error bound for testing that is taken from an estimated accuracy (1e-5)
+	 */
+	public static final double MAX_ESTIMATED_TESTING_ERROR = 1e-5;
+
+	/**
+	 * Get an Accuracy object for testing a particular (double) result value.
+	 * As {@link #getTestingAccuracy(Accuracy)}, except that, for an estimated accuracy,
+	 * if its error bound for this result (capped at {@link #MAX_ESTIMATED_TESTING_ERROR})
+	 * is larger than that of the default one, then that (absolute) bound is used instead.
+	 * This matters for values close to 0, where the default (relative) accuracy
+	 * gives an error bound close to 0, even though the estimated error may be larger.
+	 * The cap stops (unreliable) estimates, e.g. from a large termination epsilon,
+	 * loosening tests by more than the default accuracy does near 1.
+	 */
+	public static Accuracy getTestingAccuracy(Accuracy accuracy, double result)
+	{
+		if (accuracy != null && accuracy.getLevel() == AccuracyLevel.ESTIMATED_BOUNDED && Double.isFinite(result)) {
+			double defaultBound = DEFAULT_TESTING_ACCURACY.getAbsoluteErrorBound(result);
+			double estimBound = Math.min(accuracy.getAbsoluteErrorBound(result), MAX_ESTIMATED_TESTING_ERROR);
+			if (estimBound > defaultBound) {
+				return new Accuracy(AccuracyLevel.BOUNDED, estimBound, AccuracyType.ABSOLUTE);
+			}
+		}
+		return getTestingAccuracy(accuracy);
+	}
+	
+	/**
 	 * Tests a result (specified as a Result object) against the expected result,
 	 * given by a string extracted from a RESULT: specification.
 	 * If the test fails or something else goes wrong, an explanatory PrismException is thrown.
@@ -328,7 +355,8 @@ public class ResultTesting
 		else {
 			// Use accuracy info where possible
 			// If it is missing, or only estimated, use default check instead
-			Accuracy accuracy = getTestingAccuracy(resultObj.getAccuracy());
+			// (or the estimate, capped, if that is less precise)
+			Accuracy accuracy = getTestingAccuracy(resultObj.getAccuracy(), doubleRes);
 			// Check that value falls into ranges of error bounds
 			double resLow = accuracy.getResultLowerBound(doubleRes, true);
 			double resHigh = accuracy.getResultUpperBound(doubleRes, true);
@@ -355,7 +383,8 @@ public class ResultTesting
 		double doubleRes = ((Double) result).doubleValue();
 		// Use accuracy info where possible
 		// If it is missing, or only estimated, use default check instead
-		Accuracy accuracy = getTestingAccuracy(resultObj.getAccuracy());
+		// (or the estimate, capped, if that is less precise)
+		Accuracy accuracy = getTestingAccuracy(resultObj.getAccuracy(), doubleRes);
 		// Check intervals for result and expected value overlap
 		double resLow = accuracy.getResultLowerBound(doubleRes, true);
 		double resHigh = accuracy.getResultUpperBound(doubleRes, true);

@@ -213,15 +213,14 @@ public interface StateValues extends StateVector
 
 	/**
 	 * Generate BDD for states whose value is close to 'value'
-	 * (if present, accuracy info used to determine closeness)
+	 * (if present, accuracy info used to determine closeness,
+	 * as for testing results, around 'value': see {@link ResultTesting#getTestingAccuracy(Accuracy, double)})
 	 * <br>[ REFS: <i>result</i> ]
 	 * @param val the value
-	 * @param epsilon the error bound
-	 * @param abs true for absolute error calculation
 	 */
 	default JDDNode getBDDFromCloseValue(double val)
 	{
-		Accuracy accuracy = ResultTesting.getTestingAccuracy(getAccuracy());
+		Accuracy accuracy = ResultTesting.getTestingAccuracy(getAccuracy(), val);
 		return getBDDFromCloseValue(val, accuracy.getErrorBound(), accuracy.getType() == AccuracyType.ABSOLUTE);
 	}
 

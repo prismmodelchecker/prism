@@ -1,0 +1,3 @@
+// LTL Pmin is computed as 1 - Pmax of the negated formula
+// RESULT: 0.0
+Pmin=? [ (F s=1)&(F "goal") ];

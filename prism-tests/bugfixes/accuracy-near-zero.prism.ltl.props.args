@@ -1,0 +1,5 @@
+-ex -noprob1
+-s -noprob1
+-h -noprob1
+-m -noprob1
+-ex
