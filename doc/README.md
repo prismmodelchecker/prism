@@ -45,10 +45,11 @@ and anything the website adds must be invisible on GitHub rather than broken.
 - **Maths:** LaTeX between dollar signs, which GitHub and the website both show as maths: `$\alpha$` inline,
   and `$$ ... $$` on lines of their own for a displayed formula (e.g. `$$N = \frac{\ln(2/\delta)}{2\varepsilon^2}$$`).
   Use it for formulas and symbols, not for PRISM syntax (properties, expressions), which goes in backticks.
-- **Versions:** say which version a feature appeared in ("Since PRISM 4.10, ...") rather than "now",
-  "currently" or "in newer versions", which date badly. Don't hard-code the current version
-  (e.g. in file names, write `prism-X.Y-linux64-x86`).
-  The website publishes the manual from master, so changes appear straight away, ahead of the release they describe.
+- **Versions:** the manual describes PRISM as it is on master, and isn't marked up with the version each
+  feature appeared in. The website publishes it from master, so changes appear straight away, ahead of
+  the release they describe, and says so; each release comes with its own copy of the manual.
+  Avoid "now", "currently" and "in newer versions", which date badly, and don't hard-code the current
+  version (e.g. in file names, write `prism-X.Y-linux64-x86`).
 
 - **Generated parts:** some lists come from PRISM itself, such as the keywords in `Reference/PRISMLanguageSyntax.md` and the switches in `Reference/CommandLineSwitches.md`.
   They sit between `<!-- generated: NAME ... -->` and `<!-- end generated -->` comments and must not be edited by hand:

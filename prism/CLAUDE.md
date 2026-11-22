@@ -159,7 +159,7 @@ of commit messages for the former type should be prefixed "umbj: ".
 The user manual is in `../doc/manual/`, in Markdown, and `../doc/README.md` describes its layout and conventions.
 
 - When a change adds or alters something users see (the modelling or property languages, command-line switches, settings, the GUI, file formats), update the manual in the same change.
-- Say which version a feature appeared in ("Since PRISM x.y"): the website publishes the manual from master, ahead of the release.
+- Describe PRISM as it is on master, without "Since PRISM x.y" notes or words like "now" and "currently": the website publishes the manual from master and says so, and each release ships its own copy.
 - Edit `doc/manual/`, never the generated top-level `manual/`.
 
 ## Bug Fix Workflow
