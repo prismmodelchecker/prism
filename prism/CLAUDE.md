@@ -184,6 +184,12 @@ When summarising a bug fix, include:
 - Avoid destructive commands (`reset --hard`, `checkout --`) unless explicitly asked.
 - If the tree is dirty, work around unrelated files and do not clean them up automatically.
 
+## Commit Messages
+
+- The first line is a short sentence summarising the change (aim for 72 characters or fewer), ending with a full stop.
+- Put any further detail (qualifications, examples, lists of changes) in a body, after a blank line, rather than lengthening the first line.
+- Keep the usual prefixes where they apply, e.g. "Manual: " or "umbj: " (see above).
+
 ## Pull Requests
 
 - Feature branches are usually pushed to the user's own fork of the repository (a separate git remote), not to `origin`.
