@@ -76,13 +76,22 @@ public class ExpressionConstant extends Expression
 		return true;
 	}
 	
+	/**
+	 * The error message for a constant whose value is not available,
+	 * including the reason why it could not be computed, if known (else null).
+	 */
+	public static String couldNotEvaluateMessage(String reason)
+	{
+		return "Could not evaluate constant" + (reason == null ? "" : " (" + reason + ")");
+	}
+
 	@Override
 	public Object evaluate(EvaluateContext ec) throws PrismLangException
 	{
 		// Extract constant value from the evaluation context
 		Object res = ec.getConstantValue(name);
 		if (res == null) {
-			throw new PrismLangException("Could not evaluate constant", this);
+			throw new PrismLangException(couldNotEvaluateMessage(ec.getConstantError(name)), this);
 		}
 		// And cast it to the right type/mode if needed
 		return getType().castValueTo(res, ec.getEvaluationMode());

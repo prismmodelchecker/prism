@@ -111,6 +111,15 @@ public abstract class EvaluateContext
 		return this;
 	}
 	
+	/**
+	 * Return the reason why the value for a constant (by name) could not be computed,
+	 * if known (e.g. an error evaluating its definition); null otherwise.
+	 */
+	public String getConstantError(String name)
+	{
+		return constantValues == null ? null : constantValues.getError(name);
+	}
+
 	// Main interface for EvaluateContext classes
 	
 	/**
