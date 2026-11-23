@@ -341,8 +341,10 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 		RewardGenerator<?> rewardGenerator = null;
 		// Constants to be defined for PRISM model (null if none/undefined)
 		Values definedMFConstants = null;
-		// Was definedMFConstants evaluated exactly?
-		boolean definedMFConstantsAreExact = false;
+		// For a PRISM model, the precision (and any parameters) that the PRISM model's
+		// constants and the model/reward generators were last set up for
+		// (null if not yet; see updateModelForPrecision)
+		String generatorSetup = null;
 		// Built model storage - symbolic or explicit - at most one is non-null
 		prism.Model<?> model = null;
 		symbolic.model.Model modelSymb = null;
@@ -375,7 +377,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 			rewardInfo = other.rewardInfo;
 			rewardGenerator = other.rewardGenerator;
 			definedMFConstants = other.definedMFConstants;
-			definedMFConstantsAreExact = other.definedMFConstantsAreExact;
+			generatorSetup = other.generatorSetup;
 			model = other.model;
 			modelSymb = other.modelSymb;
 			modelExpl = other.modelExpl;
@@ -718,17 +720,65 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 
 	// Set methods for miscellaneous options
 
-	public void setParametric(String[] paramNames, String[] paramLowerBounds, String[] paramUpperBounds)
+	/**
+	 * Set the parameters for parametric model checking: constants of the model or properties
+	 * that are treated as parameters, each with a range (lower and upper bound).
+	 * If the list is null or empty, model checking is not parametric.
+	 * Parameters take precedence over any values given for the same constants
+	 * (e.g. with {@link #setPRISMModelConstants(Values)}).
+	 * Changing the parameters (or precision) is taken into account on the next build/model check.
+	 */
+	public void setParameters(List<DefinedConstant.Parameter> parameters)
 	{
+		if (parameters == null || parameters.isEmpty()) {
+			param = false;
+			paramNames = paramLowerBounds = paramUpperBounds = null;
+			return;
+		}
 		param = true;
-		this.paramNames = paramNames;
-		this.paramLowerBounds = paramLowerBounds;
-		this.paramUpperBounds = paramUpperBounds;
+		paramNames = parameters.stream().map(DefinedConstant.Parameter::getName).toArray(String[]::new);
+		paramLowerBounds = parameters.stream().map(DefinedConstant.Parameter::getLower).toArray(String[]::new);
+		paramUpperBounds = parameters.stream().map(DefinedConstant.Parameter::getUpper).toArray(String[]::new);
 	}
 
+	/**
+	 * Get the parameters for parametric model checking (see {@link #setParameters(List)});
+	 * empty if model checking is not parametric.
+	 */
+	public List<DefinedConstant.Parameter> getParameters()
+	{
+		List<DefinedConstant.Parameter> parameters = new ArrayList<>();
+		if (param) {
+			for (int i = 0; i < paramNames.length; i++) {
+				parameters.add(new DefinedConstant.Parameter(paramNames[i], null, paramLowerBounds[i], paramUpperBounds[i]));
+			}
+		}
+		return parameters;
+	}
+
+	/**
+	 * Switch on parametric model checking, with the given parameters
+	 * (names, and lower/upper bounds, as strings).
+	 * @deprecated Use {@link #setParameters(List)}.
+	 */
+	@Deprecated
+	public void setParametric(String[] paramNames, String[] paramLowerBounds, String[] paramUpperBounds)
+	{
+		List<DefinedConstant.Parameter> parameters = new ArrayList<>();
+		for (int i = 0; i < paramNames.length; i++) {
+			parameters.add(new DefinedConstant.Parameter(paramNames[i], null, paramLowerBounds[i], paramUpperBounds[i]));
+		}
+		setParameters(parameters);
+	}
+
+	/**
+	 * Switch off parametric model checking.
+	 * @deprecated Use {@link #setParameters(List)} with an empty list.
+	 */
+	@Deprecated
 	public void setParametricOff()
 	{
-		param = false;
+		setParameters(null);
 	}
 
 	/**
@@ -1851,8 +1901,8 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 		setRewardInfo(modulesFile);
 		// Reset model/reward generator (will be created properly when needed)
 		resetGenerators();
-		// No constant definitions yet
-		setDefinedMFConstants(null);
+		// Start from any constant values already set in the ModulesFile
+		setDefinedMFConstants(getUndefinedConstantValues(modulesFile));
 		// Clear any existing built model(s)
 		clearBuiltModel();
 		// Print basic model info
@@ -1909,7 +1959,9 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	 * Set (some or all) undefined constants for the currently loaded PRISM model
 	 * (assuming they have changed since the last time this was called).
 	 * <br>
-	 * Constants are evaluated using standard (integer, floating-point) arithmetic.
+	 * Constants are evaluated in the precision mode in use (e.g. exactly, using BigRational,
+	 * for exact or parametric model checking), and re-evaluated if this changes later,
+	 * so the values can be given either as doubles or as BigRationals.
 	 * @param definedMFConstants The constant values
 	 */
 	public void setPRISMModelConstants(Values definedMFConstants) throws PrismException
@@ -1920,20 +1972,22 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	/**
 	 * Set (some or all) undefined constants for the currently loaded PRISM model
 	 * (assuming they have changed since the last time this was called).
+	 * <br>
+	 * Constants are evaluated in the precision mode in use (e.g. exactly, using BigRational,
+	 * for exact or parametric model checking), and re-evaluated if this changes later,
+	 * so the values can be given either as doubles or as BigRationals.
 	 * @param definedMFConstants The constant values
-	 * @param exact if true, do exact evaluation of constants (using BigRational)
+	 * @param exact Ignored (see above); previously, whether to do exact evaluation of constants
 	 */
 	public void setPRISMModelConstants(Values definedMFConstants, boolean exact) throws PrismException
 	{
 		// If there is no change in constants, there is nothing to do
 		boolean currentMFNone = getUndefinedModelValues() == null || getUndefinedModelValues().getNumValues() == 0;
 		boolean newMFNone = definedMFConstants == null || definedMFConstants.getNumValues() == 0;
-		boolean exactSame = areUndefinedModelValuesExact() == exact;
-		if (currentMFNone && newMFNone && exactSame) {
+		if (currentMFNone && newMFNone) {
 			return;
 		}
-		if (getUndefinedModelValues() != null &&
-				getUndefinedModelValues().equals(definedMFConstants) && exactSame) {
+		if (getUndefinedModelValues() != null && getUndefinedModelValues().equals(definedMFConstants)) {
 			return;
 		}
 		// A model induced by a strategy is for fixed constant values
@@ -1943,17 +1997,81 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 
 		// Clear any existing built model(s)
 		clearBuiltModel();
-		// Store constants here and in ModulesFile
-		setDefinedMFConstants(definedMFConstants, exact);
+		// Store constants here
+		setDefinedMFConstants(definedMFConstants);
+		// And in the ModulesFile/ModelGenerator, for the current precision
+		// (if this has not changed, the existing model generator can be updated, rather than recreated)
 		if (getPRISMModel() != null) {
-			getPRISMModel().setSomeUndefinedConstants(definedMFConstants, exact);
+			String setup = getGeneratorSetup();
+			if (setup.equals(currentModelDetails.generatorSetup)) {
+				boolean exactNow = getResolvedSettings().getPrecision().getEvalMode() == parser.EvaluateContext.EvalMode.EXACT;
+				Values values = getModelConstantValuesForPrecision();
+				getPRISMModel().setSomeUndefinedConstants(values, exactNow);
+				if (getModelGenerator(false) != null) {
+					getModelGenerator(false).setSomeUndefinedConstants(values, exactNow);
+				}
+			} else {
+				updateModelForPrecision();
+			}
 		}
-		// Reset/update model generator
-		if (!exactSame) {
-			resetGenerators();
-		} else if (getModelGenerator(false) != null) {
-			getModelGenerator(false).setSomeUndefinedConstants(definedMFConstants, exact);
+	}
+
+	/**
+	 * Get a description of the precision (and any parameters) currently in use,
+	 * which determines how the PRISM model's constants are evaluated and which model
+	 * generator is used (see {@link #updateModelForPrecision()}).
+	 */
+	private String getGeneratorSetup()
+	{
+		PrecisionMode precision = getResolvedSettings().getPrecision();
+		if (precision != PrecisionMode.PARAM) {
+			return precision.toString();
 		}
+		return precision + ":" + String.join(",", paramNames) + ":" + String.join(",", paramLowerBounds) + ":" + String.join(",", paramUpperBounds);
+	}
+
+	/**
+	 * Get the values of the model's undefined constants to use for the current precision:
+	 * those provided (see {@link #setPRISMModelConstants(Values)}), except, for parametric
+	 * model checking, any that are parameters (parameters take precedence).
+	 */
+	private Values getModelConstantValuesForPrecision()
+	{
+		Values values = getUndefinedModelValues();
+		if (values == null || getResolvedSettings().getPrecision() != PrecisionMode.PARAM) {
+			return values;
+		}
+		Values valuesNoParams = new Values(values);
+		for (String paramName : paramNames) {
+			valuesNoParams.removeValue(paramName);
+		}
+		return valuesNoParams;
+	}
+
+	/**
+	 * For a PRISM model, if the precision (or parameters) in use have changed since its
+	 * constants were evaluated and the model/reward generators were created,
+	 * re-evaluate the constants and recreate the generators (on demand).
+	 * Built models do not need to be cleared (they are stored by precision, see {@link ModelBuildType}),
+	 * except a parametric one, if the parameters have changed.
+	 */
+	private void updateModelForPrecision() throws PrismException
+	{
+		if (getModelSource() != ModelSource.PRISM_MODEL || getPRISMModel() == null) {
+			return;
+		}
+		String setup = getGeneratorSetup();
+		if (setup.equals(currentModelDetails.generatorSetup)) {
+			return;
+		}
+		boolean exactNow = getResolvedSettings().getPrecision().getEvalMode() == parser.EvaluateContext.EvalMode.EXACT;
+		getPRISMModel().setSomeUndefinedConstants(getModelConstantValuesForPrecision(), exactNow);
+		resetGenerators();
+		// A parametric model was built for the previous parameters, so is out of date
+		if (getBuiltModelType() == ModelBuildType.PARAM) {
+			clearBuiltModel();
+		}
+		currentModelDetails.generatorSetup = setup;
 	}
 
 	/**
@@ -1974,9 +2092,22 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 		setModelType(modulesFile == null ? null : modulesFile.getModelType());
 		setModelInfo(modulesFile);
 		setRewardInfo(modulesFile);
-		setDefinedMFConstants(null);
+		setDefinedMFConstants(getUndefinedConstantValues(modulesFile));
 		// Store built model info
 		setBuiltModel(ModelBuildType.SYMBOLIC, model);
+	}
+
+	/**
+	 * Get the values already set for (some of) the undefined constants of a ModulesFile,
+	 * if any (e.g. via {@link ModulesFile#setSomeUndefinedConstants(parser.EvaluateContext)}), or null if none.
+	 */
+	private static Values getUndefinedConstantValues(ModulesFile modulesFile)
+	{
+		if (modulesFile == null || modulesFile.getUndefinedEvaluateContext() == null) {
+			return null;
+		}
+		Values values = modulesFile.getUndefinedEvaluateContext().getConstantValues();
+		return values == null || values.getNumValues() == 0 ? null : new Values(values);
 	}
 
 	/**
@@ -2220,6 +2351,10 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	 */
 	private ModelGenerator<?> getModelGenerator(boolean buildIfMissing) throws PrismException
 	{
+		// Make sure the PRISM model (if any) is set up for the current precision
+		if (buildIfMissing) {
+			updateModelForPrecision();
+		}
 		// Only rebuild if not already present
 		if (currentModelDetails.modelGenerator == null && buildIfMissing) {
 			switch (getModelSource()) {
@@ -2292,11 +2427,12 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	}
 
 	/**
-	 * Get the values that have been provided for undefined constants in the current model.
+	 * Are the values of constants in the current model evaluated exactly (using BigRational),
+	 * i.e., is the precision mode in use exact or parametric?
 	 */
 	public boolean areUndefinedModelValuesExact()
 	{
-		return currentModelDetails.definedMFConstantsAreExact;
+		return getResolvedSettings().getPrecision().getEvalMode() == parser.EvaluateContext.EvalMode.EXACT;
 	}
 
 	/**
@@ -2439,7 +2575,6 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 		AppliedStrategyExplicit<?> applied = createAppliedStrategy(stratExpl, options);
 		explicit.Model<?> inducedModel = applied.getInducedModel();
 		Values definedMFConstants = getUndefinedModelValues();
-		boolean definedMFConstantsAreExact = areUndefinedModelValuesExact();
 		ModelBuildType buildType = getBuiltModelType();
 		// Switch to new details for the induced model, keeping the current ones as its parent
 		ModelDetails parentDetails = currentModelDetails;
@@ -2451,7 +2586,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 		setModelGenerator(new ModelModelGenerator<>(inducedModel, applied.getInducedModelInfo()));
 		setRewardInfo(applied.getInducedRewardInfo());
 		setRewardGenerator(applied.getInducedRewardGenerator());
-		setDefinedMFConstants(definedMFConstants, definedMFConstantsAreExact);
+		setDefinedMFConstants(definedMFConstants);
 		setBuiltModel(buildType, inducedModel);
 		setAppliedStrategy(applied);
 		mainLog.println("Induced model (" + inducedModel.getModelType() + "): " + inducedModel.infoString());
@@ -2561,6 +2696,9 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 		if (getModelSource() == ModelSource.INDUCED) {
 			throw new PrismException("The model induced by a strategy cannot be rebuilt (e.g., for the " + getCurrentEngine().description() + " engine)");
 		}
+
+		// Make sure the PRISM model (if any) is set up for the current precision
+		updateModelForPrecision();
 
 		// Clear any existing built model(s)
 		clearBuiltModel();
@@ -3772,6 +3910,8 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 		resolvedForModelCheck = resolved;
 		printResolutionNotes(resolved, 0);
 		try {
+			// Make sure the PRISM model (if any) is set up for the current precision
+			updateModelForPrecision();
 			// Build model, if necessary
 			buildModelIfRequired();
 
@@ -4884,6 +5024,8 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	private void setPRISMModel(ModulesFile modulesFile) throws PrismException
 	{
 		currentModelDetails.modulesFile = modulesFile;
+		// Not yet set up for any particular precision (see updateModelForPrecision)
+		currentModelDetails.generatorSetup = null;
 	}
 
 	/**
@@ -4915,16 +5057,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	 */
 	private void setDefinedMFConstants(Values definedMFConstants) throws PrismException
 	{
-		setDefinedMFConstants(definedMFConstants, false);
-	}
-
-	/**
-	 * Set the defined constants for the currently loaded model.
-	 */
-	private void setDefinedMFConstants(Values definedMFConstants, boolean exact) throws PrismException
-	{
 		currentModelDetails.definedMFConstants = definedMFConstants;
-		currentModelDetails.definedMFConstantsAreExact = exact;
 	}
 
 	/**
@@ -5384,18 +5517,13 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	public Result modelCheckParametric(PropertiesFile propertiesFile, Property prop, String[] paramNames, String[] paramLowerBounds, String[] paramUpperBounds)
 			throws PrismException
 	{
-		boolean paramOld = param;
-		String[] paramNamesOld = this.paramNames;
-		String[] paramLowerBoundsOld = this.paramLowerBounds;
-		String[] paramUpperBoundsOld = this.paramUpperBounds;
+		List<DefinedConstant.Parameter> parametersOld = getParameters();
 		setParametric(paramNames, paramLowerBounds, paramUpperBounds);
-		Result result = modelCheck(propertiesFile, prop);
-		if (paramOld) {
-			setParametric(paramNamesOld, paramLowerBoundsOld, paramUpperBoundsOld);
-		} else {
-			setParametricOff();
+		try {
+			return modelCheck(propertiesFile, prop);
+		} finally {
+			setParameters(parametersOld);
 		}
-		return result;
 	}
 }
 

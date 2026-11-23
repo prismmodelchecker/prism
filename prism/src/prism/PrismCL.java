@@ -345,7 +345,11 @@ public class PrismCL implements PrismModelListener
 			errorAndExit(e.getMessage());
 		}
 		if (param) {
-			prism.setParametric(paramNames, paramLowerBounds, paramUpperBounds);
+			try {
+				prism.setParameters(UndefinedConstants.parseParamSwitch(paramSwitch));
+			} catch (PrismException e) {
+				errorAndExit(e.getMessage());
+			}
 		}
 
 		// initialise storage for results
