@@ -638,9 +638,7 @@ public class GUIMultiModelHandler extends JPanel implements PrismModelListener
 			lastMFConstants = unC.getMFConstantValues();
 		}
 		try {
-			// currently, don't evaluate constants exactly
-			boolean exact = prism.getSettings().getBoolean(PrismSettings.PRISM_EXACT_ENABLED);
-			prism.setPRISMModelConstants(unC.getMFConstantValues(), exact);
+			prism.setModelConstants(unC.getMFConstantValues());
 		} catch (PrismException e) {
 			theModel.error(e.getMessage());
 			return;
@@ -726,8 +724,7 @@ public class GUIMultiModelHandler extends JPanel implements PrismModelListener
 			lastMFConstants = unC.getMFConstantValues();
 		}
 		try {
-			boolean exact = prism.getSettings().getBoolean(PrismSettings.PRISM_EXACT_ENABLED);
-			prism.setPRISMModelConstants(unC.getMFConstantValues(), exact);
+			prism.setModelConstants(unC.getMFConstantValues());
 		} catch (PrismException e) {
 			theModel.error(e.getMessage());
 			return;
@@ -766,8 +763,7 @@ public class GUIMultiModelHandler extends JPanel implements PrismModelListener
 			lastMFConstants = unC.getMFConstantValues();
 		}
 		try {
-			boolean exact = prism.getSettings().getBoolean(PrismSettings.PRISM_EXACT_ENABLED);
-			prism.setPRISMModelConstants(unC.getMFConstantValues(), exact);
+			prism.setModelConstants(unC.getMFConstantValues());
 		} catch (PrismException e) {
 			theModel.error(e.getMessage());
 			return;
@@ -805,8 +801,7 @@ public class GUIMultiModelHandler extends JPanel implements PrismModelListener
 			lastMFConstants = unC.getMFConstantValues();
 		}
 		try {
-			boolean exact = prism.getSettings().getBoolean(PrismSettings.PRISM_EXACT_ENABLED);
-			prism.setPRISMModelConstants(unC.getMFConstantValues(), exact);
+			prism.setModelConstants(unC.getMFConstantValues());
 		} catch (PrismException e) {
 			theModel.error(e.getMessage());
 			return;

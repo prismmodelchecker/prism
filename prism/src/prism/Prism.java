@@ -568,6 +568,46 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 		settings.unset(PrismSettings.PRISM_ENGINE);
 	}
 
+	/**
+	 * Set the precision to use: {@link PrecisionMode#FP} (floating point)
+	 * or {@link PrecisionMode#EXACT} (exact, arbitrary precision arithmetic).
+	 * Parametric model checking ({@link PrecisionMode#PARAM}) is not set here:
+	 * it is used whenever there are parameters (see {@link #setParameters(List)}),
+	 * whatever the precision set. Constants, and the model generator, follow changes
+	 * in precision (see {@link #setModelConstants(Values)}).
+	 */
+	public void setPrecision(PrecisionMode precision) throws PrismException
+	{
+		switch (precision) {
+		case FP:
+			settings.set(PrismSettings.PRISM_EXACT_ENABLED, false);
+			break;
+		case EXACT:
+			settings.set(PrismSettings.PRISM_EXACT_ENABLED, true);
+			break;
+		default:
+			throw new PrismException("Parametric model checking is used when parameters are given (see setParameters), not set as a precision");
+		}
+	}
+
+	/**
+	 * Leave the choice of precision to PRISM (the default): currently, floating point,
+	 * or parametric if there are parameters (see {@link #setParameters(List)}).
+	 */
+	public void unsetPrecision() throws PrismException
+	{
+		settings.unset(PrismSettings.PRISM_EXACT_ENABLED);
+	}
+
+	/**
+	 * Get the precision used for model checking: floating point, exact or parametric
+	 * (see {@link #setPrecision(PrecisionMode)} and {@link #setParameters(List)}).
+	 */
+	public PrecisionMode getPrecision()
+	{
+		return getResolvedSettings().getPrecision();
+	}
+
 	public void setVerbose(boolean b) throws PrismException
 	{
 		settings.set(PrismSettings.PRISM_VERBOSE, b);
@@ -725,7 +765,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	 * that are treated as parameters, each with a range (lower and upper bound).
 	 * If the list is null or empty, model checking is not parametric.
 	 * Parameters take precedence over any values given for the same constants
-	 * (e.g. with {@link #setPRISMModelConstants(Values)}).
+	 * (e.g. with {@link #setModelConstants(Values)}).
 	 * Changing the parameters (or precision) is taken into account on the next build/model check.
 	 */
 	public void setParameters(List<DefinedConstant.Parameter> parameters)
@@ -1956,30 +1996,42 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	}
 
 	/**
-	 * Set (some or all) undefined constants for the currently loaded PRISM model
-	 * (assuming they have changed since the last time this was called).
-	 * <br>
-	 * Constants are evaluated in the precision mode in use (e.g. exactly, using BigRational,
-	 * for exact or parametric model checking), and re-evaluated if this changes later,
-	 * so the values can be given either as doubles or as BigRationals.
+	 * Set (some or all) undefined constants for the currently loaded PRISM model.
 	 * @param definedMFConstants The constant values
+	 * @deprecated Use {@link #setModelConstants(Values)}.
 	 */
+	@Deprecated
 	public void setPRISMModelConstants(Values definedMFConstants) throws PrismException
 	{
-		setPRISMModelConstants(definedMFConstants, false);
+		setModelConstants(definedMFConstants);
 	}
 
 	/**
-	 * Set (some or all) undefined constants for the currently loaded PRISM model
-	 * (assuming they have changed since the last time this was called).
+	 * Set (some or all) undefined constants for the currently loaded PRISM model.
+	 * @param definedMFConstants The constant values
+	 * @param exact Ignored; previously, whether to do exact evaluation of constants
+	 * (constants are now evaluated in the precision mode in use)
+	 * @deprecated Use {@link #setModelConstants(Values)}.
+	 */
+	@Deprecated
+	public void setPRISMModelConstants(Values definedMFConstants, boolean exact) throws PrismException
+	{
+		setModelConstants(definedMFConstants);
+	}
+
+	/**
+	 * Set values for (some or all) undefined constants of the currently loaded model
+	 * (if they have changed since the last time this was called), replacing any set previously.
+	 * The values are for this model only: loading another model clears them.
 	 * <br>
 	 * Constants are evaluated in the precision mode in use (e.g. exactly, using BigRational,
-	 * for exact or parametric model checking), and re-evaluated if this changes later,
-	 * so the values can be given either as doubles or as BigRationals.
+	 * for exact or parametric model checking), and, for a PRISM model, re-evaluated if this
+	 * changes later, so the values can be given either as doubles or as BigRationals.
+	 * For other model sources, the values are passed to the model's {@link ModelInfo}
+	 * (e.g. a {@link ModelGenerator}); models without undefined constants reject any values.
 	 * @param definedMFConstants The constant values
-	 * @param exact Ignored (see above); previously, whether to do exact evaluation of constants
 	 */
-	public void setPRISMModelConstants(Values definedMFConstants, boolean exact) throws PrismException
+	public void setModelConstants(Values definedMFConstants) throws PrismException
 	{
 		// If there is no change in constants, there is nothing to do
 		boolean currentMFNone = getUndefinedModelValues() == null || getUndefinedModelValues().getNumValues() == 0;
@@ -1993,6 +2045,10 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 		// A model induced by a strategy is for fixed constant values
 		if (getNumAppliedStrategies() > 0) {
 			throw new PrismException("Model constants cannot be changed while a strategy is applied");
+		}
+		// Other model sources take the values directly (those without constants reject any)
+		if (getModelSource() != ModelSource.PRISM_MODEL && getModelInfo() != null) {
+			getModelInfo().setSomeUndefinedConstants(definedMFConstants, areUndefinedModelValuesExact());
 		}
 
 		// Clear any existing built model(s)
@@ -2032,7 +2088,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 
 	/**
 	 * Get the values of the model's undefined constants to use for the current precision:
-	 * those provided (see {@link #setPRISMModelConstants(Values)}), except, for parametric
+	 * those provided (see {@link #setModelConstants(Values)}), except, for parametric
 	 * model checking, any that are parameters (parameters take precedence).
 	 */
 	private Values getModelConstantValuesForPrecision()
@@ -5492,16 +5548,24 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	 * (currently, this is done via the parametric model checking functionality)
 	 * @param propertiesFile parent properties file
 	 * @param prop property to model check
-	 * @deprecated Better to use {@link #modelCheck(PropertiesFile, Property)} now.
+	 * @deprecated Use {@link #setPrecision(PrecisionMode)} and {@link #modelCheck(PropertiesFile, Property)}.
 	 */
 	@Deprecated
 	public Result modelCheckExact(PropertiesFile propertiesFile, Property prop) throws PrismException
 	{
 		boolean exactOld = settings.getBoolean(PrismSettings.PRISM_EXACT_ENABLED);
-		settings.set(PrismSettings.PRISM_EXACT_ENABLED, Boolean.TRUE);
-		Result result = modelCheck(propertiesFile, prop);
-		settings.set(PrismSettings.PRISM_EXACT_ENABLED, exactOld);
-		return result;
+		boolean exactSpecifiedOld = settings.isSpecified(PrismSettings.PRISM_EXACT_ENABLED);
+		setPrecision(PrecisionMode.EXACT);
+		try {
+			return modelCheck(propertiesFile, prop);
+		} finally {
+			// Restore the precision as it was (including whether it was specified)
+			if (exactSpecifiedOld) {
+				settings.set(PrismSettings.PRISM_EXACT_ENABLED, exactOld);
+			} else {
+				unsetPrecision();
+			}
+		}
 	}
 
 	/**
@@ -5511,7 +5575,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	 * @param paramNames parameter names
 	 * @param paramLowerBounds lower bounds of parameters
 	 * @param paramUpperBounds upper bounds of parameters
-	 * @deprecated Better to use {@link #modelCheck(PropertiesFile, Property)} now.
+	 * @deprecated Use {@link #setParameters(List)} and {@link #modelCheck(PropertiesFile, Property)}.
 	 */
 	@Deprecated
 	public Result modelCheckParametric(PropertiesFile propertiesFile, Property prop, String[] paramNames, String[] paramLowerBounds, String[] paramUpperBounds)

@@ -311,7 +311,7 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 			}
 			// Store model/property constants
 			pfConstants = uCon.getPFConstantValues();
-			getPrism().setPRISMModelConstants(uCon.getMFConstantValues(), exact);
+			getPrism().setModelConstants(uCon.getMFConstantValues());
 			parsedProperties.setSomeUndefinedConstants(pfConstants, exact);
 			// Store properties to be verified
 			propertiesToBeVerified = validGUIProperties;
@@ -383,7 +383,7 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 			// Store model/property constants
 			pfConstants = uCon.getPFConstantValues();
 			// currently, evaluate constants non-exact for simulation
-			getPrism().setPRISMModelConstants(uCon.getMFConstantValues(), false);
+			getPrism().setModelConstants(uCon.getMFConstantValues());
 			parsedProperties.setSomeUndefinedConstants(pfConstants, false);
 			for (GUIProperty gp : simulatableGUIProperties)
 				gp.setConstants(uCon.getMFConstantValues(), pfConstants);
@@ -1179,7 +1179,7 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 			// Store model/property constants
 			pfConstants = uCon.getPFConstantValues();
 			// currently, evaluate constants non-exact for model building
-			getPrism().setPRISMModelConstants(uCon.getMFConstantValues(), exact);
+			getPrism().setModelConstants(uCon.getMFConstantValues());
 			if (exportTask.extraLabelsUsed()) {
 				parsedProperties.setSomeUndefinedConstants(pfConstants, exact);
 				exportTask.setExtraLabelsSource(parsedProperties);
