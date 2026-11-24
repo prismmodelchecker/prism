@@ -482,18 +482,34 @@ public class UndefinedConstants
 	 */
 	private void parseConstSwitch(String constSwitch) throws PrismException
 	{
-		int i, j;
-		String parts[], args[];
-
 		// create storage for info
 		constSwitchNames = new Vector<String>();
 		constSwitchLows = new Vector<String>();
 		constSwitchHighs = new Vector<String>();
 		constSwitchSteps = new Vector<String>();
+		for (String[] def : parseConstSwitchDefinitions(constSwitch)) {
+			constSwitchNames.add(def[0]);
+			constSwitchLows.add(def[1]);
+			constSwitchHighs.add(def[2]);
+			constSwitchSteps.add(def[3]);
+		}
+	}
+
+	/**
+	 * Parse a -const switch string (e.g. "x=1,y=1:100,z=1:10:100,b=true")
+	 * into a list of definitions, each an array {name, low, high, step}
+	 * (high and step are null for a single value; step is null if not given).
+	 * Duplicate names are not checked for.
+	 */
+	public static List<String[]> parseConstSwitchDefinitions(String constSwitch) throws PrismException
+	{
+		int i, j;
+		String parts[], args[];
+		List<String[]> defs = new ArrayList<>();
 
 		// if string is null, nothing more to do
 		if (constSwitch == null)
-			return;
+			return defs;
 
 		// split into comma separated parts...
 		parts = constSwitch.split(",");
@@ -509,7 +525,7 @@ public class UndefinedConstants
 			j = parts[i].indexOf('=');
 			if (j < 1 || j + 2 > parts[i].length())
 				throw new PrismException("Invalid format in definition of undefined constants");
-			constSwitchNames.add(parts[i].substring(0, j));
+			String name = parts[i].substring(0, j);
 
 			// check for trailing colon(s)
 			// this is a formatting error not detected by split(":") below
@@ -520,27 +536,22 @@ public class UndefinedConstants
 			args = parts[i].substring(j + 1).split(":");
 			// simple case - no colons, e.g. x=0
 			if (args.length == 1) {
-				constSwitchLows.add(args[0]);
-				constSwitchHighs.add(null);
-				constSwitchSteps.add(null);
+				defs.add(new String[] { name, args[0], null, null });
 			}
 			// range, e.g. x=0:10
 			else if (args.length == 2) {
-				constSwitchLows.add(args[0]);
-				constSwitchHighs.add(args[1]);
-				constSwitchSteps.add(null);
+				defs.add(new String[] { name, args[0], args[1], null });
 			}
 			// range with step, e.g. x=0:2:10
 			else if (args.length == 3) {
-				constSwitchLows.add(args[0]);
-				constSwitchHighs.add(args[2]);
-				constSwitchSteps.add(args[1]);
+				defs.add(new String[] { name, args[0], args[2], args[1] });
 			}
 			// error
 			else {
 				throw new PrismException("Invalid format in definition of undefined constants");
 			}
 		}
+		return defs;
 	}
 
 	/** Define value for a single undefined constant.

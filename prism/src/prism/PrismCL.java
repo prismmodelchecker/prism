@@ -341,6 +341,9 @@ public class PrismCL implements PrismModelListener
 			for (i = 0; i < numPropertiesToCheck; i++) {
 				undefinedConstants[i].defineUsingConstSwitch(constSwitch);
 			}
+			// and pass the definitions to Prism, which evaluates single values in the precision in use
+			// (the experiments below still set the values for each point themselves)
+			prism.defineConstants(constSwitch);
 		} catch (PrismException e) {
 			errorAndExit(e.getMessage());
 		}

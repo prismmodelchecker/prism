@@ -34,9 +34,14 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.BitSet;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.Predicate;
 import java.util.regex.Pattern;
 
@@ -63,15 +68,18 @@ import jdd.JDDNode;
 import jdd.JDDVars;
 import param.ParamMode;
 import param.ParamModelChecker;
+import parser.EvaluateContext;
 import parser.PrismParser;
 import parser.State;
 import parser.Values;
+import parser.ast.ConstantList;
 import parser.ast.Expression;
 import parser.ast.ForLoop;
 import parser.ast.LabelList;
 import parser.ast.ModulesFile;
 import parser.ast.PropertiesFile;
 import parser.ast.Property;
+import parser.type.Type;
 import parser.type.TypeBool;
 import parser.visitor.ExpandPropRefsAndLabels;
 import parser.visitor.RemoveStrategyOptimisation;
@@ -405,6 +413,11 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	private String[] paramNames;
 	private String[] paramLowerBounds;
 	private String[] paramUpperBounds;
+
+	// Definitions of undefined constants (of models and properties), as strings,
+	// independent of the model/properties and of the precision: name -> {low, high, step}
+	// (high and step are null for a single value; step is null if not given)
+	private Map<String, String[]> constantDefinitions = new LinkedHashMap<>();
 
 	// Working out the engine (and some other settings) actually used, from those requested
 	private SettingsResolver settingsResolver = new SettingsResolver();
@@ -794,6 +807,215 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 			}
 		}
 		return parameters;
+	}
+
+	/**
+	 * Define values (or ranges of values) for undefined constants, of models and properties,
+	 * using the syntax of the -const switch, e.g. "x=1,y=1:100,z=1:10:100,b=true".
+	 * These are added to any existing definitions (see {@link #defineConstant(String, String)}).
+	 */
+	public void defineConstants(String constSwitch) throws PrismException
+	{
+		List<String[]> defs = UndefinedConstants.parseConstSwitchDefinitions(constSwitch);
+		Set<String> names = new HashSet<>();
+		for (String[] def : defs) {
+			if (!names.add(def[0])) {
+				throw new PrismException("Duplicate definitions for undefined constant \"" + def[0] + "\"");
+			}
+		}
+		Map<String, String[]> newDefinitions = new LinkedHashMap<>(constantDefinitions);
+		for (String[] def : defs) {
+			newDefinitions.put(def[0], new String[] { def[1], def[2], def[3] });
+		}
+		setConstantDefinitions(newDefinitions);
+	}
+
+	/**
+	 * Define a value for an undefined constant, of the model or properties,
+	 * given as a string (e.g. "1/3"), replacing any existing definition for it.
+	 * <br>
+	 * Definitions are independent of the model and properties: they are kept when a new model is loaded,
+	 * and those for constants that are not undefined constants of the model/properties are ignored.
+	 * Values are evaluated in the precision mode in use (e.g. exactly, for exact or parametric
+	 * model checking), when the model is built or a property is checked, so "1/3" is exact.
+	 * A definition takes precedence over a value given in another way for the same constant
+	 * (e.g. with {@link #setModelConstants(Values)}, or in the PropertiesFile);
+	 * parameters (see {@link #setParameters(List)}) take precedence over both.
+	 */
+	public void defineConstant(String name, String value) throws PrismException
+	{
+		defineConstantRange(name, value, null, null);
+	}
+
+	/**
+	 * Define a range of values for an undefined constant, of the model or properties,
+	 * given as strings, replacing any existing definition for it.
+	 * A range is not used by model checking itself, but by experiments, which iterate over the values
+	 * (until then, a constant with a range of values still needs its value to be set in another way).
+	 * See also {@link #defineConstant(String, String)}.
+	 * @param name Constant name
+	 * @param low Lowest value
+	 * @param high Highest value (if null, there is a single value, {@code low})
+	 * @param step Step (if null, 1)
+	 */
+	public void defineConstantRange(String name, String low, String high, String step) throws PrismException
+	{
+		if (name == null || name.isEmpty() || low == null || low.isEmpty()) {
+			throw new PrismException("Invalid definition of undefined constant" + (name == null ? "" : " \"" + name + "\""));
+		}
+		Map<String, String[]> newDefinitions = new LinkedHashMap<>(constantDefinitions);
+		newDefinitions.put(name, new String[] { low, high, step });
+		setConstantDefinitions(newDefinitions);
+	}
+
+	/**
+	 * Remove all definitions of undefined constants
+	 * (see {@link #defineConstant(String, String)}).
+	 */
+	public void clearConstantDefinitions() throws PrismException
+	{
+		setConstantDefinitions(new LinkedHashMap<>());
+	}
+
+	/**
+	 * Get the definitions of undefined constants (see {@link #defineConstant(String, String)}),
+	 * as a map from constant names to strings in the syntax of the -const switch
+	 * (e.g. "1", "1:100" or "1:10:100").
+	 */
+	public Map<String, String> getConstantDefinitions()
+	{
+		Map<String, String> defs = new LinkedHashMap<>();
+		for (Map.Entry<String, String[]> def : constantDefinitions.entrySet()) {
+			String[] d = def.getValue();
+			defs.put(def.getKey(), d[1] == null ? d[0] : d[2] == null ? d[0] + ":" + d[1] : d[0] + ":" + d[2] + ":" + d[1]);
+		}
+		return Collections.unmodifiableMap(defs);
+	}
+
+	/**
+	 * Replace the definitions of undefined constants, and (if needed) mark the
+	 * current PRISM model's constants for re-evaluation, clearing any built model.
+	 */
+	private void setConstantDefinitions(Map<String, String[]> newDefinitions) throws PrismException
+	{
+		// Find which constants change
+		Set<String> changed = new HashSet<>();
+		for (String name : newDefinitions.keySet()) {
+			String[] oldDef = constantDefinitions.get(name);
+			if (oldDef == null || !Arrays.equals(oldDef, newDefinitions.get(name))) {
+				changed.add(name);
+			}
+		}
+		for (String name : constantDefinitions.keySet()) {
+			if (!newDefinitions.containsKey(name)) {
+				changed.add(name);
+			}
+		}
+		// Is the (original) PRISM model affected?
+		ModelDetails details = currentModelDetails;
+		while (details.parent != null) {
+			details = details.parent;
+		}
+		boolean affectsModel = details.modelSource == ModelSource.PRISM_MODEL && details.modulesFile != null
+				&& details.modulesFile.getUndefinedConstants().stream().anyMatch(changed::contains);
+		if (affectsModel && getNumAppliedStrategies() > 0) {
+			throw new PrismException("Model constants cannot be changed while a strategy is applied");
+		}
+		constantDefinitions = newDefinitions;
+		if (affectsModel) {
+			// Clear any existing built model(s), and re-evaluate constants when next needed
+			clearBuiltModel();
+			currentModelDetails.generatorSetup = null;
+		}
+	}
+
+	/**
+	 * Get the value of an undefined constant from its definition (see {@link #defineConstant(String, String)}),
+	 * evaluated in the current precision, or null if it has no single-value definition
+	 * or is a parameter (when model checking is parametric).
+	 */
+	private Object getDefinedConstantValue(String name, Type type) throws PrismException
+	{
+		String[] def = constantDefinitions.get(name);
+		if (def == null || def[1] != null) {
+			return null;
+		}
+		if (param && Arrays.asList(paramNames).contains(name)) {
+			return null;
+		}
+		return new DefinedConstant.Undefined(name, type).define(def[0], null, null, areUndefinedModelValuesExact()).getLow();
+	}
+
+	/**
+	 * Get the values for (some of) the undefined constants of a model or properties file:
+	 * those given ({@code given}, may be null), with any from definitions
+	 * (see {@link #defineConstant(String, String)}) added or replacing them.
+	 * If there are none from definitions, {@code given} itself is returned.
+	 */
+	private Values addDefinedConstantValues(Values given, List<String> undefinedConstants, ConstantList constantList) throws PrismException
+	{
+		if (constantDefinitions.isEmpty()) {
+			return given;
+		}
+		Values values = null;
+		for (String name : undefinedConstants) {
+			Object value = getDefinedConstantValue(name, constantList.getConstantType(constantList.getConstantIndex(name)));
+			if (value != null) {
+				if (values == null) {
+					values = given == null ? new Values() : new Values(given);
+				}
+				values.setValue(name, value);
+			}
+		}
+		return values == null ? given : values;
+	}
+
+	/**
+	 * Set values for undefined constants of a properties file from their definitions
+	 * (see {@link #defineConstant(String, String)}), in the current precision, if any are defined
+	 * and the values have changed. Other values already set in the properties file are kept.
+	 * Returns whether the properties file was changed.
+	 */
+	private boolean applyConstantDefinitions(PropertiesFile propertiesFile) throws PrismException
+	{
+		if (propertiesFile == null || constantDefinitions.isEmpty()) {
+			return false;
+		}
+		EvaluateContext ec = propertiesFile.getUndefinedEvaluateContext();
+		Values given = ec == null ? null : ec.getConstantValues();
+		Values values = addDefinedConstantValues(given, propertiesFile.getUndefinedConstants(), propertiesFile.getConstantList());
+		if (values != given && !values.equals(given)) {
+			propertiesFile.setSomeUndefinedConstants(values, areUndefinedModelValuesExact());
+			return true;
+		}
+		return false;
+	}
+
+	/**
+	 * A computation that can throw a PrismException.
+	 */
+	@FunctionalInterface
+	private interface PrismComputation<T>
+	{
+		T compute() throws PrismException;
+	}
+
+	/**
+	 * Do a computation with the undefined constants of a properties file set from their
+	 * definitions (see {@link #applyConstantDefinitions(PropertiesFile)}), restoring
+	 * the values that were set in the properties file afterwards, so that it is not changed.
+	 */
+	private <T> T withConstantDefinitions(PropertiesFile propertiesFile, PrismComputation<T> computation) throws PrismException
+	{
+		EvaluateContext ecOld = propertiesFile == null ? null : propertiesFile.getUndefinedEvaluateContext();
+		boolean changed = applyConstantDefinitions(propertiesFile);
+		try {
+			return computation.compute();
+		} finally {
+			if (changed) {
+				propertiesFile.setSomeUndefinedConstants(ecOld);
+			}
+		}
 	}
 
 	/**
@@ -2027,6 +2249,8 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	 * Constants are evaluated in the precision mode in use (e.g. exactly, using BigRational,
 	 * for exact or parametric model checking), and, for a PRISM model, re-evaluated if this
 	 * changes later, so the values can be given either as doubles or as BigRationals.
+	 * For a PRISM model, constant definitions (see {@link #defineConstant(String, String)})
+	 * take precedence over these values.
 	 * For other model sources, the values are passed to the model's {@link ModelInfo}
 	 * (e.g. a {@link ModelGenerator}); models without undefined constants reject any values.
 	 * @param definedMFConstants The constant values
@@ -2034,12 +2258,13 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	public void setModelConstants(Values definedMFConstants) throws PrismException
 	{
 		// If there is no change in constants, there is nothing to do
-		boolean currentMFNone = getUndefinedModelValues() == null || getUndefinedModelValues().getNumValues() == 0;
+		Values currentMFConstants = currentModelDetails.definedMFConstants;
+		boolean currentMFNone = currentMFConstants == null || currentMFConstants.getNumValues() == 0;
 		boolean newMFNone = definedMFConstants == null || definedMFConstants.getNumValues() == 0;
 		if (currentMFNone && newMFNone) {
 			return;
 		}
-		if (getUndefinedModelValues() != null && getUndefinedModelValues().equals(definedMFConstants)) {
+		if (currentMFConstants != null && currentMFConstants.equals(definedMFConstants)) {
 			return;
 		}
 		// A model induced by a strategy is for fixed constant values
@@ -2088,12 +2313,13 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 
 	/**
 	 * Get the values of the model's undefined constants to use for the current precision:
-	 * those provided (see {@link #setModelConstants(Values)}), except, for parametric
+	 * those provided (see {@link #setModelConstants(Values)}), with any from definitions
+	 * (see {@link #defineConstant(String, String)}) added or replacing them, except, for parametric
 	 * model checking, any that are parameters (parameters take precedence).
 	 */
-	private Values getModelConstantValuesForPrecision()
+	private Values getModelConstantValuesForPrecision() throws PrismException
 	{
-		Values values = getUndefinedModelValues();
+		Values values = getModelConstantValues();
 		if (values == null || getResolvedSettings().getPrecision() != PrecisionMode.PARAM) {
 			return values;
 		}
@@ -2475,11 +2701,34 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	}
 
 	/**
-	 * Get the values that have been provided for undefined constants in the current model.
+	 * Get the values that have been provided for undefined constants in the current model,
+	 * either directly (see {@link #setModelConstants(Values)})
+	 * or as definitions (see {@link #defineConstant(String, String)}).
 	 */
 	public Values getUndefinedModelValues()
 	{
-		return currentModelDetails.definedMFConstants;
+		try {
+			return getModelConstantValues();
+		} catch (PrismException e) {
+			// If a definition can't be evaluated, the error is reported when the model is used
+			return currentModelDetails.definedMFConstants;
+		}
+	}
+
+	/**
+	 * Get the values for undefined constants in the current model: those provided
+	 * (see {@link #setModelConstants(Values)}), with any from definitions
+	 * (see {@link #defineConstant(String, String)}) added or replacing them,
+	 * the latter only for a PRISM model (not, e.g., a model induced by a strategy).
+	 */
+	private Values getModelConstantValues() throws PrismException
+	{
+		Values given = currentModelDetails.definedMFConstants;
+		if (getModelSource() != ModelSource.PRISM_MODEL || getPRISMModel() == null) {
+			return given;
+		}
+		ModulesFile modulesFile = getPRISMModel();
+		return addDefinedConstantValues(given, modulesFile.getUndefinedConstants(), modulesFile.getConstantList());
 	}
 
 	/**
@@ -3115,6 +3364,8 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 		mainLog.print("\nExporting parsed PRISM file (with constant expansion) ");
 		mainLog.println(getDestinationStringForFile(file));
 		PrismLog tmpLog = getPrismLogForFile(file);
+		// Make sure constant values are up to date (e.g. from definitions)
+		updateModelForPrecision();
 		ModulesFile mfTmp = (ModulesFile) getPRISMModel().deepCopy();
 		mfTmp = (ModulesFile) mfTmp.replaceConstants(getPRISMModel().getConstantValues());
 		// NB: Don't use simplify() here because doesn't work for the purposes of printing out
@@ -3917,6 +4168,16 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	 */
 	private Result doModelCheck(PropertiesFile propertiesFile, Property prop) throws PrismException, PrismLangException
 	{
+		return withConstantDefinitions(propertiesFile, () -> doModelCheckWithConstants(propertiesFile, prop));
+	}
+
+	/**
+	 * Perform model checking of a property on the current model and return result
+	 * (helper method for {@link #doModelCheck(PropertiesFile, Property)},
+	 * with constant definitions applied to the properties file).
+	 */
+	private Result doModelCheckWithConstants(PropertiesFile propertiesFile, Property prop) throws PrismException, PrismLangException
+	{
 		Result res = null;
 		Values definedPFConstants = propertiesFile.getConstantValues();
 
@@ -4148,7 +4409,11 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 
 		// Remove old strategy if present
 		clearStrategy();
-		
+
+		// Make sure constant values are up to date (e.g. from definitions),
+		// since both methods below use them directly
+		updateModelForPrecision();
+
 		// Digital clocks translation
 		if (settings.getString(PrismSettings.PRISM_PTA_METHOD).equals("Digital clocks") || getModelType() == ModelType.POPTA) {
 			setModelSourceIsDigitalClocks(true);
@@ -4301,6 +4566,15 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 			SimulationMethod simMethod) throws PrismException
 	{
 		checkEngineForSimulation();
+		return withConstantDefinitions(propertiesFile, () -> doModelCheckSimulator(propertiesFile, expr, definedPFConstants, initialState, maxPathLength, simMethod));
+	}
+
+	/**
+	 * Helper method for {@link #modelCheckSimulator}, with constant definitions applied to the properties file.
+	 */
+	private Result doModelCheckSimulator(PropertiesFile propertiesFile, Expression expr, Values definedPFConstants, State initialState, long maxPathLength,
+			SimulationMethod simMethod) throws PrismException
+	{
 
 		// Print info
 		mainLog.printSeparator();
@@ -4345,6 +4619,15 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 			long maxPathLength, SimulationMethod simMethod) throws PrismException
 	{
 		checkEngineForSimulation();
+		return withConstantDefinitions(propertiesFile, () -> doModelCheckSimulatorSimultaneously(propertiesFile, exprs, definedPFConstants, initialState, maxPathLength, simMethod));
+	}
+
+	/**
+	 * Helper method for {@link #modelCheckSimulatorSimultaneously}, with constant definitions applied to the properties file.
+	 */
+	private Result[] doModelCheckSimulatorSimultaneously(PropertiesFile propertiesFile, List<Expression> exprs, Values definedPFConstants, State initialState,
+			long maxPathLength, SimulationMethod simMethod) throws PrismException
+	{
 
 		// Print info
 		mainLog.printSeparator();
@@ -4805,6 +5088,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 			if (initDistFile != null) {
 				throw new PrismException("Fast adaptive uniformisation cannot read an initial distribution from a file");
 			}
+			updateModelForPrecision();
 			ModulesFileModelGenerator<Double> prismModelGen = ModulesFileModelGenerator.createForDoubles(getPRISMModel(), this);
 			FastAdaptiveUniformisation fau = new FastAdaptiveUniformisation(this, prismModelGen);
 			fau.setConstantValues(getPRISMModel().getConstantValues());
@@ -4887,6 +5171,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 				if (initDistFile != null) {
 					throw new PrismException("Fast adaptive uniformisation cannot read an initial distribution from a file");
 				}
+				updateModelForPrecision();
 				ModulesFileModelGenerator<Double> prismModelGen = ModulesFileModelGenerator.createForDoubles(getPRISMModel(), this);
 				FastAdaptiveUniformisation fau = new FastAdaptiveUniformisation(this, prismModelGen);
 				fau.setConstantValues(getPRISMModel().getConstantValues());
