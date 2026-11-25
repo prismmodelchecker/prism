@@ -72,7 +72,7 @@ module crypt5
 	coin5 : [0..2];
 	s5 : [0..2];
 	agree5 : [0..1];
-	guess : [0..3];
+	guess : [0..4];
 	correct : [0..1];
 	
 	// flip coin
