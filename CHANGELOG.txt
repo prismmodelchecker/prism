@@ -1,6 +1,26 @@
 This file contains details of the changes in each new version of PRISM.
 
 -----------------------------------------------------------------------------
+Latest changes (up to 9ace5e0a)
+-----------------------------------------------------------------------------
+
+* Strategy improvements
+  - better definition/resolution of undefined strategy choices
+
+* User manual rewritten and moved into the source repository
+
+* Other improvements
+  - better import of models with rational values
+  - faster model checking of imported POMDPs
+
+* Various bugfixes
+
+* Development and code-level changes:
+  - API improvements: load/check strategy-induced models
+  - -test:strat switch for check strategy generation
+  - Claude Code project instructions and skills
+
+-----------------------------------------------------------------------------
 Version 4.11 (first released 9/10/2026)
 -----------------------------------------------------------------------------
 
