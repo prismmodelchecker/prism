@@ -428,15 +428,16 @@ $(JAVA_COMPILED_STAMP): $(JAVA_SRC_FILES)
 
 # Rebuild PRISM (JavaCC) compiler if needed
 # Just emit warning if javacc not available and fall back to pre-compiled .java
+# (output directory given explicitly: JavaCC 7 writes to the current directory)
 $(JAVA_PARSER_JAVA): $(JAVA_PARSER_JJ)
-	@$(JAVACC) $< || echo "Warning: Did not recompile $@"
+	@$(JAVACC) -OUTPUT_DIRECTORY=$(dir $<) $< || echo "Warning: Did not recompile $@"
 
 # Use this to force a rebuild (with javacc) of the main parser
 parser: parser_force prism_java
 
 parser_force:
 	@ echo "Forcing parser rebuild"
-	@$(JAVACC) $(JAVA_PARSER_JJ)
+	@$(JAVACC) -OUTPUT_DIRECTORY=$(dir $(JAVA_PARSER_JJ)) $(JAVA_PARSER_JJ)
 
 # On Windows, convert the generated JNI headers using dos2unix
 # and any scripts to be run from Cywgin, in case extracted with CRLF endings.
