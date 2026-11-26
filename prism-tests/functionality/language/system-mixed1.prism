@@ -1,0 +1,23 @@
+// Test of precedence of parallel composition operators in system...endsystem:
+// "M1 ||| M2 || M3" means "M1 ||| (M2 || M3)", not "(M1 ||| M2) || M3"
+
+mdp
+
+module M1
+	a : [0..1];
+	[x] a=0 -> (a'=1);
+endmodule
+
+module M2
+	b : [0..1];
+	[x] b=0 -> (b'=1);
+endmodule
+
+module M3
+	c : [0..1];
+	[x] c=0 -> (c'=1);
+endmodule
+
+system
+	M1 ||| M2 || M3
+endsystem

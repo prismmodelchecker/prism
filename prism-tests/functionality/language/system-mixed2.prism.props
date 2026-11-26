@@ -1,0 +1,9 @@
+// M1 and M2 synchronise on x, and M3 can do x independently,
+// so all three can reach 1 (if it was "M1 || (M2 ||| M3)",
+// M1 could only synchronise with one of M2 or M3)
+
+// RESULT: 1
+Pmax=? [ F a=1 & b=1 & c=1 ];
+
+// RESULT: false
+E [ F a=1 & b=0 ];

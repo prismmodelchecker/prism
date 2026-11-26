@@ -1,0 +1,13 @@
+// M1 and M3 synchronise on y, so a and c change together
+// (if it was "M1 |[x]| (M2 |[y]| M3)", M3 would be blocked
+// since M2 has no y, and M1 could do y on its own)
+
+// RESULT: 1
+Pmax=? [ F a=1 & c=1 ];
+
+// RESULT: 0
+Pmax=? [ F a=1 & c=0 ];
+
+// M2 is blocked on x (M1 has no x)
+// RESULT: 0
+Pmax=? [ F b=1 ];

@@ -227,7 +227,11 @@ This expression should feature each module exactly once, and can use the followi
 
 The first two types of parallel composition (`||` and `|||`) are associative and can be applied to more than two modules at once.
 When evaluating the expression, the hiding and renaming operators bind more tightly than the three parallel composition operators.
-No other rules of precedence are defined and parentheses should be used to specify the order in which modules are composed.
+Of those, `|[a,b,...]|` binds most tightly, then `||`, then `|||`,
+so for example `M1 ||| M2 || M3` means `M1 ||| (M2 || M3)`.
+Restricted parallel composition is left associative:
+`M1 |[a]| M2 |[b]| M3` means `(M1 |[a]| M2) |[b]| M3`.
+It is usually clearer to use parentheses to specify the order in which modules are composed.
 
 Some examples of expressions which could be included in the `system ... endsystem` construct are as follows:
 

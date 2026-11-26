@@ -1028,12 +1028,17 @@ void SystemEndsystem(ModulesFile mf) :
 
 // System definition component
 
+// The three parallel composition operators bind (from most to least tightly):
+// "|[...]|", "||", "|||". All are left associative (and "||" and "|||" are
+// also associative, so they are stored as a single n-ary operator).
+// Note that the multi-character operators are sequences of "|" tokens.
+
 SystemDefn SystemDefn() :
 {
 	SystemDefn ret;
 }
 {
-	ret = SystemFullParallel()
+	ret = SystemInterleaved()
 	{ return ret; }
 }
 
@@ -1047,8 +1052,9 @@ SystemDefn SystemFullParallel() :
 }
 {
 	{ begin = getToken(1); }
-	sys1 = SystemInterleaved()
-	( { par = new SystemFullParallel(); par.addOperand(sys1); } ( LOOKAHEAD(<OR> <OR>) <OR> <OR> sys2 = SystemParallel() { par.addOperand(sys2); } )* )
+	sys1 = SystemParallel()
+	// Need to check for "||" not followed by a third "|" (which would be "|||")
+	( { par = new SystemFullParallel(); par.addOperand(sys1); } ( LOOKAHEAD({ getToken(1).kind == OR && getToken(2).kind == OR && getToken(3).kind != OR }) <OR> <OR> sys2 = SystemParallel() { par.addOperand(sys2); } )* )
 	{
 		if (par==null || par.getNumOperands() == 1) {
 			return sys1;
@@ -1070,8 +1076,8 @@ SystemDefn SystemInterleaved() :
 }
 {
 	{ begin = getToken(1); }
-	sys1 = SystemParallel()
-	( { par = new SystemInterleaved(); par.addOperand(sys1); } ( LOOKAHEAD(<OR> <OR> <OR>) <OR> <OR> <OR>  sys2 = SystemFullParallel() { par.addOperand(sys2); } )* )
+	sys1 = SystemFullParallel()
+	( { par = new SystemInterleaved(); par.addOperand(sys1); } ( LOOKAHEAD(<OR> <OR> <OR>) <OR> <OR> <OR> sys2 = SystemFullParallel() { par.addOperand(sys2); } )* )
 	{
 		if (par==null || par.getNumOperands() == 1) {
 			return sys1;
@@ -1097,17 +1103,9 @@ SystemDefn SystemParallel() :
 	sys1 = SystemHideRename()
 	( LOOKAHEAD(<OR> <LBRACKET>) { par = new SystemParallel(); par.setOperand1(sys1); } <OR> 
 	  <LBRACKET> ( s = Identifier() { par.addAction(s); } ( <COMMA> s = Identifier() { par.addAction(s); } )* ) <RBRACKET>
-	  <OR> sys2 = SystemHideRename() { par.setOperand2(sys2); }
-	)?
-	{
-		if (par==null) {
-			return sys1;
-		}
-		else {
-			par.setPosition(begin, getToken(0));
-			return par;
-		}
-	}
+	  <OR> sys2 = SystemHideRename() { par.setOperand2(sys2); par.setPosition(begin, getToken(0)); sys1 = par; }
+	)*
+	{ return sys1; }
 }
 
 // System definition component (hiding and renaming)
