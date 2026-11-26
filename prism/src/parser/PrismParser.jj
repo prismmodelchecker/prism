@@ -1755,8 +1755,8 @@ Expression ExpressionSS(boolean prop, boolean pathprop) :
 	// Various options for "S" keyword and attached symbols
 	begin = <S> (
 		( <LPARENTH> modifier = IdentifierExpression() <RPARENTH> )?
-		( r = LtGt() prob = Expression(false, false) { relOp = ExpressionBinaryOp.opSymbols[r]; isBool = true; } ) |
-		( <EQ> <QMARK> { relOp = "="; isBool = false; } )
+		(( r = LtGt() prob = Expression(false, false) { relOp = ExpressionBinaryOp.opSymbols[r]; isBool = true; } ) |
+		( <EQ> <QMARK> { relOp = "="; isBool = false; } ))
 	)
 	// Expression, optional filter
 	<LBRACKET> expr = Expression(prop, pathprop) (filter = Filter())? <RBRACKET>
