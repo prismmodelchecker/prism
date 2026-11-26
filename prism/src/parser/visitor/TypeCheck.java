@@ -369,6 +369,9 @@ public class TypeCheck extends ASTTraverse
 				if (types[i] instanceof TypeBool) {
 					throw new PrismLangException("Type error: Boolean argument not allowed as argument to function \"" + e.getName() + "\"", e.getOperand(i));
 				}
+				if (types[i] instanceof TypePathBool || types[i] instanceof TypePathDouble) {
+					throw new PrismLangException("Type error: Path formula not allowed as argument to function \"" + e.getName() + "\"", e.getOperand(i));
+				}
 			}
 			break;
 		case ExpressionFunc.MOD:
