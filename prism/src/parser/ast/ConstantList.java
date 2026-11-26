@@ -293,6 +293,12 @@ public class ConstantList extends ASTElement
 				if (all) {
 					throw ex;
 				}
+				// If all the (undefined) constants it uses have values, this is a real error
+				// (e.g., an integer power with a negative exponent), not just a missing value:
+				// record why, so it can be reported if the constant is used
+				if (constant.getAllConstants().stream().allMatch(c -> ec.getConstantValue(c) != null)) {
+					allValues.addError(cl.getConstantName(i), ex.getMessage());
+				}
 			}
 		}
 		

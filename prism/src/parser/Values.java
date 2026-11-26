@@ -27,7 +27,9 @@
 package parser;
 
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 import parser.type.Type;
 import parser.type.TypeUtils;
@@ -43,6 +45,8 @@ public class Values implements Cloneable //implements Comparable
 {
 	protected ArrayList<String> names;
 	protected ArrayList<Object> values;
+	// Optionally, the reasons why values for some (other) names could not be computed
+	protected Map<String, String> errors = null;
 	
 	// Constructors
 	
@@ -68,6 +72,7 @@ public class Values implements Cloneable //implements Comparable
 		} else {
 			names = (ArrayList<String>) v.names.clone();
 			values = (ArrayList<Object>) v.values.clone();
+			addErrors(v);
 		}
 	}
 	
@@ -124,6 +129,41 @@ public class Values implements Cloneable //implements Comparable
 		n = v.getNumValues();
 		for (i = 0; i < n; i ++) {
 			addValue(v.getName(i), v.getValue(i));
+		}
+		addErrors(v);
+	}
+
+	/**
+	 * Record that the value for {@code name} could not be computed, and why
+	 * (e.g. an error evaluating a constant's definition).
+	 * This is not a value, but can be used to explain why one is missing.
+	 */
+	public void addError(String name, String reason)
+	{
+		if (errors == null) {
+			errors = new LinkedHashMap<>();
+		}
+		errors.put(name, reason);
+	}
+
+	/**
+	 * Get the reason why the value for {@code name} could not be computed,
+	 * if known (see {@link #addError(String, String)}), or null otherwise.
+	 */
+	public String getError(String name)
+	{
+		return errors == null ? null : errors.get(name);
+	}
+
+	/**
+	 * Copy any reasons for values not being computed from {@code v} (see {@link #addError(String, String)}).
+	 */
+	private void addErrors(Values v)
+	{
+		if (v.errors != null) {
+			for (Map.Entry<String, String> e : v.errors.entrySet()) {
+				addError(e.getKey(), e.getValue());
+			}
 		}
 	}
 	
@@ -348,6 +388,7 @@ public class Values implements Cloneable //implements Comparable
 		}
 		clone.names = (ArrayList<String>) names.clone();
 		clone.values = (ArrayList<Object>) values.clone();
+		clone.errors = errors == null ? null : new LinkedHashMap<>(errors);
 		return clone;
 	}
 

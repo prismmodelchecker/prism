@@ -40,6 +40,8 @@ public abstract class EvaluateContext
 	
 	/**
 	 * Evaluation mode (floating point? exact?)
+	 * This is how values are represented when evaluating expressions;
+	 * the arithmetic used for a whole model checking task is a {@link prism.PrecisionMode}.
 	 */
 	public enum EvalMode { FP, EXACT }
 	protected EvalMode evalMode = EvalMode.FP;
@@ -109,6 +111,15 @@ public abstract class EvaluateContext
 		return this;
 	}
 	
+	/**
+	 * Return the reason why the value for a constant (by name) could not be computed,
+	 * if known (e.g. an error evaluating its definition); null otherwise.
+	 */
+	public String getConstantError(String name)
+	{
+		return constantValues == null ? null : constantValues.getError(name);
+	}
+
 	// Main interface for EvaluateContext classes
 	
 	/**

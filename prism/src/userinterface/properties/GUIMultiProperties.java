@@ -311,7 +311,7 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 			}
 			// Store model/property constants
 			pfConstants = uCon.getPFConstantValues();
-			getPrism().setPRISMModelConstants(uCon.getMFConstantValues(), exact);
+			getPrism().setModelConstants(uCon.getMFConstantValues());
 			parsedProperties.setSomeUndefinedConstants(pfConstants, exact);
 			// Store properties to be verified
 			propertiesToBeVerified = validGUIProperties;
@@ -383,7 +383,7 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 			// Store model/property constants
 			pfConstants = uCon.getPFConstantValues();
 			// currently, evaluate constants non-exact for simulation
-			getPrism().setPRISMModelConstants(uCon.getMFConstantValues(), false);
+			getPrism().setModelConstants(uCon.getMFConstantValues());
 			parsedProperties.setSomeUndefinedConstants(pfConstants, false);
 			for (GUIProperty gp : simulatableGUIProperties)
 				gp.setConstants(uCon.getMFConstantValues(), pfConstants);
@@ -455,7 +455,12 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 
 		// sort out undefined constants
 		UndefinedConstants uCon = new UndefinedConstants(parsedModel, parsedProperties, props);
-		uCon.setExactMode(getPrism().getSettings().getBoolean(PrismSettings.PRISM_EXACT_ENABLED));
+		try {
+			uCon.setExactMode(getPrism().getSettings().getBoolean(PrismSettings.PRISM_EXACT_ENABLED));
+		} catch (PrismException e) {
+			error(e.getMessage());
+			return;
+		}
 		boolean showGraphDialog = false;
 		boolean useSimulation = false;
 		if (uCon.getMFNumUndefined() + uCon.getPFNumUndefined() == 0) {
@@ -1174,7 +1179,7 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 			// Store model/property constants
 			pfConstants = uCon.getPFConstantValues();
 			// currently, evaluate constants non-exact for model building
-			getPrism().setPRISMModelConstants(uCon.getMFConstantValues(), exact);
+			getPrism().setModelConstants(uCon.getMFConstantValues());
 			if (exportTask.extraLabelsUsed()) {
 				parsedProperties.setSomeUndefinedConstants(pfConstants, exact);
 				exportTask.setExtraLabelsSource(parsedProperties);

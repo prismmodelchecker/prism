@@ -253,7 +253,7 @@ public class GUIExperiment
 					// set values for ModulesFile constants
 					try {
 						definedMFConstants = undefinedConstants.getMFConstantValues();
-						prism.setPRISMModelConstants(definedMFConstants, exact);
+						prism.setModelConstants(definedMFConstants);
 					} catch (Exception e) {
 						// in case of error, report it (in log only), store as result, and go on to the next model
 						errorLog(e);

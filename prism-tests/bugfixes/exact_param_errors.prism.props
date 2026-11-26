@@ -1,7 +1,8 @@
 // A constant whose value cannot be computed
+// (the error says why, not just that it could not be evaluated)
 const int c = pow(2,-2);
 
-// RESULT: Error:Could not evaluate constant
+// RESULT: Error:Negative exponent not allowed
 c;
 
 // RESULT: Error:Could not evaluate constant

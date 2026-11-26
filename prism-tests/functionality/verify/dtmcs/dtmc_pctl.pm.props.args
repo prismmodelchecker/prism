@@ -66,3 +66,15 @@
 -h -buildall
 -m -buildall
 -exact -buildall
+
+# the auto engine (hybrid unless something else is needed), also with heuristic=speed
+
+-engine auto
+-engine auto -topological
+-engine auto -heuristic speed
+-heuristic speed
+
+# methods that the engine does not support (reported as not supported)
+
+-m -gs
+-s -pgs

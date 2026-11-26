@@ -330,9 +330,10 @@ public class PrismCL implements PrismModelListener
 			if (param) {
 				// Parameters must be undefined constants (of the model or properties)
 				Prism.checkParameterNames(paramNames, modulesFile, propertiesFile);
-				undefinedMFConstants.removeConstants(paramNames);
+				UndefinedConstants.checkParamSwitchAgainstConstSwitch(paramSwitch, constSwitch);
+				undefinedMFConstants.defineUsingParamSwitch(paramSwitch, false);
 				for (i = 0; i < numPropertiesToCheck; i++) {
-					undefinedConstants[i].removeConstants(paramNames);
+					undefinedConstants[i].defineUsingParamSwitch(paramSwitch, false);
 				}
 			}
 			// then set up value using const switch definitions
@@ -340,21 +341,17 @@ public class PrismCL implements PrismModelListener
 			for (i = 0; i < numPropertiesToCheck; i++) {
 				undefinedConstants[i].defineUsingConstSwitch(constSwitch);
 			}
+			// and pass the definitions to Prism, which evaluates single values in the precision in use
+			// (the experiments below still set the values for each point themselves)
+			prism.defineConstants(constSwitch);
 		} catch (PrismException e) {
 			errorAndExit(e.getMessage());
 		}
 		if (param) {
-			prism.setParametric(paramNames, paramLowerBounds, paramUpperBounds);
-		}
-
-		// If -exportadv was used and the explicit engine has been requested for MDPs,
-		// or the model type is only supported by the explicit engine, stop with an error message
-		if (prism.getSettings().getChoice(PrismSettings.PRISM_EXPORT_ADV) != Prism.EXPORT_ADV_NONE) {
-			if (prism.getModelType() == ModelType.MDP && prism.getCurrentEngine() == Prism.PrismEngine.EXPLICIT) {
-				errorAndExit("The -exportadv functionality does not work for the explicit engine; use -exportstrat instead");
-			}
-			if (prism.getModelType().partiallyObservable() || prism.getModelType().uncertain()) {
-				errorAndExit("The -exportadv functionality does not work for the explicit engine; use -exportstrat instead");
+			try {
+				prism.setParameters(UndefinedConstants.parseParamSwitch(paramSwitch));
+			} catch (PrismException e) {
+				errorAndExit(e.getMessage());
 			}
 		}
 
@@ -370,7 +367,7 @@ public class PrismCL implements PrismModelListener
 			// set values for ModulesFile constants
 			try {
 				definedMFConstants = undefinedMFConstants.getMFConstantValues();
-				prism.setPRISMModelConstants(definedMFConstants, exactConstants);
+				prism.setModelConstants(definedMFConstants);
 			} catch (PrismException e) {
 				// in case of error, report it, store as result for any properties, and go on to the next model
 				// (might happen for example if overflow or another numerical problem is detected at this stage)
@@ -2096,8 +2093,6 @@ public class PrismCL implements PrismModelListener
 
 	private void processOptions() throws PrismException
 	{
-		int j;
-
 		// make sure a model file is specified
 		if (modelFilename == null) {
 			mainLog.println("Usage: " + Prism.getCommandLineName() + " [options] <model-file> [<properties-file>] [more-options]");
@@ -2119,49 +2114,14 @@ public class PrismCL implements PrismModelListener
 			explicitbuild = false;
 		}
 
-		// check not trying to do gauss-seidel with mtbdd engine
-		// (if we are in test mode, we ignore here; will lead to appropriate 'not supported' error handling during testing)
-		if (prism.getEngine() == Prism.MTBDD && !test) {
-			j = prism.getLinEqMethod();
-			if (j == Prism.GAUSSSEIDEL || j == Prism.BGAUSSSEIDEL || j == Prism.PGAUSSSEIDEL || j == Prism.BPGAUSSSEIDEL) {
-				errorAndExit("Gauss-Seidel and its variants are currently not supported by the MTBDD engine");
-			}
-			if (j == Prism.SOR || j == Prism.BSOR || j == Prism.PSOR || j == Prism.BPSOR) {
-				errorAndExit("SOR and its variants are currently not supported by the MTBDD engine");
-			}
-		}
-
-		// or pseudo methods with sparse engine
-		// (if we are in test mode, we ignore here; will lead to appropriate 'not supported' error handling during testing)
-		else if (prism.getEngine() == Prism.SPARSE && !test) {
-			j = prism.getLinEqMethod();
-			if (j == Prism.PGAUSSSEIDEL || j == Prism.BPGAUSSSEIDEL || j == Prism.PSOR || j == Prism.BPSOR) {
-				errorAndExit("Pseudo Gauss-Seidel/SOR methods are currently not supported by the sparse engine");
-			}
-		}
+		// (checks that the engine supports the chosen methods etc. are done by Prism, see SettingsResolver)
 
 		// process info about parametric constants
 		if (param) {
-			String[] paramDefs = paramSwitch.split(",");
-			paramNames = new String[paramDefs.length];
-			paramLowerBounds = new String[paramDefs.length];
-			paramUpperBounds = new String[paramDefs.length];
-			for (int pdNr = 0; pdNr < paramDefs.length; pdNr++) {
-				if (!paramDefs[pdNr].contains("=")) {
-					paramNames[pdNr] = paramDefs[pdNr];
-					paramLowerBounds[pdNr] = "0";
-					paramUpperBounds[pdNr] = "1";
-				} else {
-					String[] paramDefSplit = paramDefs[pdNr].split("=");
-					paramNames[pdNr] = paramDefSplit[0];
-					paramDefSplit[1] = paramDefSplit[1].trim();
-					String[] upperLower = paramDefSplit[1].split(":");
-					if (upperLower.length != 2)
-						throw new PrismException("Invalid range \"" + paramDefSplit[1] + "\" for parameter " + paramNames[pdNr]);
-					paramLowerBounds[pdNr] = upperLower[0].trim();
-					paramUpperBounds[pdNr] = upperLower[1].trim();
-				}
-			}
+			List<DefinedConstant.Parameter> params = UndefinedConstants.parseParamSwitch(paramSwitch);
+			paramNames = params.stream().map(DefinedConstant.Parameter::getName).toArray(String[]::new);
+			paramLowerBounds = params.stream().map(DefinedConstant.Parameter::getLower).toArray(String[]::new);
+			paramUpperBounds = params.stream().map(DefinedConstant.Parameter::getUpper).toArray(String[]::new);
 		}
 
 		// Plug in model basename for model exports where needed

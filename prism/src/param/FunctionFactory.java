@@ -286,7 +286,7 @@ public abstract class FunctionFactory
 				return getVar(exprString);
 			} else {
 				// A constant that is not a parameter should have been evaluated already
-				throw new PrismLangException("Could not evaluate constant", expr);
+				throw new PrismLangException(ExpressionConstant.couldNotEvaluateMessage(constantValues == null ? null : constantValues.getError(exprString)), expr);
 			}
 		} else if (expr instanceof ExpressionBinaryOp) {
 			ExpressionBinaryOp binExpr = ((ExpressionBinaryOp) expr);

@@ -29,7 +29,11 @@ package prism;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.Vector;
 
 import parser.*;
@@ -43,6 +47,13 @@ import parser.type.*;
  * Really, the main purpose of this class is to manage an "experiment",
  * i.e. to iterate through several different values of one or more constants,
  * but this includes the special case where all undefined constants are given a single value.
+ * <br><br>
+ * Constants can also be defined to be parameters (for parametric model checking),
+ * see {@link #defineUsingParamSwitch(String, boolean)}. These are then no longer
+ * treated as undefined constants to be given values, and are available via {@link #getParameters()}.
+ * <br><br>
+ * Definitions made from strings (via the {@code define...} methods) are remembered as strings,
+ * so the exact mode ({@link #setExactMode(boolean)}) can be changed after constants have been defined.
  */
 public class UndefinedConstants
 {
@@ -62,6 +73,10 @@ public class UndefinedConstants
 	private List<DefinedConstant> mfConsts = null;
 	private int pfNumConsts = 0;
 	private List<DefinedConstant> pfConsts = null;
+	// constants that are parameters (removed from the above)
+	private List<DefinedConstant.Parameter> parameters = new ArrayList<>();
+	// strings used to define constants (low, high, step), so they can be redefined, e.g. for exact mode
+	private Map<String, String[]> definitionStrings = new LinkedHashMap<>();
 
 	// stuff for iterating through constant values
 	private Values mfValues = null;
@@ -178,9 +193,54 @@ public class UndefinedConstants
 		this.justLabels = justLabels;
 	}
 
-	public void setExactMode(boolean exact)
+	/**
+	 * Set whether constants are evaluated exactly (real values as BigRationals) or not (as doubles).
+	 * This can be called after constants have been defined: definitions made from strings
+	 * are then redefined in the new mode, and any iterators are reinitialised.
+	 */
+	public void setExactMode(boolean exact) throws PrismException
 	{
+		if (this.exact == exact) {
+			return;
+		}
+		if (definitionStrings.isEmpty()) {
+			this.exact = exact;
+			return;
+		}
+		// Keep the current state, to restore if redefinition fails
+		// (e.g. a value that is a valid double but not a valid rational)
+		List<DefinedConstant> oldMfConsts = mfConsts == null ? null : new ArrayList<>(mfConsts);
+		List<DefinedConstant> oldPfConsts = pfConsts == null ? null : new ArrayList<>(pfConsts);
+		Map<String, String[]> oldDefinitionStrings = new LinkedHashMap<>(definitionStrings);
+		Values oldMfValues = mfValues;
+		Values oldPfValues = pfValues;
 		this.exact = exact;
+		try {
+			// Redefine (from the copy, since redefinition updates the map)
+			for (Map.Entry<String, String[]> def : oldDefinitionStrings.entrySet()) {
+				String[] strs = def.getValue();
+				defineConstant(def.getKey(), strs[0], strs[1], strs[2]);
+			}
+			if (mfValues != null || pfValues != null) {
+				initialiseIterators();
+			}
+		} catch (PrismException e) {
+			this.exact = !exact;
+			mfConsts = oldMfConsts;
+			pfConsts = oldPfConsts;
+			definitionStrings = oldDefinitionStrings;
+			mfValues = oldMfValues;
+			pfValues = oldPfValues;
+			throw e;
+		}
+	}
+
+	/**
+	 * Are constants evaluated exactly (real values as BigRationals)?
+	 */
+	public boolean getExactMode()
+	{
+		return exact;
 	}
 
 	/**
@@ -248,6 +308,7 @@ public class UndefinedConstants
 			Type type = propertiesFile.getConstantList().getConstantType(propertiesFile.getConstantList().getConstantIndex(s));
 			pfConsts.add(new DefinedConstant.Undefined(s, type));
 		}
+		parameters = new ArrayList<>();
 		// initialise storage just created
 		clearAllDefinitions();
 	}
@@ -366,6 +427,7 @@ public class UndefinedConstants
 		for (i = 0; i < pfNumConsts; i++) {
 			pfConsts.set(i, pfConsts.get(i).clear());
 		}
+		definitionStrings.clear();
 	}
 
 	/**
@@ -420,18 +482,34 @@ public class UndefinedConstants
 	 */
 	private void parseConstSwitch(String constSwitch) throws PrismException
 	{
-		int i, j;
-		String parts[], args[];
-
 		// create storage for info
 		constSwitchNames = new Vector<String>();
 		constSwitchLows = new Vector<String>();
 		constSwitchHighs = new Vector<String>();
 		constSwitchSteps = new Vector<String>();
+		for (String[] def : parseConstSwitchDefinitions(constSwitch)) {
+			constSwitchNames.add(def[0]);
+			constSwitchLows.add(def[1]);
+			constSwitchHighs.add(def[2]);
+			constSwitchSteps.add(def[3]);
+		}
+	}
+
+	/**
+	 * Parse a -const switch string (e.g. "x=1,y=1:100,z=1:10:100,b=true")
+	 * into a list of definitions, each an array {name, low, high, step}
+	 * (high and step are null for a single value; step is null if not given).
+	 * Duplicate names are not checked for.
+	 */
+	public static List<String[]> parseConstSwitchDefinitions(String constSwitch) throws PrismException
+	{
+		int i, j;
+		String parts[], args[];
+		List<String[]> defs = new ArrayList<>();
 
 		// if string is null, nothing more to do
 		if (constSwitch == null)
-			return;
+			return defs;
 
 		// split into comma separated parts...
 		parts = constSwitch.split(",");
@@ -447,7 +525,7 @@ public class UndefinedConstants
 			j = parts[i].indexOf('=');
 			if (j < 1 || j + 2 > parts[i].length())
 				throw new PrismException("Invalid format in definition of undefined constants");
-			constSwitchNames.add(parts[i].substring(0, j));
+			String name = parts[i].substring(0, j);
 
 			// check for trailing colon(s)
 			// this is a formatting error not detected by split(":") below
@@ -458,27 +536,22 @@ public class UndefinedConstants
 			args = parts[i].substring(j + 1).split(":");
 			// simple case - no colons, e.g. x=0
 			if (args.length == 1) {
-				constSwitchLows.add(args[0]);
-				constSwitchHighs.add(null);
-				constSwitchSteps.add(null);
+				defs.add(new String[] { name, args[0], null, null });
 			}
 			// range, e.g. x=0:10
 			else if (args.length == 2) {
-				constSwitchLows.add(args[0]);
-				constSwitchHighs.add(args[1]);
-				constSwitchSteps.add(null);
+				defs.add(new String[] { name, args[0], args[1], null });
 			}
 			// range with step, e.g. x=0:2:10
 			else if (args.length == 3) {
-				constSwitchLows.add(args[0]);
-				constSwitchHighs.add(args[2]);
-				constSwitchSteps.add(args[1]);
+				defs.add(new String[] { name, args[0], args[2], args[1] });
 			}
 			// error
 			else {
 				throw new PrismException("Invalid format in definition of undefined constants");
 			}
 		}
+		return defs;
 	}
 
 	/** Define value for a single undefined constant.
@@ -532,6 +605,11 @@ public class UndefinedConstants
 		int index = 0;
 		boolean overwrite = false; // did definition exist already?
 
+		// a parameter cannot also be given values
+		if (isParameter(name)) {
+			throw new PrismException("Constant \"" + name + "\" is a parameter, so cannot also be given a value");
+		}
+
 		// find out if const is in model or properties file (or neither)
 		// also check for overwriting
 		index = getMFConstIndex(name);
@@ -539,12 +617,14 @@ public class UndefinedConstants
 			// const is in modules file
 			overwrite = (mfConsts.get(index).isDefined());
 			mfConsts.set(index, mfConsts.get(index).define(sl, sh, ss, exact));
+			definitionStrings.put(name, new String[] { sl, sh, ss });
 		} else {
 			index = getPFConstIndex(name);
 			if (index != -1) {
 				// const is in properties file
 				overwrite = (pfConsts.get(index).isDefined());
 				pfConsts.set(index, pfConsts.get(index).define(sl, sh, ss, exact));
+				definitionStrings.put(name, new String[] { sl, sh, ss });
 			} else {
 				// If we are required to use all supplied const values, check for this
 				// (by default we don't care about un-needed or non-existent const values)
@@ -562,6 +642,134 @@ public class UndefinedConstants
 
 		// return whether or not we overwrote an existing definition
 		return overwrite;
+	}
+
+	/**
+	 * Parse the argument to the prism -param command line switch
+	 * (format "p,q=0:1/2", i.e., names with optional ranges, which default to 0:1)
+	 * into a list of parameters. Their types are not known here, so are null.
+	 */
+	public static List<DefinedConstant.Parameter> parseParamSwitch(String paramSwitch) throws PrismException
+	{
+		List<DefinedConstant.Parameter> params = new ArrayList<>();
+		if (paramSwitch == null) {
+			return params;
+		}
+		Set<String> names = new HashSet<>();
+		for (String paramDef : paramSwitch.split(",")) {
+			// ignore blanks
+			if (paramDef.trim().isEmpty()) {
+				continue;
+			}
+			DefinedConstant.Parameter param;
+			if (!paramDef.contains("=")) {
+				param = new DefinedConstant.Parameter(paramDef.trim(), null, "0", "1");
+			} else {
+				String[] paramDefSplit = paramDef.split("=", 2);
+				String name = paramDefSplit[0].trim();
+				String range = paramDefSplit[1].trim();
+				String[] upperLower = range.split(":");
+				if (upperLower.length != 2) {
+					throw new PrismException("Invalid range \"" + range + "\" for parameter " + name);
+				}
+				param = new DefinedConstant.Parameter(name, null, upperLower[0].trim(), upperLower[1].trim());
+			}
+			if (!names.add(param.getName())) {
+				throw new PrismException("Duplicate definitions for parameter \"" + param.getName() + "\"");
+			}
+			params.add(param);
+		}
+		return params;
+	}
+
+	/**
+	 * Check that none of the parameters in the argument to the prism -param command line switch
+	 * are also given values in the argument to the -const switch. Unlike the checks done when
+	 * defining constants, this applies to all constants, not just those needed here.
+	 */
+	public static void checkParamSwitchAgainstConstSwitch(String paramSwitch, String constSwitch) throws PrismException
+	{
+		if (constSwitch == null) {
+			return;
+		}
+		Set<String> constNames = new HashSet<>();
+		for (String constDef : constSwitch.split(",")) {
+			int j = constDef.indexOf('=');
+			if (j > 0) {
+				constNames.add(constDef.substring(0, j).trim());
+			}
+		}
+		for (DefinedConstant.Parameter param : parseParamSwitch(paramSwitch)) {
+			if (constNames.contains(param.getName())) {
+				throw new PrismException("Constant \"" + param.getName() + "\" is a parameter, so cannot also be given a value");
+			}
+		}
+	}
+
+	/**
+	 * Define some constants to be parameters, using the argument to the prism -param command line switch
+	 * (see {@link #parseParamSwitch(String)}). These are no longer treated as undefined constants.
+	 * @param paramSwitch The switch argument
+	 * @param useAll If true, throw an exception if a parameter is not one of the undefined constants
+	 */
+	public void defineUsingParamSwitch(String paramSwitch, boolean useAll) throws PrismException
+	{
+		for (DefinedConstant.Parameter param : parseParamSwitch(paramSwitch)) {
+			defineParameter(param.getName(), param.getLower(), param.getUpper(), useAll);
+		}
+	}
+
+	/**
+	 * Define a constant to be a parameter, with a range. It is no longer treated as an undefined constant.
+	 * @param name The name of the constant
+	 * @param lower The lower bound of the range
+	 * @param upper The upper bound of the range
+	 * @param useAll If true, throw an exception if {@code name} is not one of the undefined constants
+	 * @return True if the constant was found (and so is now a parameter)
+	 */
+	public boolean defineParameter(String name, String lower, String upper, boolean useAll) throws PrismException
+	{
+		if (isParameter(name)) {
+			throw new PrismException("Duplicate definitions for parameter \"" + name + "\"");
+		}
+		DefinedConstant<?> constant = null;
+		int index = getMFConstIndex(name);
+		if (index != -1) {
+			constant = mfConsts.get(index);
+		} else {
+			index = getPFConstIndex(name);
+			if (index != -1) {
+				constant = pfConsts.get(index);
+			}
+		}
+		if (constant == null) {
+			if (useAll) {
+				throw new PrismException("Parameter \"" + name + "\" is not an undefined constant of the model or properties");
+			}
+			return false;
+		}
+		if (definitionStrings.containsKey(name)) {
+			throw new PrismException("Constant \"" + name + "\" has been given a value, so cannot also be a parameter");
+		}
+		removeConstant(name);
+		parameters.add(new DefinedConstant.Parameter(name, constant.getType(), lower, upper));
+		return true;
+	}
+
+	/**
+	 * Is the constant {@code name} a parameter?
+	 */
+	public boolean isParameter(String name)
+	{
+		return parameters.stream().anyMatch(p -> p.getName().equals(name));
+	}
+
+	/**
+	 * Get the constants that are parameters, in the order they were defined.
+	 */
+	public List<DefinedConstant.Parameter> getParameters()
+	{
+		return new ArrayList<>(parameters);
 	}
 
 	/**

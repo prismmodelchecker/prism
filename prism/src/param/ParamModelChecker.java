@@ -460,7 +460,7 @@ final public class ParamModelChecker extends PrismComponent
 					ExpressionConstant exprConst = (ExpressionConstant) exprVar;
 					// A constant that is not a parameter should have been evaluated already
 					if (!functionFactory.hasVar(exprConst.getName())) {
-						throw new PrismLangException("Could not evaluate constant", exprConst);
+						throw new PrismLangException(ExpressionConstant.couldNotEvaluateMessage(constantValues.getError(exprConst.getName())), exprConst);
 					}
 					stateValues.setStateValue(state, functionFactory.getVar(exprConst.getName()));
 				} else {
