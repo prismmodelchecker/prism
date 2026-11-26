@@ -100,7 +100,8 @@ in which case it applies to as much as its own precedence allows:
 Division `/` always gives a double, not integer division: `22/7` is 3.142857..., not 3.
 
 In properties, the [temporal operators](../PropertySpecification/ThePOperator.md#path) bind less tightly than all of these.
-The unary ones (`X`, `F`, `G`) bind more tightly than the binary ones (`U`, `W`, `R`).
+The unary ones (`X`, `F`, `G`) bind more tightly than the binary ones (`U`, `W`, `R`),
+which are right associative.
 As for `!`, a unary temporal operator can also be the operand of a non-temporal operator:
 `a & F b` means `a & (F b)`.
 But most LTL tools (e.g. Spot) bind unary temporal operators more tightly than `&`, `|`, etc.,

@@ -1215,7 +1215,8 @@ Expression ExpressionTemporalBinary(boolean prop, boolean pathprop) :
 		| <W> { exprTemp.setOperator(ExpressionTemporal.P_W); }
 		| <R> { exprTemp.setOperator(ExpressionTemporal.P_R); } )
 		( TimeBound(exprTemp) )?
-		expr = ExpressionTemporalUnary(prop, pathprop)
+		// Binary temporal operators are right associative: "a U b U c" = "a U (b U c)"
+		expr = ExpressionTemporalBinary(prop, pathprop)
 		{ exprTemp.setOperand2(expr); exprTemp.setPosition(begin, getToken(0)); ret = exprTemp; }
 	]
 	{ return ret; }

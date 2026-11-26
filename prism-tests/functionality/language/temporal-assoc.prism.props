@@ -1,0 +1,36 @@
+// Binary temporal operators are right associative: "a U b U c" is "a U (b U c)"
+
+// RESULT: 1/8
+P=? [ s=0 U s=1 U s=2 ];
+
+// RESULT: 1/8
+P=? [ s=0 U (s=1 U s=2) ];
+
+// RESULT: 1/6
+P=? [ (s=0 U s=1) U s=2 ];
+
+// RESULT: 1/8
+P=? [ s=0 W s=1 W s=2 ];
+
+// RESULT: 1/6
+P=? [ (s=0 W s=1) W s=2 ];
+
+// RESULT: 0.5
+P=? [ s=1 R s!=4 R s!=3 ];
+
+// RESULT: 1
+P=? [ (s=1 R s!=4) R s!=3 ];
+
+// RESULT: 1/8
+P=? [ s=0 U s=1 W s=2 ];
+
+// Unary temporal operators bind more tightly: "F a U b" is "(F a) U b"
+
+// RESULT: 1/6
+P=? [ F s=2 U s=1 ];
+
+// RESULT: 1/6
+P=? [ (F s=2) U s=1 ];
+
+// RESULT: 0.5
+P=? [ F (s=2 U s=1) ];

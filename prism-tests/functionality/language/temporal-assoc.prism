@@ -1,0 +1,14 @@
+// Small DTMC for testing the associativity of binary temporal operators
+// (U, W, R), which are right associative: "a U b U c" is "a U (b U c)".
+
+dtmc
+
+module M
+	s : [0..5];
+	[] s=0 -> 0.5:(s'=1) + 0.5:(s'=3);
+	[] s=1 -> 0.5:(s'=0) + 0.25:(s'=2) + 0.25:(s'=4);
+	[] s=2 -> (s'=5);
+	[] s=3 -> (s'=3);
+	[] s=4 -> (s'=4);
+	[] s=5 -> (s'=2);
+endmodule
