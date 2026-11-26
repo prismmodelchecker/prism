@@ -1,0 +1,15 @@
+// Small DTMC for testing the parsing of prefix operators (! and X/F/G)
+// when they appear as the operand of a tighter binary operator,
+// e.g. "a=!b" or "a&F b", which should parse as "a=(!b)" and "a&(F b)".
+
+dtmc
+
+module M
+	s : [0..5];
+	[] s=0 -> 0.5:(s'=1) + 0.5:(s'=3);
+	[] s=1 -> 0.5:(s'=0) + 0.25:(s'=2) + 0.25:(s'=4);
+	[] s=2 -> (s'=5);
+	[] s=3 -> (s'=3);
+	[] s=4 -> (s'=4);
+	[] s=5 -> (s'=2);
+endmodule

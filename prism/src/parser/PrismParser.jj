@@ -1229,19 +1229,31 @@ Expression ExpressionTemporalUnary(boolean prop, boolean pathprop) :
 }
 {
 	(
-		// This production is only allowed in expressions if the "pathprop" parameter is true
-		{ if (!pathprop) throw generateParseException(); }
-		{ begin = getToken(1); exprTemp = new ExpressionTemporal(); }
-		( <X> { exprTemp.setOperator(ExpressionTemporal.P_X); }
-		| <F> { exprTemp.setOperator(ExpressionTemporal.P_F); }
-		| <G> { exprTemp.setOperator(ExpressionTemporal.P_G); } )
-		( TimeBound(exprTemp) )?
-		expr = ExpressionTemporalUnary(prop, pathprop)
-		{ exprTemp.setOperand2(expr); exprTemp.setPosition(begin, getToken(0)); ret = exprTemp; }
+		ret = ExpressionTemporalUnaryOp(prop, pathprop)
 	|
 		ret = ExpressionITE(prop, pathprop)
 	)
 	{ return ret; }
+}
+
+// Expression: temporal operators, unary (X, F, G), with the operator present
+
+Expression ExpressionTemporalUnaryOp(boolean prop, boolean pathprop) :
+{
+	Expression expr;
+	ExpressionTemporal exprTemp;
+	Token begin = null;
+}
+{
+	// This production is only allowed in expressions if the "pathprop" parameter is true
+	{ if (!pathprop) throw generateParseException(); }
+	{ begin = getToken(1); exprTemp = new ExpressionTemporal(); }
+	( <X> { exprTemp.setOperator(ExpressionTemporal.P_X); }
+	| <F> { exprTemp.setOperator(ExpressionTemporal.P_F); }
+	| <G> { exprTemp.setOperator(ExpressionTemporal.P_G); } )
+	( TimeBound(exprTemp) )?
+	expr = ExpressionTemporalUnary(prop, pathprop)
+	{ exprTemp.setOperand2(expr); exprTemp.setPosition(begin, getToken(0)); return exprTemp; }
 }
 
 // Time bound for temporal operators
@@ -1338,10 +1350,22 @@ Expression ExpressionNot(boolean prop, boolean pathprop) :
 }
 {
 	(
-		begin = <NOT> expr = ExpressionNot(prop, pathprop) { ret = new ExpressionUnaryOp(ExpressionUnaryOp.NOT, expr); ret.setPosition(begin, getToken(0)); }
+		ret = ExpressionNotOp(prop, pathprop)
 	|
 		ret = ExpressionEquality(prop, pathprop)
 	)
+	{ return ret; }
+}
+
+// Expression: not, with the operator present
+
+Expression ExpressionNotOp(boolean prop, boolean pathprop) :
+{
+	Expression ret, expr;
+	Token begin = null;
+}
+{
+	begin = <NOT> expr = ExpressionNot(prop, pathprop) { ret = new ExpressionUnaryOp(ExpressionUnaryOp.NOT, expr); ret.setPosition(begin, getToken(0)); }
 	{ return ret; }
 }
 
@@ -1441,6 +1465,21 @@ Expression ExpressionUnaryMinus(boolean prop, boolean pathprop) :
 	(
 		begin = <MINUS> expr = ExpressionUnaryMinus(prop, pathprop)
 		{ ret = new ExpressionUnaryOp(ExpressionUnaryOp.MINUS, expr); ret.setPosition(begin, getToken(0)); }
+	|
+		// A prefix operator of lower precedence (! or X/F/G) can also appear here,
+		// as the operand of a tighter operator, e.g. "a=!b" or "a&F b".
+		// As usual for prefix operators, its scope extends as far to the right
+		// as its own precedence allows, e.g. "a=!b&c" is "(a=(!b))&c".
+		// The first operand of these operators never starts with ! or X/F/G
+		// (those are consumed at their own level), so this only affects
+		// operands that would otherwise be syntax errors.
+		// JavaCC warns about lookahead (in this and the binary operator productions)
+		// because of this, e.g. "a=!b=c" = "(a=(!b))=c" or "a=(!(b=c))" ?
+		// Ignoring the warnings results in the largest match being taken,
+		// which gives the scoping described above ("a=(!(b=c))").
+		ret = ExpressionNotOp(prop, pathprop)
+	|
+		ret = ExpressionTemporalUnaryOp(prop, pathprop)
 	|
 		ret = ExpressionBasic(prop, pathprop)
 	)

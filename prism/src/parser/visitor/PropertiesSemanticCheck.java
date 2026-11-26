@@ -28,12 +28,15 @@ package parser.visitor;
 
 import parser.ast.ConstantList;
 import parser.ast.Expression;
+import parser.ast.ExpressionBinaryOp;
 import parser.ast.ExpressionFilter;
+import parser.ast.ExpressionITE;
 import parser.ast.ExpressionLabel;
 import parser.ast.ExpressionProb;
 import parser.ast.ExpressionReward;
 import parser.ast.ExpressionSS;
 import parser.ast.ExpressionTemporal;
+import parser.ast.ExpressionUnaryOp;
 import parser.ast.FormulaList;
 import parser.ast.LabelList;
 import parser.ast.ModulesFile;
@@ -109,6 +112,188 @@ public class PropertiesSemanticCheck extends SemanticCheck
 				throw new PrismLangException("Definition of constant \"" + e.getConstantName(i) + "\" is not constant", e.getConstant(i));
 			}
 		}
+	}
+
+	// Checks for unbracketed temporal operators whose scope is ambiguous.
+	// A unary temporal operator (X, F, G) can be the operand of a non-temporal
+	// operator, e.g. "a & F b", and its scope then extends as far to the right
+	// as its precedence allows. This differs from the usual reading in LTL,
+	// where prefix operators bind most tightly, so brackets are required if:
+	// (a) its operand has a logical connective or ? : at the top,
+	//     e.g. "a & F b & c" ("a & F (b & c)", not "(a & F b) & c"); or
+	// (b) it is within the unbracketed operand of another temporal operator,
+	//     e.g. "F a & G b" ("F (a & G b)", not "(F a) & (G b)").
+
+	@Override
+	public void visitPre(ExpressionTemporal e) throws PrismLangException
+	{
+		if (e.getOperand1() != null && containsTemporalOperandOfNonTemporal(e.getOperand1())) {
+			throw ambiguousTemporalScope(e, false);
+		}
+		if (e.getOperand2() != null && containsTemporalOperandOfNonTemporal(e.getOperand2())) {
+			throw ambiguousTemporalScope(e, true);
+		}
+	}
+
+	@Override
+	public void visitPre(ExpressionBinaryOp e) throws PrismLangException
+	{
+		checkTemporalOperandOfNonTemporal(e.getOperand1());
+		checkTemporalOperandOfNonTemporal(e.getOperand2());
+	}
+
+	@Override
+	public void visitPre(ExpressionUnaryOp e) throws PrismLangException
+	{
+		if (e.getOperator() != ExpressionUnaryOp.PARENTH) {
+			checkTemporalOperandOfNonTemporal(e.getOperand());
+		}
+	}
+
+	@Override
+	public void visitPre(ExpressionITE e) throws PrismLangException
+	{
+		checkTemporalOperandOfNonTemporal(e.getOperand1());
+		checkTemporalOperandOfNonTemporal(e.getOperand2());
+		checkTemporalOperandOfNonTemporal(e.getOperand3());
+	}
+
+	/**
+	 * Check case (a) above for an operand of a non-temporal operator.
+	 */
+	private void checkTemporalOperandOfNonTemporal(Expression operand) throws PrismLangException
+	{
+		if (isUnaryTemporal(operand)) {
+			Expression body = getUnaryTemporalBody((ExpressionTemporal) operand);
+			if (isConnective(body) || body instanceof ExpressionITE) {
+				throw ambiguousTemporalScope((ExpressionTemporal) operand, true);
+			}
+		}
+	}
+
+	/**
+	 * Does an (unbracketed) operand of a temporal operator contain,
+	 * without any intervening brackets, a unary temporal operator
+	 * that is the operand of a non-temporal operator? (case (b) above)
+	 */
+	private static boolean containsTemporalOperandOfNonTemporal(Expression expr)
+	{
+		if (expr instanceof ExpressionTemporal) {
+			ExpressionTemporal exprTemp = (ExpressionTemporal) expr;
+			return (exprTemp.getOperand1() != null && containsTemporalOperandOfNonTemporal(exprTemp.getOperand1()))
+					|| (exprTemp.getOperand2() != null && containsTemporalOperandOfNonTemporal(exprTemp.getOperand2()));
+		}
+		Expression[] operands;
+		if (expr instanceof ExpressionBinaryOp) {
+			operands = new Expression[] { ((ExpressionBinaryOp) expr).getOperand1(), ((ExpressionBinaryOp) expr).getOperand2() };
+		} else if (expr instanceof ExpressionUnaryOp && ((ExpressionUnaryOp) expr).getOperator() != ExpressionUnaryOp.PARENTH) {
+			operands = new Expression[] { ((ExpressionUnaryOp) expr).getOperand() };
+		} else if (expr instanceof ExpressionITE) {
+			ExpressionITE exprITE = (ExpressionITE) expr;
+			operands = new Expression[] { exprITE.getOperand1(), exprITE.getOperand2(), exprITE.getOperand3() };
+		} else {
+			return false;
+		}
+		for (Expression operand : operands) {
+			if (isUnaryTemporal(operand) || containsTemporalOperandOfNonTemporal(operand)) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	/**
+	 * Create an error for a temporal operator whose scope is ambiguous,
+	 * suggesting bracketed versions: the usual LTL reading of the (unary chain of)
+	 * operators, if {@code rotate} is true and it differs, and PRISM's reading.
+	 */
+	private static PrismLangException ambiguousTemporalScope(ExpressionTemporal e, boolean rotate)
+	{
+		Expression prismReading = bracketTemporalOperands(e);
+		String msg = "Ambiguous scope of temporal operator: add brackets, e.g. ";
+		Expression body = getUnaryTemporalBody(e);
+		if (rotate && isConnective(body)) {
+			msg += "\"" + rotateTemporal(e, body) + "\" or ";
+		}
+		msg += "\"" + prismReading + "\"";
+		// Attach the error to PRISM's (bracketed) reading, at the position of the operator
+		prismReading.setPosition(e);
+		return new PrismLangException(msg, prismReading);
+	}
+
+	/**
+	 * Copy a temporal operator (and any chain of unary ones in its second operand),
+	 * bracketing operands that have a logical connective or ? : at the top.
+	 */
+	private static Expression bracketTemporalOperands(ExpressionTemporal e)
+	{
+		ExpressionTemporal copy = (ExpressionTemporal) e.deepCopy();
+		ExpressionTemporal t = copy;
+		while (true) {
+			if (needsBrackets(t.getOperand1())) {
+				t.setOperand1(Expression.Parenth(t.getOperand1()));
+			}
+			if (isUnaryTemporal(t.getOperand2())) {
+				t = (ExpressionTemporal) t.getOperand2();
+			} else {
+				if (needsBrackets(t.getOperand2())) {
+					t.setOperand2(Expression.Parenth(t.getOperand2()));
+				}
+				return copy;
+			}
+		}
+	}
+
+	/**
+	 * Construct the LTL-style reading of temporal operator {@code e} applied to {@code body},
+	 * where the operator applies only to the leftmost operand of any logical connectives,
+	 * e.g. "(F a) & c" for "F a & c".
+	 */
+	private static Expression rotateTemporal(ExpressionTemporal e, Expression body)
+	{
+		if (isConnective(body)) {
+			ExpressionBinaryOp binOp = (ExpressionBinaryOp) body;
+			return new ExpressionBinaryOp(binOp.getOperator(), rotateTemporal(e, binOp.getOperand1()), binOp.getOperand2().deepCopy());
+		}
+		ExpressionTemporal copy = (ExpressionTemporal) e.deepCopy();
+		ExpressionTemporal t = copy;
+		while (isUnaryTemporal(t.getOperand2())) {
+			t = (ExpressionTemporal) t.getOperand2();
+		}
+		t.setOperand2(body.deepCopy());
+		return Expression.Parenth(copy);
+	}
+
+	private static boolean isUnaryTemporal(Expression expr)
+	{
+		return expr instanceof ExpressionTemporal && ((ExpressionTemporal) expr).getOperand1() == null && ((ExpressionTemporal) expr).getOperand2() != null;
+	}
+
+	/**
+	 * Get the operand of a temporal operator, skipping any chain of
+	 * (unbracketed) unary temporal operators, e.g. "a" for "G F a".
+	 */
+	private static Expression getUnaryTemporalBody(ExpressionTemporal e)
+	{
+		Expression body = e.getOperand2();
+		while (isUnaryTemporal(body)) {
+			body = ((ExpressionTemporal) body).getOperand2();
+		}
+		return body;
+	}
+
+	private static boolean isConnective(Expression expr)
+	{
+		if (!(expr instanceof ExpressionBinaryOp)) {
+			return false;
+		}
+		int op = ((ExpressionBinaryOp) expr).getOperator();
+		return op == ExpressionBinaryOp.IMPLIES || op == ExpressionBinaryOp.IFF || op == ExpressionBinaryOp.OR || op == ExpressionBinaryOp.AND;
+	}
+
+	private static boolean needsBrackets(Expression expr)
+	{
+		return isConnective(expr) || expr instanceof ExpressionITE;
 	}
 
 	public void visitPost(ExpressionTemporal e) throws PrismLangException

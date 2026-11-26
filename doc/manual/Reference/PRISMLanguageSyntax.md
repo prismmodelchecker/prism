@@ -94,9 +94,21 @@ from the most strongly binding (1) to least.
 | 12 | `? :` | condition: `c ? a : b` is `a` if `c` is true and `b` otherwise | right |
 
 So, for example, `-x^2` means `(-x)^2`, and `2^3^2` means `2^(3^2)`.
+A prefix operator (`-` or `!`) can also be the operand of a more tightly binding operator,
+in which case it applies to as much as its own precedence allows:
+`a = !b` means `a = (!b)`, and `a = !b & c` means `(a = (!b)) & c`.
 Division `/` always gives a double, not integer division: `22/7` is 3.142857..., not 3.
 
 In properties, the [temporal operators](../PropertySpecification/ThePOperator.md#path) bind less tightly than all of these.
+The unary ones (`X`, `F`, `G`) bind more tightly than the binary ones (`U`, `W`, `R`).
+As for `!`, a unary temporal operator can also be the operand of a non-temporal operator:
+`a & F b` means `a & (F b)`.
+But most LTL tools (e.g. Spot) bind unary temporal operators more tightly than `&`, `|`, etc.,
+so brackets are required where the scope of the operator would be unclear:
+if its operand contains `&`, `|`, `=>`, `<=>` or `? :` outside brackets (e.g. `a & F b & c`),
+or if it is within the operand of another temporal operator (e.g. `F a & G b`,
+which should be written `(F a) & (G b)` or `F (a & G b)`).
+A temporal operator at the start, as in `F a & b`, still applies to everything after it: `F (a & b)`.
 
 <a id="literals"></a>
 ### Literals
