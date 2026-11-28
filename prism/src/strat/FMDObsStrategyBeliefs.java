@@ -241,13 +241,7 @@ public class FMDObsStrategyBeliefs<Value> extends StrategyExplicit<Value>
 	@Override
 	public explicit.Model<Value> constructInducedModel(StrategyExportOptions options, Consumer<InducedStateMap> stateMapConsumer) throws PrismException
 	{
-		ConstructStrategyProduct csp = new ConstructStrategyProduct(options);
-		csp.setStoreStateMap(stateMapConsumer != null);
-		Model<Value> prodModel = csp.constructProductModel(model, this);
-		if (stateMapConsumer != null) {
-			stateMapConsumer.accept(csp.getStateMap());
-		}
-		return prodModel;
+		return constructInducedModelWithMemory(options, stateMapConsumer);
 	}
 
 	@Override
