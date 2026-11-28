@@ -27,9 +27,7 @@
 package strat;
 
 import explicit.ConstructInducedModel;
-import explicit.ConstructStrategyProduct;
 import explicit.InducedStateMap;
-import explicit.Model;
 import explicit.NondetModel;
 import explicit.Product;
 import explicit.SuccessorsIterator;
@@ -184,13 +182,7 @@ public class FMDStrategyProduct<Value> extends StrategyExplicit<Value>
 	@Override
 	public explicit.Model<Value> constructInducedModel(StrategyExportOptions options, Consumer<InducedStateMap> stateMapConsumer) throws PrismException
 	{
-		ConstructStrategyProduct csp = new ConstructStrategyProduct(options);
-		csp.setStoreStateMap(stateMapConsumer != null);
-		Model<Value> prodModel = csp.constructProductModel(model, this);
-		if (stateMapConsumer != null) {
-			stateMapConsumer.accept(csp.getStateMap());
-		}
-		return prodModel;
+		return constructInducedModelWithMemory(options, stateMapConsumer);
 	}
 
 	@Override
