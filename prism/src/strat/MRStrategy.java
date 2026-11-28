@@ -138,6 +138,12 @@ public class MRStrategy<Value> extends StrategyExplicit<Value>
 	}
 
 	@Override
+	public String getChoiceIndexString(int s, int m)
+	{
+		return choiceProbs.get(s).toString();
+	}
+
+	@Override
 	public void clear()
 	{
 		choiceProbs = null;
